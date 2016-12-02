@@ -1,0 +1,21 @@
+body {
+    margin-top: 100px;
+    background-color: #fff;
+    /*padding-top: 105px; */
+}
+
+@media(min-width:768px) {
+    body {
+        margin-top: 110px !important;
+    }
+}
+
+#logos-cfg{
+    margin-top: 50px;
+}
+
+.info-modal{
+    margin-left: 10px;
+    margin-right: 10px;
+    text-align: center;
+}

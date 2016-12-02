@@ -1,0 +1,46 @@
+<?php
+/* Dashboard Builder.
+   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+
+include '../config.php';
+
+session_start(); // Starting Session
+$link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
+mysqli_select_db($link, $dbname);
+
+$user_id = $_SESSION['login_user_id'];
+
+$name_dashboard_selected = $_GET['nameDashboard'];
+$name_utente = $_GET['user'];
+
+//$selqDbtb2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard_selected'";      //parentesi della verifica dell'admin
+$selqDbtb2 = "SELECT * FROM Dashboard.Config_dashboard JOIN Dashboard.Users WHERE Config_dashboard.name_dashboard='$name_dashboard_selected' AND Config_dashboard.user=Users.IdUser AND Users.username='$name_utente'";
+$result5 = mysqli_query($link, $selqDbtb2) or die(mysqli_error($link));
+
+
+if ($result5) {
+    if ($result5->num_rows > 0) {     
+        while ($row2 = mysqli_fetch_array($result5)) {
+            $id_dashboard = $row2['Id'];
+        }
+    }
+
+    mysqli_close($link);
+    $url=  urldecode("index.php?iddasboard=".base64_encode($id_dashboard)."&nome_dashboard=".$name_dashboard_selected);   
+    header("location: ".$url);
+} else {
+    mysqli_close($link);
+}
+?>
