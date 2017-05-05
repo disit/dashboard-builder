@@ -14,63 +14,256 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type='text/javascript'>
-    var contentHeight = null;
-    var shownHeight = null;
-    var speed = 50;
-    var rewindDelay = 1500;
-    var scrollBottom = null;
+    var gradients = {
+      GREEN: "linear-gradient(to right, #E2FF8C, #99CC00)",
+      ORANGE: "linear-gradient(to right, #FFD382, #FFA500)",
+      YELLOW: "linear-gradient(to right, #FAFAAF, #FFFF00)",
+      RED: "linear-gradient(to right, #FF7878, #FF0000)"
+    };
     
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad)  
     {
-        var scroller = null;
-        function autoScroll()
-        {
-            var pos = $("#<?= $_GET['name'] ?>_content").scrollTop();
-            pos++;
-            $("#<?= $_GET['name'] ?>_content").scrollTop(pos); 
-            clearTimeout(scroller);
-            scroller = setTimeout(arguments.callee, speed);
-        }
-        
-        function scrollerListener()
-        {
-            var pos = parseInt($("#<?= $_GET['name'] ?>_content").scrollTop());
-            if(pos == scrollBottom)
-            {
-                clearTimeout(scroller);
-                setTimeout(function()
-                {
-                    $("#<?= $_GET['name'] ?>_content").scrollTop(0);
-                    scroller = setTimeout(autoScroll, speed);
-                }, 2000);
-            }
-        }
-        
-        name = "<?= $_REQUEST['name'] ?>";
-        $("#<?= $_GET['name'] ?>_logo").css("background-color", '<?= $_GET['frame_color'] ?>');
-        
-        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
+        var contentHeight, shownHeight, scrollBottom, permalink, idWidget, idDash, idraulicoSrc, idraulicoLoc, temporaliSrc, temporaliLoc, idrogeologicoSrc,
+        idrogeologicoLoc, neveSrc, neveLoc, ghiaccioSrc, ghiaccioLoc, ventoSrc, ventoLoc, mareSrc, mareLoc, maxAlarmDeg, descW, sizeRowsWidget, fontRatio = null;
+        var speed = 50;
+        var rewindDelay = 1500;
+        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 75);
         var loadingFontDim = 13; 
         var loadingIconDim = 20;
+        var alarmDegs = new Array();
+        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontColor = "<?= $_GET['fontColor'] ?>";
+        var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
+        var name = "<?= $_REQUEST['name'] ?>";
+        var divLinkContainer = $('#<?= $_GET['name'] ?>_logoPc');
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        
+        $("#<?= $_GET['name'] ?>_logo").css("background-color", '<?= $_GET['frame_color'] ?>');
         $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
+        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim + "px");
+        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim + "px");
         $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        if(firstLoad != false)
+        $("#<?= $_GET['name'] ?>_content").css("background-color", '<?= $_GET['color'] ?>');
+        
+        if(firstLoad !== false)
         {
             $('#<?= $_GET['name'] ?>_loading').css("display", "block");
         }
         
-        $("#<?= $_GET['name'] ?>_content").css("height", height);
+        $("#<?= $_GET['name'] ?>_content").css("height", height + "px");
+        var contentHeight = parseInt($('#<?= $_GET['name'] ?>_div').prop("offsetHeight") - 75 - 18);
+        var contentHeight2 = parseInt($('#<?= $_GET['name'] ?>_div').prop("offsetHeight") - 75 - 20);
+        $("#<?= $_GET['name'] ?>_general").css("height", contentHeight2 + "px");
+        $("#<?= $_GET['name'] ?>_meteo").css("height", contentHeight2 + "px");
         
-        var sizeRowsWidget = null;
-        var fontRatio = null;
-        var fontRatioSmall = null;
-          
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#<?= $_GET['name'] ?>_logoPc');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        //Definizioni di funzione specifiche del widget
+        function getNumPriority(color)
+        {
+            numPriority = null;
+            switch(color)
+            {
+                case gradients.GREEN:
+                    numPriority = 1;
+                    break;
+                    
+                case gradients.YELLOW:
+                    numPriority = 2;
+                    break;
+                    
+                case gradients.ORANGE:
+                    numPriority = 3;
+                    break;
+                    
+                case gradients.RED:
+                    numPriority = 4;
+                    break;    
+            }
+            return parseInt(numPriority);
+        }
+        
+        function getColPriority(numeric)
+        {
+            colPriority = null;
+            switch(numeric)
+            {
+                case 1:
+                    colPriority = gradients.GREEN;
+                    break;
+                    
+                case 2:
+                    colPriority = gradients.YELLOW;
+                    break;
+                    
+                case 3:
+                    colPriority = gradients.ORANGE;
+                    break;
+                    
+                case 4:
+                    colPriority = gradients.RED;
+                    break;    
+            }
+            
+            return colPriority;
+        }
+        
+        function getMaxAlarmGrade()
+        {
+            var max = alarmDegs[0];
+            var maxNumeric = 1;
+            var numeric = null;
+            alarmDegs.forEach(function(element) {
+                numeric = getNumPriority(element);
+                if(numeric > maxNumeric)
+                {
+                    maxNumeric = numeric;
+                }
+            });
+            max = getColPriority(maxNumeric);
+            return max;
+        }
+        
+        function getGradient(imgSrc)
+        {
+            if(imgSrc.indexOf("nessuno") >= 0)
+            {
+                return gradients.GREEN;
+            }
+            
+            if(imgSrc.indexOf("basso") >= 0)
+            {
+                return gradients.YELLOW;
+            }
+            
+            if(imgSrc.indexOf("medio") >= 0)
+            {
+                return gradients.ORANGE;
+            }
+            
+            if(imgSrc.indexOf("alto") >= 0)
+            {
+                return gradients.RED;
+            }
+        }
+        //Fine definizioni di funzione
+        
+        
+        $('#<?= $_GET['name'] ?>_content').on('slid.bs.carousel', function (ev) 
+        {
+            var id = ev.relatedTarget.id;
+            switch(id)
+            {
+                case "<?= $_GET['name'] ?>_general":
+                        $("#<?= $_GET['name'] ?>_generalLi").attr("class", "active");
+                        $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "");       
+                        break;
+
+                case "<?= $_GET['name'] ?>_meteo":
+                        $("#<?= $_GET['name'] ?>_generalLi").attr("class", "");
+                        $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "active");       
+                        break;    
+            }
+        });
+
+        $("#<?= $_GET['name'] ?>_generalLi").click(function() 
+        {
+            $("#<?= $_GET['name'] ?>_generalLi").attr("class", "active");
+            $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "");
+            $("#<?= $_GET['name'] ?>_content").carousel(0);
+        });
+
+        $("#<?= $_GET['name'] ?>_meteoLi").click(function() 
+        {
+            $("#<?= $_GET['name'] ?>_generalLi").attr("class", "");
+            $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "active");
+            $("#<?= $_GET['name'] ?>_content").carousel(1);
+        });
+        
+        /*if(contentHeight >= 269) //269 è la somma delle altezze delle 8 righe, inclusi i margini intervallanti di 4 px e la legenda
+        {
+            //No scroller
+            descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 35); 
+        }
+        else
+        {
+            //Sì scroller
+            descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 35 - 17); 
+        }*/
+    
+        //Con la nuova versione con scroller corretto non sembra più necessario fare rilevamento dello scroller
+        descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 35 - 4);
+        
+        //Nuova soluzione che fixa i problemi con lo zoom
+        var descWPerc = Math.floor(descW * 100 / $('#<?= $_GET['name'] ?>_div').width());
+        var meteoPcRowPercHeight =  Math.ceil(30 * 100 / contentHeight);
+        var meteoPcIconPercWidth = Math.ceil(30 * 100 / descW);
+        
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("height", meteoPcRowPercHeight + "%");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("margin-bottom", 4 + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("width", descWPerc + "%");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("margin-right", 2 + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcIcon").css("width", meteoPcIconPercWidth + "%");
+        
+        $('#<?= $_GET['name'] ?>_meteo').css("overflow", "auto");
+        
+        addLink("<?= $_GET['name'] ?>", permalink, linkElement, divLinkContainer);
+
+        $('#source_<?= $_GET['name'] ?>').on('click', function () 
+        {
+            $('#dialog_<?= $_GET['name'] ?>').show();
+        });
+
+        $('#close_popup_<?= $_GET['name'] ?>').on('click', function () 
+        {
+            $('#dialog_<?= $_GET['name'] ?>').hide();
+        });
+        
+        var counter = <?= $_GET['freq'] ?>;
+        var countdown = setInterval(function () 
+        {
+            var ref = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_div .pcCountdown"; 
+            $(ref).text(counter);
+            counter--;
+            if (counter > 60) 
+            {
+                $(ref).text(Math.floor(counter / 60) + "m");
+            } 
+            else 
+            {
+                $(ref).text(counter + "s");
+            }
+            if (counter === 0) 
+            {
+                $(ref).text(counter + "s");
+                $("#<?= $_GET['name'] ?>_content").off();
+                $("#<?= $_GET['name'] ?>_meteo .meteoPcIcon").html("");
+                switch(maxAlarmDeg)
+                {
+                    case gradients.YELLOW:
+                        $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPcActiveYellow");
+                        $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPc");
+                        break;
+
+                    case gradients.ORANGE:
+                        $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPcActiveOrange");
+                        $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPc");
+                        break;
+
+                    case gradients.RED:
+                        $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPcActiveRed");
+                        $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPc");
+                        break;
+
+                    default:
+                        break;
+                }
+                $("#<?= $_GET['name'] ?>_general").html("");
+                
+                clearInterval(countdown);
+                setTimeout(<?= $_GET['name'] ?>(false), 1000);
+            }
+        }, 1000);
         
          $.ajax({//Inizio AJAX getParametersWidgets.php
             url: "../widgets/getParametersWidgets.php",
@@ -82,13 +275,13 @@
             {
                 var moveDownRef = null;
                 var contentSel = null; 
-                var idWidget = null;
-                var idDash = null;
-                var name = null;
+                idWidget = null;
+                idDash = null;
+                name = null;
                 
                 var counter = <?= $_GET['freq'] ?>;
                 
-                if (msg != null)
+                if (msg !== null)
                 {
                     udm = msg.param.udm;
                     sizeRowsWidget = parseInt(msg.param.size_rows);
@@ -96,209 +289,224 @@
                     idDash = msg.param.id_dashboard;
                 }
                 
-                contentSel = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_content";
-                
                 $.ajax({
-                    url: "http://protezionecivile.comune.fi.it/?cat=5&feed=json",
+                    url: "../management/iframeProxy.php",
                     type: "GET",
                     async: false,
-                    dataType: 'jsonp',
+                    //dataType: 'jsonp',
                     success: function (msg) 
                     {
-                        $("#<?= $_GET['name'] ?>_content").css("background-color", '<?= $_GET['color'] ?>');
+                        idraulicoSrc = $(msg).find("img[name='idraulico']").attr("src");
+                        temporaliSrc = $(msg).find("img[name='temporali']").attr("src");
+                        idrogeologicoSrc = $(msg).find("img[name='idrogeologico']").attr("src");
+                        neveSrc = $(msg).find("img[name='neve']").attr("src");
+                        ghiaccioSrc = $(msg).find("img[name='ghiaccio']").attr("src");
+                        ventoSrc = $(msg).find("img[name='vento']").attr("src");
+                        mareSrc = $(msg).find("img[name='mare']").attr("src");
                         
-                        if(msg == null)
-                        {
-                            if(firstLoad != false)
+                        var index = idraulicoSrc.indexOf("idraulico");
+                        idraulicoLoc = "../img/meteoPc/" + idraulicoSrc.substring(index);
+                        var newImg = $("<img style='width: 100%; height: 100%'>");
+                        var grad = getGradient(idraulicoLoc);
+                        alarmDegs.push(grad);
+                        newImg.attr("src", idraulicoLoc);
+                        $("#<?= $_GET['name'] ?>_idraulico .meteoPcDesc").css("background", grad);
+                        $("#<?= $_GET['name'] ?>_idraulico .meteoPcIcon").append(newImg);
+                        
+                        index = temporaliSrc.indexOf("temporali");
+                        temporaliLoc = "../img/meteoPc/" + temporaliSrc.substring(index);
+                        newImg = $("<img style='width: 100%; height: 100%'>");
+                        grad = getGradient(temporaliLoc);
+                        alarmDegs.push(grad);
+                        newImg.attr("src", temporaliLoc);
+                        $("#<?= $_GET['name'] ?>_temporali .meteoPcDesc").css("background", grad);
+                        $("#<?= $_GET['name'] ?>_temporali .meteoPcIcon").append(newImg);
+                        
+                        index = idrogeologicoSrc.indexOf("idrogeologico");
+                        idrogeologicoLoc = "../img/meteoPc/" + idrogeologicoSrc.substring(index);
+                        newImg = $("<img style='width: 100%; height: 100%'>");
+                        grad = getGradient(idrogeologicoLoc);
+                        alarmDegs.push(grad);
+                        newImg.attr("src", idrogeologicoLoc);
+                        $("#<?= $_GET['name'] ?>_idrogeologico .meteoPcDesc").css("background", grad);
+                        $("#<?= $_GET['name'] ?>_idrogeologico .meteoPcIcon").append(newImg);
+                        
+                        index = neveSrc.indexOf("neve");
+                        neveLoc = "../img/meteoPc/" + neveSrc.substring(index);
+                        newImg = $("<img style='width: 100%; height: 100%'>");
+                        grad = getGradient(neveLoc);
+                        alarmDegs.push(grad);
+                        newImg.attr("src", neveLoc);
+                        $("#<?= $_GET['name'] ?>_neve .meteoPcDesc").css("background", grad);
+                        $("#<?= $_GET['name'] ?>_neve .meteoPcIcon").append(newImg);
+                        
+                        index = ghiaccioSrc.indexOf("ghiaccio");
+                        ghiaccioLoc = "../img/meteoPc/" + ghiaccioSrc.substring(index);
+                        newImg = $("<img style='width: 100%; height: 100%'>");
+                        grad = getGradient(ghiaccioLoc);
+                        alarmDegs.push(grad);
+                        newImg.attr("src", ghiaccioLoc);
+                        $("#<?= $_GET['name'] ?>_ghiaccio .meteoPcDesc").css("background", grad);
+                        $("#<?= $_GET['name'] ?>_ghiaccio .meteoPcIcon").append(newImg);
+                        
+                        index = ventoSrc.indexOf("vento");
+                        ventoLoc = "../img/meteoPc/" + ventoSrc.substring(index);
+                        newImg = $("<img style='width: 100%; height: 100%'>");
+                        grad = getGradient(ventoLoc);
+                        alarmDegs.push(grad);
+                        newImg.attr("src", ventoLoc);
+                        $("#<?= $_GET['name'] ?>_vento .meteoPcDesc").css("background", grad);
+                        $("#<?= $_GET['name'] ?>_vento .meteoPcIcon").append(newImg);
+                        
+                        index = mareSrc.indexOf("mare");
+                        mareLoc = "../img/meteoPc/" + mareSrc.substring(index);
+                        newImg = $("<img style='width: 100%; height: 100%'>");
+                        grad = getGradient(mareLoc);
+                        alarmDegs.push(grad);
+                        newImg.attr("src", mareLoc);
+                        $("#<?= $_GET['name'] ?>_mare .meteoPcDesc").css("background", grad);
+                        $("#<?= $_GET['name'] ?>_mare .meteoPcIcon").append(newImg);
+                        
+                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + idraulicoSrc + "'/>");
+                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + temporaliSrc + "'/>");
+                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + idrogeologicoSrc + "'/>");
+                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + neveSrc + "'/>");
+                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + ghiaccioSrc + "'/>");
+                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + ventoSrc + "'/>");
+                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + mareSrc + "'/>");
+                        
+                        maxAlarmDeg = getMaxAlarmGrade();
+                        
+                        $.ajax({
+                            url: "http://protezionecivile.comune.fi.it/?cat=5&feed=json",
+                            type: "GET",
+                            async: false,
+                            dataType: 'jsonp',
+                            success: function (msg) 
                             {
-                                $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                $('#<?= $_GET['name'] ?>_content').css("display", "block");
-                            }
-                            $('#<?= $_GET['name'] ?>_content').html("<p style='text-align: center; font-size: 18px;'>Nessun dato disponibile</p>");
-                        }
-                        else
-                        {
-                            //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
-                            fontRatio = parseInt((sizeRowsWidget / 4)*90);
-                            fontRatioSmall = parseInt((fontRatio / 100)*40);
-                            fontRatio = fontRatio.toString() + "%";
-                            fontRatioSmall = fontRatioSmall.toString() + "%";
-
-                            var id = msg[0].permalink;
-                            var title = msg[0].title;
-                            var permalink = msg[0].permalink;
-                            var content = msg[0].content;
-                            var date = msg[0].date;
-                            var author = msg[0].author;
-                            var categories = msg[0].categories;
-                            var tags = msg[0].tags;
-                            
-                            content = content.replace(/\[iframe.*\]/g, "");
-                            var fakeContent = '<p>Regione Toscana prevede:<b><b></b></b></p>' +
-                                '<b>A3 &#8211; Arno-Firenze</b><br/>' +
-                                '<table width="100%" style="border-collapse:collapse">'+
-                                '<tr>'+
-                                '<th width="33%">RISCHIO</th>'+
-                                '<th width="33%">TEMPI</th>'+
-                                '<th width="33%">CRITICITÀ</th>'+
-                                '</tr>'+
-                                '<tr>'+
-                                '<td style="border-bottom: 1pt solid black;">TEMPORALI</td>' +
-                                '<td style="border-bottom: 1pt solid black;">da 06/11/2016<br/>'+
-                                'a 06/11/2016</td>'+
-                                '<td style="border-bottom: 1pt solid black;"><b>ARANCIONE</b></td>'+
-                                '</tr>'+
-                                '<tr>'+
-                                '<td style="border-bottom: 1pt solid black;">TEMPORALI</td>' +
-                                '<td style="border-bottom: 1pt solid black;">da 15/11/2016<br />'+
-                                'a 16/11/2016</td>'+
-                                '<td style="border-bottom: 1pt solid black;"><b>ROSSO</b></td>'+
-                                '</tr>'+
-                                '<tr>'+
-                                '<td style="border-bottom: 1pt solid black;">NEVE</td>' +
-                                '<td style="border-bottom: 1pt solid black;">da 06/12/2016<br />'+
-                                'a 06/12/2016</td>'+
-                                '<td style="border-bottom: 1pt solid black;"><b>ARANCIONE</b></td>'+
-                                '</tr>'+
-                                '<tr>'+
-                                '<td style="border-bottom: 1pt solid black;">NEVE</td>' +
-                                '<td style="border-bottom: 1pt solid black;">da 07/12/2016<br />'+
-                                'a 08/11/2016</td>'+
-                                '<td style="border-bottom: 1pt solid black;"><b>ARANCIONE</b></td>'+
-                                '</tr>'+
-                                '<tr >'+
-                                '<td style="border-bottom: 1pt solid black;">FORTE VENTO</td>' +
-                                '<td style="border-bottom: 1pt solid black;">da 12/12/2016<br />'+
-                                'a 06/11/2016</td>'+
-                                '<td style="border-bottom: 1pt solid black;"><b>ARANCIONE</b></td>'+
-                                '</tr>'+
-                                '<tr>'+
-                                '<td style="border-bottom: 1pt solid black;">TEMPORALI</td>' +
-                                '<td style="border-bottom: 1pt solid black;">da 15/12/2016<br />'+
-                                'a 16/12/2016</td>'+
-                                '<td style="border-bottom: 1pt solid black;"><b>ARANCIONE</b></td>'+
-                                '</tr>'+
-                                '<tr>'+
-                                '<td style="border-bottom: 1pt solid black;">NEVE</td>' +
-                                '<td style="border-bottom: 1pt solid black;">da 20/12/2016<br />'+
-                                'a 21/12/2016</td>'+
-                                '<td style="border-bottom: 1pt solid black;"><b>ARANCIONE</b></td>'+
-                                '</tr>'+
-                                '</table>';
-                                       
-                            $(contentSel).append(fakeContent);
-                            if(firstLoad != false)
-                            {
-                                $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                $(contentSel).css("display", "block");
-                            }
-                            
-                            $(contentSel).scrollTop(0);
-                            contentHeight = $(contentSel)[0].scrollHeight;
-                            shownHeight = $(contentSel).prop("offsetHeight");
-                            scrollBottom = contentHeight - shownHeight;
-                            
-                            scroller = setTimeout(autoScroll, 2000);
-                            $("#<?= $_GET['name'] ?>_content").scroll(scrollerListener);
-                            
-                            $(contentSel).mouseenter(function() 
-                            {
-                                $("#<?= $_GET['name'] ?>_content").off("scroll");
-                                clearTimeout(scroller);
-                            });
-                            
-                            $(contentSel).mouseleave(function() 
-                            {
-                                clearTimeout(scroller);
-                                $("#<?= $_GET['name'] ?>_content").off("scroll");
-                                
-                                if($("#<?= $_GET['name'] ?>_content").scrollTop() == scrollBottom)
+                                if(msg === null)
                                 {
-                                    setTimeout(function()
+                                    if(firstLoad !== false)
                                     {
-                                        $("#<?= $_GET['name'] ?>_content").scrollTop(0);
-                                    }, 1000);
+                                        $('#<?= $_GET['name'] ?>_loading').css("display", "none");
+                                        $('#<?= $_GET['name'] ?>_content').css("display", "block");
+                                    }
+                                    $('#<?= $_GET['name'] ?>_content').html("<p style='text-align: center; font-size: 18px;'>Nessun dato disponibile</p>");
                                 }
-                                scroller = setTimeout(autoScroll, speed);
-                                $("#<?= $_GET['name'] ?>_content").scroll(scrollerListener);
-                            });
-                            
-                            $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                                $('#dialog_<?= $_GET['name'] ?>').show();
-                            });
-                            
-                            $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-                                $('#dialog_<?= $_GET['name'] ?>').hide();
-                            });
-                        }
+                                else
+                                {
+                                    var id = msg[0].id;
+                                    var title = msg[0].title;
+                                    permalink = msg[0].permalink;
+                                    if((permalink === "null") || (permalink === null) || (permalink === ""))
+                                    {
+                                        permalink = null;
+                                    }
+                                    var content = msg[0].content;
+                                    var date = msg[0].date;
+                                    var author = msg[0].author;
+                                    var categories = msg[0].categories;
+                                    var tags = msg[0].tags;
+                                    
+                                    $("#<?= $_GET['name'] ?>_permalink").attr("href", permalink);
+                                    content = content.replace(/\[iframe.*\]/g, "");
+                                    content = content.replace(/<img class="aligncenter" src="http:\/\/protezionecivile.comune.fi.it\/wp-content\/uploads\/[0-9]*\/[0-9]*\/postie-media.png" alt="" \/>/g, '');                
+                                    
+                                    $("#<?= $_GET['name'] ?>_general").html(content);
+                                    $("#<?= $_GET['name'] ?>_general *").css("color", fontColor);
+                                    $("#<?= $_GET['name'] ?>_general *").css("font-size", fontSize + "px");
+                                    
+                                    switch(maxAlarmDeg)
+                                    {
+                                        case gradients.YELLOW:
+                                            $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPc");
+                                            $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPcActiveYellow");
+                                            break;
+                                            
+                                        case gradients.ORANGE:
+                                            $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPc");
+                                            $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPcActiveOrange");
+                                            break;
+                                            
+                                        case gradients.RED:
+                                            $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPc");
+                                            $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPcActiveRed");
+                                            break;
+                                            
+                                        default:
+                                            break;
+                                    }
+                                }  
+                            },
+                            error: function()
+                            {
+                                $("#<?= $_GET['name'] ?>_general").html("At the moment it's not possible to get data from Civil Protection");
+                            }
+                        });
                         
-                        if(link_w.trim()) 
-                        {
-                            if(linkElement.length === 0)
-                            {
-                               linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                               divChartContainer.wrap(linkElement); 
-                            }
-                        }
-                        var counter = <?= $_GET['freq'] ?>;
-                        var countdown = setInterval(function () 
-                        {
-                            var ref = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_div .pcCountdown"; // 
-                            $(ref).text(counter);
-                            counter--;
-                            if (counter > 60) 
-                            {
-                                $(ref).text(Math.floor(counter / 60) + "m");
-                            } 
-                            else 
-                            {
-                                $(ref).text(counter + "s");
-                            }
-                            if (counter === 0) 
-                            {
-                                $(ref).text(counter + "s");
-                                clearTimeout(scroller);
-                                $("#<?= $_GET['name'] ?>_content").off();
-                                //clearInterval(moveDownRef);
-                                $(contentSel).html("");
-                                clearInterval(countdown);
-                                setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                            }
-                        }, 1000);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert('An error occurred... Look at the console (F12 or Ctrl+Shift+I, Console tab) for more information!');
+
+                        $('#page-wrapper').html('<p>status code: ' + jqXHR.status + '</p><p>errorThrown: ' + errorThrown + '</p><p>jqXHR.responseText:</p><div>' + jqXHR.responseText + '</div>');
+                         console.log('jqXHR:');
+                         console.log(jqXHR);
+                         console.log('textStatus:');
+                         console.log(textStatus);
+                         console.log('errorThrown:');
+                         console.log(errorThrown);
                     }
                 });
+                if(firstLoad !== false)
+                {
+                    $('#<?= $_GET['name'] ?>_loading').css("display", "none");
+                    $("#<?= $_GET['name'] ?>_content").css("display", "block");
+                }
+                
+                if(defaultTab !== -1)
+                {
+                    $("#<?= $_GET['name'] ?>_content").carousel(defaultTab);
+                    $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                }
+                else
+                {
+                    $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                    $('#<?= $_GET['name'] ?>_content').attr('data-interval', 4000);
+                    $('#<?= $_GET['name'] ?>_content').carousel('cycle');
+                }
             }
         });   
-});
-                            
-       
+});//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_logo' class="pcLogosContainer">
-            <div id="<?= $_GET['name'] ?>_info" class="pcInfoContainer">
+            <div id='<?= $_GET['name'] ?>_alarmDivPc' class="alarmDivPc">
+                <div id="<?= $_GET['name'] ?>_info" class="pcInfoContainer">
                 <a id ="info_modal" href="#" class="info_source">
                     <img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button">
                 </a>
-            </div>
-            <div id="<?= $_GET['name'] ?>_logoPc" class="logoPc">
-                <img src="../img/protezioneCivile.png">
-            </div>
-            
-            <div id="<?= $_GET['name'] ?>_iconsModifyWidget" class="iconsModifyPcWidget">
-                <a class="icon-cfg-widget" href="#">
-                    <span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span>
-                </a>
-                <a class="icon-remove-widget" href="#">
-                    <span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span>
-                </a>
-                <div id="countdown_<?= $_GET['name'] ?>" class="pcCountdown"></div>
-            </div>
-            <div id="<?= $_GET['name'] ?>_pcCountdownContainer" class="pcCountdownContainer">
-                <div id="countdown_<?= $_GET['name'] ?>" class="pcCountdown"></div>
+                </div>
+                <div id="<?= $_GET['name'] ?>_logoPc" class="logoPc">
+                    <a id="<?= $_GET['name'] ?>_permalink" href="about:blank" target="_blank"><img src="../img/protezioneCivile.png"></a>
+                </div>
+
+                <div id="<?= $_GET['name'] ?>_iconsModifyWidget" class="iconsModifyPcWidget">
+                    <a class="icon-cfg-widget" href="#">
+                        <span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span>
+                    </a>
+                    <a class="icon-remove-widget" href="#">
+                        <span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span>
+                    </a>
+                    <div id="countdown_<?= $_GET['name'] ?>" class="pcCountdown"></div>
+                </div>
+                <div id="<?= $_GET['name'] ?>_pcCountdownContainer" class="pcCountdownContainer">
+                    <div id="countdown_<?= $_GET['name'] ?>" class="pcCountdown"></div>
+                </div>
             </div>
         </div>
+        
         <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -307,6 +515,77 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id='<?= $_GET['name'] ?>_content' class="content pcContainer"></div>
+        
+        <div id='<?= $_GET['name'] ?>_content' class="content pcContainer carousel" data-interval="false" data-pause="hover">
+            <ul id="<?= $_GET['name'] ?>_nav_ul" class="nav nav-tabs nav_ul">
+                <li role="navigation" id="<?= $_GET['name'] ?>_generalLi" class="active"><a disabled="true" class="atafTab">general</a></li>
+                <li role="navigation" id="<?= $_GET['name'] ?>_meteoLi"><a disabled="true" class="atafTab">meteo</a></li>
+            </ul>
+            <div id="<?= $_GET['name'] ?>_carousel" class="carousel-inner" role="listbox">
+                <div id="<?= $_GET['name'] ?>_general" class="item active pcGeneralDiv">
+                </div>
+                <div id="<?= $_GET['name'] ?>_meteo" class="item">
+                    <div id="<?= $_GET['name'] ?>_legendaRow" class="meteoPcLegendaRow">
+                        <div id="<?= $_GET['name'] ?>_legendaContainer" class="pcLegendaContainer">
+                            <div class="pcLegendaElement pcLegendaElementMarginRight">
+                                <div class="pcLegendaNessuno">nullo</div>    
+                            </div>
+                            <div class="pcLegendaElement pcLegendaElementMarginRight">
+                                <div class="pcLegendaBasso">basso</div>    
+                            </div>
+                            <div class="pcLegendaElement pcLegendaElementMarginRight">
+                                <div class="pcLegendaMedio">medio</div>     
+                            </div>
+                            <div class="pcLegendaElement">
+                                <div class="pcLegendaAlto">alto</div>     
+                            </div>      
+                        </div>
+                        
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_idraulico" class="meteoPcRow">
+                        <a href="http://www.regione.toscana.it/allerta-meteo-rischio-idraulico" class="eventLink" target="_blank">
+                            <div class="meteoPcDesc">rischio idraulico</div>
+                        </a>
+                        <div class="meteoPcIcon"></div>
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_temporali" class="meteoPcRow">
+                        <a href="http://www.regione.toscana.it/allerta-meteo-rischio-temporali" class="eventLink" target="_blank">
+                            <div class="meteoPcDesc">rischio temporali</div>
+                        </a>    
+                        <div class="meteoPcIcon"></div>
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_idrogeologico" class="meteoPcRow">
+                        <a href="http://www.regione.toscana.it/allerta-meteo-rischio-idrogeologico" class="eventLink" target="_blank">
+                            <div class="meteoPcDesc">rischio idrogeologico</div>
+                        </a>
+                        <div class="meteoPcIcon"></div>
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_neve" class="meteoPcRow">
+                        <a href="http://www.regione.toscana.it/allerta-meteo-rischio-neve" class="eventLink" target="_blank">
+                            <div class="meteoPcDesc">rischio neve</div>
+                        </a>    
+                        <div class="meteoPcIcon"></div>
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_ghiaccio" class="meteoPcRow">
+                        <a href="http://www.regione.toscana.it/allerta-meteo-rischio-ghiaccio" class="eventLink" target="_blank">
+                            <div class="meteoPcDesc">rischio ghiaccio</div>
+                        </a>
+                        <div class="meteoPcIcon"></div>
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_vento" class="meteoPcRow">
+                        <a href="http://www.regione.toscana.it/allerta-meteo-rischio-vento" class="eventLink" target="_blank">
+                            <div class="meteoPcDesc">rischio vento</div>
+                        </a>
+                        <div class="meteoPcIcon"></div>
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_mare" class="meteoPcRowLast">
+                        <a href="http://www.regione.toscana.it/allerta-meteo-rischio-mareggiate" class="eventLink" target="_blank">
+                            <div class="meteoPcDesc">rischio mareggiate</div>
+                        </a>
+                        <div class="meteoPcIcon"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>	
 </div> 

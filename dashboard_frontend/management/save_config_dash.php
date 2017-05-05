@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -15,24 +15,63 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
     include '../config.php';
-    session_start(); // Starting Session
-    $link = mysqli_connect($host, $username, $password) or die("Error during database connection");
+    session_start(); 
+    $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
     mysqli_select_db($link, $dbname);
-
-    if(isset($_REQUEST['ident']))
+    //Escape
+    
+    function canEditDashboard()
+    {
+        $result = false;
+        if(isset($_SESSION['isAdmin']))
+        {
+            if($_SESSION['isAdmin'] == 0)
+            {
+                //Utente non amministratore, edita una dashboard solo se ne é l'autore
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
+                {
+                    $result = true;
+                }
+            }
+            else if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+            {
+                //Utente amministratore, edita qualsiasi dashboard
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId'])))
+                {
+                    $result = true;
+                }
+            }
+        }
+        return $result;
+    }
+    
+    if(!$link->set_charset("utf8")) 
+    {
+        echo '<script type="text/javascript">';
+        echo 'alert("KO");';
+        echo '</script>';
+        printf("Error loading character set utf8: %s\n", $link->error);
+        exit();
+    }
+    
+    if(isset($_REQUEST['ident'])&&canEditDashboard())
     {
         $response = array();
-        $name_dash = $_REQUEST['ident'];
-        $title_dash = $_REQUEST['inputTitleDashboard'];
-        $subtitle_dash = $_REQUEST['inputSubTitleDashboard'];
-        $color_dash = $_REQUEST['inputDashCol'];
-        $nCols = $_POST['inputWidthDashboard'];
-        $back_dash =  $_REQUEST['inputDashBckCol'];
-        $external_dash = $_REQUEST['inputDashExtCol'];
-        $headerFontSize = $_REQUEST['headerFontSize'];
-        $headerFontColor = $_REQUEST['headerFontColor'];
-        $filename = null;
-        $logoLink = $_REQUEST['dashboardLogoLinkInput'];
+        $dashboardId = $_SESSION['dashboardId'];
+        $dashboardName = mysqli_real_escape_string($link, $_REQUEST['ident']); 
+        $newDashboardTitle = mysqli_real_escape_string($link, $_REQUEST['inputTitleDashboard']); 
+        $newDashboardSubtitle = mysqli_real_escape_string($link, $_REQUEST['inputSubTitleDashboard']); 
+        $newDashboardColor = mysqli_real_escape_string($link, $_REQUEST['inputDashCol']);
+        $nCols = mysqli_real_escape_string($link, $_POST['inputWidthDashboard']); 
+        $newDashboardBckColor =  mysqli_real_escape_string($link, $_REQUEST['inputDashBckCol']); 
+        $newDashboardExtColor = mysqli_real_escape_string($link, $_REQUEST['inputDashExtCol']); 
+        $headerFontSize = mysqli_real_escape_string($link, $_REQUEST['headerFontSize']); 
+        $widgetsBorders = mysqli_real_escape_string($link, $_REQUEST['widgetsBorders']); 
+        $widgetsBordersColor = mysqli_real_escape_string($link, $_REQUEST['inputWidgetsBordersColor']); 
+        $headerFontColor = mysqli_real_escape_string($link, $_REQUEST['headerFontColor']); 
+        $filename = NULL;
+        //$logoLink = $_REQUEST['dashboardLogoLinkInput'];
+        $logoLink = NULL;
         
         if($headerFontSize > 45)
         {
@@ -42,21 +81,21 @@
         //New version: lasciamo gli addendi espliciti per agevolare la lettura
         $width = ($nCols * 78) + 10;
         
-        /*Logo della dashboard*/
-        $uploadFolder = "../img/dashLogos/" . $name_dash . "/";
+        //Logo della dashboard
+        $uploadFolder = "../img/dashLogos/" . $dashboardName . "/";
         
-        if(($logoLink != null) && ($logoLink != ''))
+        if(($_REQUEST['dashboardLogoLinkInput'] != NULL) && ($_REQUEST['dashboardLogoLinkInput'] != ''))
         {
+            $logoLink = mysqli_real_escape_string($link, $_REQUEST['dashboardLogoLinkInput']); 
             if (strpos($logoLink, 'http://') === false) 
             {
                 $logoLink = 'http://' . $logoLink;
             }
         }
         
-        
+        //Nuovo file caricato, si cancella il vecchio e si aggiorna il nome del file su DB.
         if($_FILES['dashboardLogoInput']['size'] > 0)
         {
-            //Nuovo file caricato, si cancella il vecchio e si aggiorna il nome del file su DB.
             if(!file_exists("../img/dashLogos/"))
             {
                 mkdir("../img/dashLogos/");
@@ -90,27 +129,29 @@
             }
             else 
             {
-                $updqDbtb = "UPDATE Dashboard.Config_dashboard SET title_header = '$title_dash', subtitle_header = '$subtitle_dash', color_header = '$color_dash', width = '$width', num_columns='$nCols', remains_width = NULL, color_background='$back_dash', external_frame_color='$external_dash', headerFontColor='$headerFontColor', headerFontSize=$headerFontSize, logoFilename='$filename', logoLink='$logoLink' WHERE name_dashboard='$name_dash'";
+                $query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoFilename = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ? WHERE Id = ?");
+                $query->bind_param('sssiisssissssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $filename, $logoLink, $widgetsBorders, $widgetsBordersColor, $dashboardId);
+                $result = $query->execute();
+                
                 $response["newLogo"] = "YES";
                 $response["fileName"] = $uploadFolder . $filename;
                 $response["logoLink"] = $logoLink;
                 $response["width"] = $width;
                 $response["num_cols"] = $nCols;
             }
-        }
+        }//Nessun nuovo file caricato
         else
         {
-            //Nessun nuovo file caricato, si lascia quello attuale sia su filesystem che su DB.
-            $updqDbtb = "UPDATE Dashboard.Config_dashboard SET title_header = '$title_dash', subtitle_header = '$subtitle_dash', color_header = '$color_dash', width = '$width', num_columns='$nCols', remains_width = NULL, color_background='$back_dash', external_frame_color='$external_dash', headerFontColor='$headerFontColor', headerFontSize=$headerFontSize, logoLink='$logoLink' WHERE name_dashboard='$name_dash'";
+            $query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ? WHERE Id = ?");
+            $query->bind_param('sssiisssisssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $logoLink, $widgetsBorders, $widgetsBordersColor, $dashboardId);
+            $result = $query->execute();
             $response["newLogo"] = "NO";
             $response["logoLink"] = $logoLink;
             $response["width"] = $width;
             $response["num_cols"] = $nCols;
         }
 
-        $result = mysqli_query($link, $updqDbtb);
-
-        if (!$result) 
+        if(!$result7) 
         {
             echo 'Something has gone wrong: dashboard update has been cancelled';
         }
@@ -123,7 +164,7 @@
     {
         echo 'Something has gone wrong: dashboard update has been cancelled';
     }
-mysqli_close($link);
+    mysqli_close($link);
 
 
 

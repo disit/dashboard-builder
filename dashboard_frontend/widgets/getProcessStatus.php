@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -13,26 +13,29 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
     if(isset($_REQUEST['action']) && !empty($_REQUEST['action'])) 
     {
-        $action = $_REQUEST['action'];
-        header("Content-type: application/json");
-        $host = $_REQUEST['host'];
-        $user = $_REQUEST['user'];
-        $pass = $_REQUEST['pass'];
+        $host = addslashes($_REQUEST['host']);
+        $user = addslashes($_REQUEST['user']);
+        $pass = addslashes($_REQUEST['pass']); 
+        $action = addslashes($_REQUEST['action']);
+        $jobName = addslashes($_REQUEST['jobName']);
         $dbName = 'quartz';
-        $conn = mysqli_connect($host, $user, $pass) or die("Failed to connect to server");
-        mysqli_set_charset($conn, 'utf8');
-        mysqli_select_db($conn, $dbName);
+        
+        $link = mysqli_connect($host, $user, $pass) or die("Failed to connect to server");
+        mysqli_set_charset($link, 'utf8');
+        mysqli_select_db($link, $dbName);
+        
+        header("Content-type: application/json");
         
         switch ($action)
         {
             case "getSingleStatus":
-                $jobName = $_REQUEST['jobName'];
+                
                 $query = "SELECT * FROM QRTZ_STATUS WHERE JOB_NAME = '$jobName' ORDER BY DATE DESC LIMIT 1";
-                $result = mysqli_query($conn, $query) or die(mysqli_error($conn));
+                $result = mysqli_query($link, $query) or die(mysqli_error($link));
                 $resultArray = array();
+                
                 if($result->num_rows > 0) 
                 {
                     while ($row = mysqli_fetch_array($result)) 
@@ -52,7 +55,7 @@
                         );
                     array_push($resultArray, $record);
                 }
-                mysqli_close($conn);
+                mysqli_close($link);
                 echo json_encode($resultArray);
                 break;    
             
@@ -61,4 +64,3 @@
                 break;
         }
     }
-?>

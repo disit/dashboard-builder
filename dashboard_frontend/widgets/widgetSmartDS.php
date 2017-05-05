@@ -14,219 +14,347 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type='text/javascript'>
     var colors = {
       GREEN: '#008800',
       ORANGE: '#FF9933',
       LOW_YELLOW: '#ffffcc',
-      RED: '#FF0000',
+      RED: '#FF0000'
     };
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        $('#<?= $_GET['name'] ?>_desc').width('74%');
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $('#<?= $_GET['name'] ?>_desc_text').css("width", "90%");
-        $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
-        $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $("#<?= $_GET['name'] ?>_content").css("height", height);
-        
+         <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?> 
+                
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var divContainer = $("#<?= $_GET['name'] ?>_content");
+        var widgetContentColor = "<?= $_GET['color'] ?>";
+        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        var nome_wid = "<?= $_GET['name'] ?>_div";
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var color = '<?= $_GET['color'] ?>';
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
+        var timeToReload = <?= $_GET['freq'] ?>;
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
+            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
+            rangeMin, rangeMax, widgetParameters, value1, value2, value3, valueGreen, valueRed, valueWhite, desc, object, sizeRowsWidget, alarmSet = null;
+        var metricId = "<?= $_GET['metric'] ?>";
+        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
+        var url = "<?= $_GET['link_w'] ?>";
+        var barColors = new Array();
         
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        var height = null;
-        var sizeRowsWidget = null;
-        var loadingFontDim = 13;
-        var loadingIconDim = 20;
-        if(firstLoad != false)
+        if(url === "null")
         {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
+            url = null;
         }
         
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
+        //Definizioni di funzione specifiche del widget
+        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        function getThresholdsJson()
+        {
+            var thresholdsJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
+            {
+                thresholdsJson = widgetProperties.param.parameters; 
+            }
+            
+            return thresholdsJson;
+        }
         
-        $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getInfoJson()
+        {
+            var infoJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
+            {
+                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
+            }
+            
+            return infoJson;
+        }
         
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#<?= $_GET['name'] ?>_content');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getStyleParameters()
+        {
+            var styleParameters = null;
+            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+            {
+                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+            }
+            
+            return styleParameters;
+        }
         
-        $.ajax({//Inizio AJAX getParametersWidgets.php
-            url: "../widgets/getParametersWidgets.php",
-            type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
-            async: true,
-            dataType: 'json',
-            success: function (msg) {
-                if (msg != null)
-                {
-                    sizeRowsWidget = parseInt(msg.param.size_rows);
-                }
-                
-                $.ajax({
-                url: "../widgets/getDataMetrics.php",
-                data: {"IdMisura": ["<?= $_GET['metric'] ?>"]},
-                type: "GET",
-                async: true,
-                dataType: 'json',
-                success: function (msg) {
-                    var seriesDataGreen = [];
-                    var seriesDataRed = [];
-                    var seriesDataWhite = [];
-                    var value1 = (msg.data[0].commit.author.value_perc1) * 100;
-                    valueGreen = parseFloat(parseFloat(value1).toFixed(2))
-                    var value2 = (msg.data[0].commit.author.value_perc2) * 100;
-                    valueRed = parseFloat(parseFloat(value2).toFixed(2));
-                    var value3 = (msg.data[0].commit.author.value_perc3) * 100;
-                    valueWhite = parseFloat(parseFloat(value3).toFixed(2));
-                    var desc = msg.data[0].commit.author.descrip;
-                    var object = msg.data[0].commit.author.value_text;
-                    seriesDataGreen.push(['Green', valueGreen]);
-                    seriesDataRed.push(['Red', valueRed]);
-                    seriesDataWhite.push(['White', valueWhite]);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
+        }
+        else
+        {
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+        }
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        widgetProperties = getWidgetProperties(widgetName);
+        
+        if((widgetProperties !== null) && (widgetProperties !== ''))
+        {
+            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            widgetParameters = widgetProperties.param.parameters;
+            var seriesDataGreen = [];
+            var seriesDataRed = [];
+            var seriesDataWhite = [];
 
-                    if(firstLoad != false)
-                    {
-                        $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                        $('#<?= $_GET['name'] ?>_content').css("display", "block");
-                    }
-                    
-                    $('#<?= $_GET['name'] ?>_process').html("Processo: " + object);
-
-                    $('#<?= $_GET['name'] ?>_content').highcharts({
-                        credits: {
-                            enabled: false
-                        },
-                        exporting: {
-                            enabled: false
-                        },
-                        chart: {
-                            type: 'bar',
-                            backgroundColor: '<?= $_GET['color'] ?>',
-                            spacingBottom: 10,
-                            spacingTop: 10
-                        },
-                        title: {
-                            text: ''
-
-                        },
-                        xAxis: {
-                            visible: false
-                        },
-                        yAxis: {
-                            visible: false,
-                            min: 0,
-                            max: 100,
-                            title: {
-                                text: ''
-                            }
-                        },
-                        tooltip: {
-                            enabled: false,
-                            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
-                            shared: true,
-                        },
-                        plotOptions: {
-                            bar: {
-                                stacking: 'normal',
-                                dataLabels: {
-                                    formatter: function () {
-                                        var value;
-                                        if (this.y === 100.0) {
-                                            value = Highcharts.numberFormat(this.y, 0);
-                                        }
-                                        else {
-                                            value = Highcharts.numberFormat(this.y, 1);
-                                        }
-
-                                        return value + '%';
-
-                                    },
-                                    enabled: true,
-                                    color: fontColor,
-                                    style: {
-                                        fontFamily: 'Verdana',
-                                        fontWeight: 'bold',
-                                        fontSize: fontSize + "px",
-                                        textOutline: "0px 0px contrast",
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.3)"
-                                    }
-                                }
-                            }
-                        },
-                        series: [{
-                                showInLegend: false,
-                                name: 'red',
-                                color: 'red',
-                                data: seriesDataRed,
-                                pointWidth: 100
-                            }, {
-                                showInLegend: false,
-                                name: 'white',
-                                color: 'white',
-                                data: seriesDataWhite,
-                                pointWidth: 100
-                            }, {
-                                showInLegend: false,
-                                name: 'green',
-                                color: 'green',
-                                data: seriesDataGreen,
-                                pointWidth: 100
-                            }]
-                    });
-                    
-                    if (link_w.trim()) 
-                    {
-                        if(linkElement.length == 0)
-                        {
-                           linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                           divChartContainer.wrap(linkElement); 
-                        }
-                    }
-
-                    $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                        $('#dialog_<?= $_GET['name'] ?>').show();
-
-                    });
-                    $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-
-                        $('#dialog_<?= $_GET['name'] ?>').hide();
-
-                    });
-
-                    var counter = <?= $_GET['freq'] ?>;
-                    var countdown = setInterval(function () {
-                        counter--;
-                        if (counter > 60) 
-                        {
-                            $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter / 60) + "m");
-                        } 
-                        else 
-                        {
-                            $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                        }
-                        if (counter === 0) 
-                        {
-                            $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                            clearInterval(countdown);
-                            setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                        }
-                    }, 1000);
-                }
-            });
+            sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
+            
+            //Per ora non usato
+            /*if(widgetParameters !== null)
+            {
                 
             }
-        });    
-    });
+            else 
+            {
+                
+            }*/
+            //Fine eventuale codice ad hoc basato sulle proprietà del widget
+            
+            metricData = getMetricData(metricId);
+            if(metricData !== null)
+            {
+                if(metricData.data[0] !== 'undefined')
+                {
+                    if(metricData.data.length > 0)
+                    {
+                        /*Inizio eventuale codice ad hoc basato sui dati della metrica*/
+                        metricType = metricData.data[0].commit.author.metricType;
+                        threshold = parseInt(metricData.data[0].commit.author.threshold);
+                        thresholdEval = metricData.data[0].commit.author.thresholdEval;
+                        value1 = (metricData.data[0].commit.author.value_perc1) * 100;
+                        valueGreen = parseFloat(parseFloat(value1).toFixed(2));
+                        value2 = (metricData.data[0].commit.author.value_perc2) * 100;
+                        valueRed = parseFloat(parseFloat(value2).toFixed(2));
+                        value3 = (metricData.data[0].commit.author.value_perc3) * 100;
+                        valueWhite = parseFloat(parseFloat(value3).toFixed(2));
+                        desc = metricData.data[0].commit.author.descrip;
+                        object = metricData.data[0].commit.author.value_text;
+                        seriesDataGreen.push(['Green', valueGreen]);
+                        seriesDataRed.push(['Red', valueRed]);
+                        seriesDataWhite.push(['White', valueWhite]);
+
+                        delta = Math.abs(metricData.data[0].commit.author.value_perc1 - threshold);
+                        switch(thresholdEval)
+                        {
+                            //Allarme attivo se il valore 1 attuale è sotto la soglia
+                            case '<':
+                                if(metricData.data[0].commit.author.value_perc1 < threshold)
+                                {
+                                   //Allarme
+                                   //alarmSet = true;
+                                }
+                                break;
+
+                            //Allarme attivo se il valore 1 attuale è sopra la soglia
+                            case '>':
+                                if(metricData.data[0].commit.author.value_perc1 > threshold)
+                                {
+                                   //Allarme
+                                   //alarmSet = true;
+                                }
+                                break;
+
+                            //Allarme attivo se il valore 1 attuale è uguale alla soglia (errore sui float = 0.1%)
+                            case '=':
+                                if(delta <= 0.1)
+                                {
+                                    //Allarme
+                                    //alarmSet = true;
+                                }
+                                break;    
+
+                            //Non gestiamo altri operatori 
+                            default:
+                                break;
+                        }
+
+                        /*if(alarmSet)
+                        {
+                            $("#<?= $_GET['name'] ?>_alarmDiv").removeClass("alarmDiv");
+                            $("#<?= $_GET['name'] ?>_alarmDiv").addClass("alarmDivActive");
+                        }*/
+
+                        if(firstLoad !== false)
+                        {
+                            showWidgetContent(widgetName);
+                        }
+                        else
+                        {
+                            elToEmpty.empty();
+                        }
+                        
+                        $('#<?= $_GET['name'] ?>_content').highcharts({
+                            credits: {
+                                enabled: false
+                            },
+                            exporting: {
+                                enabled: false
+                            },
+                            chart: {
+                                type: 'bar',
+                                backgroundColor: '<?= $_GET['color'] ?>',
+                                spacingBottom: 10,
+                                spacingTop: 10
+                            },
+                            title: {
+                                text: ''
+
+                            },
+                            xAxis: {
+                                visible: false
+                            },
+                            yAxis: {
+                                visible: false,
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    text: ''
+                                }
+                            },
+                            tooltip: {
+                                enabled: false,
+                                pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+                                shared: true,
+                            },
+                            plotOptions: {
+                                bar: {
+                                    stacking: 'normal',
+                                    dataLabels: {
+                                        formatter: function () {
+                                            var value;
+                                            if (this.y === 100.0) {
+                                                value = Highcharts.numberFormat(this.y, 0);
+                                            }
+                                            else {
+                                                value = Highcharts.numberFormat(this.y, 1);
+                                            }
+
+                                            return value + '%';
+
+                                        },
+                                        enabled: true,
+                                        color: fontColor,
+                                        style: {
+                                            fontFamily: 'Verdana',
+                                            fontWeight: 'bold',
+                                            fontSize: fontSize + "px",
+                                            "textOutline": "1px 1px contrast",
+                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.2)"
+                                        }
+                                    }
+                                }
+                            },
+                            series: [{
+                                    showInLegend: false,
+                                    name: 'red',
+                                    color: 'red',
+                                    data: seriesDataRed,
+                                    pointWidth: 100
+                                }, {
+                                    showInLegend: false,
+                                    name: 'white',
+                                    color: 'white',
+                                    data: seriesDataWhite,
+                                    pointWidth: 100
+                                }, {
+                                    showInLegend: false,
+                                    name: 'green',
+                                    color: 'green',
+                                    data: seriesDataGreen,
+                                    pointWidth: 100
+                                }]
+                        });
+                    }
+                    else
+                    {
+                        showWidgetContent(widgetName);
+			$('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
+                }
+                else
+                {
+                    showWidgetContent(widgetName);
+                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                }
+                /*Fine eventuale codice ad hoc basato sui dati della metrica*/
+            }
+            else
+            {
+                showWidgetContent(widgetName);
+                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+            }
+            
+            
+            
+        }    
+        else
+        {
+            alert("Error while loading widget properties");
+        }
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetSmartDS", null, null);
+});//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_desc' class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+            </div>    
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
+        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+            <div class="loadingTextDiv">
+                <p>Loading data, please wait</p>
+            </div>
+            <div class ="loadingIconDiv">
+                <i class='fa fa-spinner fa-spin'></i>
+            </div>
+        </div>
+        
+        <div id="<?= $_GET['name'] ?>_content" class="content">
+            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer"></div>
+        </div>
+    </div>	
+</div> 
+
+
+
+<!--<div class="widget" id="<?= $_GET['name'] ?>_div">
+    <div class='ui-widget-content'>
+        <div id='<?= $_GET['name'] ?>_alarmDiv' class="alarmDiv">
+            <div id='<?= $_GET['name'] ?>_desc' class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
+        </div>	
         <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -238,4 +366,4 @@
         <div id="<?= $_GET['name'] ?>_content" class="content smartDS">   
         </div>
     </div>	
-</div> 
+</div> -->

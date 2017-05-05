@@ -1,5 +1,5 @@
-<?php
-/* Dashboard Builder.
+<?php 
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -25,19 +25,21 @@
     <title>Dashboard Management System</title>
 
     <!-- Bootstrap Core CSS -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-
+    <!--<link href="../css/bootstrap.min.css" rel="stylesheet">-->
+    <link href="../css/bootstrap.css" rel="stylesheet">
+    
+    <!-- Modernizr -->
+    <script src="../js/modernizr-custom.js"></script>
 
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../css/jquery.gridster.css">
+    <!--<link rel="stylesheet" type="text/css" href="../css/new/jquery.gridster.css">-->
     <link rel="stylesheet" href="../css/style_widgets.css" type="text/css" />
+    
+    <!-- Material icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-
-    <!-- Custom Fonts -->
-    <!--<link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">-->
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -45,23 +47,42 @@
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
+    
     <!-- jQuery -->
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
+    <script src="../js/jquery-1.10.1.min.js"></script>
+    
+    <!-- JQUERY UI -->
+    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
+    <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
 
     <!-- Gridster -->
     <script src="../js/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>
+    <!--<script src="../js/new/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>-->
 
-    <!-- Custom Core JavaScript -->
-    <script src="http://code.highcharts.com/highcharts.js"></script>
-    <script src="http://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/highcharts-more.js"></script>
-    <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
-    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+    <!-- Highcharts -->
+    <!--<script src="http://code.highcharts.com/highcharts.js"></script>-->
+    <!--<script src="http://code.highcharts.com/modules/exporting.js"></script>-->
+    <!--<script src="https://code.highcharts.com/highcharts-more.js"></script>-->
+    <!--<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>-->
+    <!--<script src="https://code.highcharts.com/highcharts-3d.js"></script>-->  
+    <script src="../js/highcharts/code/highcharts.js"></script>
+    <script src="../js/highcharts/code/modules/exporting.js"></script>
+    <script src="../js/highcharts/code/highcharts-more.js"></script>
+    <script src="../js/highcharts/code/modules/solid-gauge.js"></script>
+    <script src="../js/highcharts/code/highcharts-3d.js"></script>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+    <!-- TinyColors -->
+    <script src="../js/tinyColor.js" type="text/javascript" charset="utf-8"></script>
+    
+    <!-- Font awesome icons -->
+    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">-->
+    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+    
+    <script src="../js/widgetsCommonFunctions.js" type="text/javascript" charset="utf-8"></script>
 
     <script type='text/javascript'>
         var array_metrics = new Array();
@@ -76,39 +97,45 @@
         var logoWidth = null;
         var logoHeight = null;
         
-        $(document).ready(function () {
+        $(document).ready(function () 
+        {
+            var widgetsBorders = null;
+            var widgetsBordersColor = null;
+            
             $.ajax({
                 url: "../management/get_data.php",
-                data: {action: "get_param_dashboard", id_dashb: <?= base64_decode($_GET['iddasboard']) ?>},
+                //Tocca lasciare il vecchio refuso "iddasboard" per non cambiare i link...
+                data: {action: "get_param_dashboard", dashboardId: <?= base64_decode($_GET['iddasboard']) ?>},
                 type: "GET",
                 async: true,
                 dataType: 'json',
-                success: function (data) {
+                success: function (data) 
+                {
                     var num_cols;
                     for (var i = 0; i < data.length; i++)
                     {
                         dashboardName = data[i].name_dashboard;
                         logoFilename = data[i].logoFilename;
                         logoLink = data[i].logoLink;
+                        widgetsBorders = data[i].widgetsBorders;
+                        widgetsBordersColor = data[i].widgetsBordersColor;
                         $("#headerLogoImg").css("display", "none");
                         var wrapperWidth = parseInt(data[i].width) + 40;
                         $("#wrapper-dashboard").css("width", wrapperWidth);
-                        $("#logos").css("width", data[i].width);
                         $("#container-widgets").css("width", data[i].width);
                         $("#wrapper-dashboard").css("margin", "0 auto");
                         $("#navbarDashboard").css("background-color", data[i].color_header);
                         //sfondo
                         $("body").css("background-color", data[i].external_frame_color);
                         $("#page-wrapper").css("background-color", data[i].external_frame_color);
-                        $(".logos-bar").css("background-color", data[i].external_frame_color);
                         $("#container-widgets").css("background-color", data[i].color_background);
                         $("#container-widgets").css("border-top-color",data[i].color_background);
                        
                         headerFontSize = data[i].headerFontSize;
-                        subtitleFontSize = parseInt(data[i].headerFontSize * 0.25);
-                        if(subtitleFontSize < 24)
+                        subtitleFontSize = parseInt(data[i].headerFontSize * 0.22);
+                        if(subtitleFontSize < 20)
                         {
-                            subtitleFontSize = 24;
+                            subtitleFontSize = 20;
                         }
                         var headerFontColor = data[i].headerFontColor;
                         
@@ -196,7 +223,7 @@
                             $("#dashboardSubtitle").text(data[i].subtitle_header);
                         }
                         
-                        if(logoFilename != null)
+                        if(logoFilename !== null)
                         {
                             $("#headerLogoImg").prop("src", "../img/dashLogos/" + dashboardName + "/" + logoFilename);
                             $("#headerLogoImg").prop("alt", "Dashboard logo");
@@ -213,46 +240,44 @@
                                 logoWidth = $('#headerLogoImg').width();
                                 logoHeight = $('#headerLogoImg').height();                                
                                 $("#headerLogoImg").css("display", "");
-                            }
+                            };
                         }
             
                         num_cols = data[i].num_columns;
                         num_rows = data[i].num_rows;
                     }
                     
-                    jQuery(function () { 
+                    jQuery(function (){ 
                         jQuery(".gridster ul").gridster({
-                            widget_margins: [1, 1],
-                            //widget_base_dimensions: [156, 77],
                             widget_base_dimensions: [76, 38],
+                            widget_margins: [1, 1],
                             min_cols: num_cols,
-                            max_size_x: 20,
-                            max_rows: 30,
-                            extra_rows: 40,
+                            max_size_x: 30,
+                            max_rows: 50,
+                            extra_rows: 30,
                             draggable: {ignore_dragging: true},
-                            serialize_params: function ($w, wgd) {
+                            serialize_params: function ($w, wgd){
                                 return {
-                                    /* add element ID to data*/
                                     id: $w.attr('id'),
                                     col: wgd.col,
                                     row: wgd.row,
                                     size_x: wgd.size_x,
                                     size_y: wgd.size_y
-                                }
+                                };
                             }
                         }).data('gridster').disable();
-                        ;
-
                     });
 
                     $.ajax({
                         url: "../management/get_data.php",
-                        data: {action: "get_widgets_dashboard", id_dashb: <?= base64_decode($_GET['iddasboard']) ?>},
+                        data: {action: "get_widgets_dashboard", dashboardId: <?= base64_decode($_GET['iddasboard']) ?>},
                         type: "GET",
                         async: true,
                         dataType: 'json',
-                        success: function (data) {
-                            if (data.length > 0) {
+                        success: function (data) 
+                        {
+                            if (data.length > 0) 
+                            {
                                 gridster = $("#container-widgets ul").gridster().data('gridster');
 
                                 for (var i = 0; i < data.length; i++)
@@ -260,17 +285,28 @@
                                     var name_w = data[i]['name_widget'];
                                     var widgetId = data[i]['Id_w'];
                                     var time = 0;
-                                    if (data[i]['temporal_range_widget'] != "" && data[i]['temporal_range_widget'] == "Mensile") {
+                                    if (data[i]['temporal_range_widget'] !== "" && data[i]['temporal_range_widget'] === "Mensile") 
+                                    {
                                         time = "30/DAY";
-                                    } else if (data[i]['temporal_range_widget'] != "" && data[i]['temporal_range_widget'] == "Annuale") {
+                                    } 
+                                    else if (data[i]['temporal_range_widget'] !== "" && data[i]['temporal_range_widget'] === "Annuale") 
+                                    {
                                         time = "365/DAY";
-                                    } else if (data[i]['temporal_range_widget'] != "" && data[i]['temporal_range_widget'] == "Settimanale") {
+                                    } 
+                                    else if (data[i]['temporal_range_widget'] !=="" && data[i]['temporal_range_widget'] === "Settimanale") 
+                                    {
                                         time = "7/DAY";
-                                    } else if (data[i]['temporal_range_widget'] != "" && data[i]['temporal_range_widget'] == "Giornaliera") {
+                                    } 
+                                    else if (data[i]['temporal_range_widget'] !== "" && data[i]['temporal_range_widget'] === "Giornaliera") 
+                                    {
                                         time = "1/DAY";
-                                    } else if (data[i]['temporal_range_widget'] != "" && data[i]['temporal_range_widget'] == "4 Ore") {
+                                    } 
+                                    else if (data[i]['temporal_range_widget'] !== "" && data[i]['temporal_range_widget'] === "4 Ore") 
+                                    {
                                         time = "4/HOUR";
-                                    } else if (data[i]['temporal_range_widget'] != "" && data[i]['temporal_range_widget'] == "12 Ore") {
+                                    } 
+                                    else if (data[i]['temporal_range_widget'] !== "" && data[i]['temporal_range_widget'] === "12 Ore") 
+                                    {
                                         time = "12/HOUR";
                                     }
                                     var widget = ['<li id="' + name_w + '"></li>', data[i]['size_columns_widget'], data[i]['size_rows_widget'], data[i]['n_column_widget'], data[i]['n_row_widget']];
@@ -283,33 +319,40 @@
                                         type_metric.push(data[i]['metrics_prop'][k]['type_metric']);
                                         source_metric.push(data[i]['metrics_prop'][k]['source_metric']);
                                     }
-                                    $("#container-widgets ul").find("li#" + name_w).load("../widgets/" + encodeURIComponent(data[i]['type_widget']) + ".php?name=" + encodeURIComponent(name_w) + "&metric=" + encodeURIComponent(data[i]['id_metric_widget']) +
+                                    
+                                    $("#container-widgets ul").find("li#" + name_w).load("../widgets/" + encodeURIComponent(data[i]['type_widget']) + ".php?name=" + encodeURIComponent(name_w) + "&hostFile=index" + "&idWidget=" + encodeURIComponent(widgetId) + "&metric=" + encodeURIComponent(data[i]['id_metric_widget']) +
                                             "&freq=" + encodeURIComponent(data[i]['frequency_widget']) + "&title=" + encodeURIComponent(data[i]['title_widget']) + "&color=" + encodeURIComponent(data[i]['color_widget']) + "&source=" + "&info=" + encodeURIComponent(data[i]['message_widget']) + encodeURIComponent(source_metric) +
-                                            "&type_metric=" + encodeURIComponent(type_metric) + "&city=" + "&tmprange=" + encodeURIComponent(time) + "&city=" + encodeURIComponent(data[i]['municipality_widget']) + "&link_w=" + encodeURIComponent(data[i]['link_w']) + "&frame_color="+encodeURIComponent(data[i]['frame_color']) + "&udm=" + encodeURIComponent(data[i]['udm']) + "&fontSize=" + encodeURIComponent(data[i]['fontSize']) + "&fontColor=" + encodeURIComponent(data[i]['fontColor']));
+                                            "&type_metric=" + encodeURIComponent(type_metric) + "&tmprange=" + encodeURIComponent(time) + "&city=" + encodeURIComponent(data[i]['municipality_widget']) + "&link_w=" + encodeURIComponent(data[i]['link_w']) + "&frame_color="+encodeURIComponent(data[i]['frame_color']) + 
+                                            "&udm=" + encodeURIComponent(data[i]['udm']) + "&fontSize=" + encodeURIComponent(data[i]['fontSize']) + "&fontColor=" + encodeURIComponent(data[i]['fontColor']) +
+                                            "&headerFontColor=" + encodeURIComponent(data[i]['headerFontColor']) + "&numCols=" + encodeURIComponent(num_cols) + "&sizeX=" + encodeURIComponent(data[i]['size_columns_widget']) + "&sizeY=" + encodeURIComponent(data[i]['size_rows_widget']) + "&controlsPosition=" + encodeURIComponent(data[i]['controlsPosition']) + "&zoomControlsColor=" + encodeURIComponent(data[i]['zoomControlsColor']) + "&showTitle=" + encodeURIComponent(data[i]['showTitle']) + "&controlsVisibility=" + encodeURIComponent(data[i]['controlsVisibility']) + "&zoomFactor=" + encodeURIComponent(data[i]['zoomFactor']) + "&defaultTab=" + encodeURIComponent(data[i]['defaultTab']) + "&scaleX=" + encodeURIComponent(data[i]['scaleX']) + "&scaleY=" + encodeURIComponent(data[i]['scaleY']));
 
                                 }
 
                             }
+                            else
+                            {
+                                console.log("Nessun dato restituito da get_data.php --> get_widgets_dashboard");
+                            }
+                            //Applicazione bordi dei widgets
+                            if(widgetsBorders === 'yes')
+                            {
+                                $(".gridster .gs_w").css("border", "1px solid " + widgetsBordersColor);
+                            }
+                            else
+                            {
+                                $(".gridster .gs_w").css("border", "none");
+                            }
                         },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            alert('An error occurred... Look at the console (F12 or Ctrl+Shift+I, Console tab) for more information!');
-
-                            $('#page-wrapper').html('<p>status code: ' + jqXHR.status + '</p><p>errorThrown: ' + errorThrown + '</p><p>jqXHR.responseText:</p><div>' + jqXHR.responseText + '</div>');
-                            console.log('jqXHR:');
-                            console.log(jqXHR);
-                            console.log('textStatus:');
-                            console.log(textStatus);
-                            console.log('errorThrown:');
-                            console.log(errorThrown);
+                        error: function (jqXHR, textStatus, errorThrown) 
+                        {
+                            console.log("Errore nella chiamata get_data.php --> get_widgets_dashboard");
                         }
 
                     });
-
-
                 },
                 error: function (jqXHR, textStatus, errorThrown) 
                 {
-                    alert('An error occurred... Look at the console (F12 or Ctrl+Shift+I, Console tab) for more information!');
+                    console.log("Errore in chiamata di get_data.php --> get_param_dashboard");
                 }
             });
             
@@ -405,15 +448,13 @@
                 });
             });
         });
-
     </script>
-
 </head>
 
 <body>
     <div id="wrapper-dashboard">
         <!-- New header -->
-        <nav id="navbarDashboard" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <nav id="navbarDashboard" class="navbar navbar-inverse navbar-fixed-top noBorder" role="navigation">
             <div id="navbarDashboardHeader">
                     <div class="dashboardHeaderLeft">
                             <div id="dashboardTitle"></div>
@@ -431,20 +472,15 @@
                 <div id="container-widgets" class="gridster">
                     <ul></ul>    
                 </div>
-                <div id='logos' class="logos-bar">
-                    <div id ="logos_twitter" class ="logos_twitter-bar">
-                        <span><img src='../management/img/logo_twitter.png'></img><div id="twitter_t" alt="Twitter logo"></div></span>
-                    </div>
-                    <div id="logos_twitter_ret" class="logos_twitter_ret-bar">
-                        <span><img src='../management/img/retweet.png' alt="Twitter retweet logo"></img><div id="twitter_ret"><?php include("../widgets/widgetTwitter.php"); ?></div></span>
-                    </div>
-                    <div id="link_twitter_vig" class="link_twitter_vig-bar"><span><a title = "Twitter vigilance link" class ="link_twitter_vig-bar" href='http://www.disit.org/tv/' target='_new'>Twitter Vigilance</a></span></div>
-                    <a id="logo_disit" class="logo_disit-bar" href="http://www.disit.org/" target="_new"><img src="../management/img/logo.jpg" alt="DISIT lab logo"/></a>	
+                <div id="logos" class="footerLogos">
+                    <a title="Twitter" href="http://www.twitter.com" target="_new" class="footerLogo"><i class='fa fa-twitter'></i></a>
+                    <a title="Twitter vigilance" href="http://www.disit.org/tv" target="_new" class="footerLogo"><i class='fa fa-eye'></i></a>
+                    <a title="Disit" href="http://www.disit.org" target="_new" class="footerLogo"><img src="../img/disitLogo.png" /></a>
                 </div>
             </div>
         </div>
-        <!-- /#page-wrapper -->
-        <!-- /#modal dei commenti-->
+        <!-- page-wrapper -->
+        <!-- modale informazioni generali del widget -->
         <div class="modal fade" tabindex="-1" id="dialog-information-widget" role="dialog" aria-labelledby="myModalLabel">
             <div class="modal-dialog" role="document" id="info01"> 
                 <div class="modal-content">
@@ -463,6 +499,25 @@
                 </div>
             </div>
         </div>
+        <!-- Modale informazioni campi widget -->
+        <div class="modal fade" tabindex="-1" id="modalWidgetFieldsInfo" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document" id="info01"> 
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title" id="modalWidgetFieldsInfoTitle"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="modalWidgetFieldsInfoForm" class="form-horizontal" name="modalWidgetFieldsInfoForm" role="form" method="post" action="" data-toggle="validator">
+                            <div id="modalWidgetFieldsInfoContent"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div> 
     </div>
 </body>
 </html>

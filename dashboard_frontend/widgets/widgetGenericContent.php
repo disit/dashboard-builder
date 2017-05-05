@@ -14,6 +14,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type='text/javascript'>
     function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
     function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
@@ -29,118 +30,159 @@
     
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        var list_metrics = "<?= $_GET['metric'] ?>";
-        var metrics = list_metrics.split('+');
-        var list_type_metrics = "<?= $_GET['type_metric'] ?>";
-        var type_metrics = list_type_metrics.split(',');
-        
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
+        <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?>
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var divContainer = $("#<?= $_GET['name'] ?>_content");
+        var widgetContentColor = "<?= $_GET['color'] ?>";
+        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
         var nome_wid = "<?= $_GET['name'] ?>_div";
-        $("#<?= $_GET['name'] ?>_div").css("background-color", colore_frame);
-        $("#<?= $_GET['name'] ?>_headerContainer").css("width", "100%");
-        $("#<?= $_GET['name'] ?>_headerContainer").css("height", "25px");
-        $("#<?= $_GET['name'] ?>_headerContainer").css("background-color", colore_frame);
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var color = '<?= $_GET['color'] ?>';
+        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontColor = "<?= $_GET['fontColor'] ?>";
+        var timeToReload = <?= $_GET['freq'] ?>;
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, pattern, totValues, shownValues, 
+            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
+            rangeMin, rangeMax, widgetParameters, sizeRowsWidget, widgetColor, fontSize,rowColor, rowColorRgb = null;
+        var metricId = "<?= $_GET['metric'] ?>";
+        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
+        var url = "<?= $_GET['link_w'] ?>";
         
-        var iconsWidth = $("#<?= $_GET['name'] ?>_icons").width();
+        //Specifiche per questo widget
+        var metricsList = "<?= $_GET['metric'] ?>";
+        var metrics = metricsList.split('+');
+        var metricsTypesList = "<?= $_GET['type_metric'] ?>";
+        var metricsTypes = metricsTypesList.split(',');
+        var alarmCount = 0;
+        var alarms = [];
         
-        var url = window.location.pathname;
-        if(url.indexOf("index") >= 0)
+        if(url === "null")
         {
-            var descWidth = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetWidth")) - 28;
+            url = null;
+        }
+        
+        //Definizioni di funzione specifiche del widget
+        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        function getThresholdsJson()
+        {
+            var thresholdsJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
+            {
+                thresholdsJson = widgetProperties.param.parameters; 
+            }
+            
+            return thresholdsJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getInfoJson()
+        {
+            var infoJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
+            {
+                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
+            }
+            
+            return infoJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getStyleParameters()
+        {
+            var styleParameters = null;
+            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+            {
+                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+            }
+            
+            return styleParameters;
+        }
+        //Fine definizioni di funzione 
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
         }
         else
         {
-            var descWidth = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetWidth")) - iconsWidth - 28;
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        widgetProperties = getWidgetProperties(widgetName);
         
-        $('#<?= $_GET['name'] ?>_desc').css("width", descWidth + "px");
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $('#<?= $_GET['name'] ?>_desc_text').css("width", "90%");
-        $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
-        
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        var loadingFontDim = 13; 
-        var loadingIconDim = 20;
-        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
-        $("#<?= $_GET['name'] ?>_content").css("height", height);
-        $('#<?= $_GET['name'] ?>_loading').css("height", height + "px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
-        if(firstLoad != false)
+        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
         {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
-        }
-        
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        $('#<?= $_GET['name'] ?>_content').css("color", fontColor);
-        
-        var alarmCount = 0;
-        var alarms = [];
-        var alarmIntervals = [];
-        var desc2Blink = [];
-        var $div2blink = null;
-        var blinkInterval = null;
-        var blinkFunction = function(blinkTarget)
-        {
-            blinkTarget.toggleClass("desc_text_alr"); 
-        };
-        
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#<?= $_GET['name'] ?>_content');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-       
-        
-         //Estrazione dei parametri del widget
-        $.ajax({
-            url: "../widgets/getParametersWidgets.php",
-            type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
-            async: true,
-            dataType: 'json',
-            success: function (msg) {
-                var parametri = msg.param.parameters;
-                var contenuto = jQuery.parseJSON(parametri);
-                var sizeRowsWidget = parseInt(msg.param.size_rows);
-                var widgetColor = msg.param.color_w;
+            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            
+            if(widgetProperties !== null) 
+            {
+                widgetParameters = widgetProperties.param.parameters;
+                sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
+                widgetColor = widgetProperties.param.color_w;
+                fontSize = parseInt(sizeRowsWidget * 3.5);
                 
-                if (link_w.trim()) 
+                //Per ora non usato
+                /*if(widgetParameters !== null)
                 {
-                    if(linkElement.length === 0)
-                    {
-                       linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                       divChartContainer.wrap(linkElement); 
-                    }
+                    
                 }
-                
-                $.ajax({
+                else 
+                { 
+                }*/
+            } 
+            
+            //Fine eventuale codice ad hoc basato sulle proprietà del widget
+            //Qui lasciamo la chiamata originaria
+            $.ajax({
                 url: "../widgets/getDataMetrics.php",
                 data: {"IdMisura": metrics},
                 type: "GET",
                 async: true,
                 dataType: 'json',
-                success: function (msg) {
-                    var threshold = [];
-                    var thresholdEval = [];
+                success: function (metricData) 
+                {
+                    threshold = [];
+                    thresholdEval = [];
                     var flagNumeric = [];
-                    var fontSize = null;
-                    var rowColor = null;
-                    var rowColorRgb = null;
+                    rowColor = null;
+                    rowColorRgb = null;
                     
-                    for(var i = 0; i < msg.data.length; i++) 
+                    if(firstLoad !== false)
+                    {
+                        showWidgetContent(widgetName);
+                    }
+                    else
+                    {
+                        elToEmpty.empty();
+                    }
+        
+                    /*Inizio eventuale codice ad hoc basato sui dati della metrica*/
+                    for(var i = 0; i < metricData.data.length; i++) 
                     {
                         var value = null;
                         flagNumeric[i] = false;
                         alarms[i] = false;
-                        alarmIntervals[i] = null;
                         var udm = "";
                         var pattern = /Percentuale\//;
-                        threshold[i] = msg.data[i].commit.author.threshold;
-                        thresholdEval[i] = msg.data[i].commit.author.thresholdEval;
+                        threshold[i] = metricData.data[i].commit.author.threshold;
+                        thresholdEval[i] = metricData.data[i].commit.author.thresholdEval;
 
-                        if((type_metrics[i] === "Percentuale") || (pattern.test(type_metrics[i])))
+                        if((metricsTypes[i] === "Percentuale") || (pattern.test(metricsTypes[i])))
                         {
                             udm = "%";
-                            value = parseFloat(parseFloat(msg.data[i].commit.author.value_perc1).toFixed(1));
+                            value = parseFloat(parseFloat(metricData.data[i].commit.author.value_perc1).toFixed(1));
                             if(value > 100)
                             {
                                 value = 100;
@@ -149,20 +191,20 @@
                         }
                         else
                         {
-                            switch(type_metrics[i])
+                            switch(metricsTypes[i])
                             {
                                 case "Intero":
-                                    value = parseInt(msg.data[i].commit.author.value_num);
+                                    value = parseInt(metricData.data[i].commit.author.value_num);
                                     flagNumeric[i] = true;
                                     break;
 
                                 case "Float":
-                                    value = parseFloat(parseFloat(msg.data[i].commit.author.value_num).toFixed(1));
+                                    value = parseFloat(parseFloat(metricData.data[i].commit.author.value_num).toFixed(1));
                                     flagNumeric[i] = true;
                                     break;
 
                                 case "Testuale":
-                                    value = msg.data[i].commit.author.value_text;
+                                    value = metricData.data[i].commit.author.value_text;
                                     break;
                             }
                         }
@@ -206,53 +248,16 @@
                                    break;
                             }
                         }
-
-                        switch(sizeRowsWidget)
-                        {
-                            case 4:
-                                fontSize = "14px";
-                                break;
-
-                            case 5:
-                                fontSize = "18px";
-                                break;
-
-                            case 6:
-                                fontSize = "22px";
-                                break;
-
-                            case 7:
-                                fontSize = "24px";
-                                break;
-
-                            case 8:
-                                fontSize = "28px";
-                                break;
-
-                            default:
-                                fontSize = "14px";
-                                break;
-                        }
                         
                         rowColorHex = "<?= $_GET['color'] ?>";
                         rowColorRgb = hexToRgb(rowColorHex);
                         var rowColor = "linear-gradient(to right, rgba(" + rowColorRgb + ",0.6), rgba(" + rowColorRgb + ",1))";
-                            
-                        if((i == 0) && (msg.data.length == 1))
-                        {
-                            $("#<?= $_GET['name'] ?>_content").css("background", "linear-gradient(to bottom right, rgba(" + rowColorRgb + ",0.6), rgba(" + rowColorRgb + ",1))");
-                        }
                         
-                        if(firstLoad != false)
-                        {
-                            $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                            $('#<?= $_GET['name'] ?>_content').css("display", "block");
-                        }
                         var rowHeight = parseInt(($('#<?= $_GET['name'] ?>_content').height() / 3) - 5);
                         var newRow = $("<div class='row_data_line'></div>");
                         newRow.css("height", rowHeight + "px");
                         var marginBottom = Math.ceil(($('#<?= $_GET['name'] ?>_content').height() - 3 * rowHeight) / 2);
-                        if(i != 2)
+                        if(i !== 2)
                         {
                             newRow.css("margin-bottom", marginBottom + "px");
                         }
@@ -260,109 +265,72 @@
                         {
                             newRow.css("margin-bottom", "0px");
                         }
-                        var newDescContainer = $("<div class='row_data_desc'>" + msg.data[i].commit.author.descrip + "</div>");
+                        
+                        var newWhiteBackground = $("<div class='rowWhiteBackground'></div>");
+                        var newDescContainer = $("<div class='row_data_desc'>" + metricData.data[i].commit.author.descrip + "</div>");
+                        newWhiteBackground.append(newDescContainer);
                         newDescContainer.css("background", rowColor);
                         newDescContainer.css("line-height", rowHeight + "px")
-                        newRow.append(newDescContainer);
-                        
-                        var newValueContainer = $("<div class='row_data_value'>" + value + " " + udm  + "</div>");
-                        var valueContainerWidth = parseInt(($('#<?= $_GET['name'] ?>_content').width()*0.3) - 5);
-                        newValueContainer.css("width", valueContainerWidth + "px");
-                        newValueContainer.css("background-color", rowColorHex);
+                        newRow.append(newWhiteBackground);
+                        var newValueContainer = $("<div class='row_data_value'><div class='alarmDivGc'>" + value + " " + udm  + "</div></div>");
+                        newValueContainer.css("background", rowColor);
                         newValueContainer.css("line-height", rowHeight + "px");
-                        newRow.append(newValueContainer);
-                        newRow.attr("title", msg.data[i].commit.author.descrip);
+                        newWhiteBackground.append(newValueContainer);
+                        newRow.append(newWhiteBackground);
+                        newRow.attr("title", metricData.data[i].commit.author.descrip);
                         newRow.css("fontSize", fontSize);
-                        $("#<?= $_GET['name'] ?>_content").append(newRow);
-
-                        desc2Blink[i] = newValueContainer;
-                        desc2Blink[i].css({transition: "background 1.8s ease-in-out"});
-                        desc2Blink[i].css({webkitTransition: "background 1.8s ease-in-out"});
-                        desc2Blink[i].css({msTransition: "background 1.8s ease-in-out"});
-
+                        $("#<?= $_GET['name'] ?>_chartContainer").append(newRow);
+                        
                         if(alarms[i])
                         {
-                            alarmIntervals[i] = setInterval(blinkFunction, 1000, desc2Blink[i]);
+                            $(newValueContainer).children(".alarmDivGc").addClass("alarmDivGcActive");
                         }
                     }
-                    
-                    /*if(i < 3)
-                    {
-                        for(var y = i; y <= 3; y++)
-                        {
-                            $("#<?= $_GET['name'] ?>_content").append("<div class='row_data_line' style='" + fontSize + rowColor +"' title='emptyRow" + y + "'><div class='row_data_desc'><p></p></div><div class='row_data_value'><p></p></div></div>");
-                        }
-                    }*/
-                    
-                    
-                    $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                        $('#dialog_<?= $_GET['name'] ?>').show();
-
-                    });
-                    $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-
-                        $('#dialog_<?= $_GET['name'] ?>').hide();
-
-                    });
-
-                    var counter = <?= $_GET['freq'] ?>;
-                    var countdown = setInterval(function () {
-                        $("#countdown_<?= $_GET['name'] ?>").text(counter);
-                        counter--;
-                        if (counter > 60) {
-                            $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter / 60) + "m");
-                        } else {
-                            $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                        }
-                        if (counter === 0) {
-                            $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                            clearInterval(countdown);
-                            if(alarmCount > 0)
-                            {
-                                clearInterval(blinkInterval);
-                                var i = null;
-                                for(i = 0; i < 3; i++)
-                                {
-                                    if(alarms[i])
-                                    {
-                                        clearInterval(alarmIntervals[i]);
-                                    }
-                                }
-                            }
-                            $("#<?= $_GET['name'] ?>_content").empty();
-                            setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                        }
-                    }, 1000);
+                    /*Fine eventuale codice ad hoc basato sui dati della metrica*/
+                },
+                error: function () 
+                {
+                    showWidgetContent(widgetName);
+                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
                 }
-            });
-            }
-        });
-    });
+            });//Fine AJAX    
+        }
+        else
+        {
+            alert("Error while loading widget properties");
+        }
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetGenericContent", null, null);
+    });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        <!-- Workaround temporaneo, rimuovere quando bonifichi il box model del titolo di ogni widget -->
-        <div id="<?= $_GET['name'] ?>_headerContainer"> <!-- style="width: 100%; height: 25px; border-style: solid; border-color: red; border-width: 2px" -->
-            <div id='<?= $_GET['name'] ?>_desc' class="genContentDesc"></div>
-            <div id='<?= $_GET['name'] ?>_icons' class="modifyWidgetGenContent">
-                <a class="icon-cfg-widget" href="#">
-                    <span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span>
-                </a>
-                <a class="icon-remove-widget" href="#">
-                    <span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span>
-                </a>
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+            </div>    
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
             </div>
-            <div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
-            <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
-                <div class="loadingTextDiv">
-                    <p>Loading data, please wait</p>
-                </div>
-                <div class ="loadingIconDiv">
-                    <i class='fa fa-spinner fa-spin'></i>
-                </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
+        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+            <div class="loadingTextDiv">
+                <p>Loading data, please wait</p>
+            </div>
+            <div class ="loadingIconDiv">
+                <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id='<?= $_GET['name'] ?>_content' class="content"></div>  
+        
+        <div id="<?= $_GET['name'] ?>_content" class="content">
+            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer"></div>
+        </div>
     </div>	
-</div>
+</div> 

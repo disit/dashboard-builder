@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -16,12 +16,13 @@
 
     if(isset($_REQUEST['action']) && !empty($_REQUEST['action'])) 
     {
-        $action = $_REQUEST['action'];
         header("Content-type: application/json");
-        $host = $_REQUEST['host'];
-        $user = $_REQUEST['user'];
-        $pass = $_REQUEST['pass'];
+        $host = addslashes($_REQUEST['host']);
+        $user = addslashes($_REQUEST['user']);
+        $pass = addslashes($_REQUEST['pass']); 
+        $action = addslashes($_REQUEST['action']);
         $dbName = 'quartz';
+        
         $conn = mysqli_connect($host, $user, $pass) or die("Failed to connect to server");
         mysqli_set_charset($conn, 'utf8');
         mysqli_select_db($conn, $dbName);
@@ -54,7 +55,7 @@
                 break;
                 
             case "getJobNamesForJobGroup":
-                $jobGroup = $_REQUEST['jobGroup'];
+                $jobGroup = addslashes($_REQUEST['jobGroup']); 
                 $query = "SELECT JOB_NAME FROM QRTZ_JOB_DETAILS WHERE JOB_GROUP = '$jobGroup'";
                 $result = mysqli_query($conn, $query) or die(mysqli_error($conn));
                 $resultArray = array();
@@ -81,7 +82,7 @@
             
             
             case "getJobGroupsForJobArea":
-                $keyword = $_REQUEST['keyword'];
+                $keyword = addslashes($_REQUEST['keyword']);
                 $query = "SELECT DISTINCT(JOB_GROUP) FROM QRTZ_JOB_DETAILS WHERE JOB_GROUP LIKE '%$keyword%'";
                 $result = mysqli_query($conn, $query) or die(mysqli_error($conn));
                 $resultArray = array();
@@ -111,4 +112,3 @@
                 break;
         }
     }
-?>

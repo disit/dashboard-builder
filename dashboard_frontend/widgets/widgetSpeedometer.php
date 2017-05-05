@@ -14,177 +14,209 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type="text/javascript">
     var colors = {
       GREEN: '#008800',
       ORANGE: '#FF9933',
       LOW_YELLOW: '#ffffcc',
-      RED: '#FF0000',
+      RED: '#FF0000'
     };
 
 
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        $('#<?= $_GET['name'] ?>_desc').width('70%');
-        $('#<?= $_GET['name'] ?>_desc_text').css("width", "80%");
-        $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        var loadingFontDim = 13;
-        var loadingIconDim = 20;
-        height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
-        $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
-        if(firstLoad != false)
-        {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
-        }
-        $("#<?= $_GET['name'] ?>_content").css("height", height);
-        
-        var alarmSet = false;
-        var $div2blink = null;
-        var blinkInterval = null;
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
-        
-        
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#<?= $_GET['name'] ?>_content');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        
-        $.ajax({//Inizio AJAX getParametersWidgets.php
-            url: "../widgets/getParametersWidgets.php",
-            type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
-            async: true,
-            dataType: 'json',
-            success: function (msg) 
-            {
-                var parameters = {};
-                var valColori1 = {};
-                var valColori2 = {};
-                var valColori3 = {};
-                var valLimit1 = {};
-                var valLimit2 = {};
-                var valLimit3 = {};
-                var parametri = msg.param.parameters;
-                var contenuto = jQuery.parseJSON(parametri);
-                var sizeColumnsWidget = parseInt(msg.param.size_columns);
-                var sizeRowsWidget = parseInt(msg.param.size_rows);
-                var paneObj = null;
-                var rangeMin = null;
-                var rangeMax = null;
-                var udm = msg.param.udm;
+        <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?> 
                 
-                if (contenuto !== null) 
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var divContainer = $("#<?= $_GET['name'] ?>_content");
+        var widgetContentColor = "<?= $_GET['color'] ?>";
+        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        var nome_wid = "<?= $_GET['name'] ?>_div";
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var color = '<?= $_GET['color'] ?>';
+        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontColor = "<?= $_GET['fontColor'] ?>";
+        var timeToReload = <?= $_GET['freq'] ?>;
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
+            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
+            rangeMin, rangeMax, widgetParameters, paneObj, limSup1, limSup2, minGauge, maxGauge, shownValue, thicknessVal, plotOptionsObj, sizeRowsWidget, alarmSet = null;
+        var metricId = "<?= $_GET['metric'] ?>";
+        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
+        var url = "<?= $_GET['link_w'] ?>";
+        var chartColors = new Array();
+        
+        if(url === "null")
+        {
+            url = null;
+        }
+        
+        //Definizioni di funzione specifiche del widget
+        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        function getThresholdsJson()
+        {
+            var thresholdsJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
+            {
+                thresholdsJson = widgetProperties.param.parameters; 
+            }
+            
+            return thresholdsJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getInfoJson()
+        {
+            var infoJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
+            {
+                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
+            }
+            
+            return infoJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getStyleParameters()
+        {
+            var styleParameters = null;
+            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+            {
+                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+            }
+            
+            return styleParameters;
+        }
+        //Fine definizioni di funzione 
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
+        }
+        else
+        {
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+        }
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        widgetProperties = getWidgetProperties(widgetName);
+        
+        if((widgetProperties !== null) && (widgetProperties !== ''))
+        {
+            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            widgetParameters = JSON.parse(widgetProperties.param.parameters);
+            udm = widgetProperties.param.udm;
+            sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
+            
+            if(widgetParameters !== null)
+            {
+                if((widgetParameters.rangeMin !== null) && (widgetParameters.rangeMin !== "") && (typeof widgetParameters.rangeMin !== "undefined"))
                 {
-                    parameters["<?= $_GET['name'] ?>"] = contenuto;
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].rangeMin != null) && (parameters["<?= $_GET['name'] ?>"].rangeMin != "") && (typeof parameters["<?= $_GET['name'] ?>"].rangeMin != "undefined"))
-                    {
-                        rangeMin = parameters["<?= $_GET['name'] ?>"].rangeMin;
-                    }
-
-                    if((parameters["<?= $_GET['name'] ?>"].rangeMax != null) && (parameters["<?= $_GET['name'] ?>"].rangeMax != "") && (typeof parameters["<?= $_GET['name'] ?>"].rangeMax != "undefined"))
-                    {
-                        rangeMax = parameters["<?= $_GET['name'] ?>"].rangeMax;
-                    }
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].color3 != null) && (parameters["<?= $_GET['name'] ?>"].color3 != "") && (typeof parameters["<?= $_GET['name'] ?>"].color3 !== "undefined")) 
-                    {
-                        valColori3["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].color3;
-                    }
-                    else
-                    {
-                        valColori3["<?= $_GET['name'] ?>"] = colors.RED; 
-                    }
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].color2 != null) && (parameters["<?= $_GET['name'] ?>"].color2 != "") && (typeof parameters["<?= $_GET['name'] ?>"].color2 !== "undefined")) 
-                    {
-                        valColori2["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].color2;
-                    }
-                    else
-                    {
-                        valColori2["<?= $_GET['name'] ?>"] = colors.ORANGE; 
-                    }
-                    
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].color1 != null) && (parameters["<?= $_GET['name'] ?>"].color1 != "") && (typeof parameters["<?= $_GET['name'] ?>"].color1 !== "undefined")) 
-                    {
-                        valColori1["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].color1;
-                    }
-                    else
-                    {
-                        valColori1["<?= $_GET['name'] ?>"] = colors.GREEN;
-                    }
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].limitSup1 != null) && (parameters["<?= $_GET['name'] ?>"].limitSup1 != "") && (typeof parameters["<?= $_GET['name'] ?>"].limitSup1 !== "undefined")) 
-                    {
-                        valLimit1["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].limitSup1;
-                    }
-                    else
-                    {
-                        valLimit1["<?= $_GET['name'] ?>"] = null;
-                    }
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].limitSup2 != null) && (parameters["<?= $_GET['name'] ?>"].limitSup2 != "") && (typeof parameters["<?= $_GET['name'] ?>"].limitSup2 !== "undefined")) 
-                    {
-                        valLimit2["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].limitSup2;
-                    }
-                    else
-                    {
-                        valLimit2["<?= $_GET['name'] ?>"] = null;
-                    }
-                    
-                    /*if((parameters["<?= $_GET['name'] ?>"].limitSup3 != null) && (parameters["<?= $_GET['name'] ?>"].limitSup3 != "") && (typeof parameters["<?= $_GET['name'] ?>"].limitSup3 !== "undefined")) 
-                    {
-                        valLimit3["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].limitSup3;
-                    }
-                    else
-                    {
-                        valLimit3["<?= $_GET['name'] ?>"] = 0;
-                    }*/
-                } 
-                else 
+                    rangeMin = widgetParameters.rangeMin;
+                }
+                else
                 {
-                    valColori1["<?= $_GET['name'] ?>"] = colors.GREEN; 
-                    valColori2["<?= $_GET['name'] ?>"] = colors.ORANGE; 
-                    valColori3["<?= $_GET['name'] ?>"] = colors.RED; 
-                    valLimit1["<?= $_GET['name'] ?>"] = null;
-                    valLimit2["<?= $_GET['name'] ?>"] = null;
-                    //valLimit3["<?= $_GET['name'] ?>"] = 0;
+                    rangeMin = null;
                 }
 
-                $.ajax({//Inizio AJAX getDataMetrics.php
-                    url: "../widgets/getDataMetrics.php",
-                    data: {"IdMisura": ["<?= $_GET['metric'] ?>"]},
-                    type: "GET",
-                    async: true,
-                    dataType: 'json',
-                    success: function (msg) {
+                if((widgetParameters.rangeMax !== null) && (widgetParameters.rangeMax !== "") && (typeof widgetParameters.rangeMax !== "undefined"))
+                {
+                    rangeMax = widgetParameters.rangeMax;
+                }
+                else
+                {
+                    rangeMax = null;
+                }
+
+                if((widgetParameters.color1 !== null) && (widgetParameters.color1 !== "") && (typeof widgetParameters.color1 !== "undefined")) 
+                {
+                    chartColors[0] = widgetParameters.color1;
+                }
+                else
+                {
+                    chartColors[0] = colors.GREEN;
+                }
+                
+                if((widgetParameters.color2 !== null) && (widgetParameters.color2 !== "") && (typeof widgetParameters.color2 !== "undefined")) 
+                {
+                    chartColors[1] = widgetParameters.color2;
+                }
+                else
+                {
+                    chartColors[1] = colors.ORANGE; 
+                }
+
+                if((widgetParameters.color3 !== null) && (widgetParameters.color3 !== "") && (typeof widgetParameters.color3 !== "undefined")) 
+                {
+                    chartColors[2] = widgetParameters.color3;
+                }
+                else
+                {
+                    chartColors[2] = colors.RED; 
+                }
+
+                if((widgetParameters.limitSup1 !== null) && (widgetParameters.limitSup1 !== "") && (typeof widgetParameters.limitSup1 !== "undefined")) 
+                {
+                    limSup1 = widgetParameters.limitSup1;
+                }
+                else
+                {
+                    limSup1 = null;
+                }
+
+                if((widgetParameters.limitSup2 !== null) && (widgetParameters.limitSup2 !== "") && (typeof widgetParameters.limitSup2 !== "undefined")) 
+                {
+                    limSup2 = widgetParameters.limitSup2;
+                }
+                else
+                {
+                    limSup2 = null;
+                }
+            }
+            else 
+            {
+                chartColors[0] = colors.GREEN; 
+                chartColors[1] = colors.ORANGE; 
+                chartColors[2] = colors.RED; 
+                limSup1 = null;
+                limSup2 = null;
+                rangeMin = null;
+                rangeMax = null;
+            }
+            //Fine eventuale codice ad hoc basato sulle proprietà del widget
+            
+            metricData = getMetricData(metricId);
+            if(metricData !== null)
+            {
+                if(metricData.data[0] !== 'undefined')
+                {
+                    if(metricData.data.length > 0)
+                    {
+                        pattern = /Percentuale\//;
+                        metricType = metricData.data[0].commit.author.metricType;
+                        threshold = parseInt(metricData.data[0].commit.author.threshold);
+                        thresholdEval = metricData.data[0].commit.author.thresholdEval;
                         var seriesDat = [];
-                        var metricType = msg.data[0].commit.author.metricType;
-                        var minGauge = null;
-                        var maxGauge = null;
-                        var shownValue = null;
-                        var pattern = /Percentuale\//;
-                        var threshold = null;
-                        var thresholdEval = null;
-                        var thicknessVal = null;
-                        var plotOptionsObj = null;
-                        
-                        threshold = msg.data[0].commit.author.threshold;
-                        thresholdEval = msg.data[0].commit.author.thresholdEval;
-                        
+
                         if(pattern.test(metricType))
                         {
                             minGauge = 0;
                             maxGauge = parseInt(metricType.substring(12));
-                            if(msg.data[0].commit.author.quant_perc1 != null)
+                            if(metricData.data[0].commit.author.quant_perc1 !== null)
                             {
-                                shownValue = parseFloat(parseFloat(msg.data[0].commit.author.quant_perc1).toFixed(1));
+                                shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.quant_perc1).toFixed(1));
                             }
                         }
                         else
@@ -192,38 +224,48 @@
                             switch(metricType)
                             {
                                 case "Intero":
-                                    if((rangeMin != null) && (rangeMax != null))
+                                    if(metricData.data[0].commit.author.value_num !== null)
+                                    {
+                                        shownValue = parseInt(metricData.data[0].commit.author.value_num);
+                                    }
+                                    
+                                    if((rangeMin !== null) && (rangeMax !== null))
                                     {
                                         minGauge = parseInt(rangeMin);
                                         maxGauge = parseInt(rangeMax);
                                     }
-
-                                    if(msg.data[0].commit.author.value_num != null)
+                                    else
                                     {
-                                        shownValue = parseInt(msg.data[0].commit.author.value_num);
+                                        minGauge = 0;
+                                        maxGauge = shownValue;
                                     }
                                     break;
 
                                 case "Float":
-                                    if((rangeMin != null) && (rangeMax != null))
+                                    if(metricData.data[0].commit.author.value_num !== null)
+                                    {
+                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(1));
+                                    }
+                                    
+                                    if((rangeMin !== null) && (rangeMax !== null))
                                     {
                                         minGauge = parseInt(rangeMin);
-                                        maxGauge = parseInt(rangeMax);    
+                                        maxGauge = parseInt(rangeMax);
                                     }
-
-                                    if(msg.data[0].commit.author.value_num != null)
+                                    else
                                     {
-                                        shownValue = parseFloat(parseFloat(msg.data[0].commit.author.value_num).toFixed(1));
+                                        minGauge = 0;
+                                        maxGauge = shownValue;
                                     }
                                     break;
 
                                 case "Percentuale":
                                     minGauge = 0;
                                     maxGauge = 100;
-                                    if(msg.data[0].commit.author.value_perc1 != null)
+                                    if(metricData.data[0].commit.author.value_perc1 !== null)
                                     {
                                         udm = "%";
-                                        shownValue = parseFloat(parseFloat(msg.data[0].commit.author.value_perc1).toFixed(1));
+                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(1));
                                     }
                                     break;
 
@@ -231,7 +273,7 @@
                                     break;
                             }
                         }
-                        
+
                         if(shownValue > maxGauge)
                         {
                             maxGauge = shownValue; 
@@ -240,7 +282,7 @@
                         {
                             minGauge = shownValue; 
                         }
-                        
+
                         if(sizeRowsWidget <= 4)
                         {
                             thicknessVal = 7;
@@ -249,70 +291,70 @@
                         {
                             thicknessVal = 10;
                         }
-                        
+
                         //Controllo tipo metrica non compatibile col widget
-                        if((shownValue != null) && (minGauge != null) && (maxGauge != null))
+                        if((shownValue !== null) && (minGauge !== null) && (maxGauge !== null))
                         {
                             if((threshold === null) || (thresholdEval === null))
                             {
                                 //In questo caso non mostriamo soglia d'allarme.
                                 threshold = 0;
-                                
+
                                 //Per qualsiasi combinazione non prevista impostiamo un unico colore (verde)
                                 plotBandSet = [{
                                             from: minGauge,
                                             to: maxGauge,
-                                            color: valColori1["<?= $_GET['name'] ?>"],
+                                            color: chartColors[0],
                                             thickness: thicknessVal
                                         }];
-                                
-                                if((valLimit1["<?= $_GET['name'] ?>"] == null) && (valLimit2["<?= $_GET['name'] ?>"] == null))
+
+                                if((limSup1 === null) && (limSup2 === null))
                                 {
                                     plotBandSet = [{
                                             from: minGauge,
                                             to: maxGauge,
-                                            color: valColori1["<?= $_GET['name'] ?>"],
+                                            color: chartColors[0],
                                             thickness: thicknessVal
                                         }];
                                 }
                                 else
                                 {
-                                    if(valLimit1["<?= $_GET['name'] ?>"] != null)
+                                    if(limSup1 !== null)
                                     {
                                         plotBandSet = [
                                         {  
                                             from: minGauge,
-                                            to: valLimit1["<?= $_GET['name'] ?>"],
-                                            color: valColori1["<?= $_GET['name'] ?>"],
+                                            to: limSup1,
+                                            color: chartColors[0],
                                             thickness: thicknessVal
                                         },
                                         {  
-                                            from: valLimit1["<?= $_GET['name'] ?>"],
+                                            from: limSup1,
                                             to: maxGauge,
-                                            color: valColori2["<?= $_GET['name'] ?>"],
+                                            color: chartColors[1],
                                             thickness: thicknessVal
                                         }
                                         ];
                                     }
-                                    if((valLimit1["<?= $_GET['name'] ?>"] != null) && (valLimit2["<?= $_GET['name'] ?>"] != null))
+                                    if((limSup1 !== null) && (limSup2 !== null))
                                     {
                                         plotBandSet = [
                                         {  
                                             from: minGauge,
-                                            to: valLimit1["<?= $_GET['name'] ?>"],
-                                            color: valColori1["<?= $_GET['name'] ?>"],
+                                            to: limSup1,
+                                            color: chartColors[0],
                                             thickness: thicknessVal
                                         },
                                         {  
-                                            from: valLimit1["<?= $_GET['name'] ?>"],
-                                            to: valLimit2["<?= $_GET['name'] ?>"],
-                                            color: valColori2["<?= $_GET['name'] ?>"],
+                                            from: limSup1,
+                                            to: limSup2,
+                                            color: chartColors[1],
                                             thickness: thicknessVal
                                         },
                                         {  
-                                            from: valLimit2["<?= $_GET['name'] ?>"],
+                                            from: limSup2,
                                             to: maxGauge,
-                                            color: valColori3["<?= $_GET['name'] ?>"],
+                                            color: chartColors[2],
                                             thickness: thicknessVal
                                         }        
                                         ];
@@ -329,22 +371,22 @@
                                         if(shownValue < threshold)
                                         {
                                            //Allarme
-                                           alarmSet = true;
+                                           //alarmSet = true;
                                         }
 
                                         plotBandSet = [
                                             {
                                                 from: minGauge,
                                                 to: threshold,
-                                                color: valColori3["<?= $_GET['name'] ?>"],
+                                                color: chartColors[2],
                                                 thickness: thicknessVal
                                             },        
                                             {
                                                 from: threshold,
                                                 to: maxGauge,
-                                                color: valColori1["<?= $_GET['name'] ?>"],
+                                                color: chartColors[0],
                                                 thickness: thicknessVal
-                                            }, 
+                                            }
                                         ];
                                         break;
 
@@ -353,22 +395,22 @@
                                         if(shownValue > threshold)
                                         {
                                            //Allarme
-                                           alarmSet = true;
+                                           //alarmSet = true;
                                         }
 
                                         plotBandSet = [
                                             {
                                                 from: minGauge,
                                                 to: threshold,
-                                                color: valColori1["<?= $_GET['name'] ?>"],
+                                                color: chartColors[0],
                                                 thickness: thicknessVal
                                             }, 
                                             {
                                                 from: threshold,
                                                 to: maxGauge,
-                                                color: valColori3["<?= $_GET['name'] ?>"],
+                                                color: chartColors[2],
                                                 thickness: thicknessVal
-                                            }, 
+                                            }
                                         ];
                                         break;
 
@@ -380,7 +422,7 @@
                                         if(deltaPerc <= 0.01)
                                         {
                                             //Allarme
-                                            alarmSet = true;
+                                            //alarmSet = true;
                                         }
 
                                         var incAlr = parseInt(threshold*0.05);
@@ -391,19 +433,19 @@
                                             {
                                                 from: minGauge,
                                                 to: infAlr,
-                                                color: valColori1["<?= $_GET['name'] ?>"],
+                                                color: chartColors[0],
                                                 thickness: thicknessVal
                                             },
                                             {
                                                 from: infAlr,
                                                 to: supAlr,
-                                                color: valColori3["<?= $_GET['name'] ?>"],
+                                                color: chartColors[2],
                                                 thickness: thicknessVal
                                             },
                                             {
                                                 from: supAlr,
                                                 to: maxGauge,
-                                                color: valColori1["<?= $_GET['name'] ?>"],
+                                                color: chartColors[0],
                                                 thickness: thicknessVal
                                             }
                                         ];
@@ -415,26 +457,16 @@
                                         plotBandSet = [{
                                             from: minGauge,
                                             to: maxGauge,
-                                            color: valColori1["<?= $_GET['name'] ?>"],
+                                            color: chartColors[0],
                                             thickness: thicknessVal
                                         }];
                                         break;
                                  }
                             }
 
-                            var div2blink = $('#<?= $_GET['name'] ?>_desc_text');
-                            blinkInterval = null;
-                            if(alarmSet)
-                            {
-                                blinkInterval = setInterval(function(){
-                                    div2blink.toggleClass("desc_text_alr");
-                                },1000);
-                            }
-
                             if(sizeRowsWidget <= 4)
                             {
                                 //Speedo piccolo (anche in caso di valore errato su DB)
-                                
                                 plotOptionsObj = {
                                     gauge : {
                                         dial : {
@@ -443,7 +475,7 @@
                                         }
                                     }
                                 };
-                                
+
                                 paneObj = [{
                                     startAngle: -135,
                                     endAngle: 135,
@@ -484,7 +516,8 @@
                                     style: {
                                         fontWeight: 'bold',
                                         fontSize: '12px',
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.35)",
+                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
+                                        "textOutline": "1px 1px contrast",
                                         fontFamily: 'Verdana'
                                     },
                                     padding: 1,
@@ -495,7 +528,7 @@
                                         return val;
                                     }
                                 };
-                                
+
                                 udmObj = {
                                         text: udm, 
                                         y: 60,
@@ -503,11 +536,12 @@
                                             fontWeight:'normal',
                                             fontSize: '15px',
                                             color: 'black',
-                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.35)",
+                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
+                                            "textOutline": "1px 1px contrast",
                                             fontFamily: 'Verdana'
                                         },
                                     };
-                                    
+
                                 yAxisObj = {
                                     min: minGauge,
                                     max: maxGauge,
@@ -527,23 +561,18 @@
                                         rotation: 'auto',
                                         distance: -20,
                                         style: {
-                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.30)",
+                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
+                                            "textOutline": "1px 1px contrast",
                                             fontFamily: 'Verdana'
                                         }
                                     },
                                     title: udmObj,
                                     plotBands: plotBandSet 
                                 }; 
-
-                                $("#<?= $_GET['name'] ?>_content").attr("class", "container-speedomenter-x1");
                             }
                             else
                             {
                                 //Speedo grande (anche in caso di valore errato su DB)
-                                $('#<?= $_GET['name'] ?>_desc').width('74%');
-                                $('#<?= $_GET['name'] ?>_desc_text').css("width", "90%");
-                                $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
-                                
                                 plotOptionsObj = {
                                     gauge : {
                                         dial : {
@@ -552,11 +581,11 @@
                                         }
                                     }
                                 };
-                                
+
                                 paneObj = [{
                                     startAngle: -135,
                                     endAngle: 135,
-                                    size: '100%',
+                                    size: '97%',
                                     center: ['50%', '51%'],
                                     background: [{
                                             backgroundColor: {
@@ -592,7 +621,8 @@
                                     enabled: true,
                                     style: {
                                         fontSize: '20px',
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.35)",
+                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
+                                        "textOutline": "1px 1px contrast",
                                         fontFamily: 'Verdana'
                                     },
                                     y: 85,
@@ -602,7 +632,7 @@
                                         return val;
                                     }
                                 };
-                                
+
                                 udmObj = {
                                         text: udm, 
                                         y: 120,
@@ -610,11 +640,12 @@
                                             fontWeight:'bold',
                                             fontSize: '18px',
                                             color: 'black',
-                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.35)",
+                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
+                                            "textOutline": "1px 1px contrast",
                                             fontFamily: 'Verdana'
-                                        },
+                                        }
                                     };
-                                
+
                                 yAxisObj = {
                                     min: minGauge,
                                     max: maxGauge,
@@ -633,27 +664,27 @@
                                         step: 2,
                                         rotation: 'auto',
                                         style: {
-                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.30)",
+                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
+                                            "textOutline": "1px 1px contrast",
                                             fontFamily: 'Verdana'
                                         }
                                     },
                                     title: udmObj,
                                     plotBands: plotBandSet 
                                 }; 
-
-                                $("#<?= $_GET['name'] ?>_content").attr("class", "container-speedomenter-x2");
                             }
 
-                            if(firstLoad != false)
+                            if(firstLoad !== false)
                             {
-                                $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                $('#<?= $_GET['name'] ?>_content').css("display", "block");
+                                showWidgetContent(widgetName);
                             }
-                            
-                            /**
-                             * Creazione diagramma
-                             */
-                            var chart = $('#<?= $_GET['name'] ?>_content').highcharts({
+                            else
+                            {
+                                elToEmpty.empty();
+                            }
+
+                            //Disegno del diagramma
+                            var chart = $('#<?= $_GET['name'] ?>_chartContainer').highcharts({
                                 credits: {
                                     enabled: false
                                 },
@@ -663,11 +694,11 @@
                                     plotBackgroundColor: null,
                                     plotBackgroundImage: null,
                                     plotBorderWidth: 0,
-                                    plotShadow: false,
+                                    plotShadow: false
                                 },
                                 //NON RIMUOVERE        
                                 title: {
-                                    text: '',
+                                    text: ''
                                 },
                                 pane: paneObj,
                                 plotOptions: plotOptionsObj,
@@ -684,58 +715,52 @@
                                 }
                             });
                         }
-                        else
-                        {
-                            $('#<?= $_GET['name'] ?>_content').html("<p style='text-align: center; font-size: 18px'>Nessun dato disponibile</p>");
-                        }
-                        
-                        if (link_w.trim()) 
-                        {
-                            if(linkElement.length === 0)
-                            {
-                               linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                               divChartContainer.wrap(linkElement); 
-                            }
-                        }
-                        
-                        $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                            $('#dialog_<?= $_GET['name'] ?>').show();
-                        });
-                        $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-                            $('#dialog_<?= $_GET['name'] ?>').hide();
-                        });
-
                     }
-                });//Fine AJAX getDataMetrics.php
-
-                var counter = <?= $_GET['freq'] ?>;
-                var countdown = setInterval(function () {
-                    counter--;
-                    if (counter > 60) {
-                        $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter / 60) + "m");
-                    } else {
-                        $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                    }
-                    if (counter === 0) {
-                        $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                        clearInterval(countdown);
-                        if(alarmSet)
-                        {
-                            clearInterval(blinkInterval);
-                        }
-                        setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                    }
-                }, 1000);
+                    else
+                    {
+                        showWidgetContent(widgetName);
+			$('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }  
+                
+                
+                    
+                }
+                else
+                {
+                    showWidgetContent(widgetName);
+                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                }
+                /*Fine eventuale codice ad hoc basato sui dati della metrica*/
             }
-        });//Fine AJAX getParametersWidgets.php
-
-    });//Fine document.ready
-
+            else
+            {
+                showWidgetContent(widgetName);
+                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+            } 
+        }    
+        else
+        {
+            alert("Error while loading widget properties");
+        }
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetSpeedometer", null, null);
+    });//Fine document.ready            
 </script>
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_desc' class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-        <div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+            </div>    
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
         <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -744,7 +769,11 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id="<?= $_GET['name'] ?>_content" class="content"></div><!--  style="border-color: red; border-style: solid; border-width: 1px; width: 100%" -->
-    </div>
-</div>
+        
+        <div id="<?= $_GET['name'] ?>_content" class="content">
+            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer"></div>
+        </div>
+    </div>	
+</div> 
         

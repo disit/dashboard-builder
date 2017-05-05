@@ -1,4 +1,5 @@
 <?php
+
 /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
@@ -14,8 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-session_start();
-if (session_destroy()) { // Destroying All Sessions
-    header("location: index.php"); // Redirecting To Home Page
-}
+    session_start();
+    if (session_destroy()) 
+    { 
+        header("location: index.php"); 
+    }
 ?>

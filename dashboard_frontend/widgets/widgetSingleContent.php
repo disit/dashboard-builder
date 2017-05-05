@@ -14,318 +14,307 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type='text/javascript'>
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        $('#<?= $_GET['name'] ?>_desc').width('70%');
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $('#<?= $_GET['name'] ?>_desc_text').css("width", "80%");
-        $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
+        //$("#<?= $_GET['name'] ?>_chartContainer").css("height", height); a cosa serviva?
+        <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?>
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var divContainer = $("#<?= $_GET['name'] ?>_content");
+        var widgetContentColor = "<?= $_GET['color'] ?>";
+        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        var nome_wid = "<?= $_GET['name'] ?>_div";
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var color = '<?= $_GET['color'] ?>';
+        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontColor = "<?= $_GET['fontColor'] ?>";
+        var timeToReload = <?= $_GET['freq'] ?>;
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, pattern, totValues, shownValues, 
+            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
+            rangeMin, rangeMax, widgetParameters, sizeRowsWidget, widgetColor, fontSize, value, metricType, height, fontRatio, fontRatioSmall = null;
+        var metricId = "<?= $_GET['metric'] ?>";
+        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
+        elToEmpty.css("font-family", "Verdana");
+        elToEmpty.css("font-size", "48px");
+        elToEmpty.css("font-weight", "bold");
+        var url = "<?= $_GET['link_w'] ?>";
         
-        var loadingFontDim = 13; 
-        var loadingIconDim = 20;
-        $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
-        if(firstLoad != false)
-        {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
-        }
-        
-        $("#<?= $_GET['name'] ?>_utility").css("height", height);
-        
-        var value = null;
-        var threshold = null;
-        var thresholdEval = null;
+        //Specifiche per questo widget
         var flagNumeric = false;
         var alarmSet = false;
-        var alarmInterval = null;
         var udm = "";
         var pattern = /Percentuale\//;
-        var typeMetric = null;
-        var height = null;
-        var sizeRowsWidget = null;
-        var fontRatio = null;
-        var fontRatioSmall = null;
         
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
-             
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#<?= $_GET['name'] ?>_value');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        $('#<?= $_GET['name'] ?>_value').css("color", fontColor);
-        $('#<?= $_GET['name'] ?>_udm').css("color", fontColor);
-        
-         $.ajax({//Inizio AJAX getParametersWidgets.php
-            url: "../widgets/getParametersWidgets.php",
-            type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
-            async: true,
-            dataType: 'json',
-            success: function (msg) {
-                if (msg != null)
-                {
-                    udm = msg.param.udm;
-                    sizeRowsWidget = parseInt(msg.param.size_rows);
-                }
-                
-                $.ajax({
-                    url: "../widgets/getDataMetrics.php",
-                    data: {"IdMisura": ["<?= $_GET['metric'] ?>"]},
-                    type: "GET",
-                    async: true,
-                    dataType: 'json',
-                    success: function (msg) 
-                    {
-                        if((msg == null) || (msg.data[0] == null))
-                        {
-                            if(firstLoad != false)
-                            {
-                                $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                $("#<?= $_GET['name'] ?>_utility").css("display", "");
-                            }
+        //Definizioni di funzione specifiche del widget
+        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        function getThresholdsJson()
+        {
+            var thresholdsJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
+            {
+                thresholdsJson = widgetProperties.param.parameters; 
+            }
             
-                            $('#<?= $_GET['name'] ?>_utility').html("<p style='text-align: center; font-size: 18px;'>Nessun dato disponibile</p>");
+            return thresholdsJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getInfoJson()
+        {
+            var infoJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
+            {
+                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
+            }
+            
+            return infoJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getStyleParameters()
+        {
+            var styleParameters = null;
+            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+            {
+                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+            }
+            
+            return styleParameters;
+        }
+        //Fine definizioni di funzione 
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
+        }
+        else
+        {
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+        }
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        widgetProperties = getWidgetProperties(widgetName);
+        
+        if((widgetProperties !== null) && (widgetProperties !== ''))
+        {
+            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            udm = widgetProperties.param.udm;
+            sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
+            
+            //Fine eventuale codice ad hoc basato sulle proprietà del widget
+            metricData = getMetricData(metricId);
+            if(metricData !== null)
+            {
+                if(metricData.data[0] !== 'undefined')
+                {
+                    if(metricData.data.length > 0)
+                    {
+                        //Inizio eventuale codice ad hoc basato sui dati della metrica
+                        if(firstLoad !== false)
+                        {
+                            showWidgetContent(widgetName);
                         }
                         else
                         {
-                            typeMetric = "<?= $_GET['type_metric'] ?>";
+                            $("#" + widgetName + "_value").empty();
+                            $("#" + widgetName + "_udm").empty();
+                        }
+                        metricType = metricData.data[0].commit.author.metricType;
+                        threshold = metricData.data[0].commit.author.threshold;
+                        thresholdEval = metricData.data[0].commit.author.thresholdEval;
 
-                            threshold = msg.data[0].commit.author.threshold;
-                            thresholdEval = msg.data[0].commit.author.thresholdEval;
-
-                            if((typeMetric === "Percentuale") || (pattern.test(typeMetric)))
+                        if((metricType === "Percentuale") || (pattern.test(metricType)))
+                        {
+                            udm = "%";
+                            if((metricData.data[0].commit.author.value_perc1 !== null) && (metricData.data[0].commit.author.value_perc1 !== "") && (metricData.data[0].commit.author.value_perc1 !== "undefined"))
                             {
-                                udm = "%";
-                                if((msg.data[0].commit.author.value_perc1 != null) && (msg.data[0].commit.author.value_perc1 != "") && (typeof msg.data[0].commit.author.value_perc1 != "undefined"))
+                                value = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(1));
+                                if(value > 100)
                                 {
-                                    value = parseFloat(parseFloat(msg.data[0].commit.author.value_perc1).toFixed(1));
-                                    if(value > 100)
-                                    {
-                                        value = 100;
-                                    }
-                                }
-                                flagNumeric = true;
-                            }
-                            else
-                            {
-                                switch(typeMetric)
-                                {
-                                    case "Intero":
-                                        if((msg.data[0].commit.author.value_num != null) && (msg.data[0].commit.author.value_num != "") && (typeof msg.data[0].commit.author.value_num != "undefined"))
-                                        {
-                                            value = parseInt(msg.data[0].commit.author.value_num);
-                                        }
-                                        flagNumeric = true;
-                                        break;
-
-                                    case "Float":
-                                        if((msg.data[0].commit.author.value_num != null) && (msg.data[0].commit.author.value_num != "") && (typeof msg.data[0].commit.author.value_num != "undefined"))
-                                        {
-                                           value = parseFloat(parseFloat(msg.data[0].commit.author.value_num).toFixed(1)); 
-                                        }
-                                        flagNumeric = true;
-                                        break;
-
-                                    case "Testuale":
-                                        value = msg.data[0].commit.author.value_text;
-                                        break;
+                                    value = 100;
                                 }
                             }
-
-                            //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
-                            fontRatio = parseInt((sizeRowsWidget / 4)*65);
-                            fontRatioSmall = parseInt((fontRatio / 100)*30);
-                            fontRatio = fontRatio.toString() + "%";
-                            fontRatioSmall = fontRatioSmall.toString() + "%";
-                            $("#<?= $_GET['name'] ?>_value").css("font-size", fontRatio);
-                            $("#<?= $_GET['name'] ?>_udm").css("font-size", fontRatioSmall);
-                            
-                            $("#<?= $_GET['name'] ?>_value").css({backgroundColor: '<?= $_GET['color'] ?>'});
-                            $("#<?= $_GET['name'] ?>_udm").css({backgroundColor: '<?= $_GET['color'] ?>'});
-
-                            if((udm != null))
+                            flagNumeric = true;
+                        }
+                        else
+                        {
+                            switch(metricType)
                             {
-                                if(udm.length <= 2)
-                                {
-                                    $("#<?= $_GET['name'] ?>_value").css("height", "100%");             
-                                    $("#<?= $_GET['name'] ?>_value").css("alignItems", "center");
-                                    if(((value != null) && (value != "") && (typeof value != "undefined") && (value != "NaN")) || (value == 0))
+                                case "Intero":
+                                    if((metricData.data[0].commit.author.value_num !== null) && (metricData.data[0].commit.author.value_num !== "") && (typeof metricData.data[0].commit.author.value_num !== "undefined"))
                                     {
-                                        if(firstLoad != false)
-                                        {
-                                            $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                            $("#<?= $_GET['name'] ?>_utility").css("display", "block");
-                                        }
-                                        $("#<?= $_GET['name'] ?>_value").html(value + udm);
-                                        //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
+                                        value = parseInt(metricData.data[0].commit.author.value_num);
                                     }
-                                    else
+                                    flagNumeric = true;
+                                    break;
+
+                                case "Float":
+                                    if((metricData.data[0].commit.author.value_num !== null) && (metricData.data[0].commit.author.value_num !== "") && (typeof metricData.data[0].commit.author.value_num !== "undefined"))
                                     {
-                                        if(firstLoad != false)
-                                        {
-                                            $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                            $("#<?= $_GET['name'] ?>_utility").css("display", "block");
-                                        }
-                                        $('#<?= $_GET['name'] ?>_utility').html("<p style='text-align: center; font-size: 18px;'>Nessun dato disponibile</p>");
+                                       value = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(1)); 
                                     }
-                                }
-                                else
-                                {
-                                    var valueHeight = parseInt(height*0.7);
-                                    var udmHeight = parseInt(height*0.3);
-                                    $("#<?= $_GET['name'] ?>_value").css("height", valueHeight);
-                                    $("#<?= $_GET['name'] ?>_value").css("alignItems", "flex-end");
-                                    $("#<?= $_GET['name'] ?>_udm").css("height", udmHeight);
-                                    if(((value != null) && (value != "") && (typeof value != "undefined") && (value != "NaN")) || (value == 0))
-                                    {
-                                        if(firstLoad != false)
-                                        {
-                                            $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                            $("#<?= $_GET['name'] ?>_utility").css("display", "block");
-                                        }
-                                        $("#<?= $_GET['name'] ?>_value").html(value);
-                                        $("#<?= $_GET['name'] ?>_udm").html(udm);
-                                        //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
-                                    }
-                                    else
-                                    {
-                                        if(firstLoad != false)
-                                        {
-                                            $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                            $("#<?= $_GET['name'] ?>_utility").css("display", "block");
-                                        } 
-                                        $('#<?= $_GET['name'] ?>_utility').html("<p style='text-align: center; font-size: 18px;'>Nessun dato disponibile</p>");
-                                    }
-                                }
+                                    flagNumeric = true;
+                                    break;
+
+                                case "Testuale":
+                                    value = metricData.data[0].commit.author.value_text;
+                                    break;
                             }
-                            else
+                        }
+
+                        //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
+                        fontRatio = parseInt((sizeRowsWidget / 4)*65);
+                        fontRatioSmall = parseInt((fontRatio / 100)*30);
+                        fontRatio = fontRatio.toString() + "%";
+                        fontRatioSmall = fontRatioSmall.toString() + "%";
+
+                        $("#<?= $_GET['name'] ?>_value").css("font-size", fontRatio);
+                        $("#<?= $_GET['name'] ?>_udm").css("font-size", fontRatioSmall);
+                        $("#<?= $_GET['name'] ?>_value").css("backgroundColor", "<?= $_GET['color'] ?>");
+                        $("#<?= $_GET['name'] ?>_udm").css("backgroundColor", "<?= $_GET['color'] ?>");
+
+                        if(udm !== null)
+                        {
+                            if(udm.length <= 2)
                             {
-                                if(((value != null) && (value != "") && (typeof value != "undefined") && (value != "NaN")) || (value == 0))
+                                $("#<?= $_GET['name'] ?>_value").css("height", "100%");             
+                                $("#<?= $_GET['name'] ?>_value").css("alignItems", "center");
+                                if((value !== null) && (value !== "") && (value !== "undefined"))
                                 {
-                                    if(firstLoad != false)
-                                    {
-                                        $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                        $("#<?= $_GET['name'] ?>_utility").css("display", "block");
-                                    }
-                                    $("#<?= $_GET['name'] ?>_udm").css("display", "none");
-                                    $("#<?= $_GET['name'] ?>_value").css("height", "100%");
-                                    $("#<?= $_GET['name'] ?>_value").html(value);
+                                    $("#<?= $_GET['name'] ?>_value").html(value + udm);
                                     //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
                                 }
                                 else
                                 {
-                                    if(firstLoad != false)
-                                    {
-                                        $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                        $("#<?= $_GET['name'] ?>_utility").css("display", "block");
-                                    }
-                                    $('#<?= $_GET['name'] ?>_utility').html("<p style='text-align: center; font-size: 18px;'>Nessun dato disponibile</p>");
+                                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
                                 }
                             }
-                            
-                            if (link_w.trim()) 
+                            else
                             {
-                                if(linkElement.length === 0)
+                                var valueHeight = parseInt(height*0.7);
+                                var udmHeight = parseInt(height*0.3);
+                                $("#<?= $_GET['name'] ?>_value").css("height", valueHeight);
+                                $("#<?= $_GET['name'] ?>_value").css("alignItems", "flex-end");
+                                $("#<?= $_GET['name'] ?>_udm").css("height", udmHeight);
+                                if((value !== null) && (value !== "") && (value !== "undefined"))
                                 {
-                                   linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>"); 
-                                   divChartContainer.wrap(linkElement);
-                                   linkElement.css("height", $("#<?= $_GET['name'] ?>_utility").css("height"));
+                                    $("#<?= $_GET['name'] ?>_value").html(value);
+                                    $("#<?= $_GET['name'] ?>_udm").html(udm);
+                                    //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
                                 }
-                            }
-
-                            if(flagNumeric && (threshold !== null) && (thresholdEval !== null))
-                            {
-                                delta = Math.abs(value - threshold);
-                                //Distinguiamo in base all'operatore di confronto
-                                switch(thresholdEval)
+                                else
                                 {
-                                   //Allarme attivo se il valore attuale è sotto la soglia
-                                   case '<':
-                                       if(value < threshold)
-                                       {
-                                          alarmSet = true;
-                                       }
-                                       break;
-
-                                   //Allarme attivo se il valore attuale è sopra la soglia
-                                   case '>':
-                                       if(value > threshold)
-                                       {
-                                          alarmSet = true;
-                                       }
-                                       break;
-
-                                   //Allarme attivo se il valore attuale è uguale alla soglia (errore sui float = 0.1% la distanza dalla soglia rispetto alla soglia stessa)
-                                   case '=':
-                                       deltaPerc = (delta / threshold)*100;
-                                       if(deltaPerc < 0.01)
-                                       {
-                                           alarmSet = true;
-                                       }
-                                       break;    
-
-                                   //Non gestiamo altri operatori 
-                                   default:
-                                       break;
+                                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
                                 }
                             }
-
-                            $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                                $('#dialog_<?= $_GET['name'] ?>').show();
-                            });
-                            $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-                                $('#dialog_<?= $_GET['name'] ?>').hide();
-                            });
-
-                            var div2blink = $('#<?= $_GET['name'] ?>_desc_text');
-                            var blinkInterval = null;
-                            if(alarmSet)
+                        }
+                        else
+                        {
+                            if((value !== null) && (value !== "") && (value !== "undefined"))
                             {
-                                blinkInterval = setInterval(function(){
-                                    div2blink.toggleClass("desc_text_alr");
-                                },1000);
+                                $("#<?= $_GET['name'] ?>_udm").css("display", "none");
+                                $("#<?= $_GET['name'] ?>_value").css("height", "100%");
+                                $("#<?= $_GET['name'] ?>_value").html(value);
+                                //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
+                            }
+                            else
+                            {
+                                $('#<?= $_GET['name'] ?>_noDataAlert').show();
                             }
                         }
 
-                        var counter = <?= $_GET['freq'] ?>;
-                        var countdown = setInterval(function () {
-                            $("#countdown_<?= $_GET['name'] ?>").text(counter);
-                            counter--;
-                            if (counter > 60) {
-                                $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter / 60) + "m");
-                            } else {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
+                        if(flagNumeric && (threshold !== null) && (thresholdEval !== null))
+                        {
+                            delta = Math.abs(value - threshold);
+                            //Distinguiamo in base all'operatore di confronto
+                            switch(thresholdEval)
+                            {
+                               //Allarme attivo se il valore attuale è sotto la soglia
+                               case '<':
+                                   if(value < threshold)
+                                   {
+                                      alarmSet = true;
+                                   }
+                                   break;
+
+                               //Allarme attivo se il valore attuale è sopra la soglia
+                               case '>':
+                                   if(value > threshold)
+                                   {
+                                      alarmSet = true;
+                                   }
+                                   break;
+
+                               //Allarme attivo se il valore attuale è uguale alla soglia (errore sui float = 0.1% la distanza dalla soglia rispetto alla soglia stessa)
+                               case '=':
+                                   deltaPerc = (delta / threshold)*100;
+                                   if(deltaPerc < 0.01)
+                                   {
+                                       alarmSet = true;
+                                   }
+                                   break;    
+
+                               //Non gestiamo altri operatori 
+                               default:
+                                   break;
                             }
-                            if (counter === 0) {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                                clearInterval(countdown);
-                                if(alarmSet)
-                                {
-                                    clearInterval(blinkInterval);
-                                }
-                                setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                            }
-                        }, 1000);
-                        
+                        }
                     }
-                });
+                    else
+                    {
+                        showWidgetContent(widgetName);
+			$('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
+                }
+                else
+                {
+                    showWidgetContent(widgetName);
+                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                } 
             }
-        });   
-});
-                            
-       
+            else
+            {
+                showWidgetContent(widgetName);
+                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+            } 
+        }
+        else
+        {
+            alert("Error while loading widget properties");
+        }
+    startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetSingleContent", null, null);
+});//Fine document ready 
 </script>
 
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_desc' class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+            </div>    
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
         <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -334,9 +323,13 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id='<?= $_GET['name'] ?>_utility' class="singleContentUtility">
-            <div id='<?= $_GET['name'] ?>_value' class="singleContentValue"></div>
-            <div id='<?= $_GET['name'] ?>_udm' class="singleContentUdm"></div>
+        
+        <div id="<?= $_GET['name'] ?>_content" class="content">
+            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer">
+                <div id='<?= $_GET['name'] ?>_value' class="singleContentValue"></div>
+                <div id='<?= $_GET['name'] ?>_udm' class="singleContentUdm"></div>
+            </div>
         </div>
     </div>	
 </div> 

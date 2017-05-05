@@ -14,120 +14,168 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type='text/javascript'>
     var colors = {
       GREEN: '#008800',
       ORANGE: '#FF9933',
       LOW_YELLOW: '#ffffcc',
-      RED: '#FF0000',
+      RED: '#FF0000'
     };
     var parameters = {};
-    var valColori1 = {};
-    var valColori2 = {};
+    var barColors = {};
+    var barColors = {};
 
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad)
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        $('#<?= $_GET['name'] ?>_desc').width('70%');
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $('#<?= $_GET['name'] ?>_desc_text').css("width", "80%");
-        $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        var loadingFontDim = 13;
-        var loadingIconDim = 20;
-        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
-        $("#<?= $_GET['name'] ?>_content").css("height", height);
-        $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
-        if(firstLoad != false)
-        {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
-        }
-        
-        //colore finestra
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
+        <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?> 
+                
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var divContainer = $("#<?= $_GET['name'] ?>_content");
+        var widgetContentColor = "<?= $_GET['color'] ?>";
+        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
         var nome_wid = "<?= $_GET['name'] ?>_div";
-        $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
-        
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var color = '<?= $_GET['color'] ?>';
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
+        var timeToReload = <?= $_GET['freq'] ?>;
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
+            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
+            rangeMin, rangeMax, widgetParameters, alarmSet = null;
+        var metricId = "<?= $_GET['metric'] ?>";
+        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
+        var url = "<?= $_GET['link_w'] ?>";
+        var barColors = new Array();
         
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#<?= $_GET['name'] ?>_content');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var alarmSet = false;
-        var $div2blink = null;
-        var blinkInterval = null;
         
-        //Estrazione dei parametri del widget
-        $.ajax({
-            url: "../widgets/getParametersWidgets.php",
-            type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
-            async: true,
-            dataType: 'json',
-            success: function (msg) {
-                var parametri = msg.param.parameters;
-                var contenuto = jQuery.parseJSON(parametri);
-                var sizeRowsWidget = parseInt(msg.param.size_rows);
-                var rangeMin = null;
-                var rangeMax = null;
-                
-                if (contenuto !== null) 
-                {
-                    parameters["<?= $_GET['name'] ?>"] = contenuto;
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].rangeMin != null) && (parameters["<?= $_GET['name'] ?>"].rangeMin != "") && (typeof parameters["<?= $_GET['name'] ?>"].rangeMin != "undefined"))
-                    {
-                        rangeMin = parameters["<?= $_GET['name'] ?>"].rangeMin;
-                    }
+        if(url === "null")
+        {
+            url = null;
+        }
+        
+        
+        //Definizioni di funzione specifiche del widget
+        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        function getThresholdsJson()
+        {
+            var thresholdsJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
+            {
+                thresholdsJson = widgetProperties.param.parameters; 
+            }
+            
+            return thresholdsJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getInfoJson()
+        {
+            var infoJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
+            {
+                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
+            }
+            
+            return infoJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getStyleParameters()
+        {
+            var styleParameters = null;
+            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+            {
+                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+            }
+            
+            return styleParameters;
+        }
+        //Fine definizioni di funzione 
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
+        }
+        else
+        {
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+        }
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        widgetProperties = getWidgetProperties(widgetName);
+        
+        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
+        {
+            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            widgetParameters = widgetProperties.param.parameters;
 
-                    if((parameters["<?= $_GET['name'] ?>"].rangeMax != null) && (parameters["<?= $_GET['name'] ?>"].rangeMax != "") && (typeof parameters["<?= $_GET['name'] ?>"].rangeMax != "undefined"))
-                    {
-                        rangeMax = parameters["<?= $_GET['name'] ?>"].rangeMax;
-                    }
-                    
-                    if((parameters["<?= $_GET['name'] ?>"].color1 != null) && (parameters["<?= $_GET['name'] ?>"].color1 != "") && (typeof parameters["<?= $_GET['name'] ?>"].color1 !== "undefined")) 
-                    {
-                        valColori1["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].color1;
-                    }
-                    else
-                    {
-                        valColori1["<?= $_GET['name'] ?>"] = colors.GREEN; 
-                    }
-                     
-                    if((parameters["<?= $_GET['name'] ?>"].color2 != null) && (parameters["<?= $_GET['name'] ?>"].color2 != "") && (typeof parameters["<?= $_GET['name'] ?>"].color2 !== "undefined")) 
-                    {
-                        valColori2["<?= $_GET['name'] ?>"] = parameters["<?= $_GET['name'] ?>"].color2;
-                    }
-                    else
-                    {
-                        valColori2["<?= $_GET['name'] ?>"] = colors.LOW_YELLOW;
-                    }
-                } 
-                else 
+            if(widgetParameters !== null)
+            {
+                if((widgetParameters.rangeMin !== null) && (widgetParameters.rangeMin !== "") && (typeof widgetParameters.rangeMin !== "undefined"))
                 {
-                    valColori1["<?= $_GET['name'] ?>"] = colors.GREEN;
-                    valColori2["<?= $_GET['name'] ?>"] = colors.LOW_YELLOW;
+                    rangeMin = widgetParameters.rangeMin;
                 }
 
-                $.ajax({
-                    url: "../widgets/getDataMetrics.php",
-                    data: {"IdMisura": ["<?= $_GET['metric'] ?>"]},
-                    type: "GET",
-                    async: true,
-                    dataType: 'json',
-                    success: function (msg) {
+                if((widgetParameters.rangeMax !== null) && (widgetParameters.rangeMax !== "") && (typeof widgetParameters.rangeMax !== "undefined"))
+                {
+                    rangeMax = widgetParameters.rangeMax;
+                }
+
+                //I colori andranno spostati in styleParameters appena esponiamo la loro gestione sul form add/edit widget
+                if((widgetParameters.color1 !== null) && (widgetParameters.color1 !== "") && (typeof widgetParameters.color1 !== "undefined")) 
+                {
+                    barColors[0] = widgetParameters.color1;
+                }
+                else
+                {
+                    barColors[0] = colors.GREEN; 
+                }
+
+                if((widgetParameters.color2 !== null) && (widgetParameters.color2 !== "") && (typeof widgetParameters.color2 !== "undefined")) 
+                {
+                    barColors[1] = widgetParameters.color2;
+                }
+                else
+                {
+                    barColors[1] = colors.LOW_YELLOW;
+                }
+            }
+            else 
+            {
+                barColors[0] = colors.GREEN;
+                barColors[1] = colors.LOW_YELLOW; 
+            }
+            
+            //Fine eventuale codice ad hoc basato sulle proprietà del widget
+            metricData = getMetricData(metricId);
+            if(metricData !== null)
+            {
+                if(metricData.data[0] !== undefined)
+                {
+                    if(metricData.data.length > 0)
+                    {
+                        /*Inizio eventuale codice ad hoc basato sui dati della metrica*/
                         var pattern = /Percentuale\//;
-                        var metricType = msg.data[0].commit.author.metricType;
+                        var metricType = metricData.data[0].commit.author.metricType;
+                        var threshold = parseInt(metricData.data[0].commit.author.threshold);
+                        var thresholdEval = metricData.data[0].commit.author.thresholdEval;
                         var seriesMainData = [];
                         var seriesComplData = [];
-                        var mainColor = valColori1["<?= $_GET['name'] ?>"];
-                        var complColor = valColori2["<?= $_GET['name'] ?>"];
                         var minGauge = null;
                         var maxGauge = null;
-                        var threshold = parseInt(msg.data[0].commit.author.threshold);
-                        var thresholdEval = msg.data[0].commit.author.thresholdEval;
+                        var yAxisObj = null;
                         var shownValue = null;
                         var shownValueCompl = null;
                         var udm = "";
@@ -138,18 +186,16 @@
                                             width: 1,
                                             zIndex: 5
                                     }];
-                        var desc = msg.data[0].commit.author.descrip;
-                        var yAxisObj = null;
-                        
+
                         if(pattern.test(metricType))
                         {
                             minGauge = 0;
-                            
-                            if(msg.data[0].commit.author.value_perc1 != null)
+
+                            if(metricData.data[0].commit.author.value_perc1 !== null)
                             {
                                 maxGauge = 100;
                                 udm = "%";
-                                shownValue = parseFloat(parseFloat(msg.data[0].commit.author.value_perc1).toFixed(1));
+                                shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(1));
                                 if(shownValue > 100)
                                 {
                                     shownValue = 100;
@@ -160,12 +206,12 @@
                             else
                             {
                                 maxGauge = parseInt(metricType.substring(12));
-                                var part = parseFloat(parseFloat(msg.data[0].commit.author.quant_perc1).toFixed(1));
+                                var part = parseFloat(parseFloat(metricData.data[0].commit.author.quant_perc1).toFixed(1));
                                 shownValue = (part / maxGauge)*100;
                                 shownValueCompl = maxGauge - shownValue;
                                 shownValueCompl = parseFloat(parseFloat(shownValueCompl).toFixed(1));
                             }
-                            
+
                             yAxisObj = {
                                     visible: true,
                                     offset: 0,
@@ -184,15 +230,15 @@
                             switch(metricType)
                             {
                                 case "Intero":
-                                    if((rangeMin != null) && (rangeMax != null))
+                                    if((rangeMin !== null) && (rangeMax !== null))
                                     {
                                         minGauge = parseInt(rangeMin);
                                         maxGauge = parseInt(rangeMax);
                                     }
 
-                                    if(msg.data[0].commit.author.value_num != null)
+                                    if(metricData.data[0].commit.author.value_num !== null)
                                     {
-                                        shownValue = parseInt(msg.data[0].commit.author.value_num);
+                                        shownValue = parseInt(metricData.data[0].commit.author.value_num);
                                         shownValueCompl = maxGauge - shownValue;
                                         shownValueCompl = parseInt(shownValueCompl);
                                         yAxisObj = {
@@ -200,7 +246,6 @@
                                             offset: 0,
                                             min: minGauge,
                                             max: maxGauge,
-                                            //tickInterval: 25,
                                             tickPosition: 'inside',
                                             plotLines: plotLineObj,
                                             title: {
@@ -211,15 +256,15 @@
                                     break;
 
                                 case "Float":
-                                    if((rangeMin != null) && (rangeMax != null))
+                                    if((rangeMin !== null) && (rangeMax !== null))
                                     {
                                         minGauge = parseInt(rangeMin);
                                         maxGauge = parseInt(rangeMax);    
                                     }
 
-                                    if(msg.data[0].commit.author.value_num != null)
+                                    if(metricData.data[0].commit.author.value_num !== null)
                                     {
-                                        shownValue = parseFloat(parseFloat(msg.data[0].commit.author.value_num).toFixed(1));
+                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(1));
                                         shownValueCompl = maxGauge - shownValue;
                                         shownValueCompl = parseFloat(parseFloat(shownValueCompl).toFixed(1));
                                         yAxisObj = {
@@ -240,10 +285,10 @@
                                 case "Percentuale":
                                     minGauge = 0;
                                     maxGauge = 100;
-                                    if(msg.data[0].commit.author.value_perc1 != null)
+                                    if(metricData.data[0].commit.author.value_perc1 !== null)
                                     {
                                         udm = "%";
-                                        shownValue = parseFloat(parseFloat(msg.data[0].commit.author.value_perc1).toFixed(1));
+                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(1));
                                         if(shownValue > 100)
                                         {
                                             shownValue = 100;
@@ -269,8 +314,8 @@
                                     break;
                             }
                         }
-                        
-                        if((shownValue != null) && (minGauge != null) && (maxGauge != null))
+
+                        if((shownValue !== null) && (minGauge !== null) && (maxGauge !== null))
                         {    
                             if((threshold === null) || (thresholdEval === null))
                             {
@@ -279,65 +324,70 @@
                             }
                             else
                             {
-                                     delta = Math.abs(shownValue - threshold);
-                                     //Distinguiamo in base all'operatore di confronto
+                                delta = Math.abs(shownValue - threshold);
+                                //Distinguiamo in base all'operatore di confronto
 
-                                     switch(thresholdEval)
-                                     {
-                                        //Allarme attivo se il valore attuale è sotto la soglia
-                                        case '<':
-                                            if(shownValue < threshold)
-                                            {
-                                               //Allarme
-                                               complColor = colors.RED;
-                                               alarmSet = true;
-                                            }
-                                            break;
+                                switch(thresholdEval)
+                                {
+                                   //Allarme attivo se il valore attuale è sotto la soglia
+                                   case '<':
+                                       if(shownValue < threshold)
+                                       {
+                                          //Allarme
+                                          alarmSet = true;
+                                       }
+                                       break;
 
-                                        //Allarme attivo se il valore attuale è sopra la soglia
-                                        case '>':
-                                            if(shownValue > threshold)
-                                            {
-                                               //Allarme
-                                               complColor = colors.RED;
-                                               alarmSet = true;
-                                            }
-                                            break;
+                                   //Allarme attivo se il valore attuale è sopra la soglia
+                                   case '>':
+                                       if(shownValue > threshold)
+                                       {
+                                          //Allarme
+                                          alarmSet = true;
+                                       }
+                                       break;
 
-                                        //Allarme attivo se il valore attuale è uguale alla soglia (errore sui float = 0.1%)
-                                        case '=':
-                                            if(delta <= 0.1)
-                                            {
-                                                //Allarme
-                                                complColor = colors.RED;
-                                                alarmSet = true;
-                                            }
-                                            break;    
+                                   //Allarme attivo se il valore attuale è uguale alla soglia (errore sui float = 0.1%)
+                                   case '=':
+                                       if(delta <= 0.1)
+                                       {
+                                           //Allarme
+                                           alarmSet = true;
+                                       }
+                                       break;    
 
-                                        //Non gestiamo altri operatori 
-                                        default:
-                                            break;
-                                     }
+                                   //Non gestiamo altri operatori 
+                                   default:
+                                       break;
+                                }
                             }    
-                                
+
+                            var desc = metricData.data[0].commit.author.descrip;
                             seriesMainData.push(['Green', shownValue]);
                             seriesComplData.push(['Red', shownValueCompl]);
-                            
-                            if (link_w.trim()) 
-                            {
-                                if(linkElement.length === 0)
-                                {
-                                   linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                                   divChartContainer.wrap(linkElement); 
+
+                            yAxisObj = {
+                                visible: true,
+                                offset: 0,
+                                min: minGauge,
+                                max: maxGauge,
+                                tickPosition: 'inside',
+                                plotLines: plotLineObj,
+                                title: {
+                                    text: ''
                                 }
-                            }
-                            
-                            if(firstLoad != false)
+                            };
+
+                            if(firstLoad !== false)
                             {
-                                $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                $('#<?= $_GET['name'] ?>_content').css("display", "block");
+                                showWidgetContent(widgetName);
                             }
-                            
+                            else
+                            {
+                                elToEmpty.empty();
+                            }
+
+                            //Disegno del diagramma
                             $('#<?= $_GET['name'] ?>_content').highcharts({
                                 credits: {
                                     enabled: false
@@ -349,13 +399,13 @@
                                     type: 'column',
                                     backgroundColor: '<?= $_GET['color'] ?>',
                                     spacingBottom: 10,
-                                    spacingTop: 10,
+                                    spacingTop: 10
                                 },
                                 title: {
                                     text: ''
                                 },
                                 xAxis: {
-                                    visible: false,
+                                    visible: false
                                 },
                                 yAxis: yAxisObj,
                                 tooltip: {
@@ -376,7 +426,7 @@
                                                 fontFamily: 'Verdana',
                                                 fontWeight: 'bold',
                                                 fontSize: fontSize + "px",
-                                                textOutline: "0px 0px contrast",
+                                                "textOutline": "1px 1px contrast",
                                                 "text-shadow": "1px 1px 1px rgba(0,0,0,0.3)"
                                             }
                                         }
@@ -386,70 +436,64 @@
                                     {
                                         showInLegend: false,
                                         name: '<?= $_GET['metric'] ?>',
-                                        color: complColor,
+                                        color: barColors[1],
                                         data: seriesComplData,
                                         pointWidth: 600
                                     },
                                     {
                                         showInLegend: false,
                                         name: '<?= $_GET['metric'] ?>',
-                                        color: mainColor,
+                                        color: barColors[0],
                                         data: seriesMainData,
                                         pointWidth: 600
                                     }
                                     ]
                             }); //FINE HIGHCHARTS
-                        }
-                        else
-                        {
-                            $('#<?= $_GET['name'] ?>_content').html("<p style='text-align: center; font-size: 18px'>Nessun dato disponibile</p>");
-                        }
-                        $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                            $('#dialog_<?= $_GET['name'] ?>').show();
-                        });
-                        $('#close_<?= $_GET['name'] ?>').on('click', function () {
-                            $('#dialog_<?= $_GET['name'] ?>').hide();
-                        });
-                        
-                        $div2blink = $('#<?= $_GET['name'] ?>_desc_text');
-                        blinkInterval = null;
-                        if(alarmSet)
-                        {
-                            blinkInterval = setInterval(function(){
-                                $div2blink.toggleClass("desc_text_alr");
-                            },1000);
-                        }
-                        
-                        var counter = <?= $_GET['freq'] ?>;
-                        var countdown = setInterval(function () {
-                            counter--;
-                            if (counter > 60) {
-                                $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter / 60) + "m");
-                            } else {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                            }
-                            if (counter === 0) {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                                clearInterval(countdown);
-                                if(alarmSet)
-                                {
-                                    clearInterval(blinkInterval);
-                                }
-                                setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                            }
-                        }, 1000);
-                        
+                        }   
                     }
-                });
+                    else
+                    {
+                        showWidgetContent(widgetName);
+                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
+                }
+                else
+                {
+                    showWidgetContent(widgetName);
+                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                }
+                /*Fine eventuale codice ad hoc basato sui dati della metrica*/
             }
-        });
-    });
-
+            else
+            {
+                showWidgetContent(widgetName);
+                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+            } 
+        }
+        else
+        {
+            alert("Error while loading widget properties");
+        }
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty,"widgetColumnContent", null, null);
+    });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        <div id="<?= $_GET['name'] ?>_desc" class='desc'></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+            </div>    
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
         <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -458,6 +502,10 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id="<?= $_GET['name'] ?>_content" class="content colunm_content"></div>
+        
+        <div id="<?= $_GET['name'] ?>_content" class="content">
+            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer"></div>
+        </div>
     </div>	
-</div>
+</div> 

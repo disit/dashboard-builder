@@ -640,6 +640,9 @@
 
 
     fn.on_dragstop = function(e) {
+        
+        //console.log("Dragstop");
+        
         var offset = this.get_offset(e);
         this.drag_start = false;
 
@@ -725,7 +728,7 @@
         max_size_x: 6,
         autogenerate_stylesheet: true,
         avoid_overlapped_widgets: true,
-        serialize_params: function($w, wgd) {
+        serialize_params: function(wgd) {
             return {
                 col: wgd.col,
                 row: wgd.row,
@@ -796,12 +799,11 @@
         this.$changed = $([]);
         this.wrapper_width = this.$wrapper.width();
         this.min_widget_width = (this.options.widget_margins[0] * 2) +
-          this.options.widget_base_dimensions[0];
+        this.options.widget_base_dimensions[0];
         this.min_widget_height = (this.options.widget_margins[1] * 2) +
-          this.options.widget_base_dimensions[1];
+        this.options.widget_base_dimensions[1];
 
         this.$style_tags = $([]);
-
         this.init();
     }
 
@@ -845,6 +847,8 @@
     };
 
 
+    
+
     /**
     * Add a new widget to the grid.
     *
@@ -863,17 +867,20 @@
         size_x || (size_x = 1);
         size_y || (size_y = 1);
 
-        if (!col & !row) {
+        if (!col & !row) 
+        {
             pos = this.next_position(size_x, size_y);
-        }else{
+        }
+        else
+        {
             pos = {
                 col: col,
                 row: row
             };
-
-            this.empty_cells(col, row, size_x, size_y);
+            //FOND - LASCIARE COMMENTATO PERCHE' DA' PROBLEMI IN ALTEZZA
+            //this.empty_cells(col, row, size_x, size_y);
         }
-
+        
         var $w = $(html).attr({
                 'data-col': pos.col,
                 'data-row': pos.row,
@@ -886,11 +893,16 @@
         this.register_widget($w);
 
         this.add_faux_rows(pos.size_y);
+        //Trovato già commentato: perchè?
         //this.add_faux_cols(pos.size_x);
 
         this.set_dom_grid_height();
 
         return $w.fadeIn();
+    };
+    
+    fn.pippo = function() {
+        
     };
 
 
@@ -1202,7 +1214,6 @@
         return this;
     };
 
-
     /**
     * Returns a serialized array of the widgets in the grid.
     *
@@ -1255,10 +1266,8 @@
             'el': $el
         };
 
-        if (this.options.avoid_overlapped_widgets &&
-            !this.can_move_to(
-             {size_x: wgd.size_x, size_y: wgd.size_y}, wgd.col, wgd.row)
-        ) {
+        if (this.options.avoid_overlapped_widgets && !this.can_move_to({size_x: wgd.size_x, size_y: wgd.size_y}, wgd.col, wgd.row)) 
+        {
             wgd = this.next_position(wgd.size_x, wgd.size_y);
             wgd.el = $el;
             $el.attr({
@@ -1384,7 +1393,7 @@
     * @param {Object} ui A prepared ui object.
     */
     fn.on_start_drag = function(event, ui) {
-
+        //console.log("Player on_start_drag");
         this.$helper.add(this.$player).add(this.$wrapper).addClass('dragging');
 
         this.$player.addClass('player');
@@ -1435,6 +1444,7 @@
     * @param {Object} ui A prepared ui object.
     */
     fn.on_drag = function(event, ui) {
+        //console.log("Player on_drag()");
         //break if dragstop has been fired
         if (this.$player === null) {
             return false;
@@ -1478,6 +1488,7 @@
     * @param {Object} ui A prepared ui object.
     */
     fn.on_stop_drag = function(event, ui) {
+        //console.log("Player on_stop_drag()");
         this.$helper.add(this.$player).add(this.$wrapper)
             .removeClass('dragging');
 
@@ -1617,6 +1628,7 @@
     * @return {object}
     */
     fn.set_player = function(col, row, no_player) {
+        //console.log("set_player");
         var self = this;
         if (!no_player) {
             this.empty_cells_player_occupies();
@@ -1671,6 +1683,7 @@
     * `can_not_go_up`. Each contains a set of HTMLElements.
     */
     fn.widgets_constraints = function($widgets) {
+        //console.log("widgets_constraints()");
         var $widgets_can_go_up = $([]);
         var $widgets_can_not_go_up;
         var wgd_can_go_up = [];
@@ -1836,6 +1849,7 @@
     * @return {Boolean} Returns true or false.
     */
     fn.is_player = function(col_or_el, row) {
+        //console.log("is_player()");
         if (row && !this.gridmap[col_or_el]) { return false; }
         var $w = row ? this.gridmap[col_or_el][row] : col_or_el;
         return $w && ($w.is(this.$player) || $w.is(this.$helper));
@@ -1852,6 +1866,7 @@
     * @return {Boolean} Returns true or false.
     */
     fn.is_player_in = function(col, row) {
+        //console.log("is_player_in()");
         var c = this.cells_occupied_by_player || {};
         return $.inArray(col, c.cols) >= 0 && $.inArray(row, c.rows) >= 0;
     };
@@ -1866,6 +1881,7 @@
     * @return {Boolean} Returns true or false.
     */
     fn.is_placeholder_in = function(col, row) {
+        //console.log("is_placeholder_in");
         var c = this.cells_occupied_by_placeholder || {};
         return this.is_placeholder_in_col(col) && $.inArray(row, c.rows) >= 0;
     };
@@ -1879,6 +1895,7 @@
     * @return {Boolean} Returns true or false.
     */
     fn.is_placeholder_in_col = function(col) {
+        //console.log("is_placeholder_in_col()");
         var c = this.cells_occupied_by_placeholder || [];
         return $.inArray(col, c.cols) >= 0;
     };
@@ -1893,6 +1910,7 @@
     * @return {Boolean} Returns true or false.
     */
     fn.is_empty = function(col, row) {
+        //console.log("is_empty()");
         if (typeof this.gridmap[col] !== 'undefined') {
 			if(typeof this.gridmap[col][row] !== 'undefined' &&
 				 this.gridmap[col][row] === false
@@ -1914,6 +1932,7 @@
     * @return {Boolean} Returns true or false.
     */
     fn.is_occupied = function(col, row) {
+        //console.log("is_occupied()");
         if (!this.gridmap[col]) {
             return false;
         }
@@ -1935,6 +1954,7 @@
     * else returns the jQuery HTMLElement
     */
     fn.is_widget = function(col, row) {
+        //console.log("is_widget()");
         var cell = this.gridmap[col];
         if (!cell) {
             return false;
@@ -1960,6 +1980,7 @@
     * @return {Boolean} Returns true or false.
     */
     fn.is_widget_under_player = function(col, row) {
+        //console.log("is_widget_under_player()");
         if (this.is_widget(col, row)) {
             return this.is_player_in(col, row);
         }
@@ -1975,6 +1996,7 @@
     * @return {HTMLElement} Returns a jQuery collection of HTMLElements
     */
     fn.get_widgets_under_player = function(cells) {
+        //console.log("get_widgets_under_player()");
         cells || (cells = this.cells_occupied_by_player || {cols: [], rows: []});
         var $widgets = $([]);
 
@@ -2001,6 +2023,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.set_placeholder = function(col, row) {
+        //console.log("set_placeholder()");
         var phgd = $.extend({}, this.placeholder_grid_data);
         var $nexts = this.widgets_below({
                 col: phgd.col,
@@ -2059,6 +2082,7 @@
     *  returns the row number, else returns false.
     */
     fn.can_go_player_up = function(widget_grid_data) {
+        //console.log("can_go_player_up()");
         var p_bottom_row = widget_grid_data.row + widget_grid_data.size_y - 1;
         var result = true;
         var upper_rows = [];
@@ -2110,6 +2134,7 @@
     *  returns the row number, else returns false.
     */
     fn.can_go_widget_up = function(widget_grid_data) {
+        //console.log("can_go_widget_up()");
         var p_bottom_row = widget_grid_data.row + widget_grid_data.size_y - 1;
         var result = true;
         var upper_rows = [];
@@ -2171,6 +2196,7 @@
     *  for the widget in question.
     */
     fn.get_valid_rows = function(widget_grid_data, upper_rows, min_row) {
+        //console.log("get_valid_rows()");
         var p_top_row = widget_grid_data.row;
         var p_bottom_row = widget_grid_data.row + widget_grid_data.size_y - 1;
         var size_y = widget_grid_data.size_y;
@@ -2241,6 +2267,7 @@
     * @return {jQuery} Returns a jQuery collection of HTMLElements.
     */
     fn.get_widgets_overlapped = function() {
+        //console.log("get_widgets_overlapped()");
         var $w;
         var $widgets = $([]);
         var used = [];
@@ -2274,6 +2301,7 @@
     * @return {jQuery} Returns a jQuery collection of HTMLElements.
     */
     fn.on_start_overlapping_column = function(col) {
+        //console.log("on_start_overlapping_column()");
         this.set_player(col, false);
     };
 
@@ -2286,6 +2314,7 @@
     * @return {jQuery} Returns a jQuery collection of HTMLElements.
     */
     fn.on_start_overlapping_row = function(row) {
+        //console.log("on_start_overlapping_row()");
         this.set_player(false, row);
     };
 
@@ -2298,6 +2327,7 @@
     * @return {jQuery} Returns a jQuery collection of HTMLElements.
     */
     fn.on_stop_overlapping_column = function(col) {
+        //console.log("on_stop_overlapping_column()");
         this.set_player(col, false);
 
         var self = this;
@@ -2316,6 +2346,7 @@
     * @return {jQuery} Returns a jQuery collection of HTMLElements.
     */
     fn.on_stop_overlapping_row = function(row) {
+        //console.log("on_stop_overlapping_row()");
         this.set_player(false, row);
 
         var self = this;
@@ -2339,6 +2370,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.move_widget_to = function($widget, row) {
+        //console.log("move_widget_to()");
         var self = this;
         var widget_grid_data = $widget.coords().grid;
         var diff = row - widget_grid_data.row;
@@ -2380,6 +2412,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.move_widget_up = function($widget, y_units) {
+        //console.log("move_widget_up()");
         var el_grid_data = $widget.coords().grid;
         var actual_row = el_grid_data.row;
         var moved = [];
@@ -2429,6 +2462,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.move_widget_down = function($widget, y_units) {
+        //console.log("move_widget_down");
         var el_grid_data = $widget.coords().grid;
         var actual_row = el_grid_data.row;
         var moved = [];
@@ -2478,6 +2512,8 @@
     *  to the target position, else returns false.
     */
     fn.can_go_up_to_row = function(widget_grid_data, col, row) {
+        
+        //console.log("can_go_up_to_row()");
         var ga = this.gridmap;
         var result = true;
         var urc = []; // upper_rows_in_columns
@@ -2564,6 +2600,7 @@
     * @return {jQuery} A jQuery collection of HTMLElements.
     */
     fn.widgets_below = function($el) {
+        //console.log("widgets_below()");
         var el_grid_data = $.isPlainObject($el) ? $el : $el.coords().grid;
         var self = this;
         var ga = this.gridmap;
@@ -2592,6 +2629,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.set_cells_player_occupies = function(col, row) {
+        //console.log("set_cells_player_occupies()");
         this.remove_from_gridmap(this.placeholder_grid_data);
         this.placeholder_grid_data.col = col;
         this.placeholder_grid_data.row = row;
@@ -2607,12 +2645,14 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.empty_cells_player_occupies = function() {
+        //console.log("empty_cells_player_occupies()");
         this.remove_from_gridmap(this.placeholder_grid_data);
         return this;
     };
 
 
     fn.can_go_up = function($el) {
+        //console.log("can_go_up()");
         var el_grid_data = $el.coords().grid;
         var initial_row = el_grid_data.row;
         var prev_row = initial_row - 1;
@@ -2654,6 +2694,7 @@
     * @return {Boolean} Returns true if all cells are empty, else return false.
     */
     fn.can_move_to = function(widget_grid_data, col, row, max_row) {
+        //console.log("can_move_to()");
         var ga = this.gridmap;
         var $w = widget_grid_data.el;
         var future_wd = {
@@ -2694,6 +2735,7 @@
     * @return {Array} Returns an array with column numbers.
     */
     fn.get_targeted_columns = function(from_col) {
+        //console.log("get_targeted_columns()");
         var max = (from_col || this.player_grid_data.col) +
             (this.player_grid_data.size_x - 1);
         var cols = [];
@@ -2712,6 +2754,7 @@
     * @return {Array} Returns an array with row numbers.
     */
     fn.get_targeted_rows = function(from_row) {
+        //console.log("get_targeted_rows()");
         var max = (from_row || this.player_grid_data.row) +
             (this.player_grid_data.size_y - 1);
         var rows = [];
@@ -2729,6 +2772,7 @@
     * @return {Object} Returns an object like `{ cols: [], rows: []}`.
     */
     fn.get_cells_occupied = function(el_grid_data) {
+        //console.log("get_cells_occupied()");
         var cells = { cols: [], rows: []};
         var i;
         if (arguments[1] instanceof jQuery) {
@@ -2761,6 +2805,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.for_each_cell_occupied = function(grid_data, callback) {
+        //console.log("for_each_cell_occupied()");
         this.for_each_column_occupied(grid_data, function(col) {
             this.for_each_row_occupied(grid_data, function(row) {
                 callback.call(this, col, row);
@@ -2782,6 +2827,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.for_each_column_occupied = function(el_grid_data, callback) {
+        //console.log("for_each_column_occupied()");
         for (var i = 0; i < el_grid_data.size_x; i++) {
             var col = el_grid_data.col + i;
             callback.call(this, col, el_grid_data);
@@ -2801,6 +2847,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.for_each_row_occupied = function(el_grid_data, callback) {
+        //console.log("for_each_row_occupied()");
         for (var i = 0; i < el_grid_data.size_y; i++) {
             var row = el_grid_data.row + i;
             callback.call(this, row, el_grid_data);
@@ -2810,6 +2857,7 @@
 
 
     fn._traversing_widgets = function(type, direction, col, row, callback) {
+        //console.log("_traversing_widgets()");
         var ga = this.gridmap;
         if (!ga[col]) { return; }
 
@@ -2868,6 +2916,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.for_each_widget_above = function(col, row, callback) {
+        //console.log("for_each_widget_above()");
         this._traversing_widgets('for_each', 'above', col, row, callback);
         return this;
     };
@@ -2885,6 +2934,7 @@
     * @return {Class} Returns the instance of the Gridster Class.
     */
     fn.for_each_widget_below = function(col, row, callback) {
+        //console.log("for_each_widget_below");
         this._traversing_widgets('for_each', 'below', col, row, callback);
         return this;
     };
@@ -2897,6 +2947,7 @@
     * @return {Object} Returns an object with `col` and `row` numbers.
     */
     fn.get_highest_occupied_cell = function() {
+        //console.log("get_highest_occupied_cell()");
         var r;
         var gm = this.gridmap;
         var rows = [];
@@ -2923,6 +2974,7 @@
 
 
     fn.get_widgets_from = function(col, row) {
+        //console.log("get_widgets_from()");
         var ga = this.gridmap;
         var $widgets = $();
 
@@ -2970,6 +3022,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.generate_stylesheet = function(opts) {
+        //console.log("generate_stylesheet()");
         var styles = '';
         var max_size_x = this.options.max_size_x;
         var max_rows = 0;
@@ -3038,6 +3091,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.add_style_tag = function(css) {
+      //console.log("add_style_tag()");
       var d = document;
       var tag = d.createElement('style');
 
@@ -3063,6 +3117,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.remove_style_tags = function() {
+        //console.log("remove_style_tags()");
         this.$style_tags.remove();
     };
 
@@ -3077,6 +3132,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.generate_faux_grid = function(rows, cols) {
+        //console.log("generate_faux_grid()");
         this.faux_grid = [];
         this.gridmap = [];
         var col;
@@ -3100,6 +3156,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.add_faux_cell = function(row, col) {
+        //console.log("add_faux_cell()");
         var coords = $({
                         left: this.baseX + ((col - 1) * this.min_widget_width),
                         top: this.baseY + (row -1) * this.min_widget_height,
@@ -3130,6 +3187,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.add_faux_rows = function(rows) {
+        //console.log("add_faux_rows()");
         var actual_rows = this.rows;
         var max_rows = actual_rows + (rows || 1);
 
@@ -3156,6 +3214,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.add_faux_cols = function(cols) {
+        //console.log("add_faux_cols()");
         var actual_cols = this.cols;
         var max_cols = actual_cols + (cols || 1);
 
@@ -3183,6 +3242,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.recalculate_faux_grid = function() {
+        //console.log("recalculate_faux_grid()");
         var aw = this.$wrapper.width();
         this.baseX = ($(window).width() - aw) / 2;
         this.baseY = this.$wrapper.offset().top;
@@ -3206,6 +3266,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.get_widgets_from_DOM = function() {
+        //console.log("get_widgets_from_DOM()");
         this.$widgets.each($.proxy(function(i, widget) {
             this.register_widget($(widget));
         }, this));
@@ -3221,6 +3282,7 @@
     * @return {Object} Returns the instance of the Gridster class.
     */
     fn.generate_grid_and_stylesheet = function() {
+        //console.log("generate_grid_and_stylesheet()");
         var aw = this.$wrapper.width();
         var ah = this.$wrapper.height();
         var max_cols = this.options.max_cols;
@@ -3273,6 +3335,7 @@
      * @return {undefined}
      */
     fn.destroy = function(){
+        //console.log("destroy()");
         // remove bound callback on window resize
         $(window).unbind('.gridster');
 

@@ -1,4 +1,5 @@
 <?php
+
 /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
@@ -13,7 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-include('process-form.php'); // Includes Login Script
+
+    include('process-form.php'); // Includes Login Script
 ?>
 
 <html lang="en">
@@ -31,19 +33,21 @@ include('process-form.php'); // Includes Login Script
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
-
-
-    <!-- Custom Fonts -->
-    <!--<link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">-->
-
+    
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
+    
     <!-- jQuery -->
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
+    <script src="../js/jquery-1.10.1.min.js"></script>
+    
+    <!-- JQUERY UI -->
+    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
+    <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
@@ -53,8 +57,21 @@ include('process-form.php'); // Includes Login Script
 </head>
 
 <body>
+    <?php
+        if(!isset($_SESSION['isAdmin']))
+        {
+            echo '<script type="text/javascript">';
+            echo 'window.location.href = "unauthorizedUser.php";';
+            echo '</script>';
+        }
+        else if(($_SESSION['isAdmin'] != 1)&&($_SESSION['isAdmin'] != 2))
+        {
+            echo '<script type="text/javascript">';
+            echo 'window.location.href = "unauthorizedUser.php";';
+            echo '</script>';
+        }
+    ?>
     <div id="wrapper">
-
         <!-- Navigation -->
         <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
             <!-- Brand and toggle get grouped for better mobile display -->
@@ -69,76 +86,75 @@ include('process-form.php'); // Includes Login Script
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
-
-                <li><a href="#"> <span class="glyphicon glyphicon-user" aria-hidden="true"></span><?= $_SESSION['login_user']; ?></a></li>
-                <li><a href="logout.php">Logout</a></li>
+                <?php
+                    if(isset($_SESSION['loggedUsername']))
+                    {
+                        echo '<li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>' . $_SESSION["loggedUsername"] . '</a></li>';
+                        echo '<li><a href="logout.php">Logout</a></li>';
+                    }
+                ?>
             </ul>
             <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
-                    <li class="active">
-                        <a href="#"><i class="fa fa-fw fa-dashboard"></i> Operations</a>
-                    </li>
-                    <li class="active">
+                    <li>
                         <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboard Builder</a>
                     </li>
-                    <li class="active">
-                        <a href="../management/metrics_mng.php" id="link_metric_mng" style="background-color: #e3f2fd; color: #337ab7"><i class="fa fa-fw fa-dashboard"></i> Metrics</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a>
-                    </li> 
-                    <!-- fine comando di gestione metriche -->
+                    <?php
+                        if(isset($_SESSION['isAdmin']))
+                        {
+                            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+                            {
+                                echo '<li class="active"><a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a></li>';
+                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a></li>';
+                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a></li>';
+                                echo '<li><a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a></li>'; 
+                            }
+                        }
+                    ?>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
         </nav>
 
         <div id="page-wrapper">
-
             <div class="container-fluid">
-
                 <!-- Page Heading -->
                 <div class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">
                             <br/>Metrics Overview
                         </h1>
-
-                        <nav id="modify-bar-dashboard" class="navbar navbar-default">
-                            <div class="container-fluid">
-                                <!-- Brand and toggle get grouped for better mobile display -->
-                                <div class="navbar-header">
-                                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                                        <span class="sr-only">Toggle navigation</span>
-                                        <span class="icon-bar"></span>
-                                        <span class="icon-bar"></span>
-                                        <span class="icon-bar"></span>
-                                    </button>
-                                </div>
-
-                                <!-- Collect the nav links, forms, and other content for toggling -->
-                                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                                    <ul class="nav navbar-nav">
-                                        <li class="active"><a id="link_add_metric" href="#" data-toggle="modal" data-target="#modal-add-metric"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Metric <span class="sr-only">(current)</span></a></li>                           
-                                        <!--<li><a id ="link_exit" href="dashboard_mng.php"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>-->
-                                        <li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>
-
-                                    </ul>
-                                </div><!-- /.navbar-collapse -->
-                            </div><!-- /.container-fluid -->
-                        </nav>
-
+                            <?php
+                                if(isset($_SESSION['isAdmin']))
+                                {
+                                    if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+                                    {
+                                        echo '<nav id="modify-bar-dashboard" class="navbar navbar-default">';
+                                        echo '<div class="container-fluid">';
+                                        echo '<div class="navbar-header">';
+                                        echo '<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">';
+                                        echo '<span class="sr-only">Toggle navigation</span>';
+                                        echo '<span class="icon-bar"></span>';
+                                        echo '<span class="icon-bar"></span>';
+                                        echo '<span class="icon-bar"></span>';
+                                        echo '</button>';
+                                        echo'</div>';
+                                        echo '<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">';
+                                        echo '<ul class="nav navbar-nav">';
+                                        echo '<li class="active"><a id="link_add_metric" href="#" data-toggle="modal" data-target="#modal-add-metric"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Metric <span class="sr-only">(current)</span></a></li>';                           
+                                        echo '<li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>';
+                                        echo '</ul>';
+                                        echo '</div>';
+                                        echo '</div>';
+                                        echo '</nav>';
+                                    }
+                                }
+                            ?>
                     </div>
                 </div>
-
-
+                
+                
                 <!-- tabella -->
                 <div class="row">
                     <div class="panel panel-default">
@@ -665,7 +681,6 @@ include('process-form.php'); // Includes Login Script
 </div>
 <!-- Fine modifca dello stato -->
 <script type='text/javascript'>
-    var admin = <?= $_SESSION['admin']; ?>;
 
     Array.prototype.contains = function (v) {
         for (var i = 0; i < this.length; i++) {
@@ -686,12 +701,8 @@ include('process-form.php'); // Includes Login Script
     };
 
 
-    $(document).ready(function () {
-        if (admin != 1) {
-            $('#wrapper').html("<h1>Accesso non autorizzato!</h1><p>Devi essere un utente amministratore per visualizzare questa pagina!<p>");
-        }
-
-
+    $(document).ready(function () 
+    {
         var array_metrics = new Array();
         var array_dataSources = new Array();
         var array_widget = new Array();
@@ -704,7 +715,6 @@ include('process-form.php'); // Includes Login Script
         var list_metricType = new Array();
         var list_dataSource = new Array();
         var list_widget = new Array();
-        //
 
         //Variabili  Datasource
         var ds_url;
@@ -712,7 +722,6 @@ include('process-form.php'); // Includes Login Script
         var ds_username;
         var ds_password;
         var ds_databaseType;
-        //
 
         //Variabili  Datasource
         var ds_urlQ2;
@@ -720,7 +729,6 @@ include('process-form.php'); // Includes Login Script
         var ds_usernameQ2;
         var ds_passwordQ2;
         var ds_databaseTypeQ2;
-        //
 
         $.ajax({
             url: "get_data.php",

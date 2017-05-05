@@ -1,12 +1,760 @@
+@font-face {
+    font-family: SourceSansProRegular;
+    src: url(../fonts/source-sans-pro/SourceSansPro-Black.ttf);
+}
+
+@font-face {
+    font-family: CodeBold;
+    src: url(../fonts/Code/CodeBold.otf);
+}
+
+@font-face {
+    font-family: CodeLight;
+    src: url(../fonts/Code/CodeLight.otf);
+}
+
+@font-face {
+    font-family: AllerBold;
+    src: url(../fonts/Aller/AllerBold.ttf);
+}
+
+@font-face {
+    font-family: AllerBoldIt;
+    src: url(../fonts/Aller/AllerBoldIt.ttf);
+}
+
+@font-face {
+    font-family: AllerDisplay;
+    src: url(../fonts/Aller/AllerDisplay.ttf);
+}
+
+@font-face {
+    font-family: AllerItalic;
+    src: url(../fonts/Aller/AllerIt.ttf);
+}
+
+@font-face {
+    font-family: AllerLight;
+    src: url(../fonts/Aller/AllerLight.ttf);
+}
+
+@font-face {
+    font-family: AllerLightIt;
+    src: url(../fonts/Aller/AllerLightIt.ttf);
+}
+
+@font-face {
+    font-family: AllerRegular;
+    src: url(../fonts/Aller/AllerRegular.ttf);
+}
+
+
+/*Fine fonts*/
+
+.fa-plus:hover, .fa-close:hover
+{
+    cursor: pointer;
+}
+
+.chartContainer
+{
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+}
+
+.chartContainerPie
+{
+    width: 100%;
+    height: 86%;
+    margin: 0 auto;
+}
+
+.legendContainer1
+{
+    width: 100%;
+    height: 7%;
+    margin: 0 auto;
+    display: -webkit-flex;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.legendContainer2
+{
+    width: 100%;
+    height: 7%;
+    margin: 0 auto;
+    display: -webkit-flex;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.legendSingleContainer
+{
+    margin-left: 5px;
+}
+
+.legendColorContainer
+{
+    border-radius: 10px; width: 10px; height: 10px;
+    margin-right: 3px;
+    float: left;
+}
+
+.legendLabelContainer
+{
+    font-family: Verdana;
+    font-size: 11px;
+    font-weight: bold; 
+    font-style: italic; 
+    height: 10px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    float: left;
+}
+
+.legendInfoContainer
+{
+    height: 100%;
+    float: left;
+    margin-right: 5px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+}
+
+.zIndexHigh
+{
+    z-index: 99999999;
+}
+
+.handPointer
+{
+    cursor: pointer;
+}
+
+.tableStyle
+{
+    width: 100%;
+    float: left;
+    border: 1px solid black;
+    border-collapse: collapse;
+    /*Per avere colonne tutte della stessa larghezza*/
+    table-layout: fixed;
+    font-family: Verdana, sans-serif;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.tableStyle tr
+{
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+.tableStyle th
+{
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.tableStyle td
+{
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.buttonsContainer
+{
+    width: 40px;
+    height: 100%;
+    float: left;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    /*border: fuchsia 1px solid;*/
+}
+
+.countdownContainer
+{
+    width: 25px;
+    height: 100%;
+    float: left;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    /*border: red 1px solid;*/
+}
+
+.infoButtonContainer
+{
+    float: left;
+    width: 25px;
+    height: 100%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    /*border: green 1px solid;*/
+}
+
+.titleDiv
+{
+    float: left;
+    height: 100%;
+    font-size: 14px;
+    font-weight: bold;
+    overflow: hidden ;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 25px;
+    text-align: center;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.20);
+    /*Effetto fade in caso di allarme*/
+    -webkit-transition: background 1.8s ease-in-out;
+    -ms-transition:     background 1.8s ease-in-out;
+    transition:         background 1.8s ease-in-out;
+    /*border: red 1px solid;*/
+}
+
+#FIRENZE
+{
+    width: 100%;
+    height: 100%;
+}
+
+.widgetHeader
+{
+    width: 100%;
+    height: 25px;
+    /*border: black 1px solid;*/
+}
+
+.previsione-giorno
+{
+    height: 100%;
+    width: 20%;
+    float: left;
+    text-align: center;
+    font-family: Verdana, Arial, sans-serif;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.giorno
+{
+    width: 100%;
+    display: block;
+    text-align: center; 
+    font-weight: bold;
+    font-size: 12px;   
+}
+
+.descrizione-meteo
+{
+    width: 100%;
+    display: block;
+    text-align: center; 
+}
+
+.temperature
+{
+    display: block;
+    width: 100%;
+}
+
+.min
+{
+   display: inline;
+}
+
+.max
+{
+   display: inline;
+}
+
+.pcGeneralDiv
+{
+   overflow-y: auto;
+   overflow-x: auto;
+   word-wrap: break-word;
+   text-align: center;
+   width: 100%;
+}
+
+.pcGeneralDiv img
+{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pcGeneralDiv #Zones
+{
+    margin-bottom: 10px;
+}
+
+.pcGeneralDiv #Risks
+{
+    width: 100%;
+    height: auto;
+}
+
+.pcGeneralDiv #Risks table
+{
+    width: 100%;
+    border: 1px solid black;
+    margin-bottom: 10px;
+}
+
+.pcGeneralDiv #Risks tr
+{
+    width: 100%;
+    height: auto;
+}
+
+.pcGeneralDiv #Risks th
+{
+    width: 33.33%;
+    height: auto;
+    white-space: nowrap;
+    text-align: center;
+    border: 1px solid black;
+}
+
+.pcGeneralDiv #Risks td
+{
+    width: 33.33%;
+    height: auto;
+    white-space: normal;
+    text-align: center;
+    border: 1px solid black;
+}
+
+.pcGeneralDiv img
+{
+    max-width: 100%;
+    height: auto;
+}
+
+.pcGeneralDiv a
+{
+    display: block;
+}
+
+.pcGeneralDiv span
+{
+    display: block;
+}
+
+.meteoPcLegendaRow
+{
+    width: 100%;
+    height: 30px;
+    margin-bottom: 5px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    /*border-style: solid; 
+    border-color: red; 
+    border-width: 1px;*/
+}
+
+.pcLegendaContainer
+{
+    height: 100%;
+    float: left;
+    width: 270px;
+    
+    /*border-style: solid; 
+    border-color: orange; 
+    border-width: 1px;*/
+}
+
+.pcLegendaElement
+{
+    height: 100%;
+    width: 60px;
+    float: left;
+    display: flex; 
+    align-items: flex-end; 
+    justify-content: center;
+    /*border-style: solid; 
+    border-color: blueviolet; 
+    border-width: 1px;*/
+}
+
+.pcLegendaElementMarginRight
+{
+    margin-right: 10px;
+}
+
+.pcLegendaNessuno
+{
+    width: 100%;
+    height: 80%;
+    background: linear-gradient(to right, #E2FF8C, #99CC00);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-variant: small-caps;
+    font-weight: bold;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 18px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.pcLegendaBasso
+{
+    width: 100%;
+    height: 80%;
+    background: linear-gradient(to right, #FAFAAF, #FFFF00);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-variant: small-caps;
+    font-weight: bold;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 18px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.pcLegendaMedio
+{
+    width: 100%;
+    height: 80%;
+    background: linear-gradient(to right, #FFD382, #FFA500);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-variant: small-caps;
+    font-weight: bold;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 18px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.pcLegendaAlto
+{
+    width: 100%;
+    height: 80%;
+    background: linear-gradient(to right, #FF7878, #FF0000);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-variant: small-caps;
+    font-weight: bold;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 18px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.meteoPcRow
+{
+    width: 100%;
+    /*height: 30px;*/
+    /*margin-bottom: 5px;*/
+    /*border-style: solid; 
+    border-color: red; 
+    border-width: 1px;*/
+}
+
+.meteoPcRowLast
+{
+    width: 100%;
+    height: 30px;
+    margin-bottom: 0px;
+    /*border-style: solid; 
+    border-color: red; 
+    border-width: 1px;*/
+}
+
+.meteoPcDesc
+{
+    height: 100%;
+    float: left;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-family: Verdana, Arial, sans-serif;
+    font-variant: small-caps;
+    font-weight: bold;
+    font-size: 16px;
+    /*border-style: solid; 
+    border-color: red; 
+    border-width: 1px;*/
+}
+
+.meteoPcIcon
+{
+    /*width: 30px;*/
+    height: 100%;
+    float: left;
+    /*border-style: solid; 
+    border-color: red; 
+    border-width: 1px;*/
+}
+
+@keyframes alarm {
+    0% {
+        background-color: transparent;
+    }
+    
+    30% {
+        background-color: transparent;
+    }
+    
+    50% {
+        background-color: #ff6666;
+    }
+    
+    70% {
+        background-color: transparent;
+    }
+    
+    100% {
+        background-color: transparent;
+    }
+}
+
+@keyframes alarmYellow {
+    0% {
+        background-color: transparent;
+    }
+    
+    30% {
+        background-color: transparent;
+    }
+    
+    50% {
+        background-color: #FFFF00;
+    }
+    
+    70% {
+        background-color: transparent;
+    }
+    
+    100% {
+        background-color: transparent;
+    }
+}
+
+@keyframes alarmOrange {
+    0% {
+        background-color: transparent;
+    }
+    
+    30% {
+        background-color: transparent;
+    }
+    
+    50% {
+        background-color: #FFA500;
+    }
+    
+    70% {
+        background-color: transparent;
+    }
+    
+    100% {
+        background-color: transparent;
+    }
+}
+
+.alarmDivGc
+{
+    width: 100%;
+    height: 100%;
+    background-color: transparent;   
+}
+
+.alarmDivGcActive
+{
+    width: 100%;
+    height: 100%;
+    animation: alarm 4s ease infinite; 
+}
+
+.alarmDiv
+{
+    width: 100%;
+    height: 25px;
+    background-color: transparent;
+}
+
+.alarmDivActive
+{
+    width: 100%;
+    height: 25px;
+    background-color: red;
+    animation: alarm 4s ease infinite; 
+}
+
+.alarmDivPc
+{
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+}
+
+.alarmDivPcActiveYellow
+{
+    width: 100%;
+    height: 100%;
+    background-color: #FFFF00;
+    animation: alarmYellow 4s ease infinite; 
+}
+
+.alarmDivPcActiveOrange
+{
+    width: 100%;
+    height: 100%;
+    background-color: #FFA500;
+    animation: alarmOrange 4s ease infinite; 
+}
+
+.alarmDivPcActiveRed
+{
+    width: 100%;
+    height: 100%;
+    background-color: #FF0000;
+    animation: alarm 4s ease infinite; 
+}
+
+.iframeWrapper
+{
+    width: 100%;
+    height: 100%;
+    /*border-style: solid; 
+    border-color: yellow; 
+    border-width: 5px;*/
+}
+
+.iframeZoomControls
+{
+    position: absolute;
+    z-index: 99999999;
+    width: 100px;
+    height: 60px;
+    display: none;
+    background-color: #337ab7;
+    opacity: 0.5;
+}
+
+.iframeZoomControls:hover
+{
+    opacity: 1;
+}
+
+.iframeZoomControls i:first-of-type
+{
+    margin-right: 5px;
+}
+
+.iframeZoomControls i:hover
+{
+    /*color: #1B95E0;*/
+    color: yellow;
+}
+
+.zoomControlsRow
+{
+    width: 100%;
+    height: 33.3333%;
+    /*border: 1px solid red;*/
+}
+
+.zoomControlsLabelDiv
+{
+    width: 55%;
+    height: 100%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    font-size: 14px;
+    font-family: Verdana, sans-serif;
+    font-weight: bold;
+    font-variant: small-caps;
+    color: white;
+    float: left;
+    /*border: 1px solid white;*/
+}
+
+.zoomControlsButtonsDiv
+{
+    width: 45%;
+    height: 100%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    font-size: 18px;
+    float: left;
+}
+
+
+.zoomDisplay
+{
+    background-color: transparent;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    width: 100px;
+    height: 100px;
+    z-index: 1;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    font-size: 32px;
+    font-family: Verdana, sans-serif;
+    font-weight: bold;
+    font-variant: small-caps;
+    visibility: hidden;
+    /*border: 1px solid red;*/
+}
+
+
+.iFrame
+{
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.twitterMainContent
+{
+    float:left; 
+    width: 100%; 
+    height: 100%;
+}
+
 .twitterContent
 {
     float:left; 
     width: 100%; 
-    display: none;
-    
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
+    height: 100%;
+    color: black;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+    font-variant: small-caps;
+    font-weight: bold;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
 }
 
 .twitterTabsContainer
@@ -15,9 +763,6 @@
     height: 23px;
     float: left;
     display: none;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .twitterTabs
@@ -31,9 +776,9 @@
 
 .twitterRow
 {
-    width: 100%;
+    /*width: 100%;
     height: 30px;
-    margin-bottom: 5px;
+    margin-bottom: 5px;*/
     /*border-style: solid; 
     border-color: black; 
     border-width: 1px;*/
@@ -42,27 +787,19 @@
 .twitterIcon
 {
     float: left;
-    width: 30px;
-    height: 100%;
-    margin-right: 5px;
     background-color: #1B95E0;
     font-size: 22px;
     display: flex; 
     align-items: center; 
     justify-content: center; 
     text-align: center;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .vigilanceIcon
 {
     float: left;
-    width: 30px;
-    height: 100%;
-    margin-right: 5px;
     background-color: #1B95E0;
+    color: black;
     font-size: 22px;
     display: flex; 
     align-items: center; 
@@ -71,21 +808,6 @@
     /*border-style: solid; 
     border-color: red; 
     border-width: 1px;*/
-}
-
-.twitterContent
-{
-    float: left;
-    height: 100%;
-    color: black;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
-    font-variant: small-caps;
-    font-weight: bold;
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    text-align: center;
 }
 
 .twitterRow .turchese
@@ -111,13 +833,13 @@
     background: linear-gradient(to right, #39ceae, #adebdd); /* Standard syntax */
 }
 
-.twitterContent a, .twitterContent a:link, .twitterContent a:visited, .twitterContent a:active
+.vigilanceIcon a, .twitterContent a, .twitterContent a:link, .twitterContent a:visited, .twitterContent a:active
 {
     color: black;
     text-decoration: none;
 }
 
-.twitterContent a:hover
+.vigilanceIcon a:hover, .twitterContent a:hover
 {
     color: white;
     text-decoration: none;
@@ -125,9 +847,9 @@
 
 .eventsRow
 {
-    width: 100%;
+    /*width: 100%;
     height: 75px;
-    margin-bottom: 5px;
+    margin-bottom: 5px;*/
     /*border-style: solid; 
     border-color: black; 
     border-width: 1px;*/
@@ -178,9 +900,9 @@
 .eventIcon
 {
     float: left;
-    width: 45px;
+    /*width: 45px;
     height: 100%;
-    margin-right: 5px;
+    margin-right: 5px;*/
     /*border-style: solid; 
     border-color: red; 
     border-width: 1px;*/
@@ -244,17 +966,28 @@
     float: left;
     width: 100%;
     height: 46%;
-    font-size: 12px;
     font-weight: bold;
     line-height: 100%;
-    font-variant: small-caps;
-    display: flex; 
+    text-transform: uppercase;
+    
+    /*display: flex; 
     align-items: center; 
     justify-content: center; 
-    text-align: center;
+    text-align: center;*/
     /*border-style: solid; 
     border-color: red; 
     border-width: 1px;*/
+}
+
+.eventName p
+{
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 100%;
+    /*white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;*/
 }
 
 .eventTime
@@ -262,7 +995,7 @@
     float: left;
     width: 100%;
     height: 27%;
-    font-size: 10px;
+    /*font-size: 10px;*/
     margin-top: 0px;
     margin-bottom: 0px;
     display: flex; 
@@ -281,7 +1014,7 @@
     float: left;
     width: 100%;
     height: 27%;
-    font-size: 10px;
+    /*font-size: 10px;*/
     margin-top: 0px;
     display: flex; 
     align-items: center; 
@@ -299,6 +1032,14 @@
     display: none;
     width: 100%;
     float: left;
+}
+
+.loadingDivIframe
+{
+    display: none;
+    width: 100%;
+    float: left;
+    font-size: 13px;
 }
 
 .loadingTextDiv
@@ -321,6 +1062,17 @@
     text-align: center;
 }
 
+.loadingIconDivIframe
+{
+    width: 100%; 
+    height: 50%; 
+    display: flex; 
+    align-items: flex-start; 
+    justify-content: center; 
+    text-align: center;
+    font-size: 20px;
+}
+
 .content
 {
     float:left; 
@@ -331,11 +1083,17 @@
     border-width: 1px;*/
 }
 
+.meteoContent
+{
+    float:left; 
+    width: 100%;
+}
+
 .pcLogosContainer
 {
     float:left; 
     width: 100%;
-    height: 25px;
+    height: 75px;
     display: block;
     /*border-style: solid; 
     border-color: red; 
@@ -512,10 +1270,10 @@
     transition:         background 1.8s ease-in-out;
 }
 
-.desc_text_alr
+/*.desc_text_alr
 {
     background-color: #FF0000;
-}
+}*/
 
 .measure_td_value_central{
    text-align: center;
@@ -550,7 +1308,7 @@
     font-family: Verdana, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35); 
     /*border-style: solid;
-    border-color: violet;
+    border-color: red;
     border-width: 1px;*/
 }
 
@@ -869,14 +1627,14 @@ atafLastUpdateWrapper
     align-items: center;
     display: flex;
     justify-content: center;
-    text-align: center; 
+    text-align: center;
+    overflow: hidden ;
+    text-overflow: ellipsis;
 }
 
 .singleContentValue h2
 {
-    display: flex;
-    justify-content: center;
-    align-items: center; 
+    
 }
 
 .singleContentUdm
@@ -1006,13 +1764,20 @@ atafLastUpdateWrapper
 
 .row_data_line
 {
-    margin: 0;
+    margin-left: 0px;
+    margin-right: 0px;
     font-family: Verdana, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35);
     text-align: center;
-    /*border-style: solid;
-    border-color: black;
-    border-width: 1px;*/
+    width: 100%;
+}
+
+.rowWhiteBackground
+{
+    width: 100%;
+    height: 100%;
+    float: left; 
+    background-color: white;
 }
 
 .row_data_desc
@@ -1022,41 +1787,20 @@ atafLastUpdateWrapper
     text-overflow: ellipsis;
     width: 70%;
     height: 100%;
-    float: left; 
     font-weight: bold;
-    margin-right: 5px;
-    /*display: flex;
-    align-items: center;
-    justify-content: center;*/
+    float: left;
 }
 
 .row_data_value
 {
     text-align: center;
+    width: 30%;
     height: 100%;
     float: left;
     white-space: nowrap; 
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: bold;
-    /*display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;*/
-}
-
-.container-speedomenter-x1
-{
-    width: 100%; 
-    height: 130px; 
-    float: left;
-}
-
-.container-speedomenter-x2
-{
-     width: 100%; 
-     height: 290px; 
-     float: left;
 }
 
 .pcContainer
@@ -1093,7 +1837,7 @@ atafLastUpdateWrapper
 .map
 {
     width: 100%;
-    display: none;
+    height: 100%;
 }
 
 .source_button{
@@ -1113,6 +1857,7 @@ atafLastUpdateWrapper
     border-radius: 5px;
     border-width: 1px;
     margin-top: 2px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.15);
 }
 
 .icons-modify-widget
@@ -1466,17 +2211,6 @@ atafLastUpdateWrapper
     /*border-style: solid;
     border-width: 1px;
     border-color: black;*/
-}
-
-.previsione-giorno
-{
-    display: inline-block;
-    width:19%;
-    text-align:center;
-    font-size: 12px;
-    /*border-style: solid;
-    border-width: 1px;
-    border-color: red;*/
 }
 
 .aggiornamento{

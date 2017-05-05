@@ -14,151 +14,206 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type='text/javascript'>
     var colors = {
       GREEN: '#008800',
       ORANGE: '#FF9933',
       LOW_YELLOW: '#ffffcc',
-      RED: '#FF0000',
+      RED: '#FF0000'
     };
-    var colore_frame = "<?= $_GET['frame_color'] ?>";
-    var nome_wid = "<?= $_GET['name'] ?>_div";
-    $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
-
-
-    var list_metrics = "<?= $_GET['metric'] ?>";
-    var metrics = list_metrics.split('+');
-    var list_type_metrics = "<?= $_GET['type_metric'] ?>";
-    var type_metrics = list_type_metrics.split(',');
     
-    $(document).ready(function <?= $_GET['name'] ?>() 
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        $('#<?= $_GET['name'] ?>_desc').width('70%');  
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $('#<?= $_GET['name'] ?>_desc_text').css("width", "90%");
-        $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        $('.loadingTextDiv').css("font-size", "13px");
-        $('.loadingTextDiv p').css("text-align", "center");
-        $('.loadingIconDiv i').css("font-size", "20px");
-        
-        var value = null;
-        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
-        $("#table_<?= $_GET['name'] ?>").css("height", height);
-        
+        <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?>
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var divContainer = $("#<?= $_GET['name'] ?>_content");
+        var widgetContentColor = "<?= $_GET['color'] ?>";
+        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        var nome_wid = "<?= $_GET['name'] ?>_div";
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var color = '<?= $_GET['color'] ?>';
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
+        var timeToReload = <?= $_GET['freq'] ?>;
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, pattern, totValues, shownValues, 
+            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
+            rangeMin, rangeMax, widgetParameters, sizeRowsWidget, widgetColor, fontSize,rowColor, rowColorRgb, value, sizeRowsWidget,
+            idMetric, descCpu, descRam, descJobs, fontRatio, fontRatioValue, fontRatioValueDesc, circleHeight,
+            alarmCount, paneObj, dataLabelsObj, ramValueClass, ramUdmClass, jobsValueClass, jobsUdmClass = null;
+        var metricId = "<?= $_GET['metric'] ?>";
+        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
+        var url = "<?= $_GET['link_w'] ?>";
         
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#table_<?= $_GET['name'] ?>');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        //Specifiche per questo widget
+        var metricsList = "<?= $_GET['metric'] ?>";
+        var metrics = metricsList.split('+');
+        var metricsTypesList = "<?= $_GET['type_metric'] ?>";
+        var metricsTypes = metricsTypesList.split(',');
+        var metricsToShow = [];
+        var alarmIntervals = [];
         
-        $('#measure_<?= $_GET['name'] ?>_value_cpu').html("<div style='width: 100%; height: 50%; display: flex; align-items: flex-end; justify-content: center; text-align: center;'><p style='text-align: center; font-size: 13px;'>Loading data, please wait</p></div><div style='width: 100%; height: 50%; display: flex; align-items: baseline; justify-content: center; text-align: center;'><i class='fa fa-spinner fa-spin' style='font-size: 20px'></i></div>");
-        $('#<?= $_GET['name'] ?>_value_ram_container').css("height", "80%");
-        $('#<?= $_GET['name'] ?>_value_ram_container').css("width", "100%");
-        $('#<?= $_GET['name'] ?>_value_ram_round_container').css("display", "none");
-        $('#<?= $_GET['name'] ?>_value_jobs_container').css("height", "80%");
-        $('#<?= $_GET['name'] ?>_value_jobs_container').css("width", "100%");
-        $('#<?= $_GET['name'] ?>_value_jobs_round_container').css("display", "none");
+        if(url === "null")
+        {
+            url = null;
+        }
         
-        //Estrazione dei parametri del widget
-        $.ajax({
-            url: "../widgets/getParametersWidgets.php",
-            type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
-            async: true,
-            dataType: 'json',
-            success: function (msg) {
-                var parametri = msg.param.parameters;
-                var contenuto = jQuery.parseJSON(parametri);
-                var sizeRowsWidget = parseInt(msg.param.size_rows);
-                var idMetric = msg.param.id_metric;
-                var metricsToShow = [];
-                var descCpu = null;
-                var descRam = null;
-                var descJobs = null;
-                var alarmIntervals = [];
-                var fontRatio = null;
-                var fontRatioValue = null;
-                var fontRatioValueDesc = null;
-                var circleHeight = null;
-                
-                circleHeight = parseInt($("#<?= $_GET['name'] ?>_value_ram_container").height()*0.9);
-                $("#<?= $_GET['name'] ?>_value_ram_round_container").css("width", circleHeight);
-                $("#<?= $_GET['name'] ?>_value_ram_round_container").css("height", circleHeight);
-                $("#<?= $_GET['name'] ?>_value_jobs_round_container").css("width", circleHeight);
-                $("#<?= $_GET['name'] ?>_value_jobs_round_container").css("height", circleHeight);
-                fontRatio = parseInt((sizeRowsWidget / 4)*60);
-                fontRatio = fontRatio.toString() + "%";
-                fontRatioValue = parseInt((sizeRowsWidget / 4)*90);
-                fontRatioValue = fontRatioValue.toString() + "%";
-                fontRatioValueDesc = parseInt((sizeRowsWidget / 4)*40);
-                fontRatioValueDesc = fontRatioValueDesc.toString() + "%";
-                $("#measure_<?= $_GET['name'] ?>_desc_cpu").css("font-size", fontRatio);
-                $("#measure_<?= $_GET['name'] ?>_desc_cpu").css("font-family", "Verdana");
-                $("#measure_<?= $_GET['name'] ?>_desc_cpu").css("color", fontColor);
-                $("#measure_<?= $_GET['name'] ?>_desc_ram").css("font-size", fontRatio);
-                $("#measure_<?= $_GET['name'] ?>_desc_ram").css("font-family", "Verdana");
-                $("#measure_<?= $_GET['name'] ?>_desc_ram").css("color", fontColor);
-                $("#measure_<?= $_GET['name'] ?>_desc_jobs").css("font-size", fontRatio);
-                $("#measure_<?= $_GET['name'] ?>_desc_jobs").css("font-family", "Verdana");
-                $("#measure_<?= $_GET['name'] ?>_desc_jobs").css("color", fontColor);
-                $("#measure_<?= $_GET['name'] ?>_ram_value_p").css("font-size", fontRatioValue);
-                $("#measure_<?= $_GET['name'] ?>_jobs_value_p").css("font-size", fontRatioValue);
-                $("#measure_<?= $_GET['name'] ?>_ram_desc_p").css("font-size", fontRatioValueDesc);
-                $("#measure_<?= $_GET['name'] ?>_jobs_desc_p").css("font-size", fontRatioValueDesc);
-                
-                if(idMetric.indexOf("Sce_CPU") !== -1)
-                {
-                    metricsToShow["Sce_CPU"] = true;
-                }
-                else
-                {
-                    metricsToShow["Sce_CPU"] = false;
-                }
-                
-                if(idMetric.indexOf("Sce_Mem") !== -1)
-                {
-                    metricsToShow["Sce_Mem"] = true;
-                }
-                else
-                {
-                    metricsToShow["Sce_Mem"] = false;
-                }
-                
-                if(idMetric.indexOf("Sce_Job_Day") !== -1)
-                {
-                    metricsToShow["Sce_Job_Day"] = true;
-                }
-                else
-                {
-                    metricsToShow["Sce_Job_Day"] = false;
-                }
-                
-                $.ajax({
+        //Definizioni di funzione specifiche del widget
+        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        function getThresholdsJson()
+        {
+            var thresholdsJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
+            {
+                thresholdsJson = widgetProperties.param.parameters; 
+            }
+            
+            return thresholdsJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getInfoJson()
+        {
+            var infoJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
+            {
+                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
+            }
+            
+            return infoJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getStyleParameters()
+        {
+            var styleParameters = null;
+            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+            {
+                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+            }
+            
+            return styleParameters;
+        }
+        //Fine definizioni di funzione 
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
+        }
+        else
+        {
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+        }
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        widgetProperties = getWidgetProperties(widgetName);
+        
+        if((widgetProperties !== null) && (widgetProperties !== ''))
+        {
+            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            widgetParameters = widgetProperties.param.parameters;
+            idMetric = widgetProperties.param.id_metric;
+            
+            if(idMetric.indexOf("Sce_CPU") !== -1)
+            {
+                metricsToShow["Sce_CPU"] = true;
+            }
+            else
+            {
+                metricsToShow["Sce_CPU"] = false;
+            }
+
+            if(idMetric.indexOf("Sce_Mem") !== -1)
+            {
+                metricsToShow["Sce_Mem"] = true;
+            }
+            else
+            {
+                metricsToShow["Sce_Mem"] = false;
+            }
+
+            if(idMetric.indexOf("Sce_Job_Day") !== -1)
+            {
+                metricsToShow["Sce_Job_Day"] = true;
+            }
+            else
+            {
+                metricsToShow["Sce_Job_Day"] = false;
+            }
+            
+            $.ajax({
                     url: "../widgets/getDataMetrics.php",
                     data: {"IdMisura": metrics},
                     type: "GET",
                     async: true,
                     dataType: 'json',
                     success: function (msg) {
-                        var threshold = [];
-                        var thresholdEval = [];
-                        var alarmCount = 0;
+                        threshold = [];
+                        thresholdEval = [];
+                        alarmCount = 0;
                         var alarms = [];
                         var desc2Blink = [];
-                        var paneObj = null;
-                        var dataLabelsObj = null;
-                        var ramValueClass = null;
-                        var ramUdmClass = null;
-                        var jobsValueClass = null;
-                        var jobsUdmClass = null;
 
-                        date_agg = msg.data[0].commit.author.computationDate;
+                        computationDate = msg.data[0].commit.author.computationDate;
                         
                         alarms["Sce_CPU"] = false;
                         alarms["Sce_Mem"] = false;
                         alarms["Sce_Job_Day"] = false;
+
+                        if(firstLoad !== false)
+                        {
+                            showWidgetContent(widgetName);
+                        }
+                        
+                        $('#measure_<?= $_GET['name'] ?>_value_cpu').html("<div style='width: 100%; height: 50%; display: flex; align-items: flex-end; justify-content: center; text-align: center;'><p style='text-align: center; font-size: 13px;'>Loading data, please wait</p></div><div style='width: 100%; height: 50%; display: flex; align-items: baseline; justify-content: center; text-align: center;'><i class='fa fa-spinner fa-spin' style='font-size: 20px'></i></div>");
+                        $('#<?= $_GET['name'] ?>_value_ram_container').css("height", "80%");
+                        $('#<?= $_GET['name'] ?>_value_ram_container').css("width", "100%");
+                        $('#<?= $_GET['name'] ?>_value_ram_round_container').css("display", "none");
+                        $('#<?= $_GET['name'] ?>_value_jobs_container').css("height", "80%");
+                        $('#<?= $_GET['name'] ?>_value_jobs_container').css("width", "100%");
+                        $('#<?= $_GET['name'] ?>_value_jobs_round_container').css("display", "none");
+
+                        sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
+                        
+                        circleHeight = parseInt($("#<?= $_GET['name'] ?>_value_ram_container").height()*0.9);
+            
+                        $("#<?= $_GET['name'] ?>_value_ram_round_container").css("width", circleHeight);
+                        $("#<?= $_GET['name'] ?>_value_ram_round_container").css("height", circleHeight);
+                        $("#<?= $_GET['name'] ?>_value_jobs_round_container").css("width", circleHeight);
+                        $("#<?= $_GET['name'] ?>_value_jobs_round_container").css("height", circleHeight);
+                        
+                        fontRatio = parseInt((sizeRowsWidget / 4)*60);
+                        fontRatio = fontRatio.toString() + "%";
+                        fontRatioValue = parseInt((sizeRowsWidget / 4)*90);
+                        fontRatioValue = fontRatioValue.toString() + "%";
+                        fontRatioValueDesc = parseInt((sizeRowsWidget / 4)*40);
+                        fontRatioValueDesc = fontRatioValueDesc.toString() + "%";
+
+                        $("#measure_<?= $_GET['name'] ?>_desc_cpu").css("font-size", fontRatio);
+                        $("#measure_<?= $_GET['name'] ?>_desc_cpu").css("font-family", "Verdana");
+                        $("#measure_<?= $_GET['name'] ?>_desc_cpu").css("color", fontColor);
+                        $("#measure_<?= $_GET['name'] ?>_desc_ram").css("font-size", fontRatio);
+                        $("#measure_<?= $_GET['name'] ?>_desc_ram").css("font-family", "Verdana");
+                        $("#measure_<?= $_GET['name'] ?>_desc_ram").css("color", fontColor);
+                        $("#measure_<?= $_GET['name'] ?>_desc_jobs").css("font-size", fontRatio);
+                        $("#measure_<?= $_GET['name'] ?>_desc_jobs").css("font-family", "Verdana");
+                        $("#measure_<?= $_GET['name'] ?>_desc_jobs").css("color", fontColor);
+                        $("#measure_<?= $_GET['name'] ?>_ram_value_p").css("font-size", fontRatioValue);
+                        $("#measure_<?= $_GET['name'] ?>_jobs_value_p").css("font-size", fontRatioValue);
+                        $("#measure_<?= $_GET['name'] ?>_ram_desc_p").css("font-size", fontRatioValueDesc);
+                        $("#measure_<?= $_GET['name'] ?>_jobs_desc_p").css("font-size", fontRatioValueDesc);
 
                         for (var i = 0; i < msg.data.length; i++) 
                         {
@@ -207,7 +262,8 @@
                                                 enabled: true,
                                                 borderWidth: 0,
                                                 style: {
-                                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.35)",
+                                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
+                                                    "textOutline": "1px 1px contrast",
                                                     fontSize: '13px',
                                                     fontFamily: 'Verdana'
                                                 },
@@ -391,7 +447,7 @@
                                             plotBackgroundColor: null,
                                             plotBackgroundImage: null,
                                             plotBorderWidth: 0,
-                                            plotShadow: false,
+                                            plotShadow: false
                                         },
                                         plotOptions: {
                                          gauge : {
@@ -441,7 +497,7 @@
                                                 to: 100,
                                                 color: colors.RED,
                                                 thickness: 7
-                                            },
+                                            }
                                             ]
                                         },
                                         series: [{
@@ -450,7 +506,7 @@
                                             tooltip: {
                                                 valueSuffix: ''
                                             },
-                                            dataLabels: dataLabelsObj,
+                                            dataLabels: dataLabelsObj
                                         }],
                                         exporting: {
                                             enabled: false
@@ -558,7 +614,7 @@
                                     $('#<?= $_GET['name'] ?>_value_jobs_container').addClass("sceValueRoundContainer");
                                     $('#<?= $_GET['name'] ?>_value_jobs_round_container').css("display", "");
                                     value = msg.data[i].commit.author.value_num;
-                                    udm = "JOBS"
+                                    udm = "JOBS";
                                     $("#measure_<?= $_GET['name'] ?>_jobs_value_p").html(value);
                                     $("#measure_<?= $_GET['name'] ?>_jobs_desc_p").html(udm);
                                     threshold[i] = msg.data[i].commit.author.threshold;
@@ -610,107 +666,69 @@
                             }//Close switch
                         }//Close for.
                         
-                        var blinkFunction = function(blinkTarget)
-                        {
-                            blinkTarget.toggleClass("desc_text_alr"); 
-                        };
                         
                         if(alarms["Sce_CPU"])
                         {
-                            descCpu = $("#measure_<?= $_GET['name'] ?>_desc_cpu");
-                            descCpu.css({transition: "background 1.8s ease-in-out"});
-                            descCpu.css({webkitTransition: "background 1.8s ease-in-out"});
-                            descCpu.css({msTransition: "background 1.8s ease-in-out"});
-                            alarmIntervals["Sce_CPU"] = setInterval(blinkFunction, 1000, descCpu);
+                            $("#measure_<?= $_GET['name'] ?>_desc_cpu").find(".alarmDivGc").addClass("alarmDivGcActive");
                         }
                         if(alarms["Sce_Mem"])
                         {
-                            descRam = $("#measure_<?= $_GET['name'] ?>_desc_ram");
-                            descRam.css({transition: "background 1.8s ease-in-out"});
-                            descRam.css({webkitTransition: "background 1.8s ease-in-out"});
-                            descRam.css({msTransition: "background 1.8s ease-in-out"});
-                            alarmIntervals["Sce_Mem"] = setInterval(blinkFunction, 1000, descRam);
+                            $("#measure_<?= $_GET['name'] ?>_desc_ram").find(".alarmDivGc").addClass("alarmDivGcActive");  
                         }
                         if(alarms["Sce_Job_Day"])
                         {
-                            descJobs = $("#measure_<?= $_GET['name'] ?>_desc_jobs");
-                            descJobs.css({transition: "background 1.8s ease-in-out"});
-                            descJobs.css({webkitTransition: "background 1.8s ease-in-out"});
-                            descJobs.css({msTransition: "background 1.8s ease-in-out"});
-                            alarmIntervals["Sce_Job_Day"] = setInterval(blinkFunction, 1000, descJobs);
+                            $("#measure_<?= $_GET['name'] ?>_desc_jobs").find(".alarmDivGc").addClass("alarmDivGcActive");
                         }
                         
-                        $("#<?= $_GET['name'] ?>_date_update").html("Latest Update: " + date_agg);
-                        $("#table_<?= $_GET['name'] ?>").css({backgroundColor: '<?= $_GET['color'] ?>'});
-                        $("#<?= $_GET['name'] ?>_date_update").css({backgroundColor: '<?= $_GET['color'] ?>'});
-                        
-                        if (link_w.trim()) 
-                        {
-                            if(linkElement.length === 0)
-                            {
-                               linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                               divChartContainer.wrap(linkElement); 
-                            }
-                        }
-                        
-                        $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                            $('#dialog_<?= $_GET['name'] ?>').show();
+                    },//Close success: function(msg)
+                    error: function(){
+                        showWidgetContent(widgetName);
+                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
+            });//Close $.ajax GETDATAMETRICS  
+        }
+        else
+        {
+            alert("Error while loading widget properties");
+        }
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetSce", null, null);
+    });//Fine document ready       
 
-                        });
-
-                        $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-
-                            $('#dialog_<?= $_GET['name'] ?>').hide();
-
-                        });
-
-                        var counter = <?= $_GET['freq'] ?>;
-                        var countdown = setInterval(function () {
-                            $("#countdown_<?= $_GET['name'] ?>").text(counter);
-                            counter--;
-                            if (counter > 60) {
-                                $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter / 60) + "m");
-                            } else {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                            }
-                            if (counter === 0) {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
-                                clearInterval(countdown);
-                                if(alarms["Sce_CPU"])
-                                {
-                                    clearInterval(alarmIntervals["Sce_CPU"]);
-                                }
-                                if(alarms["Sce_Mem"])
-                                {
-                                    clearInterval(alarmIntervals["Sce_Mem"]);
-                                }
-                                if(alarms["Sce_Job_Day"])
-                                {
-                                    clearInterval(alarmIntervals["Sce_Job_Day"]);
-                                }
-                                setTimeout(<?= $_GET['name'] ?>, 1000);
-                            }
-                        }, 1000);
-
-                    }//Close success: function(msg)
-                });  //Close $.ajax   GETDATAMETRICS  
-    
-    
-                }
-        });//FINE GETPARAMETERSWIDGETS       
-});//Close $(document).ready   
 </script>
-
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        <div id="<?= $_GET['name'] ?>_desc" class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
-        <div id="table_<?= $_GET['name'] ?>" class="table-widget"> 
-            <div id="measure_<?= $_GET['name'] ?>_cpu" class="sceSingleContainer">
-                <div id="measure_<?= $_GET['name'] ?>_desc_cpu" class="sceDesc">cpu</div> 
-                <div id="measure_<?= $_GET['name'] ?>_value_cpu" class="sceValueCpu"></div>
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
             </div>    
-            <div id="measure_<?= $_GET['name'] ?>_ram" class="sceSingleContainer">
-                <div id="measure_<?= $_GET['name'] ?>_desc_ram" class="sceDesc">ram</div> 
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
+        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+            <div class="loadingTextDiv">
+                <p>Loading data, please wait</p>
+            </div>
+            <div class ="loadingIconDiv">
+                <i class='fa fa-spinner fa-spin'></i>
+            </div>
+        </div>
+        
+        <div id="<?= $_GET['name'] ?>_content" class="content">
+            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer" style="font-size: 28px;"> 
+                <div id="measure_<?= $_GET['name'] ?>_cpu" class="sceSingleContainer">
+                    <div id="measure_<?= $_GET['name'] ?>_desc_cpu" class="sceDesc"><div class="alarmDivGc">cpu</div></div> 
+                    <div id="measure_<?= $_GET['name'] ?>_value_cpu" class="sceValueCpu"></div>
+                </div>    
+                <div id="measure_<?= $_GET['name'] ?>_ram" class="sceSingleContainer">
+                    <div id="measure_<?= $_GET['name'] ?>_desc_ram" class="sceDesc"><div class="alarmDivGc">ram</div></div> 
                     <div id="<?= $_GET['name'] ?>_value_ram_container">
                         <div id="<?= $_GET['name'] ?>_value_ram_round_container" class="sceValueRoundDiv">
                             <div id="measure_<?= $_GET['name'] ?>_ram_value_div" class="sceValue">
@@ -722,9 +740,9 @@
                         </div>
                         <div class="loading loadingTextDiv"><p>Loading data, please wait</p></div><div class="loading loadingIconDiv"><i class="fa fa-spinner fa-spin"></i></div>
                     </div>
-            </div>
-            <div id="measure_<?= $_GET['name'] ?>_jobs" class="sceSingleContainer"> 
-                <div id="measure_<?= $_GET['name'] ?>_desc_jobs" class="sceDesc">daily jobs</div> 
+                </div>
+                <div id="measure_<?= $_GET['name'] ?>_jobs" class="sceSingleContainer"> 
+                    <div id="measure_<?= $_GET['name'] ?>_desc_jobs" class="sceDesc"><div class="alarmDivGc">daily jobs</div></div> 
                     <div id="<?= $_GET['name'] ?>_value_jobs_container">
                         <div id="<?= $_GET['name'] ?>_value_jobs_round_container" class="sceValueRoundDiv">
                             <div id="measure_<?= $_GET['name'] ?>_jobs_value_div" class="sceValue">
@@ -736,8 +754,8 @@
                         </div>
                         <div class="loading loadingTextDiv"><p>Loading data, please wait</p></div><div class="loading loadingIconDiv"><i class="fa fa-spinner fa-spin"></i></div>
                     </div>
+                </div>
             </div>
         </div>
-        <!-- <div id="<?= $_GET['name'] ?>_date_update" class="date_agg"></div> -->
-    </div>
-</div>    
+    </div>	
+</div> 

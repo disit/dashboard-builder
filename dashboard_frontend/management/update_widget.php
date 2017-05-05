@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -14,28 +14,30 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-include '../config.php';
+include '../config.php'; //Escape
 
 session_start(); // Starting Session
 $link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
 mysqli_select_db($link, $dbname);
 
-$dashboard_id = $_SESSION['id_dashboard'];
+$dashboard_id = $_SESSION['dashboardId'];
+$name_widget_selected = mysqli_real_escape_string($link, $_GET['nameWidget']);
 
-$name_widget_selected = $_GET['nameWidget'];
-
-if (isset($_GET['operation']) && !empty($_GET['operation'])) {
-    if ($_GET['operation'] == "update") {
-        
-    } else {
-        $selqDbtb2 = "DELETE FROM Dashboard.Config_widget_dashboard WHERE name_w='$name_widget_selected' AND id_dashboard='$dashboard_id'";
+if (isset($_GET['operation']) && !empty($_GET['operation'])) 
+{
+    $operation = mysqli_real_escape_string($link, $_GET['operation']);
+    if($operation == "remove") 
+    {
+        $selqDbtb2 = "DELETE FROM Dashboard.Config_widget_dashboard WHERE name_w = '$name_widget_selected' AND id_dashboard = '$dashboard_id'";
         $result5 = mysqli_query($link, $selqDbtb2) or die(mysqli_error($link));
 
-        if ($result5) {
-
+        if ($result5) 
+        {
             mysqli_close($link);
             header("location: dashboard_configdash.php");
-        } else {
+        } 
+        else 
+        {
             mysqli_close($link);
             echo '<script type="text/javascript">';
             echo 'alert("Error");';
@@ -44,4 +46,3 @@ if (isset($_GET['operation']) && !empty($_GET['operation'])) {
         }
     }
 }
-?>

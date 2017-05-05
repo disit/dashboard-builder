@@ -88,9 +88,9 @@ public class DBAccess {
   public ResultSet readDataBase(String query) {
     try {
       statement = connect.createStatement();
-      System.out.println("Query: " + query);
+      //System.out.println("Query: " + query);
       resultSet = statement.executeQuery(query);
-      System.out.println("Query di lettura eseguita correttamente");
+      //System.out.println("Query di lettura eseguita correttamente");
       return resultSet;
     } catch (Exception exp) {
       System.out.println("Errore in metodo readDataBase");
@@ -102,9 +102,9 @@ public class DBAccess {
   public void writeDataBaseData(String query) {
     try {
       statement = connect.createStatement();
-      System.out.println("Query: " + query);
+      //System.out.println("Query: " + query);
       statement.executeUpdate(query);
-      System.out.println("Query di scrittura eseguita correttamente");
+      //System.out.println("Query di scrittura eseguita correttamente");
     } catch (Exception exp) {
       System.out.println("Errore in metodo writeDataBase");
       //Utility.WriteExcepLog(logger, exp);

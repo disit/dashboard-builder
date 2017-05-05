@@ -13,105 +13,194 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
     include('../config.php');
 ?>
 <script type='text/javascript'>
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        $('#<?= $_GET['name'] ?>_desc').width('83%');  
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        var loadingFontDim = 13; 
-        var loadingIconDim = 20;
-        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
-        $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
-        if(firstLoad != false)
+        <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?> 
+                
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var divContainer = $("#<?= $_GET['name'] ?>_content");
+        var widgetContentColor = "<?= $_GET['color'] ?>";
+        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        var nome_wid = "<?= $_GET['name'] ?>_div";
+        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var color = '<?= $_GET['color'] ?>';
+        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontColor = "<?= $_GET['fontColor'] ?>";
+        var timeToReload = <?= $_GET['freq'] ?>;
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
+            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
+            rangeMin, rangeMax, widgetParameters = null;
+        var metricId = "<?= $_GET['metric'] ?>";
+        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
+        var url = "<?= $_GET['link_w'] ?>";
+        var barColors = new Array();
+        
+        if(url === "null")
         {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
+            url = null;
         }
         
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
-        
-        var link_w = "<?= $_GET['link_w'] ?>";
-        var divChartContainer = $('#<?= $_GET['name'] ?>_content');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        
-        $("#<?= $_GET['name'] ?>_content").css("height", height);
-        
-        $.ajax({
-            url: "../widgets/curlProxy.php?url=<?=$internalServiceMapUrlPrefix?>ajax/get-weather.jsp?nomeComune=<?= $_GET['city'] ?>",
-            type: "GET",
-            async: true,
-            dataType: 'json',
-            success: function (msg) 
+        //Definizioni di funzione specifiche del widget
+        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        function getThresholdsJson()
+        {
+            var thresholdsJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
             {
-                if(firstLoad != false)
-                {
-                    $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                    $('#<?= $_GET['name'] ?>_content').css("display", "block");
-                }
-                
-                if(msg.contents.length==0)
-                {
-                    $('#<?= $_GET['name'] ?>_content').html("<div style='text-align: center; padding-top: 28px; font-size: 18px'>Nessuna previsione meteo disponibile o il comune scelto non &eacute; coperto dal servizio del Consorzio LaMMA della regione Toscana</div>");
-                }
-                else
-                {   
-                    var value = msg.contents;
-                    value = value.replace(/\/WebAppGrafo\//g, "").replace(/\/ServiceMap\//g, "");
-                    $('#<?= $_GET['name'] ?>_content').css({backgroundColor: '<?= $_GET['color'] ?>'}); 
-                    $('#<?= $_GET['name'] ?>_content').html(value);
-                    
-                    $('a[title="Linked Open Graph"]').hide();
-                
-                    $('#<?= $_GET['name'] ?>_content').find('#meteo_title').hide();
-                    $('#<?= $_GET['name'] ?>_content').find('.aggiornamento').hide();
-                       
-                
-                    var last_update_meteo= $('#<?= $_GET['name'] ?>_content').find('.aggiornamento').text();
-                    $('#<?= $_GET['name'] ?>_last_update').html(last_update_meteo);
-                } 
-                
-                if (link_w.trim()) 
-                {
-                    if(linkElement.length == 0)
-                    {
-                       linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                       divChartContainer.wrap(linkElement); 
-                    }
-                }
-                
-                $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                    $('#dialog_<?= $_GET['name'] ?>').show();               
-                });
-                $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-                    $('#dialog_<?= $_GET['name'] ?>').hide();
-                });
-
-                var counter = <?= $_GET['freq'] ?>;
-                var countdown = setInterval(function () {
-                    counter--;
-                    if (counter > 60){
-                        $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter/60)+"m");
-                    }else{
-                        $("#countdown_<?= $_GET['name'] ?>").text(counter+"s");
-                    }
-                    if (counter === 0) {
-                        $("#countdown_<?= $_GET['name'] ?>").text(counter+"s");
-                        clearInterval(countdown);
-                        setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                    }
-                }, 1000);
+                thresholdsJson = widgetProperties.param.parameters; 
             }
-        }); 
-    });
+            
+            return thresholdsJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getInfoJson()
+        {
+            var infoJson = null;
+            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
+            {
+                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
+            }
+            
+            return infoJson;
+        }
+        
+        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        function getStyleParameters()
+        {
+            var styleParameters = null;
+            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+            {
+                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+            }
+            
+            return styleParameters;
+        }
+        //Fine definizioni di funzione 
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
+        }
+        else
+        {
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+        }
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        widgetProperties = getWidgetProperties(widgetName);
+        
+        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
+        {
+            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            
+            widgetParameters = widgetProperties.param.parameters;
+            //Per ora non usato
+            /*if(widgetParameters !== null)
+            {
+
+            }*/
+            //Fine eventuale codice ad hoc basato sulle proprietà del widget
+            //Reperimento dei dati del meteo
+            $.ajax({
+                url: "../widgets/curlProxy.php?url=<?=$internalServiceMapUrlPrefix?>ajax/get-weather.jsp?nomeComune=<?= $_GET['city'] ?>",
+                type: "GET",
+                async: false,
+                dataType: 'json',
+                success: function (msg) 
+                {
+                    if(firstLoad !== false)
+                    {
+                        if(msg.contents.length === 0)
+                        {
+                            showWidgetContent(widgetName);
+                            $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                        }
+                        else
+                        {   
+                            if(firstLoad !== false)
+                            {
+                                showWidgetContent(widgetName);
+                            }
+                            else
+                            {
+                                elToEmpty.empty();
+                            }
+
+                            var value = msg.contents;
+                            value = value.replace(/\/WebAppGrafo\//g, "").replace(/\/ServiceMap\//g, "");
+                            value = value.replace(/<br \/>/g, "");
+                            $('#<?= $_GET['name'] ?>_content').css({backgroundColor: '<?= $_GET['color'] ?>'}); 
+                            $('#<?= $_GET['name'] ?>_content').css("color", fontColor);
+                            $('#<?= $_GET['name'] ?>_content').html(value);
+                            $('a[title="Linked Open Graph"]').hide();
+
+                            $('#<?= $_GET['name'] ?>_content').find('#meteo_title').hide();
+                            $('#<?= $_GET['name'] ?>_content').find('.aggiornamento').hide();
+
+
+                            var last_update_meteo= $('#<?= $_GET['name'] ?>_content').find('.aggiornamento').text();
+                            $('#<?= $_GET['name'] ?>_last_update').html(last_update_meteo);
+                        } 
+                    }
+                }
+            }); 
+        }
+        else
+        {
+            alert("Error while loading widget properties");
+        }
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetPrevMeteo", null, null);
+    });//Fine document ready
 </script>
+
 <div class="widget" id="<?= $_GET['name'] ?>_div">
+    <div class='ui-widget-content'>
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+            </div>    
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
+        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+            <div class="loadingTextDiv">
+                <p>Loading data, please wait</p>
+            </div>
+            <div class ="loadingIconDiv">
+                <i class='fa fa-spinner fa-spin'></i>
+            </div>
+        </div>
+        
+        <div id="<?= $_GET['name'] ?>_content" class="content">
+            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer"></div>
+        </div>
+    </div>	
+</div> 
+
+<!--<div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
         <div id="<?= $_GET['name'] ?>_desc" class='desc'></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div>
         <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
@@ -122,6 +211,6 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id="<?= $_GET['name'] ?>_content" class="content"></div>
+        <div id="<?= $_GET['name'] ?>_content" class="meteoContent"></div>
     </div>          
-</div>
+</div>-->

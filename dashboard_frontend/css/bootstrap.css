@@ -3519,19 +3519,26 @@ tbody.collapse.in {
 }
 .dropup,
 .dropdown {
+    /*Ripristinato per ovviare al problema del menu che va sotto gli altri widget*/
     position: relative;
+    /*position: absolute;*/
 }
 .dropdown-toggle:focus {
     outline: 0;
 }
 .dropdown-menu {
+    /*Ripristinato per ovviare al problema del menu che va sotto gli altri widget*/
     position: absolute;
+    /*position: inherit;*/
     top: 100%;
-    left: 0;
+    left: 0%;
+    /*transform: translate(50%, 0%);*/
     z-index: 1000;
+    /*z-index: 99999999;*/
     display: none;
     float: left;
-    min-width: 160px;
+    /*Commentato per evitare menu giganti per le legende del widget table*/
+    /*min-width: 160px;*/
     padding: 5px 0;
     margin: 2px 0 0;
     font-size: 14px;
@@ -3558,7 +3565,10 @@ tbody.collapse.in {
 }
 .dropdown-menu > li > a {
     display: block;
-    padding: 3px 20px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    padding-right: 20px;
     clear: both;
     font-weight: normal;
     line-height: 1.42857143;
@@ -5921,6 +5931,14 @@ button.close {
     -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
     box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
 }
+
+/*Aggiunto da me*/
+.modalContentWidgetForm
+{
+    position: absolute;
+    /*border: 1px solid violet;*/
+}
+
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -5941,6 +5959,7 @@ button.close {
 .modal-header {
     padding: 15px;
     border-bottom: 1px solid #e5e5e5;
+    /*border: 1px orange solid;*/
 }
 .modal-header .close {
     margin-top: -2px;
@@ -5950,14 +5969,20 @@ button.close {
     line-height: 1.42857143;
 }
 .modal-body {
-    position: relative;
+    /*position: relative;*/
     padding: 15px;
+    /*border: 1px red solid;*/
+    height: 65%;
 }
 .modal-footer {
     padding: 15px;
     text-align: right;
-    border-top: 1px solid #e5e5e5;
+    /*border-top: 1px solid #e5e5e5;*/
 }
+
+/*Aggiunta io*/
+.widgetFormButtonMa
+
 .modal-footer .btn + .btn {
     margin-bottom: 0;
     margin-left: 5px;
@@ -5993,6 +6018,16 @@ button.close {
         width: 900px;
     }
 }
+
+/*Aggiunto da me*/
+@media (min-width: 1200px)
+{
+    .modalDialogWidget {
+        width: 1200px;
+        /*margin: 30px auto;*/
+    }
+}
+
 .tooltip {
     position: absolute;
     z-index: 1070;
@@ -6528,6 +6563,18 @@ button.close {
 }
 .pull-left {
     float: left !important;
+}
+
+/*Aggiunta da me*/
+.widgetFormButton
+{
+    float: right;
+}
+
+/*Aggiunta da me*/
+.widgetFormButtonMargin
+{
+    margin-right: 10px;
 }
 .hide {
     display: none !important;

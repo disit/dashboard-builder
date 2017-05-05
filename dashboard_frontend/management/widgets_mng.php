@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -13,8 +13,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-include('process-form.php'); // Includes Login Script
+    include('process-form.php'); // Includes Login Script
 ?>
 
 <html lang="en">
@@ -32,7 +31,13 @@ include('process-form.php'); // Includes Login Script
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- jQuery -->
+    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
+    <script src="../js/jquery-1.10.1.min.js"></script>
+    
+    <!-- JQUERY UI -->
+    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
+    <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
@@ -42,7 +47,20 @@ include('process-form.php'); // Includes Login Script
 </head>
 
 <body>
-
+    <?php
+        if(!isset($_SESSION['isAdmin']))
+        {
+            echo '<script type="text/javascript">';
+            echo 'window.location.href = "unauthorizedUser.php";';
+            echo '</script>';
+        }
+        else if(($_SESSION['isAdmin'] != 1) && ($_SESSION['isAdmin'] != 2))
+        {
+            echo '<script type="text/javascript">';
+            echo 'window.location.href = "unauthorizedUser.php";';
+            echo '</script>';
+        }
+    ?>
     <div id="wrapper">
 
         <!-- Navigation -->
@@ -59,31 +77,32 @@ include('process-form.php'); // Includes Login Script
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
-
-                <li><a href="#"> <span class="glyphicon glyphicon-user" aria-hidden="true"></span><?= $_SESSION['login_user']; ?></a></li>
-                <li><a href="logout.php">Logout</a></li>
+                <?php
+                    if(isset($_SESSION['loggedUsername']))
+                    {
+                        echo '<li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>' . $_SESSION["loggedUsername"] . '</a></li>';
+                        echo '<li><a href="logout.php">Logout</a></li>';
+                    }
+                ?>
             </ul>
             <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
-                    <li class="active">
-                        <a href="#"><i class="fa fa-fw fa-dashboard"></i> Operations</a>
-                    </li>
-                    <li class="active">
+                    <li>
                         <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboard Builder</a>
                     </li>
-                    <li class="active">
-                        <a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/widgets_mng.php" id="link_widgets_mng" style="background-color: #e3f2fd; color: #337ab7"><i class="fa fa-fw fa-dashboard"></i> Widgets</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a>
-                    </li> 
+                    <?php
+                        if(isset($_SESSION['isAdmin']))
+                        {
+                            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+                            {
+                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a></li>';
+                                echo '<li class="active"><a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a></li>';
+                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a></li>';
+                                echo '<li><a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a></li>'; 
+                            }
+                        }
+                    ?>
                     <!-- fine comando di gestione metriche -->
                 </ul>
             </div>
@@ -91,7 +110,6 @@ include('process-form.php'); // Includes Login Script
         </nav>
 
         <div id="page-wrapper">
-
             <div class="container-fluid">
 
                 <!-- Page Heading -->
@@ -100,7 +118,6 @@ include('process-form.php'); // Includes Login Script
                         <h1 class="page-header">
                             <br/>Widgets Overview
                         </h1>
-
                         <nav id="modify-bar-dashboard" class="navbar navbar-default">
                             <div class="container-fluid">
                                 <!-- Brand and toggle get grouped for better mobile display -->
@@ -110,23 +127,16 @@ include('process-form.php'); // Includes Login Script
                                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                                     <ul class="nav navbar-nav">
                                         <li class="active"><a id="link_add_widget" href="#" data-toggle="modal" data-target="#modal-add_widget"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Widgets <span class="sr-only">(current)</span></a></li>                           
-                                        <!--<li><a id ="link_exit" href="dashboard_mng.php"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>-->
                                         <li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>
-
                                     </ul>
                                 </div><!-- /.navbar-collapse -->
                             </div><!-- /.container-fluid -->
                         </nav>
-
                     </div>
                 </div>
 
 
-                <!-- /.row -->
-
                 <div class="row">
-
-
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title"><i class="fa fa-money fa-fw"></i> Widgets</h3>
@@ -138,10 +148,10 @@ include('process-form.php'); // Includes Login Script
                                         <tr>
                                             <th>Id widget</th>
                                             <th>file php</th>    
-                                            <th><!--min rows-->min columns</th>
-                                            <th><!--max rows-->max columns</th>
-                                            <th><!--min columns-->min rows</th>
-                                            <th><!--max columns-->max rows</th>
+                                            <th>min columns</th>
+                                            <th>max columns</th>
+                                            <th>min rows</th>
+                                            <th>max rows</th>
                                             <th>Type</th>
                                             <th>Unique_metric</th>
                                             <th>num. metrics</th>
@@ -156,9 +166,8 @@ include('process-form.php'); // Includes Login Script
                             </div>
                         </div>
                     </div>
-
                 </div>
-                <!-- /.row -->
+                
                 <!-- modifica crea widget type -->
                 <div class="modal fade" id="modal-add_widget" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
                     <div class="modal-dialog" role="document">
@@ -331,31 +340,6 @@ include('process-form.php'); // Includes Login Script
                                                 <input type="text" class="form-control" id="php_m" name="php_m">
                                             </div>
                                         </div>
-                                        <!--
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Type</label> 
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="type_m" id="type_m"> 
-                                                    <option>Intero</option>
-                                                    <option>Testuale</option>
-                                                    <option>Percentuale</option>
-                                                    <option>Float</option>
-                                                    <option>Unico</option>
-                                                    <option>SCE</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        ! -->
-                                        <!--
-                                        <div class="row" id="unique_m_row" hidden>
-                                            <label for="#" class="col-md-4 control-label">Unique Metric</label> 
-                                            <div class="col-md-6">
-                                                <select class="form-control" id="metric_m" name="metric_m">
-                                                    <option></option>                                                    
-                                                </select>
-                                            </div>
-                                        </div> 
-                                        -->
                                         <!--Elenco checkbox tipi modifica -->
                                         <input type="text" id="type_m" hidden></input>
                                         <div class="well">
@@ -460,235 +444,219 @@ include('process-form.php'); // Includes Login Script
                     </div>
                 </div>               
 
+<script type='text/javascript'>
+    var array_widget = new Array();
+    var array_metrics = new Array();
+    var array_types = new Array();
+    var tipi_compatibili;
+    
+    $(document).ready(function () 
+    {
+        $.ajax({
+        url: "get_data.php",
+        data: {action: "get_widget_types"},
+        type: "GET",
+        async: true,
+        datatype: 'json',
+        success: function (data) {
+            for (var i = 0; i < data.length; i++) {
+                array_widget[i] = {
+                    id: data[i]['type_widget'],
+                    source: data[i]['source_widget'],
+                    min_r: data[i]['min_row'],
+                    max_r: data[i]['max_row'],
+                    min_c: data[i]['min_col'],
+                    max_c: data[i]['max_col'],
+                    met: data[i]['n_met'],
+                    color: data[i]['color'],
+                    type: data[i]['type'],
+                    unique: data[i]['unique'],
+                    range: data[i]['range']
+                };
+                var tipo_elenco;
+                array_types[i]=data[i]['type'];
+                var list_tipi=data[i]['type'];
+                var tipi = list_tipi.split("|");
+                var num_tipi = tipi.length;
+                if (num_tipi == 1){
+                    tipo_elenco = tipi[0];
+                } else {
+                    tipo_elenco = 'Multipli';
+                }
 
-                <script type='text/javascript'>
-                    var array_widget = new Array();
-                    var array_metrics = new Array();
-                    var array_types = new Array();
-                    var tipi_compatibili;
-                    
-                    $.ajax({
-                        url: "get_data.php",
-                        data: {action: "get_widget_types"},
-                        type: "GET",
-                        async: true,
-                        datatype: 'json',
-                        success: function (data) {
-                            for (var i = 0; i < data.length; i++) {
-                                array_widget[i] = {
-                                    id: data[i]['type_widget'],
-                                    source: data[i]['source_widget'],
-                                    min_r: data[i]['min_row'],
-                                    max_r: data[i]['max_row'],
-                                    min_c: data[i]['min_col'],
-                                    max_c: data[i]['max_col'],
-                                    met: data[i]['n_met'],
-                                    color: data[i]['color'],
-                                    type: data[i]['type'],
-                                    unique: data[i]['unique'],
-                                    range: data[i]['range']
-                                };
-                                //
-                                var tipo_elenco;
-                                array_types[i]=data[i]['type'];
-                                var list_tipi=data[i]['type'];
-                                var tipi = list_tipi.split("|");
-                                var num_tipi = tipi.length;
-                                console.log("numero tipi compatibili:  " + num_tipi);
-                                if (num_tipi == 1){
-                                    tipo_elenco = tipi[0];
-                                } else {
-                                    tipo_elenco = 'Multipli';
-                                }
-                                
-                                $('#list_widgets tbody').append('<tr><td class="id_wid">' + array_widget[i]['id'] + '</td><td class="php_wid">' + array_widget[i]['source'] + '</td><td class="minr_wid">' + array_widget[i]['min_r'] + '</td><td class="maxr_wid">' + array_widget[i]['max_r'] + '</td><td class="minc_wid">' + array_widget[i]['min_c'] + '</td><td class="maxc_wid">' + array_widget[i]['max_c'] + '</td><td class="type_wid">' + tipo_elenco + '</td><td class="unic_wid">' + array_widget[i]['unique'] + '</td><td class="invisible_type" hidden>'+array_widget[i]['type']+'</td><td class="unique_wid" hidden>'+array_widget[i]['unique']+'</td><td class="met_wid">' + array_widget[i]['met'] + '</td><td class="range_wid">' + array_widget[i]['range'] + '</td><td class="col_wid" hidden>' + array_widget[i]['color'] + '</td><td><div class="icons-modify-ds"><a class="icon-cfg-widget" href="#" data-toggle="modal" data-target="#modal-modify_widget" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-wid" tabindex="-1" aria-hidden="true"></span></a></div></td></tr>');
-                                //$('#metric_m').val(array_widget[i]['unique']);
-                            }
-                            //console.log("Elenco tipi:  " + array_types[0]);
+                $('#list_widgets tbody').append('<tr><td class="id_wid">' + array_widget[i]['id'] + '</td><td class="php_wid">' + array_widget[i]['source'] + '</td><td class="minr_wid">' + array_widget[i]['min_r'] + '</td><td class="maxr_wid">' + array_widget[i]['max_r'] + '</td><td class="minc_wid">' + array_widget[i]['min_c'] + '</td><td class="maxc_wid">' + array_widget[i]['max_c'] + '</td><td class="type_wid">' + tipo_elenco + '</td><td class="unic_wid">' + array_widget[i]['unique'] + '</td><td class="invisible_type" hidden>'+array_widget[i]['type']+'</td><td class="unique_wid" hidden>'+array_widget[i]['unique']+'</td><td class="met_wid">' + array_widget[i]['met'] + '</td><td class="range_wid">' + array_widget[i]['range'] + '</td><td class="col_wid" hidden>' + array_widget[i]['color'] + '</td><td><div class="icons-modify-ds"><a class="icon-cfg-widget" href="#" data-toggle="modal" data-target="#modal-modify_widget" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-wid" tabindex="-1" aria-hidden="true"></span></a></div></td></tr>');
+            }
+
+            //elenco metriche
+            $.ajax({
+                url: "get_data.php",
+                data: {action: "get_metrics"},
+                type: "GET",
+                async: true,
+                datatype: 'json',
+                success: function (data) {
+                    for (var j = 0; j < data.length; j++) 
+                    {
+                        array_metrics[j] = {
+                            id: data[j]['idMetric']
+                        };
+                        $('#metric_w').append('<option>' + array_metrics[j]['id'] + '</option>');
+                        $('#metric_m').append('<option>' + array_metrics[j]['id'] + '</option>');
+                    }
+                }
+            });
 
 
+            $('#unique_w').on('click',function(){
+                if ($('#unique_w').prop('checked', true))
+                {
+                    $('#unique_row').show();
+                }
+                else if ($('#unique_w').prop('checked', false)){
+                    $('#unique_row').hide();
+                    $('#metric_w').val("");
+                } 
+            });
 
+            $('#unique_m').on('click',function(){
+                if ($('#unique_m').prop('checked', true))
+                {
+                    $('#unique_m_row').show();
+                }
+                else if ($('#unique_m').prop('checked', false))
+                {
+                    $('#unique_m_row').hide();
+                    $('#metric_m').val("");
+                } 
+            });
 
-                            //elenco metriche
-                            $.ajax({
-                                url: "get_data.php",
-                                data: {action: "get_metrics"},
-                                type: "GET",
-                                async: true,
-                                datatype: 'json',
-                                success: function (data) {
-                                    for (var j = 0; j < data.length; j++) {
-                                        array_metrics[j] = {
-                                            id: data[j]['idMetric']
-                                        };
-                                        $('#metric_w').append('<option>' + array_metrics[j]['id'] + '</option>');
-                                        $('#metric_m').append('<option>' + array_metrics[j]['id'] + '</option>');
-                                        /*
-                                         if ($('#type_m').on("Unico")) {
-                                         $('#unique_m_row').show();
-                                         //$('#metric_m').val(array_widget[j]['unique']);
-                                         } else {
-                                         $('#unique_m_row').hide();
-                                         //$('#metric_m').val("");
-                                         }
-                                         */
-                                    }
-                                }
-                            });
-                            
-                            //controlla se unique_w è checkato e se si mostra l'elenco delle metriche
-                            
-                            
-                            $('#unique_w').on('click',function(){
-                               if ($('#unique_w').prop('checked', true)){
-                                $('#unique_row').show();
-                            }else if ($('#unique_w').prop('checked', false)){
-                                $('#unique_row').hide();
-                                $('#metric_w').val("");
-                            } 
-                            });
-                            
-                            $('#unique_m').on('click',function(){
-                               if ($('#unique_m').prop('checked', true)){
-                                $('#unique_m_row').show();
-                            }else if ($('#unique_m').prop('checked', false)){
-                                $('#unique_m_row').hide();
-                                $('#metric_m').val("");
-                            } 
-                            });
-                            
-                             //mostra il campo della metrica unica
-                             $('#type_w').change(function () {
-                             if ($('#type_w').val() == "Unico") {
-                             $('#unique_row').show();
-                             } else {
-                             $('#unique_row').hide();
-                             $('#metric_w').val("");
-                             }
-                             });
-                            //fine
-                            $('#type_m').change(function () {
-                                if ($('#type_m').val() == "Unico") {
-                                    $('#unique_m_row').show();
-                                } else {
-                                    $('#unique_m_row').hide();
-                                    $('#metric_m').val("");
-                                }
-                            });
+             //mostra il campo della metrica unica
+             $('#type_w').change(function () {
+                if ($('#type_w').val() === "Unico") 
+                {
+                   $('#unique_row').show();
+                } 
+                else 
+                {
+                   $('#unique_row').hide();
+                   $('#metric_w').val("");
+                }
+             });
+            //fine
+            $('#type_m').change(function () {
+                if ($('#type_m').val() === "Unico") 
+                {
+                    $('#unique_m_row').show();
+                } 
+                else 
+                {
+                    $('#unique_m_row').hide();
+                    $('#metric_m').val("");
+                }
+            });
 
 
 
-                            //carica dati nel modifica dei widgets
-                            $('.icon-cfg-widget').on('click', function () {
-                                var idW = $(this).parent().parent().parent().find('.id_wid').text();
-                                var phpW = $(this).parent().parent().parent().find('.php_wid').text();
-                                var mnRW = $(this).parent().parent().parent().find('.minr_wid').text();
-                                var mxRW = $(this).parent().parent().parent().find('.maxr_wid').text();
-                                var mnCW = $(this).parent().parent().parent().find('.minc_wid').text();
-                                var mxCW = $(this).parent().parent().parent().find('.maxc_wid').text();
-                                var metW = $(this).parent().parent().parent().find('.met_wid').text();
-                                var colW = $(this).parent().parent().parent().find('.col_wid').text();                                
-                                //va modificato
-                                //var typeW = $(this).parent().parent().parent().find('.type_wid').text();
-                                var typeW = $(this).parent().parent().parent().find('.invisible_type').text();
-                                //fine modifiche
-                                var unicW = $(this).parent().parent().parent().find('.unic_wid').text();
-                                console.log(unicW);
-                                var rangeW = $(this).parent().parent().parent().find('.range_wid').text();
-                                
-                                if (unicW != ''){
-                                  $('#unique_m_row').show();
-                                  $('#unique_m').prop('checked', true);
-                                }else {
-                                    $('#unique_m_row').hide();
-                                    $('#metric_m').val('');
-                                    $('#unique_m').prop('checked', false);
-                                }
-                                //su typeW si fa tutta una serie di if e pregmatch per attivare i checkbox
-                                var int_match = typeW.match('Intero');
-                                if (int_match){
-                                    $('#integer_m').prop('checked', true);
-                                } else {
-                                    $('#integer_m').prop('checked', false);
-                                }
-                                
-                                var map_match = typeW.match('Map');
-                                if (map_match){
-                                    $('#map_m').prop('checked', true);
-                                } else {
-                                    $('#map_m').prop('checked', false);
-                                }
-                                
-                                var perc_match = typeW.match('Percentuale');
-                                if (perc_match){
-                                    $('#percentage_m').prop('checked', true);
-                                } else {
-                                    $('#percentage_m').prop('checked', false);
-                                }
-                                
-                                var text_match = typeW.match('Testuale');
-                                if (text_match){
-                                    $('#textual_m').prop('checked', true);
-                                } else {
-                                    $('#textual_m').prop('checked', false);
-                                }
-                                
-                                var float_match = typeW.match('Float');
-                                if (float_match){
-                                    $('#float_m').prop('checked', true);
-                                } else {
-                                    $('#float_m').prop('checked', false);
-                                }
-                                
-                                var button_match = typeW.match('Button');
-                                if (button_match){
-                                    $('#button_m').prop('checked', true);
-                                } else {
-                                    $('#button_m').prop('checked', false);
-                                }
-                                
-                                var sce_match = typeW.match('SCE');
-                                if (sce_match){
-                                    $('#sce_m').prop('checked', true);
-                                } else {
-                                    $('#sce_m').prop('checked', false);
-                                }
-                                //fine attivazione
-                                
-                                $("#id_m").val(idW);
-                                $("#php_m").val(phpW);
-                                $("#mnR_m").val(mnRW);
-                                $("#mxR_m").val(mxRW);
-                                $("#mnC_m").val(mnCW);
-                                $("#mxC_m").val(mxCW);
-                                $("#met_m").val(metW);
-                                $("#type_m").val(typeW);
-                                $("#col_m").val(colW);
-                                $("#metric_m").val(unicW);
+            //carica dati nel modifica dei widgets
+            $('.icon-cfg-widget').on('click', function () {
+                var idW = $(this).parent().parent().parent().find('.id_wid').text();
+                var phpW = $(this).parent().parent().parent().find('.php_wid').text();
+                var mnRW = $(this).parent().parent().parent().find('.minr_wid').text();
+                var mxRW = $(this).parent().parent().parent().find('.maxr_wid').text();
+                var mnCW = $(this).parent().parent().parent().find('.minc_wid').text();
+                var mxCW = $(this).parent().parent().parent().find('.maxc_wid').text();
+                var metW = $(this).parent().parent().parent().find('.met_wid').text();
+                var colW = $(this).parent().parent().parent().find('.col_wid').text();    
+                var typeW = $(this).parent().parent().parent().find('.invisible_type').text();
+                var unicW = $(this).parent().parent().parent().find('.unic_wid').text();
+                var rangeW = $(this).parent().parent().parent().find('.range_wid').text();
 
-                                if(rangeW == 0){
-                                    $("#numeric_range_m").prop('checked', false);
-                                    $("#numeric_range_m").prop('value', 0);
-                                }else{
-                                    $("#numeric_range_m").prop('checked', true);
-                                    $("#numeric_range_m").prop('value', 1);
-                                }
-                                
-                                /*
-                                if (typeW == "Unico") {
-                                    $('#unique_m_row').show();
-                                    // $('#metric_m').val(unicW);
-                                } else {
-                                    $('#unique_m_row').hide();
-                                    $('#metric_m').val('');
-                                }
-                                */
-                            });
-                            //fine caricamento dei dati
-                        }
-                    });
+                if (unicW != ''){
+                  $('#unique_m_row').show();
+                  $('#unique_m').prop('checked', true);
+                }else {
+                    $('#unique_m_row').hide();
+                    $('#metric_m').val('');
+                    $('#unique_m').prop('checked', false);
+                }
+                //su typeW si fa tutta una serie di if e pregmatch per attivare i checkbox
+                var int_match = typeW.match('Intero');
+                if (int_match){
+                    $('#integer_m').prop('checked', true);
+                } else {
+                    $('#integer_m').prop('checked', false);
+                }
 
-                </script>
-                </body>
-                </html>
+                var map_match = typeW.match('Map');
+                if (map_match){
+                    $('#map_m').prop('checked', true);
+                } else {
+                    $('#map_m').prop('checked', false);
+                }
+
+                var perc_match = typeW.match('Percentuale');
+                if (perc_match){
+                    $('#percentage_m').prop('checked', true);
+                } else {
+                    $('#percentage_m').prop('checked', false);
+                }
+
+                var text_match = typeW.match('Testuale');
+                if (text_match){
+                    $('#textual_m').prop('checked', true);
+                } else {
+                    $('#textual_m').prop('checked', false);
+                }
+
+                var float_match = typeW.match('Float');
+                if (float_match){
+                    $('#float_m').prop('checked', true);
+                } else {
+                    $('#float_m').prop('checked', false);
+                }
+
+                var button_match = typeW.match('Button');
+                if (button_match){
+                    $('#button_m').prop('checked', true);
+                } else {
+                    $('#button_m').prop('checked', false);
+                }
+
+                var sce_match = typeW.match('SCE');
+                if (sce_match){
+                    $('#sce_m').prop('checked', true);
+                } else {
+                    $('#sce_m').prop('checked', false);
+                }
+                //fine attivazione
+
+                $("#id_m").val(idW);
+                $("#php_m").val(phpW);
+                $("#mnR_m").val(mnRW);
+                $("#mxR_m").val(mxRW);
+                $("#mnC_m").val(mnCW);
+                $("#mxC_m").val(mxCW);
+                $("#met_m").val(metW);
+                $("#type_m").val(typeW);
+                $("#col_m").val(colW);
+                $("#metric_m").val(unicW);
+
+                if(rangeW === 0)
+                {
+                    $("#numeric_range_m").prop('checked', false);
+                    $("#numeric_range_m").prop('value', 0);
+                }
+                else
+                {
+                    $("#numeric_range_m").prop('checked', true);
+                    $("#numeric_range_m").prop('value', 1);
+                }
+            });
+            //fine caricamento dei dati
+        }
+    });
+});
+</script>
+</body>
+</html>
 

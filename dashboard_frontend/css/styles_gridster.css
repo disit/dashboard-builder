@@ -35,9 +35,9 @@ h1 {
     margin: 0 auto;
 }
 
+/*Non cancellare questa classe vuota, è di comodo per selettori JQuery rapidi*/
 .gridster .gs_w {
-    cursor: pointer;
-    border:1px solid #dddddd !important; 
+    /*border:1px solid #dddddd !important;*/
 }
 
 .draggabletitle

@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -13,8 +13,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-include('process-form.php'); // Includes Login Script
+    include('process-form.php'); // Includes Login Script
 ?>
 
 <html lang="en">
@@ -32,7 +31,14 @@ include('process-form.php'); // Includes Login Script
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    
+    <!-- jQuery -->
+    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
+    <script src="../js/jquery-1.10.1.min.js"></script>
+    
+    <!-- JQUERY UI -->
+    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
+    <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
@@ -42,9 +48,21 @@ include('process-form.php'); // Includes Login Script
 </head>
 
 <body>
-
+    <?php
+        if(!isset($_SESSION['isAdmin']))
+        {
+            echo '<script type="text/javascript">';
+            echo 'window.location.href = "unauthorizedUser.php";';
+            echo '</script>';
+        }
+        else if(($_SESSION['isAdmin'] != 1) && ($_SESSION['isAdmin'] != 2))
+        {
+            echo '<script type="text/javascript">';
+            echo 'window.location.href = "unauthorizedUser.php";';
+            echo '</script>';
+        }
+    ?>
     <div id="wrapper">
-
         <!-- Navigation -->
         <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
             <!-- Brand and toggle get grouped for better mobile display -->
@@ -59,41 +77,39 @@ include('process-form.php'); // Includes Login Script
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
-                <li><a href="#"> <span class="glyphicon glyphicon-user" aria-hidden="true"></span><?= $_SESSION['login_user']; ?></a></li>
-                <li><a href="logout.php">Logout</a></li>
+                <?php
+                    if(isset($_SESSION['loggedUsername']))
+                    {
+                        echo '<li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>' . $_SESSION["loggedUsername"] . '</a></li>';
+                        echo '<li><a href="logout.php">Logout</a></li>';
+                    }
+                ?>
             </ul>
             <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
-                    <li class="active">
-                        <a href="#"><i class="fa fa-fw fa-dashboard"></i> Operations</a>
-                    </li>
-                    <li class="active">
+                    <li>
                         <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboard Builder</a>
                     </li>
-                    <li class="active">
-                        <a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dataSources_mng.php" id="link_sources_mng" style="background-color: #e3f2fd; color: #337ab7"><i class="fa fa-fw fa-dashboard"></i>Sources</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a>
-                    </li> 
-                    <!-- fine comando di gestione metriche -->
+                    <?php
+                        if(isset($_SESSION['isAdmin']))
+                        {
+                            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+                            {
+                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a></li>';
+                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a></li>';
+                                echo '<li class="active"><a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a></li>';
+                                echo '<li><a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a></li>'; 
+                            }
+                        }
+                    ?>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
         </nav>
 
         <div id="page-wrapper">
-
             <div class="container-fluid">
-
-                <!-- Page Heading -->
                 <div class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">
@@ -102,26 +118,17 @@ include('process-form.php'); // Includes Login Script
 
                         <nav id="modify-bar-dashboard" class="navbar navbar-default">
                             <div class="container-fluid">
-                                <!-- Brand and toggle get grouped for better mobile display -->
-
-
-                                <!-- Collect the nav links, forms, and other content for toggling -->
                                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                                     <ul class="nav navbar-nav">
                                         <li class="active"><a id="link_add_dataSource" href="#" data-toggle="modal" data-target="#modal-datasources"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> DataSource <span class="sr-only">(current)</span></a></li>                           
-                                        <!--<li><a id ="link_exit" href="dashboard_mng.php"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>-->
                                         <li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>
-
                                     </ul>
-                                </div><!-- /.navbar-collapse -->
-                            </div><!-- /.container-fluid -->
+                                </div>
+                            </div>
                         </nav>
 
                     </div>
                 </div>
-
-                <!-- /.row -->
-
                 <div class="row">
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -148,14 +155,8 @@ include('process-form.php'); // Includes Login Script
                         </div>
                     </div>
                 </div>
-                <!-- /.row -->
-
             </div>
-            <!-- /.container-fluid -->
-
         </div>
-        <!-- /#page-wrapper -->
-
     </div>
     <!-- Aggiungi nuovo data sources-->    
     <div class="modal fade" id="modal-datasources" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -287,67 +288,49 @@ include('process-form.php'); // Includes Login Script
         </div>
     </div>
 
-
-    <!-- fine modifica dei datasources-->
     <script type='text/javascript'>
         $(document).ready(function () {
             var array_dataSources = new Array();
-
+            
             $.ajax({
-                url: "get_data.php",
-                data: {action: "get_dataSource"},
-                type: "GET",
-                async: true,
-                //contentType: "charset=iso-8859-1",
-                // contentType: 'utf-8',
-                datatype: 'json',
-                success: function (data) {
-                    for (var i = 0; i < data.length; i++) {
-                        //console.log(data.length);
-                        array_dataSources[i] = {
-                            id: data[i]['idDataS'],
-                            url: data[i]['urlDataS'],
-                            database: data[i]['databaseDS'],
-                            userName: data[i]['usernameDS'],
-                            passWord: data[i]['passwordDS'],
-                            databaseType: data[i]['databaseTypeDS']
-                        };
-                        //caricare la tabella
-                        $('#list_dataSources tbody').append('<tr><td class="name_ds">' + array_dataSources[i]['id'] + '</td><td class="url_ds">' + array_dataSources[i]['url'] + '</td><td class="db_ds">' + array_dataSources[i]['database'] + '</td><td class="user_ds">' + array_dataSources[i]['userName'] + '</td><td class="pass_ds">' + array_dataSources[i]['passWord'] + '</td><td class="type_ds">' + array_dataSources[i]['databaseType'] + '</td><td><div class="icons-modify-ds"><a class="icon-cfg-datasources" href="#" data-toggle="modal" data-target="#modal-modfy_datasources" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-ds" tabindex="-1" aria-hidden="true"></span></a></div></td></tr>');
-                        //fine caricamento della tabella
-                    }
-                    //modifica datasources
-                    $('.icon-cfg-datasources').on('click', function () {
-                        var name = $(this).parent().parent().parent().find('.name_ds').text();
-                        var url = $(this).parent().parent().parent().find('.url_ds').text();
-                        var db = $(this).parent().parent().parent().find('.db_ds').text();
-                        var user = $(this).parent().parent().parent().find('.user_ds').text();
-                        var pass = $(this).parent().parent().parent().find('.pass_ds').text();
-                        var type = $(this).parent().parent().parent().find('.type_ds').text();
-                        console.log(name);
-                        console.log(url);
-                        console.log(db);
-                        console.log(user);
-                        console.log(pass);
-                        console.log(type);
-                        $("#name_Id_dataSource_M").val(name);
-                        $("#url_dataSource_M").val(url);
-                        $("#database_dataSource_M").val(db);
-                        $("#username_dataSource_M").val(user);
-                        $("#password_dataSource_M").val(pass);
-                        $("#databaseType_dataSource_M").val(type);
-                    });
+            url: "get_data.php",
+            data: {action: "get_dataSource"},
+            type: "GET",
+            async: true,
+            datatype: 'json',
+            success: function (data) {
+                for (var i = 0; i < data.length; i++) 
+                {
+                    array_dataSources[i] = {
+                        id: data[i]['idDataS'],
+                        url: data[i]['urlDataS'],
+                        database: data[i]['databaseDS'],
+                        userName: data[i]['usernameDS'],
+                        passWord: data[i]['passwordDS'],
+                        databaseType: data[i]['databaseTypeDS']
+                    };
 
-
-                    //fine modifica datasources
+                    $('#list_dataSources tbody').append('<tr><td class="name_ds">' + array_dataSources[i]['id'] + '</td><td class="url_ds">' + array_dataSources[i]['url'] + '</td><td class="db_ds">' + array_dataSources[i]['database'] + '</td><td class="user_ds">' + array_dataSources[i]['userName'] + '</td><td class="pass_ds">' + array_dataSources[i]['passWord'] + '</td><td class="type_ds">' + array_dataSources[i]['databaseType'] + '</td><td><div class="icons-modify-ds"><a class="icon-cfg-datasources" href="#" data-toggle="modal" data-target="#modal-modfy_datasources" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-ds" tabindex="-1" aria-hidden="true"></span></a></div></td></tr>');
                 }
-            });
 
-
-
-
-
+                $('.icon-cfg-datasources').on('click', function () 
+                {
+                    var name = $(this).parent().parent().parent().find('.name_ds').text();
+                    var url = $(this).parent().parent().parent().find('.url_ds').text();
+                    var db = $(this).parent().parent().parent().find('.db_ds').text();
+                    var user = $(this).parent().parent().parent().find('.user_ds').text();
+                    var pass = $(this).parent().parent().parent().find('.pass_ds').text();
+                    var type = $(this).parent().parent().parent().find('.type_ds').text();
+                    $("#name_Id_dataSource_M").val(name);
+                    $("#url_dataSource_M").val(url);
+                    $("#database_dataSource_M").val(db);
+                    $("#username_dataSource_M").val(user);
+                    $("#password_dataSource_M").val(pass);
+                    $("#databaseType_dataSource_M").val(type);
+                });
+            }
         });
+    });
     </script>
 </body>
 </html>

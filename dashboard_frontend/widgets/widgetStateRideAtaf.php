@@ -14,13 +14,39 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <script type='text/javascript'>
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
         $('#<?= $_GET['name'] ?>_desc').width('74%');
-        $('#<?= $_GET['name'] ?>_desc').html('<span><a id="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div></span>');
-        $('#<?= $_GET['name'] ?>_desc_text').css("width", "90%");
-        $('#<?= $_GET['name'] ?>_desc_text').css("height", "100%");
+        <?php
+            $titlePatterns = array();
+            $titlePatterns[0] = '/_/';
+            $titlePatterns[1] = '/\'/';
+            $replacements = array();
+            $replacements[0] = ' ';
+            $replacements[1] = '&apos;';
+            $title = $_GET['title'];
+        ?>
+    
+        var hostFile = "<?= $_GET['hostFile'] ?>";
+        
+        if(hostFile === "config")
+        {
+            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 90 - 2));
+        }
+        else
+        {
+            $("#<?= $_GET['name'] ?>_buttonsDiv").css("display", "none");
+            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 50 - 2));
+        }
+        
+        $("#<?= $_GET['name'] ?>_titleDiv").css("width", titleWidth + "px");
+        $("#<?= $_GET['name'] ?>_titleDiv").css("color", "<?= $_GET['headerFontColor'] ?>");
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
+        $("#<?= $_GET['name'] ?>_countdownDiv").css("color", "<?= $_GET['headerFontColor'] ?>");
+        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
+        
         var loadingFontDim = 13;
         var loadingIconDim = 20;
         var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
@@ -28,7 +54,8 @@
         $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
         $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
         $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
-        if(firstLoad != false)
+        
+        if(firstLoad !== false)
         {
             $('#<?= $_GET['name'] ?>_loading').css("display", "block");
         }
@@ -45,12 +72,18 @@
         var paddingLines = null;
         var carHeight = null;
         var tabIndex = 0;
+        var alarmSet = false;
         
         var colore_frame = "<?= $_GET['frame_color'] ?>";
         var nome_wid = "<?= $_GET['name'] ?>_div";
+        var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
         $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
         
-        var link_w = "<?= $_GET['link_w'] ?>";
+        var url = "<?= $_GET['link_w'] ?>";
+        if(url === "null")
+        {
+            url = null;
+        }
         var divChartContainer = $('#table_<?= $_GET['name'] ?>');
         var linkElement = $('#<?= $_GET['name'] ?>_link_w');
         
@@ -93,6 +126,9 @@
                         $("#measure_<?= $_GET['name'] ?>_ataf_late_value_p").css("height", valueHeight);
                         $("#measure_<?= $_GET['name'] ?>_ataf_late_desc_p").css("height", descHeight);
                         
+                        var threshold = parseInt(msg.data[0].commit.author.threshold);
+                        var thresholdEval = msg.data[0].commit.author.thresholdEval;
+                        
                         //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
                         fontRatio = parseInt((sizeRowsWidget / 4)*90);
                         fontRatioSmall = parseInt((fontRatio / 100)*40);
@@ -112,7 +148,6 @@
                         $("#measure_<?= $_GET['name'] ?>_ataf_late_desc_p").css("font-size", fontRatioSmall);
                         $("#<?= $_GET['name'] ?>_date_update").css("font-size", fontRatioUpdate);
                         
-                        
                         var fontRatioNav = "55%";
                         $("#<?= $_GET['name'] ?>_nav_ul").css("font-size", fontRatioNav);
                         
@@ -120,7 +155,7 @@
                             event.preventDefault();
                         });
                         
-                        if(firstLoad != false)
+                        if(firstLoad !== false)
                         {
                             $('#<?= $_GET['name'] ?>_loading').css("display", "none");
                             $('#table_<?= $_GET['name'] ?>').css("display", "block");
@@ -145,7 +180,7 @@
                         var date_agg = msg.data[0].commit.author.computationDate;
                         $("#<?= $_GET['name'] ?>_date_update_content").html("ULTIMO AGGIORNAMENTO:<br/>" + date_agg);
                         
-                        //$("#<?= $_GET['name'] ?>_lines_container").height(linesContentHeight);
+                        
                         $("#<?= $_GET['name'] ?>_lines_container").css("height", linesContentHeight + "px");
                         $("#<?= $_GET['name'] ?>_lines_container").css("margin-top", linesFillerHeight + "px");
                         
@@ -156,7 +191,6 @@
                             $("#<?= $_GET['name'] ?>_nav_lines_li").attr("class", "");
                             $("#<?= $_GET['name'] ?>_nav_data_li").attr("class", "");
                             $("#table_<?= $_GET['name'] ?>").carousel(0);
-                            
                         });
                         
                         $("#<?= $_GET['name'] ?>_nav_lines_li").click(function() 
@@ -182,7 +216,49 @@
                         valueInAnticipo = parseFloat(parseFloat(valueInAnticipo).toFixed(0));
 
                         var valueInRitardo = msg.data[0].commit.author.value_perc3;
-                        valueInRitardo = parseFloat(parseFloat(valueInRitardo).toFixed(0));      
+                        valueInRitardo = parseFloat(parseFloat(valueInRitardo).toFixed(0));
+                        
+                        switch(thresholdEval)
+                        {
+                            //Allarme attivo se il valore attuale è sotto la soglia
+                            case '<':
+                                if(valueInRitardo < threshold)
+                                {
+                                   //Allarme
+                                   alarmSet = true;
+                                }
+                                break;
+
+                            //Allarme attivo se il valore attuale è sopra la soglia
+                            case '>':
+                                if(valueInRitardo > threshold)
+                                {
+                                   //Allarme
+                                   alarmSet = true;
+                                }
+                                break;
+
+                            //Allarme attivo se il valore attuale è uguale alla soglia (errore sui float = 0.1%)
+                            case '=':
+                                if(valueInRitardo <= 0.1)
+                                {
+                                    //Allarme
+                                    alarmSet = true;
+                                }
+                                break;    
+
+                            //Non gestiamo altri operatori 
+                            default:
+                                break;
+                         }
+                         
+                         
+                        //NON CANCELLARE, VA ADATTATA AL NUOVO HTML DELL'HEADER 
+                        if(alarmSet)
+                        {
+                            $("#<?= $_GET['name'] ?>_alarmDiv").removeClass("alarmDiv");
+                            $("#<?= $_GET['name'] ?>_alarmDiv").addClass("alarmDivActive");
+                        }
 
                         $("#table_<?= $_GET['name'] ?>").css({backgroundColor: '<?= $_GET['color'] ?>'});
                         $("#<?= $_GET['name'] ?>_date_update").css({backgroundColor: '<?= $_GET['color'] ?>'});
@@ -190,8 +266,6 @@
                         $("#measure_<?= $_GET['name'] ?>_ataf_intime_value_p").html(valueInOrario + "%");
                         $("#measure_<?= $_GET['name'] ?>_ataf_early_value_p").html(valueInAnticipo + "%");
                         $("#measure_<?= $_GET['name'] ?>_ataf_late_value_p").html(valueInRitardo + "%");
-                        
-                        $('#table_<?= $_GET['name'] ?>').carousel('cycle');
                         
                         $('#table_<?= $_GET['name'] ?>').on('slid.bs.carousel', function (ev) 
                         {
@@ -218,14 +292,7 @@
                             }
                         });
                        
-                        if (link_w.trim()) 
-                        {
-                            if(linkElement.length == 0)
-                            {
-                               linkElement = $("<a id='<?= $_GET['name'] ?>_link_w' href='<?= $_GET['link_w'] ?>' target='_blank' class='elementLink2'>");
-                               divChartContainer.wrap(linkElement); 
-                            }
-                        }
+                       addLink("<?= $_GET['name'] ?>", url, linkElement, divChartContainer);
                         
                         $('#source_<?= $_GET['name'] ?>').on('click', function () {
                             $('#dialog_<?= $_GET['name'] ?>').show();
@@ -234,6 +301,19 @@
                         $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
                             $('#dialog_<?= $_GET['name'] ?>').hide();
                         });
+                        
+                        if(defaultTab !== -1)
+                        {
+                            $("#table_<?= $_GET['name'] ?>").carousel(defaultTab);
+                            $('#table_<?= $_GET['name'] ?>').addClass('slide');
+                        }
+                        else
+                        {
+                            $('#table_<?= $_GET['name'] ?>').addClass('slide');
+                            $('#table_<?= $_GET['name'] ?>').attr('data-interval', 4000);
+                            $('#table_<?= $_GET['name'] ?>').carousel('cycle');
+
+                        }
 
                         var counter = <?= $_GET['freq'] ?>;
                         var countdown = setInterval(function () 
@@ -241,16 +321,21 @@
                             counter--;
                             if(counter > 60) 
                             {
-                                $("#countdown_<?= $_GET['name'] ?>").text(Math.floor(counter / 60) + "m");
+                                $("#<?= $_GET['name'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
                             } 
                             else 
                             {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
+                                $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
                             }
                             if (counter === 0) 
                             {
-                                $("#countdown_<?= $_GET['name'] ?>").text(counter + "s");
+                                $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
                                 $('#table_<?= $_GET['name'] ?>').off();
+                                if(alarmSet)
+                                {
+                                    $("#<?= $_GET['name'] ?>_alarmDiv").removeClass("alarmDivActive");
+                                    $("#<?= $_GET['name'] ?>_alarmDiv").addClass("alarmDiv");
+                                } 
                                 clearInterval(countdown);
                                 setTimeout(<?= $_GET['name'] ?>(false), 1000);
                             }
@@ -276,7 +361,27 @@
 
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        <div id="<?= $_GET['name'] ?>_desc" class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div> 
+        <!-- NON CANCELLARE! VA ADATTATA AL NUOVO HTML -->
+        <!--<div id='<?= $_GET['name'] ?>_alarmDiv' class="alarmDiv">
+            <div id="<?= $_GET['name'] ?>_desc" class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div> 
+        </div>-->
+        
+        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
+            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
+                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+            </div>    
+            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            </div>
+            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            </div>   
+        </div>
+        
+        
+        
         <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -285,7 +390,7 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id="table_<?= $_GET['name'] ?>" class="carousel slide ataf-table-widget" data-interval="4000" data-pause="hover"> 
+        <div id="table_<?= $_GET['name'] ?>" class="carousel ataf-table-widget" data-interval="false" data-pause="hover"> 
             <ul id="<?= $_GET['name'] ?>_nav_ul" class="nav nav-tabs nav_ul">
                 <li role="navigation" id="<?= $_GET['name'] ?>_nav_service_state_li" class="active"><a disabled="true" class="atafTab">stato</a></li>
                 <li role="navigation" id="<?= $_GET['name'] ?>_nav_lines_li"><a disabled="true" class="atafTab">linee monitorate</a></li>

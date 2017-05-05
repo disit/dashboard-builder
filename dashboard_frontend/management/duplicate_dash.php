@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+   /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -12,72 +12,78 @@
    GNU General Public License for more details.
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */                 
 
 //file per colpiare una dashboard con un altro nome e duplicarne tutti i widget associati
 include '../config.php';
 session_start();
 $link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
 mysqli_select_db($link, $dbname);
-if (isset($_REQUEST['duplication_dashboard'])) 
+if (isset($_REQUEST['dashboardDuplication'])) 
 {
-    $copiaDash = [];
-    $copiaDash = $_REQUEST['duplication_dashboard'];
+    $copiaDash = $_REQUEST['dashboardDuplication'];
 
-    $vecchiaDash = $copiaDash['nomeDashAttuale'];
-    $nomeDash = $copiaDash['nomeDashDuplicata'];
+    $sourceDashName = mysqli_real_escape_string($link, $copiaDash['sourceDashboardName']); 
+    $sourceDashAuthorName = mysqli_real_escape_string($link, $copiaDash['sourceDashboardAuthorName']); 
+    $newDashName = mysqli_real_escape_string($link, $copiaDash['newDashboardName']);
 
-    //Controllo che verifica se esiste già una dashboard con il nome che si vuole dare a quella duplicata  
-    $sql0 = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.name_dashboard = '$nomeDash'";
+    //Controllo su esistenza di una dashboard con il nome scelto per quella clonata  
+    $sql0 = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.name_dashboard = '$newDashName'";
     $result0 = mysqli_query($link, $sql0) or die(mysqli_error($link));
+    
     if ($result0->num_rows > 0) 
     {
         echo ("Errore: esiste già una dashboard con questo nome");
     } 
     else 
     {
-        //seleziona tutti i parametri della vecchia dashboard
-        $sql = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.name_dashboard = '$vecchiaDash'";
+        //Vengono selezionati tutti i parametri della dashboard sorgente
+        //$sql = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.name_dashboard = '$sourceDashName'";
+        $sql = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Dashboard.Users ON Dashboard.Config_dashboard.user = Dashboard.Users.IdUser WHERE name_dashboard = '$sourceDashName' AND Users.username = '$sourceDashAuthorName'";
         $result = mysqli_query($link, $sql) or die(mysqli_error($link));
         $resultList = [];
-        //echo ($nomeDash);
-        if ($result->num_rows > 0) 
+        
+        if($result->num_rows > 0) 
         {
             while ($rows = mysqli_fetch_array($result)) 
             {
                 $list = array(
-                    $dash_id = $rows['Id'],
-                    $dash_title_header = $rows['title_header'],
-                    $dash_subtitle_header = $rows['subtitle_header'],
-                    $dash_color_header = $rows['color_header'],
-                    $dash_width = $rows['width'],
-                    $dash_height = $rows['height'],
-                    $dash_num_rows = $rows['num_rows'],
-                    $dash_num_columns = $rows['num_columns'],
-                    $dash_user = $rows['user'],
-                    $dash_status_dashboard = $rows['status_dashboard'],
-                    $dash_remains_width = $rows['remains_width'],
-                    $dash_remains_height = $rows['remains_height'],
-                    $dash_color_background = $rows['color_background'],
-                    $dash_external_frame_color = $rows['external_frame_color']
+                    $sourceDashId = $rows['Id'],
+                    $sourceDashTitle = $rows['title_header'],
+                    $sourceDashSubtitle = $rows['subtitle_header'],
+                    $sourceDashHeaderColor = $rows['color_header'],
+                    $sourceDashWidth = $rows['width'],
+                    $sourceDashHeight = $rows['height'],
+                    $sourceDashRows = $rows['num_rows'],
+                    $sourceDashCols = $rows['num_columns'],
+                    $sourceDashAuthor = $rows['user'],
+                    $sourceDashStatus = $rows['status_dashboard'],
+                    $sourceDashBckColor = $rows['color_background'],
+                    $sourceDashExternalFrameColor = $rows['external_frame_color'],
+                    $sourceDashHeaderFontColor = $rows['headerFontColor'],
+                    $sourceDashFontSize = $rows['headerFontSize'],
+                    $sourceDashLogoFilename = $rows['logoFilename'],
+                    $sourceDashLogoLink = $rows['logoLink'],
+                    $sourceDashWidgetsBorders = $rows['widgetsBorders'],
+                    $sourceDashWidgetsBordersColor = $rows['widgetsBordersColor'],
                 );
                 array_push($resultList, $list);
             }
         }
-        $idvecchiaDash = $dash_id;
-        //inserisci i dati della vecchia dashboard in una nuova riga del database ad eccezione del nome e della data di creazione
-        $sql2 = "INSERT INTO Dashboard.Config_dashboard(name_dashboard, title_header, subtitle_header, color_header, width, height, num_rows, num_columns, user, status_dashboard, creation_date, remains_width, remains_height,color_background,external_frame_color)
-                 VALUES ('$nomeDash','$nomeDash','$dash_subtitle_header','$dash_color_header','$dash_width','$dash_height','$dash_num_rows','$dash_num_columns','$dash_user','$dash_status_dashboard',current_timestamp,'$dash_remains_width','$dash_remains_height','$dash_color_background','$dash_external_frame_color')";
-
-        $result2 = mysqli_query($link, $sql2) or die(mysqli_error($link));
+        
+        $time = date('Y-m-d');
+        
+        $statement = $link->prepare("INSERT INTO Dashboard.Config_dashboard (name_dashboard, title_header, subtitle_header, color_header, width, height, num_rows, num_columns, user, status_dashboard, color_background, external_frame_color, headerFontColor, headerFontSize, logoFilename, logoLink, widgetsBorders, widgetsBordersColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $statement->bind_param('ssssiiiiiisssdssss', $newDashName, $newDashName, $sourceDashSubtitle, $sourceDashHeaderColor, $sourceDashWidth, $sourceDashHeight, $sourceDashRows, $sourceDashCols, $sourceDashAuthor, $sourceDashStatus, $sourceDashBckColor, $sourceDashExternalFrameColor, $sourceDashHeaderFontColor, $sourceDashFontSize, $sourceDashLogoFilename, $sourceDashLogoLink, $sourceDashWidgetsBorders, $sourceDashWidgetsBordersColor);
+        $result9 = $statement->execute();
         $idNuovaDash = mysqli_insert_id($link);
         
-        //seleziona i dati dei widget associati alla dashboard vecchia
-        $sql3 = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE id_dashboard='$idvecchiaDash'";
+        $sql3 = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$sourceDashId'";
         $result3 = mysqli_query($link, $sql3) or die(mysqli_error($link));
         $resultList3 = [];
-        if ($result3->num_rows > 0) {
-
+        
+        if ($result3->num_rows > 0) 
+        {
             while ($rows3 = mysqli_fetch_array($result3)) 
             {
                 $idOldWidget = $rows3['Id'];
@@ -95,38 +101,128 @@ if (isset($_REQUEST['duplication_dashboard']))
                 $temporal_range = $rows3['temporal_range_w'];
                 $municipality_w = $rows3['municipality_w'];
                 $infoMessage_w = $rows3['infoMessage_w'];
-                $parameters = $rows3['parameters'];
                 $link_w = $rows3['link_w'];
-                $color_wh = $rows3['color_wh'];
+                $parameters = $rows3['parameters'];
                 $frame_w = $rows3['frame_color_w'];
+                $udm = $rows3['udm'];
+                $fontSize = $rows3['fontSize'];
+                $fontColor = $rows3['fontColor'];
+                $controlsPosition = $rows3['controlsPosition'];
+                $showTitle = $rows3['showTitle'];
+                $controlsVisibility = $rows3['controlsVisibility'];
+                $zoomFactor = $rows3['zoomFactor'];
+                $defaultTab = $rows3['defaultTab'];
+                $zoomControlsColor= $rows3['zoomControlsColor'];
+                $scaleX = $rows3['scaleX']; 
+                $scaleY = $rows3['scaleY'];
+                $sourceDashHeaderFontColor = $rows3['headerFontColor'];
+                $styleParameters = $rows3['styleParameters'];
+                $infoJson = $rows3['infoJson'];
+                
                 $num_wid = mysqli_insert_id($link) + 1;
+                
+                if($insqDbtb = $link->prepare("INSERT INTO Dashboard.Config_widget_dashboard (name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) 
+                {
+                    $insqDbtb->bind_param('sissiiiissssssssssissssdisddsss', $nome_nuovo_wid, $idNuovaDash, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_column, $title_w, $color_w, $frequency_w, $temporal_range, $municipality_w, $infoMessage_w, $link_w, $parameters, $frame_w, $udm, $fontSize, $fontColor, $controlsPosition, $showTitle, $controlsVisibility, $zoomFactor, $defaultTab, $zoomControlsColor, $scaleX, $scaleY, $sourceDashHeaderFontColor, $styleParameters, $infoJson);
+                    $result4 = $insqDbtb->execute();
+                }
+                else
+                {
+                    die("Error message: ". $mysqli->error);
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Error:' . $mysqli->error . '");';
+                    echo 'window.location.href = "dashboard_configdash.php";';
+                    echo '</script>';
+                }
+                
+                //Workaround per scrivere il corretto id in coda al nome del widget anche per il primo record che viene scritto (mysqli_insert_id ritorna 0 in questo caso)
+                $selId = "SELECT Max(Id) AS Id FROM Dashboard.Config_widget_dashboard where id_dashboard = $idNuovaDash";
+                $resultId = mysqli_query($link, $selId) or die(mysqli_error($link));
+                if($resultId) 
+                {
+                    while($row = mysqli_fetch_array($resultId)) 
+                    {
+                        if ((!is_null($row['Id'])) && (!empty($row['Id']))) 
+                        {
+                            $firstId = $row['Id'];
+                        }
+                    }
+                }
+
                 switch($type_w)
                 {
                     case 'widgetSce':
-                        $nome_nuovo_wid = str_replace($id_dashboard, $idNuovaDash, $name_w);
+                        //Sostituzione del vecchio Id widget col nuovo Id Widget
+                        $nome_nuovo_wid = preg_replace('~widgetSce\d*~', 'widgetSce'.$firstId, $name_w);
+                        //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
+                        $nome_nuovo_wid = preg_replace("/_\d+\_/", "_" . $idNuovaDash . "_", $nome_nuovo_wid);
                         break;
-                    
+
                     case 'widgetGenericContent':
-                        //$name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $comune_widget . "_" . $id_dashboard . "_" . $type_widget . $nextId;
-                        
-                        $nome_nuovo_wid = preg_replace('~widgetGenericContent\d*~', 'widgetGenericContent'.$num_wid, $name_w);
+                        //Sostituzione del vecchio Id widget col nuovo Id Widget
+                        $nome_nuovo_wid = preg_replace('~widgetGenericContent\d*~', 'widgetGenericContent'.$firstId, $name_w);
+                        //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
+                        $nome_nuovo_wid = preg_replace("/_\d+\_/", "_" . $idNuovaDash . "_", $nome_nuovo_wid);
                         break;
                     
+                    case 'widgetTimeTrend':
+                        //Sostituzione del vecchio Id widget col nuovo Id Widget
+                        $nome_nuovo_wid = preg_replace('~widgetTimeTrend\d*~', 'widgetTimeTrend'.$firstId, $name_w);
+                        //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
+                        $nome_nuovo_wid = preg_replace("/_\d+\_/", "_" . $idNuovaDash . "_", $nome_nuovo_wid);break;
+                    
+                    case 'widgetTimeTrendCompare':
+                        //Sostituzione del vecchio Id widget col nuovo Id Widget
+                        $nome_nuovo_wid = preg_replace('~widgetTimeTrendCompare\d*~', 'widgetTimeTrendCompare'.$firstId, $name_w);
+                        //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
+                        $nome_nuovo_wid = preg_replace("/_\d+\_/", "_" . $idNuovaDash . "_", $nome_nuovo_wid);
+                        break;
+
                     default:
-                        $nome_nuovo_wid = $id_metric . '_' . $idNuovaDash . '_' . $type_w . $num_wid;
+                        $nome_nuovo_wid = $id_metric . '_' . $idNuovaDash . '_' . $type_w . $firstId;
+                        break;
                 }
-                
-                $sql4 = "INSERT INTO Dashboard.Config_widget_dashboard (name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, color_wh)
-                VALUES ('$nome_nuovo_wid','$idNuovaDash','$id_metric','$type_w','$n_row','$n_column','$size_rows','$size_column','$title_w','$color_w','$frequency_w','$temporal_range','$municipality_w','$infoMessage_w','$link_w','$parameters','$frame_w','$color_wh')";
-                $result4 = mysqli_query($link, $sql4) or die(mysqli_error($link));
+                    
+                $updFirstId = "UPDATE Dashboard.Config_widget_dashboard SET name_w = '$nome_nuovo_wid' WHERE id_dashboard = $idNuovaDash AND Id = $firstId";
+                $result = mysqli_query($link, $updFirstId) or die(mysqli_error($link));
             }
         }
-        echo ("Creata con successo copia della dashboard in uso");
+        
+        /*Copia logo della dashboard*/
+        if(($sourceDashLogoFilename != NULL) && ($sourceDashLogoFilename != ""))
+        {
+            $originalLogo = "../img/dashLogos/" . $sourceDashName . "/" . $sourceDashLogoFilename;
+            $uploadFolder ="../img/dashLogos/". $newDashName ."/";
+            
+            if(file_exists("../img/dashLogos/") == false)
+            {
+                mkdir("../img/dashLogos/");
+            }
+            
+            mkdir($uploadFolder);
+            
+            if(!is_dir($uploadFolder))  
+            {  
+                echo '<script type="text/javascript">';
+                echo 'alert("Creation of directory dashLogos/"' . $name_dashboard . '"/ has not been possibile.");';
+                echo '</script>';  
+            }   
+            else   
+            {
+                $clonedLogo = "../img/dashLogos/" . $newDashName . "/" . $sourceDashLogoFilename;
+                if(copy($originalLogo, $clonedLogo) == false)
+                {
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Error while copying logo file from original dashboard directory to cloned dashboard directory");';
+                    echo '</script>';  
+                }
+            }  
+        }
+        echo ("Dashboard has been cloned successfully");
     }
 } 
 else 
 {
    echo ("errore nel passaggio dei parametri");
 }
-?>
 

@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -13,30 +13,44 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+    include '../config.php';
+    
+    $widgetName = $_GET['nomeWidget'];
+    $link = new mysqli($host, $username, $password, $dbname);
 
-include '../config.php';
-    $valore = $_GET['nomeWidget'];
+    if($link->connect_error) 
+    {
+        die("Connection failed: " . $link->connect_error);
+    }
+    else
+    {
+        if (!$link->set_charset("utf8")) 
+        {
+            echo '<script type="text/javascript">';
+            echo 'alert("KO");';
+            echo '</script>';
+            printf("Error loading character set utf8: %s\n", $link->error);
+            exit();
+        }
+        
+        $rows = array();
+        foreach($widgetName as $widgetNameIteration)
+        { 
+            $widgetNameIteration = mysqli_real_escape_string($link, $widgetNameIteration);
+            $sql = "SELECT * FROM Config_widget_dashboard WHERE name_w = '$widgetNameIteration'";
+            $result = $link->query($sql);
 
-    $conn = new mysqli($host, $username, $password, $dbname);
-
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
+            while($r = mysqli_fetch_assoc($result)) 
+            {
+                $parameters = array('param' => $r);
+            }
+        }    
+        $par_json = json_encode($parameters);
+        $link->close();
+        echo($par_json);
     }
 
-    $rows = array();
-foreach($valore as $id_value)
-{ 
-    $sql = "SELECT * FROM Config_widget_dashboard WHERE name_w='$id_value'";
-    $result = $conn->query($sql);
+        
 
-    while ($r = mysqli_fetch_assoc($result)) {
-        $parameters = array('param' => $r);
-    }
-}    
-    $par_json = json_encode($parameters);
-    $conn->close();
-    echo($par_json);
-
-?>
 
 

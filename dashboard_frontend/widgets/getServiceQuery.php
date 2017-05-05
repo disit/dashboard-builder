@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -13,29 +13,30 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+    include '../config.php';
+    
+    $metricName = $_GET['nomeMetrica'];
 
-include '../config.php';
-    $valore = $_GET['nomeMetrica'];
+    $link = new mysqli($host, $username, $password, $dbname);
 
-    $conn = new mysqli($host, $username, $password, $dbname);
-
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
+    if ($link->connect_error) 
+    {
+        die("Connection failed: " . $link->connect_error);
     }
 
     $rows = array();
-foreach($valore as $id_value)
-{ 
-    $sql = "SELECT query FROM Descriptions WHERE IdMetric = '" . $id_value . "'";
-    $result = $conn->query($sql);
+    foreach($metricName as $metricNameIteration)
+    { 
+        $metricNameIteration = mysqli_real_escape_string($link, $metricNameIteration);
+        $sql = "SELECT query FROM Descriptions WHERE IdMetric = '" . $metricNameIteration . "'";
+        $result = $link->query($sql);
 
-    while ($r = mysqli_fetch_assoc($result)) {
-        $parameters = array('param' => $r);
-    }
-}    
+        while ($r = mysqli_fetch_assoc($result)) 
+        {
+            $parameters = array('param' => $r);
+        }
+    }    
     $par_json = json_encode($parameters);
-    $conn->close();
+    $link->close();
     echo($par_json);
-
-?>
 

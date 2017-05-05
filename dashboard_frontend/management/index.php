@@ -14,6 +14,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 ?>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -28,7 +29,13 @@
         <!-- Custom styles for this template -->
         <link href="../css/signin.css" rel="stylesheet">
 
-        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <!-- jQuery -->
+        <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
+        <script src="../js/jquery-1.10.1.min.js"></script>
+        
+        <!-- JQUERY UI -->
+        <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
+        <script src="../js/jqueryUi/jquery-ui.js"></script>
     </head>
     <body>
         <div id="container-form" class="container">
@@ -72,7 +79,7 @@
 
         <script src="../js/bootstrap.min.js"></script>
         <?php
-        include('process-form.php'); // Includes Login Script
+            include('process-form.php'); // Includes Login Script
         ?>
     </body>
 </html>

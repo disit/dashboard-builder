@@ -1,5 +1,5 @@
 <?php
-/* Dashboard Builder.
+    /* Dashboard Builder.
    Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
@@ -14,15 +14,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-include('process-form.php'); // Includes Login Script
+    
+   include('process-form.php'); 
 ?>
 
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html lang="en">
 <head>    
     <meta charset="utf-8">
@@ -34,7 +30,12 @@ and open the template in the editor.
     <title>Dashboard Management System</title>
     
     <!-- jQuery -->
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
+    <script src="../js/jquery-1.10.1.min.js"></script>
+    
+    <!-- JQUERY UI -->
+    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
+    <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
@@ -50,9 +51,7 @@ and open the template in the editor.
 
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
-    <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
-    <!-- Custom Fonts -->
-    <!--<link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">-->
+    <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">   
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -79,74 +78,56 @@ and open the template in the editor.
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
-
-                <li><a href="#"> <span class="glyphicon glyphicon-user" aria-hidden="true"></span><?= $_SESSION['login_user']; ?></a></li>
+                <li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span><span id="usernameHeader"><?= $_SESSION['loggedUsername']; ?></span></a></li>
                 <li><a href="logout.php">Logout</a></li>
             </ul>
             <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li class="active">
-                        <a href="#"><i class="fa fa-fw fa-dashboard"></i> Operations</a>
+                        <a href="../management/dashboard_mng.php" ><i class="fa fa-fw fa-dashboard"></i> Dashboard Builder</a> <!-- style="background-color: #e3f2fd; color: #337ab7" --> 
                     </li>
-                    <li class="active">
-                        <a href="../management/dashboard_mng.php" style="background-color: #e3f2fd; color: #337ab7"><i class="fa fa-fw fa-dashboard"></i> Dashboard Builder</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a>
-                    </li>
-                    <li class="active">
-                        <a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a>
-                    </li>                     
-                    <!-- fine comando di gestione metriche -->
+                    <?php
+                        if(isset($_SESSION['isAdmin']))
+                        {
+                            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+                            {
+                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a></li>';
+                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a></li>';
+                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a></li>';
+                                echo '<li><a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a></li>'; 
+                            }
+                        }
+                    ?>
                 </ul>
             </div>
-            <!-- /.navbar-collapse -->
         </nav>
 
         <div id="page-wrapper">
-
             <div class="container-fluid">
-
                 <!-- Page Heading -->
                 <div class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">
-                            <br/>Dashboards Overview
+                            <br/>Dashboards overview
                         </h1>
-
                         <nav id="modify-bar-dashboard" class="navbar navbar-default">
                             <div class="container-fluid">
-                                <!-- Brand and toggle get grouped for better mobile display -->
-
-
-                                <!-- Collect the nav links, forms, and other content for toggling -->
                                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                                     <ul class="nav navbar-nav">
                                         <li class="active"><a id="link_add_dashboard" href="#" data-toggle="modal" data-target="#modal-create-dashboard"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Dashboard <span class="sr-only">(current)</span></a></li>                           
-                                        <!--<li><a id ="link_exit" href="dashboard_mng.php"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a></li>-->
                                         <li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>
-
                                     </ul>
-                                </div><!-- /.navbar-collapse -->
-                            </div><!-- /.container-fluid -->
+                                </div>
+                            </div>
                         </nav>
-
                     </div>
                 </div>
-
-                <!-- /.row -->
 
                 <div class="row">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><i class="fa fa-money fa-fw"></i>My Dashboard</h3>
+                            <h3 class="panel-title"><i class="fa fa-money fa-fw"></i>My dashboards</h3>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -169,14 +150,8 @@ and open the template in the editor.
                         </div>
                     </div>
                 </div>
-                <!-- /.row -->
-
             </div>
-            <!-- /.container-fluid -->
-
         </div>
-        <!-- /#page-wrapper -->
-
     </div>
 
     <!-- Modal -->
@@ -238,6 +213,20 @@ and open the template in the editor.
                                         <span class="input-group-addon"><i></i></span>
                                     </div>
                                 </div>
+                                <label for="widgetsBorders" class="col-md-4 control-label">Widgets borders</label>
+                                <div class="col-md-6">
+                                    <select name="widgetsBorders" class="form-control" id="widgetsBorders" required>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                                <label for="inputWidgetsBordersColor" class="col-md-4 control-label">Widgets border color</label>
+                                <div class="col-md-6">
+                                    <div class="input-group color-choice">
+                                        <input type="text" class="form-control" id="inputWidgetsBordersColor" name="inputWidgetsBordersColor" value="#dddddd" required>
+                                        <span class="input-group-addon"><i></i></span>
+                                    </div>
+                                </div>
                                 <label for="dashboardLogoInput" class="col-md-4 control-label">Dashboard logo</label>
                                 <div class="col-md-6">
                                     <input id="dashboardLogoInput" name="dashboardLogoInput" type="file" class="filestyle form-control" data-badge="false" data-input ="true" data-size="sm" data-buttonName="btn-primary" data-buttonText="Choose file">
@@ -256,6 +245,14 @@ and open the template in the editor.
                                 <div class="col-md-6">
                                     <input type="text" class="form-control" id="inputWidthDashboard" name="inputWidthDashboard" placeholder="width" required>
                                 </div>
+                                <label for="pixelWidth" class="col-md-4 control-label">Resulting width (px)</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="pixelWidth" name="pixelWidth" disabled>
+                                </div>
+                                <label for="percentWidth" class="col-md-4 control-label">Percent width occupied on your monitor (fullscreen)</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="percentWidth" name="percentWidth" disabled>
+                                </div>
                             </div>
                         </div>
                 </div>
@@ -268,38 +265,6 @@ and open the template in the editor.
             </div>
         </div>
     </div>
-
-
-    <!-- Modal -->
-    <!--
-    <div class="modal fade" id="modal-modify-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Modifica Dashboard</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="form-modify-dashboard" class="form-horizontal" name="form-modify-dashboard" role="form" method="post" action="" data-toggle="validator">
-                        <div class="form-group">
-                            <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Nome Dashboard</label>
-                            <div class="col-md-4">
-                                <select class="form-control" id="select-dashboard" name="select-dashboard" required>
-                                </select>
-                            </div>                      
-                        </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button id="button_modify_dashboard" name="modify_dashboard" class="btn btn-primary" type="submit">Modifica</button>
-                </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
-    -->
-    <!-- Modal -->
     <div class="modal fade" id="modal-disable-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -345,7 +310,7 @@ and open the template in the editor.
         </div>
     </div>  
     <!--
-     Modal Eliminazione Dashboard 
+     Modal Eliminazione Dashboard - NON CANCELLARE
     <div class="modal fade" id="modal-delete-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -384,24 +349,10 @@ and open the template in the editor.
                 <div class="modal-body">
                     <form id="form-modify-dashboard2" class="form-horizontal" name="form-modify-dashboard2" role="form" method="post" action="" data-toggle="validator">
                         <div id="status_message"> 
-                                <p>
-                                Are you sure do you want to modify this dashboard?
-                                </p>
-                            </div>
-                        <div class="form-group" hidden>
-                            <div class="row" hidden>
-                                <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Titolo</label>
-                                <div class="col-md-4">                               
-                                    <input type="text" class="form-control" id="select-dashboard2" name="select-dashboard2" readonly>
-                                </div> 
-                            </div>
-                            <div class="row" hidden>
-                                <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Proprietario</label>
-                                <div class="col-md-4"> 
-                                    <input type="text" class="form-control" id="select-user" name="select-user" readonly>
-                                </div>
-                            </div>
+                                <p>Are you sure do you want to modify this dashboard?</p>
                         </div>
+                        <input type="hidden" id="selectedDashboardName" name="selectedDashboardName">
+                        <input type="hidden" id="selectedDashboardAuthorName" name="selectedDashboardAuthorName">
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                             <button id="button_modify_dashboard" name="modify_dashboard" class="btn btn-primary" type="submit">Modify</button>
@@ -420,53 +371,56 @@ and open the template in the editor.
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title" id="myModalLabel">Modify dashboard status</h4>
                 </div>
-                <div class="modal-body">
-                    <form id="form-disability-dashboard2" class="form-horizontal" name="form-disability-dashboard2" role="form" method="post" action="" data-toggle="validator">
+                <form id="form-disability-dashboard2" class="form-horizontal" name="form-disability-dashboard2" role="form" method="post" action="" data-toggle="validator">
+                    <div class="modal-body">
                         <div id="status_message">   
-                                <p>
-                                Are you sure do you want to change the status of this dashboard?
-                                </p>
-                            </div>
-                        <div class="form-group" hidden>  
-                            <div class="row" hidden>               
-                                    <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Titolo</label>
-                                <div class="col-md-4">                               
-                                    <input type="text" class="form-control" id="select-dashboard-status-name" name="select-dashboard-status-name" readonly>
-                                </div>                             
-                            </div>
-                            <div class="row" hidden>   
-                                    <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Creatore</label>
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="select-dashboard-status-user" name="select-dashboard-status-user" readonly>
-                                </div>                                                      
-                            </div>
+                            <p>
+                            Are you sure do you want to change the status of this dashboard?
+                            </p>
                         </div>
-                        </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button id="button_status_dashboard" name="modify_status_dashboard" class="btn btn-primary" type="submit">Confirm</button>
-                </div>
-                </form>
+                        <input type="hidden" id="selectedDashboardNameForStatusChange" name="selectedDashboardNameForStatusChange">
+                        <input type="hidden" id="selectedDashboardAuthorNameForStatusChange" name="selectedDashboardAuthorNameForStatusChange">
                     </div>
-            </div>            
-        </div> 
-    </div>
-    <!-- Fine modal disabilita -->
-    <!-- /#wrapper --> 
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button id="button_status_dashboard" name="modify_status_dashboard" class="btn btn-primary" type="submit">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>            
+    </div> 
 
     <script type='text/javascript'>
-        $(document).ready(function () {
-            var admin = <?= $_SESSION['admin']; ?>;
+        $(document).ready(function () 
+        {
             var array_dahsboards = new Array();
-            
             $('#color_hf').css("background-color", '#ffffff');
+            
+            $('#inputWidthDashboard').on('input',function(e)
+            {
+               var cols = parseInt($('#inputWidthDashboard').val());
+               var isNotNumber = isNaN(cols);
+               if(isNotNumber)
+               {
+                   $('#pixelWidth').val("");
+                   $('#percentWidth').val("");
+               }
+               else
+               {
+                   var px = parseInt(cols*78 + 10);
+                   var percent = parseInt(px/screen.width*100);
+                   $('#pixelWidth').css("background-color", "white");
+                   $('#percentWidth').css("background-color", "white");
+                   $('#pixelWidth').val(px + " px");
+                   $('#percentWidth').val(percent + " %");
+               }
+            });
             
             $.ajax({
                 url: "get_data.php",
                 data: {action: "get_dashboards"},
                 type: "GET",
-                async: true,
+                async: false,
                 dataType: 'json',
                 success: function (data) 
                 {
@@ -479,48 +433,47 @@ and open the template in the editor.
                             nameUser: data[i].dashboard['name_user'],
                             surnameUser: data[i].dashboard['surname_user'],
                             status: data[i].dashboard['status'],
-                            username: data[i].dashboard['username']
-
+                            username: data[i].dashboard['username'],
+                            reference: data[i].dashboard['reference']
                         };
+                        
                         $("#select-dashboard").append('<option>' + array_dahsboards[i]['name'] + '</option>');
                         $("#select-dashboard-disable").append('<option>' + array_dahsboards[i]['name'] + '</option>');
+                        
+                        var trCode = null;
+                        
+                        if(array_dahsboards[i]['reference'] === '1')
+                        {
+                            trCode = '<tr style="font-style: italic">'; 
+                        }
+                        else
+                        {
+                            trCode = '<tr>';    
+                        }
 
-                        var status;
-                        if (data[i].dashboard['status'] == 1) {
-                            status = "Attiva";
-                            //$('#list_dashboard tbody').append('<tr><td>' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td>' + status + '</td><td>' + array_dahsboards[i]['username'] + '</td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Preview</button></td></tr>');
-                            //nuova lista delle dashboard
-                            $('#list_dashboard tbody').append('<tr><td class="name_dash">' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td><a class="icon-status-dash" href="#" data-toggle="modal" data-target="#modal-dashboard-disability"><input type="checkbox" class="checkStato" name="stato" value=1 checked /></a></td><td class="name_user">' + array_dahsboards[i]['username'] + '</td><td><div class="icons-modify-dash"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-dashboard-m2" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div></td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></button></td></tr>');
-                        } else {
-                            status = "Non attiva";
-                            //$('#list_dashboard tbody').append('<tr><td>' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td>' + status + '</td><td>' + array_dahsboards[i]['username'] + '</td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Preview</button></td></tr>'); 
-                            //nuova list dashboard
-                            $('#list_dashboard tbody').append('<tr><td class="name_dash">' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td><a class="icon-status-dash" href="#" data-toggle="modal" data-target="#modal-dashboard-disability"><input type="checkbox" class="checkStato" name="stato" value=0 /></a></td><td class="name_user">' + array_dahsboards[i]['username'] + '</td><td><div class="icons-modify-dash"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-dashboard-m2" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div></td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></button></td></tr>');
-
+                        var status;//Ma è usata?
+                        
+                        //Lasciare i valori di controllo come stringa, visto che la query a monte lato PHP non è fatta con i prepared statements
+                        if(data[i].dashboard['status'] === "1") 
+                        {
+                            status = "Attiva";//Ma è usata?
+                            //Popolamento lista delle dashboard
+                            $('#list_dashboard tbody').append(trCode + '<td class="name_dash">' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td><a class="icon-status-dash" href="#" data-toggle="modal" data-target="#modal-dashboard-disability"><input type="checkbox" class="checkStato" name="stato" value="1" checked></a></td><td class="name_user">' + array_dahsboards[i]['username'] + '</td><td><div class="icons-modify-dash"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-dashboard-m2" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div></td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></button></td></tr>');
+                        } 
+                        else if(data[i].dashboard['status'] === "0")
+                        {
+                            status = "Non attiva";//Ma è usata?
+                            //Popolamento lista delle dashboard
+                            $('#list_dashboard tbody').append(trCode + '<td class="name_dash">' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td><a class="icon-status-dash" href="#" data-toggle="modal" data-target="#modal-dashboard-disability"><input type="checkbox" class="checkStato" name="stato" value="0"></a></td><td class="name_user">' + array_dahsboards[i]['username'] + '</td><td><div class="icons-modify-dash"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-dashboard-m2" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div></td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></button></td></tr>');
                         }
                     }
                 }
-                //Inserire un invio a get_data.php per controllare se l'utente è un amministratore, se il campo Admin della tabella Users ha valore 1 e poi se è successo, inserire un link alla pagina metrics_mng.php
-
             });
-
-            if (admin == 1) {
-                $('#link_metric_mng').show();
-                $('#link_user_register').show();
-                $('#link_widgets_mng').show();
-                $('#link_sources_mng').show();
-            } else {
-                $('#link_metric_mng').hide();
-                $('#link_user_register').hide();
-                $('#link_widgets_mng').hide();
-                $('#link_sources_mng').hide();
-            }
 
             $('#dashboardLogoInput').change(function ()
             {
                 $('#dashboardLogoLinkInput').removeAttr('disabled');
-            }
-            );
+            });
 
             $('#select-dashboard-disable').change(function () 
             {
@@ -531,7 +484,7 @@ and open the template in the editor.
                 });
                 var value_text = "";
                 for (var j = 0; j < array_dahsboards.length; j++) {
-                    if (array_dahsboards[j]['name'] == str) 
+                    if (array_dahsboards[j]['name'] === str) 
                     {
                         $("#inputTitleDashboard-disable").val(array_dahsboards[j]['title']);
                         $("#inputUserDashboard-disable").val(array_dahsboards[j]['nameUser'] + " " + array_dahsboards[j]['surnameUser']);
@@ -540,40 +493,31 @@ and open the template in the editor.
                 $("#textarea-metric").val(value_text);
             }).change();
 
-            $(document).on('click', '.button-preview', function () {
-                var row_index = $(this).parent().parent().index();
-                var col_index = $(this).parent().index();
-                var name_dashboard = $(this).parent().parent().find('td:first').text();
-                var utente = $(this).parent().parent().find('td:eq(4)').text();
-                window.open("../view/preview.php?nameDashboard=" + name_dashboard + "&user=" + utente);
+            //Listener apertura view di una dashboard
+            $(document).on('click', '.button-preview', function () 
+            {
+                var dashboardName = $(this).parent().parent().find('td:first').text();
+                var dashboardAuthor = $(this).parent().parent().find('.name_user').text();
+                window.open("../view/preview.php?dashboardName=" + dashboardName + "&dashboardAuthor=" + dashboardAuthor);
             });
 
-            $(function () {
+            $(function () 
+            {
                 $('.color-choice').colorpicker();
             });
 
-
-            //script per abilitare il pulsante di modifica da bottone 
-            $(document).on('click', '.modify-button', function () {
-                var dashboard_button = $(this).parent().parent().find('td:first').text();
-                window.open("../view/preview.php?nameDashboard=" + dashboard_button);
-            });
-
-            
-            //modifica dashboard da ingranaggio
-            $(document).on('click', '.icons-modify-dash', function () {
-                var name_dash_m = $(this).parent().parent().find('.name_dash').text();
-                var name_user_m = $(this).parent().parent().find('.name_user').text();
-                $("#select-user").val(name_user_m);
-                $("#select-dashboard2").val(name_dash_m);
+            //Listener per pulsante di modifica dashboard
+            $(document).on('click', '.icons-modify-dash', function () 
+            {
+                $("#selectedDashboardName").val($(this).parent().parent().find('.name_dash').text());
+                $("#selectedDashboardAuthorName").val($(this).parent().parent().find('.name_user').text());
             });
             
-            //modifica lo status della dashboard
-            $(document).on('click','.icon-status-dash',function (){
-                var name_dash_status = $(this).parent().parent().find('.name_dash').text();
-                var name_user_status = $(this).parent().parent().find('.name_user').text();
-                $('#select-dashboard-status-name').val(name_dash_status);
-                $('#select-dashboard-status-user').val(name_user_status);
+            //Listener per pulsante di modifica stato dashboard
+            $(document).on('click','.icon-status-dash', function ()
+            {
+                $('#selectedDashboardNameForStatusChange').val($(this).parent().parent().find('.name_dash').text());
+                $("#selectedDashboardAuthorNameForStatusChange").val($(this).parent().parent().find('.name_user').text());
             });
         });
     </script>
