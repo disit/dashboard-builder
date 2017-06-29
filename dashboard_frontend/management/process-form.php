@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -44,6 +44,7 @@
     session_start(); 
     $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
     mysqli_select_db($link, $dbname);
+    error_reporting(E_ERROR | E_NOTICE);
     
     if(!$link->set_charset("utf8")) 
     {
@@ -129,7 +130,7 @@
         {
             $_SESSION['loggedUsername'] = $username;
 
-            while ($row = $result->fetch_assoc()) 
+            while($row = $result->fetch_assoc()) 
             {
                 $_SESSION['login_user_id'] = $row["IdUser"];
                 $_SESSION['isAdmin'] = $row["admin"];
@@ -392,6 +393,85 @@
                 $gridLinesColor = NULL;
                 $linesWidth = NULL;
                 $alrThrLinesWidth = NULL;
+                
+                if($type_widget == "widgetFirstAid")
+                {
+                    $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
+                    $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
+                    $infoJsonObject = [];
+                    $infoJsonFirstAxis = [];
+                    $infoJsonSecondAxis = [];
+
+                    foreach ($infoNamesJsonFirstAxis as $name) 
+                    {
+                        $infoJsonFirstAxis[$name] = $_POST[$name];
+                    }
+                    unset($name);
+
+                    foreach ($infoNamesJsonSecondAxis as $name) 
+                    {
+                        $infoJsonSecondAxis[$name] = $_POST[$name];
+                    }
+                    unset($name);
+
+                    $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
+                    $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
+
+                    $infoJson = json_encode($infoJsonObject);
+
+                    if(isset($_POST['showTableFirstCell'])&&($_POST['showTableFirstCell']!=""))
+                    {
+                        $showTableFirstCell = mysqli_real_escape_string($link, $_POST['showTableFirstCell']); 
+                    }
+
+                    if(isset($_POST['tableFirstCellFontSize'])&&($_POST['tableFirstCellFontSize']!=""))
+                    {
+                        $tableFirstCellFontSize = mysqli_real_escape_string($link, $_POST['tableFirstCellFontSize']);
+                    }
+
+                    if(isset($_POST['tableFirstCellFontColor'])&&($_POST['tableFirstCellFontColor']!=""))
+                    {
+                        $tableFirstCellFontColor = mysqli_real_escape_string($link, $_POST['tableFirstCellFontColor']); 
+                    }
+
+                    if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
+                    {
+                        $rowsLabelsFontSize = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSize']); 
+                    }
+
+                    if(isset($_POST['rowsLabelsFontColor'])&&($_POST['rowsLabelsFontColor']!=""))
+                    {
+                        $rowsLabelsFontColor = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColor']); 
+                    }
+
+                    if(isset($_POST['colsLabelsFontSize'])&&($_POST['colsLabelsFontSize']!=""))
+                    {
+                        $colsLabelsFontSize = mysqli_real_escape_string($link, $_POST['colsLabelsFontSize']);
+                    }
+
+                    if(isset($_POST['colsLabelsFontColor'])&&($_POST['colsLabelsFontColor']!=""))
+                    {
+                        $colsLabelsFontColor = mysqli_real_escape_string($link, $_POST['colsLabelsFontColor']); 
+                    }
+
+                    if(isset($_POST['rowsLabelsBckColor'])&&($_POST['rowsLabelsBckColor']!=""))
+                    {
+                        $rowsLabelsBckColor = mysqli_real_escape_string($link, $_POST['rowsLabelsBckColor']); 
+                    }
+                    
+                    if(isset($_POST['tableBorders'])&&($_POST['tableBorders']!=""))
+                    {
+                        $tableBorders = mysqli_real_escape_string($link, $_POST['tableBorders']);
+                    }
+
+                    if(isset($_POST['tableBordersColor'])&&($_POST['tableBordersColor']!=""))
+                    {
+                        $tableBordersColor = mysqli_real_escape_string($link, $_POST['tableBordersColor']); 
+                    }
+
+                    $styleParametersArray = array('showTableFirstCell' => $showTableFirstCell, 'tableFirstCellFontSize' => $tableFirstCellFontSize, 'tableFirstCellFontColor' => $tableFirstCellFontColor, 'rowsLabelsFontSize' => $rowsLabelsFontSize, 'rowsLabelsFontColor' => $rowsLabelsFontColor, 'colsLabelsFontSize' => $colsLabelsFontSize, 'colsLabelsFontColor' => $colsLabelsFontColor, 'rowsLabelsBckColor' => $rowsLabelsBckColor, 'colsLabelsBckColor' => $colsLabelsBckColor, 'tableBorders' => $tableBorders, 'tableBordersColor' => $tableBordersColor);
+                    $styleParameters = json_encode($styleParametersArray);
+                }
 
                 if($type_widget == "widgetPieChart")
                 {
@@ -1025,7 +1105,7 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
 
-                /*Nuovo campo styleParameters, il JSON viene costruito qui*/
+                //Nuovo campo styleParameters, il JSON viene costruito qui
                 if($type_widget == "widgetTable")
                 {
                     $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
@@ -1109,8 +1189,28 @@
                     $styleParametersArray = array('showTableFirstCell' => $showTableFirstCell, 'tableFirstCellFontSize' => $tableFirstCellFontSize, 'tableFirstCellFontColor' => $tableFirstCellFontColor, 'rowsLabelsFontSize' => $rowsLabelsFontSize, 'rowsLabelsFontColor' => $rowsLabelsFontColor, 'colsLabelsFontSize' => $colsLabelsFontSize, 'colsLabelsFontColor' => $colsLabelsFontColor, 'rowsLabelsBckColor' => $rowsLabelsBckColor, 'colsLabelsBckColor' => $colsLabelsBckColor, 'tableBorders' => $tableBorders, 'tableBordersColor' => $tableBordersColor);
                     $styleParameters = json_encode($styleParametersArray);
                 }
+                
+                if($type_widget == "widgetProtezioneCivile")
+                {
+                   
+                  if(isset($_POST['meteoTabFontSize']) && ($_POST['meteoTabFontSize'] != "") && ($_POST['meteoTabFontSize'] != null))
+                  {
+                      $meteoTabFontSize = mysqli_real_escape_string($link, $_POST['meteoTabFontSize']);
+                  }
 
+                  if(isset($_POST['genTabFontSize']) && ($_POST['genTabFontSize'] != "") && ($_POST['genTabFontSize'] != null))
+                  {
+                      $genTabFontSize = mysqli_real_escape_string($link, $_POST['genTabFontSize']);
+                  }
 
+                  if(isset($_POST['genTabFontColor']) && ($_POST['genTabFontColor'] != "") && ($_POST['genTabFontColor'] != null))
+                  {
+                      $genTabFontColor = mysqli_real_escape_string($link, $_POST['genTabFontColor']);
+                  }
+                  
+                  $styleParametersArray = array('meteoTabFontSize' => $meteoTabFontSize, 'genTabFontSize' => $genTabFontSize, 'genTabFontColor' => $genTabFontColor);
+                  $styleParameters = json_encode($styleParametersArray);
+                }
 
                 if(isset($_POST['inputHeaderFontColorWidget'])&&($_POST['inputHeaderFontColorWidget']!=""))
                 {
@@ -1137,18 +1237,11 @@
                     $controlsVisibility = mysqli_real_escape_string($link, $_POST['inputControlsVisibility']);
                 }
 
-                if($type_widget == 'widgetExternalContent')
-                {
-                    $zoomFactor = 1;
-                    $scaleX = 1;
-                    $scaleY = 1;
-                }
-
                 if(isset($_POST['inputDefaultTab']) && ($_POST['inputDefaultTab'] != "") && ($_POST['inputDefaultTab'] != null))
                 {
                     $defaultTab = mysqli_real_escape_string($link, $_POST['inputDefaultTab']);
                 }
-
+                
                 //Aggiunta del campo della tabella "config_widget_dashboard" per i messaggi informativi
                 $message_widget = mysqli_real_escape_string($link, $_POST['widgetInfoEditor']);
 
@@ -1172,9 +1265,9 @@
 
                 //Parametri
                 $parameters = NULL;
-                if(isset($_POST['parameters'])&&($_POST['parameters']!=""))
+                if(isset($_POST['parameters'])&&($_POST['parameters'] != ""))
                 {
-                    $parameters = $_POST['parameters'];
+                   $parameters = $_POST['parameters'];
                 }
 
                 //Gestione parametri per widget di stato del singolo processo
@@ -1232,6 +1325,12 @@
                 {
                     $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmWidget']);
                 }
+                
+                $inputUdmPosition = NULL;
+                if(isset($_POST['inputUdmPosition']) && ($_POST['inputUdmPosition'] != "")) 
+                {
+                    $inputUdmPosition = mysqli_real_escape_string($link, $_POST['inputUdmPosition']);
+                }
 
                 $fontSize = NULL;
                 if(isset($_POST['inputFontSize']) && ($_POST['inputFontSize'] != '') && (!empty($_POST['inputFontSize']))) 
@@ -1246,12 +1345,82 @@
                 }
 
                 $nCol = 1;
-
-                if($insqDbtb3 = $link->prepare("INSERT INTO Dashboard.Config_widget_dashboard (Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) 
+                
+                $serviceUri = NULL;
+                if(isset($_POST['serviceUri']) && ($_POST['serviceUri'] != '') && (!empty($_POST['serviceUri']))) 
                 {
-                    $insqDbtb3->bind_param('isissiiiissssssssssissssdisddsss', $nextId, $name_widget, $id_dashboard, $id_metric, $type_widget, $firstFreeRow, $nCol, $sizeRowsWidget, $sizeColumnsWidget, $title_widget, $color_widget, $freq_widget, $int_temp_widget, $comune_widget, $message_widget, $url_widget, $parameters, $frame_color, $inputUdmWidget, $fontSize, $fontColor, $controlsPosition, $showTitle, $controlsVisibility, $zoomFactor, $defaultTab, $zoomControlsColor, $scaleX, $scaleY, $headerFontColor, $styleParameters, $infoJson);
+                    $serviceUri = mysqli_real_escape_string($link, $_POST['serviceUri']);
+                }
+                
+                $viewMode = NULL;
+                if(isset($_POST['addWidgetFirstAidMode']) && ($_POST['addWidgetFirstAidMode'] != '') && (!empty($_POST['addWidgetFirstAidMode']))) 
+                {
+                    $viewMode = mysqli_real_escape_string($link, $_POST['addWidgetFirstAidMode']);
+                }
+                
+                $hospitalList = NULL;
+                if(isset($_POST['hospitalList']) && ($_POST['hospitalList'] != '') && (!empty($_POST['hospitalList']))) 
+                {
+                    $hospitalList = $_POST['hospitalList'];
+                }
+                
+                if($type_widget == 'widgetExternalContent')
+                {
+                    $zoomFactor = 1;
+                    $scaleX = 1;
+                    $scaleY = 1;
+                    
+                    $file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "a");
+                    
+                    
+                    //Aggiornamento della lista dei target degli widget events
+                    //mysqli_autocommit($link, false);
+                    mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+                    
+                    $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '$id_dashboard'";
+                    $resultUpdTargetQuery = mysqli_query($link, $updTargetQuery);
+                    
+                    if($resultUpdTargetQuery)
+                    {
+                        while($row = mysqli_fetch_array($resultUpdTargetQuery)) 
+                        {
+                           $targetList = json_decode($row['parameters'], true);
+                           $widgetId = $row['Id'];
+                           $targetList[$name_widget] = [];
+                           $updatedTargetList = json_encode($targetList);
+                           $query5 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedTargetList' WHERE Id = '$widgetId'";
+                           $result5 = mysqli_query($link, $query5);
+
+                           if(!$result5)
+                           {
+                              $rollbackResult = mysqli_rollback($link);
+                              mysqli_close($link);
+                              echo '<script type="text/javascript">';
+                              echo 'alert("Error while updating widget target lists");';
+                              echo 'window.location.href = "dashboard_configdash.php";';
+                              echo '</script>';
+                              exit();
+                           }
+                        }
+
+                        $commit = mysqli_commit($link);
+                     }
+                     else
+                     {
+                        $rollbackResult = mysqli_rollback($link);
+                        mysqli_close($link);
+                        echo '<script type="text/javascript">';
+                        echo 'alert("Error while updating widget event producers into database");';
+                        echo 'window.location.href = "dashboard_configdash.php";';
+                        echo '</script>';
+                     }
+                }
+                
+                if($insqDbtb3 = $link->prepare("INSERT INTO Dashboard.Config_widget_dashboard (Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) 
+                {
+                    $insqDbtb3->bind_param('isissiiiisssssssssssissssdisddssssss', $nextId, $name_widget, $id_dashboard, $id_metric, $type_widget, $firstFreeRow, $nCol, $sizeRowsWidget, $sizeColumnsWidget, $title_widget, $color_widget, $freq_widget, $int_temp_widget, $comune_widget, $message_widget, $url_widget, $parameters, $frame_color, $inputUdmWidget, $inputUdmPosition, $fontSize, $fontColor, $controlsPosition, $showTitle, $controlsVisibility, $zoomFactor, $defaultTab, $zoomControlsColor, $scaleX, $scaleY, $headerFontColor, $styleParameters, $infoJson, $serviceUri, $viewMode, $hospitalList);
                     $result4 = $insqDbtb3->execute();
-                    if ($result4) 
+                    if($result4) 
                     {
                         mysqli_close($link);
                         header("location: dashboard_configdash.php");
@@ -1438,8 +1607,108 @@
         $gridLinesColorM = NULL;
         $linesWidthM = NULL;
         $alrThrLinesWidthM = NULL;
+        
+         if($type_widget_m == "widgetProtezioneCivile")
+         {
+           if(isset($_POST['meteoTabFontSizeM']) && ($_POST['meteoTabFontSizeM'] != "") && ($_POST['meteoTabFontSizeM'] != null))
+           {
+               $meteoTabFontSize = mysqli_real_escape_string($link, $_POST['meteoTabFontSizeM']);
+           }
 
-        //Nuovo codice - Sospeso per chiudere la versione
+           if(isset($_POST['genTabFontSizeM']) && ($_POST['genTabFontSizeM'] != "") && ($_POST['genTabFontSizeM'] != null))
+           {
+               $genTabFontSize = mysqli_real_escape_string($link, $_POST['genTabFontSizeM']);
+           }
+
+           if(isset($_POST['genTabFontColorM']) && ($_POST['genTabFontColorM'] != "") && ($_POST['genTabFontColorM'] != null))
+           {
+               $genTabFontColor = mysqli_real_escape_string($link, $_POST['genTabFontColorM']);
+           }
+
+           $styleParametersArrayM = array('meteoTabFontSize' => $meteoTabFontSize, 'genTabFontSize' => $genTabFontSize, 'genTabFontColor' => $genTabFontColor);
+           $styleParametersM = json_encode($styleParametersArrayM);
+         }
+
+        if($type_widget_m == "widgetFirstAid")
+        {
+            $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
+            $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
+            $infoJsonObjectM = [];
+            $infoJsonFirstAxisM = [];
+            $infoJsonSecondAxisM = [];
+
+            foreach ($infoNamesJsonFirstAxisM as $nameM) 
+            {
+                $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+            }
+            unset($nameM);
+
+            foreach ($infoNamesJsonSecondAxisM as $nameM) 
+            {
+                $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+            }
+            unset($nameM);
+
+            $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
+            $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
+
+            $infoJsonM = json_encode($infoJsonObjectM);
+
+            if(isset($_POST['showTableFirstCellM'])&&($_POST['showTableFirstCellM']!=""))
+            {
+                $showTableFirstCellM = mysqli_real_escape_string($link, $_POST['showTableFirstCellM']);
+            }
+
+            if(isset($_POST['tableFirstCellFontSizeM'])&&($_POST['tableFirstCellFontSizeM']!=""))
+            {
+                $tableFirstCellFontSizeM = mysqli_real_escape_string($link, $_POST['tableFirstCellFontSizeM']);
+            }
+
+            if(isset($_POST['tableFirstCellFontColorM'])&&($_POST['tableFirstCellFontColorM']!=""))
+            {
+                $tableFirstCellFontColorM = mysqli_real_escape_string($link, $_POST['tableFirstCellFontColorM']);
+            }
+
+            if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
+            {
+                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
+            }
+
+            if(isset($_POST['rowsLabelsFontColorM'])&&($_POST['rowsLabelsFontColorM']!=""))
+            {
+                $rowsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColorM']);
+            }
+
+            if(isset($_POST['colsLabelsFontSizeM'])&&($_POST['colsLabelsFontSizeM']!=""))
+            {
+                $colsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['colsLabelsFontSizeM']);
+            }
+
+            if(isset($_POST['colsLabelsFontColorM'])&&($_POST['colsLabelsFontColorM']!=""))
+            {
+                $colsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['colsLabelsFontColorM']);
+            }
+
+            if(isset($_POST['rowsLabelsBckColorM'])&&($_POST['rowsLabelsBckColorM']!=""))
+            {
+                $rowsLabelsBckColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsBckColorM']);
+            }
+            
+            if(isset($_POST['tableBordersM'])&&($_POST['tableBordersM']!=""))
+            {
+                $tableBordersM = mysqli_real_escape_string($link, $_POST['tableBordersM']);
+            }
+
+            if(isset($_POST['tableBordersColorM'])&&($_POST['tableBordersColorM']!=""))
+            {
+                $tableBordersColorM = mysqli_real_escape_string($link, $_POST['tableBordersColorM']);
+            }
+
+            $styleParametersArrayM = array('showTableFirstCell' => $showTableFirstCellM, 'tableFirstCellFontSize' => $tableFirstCellFontSizeM, 'tableFirstCellFontColor' => $tableFirstCellFontColorM, 'rowsLabelsFontSize' => $rowsLabelsFontSizeM, 'rowsLabelsFontColor' => $rowsLabelsFontColorM, 'colsLabelsFontSize' => $colsLabelsFontSizeM, 'colsLabelsFontColor' => $colsLabelsFontColorM, 'rowsLabelsBckColor' => $rowsLabelsBckColorM, 'colsLabelsBckColor' => $colsLabelsBckColorM, 'tableBorders' => $tableBordersM, 'tableBordersColor' => $tableBordersColorM);
+            $styleParametersM = json_encode($styleParametersArrayM);
+        }
+        
+        
         if($type_widget_m == "widgetPieChart")
         {
             if(isset($_POST['infoNamesJsonFirstAxisM'])&&($_POST['infoNamesJsonFirstAxisM']!="")&&(isset($_POST['infoNamesJsonSecondAxisM']))&&($_POST['infoNamesJsonSecondAxisM']!=""))
@@ -2099,7 +2368,6 @@
 
             $infoJsonM = json_encode($infoJsonObjectM);
 
-
             if(isset($_POST['showTableFirstCellM'])&&($_POST['showTableFirstCellM']!=""))
             {
                 $showTableFirstCellM = mysqli_real_escape_string($link, $_POST['showTableFirstCellM']);
@@ -2309,13 +2577,39 @@
         }
 
         $inputUdmWidget = NULL;
-        if(isset($_POST['inputUdmM']) && $_POST['inputUdmM'] != "") 
+        if(isset($_POST['inputUdmWidgetM']) && $_POST['inputUdmWidgetM'] != "") 
         {
-            $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmM']);
+            $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmWidgetM']);
+        }
+        
+        $inputUdmPosition = NULL;
+        if(isset($_POST['inputUdmPositionM']) && ($_POST['inputUdmPositionM'] != "")) 
+        {
+            $inputUdmPosition = mysqli_real_escape_string($link, $_POST['inputUdmPositionM']);
+        }
+        
+        $serviceUri = NULL;
+        if(isset($_POST['serviceUriM']) && ($_POST['serviceUriM'] != '') && (!empty($_POST['serviceUriM']))) 
+        {
+            $serviceUri = mysqli_real_escape_string($link, $_POST['serviceUriM']);
         }
 
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET type_w = ?, size_columns = ?, size_rows = ?, title_w = ?, color_w = ?, frequency_w = ?, temporal_range_w = ?, municipality_w = ?, infoMessage_w = ?, link_w = ?, parameters = ?, frame_color_w = ?, udm = ?, fontSize = ?, fontColor = ?, controlsPosition = ?, showTitle = ?, controlsVisibility = ?, defaultTab = ?, zoomControlsColor = ?, headerFontColor = ?, styleParameters = ?, infoJson = ? WHERE name_w = ? AND id_dashboard = ?");
-        $upsqDbtb->bind_param('siissssssssssissssisssssi', $type_widget_m, $col_m, $row_m, $title_widget_m, $color_widget_m, $freq_widget_m, $int_temp_widget_m, $comune_widget_m, $info_m, $url_m, $parametersM, $color_frame_m, $inputUdmWidget, $fontSizeM, $fontColorM, $controlsPosition, $showTitle, $controlsVisibility, $inputDefaultTabM, $zoomControlsColorM, $headerFontColorM, $styleParametersM, $infoJsonM, $name_widget_m, $id_dashboard2);
+        $viewMode = NULL;
+        if(isset($_POST['editWidgetFirstAidMode']) && ($_POST['editWidgetFirstAidMode'] != '') && (!empty($_POST['editWidgetFirstAidMode']))) 
+        {
+            $viewMode = mysqli_real_escape_string($link, $_POST['editWidgetFirstAidMode']);
+        }
+
+        $hospitalList = NULL;
+        if(isset($_POST['hospitalListM']) && ($_POST['hospitalListM'] != '') && (!empty($_POST['hospitalListM']))) 
+        {
+            $hospitalList = $_POST['hospitalListM'];
+        }
+        
+        $lastSeries = NULL;
+
+        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET type_w = ?, size_columns = ?, size_rows = ?, title_w = ?, color_w = ?, frequency_w = ?, temporal_range_w = ?, municipality_w = ?, infoMessage_w = ?, link_w = ?, parameters = ?, frame_color_w = ?, udm = ?, udmPos = ?, fontSize = ?, fontColor = ?, controlsPosition = ?, showTitle = ?, controlsVisibility = ?, defaultTab = ?, zoomControlsColor = ?, headerFontColor = ?, styleParameters = ?, infoJson = ?, serviceUri = ?, viewMode = ?, hospitalList = ?, lastSeries = ? WHERE name_w = ? AND id_dashboard = ?");
+        $upsqDbtb->bind_param('siisssssssssssissssisssssssssi', $type_widget_m, $col_m, $row_m, $title_widget_m, $color_widget_m, $freq_widget_m, $int_temp_widget_m, $comune_widget_m, $info_m, $url_m, $parametersM, $color_frame_m, $inputUdmWidget, $inputUdmPosition, $fontSizeM, $fontColorM, $controlsPosition, $showTitle, $controlsVisibility, $inputDefaultTabM, $zoomControlsColorM, $headerFontColorM, $styleParametersM, $infoJsonM, $serviceUri, $viewMode, $hospitalList, $lastSeries, $name_widget_m, $id_dashboard2);
         $result7 = $upsqDbtb->execute();
 
         if ($result7) 
@@ -3017,5 +3311,15 @@
             echo 'alert("Error: Ripetere modifica widget");';
             echo '</script>';
         }
+    }
+    elseif(isset($_REQUEST['updatedLastSeries']))//Escape 
+    {
+        $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
+        $updatedSeries = $_REQUEST['updatedLastSeries'];
+        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET lastSeries = ? WHERE name_w = ? ");
+        $upsqDbtb->bind_param('ss', $updatedSeries, $widgetName);
+        $resultQuery = $upsqDbtb->execute();
+        
+        mysqli_close($link);
     }
 ?>

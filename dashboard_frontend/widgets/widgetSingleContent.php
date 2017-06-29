@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -40,14 +40,11 @@
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
-        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, pattern, totValues, shownValues, 
-            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
-            rangeMin, rangeMax, widgetParameters, sizeRowsWidget, widgetColor, fontSize, value, metricType, height, fontRatio, fontRatioSmall = null;
+        var widgetProperties, styleParameters, metricType, pattern, udm, udmPos, threshold, thresholdEval, 
+            delta, deltaPerc, sizeRowsWidget, fontSize, value, metricType, height, fontRatio, fontRatioSmall = null;
         var metricId = "<?= $_GET['metric'] ?>";
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         elToEmpty.css("font-family", "Verdana");
-        elToEmpty.css("font-size", "48px");
-        elToEmpty.css("font-weight", "bold");
         var url = "<?= $_GET['link_w'] ?>";
         
         //Specifiche per questo widget
@@ -81,7 +78,7 @@
             return infoJson;
         }
         
-        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        //Restituisce il JSON delle info se presente, altrimenti NULL
         function getStyleParameters()
         {
             var styleParameters = null;
@@ -112,6 +109,7 @@
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
             udm = widgetProperties.param.udm;
+            udmPos = widgetProperties.param.udmPos;
             sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
             
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
@@ -138,7 +136,6 @@
 
                         if((metricType === "Percentuale") || (pattern.test(metricType)))
                         {
-                            udm = "%";
                             if((metricData.data[0].commit.author.value_perc1 !== null) && (metricData.data[0].commit.author.value_perc1 !== "") && (metricData.data[0].commit.author.value_perc1 !== "undefined"))
                             {
                                 value = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(1));
@@ -174,52 +171,52 @@
                                     break;
                             }
                         }
-
-                        //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
-                        fontRatio = parseInt((sizeRowsWidget / 4)*65);
-                        fontRatioSmall = parseInt((fontRatio / 100)*30);
-                        fontRatio = fontRatio.toString() + "%";
-                        fontRatioSmall = fontRatioSmall.toString() + "%";
-
-                        $("#<?= $_GET['name'] ?>_value").css("font-size", fontRatio);
-                        $("#<?= $_GET['name'] ?>_udm").css("font-size", fontRatioSmall);
-                        $("#<?= $_GET['name'] ?>_value").css("backgroundColor", "<?= $_GET['color'] ?>");
-                        $("#<?= $_GET['name'] ?>_udm").css("backgroundColor", "<?= $_GET['color'] ?>");
+                        
+                        var fontSizeUdm = parseInt(fontSize*0.6);
+                        $("#<?= $_GET['name'] ?>_value").css("font-size", fontSize + "px");
+                        $("#<?= $_GET['name'] ?>_udm").css("font-size", fontSizeUdm + "px");
 
                         if(udm !== null)
                         {
-                            if(udm.length <= 2)
-                            {
-                                $("#<?= $_GET['name'] ?>_value").css("height", "100%");             
-                                $("#<?= $_GET['name'] ?>_value").css("alignItems", "center");
-                                if((value !== null) && (value !== "") && (value !== "undefined"))
-                                {
-                                    $("#<?= $_GET['name'] ?>_value").html(value + udm);
-                                    //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
-                                }
-                                else
-                                {
-                                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
-                                }
-                            }
-                            else
-                            {
-                                var valueHeight = parseInt(height*0.7);
-                                var udmHeight = parseInt(height*0.3);
-                                $("#<?= $_GET['name'] ?>_value").css("height", valueHeight);
-                                $("#<?= $_GET['name'] ?>_value").css("alignItems", "flex-end");
-                                $("#<?= $_GET['name'] ?>_udm").css("height", udmHeight);
-                                if((value !== null) && (value !== "") && (value !== "undefined"))
-                                {
-                                    $("#<?= $_GET['name'] ?>_value").html(value);
-                                    $("#<?= $_GET['name'] ?>_udm").html(udm);
-                                    //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
-                                }
-                                else
-                                {
-                                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
-                                }
-                            }
+                           if(udmPos === 'next')
+                           {   
+                              if((value !== null) && (value !== "") && (value !== "undefined"))
+                              {
+                                 $("#<?= $_GET['name'] ?>_chartContainer").show();
+                                 $("#<?= $_GET['name'] ?>_value").show();
+                                 $("#<?= $_GET['name'] ?>_udm").hide();
+                                 $("#<?= $_GET['name'] ?>_value").css("height", "100%");             
+                                 $("#<?= $_GET['name'] ?>_value").css("alignItems", "center"); 
+                                 $("#<?= $_GET['name'] ?>_value").html(value + udm);
+                              }
+                              else
+                              {
+                                 $("#<?= $_GET['name'] ?>_value").hide();
+                                 $("#<?= $_GET['name'] ?>_udm").hide(); 
+                                 $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                                 $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                              }
+                           }
+                           else
+                           {
+                              if((value !== null) && (value !== "") && (value !== "undefined"))
+                              {
+                                 $("#<?= $_GET['name'] ?>_chartContainer").show();
+                                 $("#<?= $_GET['name'] ?>_value").show();
+                                 $("#<?= $_GET['name'] ?>_udm").show();
+                                 $("#<?= $_GET['name'] ?>_value").css("height", "60%");
+                                 $("#<?= $_GET['name'] ?>_value").html(value);
+                                 $("#<?= $_GET['name'] ?>_udm").css("height", "40%");
+                                 $("#<?= $_GET['name'] ?>_udm").html(udm);
+                              }
+                              else
+                              {
+                                 $("#<?= $_GET['name'] ?>_value").hide();
+                                 $("#<?= $_GET['name'] ?>_udm").hide();
+                                 $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                                 $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                              }
+                           }
                         }
                         else
                         {
@@ -228,13 +225,15 @@
                                 $("#<?= $_GET['name'] ?>_udm").css("display", "none");
                                 $("#<?= $_GET['name'] ?>_value").css("height", "100%");
                                 $("#<?= $_GET['name'] ?>_value").html(value);
-                                //$("#<?= $_GET['name'] ?>_value_small_udm").css("font-size", fontRatioSmall);
                             }
                             else
                             {
                                 $('#<?= $_GET['name'] ?>_noDataAlert').show();
                             }
                         }
+                        
+                        $("#<?= $_GET['name'] ?>_value").css("color", fontColor);
+                        $("#<?= $_GET['name'] ?>_udm").css("color", fontColor);
 
                         if(flagNumeric && (threshold !== null) && (thresholdEval !== null))
                         {
@@ -276,7 +275,7 @@
                     else
                     {
                         showWidgetContent(widgetName);
-			$('#<?= $_GET['name'] ?>_noDataAlert').show();
+                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
                     }
                 }
                 else
@@ -295,7 +294,7 @@
         {
             alert("Error while loading widget properties");
         }
-    startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetSingleContent", null, null);
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetSingleContent", null, null);
 });//Fine document ready 
 </script>
 
@@ -303,7 +302,8 @@
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">

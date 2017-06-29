@@ -624,10 +624,7 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
     padding-left: 0px;
     padding-right: 0px;
     background-color: #fff;
-    margin-top: 120px;
-    /*border-style: solid;
-    border-color: blue;
-    border-width: 2px;*/
+    margin-top: 10px;
 }
 
 .huge 
@@ -922,7 +919,7 @@ ul.alert-dropdown {
 
 .footerLogos
 {
-    background-color: transparent;
+    background-color: white;
     float: right;
     height: 45px;
     font-size: 40px;
@@ -1006,4 +1003,140 @@ ul.alert-dropdown {
       line-height: 15px;
       color: #fff;
   }
+}
+
+#inputFirstAidRowM, #inputFirstAidRow
+{
+   display: none;
+}
+
+#editDashboardMenu
+{
+   padding-left: 0px;
+   padding-right: 0px;
+   margin-top: 110px;
+   width: 100%;
+   /*border: 1px solid red;*/
+}
+
+#editDashboardMenu a
+{
+   color: black;
+   font-family: Verdana;
+   font-size: 13px;
+   font-variant: small-caps;
+   font-weight: bold;
+}
+
+#editDashboardMenu a:hover
+{
+   color: #FFFFFF;
+   text-decoration: none;
+}
+
+div.mainMenuIconContainer
+{
+   width: 25%;
+   height: 100%;
+   float: left;
+}
+
+div.mainMenuTextContainer
+{
+   width: 75%;
+   height: 100%;
+   float: left;
+}
+
+div.mainMenuItemContainer
+{
+   padding-left: 0px;
+   padding-right: 0px;
+   width: 144px;
+   height: 100%;
+   margin-right: 5px;
+   background-color: #e3f2fd;
+   float: left;
+}
+
+div.mainMenuItemContainer:hover
+{
+   background-color: #66ccff;
+   cursor: pointer;
+}
+
+#modalChangePlanStatus
+{
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+#modalChangePlanStatusModalTitle.modal-header
+{
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-size: 64px;
+   font-variant: small-caps;
+   font-weight: bold;
+   padding: 0px;
+}
+
+.modalChangePlanStatusLabel, #modalChangePlanStatusWait, #modalChangePlanStatusOk, #modalChangePlanStatusKo
+{
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-size: 42px;
+   font-variant: small-caps;
+}
+
+#modalChangePlanStatusTitle
+{
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-size: 38px;
+   font-variant: small-caps;
+   font-weight: bold;
+}
+
+#modalChangePlanStatusStatus
+{
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-size: 38px;
+   font-variant: small-caps;
+   font-weight: bold;
+}
+
+#modalChangePlanStatusSelect, #modalChangePlanStatusSelect option
+{
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-size: 38px;
+   font-variant: small-caps;
+   font-weight: bold;
+   width: 100%;
+   height: 100%;
+}
+
+#modalChangePlanStatusCancelBtn, #modalChangePlanStatusConfirmBtn
+{
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-size: 36px;
+   font-variant: small-caps;
+}
+
+#modalChangePlanStatusCancelBtn
+{
+   margin-right: 15px;
+}
+
+#modalChangePlanStatusWait, #modalChangePlanStatusOk, #modalChangePlanStatusKo
+{
+    display: none;
+}
+
+#modalChangePlanStatusDialog.modal-lg
+{
+   width: 65%;
 }

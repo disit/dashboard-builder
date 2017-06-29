@@ -20,13 +20,13 @@ var getParametersWidgetUrl = "../widgets/getParametersWidgets.php";
 var getMetricDataUrl = "../widgets/getDataMetrics.php";
 
 
-/*Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout*/
+//Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout
 function setHeaderFontColor(widget, color)
 {
     $("#" + widget).css("color", color);
 }
 
-/*Usata in tutti gli widget*/
+//Usata in tutti gli widget
 function addLink(name, url, linkElement, elementToBeWrapped)
 {
     if(url) 
@@ -49,42 +49,45 @@ function showWidgetContent(widgetName)
 /*Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie*/
 function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor)
 {
-    var titleWidth = null;
+   var titleWidth = null;
     
-    /*Impostazione header*/
-    $("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
-    if(hostFile === "config")
-    {
-        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 90 - 2));
-    }
-    else
-    {
-        $("#" + widgetName + "_buttonsDiv").css("display", "none");
-        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 50 - 2));
-    }
-    $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
-    $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
-    $("#" + widgetName + "_countdownDiv").css("color", widgetHeaderFontColor);
+   //Impostazione header
+   $("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
+
+   if(hostFile === "config")
+   {
+       titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 90 - 2));
+   }
+   else
+   {
+      $("#" + widgetName + "_buttonsDiv").css("display", "none");
+      titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 50 - 2));
+   }
     
-    /*Impostazione colore di background del widget*/
-    if(widgetName.indexOf("widgetGenericContent") > 0)
-    {
-         $("#" + widgetName + "_content").css("background-color", widgetHeaderColor);
-    }
-    else
-    {
-        $("#" + widgetName + "_content").css("background-color", widgetContentColor);
-    }
+   $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
+   $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
+   $("#" + widgetName + "_countdownDiv").css("color", widgetHeaderFontColor);
     
-    /*Impostazione altezza widget*/
-    var contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
-    $("#" + widgetName + "_content").css("height", contentHeight);
+   //Impostazione colore di background del widget
+   if(widgetName.indexOf("widgetGenericContent") > 0)
+   {
+      $("#" + widgetName + "_content").css("background-color", widgetHeaderColor);
+   }
+   else
+   {
+      $("#" + widgetName + "_content").css("background-color", widgetContentColor);
+   }
+    
+   //Impostazione altezza widget
+   var contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
+   $("#" + widgetName + "_content").css("height", contentHeight);
 }
 
-/*Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie*/
+//Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie
 function startCountdown(widgetName, timeToReload, funcRef, elToEmpty, widgetType ,scrollerTimeout, eventNamesArray)
 {
-    var intervalRef = setInterval(function () {
+   console.log("Countdown started");
+   var intervalRef = setInterval(function () {
         $("#" + widgetName + "_countdownDiv").text(timeToReload);
         timeToReload--;
         if (timeToReload > 60) 
@@ -95,7 +98,6 @@ function startCountdown(widgetName, timeToReload, funcRef, elToEmpty, widgetType
         {
             $("#" + widgetName + "_countdownDiv").text(timeToReload + "s");
         }
-        
         
         if(timeToReload === 0) 
         {
@@ -111,9 +113,11 @@ function startCountdown(widgetName, timeToReload, funcRef, elToEmpty, widgetType
             setTimeout(funcRef(false), 1000);
         }
     }, 1000);
+    
+    return intervalRef;
 }
 
-/*Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie*/
+//Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie
 function setupLoadingPanel(widgetName, widgetContentColor, firstLoad)
 {
     var height = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
@@ -129,10 +133,11 @@ function setupLoadingPanel(widgetName, widgetContentColor, firstLoad)
     }
 }
 
-/*Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie*/
+//Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie
 function getWidgetProperties(widgetName)
 {
     var properties = null;
+    
     $.ajax({
         url: getParametersWidgetUrl,
         type: "GET",
@@ -152,7 +157,7 @@ function getWidgetProperties(widgetName)
     return properties;
 }
 
-/*Usata in widgetTable.php, dashboard_configdash.php*/
+//Usata in widgetTable.php, dashboard_configdash.php
 function getMetricData(metricId)
 {
     var metricData = null;

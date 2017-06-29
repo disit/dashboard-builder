@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -29,9 +29,9 @@
             $replacements[1] = '&apos;';
             $title = $_GET['title'];
         ?> 
-        var fontSizeSmall, scroller, scrollBottom, widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters,  
-            metricType, metricData, pattern, descriptions, widgetParameters, freeEvent, address, feeIcon, icon, eventId, serviceUri, description, endDate, 
-            startDate, eventName, eventType, newRow, newIcon, newContent, eventContentW, test = null;    
+        var fontSizeSmall, scroller, widgetProperties, styleParameters, freeEvent, address, feeIcon, icon, eventId, serviceUri, description, endDate, 
+            startDate, eventName, eventType, newRow, newIcon, eventContentW, test, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
+            background, originalHeaderColor, originalBorderColor = null;    
         var eventNames = new Array();
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var speed = 50;
@@ -41,15 +41,13 @@
         var widgetContentColor = "<?= $_GET['color'] ?>";
         var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
         var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
         var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var color = '<?= $_GET['color'] ?>';
         var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
-        var metricId = "<?= $_GET['metric'] ?>";
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         var url = "<?= $_GET['link_w'] ?>";
+        
+        var eventsOnMaps = {};
         
         if(url === "null")
         {
@@ -58,15 +56,138 @@
         
         if(fontSize <= 16)
         {
-            fontSizeSmall = parseInt(parseInt(fontSize) - 2); 
+            fontSizeSmall = parseInt(parseInt(fontSize) - 1); 
         }
         else
         {
-            fontSizeSmall = 14;
+            fontSizeSmall = 15;
         }
         
-        //Definizioni di funzione specifiche del widget
-        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        //Definizioni di funzione
+        function addEventToMap(eventLink, widgetName)
+        {
+           var minLat, minLng, maxLat, maxLng = null;
+           var coords = JSON.parse(eventLink.attr("data-coords"));
+           var serviceUri = eventLink.attr("data-serviceUri");
+           
+           if(eventsOnMaps[widgetName]["noPointsUrl"] === null) 
+           {
+               var targetName = widgetName + "_div";
+               eventsOnMaps[widgetName]["noPointsUrl"] = $("#" + targetName).attr("data-nopointsurl");
+            }
+           
+           eventsOnMaps[widgetName].eventsPoints[serviceUri] = coords;
+           eventsOnMaps[widgetName].eventsNumber++;
+           
+           if(eventsOnMaps[widgetName].eventsNumber > 1)
+           {
+              //Chiamata a service map per mostrare più punti
+              minLat = +90;
+              minLng = +180;
+              maxLat = -90;
+              maxLng = -180;
+              
+              for(var key in eventsOnMaps[widgetName].eventsPoints)
+              {
+                 if(eventsOnMaps[widgetName].eventsPoints[key][0] < minLat)
+                 {
+                    minLat = eventsOnMaps[widgetName].eventsPoints[key][0];
+                 }
+                 
+                 if(eventsOnMaps[widgetName].eventsPoints[key][0] > maxLat)
+                 {
+                    maxLat = eventsOnMaps[widgetName].eventsPoints[key][0];
+                 }
+                 
+                 if(eventsOnMaps[widgetName].eventsPoints[key][1] < minLng)
+                 {
+                    minLng = eventsOnMaps[widgetName].eventsPoints[key][1];
+                 }
+                 
+                 if(eventsOnMaps[widgetName].eventsPoints[key][1] > maxLng)
+                 {
+                    maxLng = eventsOnMaps[widgetName].eventsPoints[key][1];
+                 }
+              }
+         
+              minLat = minLat - (minLat*0.0000002);
+              maxLat = maxLat + (maxLat*0.0000002);
+              minLng = minLng - (minLng*0.0000002);
+              maxLng = maxLng + (maxLng*0.0000002);
+              
+              $("#" + widgetName + "_iFrame").attr("src", "<?= $serviceMapUrlPrefix ?>api/v1/?selection=" + minLat + ";" + minLng + ";" + maxLat + ";" + maxLng + "&categories=Events&maxResults=0&lang=it&format=html");
+           }
+           else
+           {
+              //Chiamata a service map per mostrare un solo punto
+              $("#" + widgetName + "_iFrame").attr("src", "<?= $serviceMapUrlPrefix ?>" + "api/v1/?serviceUri=" + serviceUri + "&format=html");
+           }
+        }
+        
+        function removeEventFromMap(eventLink, widgetName)
+        {
+           var minLat, minLng, maxLat, maxLng = null;
+           var serviceUri = eventLink.attr("data-serviceUri");
+           
+           delete eventsOnMaps[widgetName].eventsPoints[serviceUri];
+           eventsOnMaps[widgetName].eventsNumber--;
+           
+           if(eventsOnMaps[widgetName].eventsNumber > 1)
+           {
+              //Chiamata a service map per mostrare più punti
+              minLat = +90;
+              minLng = +180;
+              maxLat = -90;
+              maxLng = -180;
+              
+              for(var key in eventsOnMaps[widgetName].eventsPoints)
+              {
+                 if(eventsOnMaps[widgetName].eventsPoints[key][0] < minLat)
+                 {
+                    minLat = eventsOnMaps[widgetName].eventsPoints[key][0];
+                 }
+                 
+                 if(eventsOnMaps[widgetName].eventsPoints[key][0] > maxLat)
+                 {
+                    maxLat = eventsOnMaps[widgetName].eventsPoints[key][0];
+                 }
+                 
+                 if(eventsOnMaps[widgetName].eventsPoints[key][1] < minLng)
+                 {
+                    minLng = eventsOnMaps[widgetName].eventsPoints[key][1];
+                 }
+                 
+                 if(eventsOnMaps[widgetName].eventsPoints[key][1] > maxLng)
+                 {
+                    maxLng = eventsOnMaps[widgetName].eventsPoints[key][1];
+                 }
+              }
+              
+              minLat = minLat - (minLat*0.0000002);
+              maxLat = maxLat + (maxLat*0.0000002);
+              minLng = minLng - (minLng*0.0000002);
+              maxLng = maxLng + (maxLng*0.0000002);
+              
+              $("#" + widgetName + "_iFrame").attr("src", "<?= $serviceMapUrlPrefix ?>api/v1/?selection=" + minLat + ";" + minLng + ";" + maxLat + ";" + maxLng + "&categories=Events&maxResults=0&lang=it&format=html");
+           }
+           else
+           {
+              if(eventsOnMaps[widgetName].eventsNumber === 1)
+              {
+                 for(var key in eventsOnMaps[widgetName].eventsPoints)
+                 {
+                    //Chiamata a service map per mostrare un solo punto
+                    $("#" + widgetName + "_iFrame").attr("src", "<?= $serviceMapUrlPrefix ?>" + "api/v1/?serviceUri=" + key + "&format=html");
+                 }
+              }
+              else
+              {
+                 $("#" + widgetName + "_iFrame").attr("src", eventsOnMaps[widgetName].noPointsUrl);
+              }
+           }
+        }
+        
+        //Restituisce il JSON delle soglie se presente, altrimenti NULL
         function getThresholdsJson()
         {
             var thresholdsJson = null;
@@ -104,16 +225,17 @@
         
         function stepDownInterval()
         {
-            var pos = $("#<?= $_GET['name'] ?>_chartContainer").scrollTop();
-            if(pos < scrollBottom)
+            var oldPos = $("#<?= $_GET['name'] ?>_chartContainer").scrollTop();
+            var newPos = oldPos + 1;
+            
+            var oldScrollTop = $("#<?= $_GET['name'] ?>_chartContainer").scrollTop();
+            $("#<?= $_GET['name'] ?>_chartContainer").scrollTop(newPos);
+            var newScrollTop = $("#<?= $_GET['name'] ?>_chartContainer").scrollTop();
+            
+            if(oldScrollTop === newScrollTop)
             {
-                pos++;
+               $("#<?= $_GET['name'] ?>_chartContainer").scrollTop(0);
             }
-            else
-            {
-                pos = 0;
-            }
-            $("#<?= $_GET['name'] ?>_chartContainer").scrollTop(pos);
         }
         //Fine definizioni di funzione 
         
@@ -136,6 +258,19 @@
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             
+            widgetTargetList = JSON.parse(widgetProperties.param.parameters);
+            var targetName = null;
+            
+            for(var name in widgetTargetList) 
+            {
+               targetName = name + "_div";
+               eventsOnMaps[name] = {
+                  noPointsUrl: null,//$("#" + targetName).attr("data-nopointsurl"),
+                  eventsNumber: 0,
+                  eventsPoints: {}//Array associativo le cui chiavi sono i serviceUri
+               };
+            }
+            
             $.ajax({
                 url: "../widgets/curlProxy.php?url=<?=$internalServiceMapUrlPrefix?>api/v1/events/?range=day",
                 type: "GET",
@@ -149,35 +284,29 @@
                     }
                     else
                     {
-                        /*console.log("EventNames l pre svuotamento: " + eventNames.length);
-                        eventNames.splice(0, eventNames.length);
-                        console.log("EventNames l post svuotamento: " + eventNames.length);*/
                         $("#" + widgetName + "_chartContainer").off();
                         $("#" + widgetName + "_chartContainer").empty();
                     }
-        
-                    var rowColor = "viola";
-                    var rowGrad = "violaGrad";
+                   
+                    //console.log(JSON.stringify(msg));
                     
                     var eventsNumber = msg.contents.Event.features.length;
-                    var contentWidth = $('#<?= $_GET['name'] ?>_div').prop("offsetWidth") - 17;//Indifferente variarla, perchè?
+                    var widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
                     var shownHeight = $("#<?= $_GET['name'] ?>_chartContainer").prop("offsetHeight");
-                    var rowPercHeight =  75 * 100 / shownHeight;
-                    var rowPercBottomMargin =  5 * 100 / shownHeight;
-                    var iconPercWidth = Math.ceil(45 * 100 / contentWidth);
-                    var contentPercWidth = 100 - rowPercBottomMargin - iconPercWidth;
-                    var rowPxHeight = rowPercHeight*shownHeight/100 + rowPercBottomMargin*shownHeight/100;
-                    var contentHeight = rowPxHeight * eventsNumber;
-                    scrollBottom = Math.floor(contentHeight - shownHeight) - 3;
+                    var rowPercHeight =  100 * 100 / shownHeight;
+                    var contentHeightPx = eventsNumber * 100;
+                    var eventContentWPerc = null;
 
-                    if($('#<?= $_GET['name'] ?>_chartContainer').height() < shownHeight)
+                    if(contentHeightPx > shownHeight)
                     {
-                        eventContentW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 45 - 22);
+                        eventContentW = parseInt(widgetWidth - 45 - 22);
                     }
                     else
                     {
-                        eventContentW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 45 - 5);
+                        eventContentW = parseInt(widgetWidth - 45 - 5);
                     }
+                    
+                    eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
 
                     for (var i = 0; i < eventsNumber; i++)
                     {
@@ -186,122 +315,350 @@
                         if(eventNames.indexOf(eventName) < 0)
                         {
                             eventNames.push(eventName);
-                            if(eventName.length > 77)
-                            {
-                                eventName = eventName.substring(0, 70) + "...";
-                            }
+                            var coords = msg.contents.Event.features[i].geometry.coordinates;//Da service map arriva prima la longitudine e poi la latitudine, quindi le invertiamo
+                            var temp = coords[0];
+                            coords[0] = coords[1];
+                            coords[1] = temp;
+                            
                             startDate = msg.contents.Event.features[i].properties.startDate;
                             endDate = msg.contents.Event.features[i].properties.endDate;
+                            var startTime = msg.contents.Event.features[i].properties.startTime;
                             description = msg.contents.Event.features[i].properties.descriptionIT;
                             serviceUri = msg.contents.Event.features[i].properties.serviceUri;
+                            //var place = msg.contents.Event.features[i].properties.place;
                             address = msg.contents.Event.features[i].properties.address + " " + msg.contents.Event.features[i].properties.civic;
                             freeEvent = msg.contents.Event.features[i].properties.freeEvent;
+                            var price = msg.contents.Event.features[i].properties.price;
                             var index = serviceUri.indexOf("Event");
                             eventId = serviceUri.substring(index);
+                            
+                            //Per l'interazione cross-widget
+                            var serviceMapUrl = "<?= $serviceMapUrlPrefix ?>" + "api/v1/?serviceUri=" + serviceUri + "&format=html";
 
-                            newRow = $("<div class='eventsRow'></div>");
-                            newIcon = $("<div class='eventIcon'></div>");
-                            var newIconUp = $("<div class='eventIconUp'></div>");
-                            var newIconDown = $("<div class='eventIconDown'></div>");
-                            newIcon.append(newIconUp);
-                            newIcon.append(newIconDown);
-                            newContent = $("<div class='eventContent turcheseGrad'></div>");
-                            newContent.css("width", eventContentW + "px");
-                            newContent.html("<div class='eventName'><p>" + eventName + "</p></div>" + "<div class='eventTime'><i class='fa fa-calendar' style='font-size:13px'></i>&nbsp;&nbsp;" + startDate + " to " + endDate + "</div>" + "<div class='eventAddress'><a href='http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=http://www.disit.org/km4city/resource/" + eventId + "&format=html' class='eventLink' target='_blank'><i class='material-icons' style='font-size:16px'>place</i>&nbsp;" + address + "</a></div>");
-                            $('#<?= $_GET['name'] ?>_chartContainer .eventName').css("font-size", fontSize + "px");
-                            $('#<?= $_GET['name'] ?>_chartContainer .eventTime').css("font-size", fontSizeSmall + "px");
-                            $('#<?= $_GET['name'] ?>_chartContainer .eventAddress').css("font-size", fontSizeSmall + "px");
-
+                            newRow = $("<div></div>");
+                            
                             switch (eventType)
                             {
-                                case "Mostre":
-                                    icon= $("<i class='fa fa-bank'></i>");
-                                    newIconUp.append(icon);
+                                 case "Altri eventi":
+                                    icon= $("<i class='fa fa-calendar-check-o'></i>");
+                                    backgroundTitleClass = "altriEventiTitle";
+                                    backgroundFieldsClass = "altriEventi";//Grigio
+                                    background = "#d9d9d9";
                                     break;
+                                    
+                                 case "Aperture straordinarie, visite guidate":
+                                    icon= $("<i class='material-icons' style='font-size:36px'>group</i>");
+                                    backgroundTitleClass = "apertureStraordinarieTitle";
+                                    backgroundFieldsClass = "apertureStraordinarie";//Giallo
+                                    background = "#ffcc00";
+                                    break;
+                                    
+                                 case "Estate Fiorentina":
+                                    icon= $("<i class='fa fa-sun-o'></i>");
+                                    backgroundTitleClass = "estateFiorentinaTitle";
+                                    backgroundFieldsClass = "estateFiorentina";//Verde chiaro
+                                    background = "#00b300";
+                                    break;   
+                                    
+                                 case "Fiere, mercati":
+                                    icon= $("<i class='fa fa-shopping-cart'></i>");
+                                    backgroundTitleClass = "fiereTitle";
+                                    backgroundFieldsClass = "fiere";//Rosa
+                                    background = "#ff66cc";
+                                    break;   
+                                    
+                                 case "Film festival":
+                                    icon= $("<i class='fa fa-film'></i>"); 
+                                    backgroundTitleClass = "filmTitle";
+                                    backgroundFieldsClass = "film";//Arancio
+                                    background = "#ff9900";
+                                    break;   
+      
+                                 case "Mostre":
+                                    icon= $("<i class='fa fa-bank'></i>");
+                                    backgroundTitleClass = "mostreTitle";
+                                    backgroundFieldsClass = "mostre";//Turchese
+                                    background = "#70dbc4";
+                                    break;
+                                    
+                                 case "Musica classica, opera e balletto":
+                                    icon= $("<i class='fa fa-music'></i>");
+                                    backgroundTitleClass = "musicaClassicaTitle";
+                                    backgroundFieldsClass = "musicaClassica";//Rosso scuro
+                                    background = "#e6004c";
+                                    break;
+                                    
+                                 case "Musica rock, jazz, pop, contemporanea":
+                                    icon= $("<i class='fa fa-music'></i>");
+                                    backgroundTitleClass = "musicaRockTitle";
+                                    backgroundFieldsClass = "musicaRock";//Viola
+                                    background = "#bab3ff";
+                                    break;   
 
                                 case "News":
                                     icon= $("<i class='fa fa-newspaper-o'></i>");
-                                    newIconUp.append(icon);
+                                    backgroundFieldsClass = "news";//Ruggine
+                                    backgroundTitleClass = "newsTitle";
+                                    background = "#ff531a";
                                     break;
-
-                                case "Aperture straordinarie, visite guidate":
-                                    icon= $("<i class='material-icons' style='font-size:36px'>group</i>");
-                                    newIconUp.append(icon);
-                                    break;    
-
-                                default:
-                                    icon= $("<i class='fa fa-calendar-check-o'></i>");
-                                    newIconUp.append(icon);
-                                    break;
-                            }
-
-                            if(freeEvent === 'NO')
-                            {
-                                feeIcon = $("<i class='fa fa-euro'></i>");
-                                newIconDown.append(feeIcon); 
-                            }
-                            else
-                            {
-                                newIconDown.html("free");
-                            }
-                            
-                            switch(rowColor)
-                            {
-                                case "turchese":
-                                    rowColor = "arancio";
-                                    rowGrad = "arancioGrad";
-                                    break;
-
-                                case "arancio":
-                                    rowColor = "viola";
-                                    rowGrad = "violaGrad";
-                                    break;
-
-                                case "viola":
-                                    rowColor = "turchese";
-                                    rowGrad = "turcheseGrad";
+                                    
+                                 case "Readings, Conferenze, Convegni":
+                                    icon= $("<i class='fa fa-group'></i>");
+                                    backgroundTitleClass = "convegniTitle";
+                                    backgroundFieldsClass = "convegni";//Violetto chiaro
+                                    background = "#ffb3ff";
                                     break;   
                                     
+                                 case "Readings, incontri letterari, conferenze":
+                                    icon= $("<i class='fa fa-book'></i>");
+                                    backgroundTitleClass = "incontriLetterariTitle";
+                                    backgroundFieldsClass = "incontriLetterari";//Azzurro
+                                    background = "#33ccff";
+                                    break;   
+                                    
+                                 case "Sport":
+                                    icon= $("<i class='fa fa-futbol-o'></i>");
+                                    backgroundTitleClass = "sportTitle";
+                                    backgroundFieldsClass = "sport";//Rosso chiaro
+                                    background = "#ff6666";
+                                    break;
+                                    
+                                 case "Teatro":
+                                    icon= $("<i class='fa fa-ticket'></i>");
+                                    backgroundTitleClass = "teatroTitle";
+                                    backgroundFieldsClass = "teatro";//Ocra
+                                    background = "#d9b38c";
+                                    break;
+                                    
+                                 case "Tradizioni popolari":
+                                    icon= $("<i class='fa fa-spoon'></i>");
+                                    backgroundTitleClass = "tradizioniPopolariTitle";
+                                    backgroundFieldsClass = "tradizioniPopolari";//Grigio chiaro
+                                    background = "#e6e6e6";
+                                    break;
+                                    
+                                 case "Walking":
+                                    icon= $("<i class='fa fa-male'></i>");
+                                    backgroundTitleClass = "walkingTitle";
+                                    backgroundFieldsClass = "walking";//Verde scuro
+                                    background = "#39ac39";
+                                    break;      
+                                    
                                 default:
-                                    rowColor = "turchese";
-                                    rowGrad = "turcheseGrad";
+                                    icon= $("<i class='fa fa-calendar-check-o'></i>");
+                                    backgroundTitleClass = "altriEventiTitle";
+                                    backgroundFieldsClass = "altriEventi";//Grigio
+                                    background = "#d9d9d9";
                                     break;
                             }
                             
-                            newIcon.addClass(rowColor);
-                            newContent.addClass(rowGrad);
-
-                            newRow.append(newIcon);
-                            newRow.append(newContent);
-                            newRow.css("background-color", "<?= $_GET['color'] ?>");
-
-                            if(i === (eventsNumber - 1))
-                            {
-                                newRow.css("margin-bottom", "0px");
-                                newRow.find(".eventName").css("font-size", fontSize + "px");
-                                newRow.find(".eventTime").css("font-size", fontSizeSmall + "px");
-                                newRow.find(".eventAddress").css("font-size", fontSizeSmall + "px");
-                            }
+                            newRow.css("height", rowPercHeight + "%");
+                            //var eventTitle = $('<div class="eventTitle centerWithFlex" data-toggle="tooltip" data-placement="top" title="' + description + '">' + eventName + '</div>');
+                            var eventTitle = $('<div class="eventTitle centerWithFlex">' + eventName + '</div>');
+                            eventTitle.addClass(backgroundTitleClass);
+                            eventTitle.css("font-size", fontSize + "px");
+                            eventTitle.css("height", "30%");
                             $('#<?= $_GET['name'] ?>_chartContainer').append(newRow);
-                            $("#<?= $_GET['name'] ?>_chartContainer").scrollTop(0);
+                            
+                            eventTitle.dotdotdot({
+                              /*	The text to add as ellipsis. */
+                              ellipsis	: '...',
+
+                              /*	How to cut off the text/html: 'word'/'letter'/'children' */
+                              wrap: 'word',
+
+                              /*	Wrap-option fallback to 'letter' for long words */
+                              fallbackToLetter: true,
+
+                              /*	jQuery-selector for the element to keep and put after the ellipsis. */
+                              after: null,
+
+                              /*	Whether to update the ellipsis: true/'window' */
+                              watch: true,
+
+                              /*	Optionally set a max-height, can be a number or function.
+                                 If null, the height will be measured. */
+                              height: 34,
+
+                              /*	Deviation for the height-option. */
+                              tolerance: 0,
+
+                              /*	Callback function that is fired after the ellipsis is added,
+                                 receives two parameters: isTruncated(boolean), orgContent(string). */
+                              callback	: function( isTruncated, orgContent ) {
+                              },
+
+                              lastCharacter	: {
+
+                                 /*	Remove these characters from the end of the truncated text. */
+                                 remove		: [ ' ', ',', ';', '.', '!', '?' ],
+
+                                 /*	Don't add an ellipsis if this array contains 
+                                    the last character of the truncated text. */
+                                 noEllipsis	: []
+                              }
+                           });
+                           
+                           newRow.append(eventTitle);
+                           
+                           var dataContainer = $('<div class="eventDataContainer"></div>');
+                           dataContainer.addClass(backgroundFieldsClass);
+                            
+                           newIcon = $("<div class='eventIcon'></div>");
+                           var newIconUp = $("<div class='eventIconUp' data-toggle='tooltip' data-placement='top' title='" + eventType + "'></div>");
+                            
+                           newIconUp.append(icon);
+                           var newIconDown = $("<div class='eventIconDown' data-toggle='tooltip' data-placement='top'></div>");
+                           
+                           if(freeEvent === 'NO')
+                           {
+                              feeIcon = $("<i class='fa fa-euro'></i>");
+                              newIconDown.append(feeIcon); 
+                              newIconDown.attr("title", price);
+                           }
+                           else
+                           {
+                              newIconDown.html("free");
+                              newIconDown.attr("title", "This event is free");
+                           }
+                           
+                           newIcon.append(newIconUp);
+                           newIcon.append(newIconDown);  
+                           newIcon.addClass(backgroundFieldsClass);
+                           dataContainer.append(newIcon);
+                           
+                           //var dateTooltip = "Start date: " + startDate + "<br>End date: " + endDate + "<br>Hours: " + startTime + "";
+                           //var dateContainer = $("<div class='eventTime' data-toggle='tooltip' data-placement='top' title='" + dateTooltip + "'><i class='fa fa-calendar' style='font-size:13px'></i>&nbsp;&nbsp;" + startDate + " to " + endDate + "</div>"); 
+                           var dateContainer = $("<div class='eventTime'><i class='fa fa-calendar' style='font-size:13px'></i>&nbsp;&nbsp;" + startDate + " to " + endDate + "</div>"); 
+                           dateContainer.addClass(backgroundFieldsClass);
+                           dataContainer.append(dateContainer);
+                           
+                           //var addressTooltip = "<strong>CLICK THIS PIN TO SHOW OR HIDE THE PLACE ON THE HIGHLIGHTED MAP(S)</strong>";
+                           //var eventAddress = $("<div class='eventAddress' data-toggle='tooltip' data-placement='bottom' title='" + addressTooltip + "'><a class='eventLink' data-serviceMapUrl='" + serviceMapUrl + "' data-eventType='" + eventType + "' data-background='" + background + "' data-onMap='false' data-coords='" + JSON.stringify(coords) + "'><i class='material-icons' style='font-size:16px'>place</i>&nbsp;" + address + "<span class='onMapSignal'> <i class='fa fa-caret-right' style='font-size:16px'></i> ON MAP</span></a></div>");
+                           var eventAddress = $("<div class='eventAddress'><a class='eventLink' data-serviceUri='" + serviceUri + "' data-serviceMapUrl='" + serviceMapUrl + "' data-eventType='" + eventType + "' data-background='" + background + "' data-onMap='false' data-coords='" + JSON.stringify(coords) + "'><i class='material-icons' style='font-size:16px'>place</i>&nbsp;" + address + "<span class='onMapSignal'> <i class='fa fa-caret-right' style='font-size:16px'></i> ON MAP</span></a></div>");
+                           eventAddress.addClass(backgroundFieldsClass);
+                           dataContainer.append(eventAddress);
+                           
+                           newRow.append(dataContainer);
+                           
+                           dateContainer.css("font-size", fontSizeSmall + "px");
+                           eventAddress.css("font-size", fontSizeSmall + "px");
+                           
+                           if(i < (eventsNumber -1))
+                           {
+                              newRow.css("margin-bottom", "4px");
+                           }
+                           else
+                           {
+                              newRow.css("margin-bottom", "0px");
+                           }
+                           
+                           $('[data-toggle="tooltip"]').tooltip({
+                              html: true
+                           });
+                           
+                           $("#<?= $_GET['name'] ?>_chartContainer").scrollTop(0);
+                            
+                           //Interazione cross-widget
+                           
+                           eventAddress.find("a.eventLink").hover(
+                              function() 
+                              {
+                                 var localEventType = $(this).attr("data-eventType");
+                                 var localBackground = $(this).attr("data-background");
+                                 
+                                 originalHeaderColor = {};
+                                 originalBorderColor = {};
+                                 
+                                 for(var widgetName in widgetTargetList) 
+                                 {
+                                    originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                                    originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
+                                    
+                                    for(var key in widgetTargetList[widgetName]) 
+                                    {
+                                       if(widgetTargetList[widgetName][key] === localEventType)
+                                       {
+                                          $("#" + widgetName + "_header").css("background", localBackground);
+                                          $("#" + widgetName).css("border-color", localBackground);
+                                       }
+                                    }
+                                 }
+                              }, 
+                              function() 
+                              {
+                                var localEventType = $(this).attr("data-eventType");
+                                 for(var widgetName in widgetTargetList) 
+                                 {
+                                    for(var key in widgetTargetList[widgetName]) 
+                                    {
+                                       if(widgetTargetList[widgetName][key] === localEventType)
+                                       {
+                                          $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
+                                          $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
+                                       }
+                                    }
+                                 }
+                              }
+                           );
+                           
+                           eventAddress.find("a.eventLink").click(function()
+                           {  
+                              var localEventType = $(this).attr("data-eventType");
+                              var goesOnMap = false;
+                              
+                              if($(this).attr("data-onMap") === 'false')
+                              {
+                                 $(this).attr("data-onMap", 'true');
+                                 goesOnMap = true;
+                                 $(this).find("i.material-icons").addClass("onMapPinAnimated");
+                                 $(this).find("span.onMapSignal").show();
+                              }
+                              else
+                              {
+                                 $(this).attr("data-onMap", 'false');
+                                 goesOnMap = false;
+                                 $(this).find("i.material-icons").removeClass("onMapPinAnimated");
+                                 $(this).find("span.onMapSignal").hide();
+                              }
+                              
+                              for(var widgetName in widgetTargetList) 
+                              {
+                                 for(var key in widgetTargetList[widgetName]) 
+                                 {
+                                    if(widgetTargetList[widgetName][key] === localEventType)
+                                    {
+                                       if(goesOnMap)
+                                       {
+                                          addEventToMap($(this), widgetName);
+                                       }
+                                       else
+                                       {
+                                          removeEventFromMap($(this), widgetName);
+                                       }
+                                    }
+                                 }
+                              }
+                           });
                         }
                     }
                     
-
-                    $('#<?= $_GET['name'] ?>_chartContainer .eventsRow').css("width", "100%");
-                    $('#<?= $_GET['name'] ?>_chartContainer .eventsRow').css("height", rowPercHeight + "%");
-                    $('#<?= $_GET['name'] ?>_chartContainer .eventsRow').css("margin-bottom", rowPercBottomMargin + "%");
-                    $('#<?= $_GET['name'] ?>_chartContainer .eventIcon').css("width", iconPercWidth + "%");
-                    $('#<?= $_GET['name'] ?>_chartContainer .eventIcon').css("height", "100%");
-                    $('#<?= $_GET['name'] ?>_chartContainer .eventIcon').css("margin-right", rowPercBottomMargin + "%");
-                    $('#<?= $_GET['name'] ?>_chartContainer .eventContent ').css("width", contentPercWidth + "%");
-
                     scroller = setInterval(stepDownInterval, speed);
                     var timeToClearScroll = (timeToReload - 0.5) * 1000;
                     setTimeout(function()
                     {
                         clearInterval(scroller);
                         $("#<?= $_GET['name'] ?>_chartContainer").off("scroll");
+                        
+                        //Ripristino delle homepage native per gli widget targets al reload
+                        for(var widgetName in widgetTargetList) 
+                        {
+                           if(eventsOnMaps[widgetName].eventsNumber > 0)
+                           {
+                              $("#" + widgetName + "_iFrame").attr("src", eventsOnMaps[widgetName].noPointsUrl);
+                           }
+                        }
+                        
                     }, timeToClearScroll);
                     
 
@@ -335,7 +692,8 @@
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">

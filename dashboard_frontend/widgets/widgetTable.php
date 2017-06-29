@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -645,11 +645,11 @@
         widgetProperties = getWidgetProperties(widgetName);
         if(widgetProperties !== null)
         {
-            /*Inizio codice ad hoc basato sulle proprietà del widget*/
+            //Inizio codice ad hoc basato sulle proprietà del widget
             
             var styleParametersString = widgetProperties.param.styleParameters;
             styleParameters = jQuery.parseJSON(styleParametersString);
-            /*Fine codice ad hoc basato sulle proprietà del widget*/
+            //Fine codice ad hoc basato sulle proprietà del widget/
             
             metricData = getMetricData(metricId);
             if(metricData.data.length !== 0)
@@ -691,7 +691,8 @@
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">

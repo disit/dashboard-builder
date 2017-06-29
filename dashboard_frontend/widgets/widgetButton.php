@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -19,12 +19,12 @@
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad)
     {
         var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $('#<?= $_GET['name'] ?>_button');
+        var widgetMainDivName = "<?= $_GET['name'] ?>";
         var widgetContentColor = "<?= $_GET['color'] ?>";
         var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
         var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>_div";
+        var widgetName = "<?= $_GET['name'] ?>";
+        var widgetMainDivName = "<?= $_GET['name'] ?>_div";
         var linkElement = $('#<?= $_GET['name'] ?>_link_w');
         var color = '<?= $_GET['color'] ?>';
         var fontSize = "<?= $_GET['fontSize'] ?>";
@@ -32,6 +32,11 @@
         var button = $('#<?= $_GET['name'] ?>_button');
         var buttonText = '<?= $_GET['title'] ?>'.replace(/_/g, " ");
         var url = "<?= $_GET['link_w'] ?>";
+        var widgetProperties, buttonHeight, widgetTargetList, originalHeaderColor, originalBorderColor = null;
+        
+        
+        //Rimozione bordo per questo widget
+        $("#" + widgetName).css("border", "none");
         
         if(url === "null")
         {
@@ -56,33 +61,91 @@
         }
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
-        addLink(widgetName, url, linkElement, divContainer);
+        setWidgetLayout(hostFile, widgetMainDivName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
         
         if(hostFile === 'index')
         {
             $('#<?= $_GET['name'] ?>_header').hide();
+            buttonHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight"));
         }
         else
         {
             $('#<?= $_GET['name'] ?>_header').show();
             var titleDivWidth = $('#<?= $_GET['name'] ?>_div').width() - 40;
             $('#<?= $_GET['name'] ?>_titleDiv').css("width", titleDivWidth + "px");
+            buttonHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
         }
         
+        $("#" + widgetName + "_button").css("height", buttonHeight);
         button.css("background-color", color);
         $('#<?= $_GET['name'] ?>_button').css("font-size", fontSize +"px");
         $('#<?= $_GET['name'] ?>_button').css("color", fontColor);
         $('#<?= $_GET['name'] ?>_button .ui-button-text').css("text-shadow", "1px 1px 1px rgba(0,0,0,0.35)");
         $('#<?= $_GET['name'] ?>_button .ui-button-text').text(buttonText);
+        $("#" + widgetName + "_button").css("border", "none");
         
-        var hoverColor = lighterColor(color, -0.3);
+        $("#" + widgetName + "_button").focus(function(){
+           $(this).css("outline", "none");
+        });   
         
-        button.hover(function(){
+        
+        var hoverColor = lighterColor(color, -0.2);
+        
+        button.hover(function()
+        {
             $(this).css("background-color", hoverColor);
-            }, function(){
+        }, 
+        function()
+        {
             $(this).css("background-color", color);
         });
+        
+        widgetProperties = getWidgetProperties(widgetName);
+        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
+        {
+           widgetTargetList = JSON.parse(widgetProperties.param.parameters);
+           
+           if((widgetTargetList !== null)&&(widgetTargetList !== 'null')&&(widgetTargetList !== 'undefined'))
+           {
+               button.hover(
+                  function() 
+                  {
+                     originalHeaderColor = new Array();
+                     originalBorderColor = new Array();
+                     
+                     for(var i = 0; i < widgetTargetList.length; i++)
+                     {
+                        originalHeaderColor[i] = $("#" + widgetTargetList[i] + "_header").css("background-color");
+                        originalBorderColor[i] = $("#" + widgetTargetList[i]).css("border-color");
+                        $("#" + widgetTargetList[i] + "_header").css("background", hoverColor);
+                        $("#" + widgetTargetList[i]).css("border-color", hoverColor);
+                     }
+                  }, 
+                  function() 
+                  {
+                     for(var i = 0; i < widgetTargetList.length; i++)
+                     {
+                        $("#" + widgetTargetList[i] + "_header").css("background", originalHeaderColor[i]);
+                        $("#" + widgetTargetList[i]).css("border-color", originalBorderColor[i]);
+                     }
+                  }
+               );
+    
+            button.click(function()
+            {
+               for(var i = 0; i < widgetTargetList.length; i++)
+               {
+                  $("#" + widgetTargetList[i] + "_iFrame").attr("src", url);
+               }
+            });
+           }
+           else
+           {
+              addLink(widgetMainDivName, url, linkElement, button);
+           }
+        }
+        
+        
     });//Fine document ready
 </script>
 

@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -25,20 +25,26 @@
     
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad)  
     {
-        var contentHeight, shownHeight, scrollBottom, permalink, idWidget, idDash, idraulicoSrc, idraulicoLoc, temporaliSrc, temporaliLoc, idrogeologicoSrc,
-        idrogeologicoLoc, neveSrc, neveLoc, ghiaccioSrc, ghiaccioLoc, ventoSrc, ventoLoc, mareSrc, mareLoc, maxAlarmDeg, descW, sizeRowsWidget, fontRatio = null;
-        var speed = 50;
-        var rewindDelay = 1500;
+        var contentHeight, permalink, idWidget, idDash, idraulicoSrc, idraulicoLoc, temporaliSrc, temporaliLoc, idrogeologicoSrc,
+        idrogeologicoLoc, neveSrc, neveLoc, ghiaccioSrc, ghiaccioLoc, ventoSrc, ventoLoc, mareSrc, mareLoc, maxAlarmDeg, descW, 
+        sizeRowsWidget, styleParameters, genTabFontSize, genTabFontColor, meteoTabFontSize = null;
         var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 75);
         var loadingFontDim = 13; 
         var loadingIconDim = 20;
         var alarmDegs = new Array();
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
         var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
         var name = "<?= $_REQUEST['name'] ?>";
         var divLinkContainer = $('#<?= $_GET['name'] ?>_logoPc');
         var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        
+        var widgetProperties = getWidgetProperties(name);
+        if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
+        {
+            styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters);
+            genTabFontSize = styleParameters.genTabFontSize;
+            meteoTabFontSize = styleParameters.meteoTabFontSize;
+            genTabFontColor = styleParameters.genTabFontColor;
+        }
         
         $("#<?= $_GET['name'] ?>_logo").css("background-color", '<?= $_GET['frame_color'] ?>');
         $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
@@ -53,10 +59,9 @@
         }
         
         $("#<?= $_GET['name'] ?>_content").css("height", height + "px");
-        var contentHeight = parseInt($('#<?= $_GET['name'] ?>_div').prop("offsetHeight") - 75 - 18);
-        var contentHeight2 = parseInt($('#<?= $_GET['name'] ?>_div').prop("offsetHeight") - 75 - 20);
-        $("#<?= $_GET['name'] ?>_general").css("height", contentHeight2 + "px");
-        $("#<?= $_GET['name'] ?>_meteo").css("height", contentHeight2 + "px");
+        var contentHeight = parseInt($('#<?= $_GET['name'] ?>_div').prop("offsetHeight") - 75 - 20);
+        $("#<?= $_GET['name'] ?>_general").css("height", contentHeight + "px");
+        $("#<?= $_GET['name'] ?>_meteo").css("height", contentHeight + "px");
         
         //Definizioni di funzione specifiche del widget
         function getNumPriority(color)
@@ -180,30 +185,22 @@
             $("#<?= $_GET['name'] ?>_content").carousel(1);
         });
         
-        /*if(contentHeight >= 269) //269 è la somma delle altezze delle 8 righe, inclusi i margini intervallanti di 4 px e la legenda
-        {
-            //No scroller
-            descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 35); 
-        }
-        else
-        {
-            //Sì scroller
-            descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 35 - 17); 
-        }*/
-    
-        //Con la nuova versione con scroller corretto non sembra più necessario fare rilevamento dello scroller
-        descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 35 - 4);
+        var contentH = $("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 75 - 20 - 32;
         
-        //Nuova soluzione che fixa i problemi con lo zoom
+        var rowHPx = Math.floor(parseInt(contentH - 6) / 7); 
+        var iconDim = rowHPx;
+        descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - iconDim - 4);
         var descWPerc = Math.floor(descW * 100 / $('#<?= $_GET['name'] ?>_div').width());
-        var meteoPcRowPercHeight =  Math.ceil(30 * 100 / contentHeight);
-        var meteoPcIconPercWidth = Math.ceil(30 * 100 / descW);
         
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("height", meteoPcRowPercHeight + "%");
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("margin-bottom", 4 + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("height", rowHPx + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("margin-bottom", 1 + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcRowLast").css("height", rowHPx + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcRowLast").css("margin-bottom", 0 + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("margin-bottom", 1 + "px");
         $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("width", descWPerc + "%");
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("margin-right", 2 + "px");
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcIcon").css("width", meteoPcIconPercWidth + "%");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("margin-right", 1 + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("font-size", meteoTabFontSize + "px");
+        $("#<?= $_GET['name'] ?>_meteo .meteoPcIcon").css("width", iconDim + "px");
         
         $('#<?= $_GET['name'] ?>_meteo').css("overflow", "auto");
         
@@ -391,30 +388,27 @@
                                         $('#<?= $_GET['name'] ?>_loading').css("display", "none");
                                         $('#<?= $_GET['name'] ?>_content').css("display", "block");
                                     }
-                                    $('#<?= $_GET['name'] ?>_content').html("<p style='text-align: center; font-size: 18px;'>Nessun dato disponibile</p>");
+                                    $('#<?= $_GET['name'] ?>_content').html("<p style='text-align: center;'>Nessun dato disponibile</p>");
                                 }
                                 else
                                 {
-                                    var id = msg[0].id;
-                                    var title = msg[0].title;
                                     permalink = msg[0].permalink;
                                     if((permalink === "null") || (permalink === null) || (permalink === ""))
                                     {
                                         permalink = null;
                                     }
-                                    var content = msg[0].content;
-                                    var date = msg[0].date;
-                                    var author = msg[0].author;
-                                    var categories = msg[0].categories;
-                                    var tags = msg[0].tags;
+                                    var content = $(msg[0].content);
                                     
                                     $("#<?= $_GET['name'] ?>_permalink").attr("href", permalink);
-                                    content = content.replace(/\[iframe.*\]/g, "");
-                                    content = content.replace(/<img class="aligncenter" src="http:\/\/protezionecivile.comune.fi.it\/wp-content\/uploads\/[0-9]*\/[0-9]*\/postie-media.png" alt="" \/>/g, '');                
                                     
                                     $("#<?= $_GET['name'] ?>_general").html(content);
-                                    $("#<?= $_GET['name'] ?>_general *").css("color", fontColor);
-                                    $("#<?= $_GET['name'] ?>_general *").css("font-size", fontSize + "px");
+                                    $("#<?= $_GET['name'] ?>_general").css("color", genTabFontColor);
+                                    $("#<?= $_GET['name'] ?>_general").css("font-size", genTabFontSize + "px");
+                                    $("#<?= $_GET['name'] ?>_general *").css("color", genTabFontColor);
+                                    $("#<?= $_GET['name'] ?>_general *").css("font-size", genTabFontSize + "px");
+                                    
+                                    $("#<?= $_GET['name'] ?>_general").find("img").eq(0).remove();
+                                    $("#<?= $_GET['name'] ?>_general").find("iframe").remove();
                                     
                                     switch(maxAlarmDeg)
                                     {
@@ -440,7 +434,7 @@
                             },
                             error: function()
                             {
-                                $("#<?= $_GET['name'] ?>_general").html("At the moment it's not possible to get data from Civil Protection");
+                                $("#<?= $_GET['name'] ?>_general").html("Nessun dato disponibile");
                             }
                         });
                         
@@ -484,9 +478,10 @@
         <div id='<?= $_GET['name'] ?>_logo' class="pcLogosContainer">
             <div id='<?= $_GET['name'] ?>_alarmDivPc' class="alarmDivPc">
                 <div id="<?= $_GET['name'] ?>_info" class="pcInfoContainer">
-                <a id ="info_modal" href="#" class="info_source">
+                <!--<a id ="info_modal" href="#" class="info_source">
                     <img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button">
-                </a>
+                </a>-->
+                  <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
                 </div>
                 <div id="<?= $_GET['name'] ?>_logoPc" class="logoPc">
                     <a id="<?= $_GET['name'] ?>_permalink" href="about:blank" target="_blank"><img src="../img/protezioneCivile.png"></a>

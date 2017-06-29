@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -19,6 +19,9 @@ include '../config.php';
 session_start();
 $link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
 mysqli_select_db($link, $dbname);
+
+//Altrimenti restituisce in output le warning
+error_reporting(E_ERROR | E_NOTICE);
 
 function canEditDashboard()
 {
@@ -62,15 +65,28 @@ if(isset($_GET['action']) && !empty($_GET['action']))
     if($action == "get_dashboards")//Escape 
     {
         $loggedUsername = $_SESSION['loggedUsername'];
+        $loggedUserId = $_SESSION['login_user_id'];
         
-        if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+        switch($_SESSION['isAdmin'])
         {
-            $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser ORDER BY Config_dashboard.name_dashboard ASC";
+            case 0:
+                $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser WHERE Users.username = '$loggedUsername' ORDER BY Config_dashboard.name_dashboard ASC";
+                break;
+            
+            case 1:
+                $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users " .
+                         "ON Config_dashboard.user = Users.IdUser " . 
+                         "WHERE Users.username = '$loggedUsername' " . //Proprie dashboard
+                         "OR (Users.IdUser IN (SELECT IdUser FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT DISTINCT(poolId) FROM Dashboard.UsersPoolsRelations WHERE IdUser = '$loggedUserId' AND isAdmin = 1)) " .
+                         "AND Users.admin <> 2) " .
+                         "ORDER BY Config_dashboard.name_dashboard ASC";
+                break;
+            
+            case 2:
+                $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser ORDER BY Config_dashboard.name_dashboard ASC";
+                break;
         }
-        else if($_SESSION['isAdmin'] == 0)
-        {
-            $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser WHERE Users.username = '$loggedUsername' ORDER BY Config_dashboard.name_dashboard ASC";
-        }
+        
         $result = mysqli_query($link, $query) or die(mysqli_error($link));
         
         if($result->num_rows > 0) 
@@ -87,7 +103,9 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                         "name_user" => $row['name'],
                         "surname_user" => $row['surname'],
                         "username" => $row['username'],
-                        "reference" => $row['reference']
+                        "reference" => $row['reference'],
+                        "visibility" => $row["visibility"],
+                        "logoFilename" => $row["logoFilename"]
                 ));
                 $dashboard_list[] = $dashboard;
             }
@@ -277,6 +295,7 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                     "param_w" => $row4['parameters'],
                     "frame_color" => $row4['frame_color_w'],
                     "udm" => $row4['udm'],
+                    "udmPos" => $row4['udmPos'],
                     "fontSize" => $row4['fontSize'],
                     "fontColor" => $row4['fontColor'],
                     "controlsPosition" => $row4['controlsPosition'],
@@ -367,6 +386,7 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                         "info_mess" => $row5['infoMessage_w'],
                         "url" => $row5['link_w'],
                         "udm" => $row5['udm'],
+                        "udmPos" => $row5['udmPos'],
                         "param_w" => $row5['parameters'],
                         "frame_color" => $row5['frame_color_w'],
                         "fontSize" => $row5['fontSize'],
@@ -384,7 +404,11 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                         "max_row" => $row5['max_row'],
                         "dimMap" => $row5['dimMap'],
                         "styleParameters" => $row5['styleParameters'],
-                        "infoJson" => $row5['infoJson']
+                        "infoJson" => $row5['infoJson'],
+                        "serviceUri" => $row5['serviceUri'],
+                        "viewMode" => $row5['viewMode'],
+                        "hospitalList" => $row5['hospitalList'],
+                        "lastSeries" => $row5['lastSeries']
                     );
                 }
             }
@@ -655,6 +679,10 @@ if(isset($_GET['action']) && !empty($_GET['action']))
             mysqli_close($link);
             echo json_encode($arrayJobAreas);
         }
+    }
+    else if($action == "getUsers")
+    {
+        
     }
     else 
     {

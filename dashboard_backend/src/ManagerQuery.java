@@ -59,6 +59,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.logging.Level;
+import org.openrdf.model.Literal;
 
 public class ManagerQuery implements Runnable, Serializable {
 
@@ -114,6 +115,9 @@ public class ManagerQuery implements Runnable, Serializable {
         case "JVPerc":
           executeQueryJVPerc();
           break;
+        case "JVTable":
+          executeQueryJVTable();
+          break;
         case "JVRidesAtaf":
           executeQueryJVRidesAtaf();
           break;
@@ -147,7 +151,7 @@ public class ManagerQuery implements Runnable, Serializable {
 
   private void executeQueryJVNum1() {
     try {
-      int sumFixed = -1;
+      double sumFixed = -1;
 
       if (this.queryType.equals("SPARQL")) {
         Repository repo = buildSparqlRepository();
@@ -188,7 +192,7 @@ public class ManagerQuery implements Runnable, Serializable {
               if (bindingSetEvent.getValue("sum") != null) {
                 sum = bindingSetEvent.getValue("sum").stringValue();
               }
-              sumFixed = Integer.parseInt(sum);
+              sumFixed = Double.parseDouble(sum);
             }
           }
         }
@@ -201,7 +205,7 @@ public class ManagerQuery implements Runnable, Serializable {
           while (resultSet.next()) {
             String sum = resultSet.getString(1);
             if (sum != null) {
-              sumFixed = Integer.parseInt(sum);
+              sumFixed = Double.parseDouble(sum);
             }
           }
         }
@@ -210,7 +214,7 @@ public class ManagerQuery implements Runnable, Serializable {
 
       if (sumFixed != -1) {
         //this.almMng.updateStatusOnMeasuredValue(sumFixed);
-        this.almMng.updateStatusOnMeasuredValue(Utility.round(new Integer(sumFixed).doubleValue(), 2));
+        this.almMng.updateStatusOnMeasuredValue(Utility.round(sumFixed, 2));
         System.out.println(this.idProc + " " + sumFixed);
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
         mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
@@ -219,8 +223,8 @@ public class ManagerQuery implements Runnable, Serializable {
         String data_attuale_fixed = df2.format(data_attuale);
         //System.out.println(data_attuale_fixed);
         String query_insert = "INSERT INTO Dashboard.Data"
-                + "(IdMetric_data, computationDate, value_num, value_perc1, value_perc2, value_perc3, value_text, quant_perc1, quant_perc2, quant_perc3, tot_perc1, tot_perc2, tot_perc3) VALUES"
-                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\",\"" + sumFixed + "\",null ,null,null, \"\",null,null,null,null,null,null)";
+                + "(IdMetric_data, computationDate, value_num, quant_perc1) VALUES"
+                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\"," + ((int)sumFixed) + ","+ sumFixed+")";
 
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
@@ -261,27 +265,29 @@ public class ManagerQuery implements Runnable, Serializable {
         } else if (this.idProc.equals("Ataf_Rt")) {
           String[] queries = this.query.split("\\|");
 
-          TupleQuery tupleQueryPerc2 = con.prepareTupleQuery(QueryLanguage.SPARQL, queries[1].trim());
-          TupleQueryResult resultPerc2 = tupleQueryPerc2.evaluate();
-          if (resultPerc2 != null) {
-            while (resultPerc2.hasNext()) {
-              BindingSet bindingSetEvent2 = resultPerc2.next();
-              String sum = bindingSetEvent2.getValue("sum").stringValue();
-              sumFixed = Integer.parseInt(sum);
+          if(queries.length>1) {
+            TupleQuery tupleQueryPerc2 = con.prepareTupleQuery(QueryLanguage.SPARQL, queries[1].trim());
+            TupleQueryResult resultPerc2 = tupleQueryPerc2.evaluate();
+            if (resultPerc2 != null) {
+              while (resultPerc2.hasNext()) {
+                BindingSet bindingSetEvent2 = resultPerc2.next();
+                String sum = bindingSetEvent2.getValue("sum").stringValue();
+                sumFixed = Integer.parseInt(sum);
+              }
             }
-          }
 
-          String[] dataSources = this.dataSourceId.split("\\|");
-          DBAccess mysql_access = new DBAccess();
-          mysql_access.setConnectionMySQL(this.map_dbAcc.get(dataSources[0].trim()));
-          ResultSet resultSet = mysql_access.readDataBase(queries[0].trim());
-          while (resultSet.next()) {
-            tot = Integer.parseInt(resultSet.getString("Sum"));
+            String[] dataSources = this.dataSourceId.split("\\|");
+            DBAccess mysql_access = new DBAccess();
+            mysql_access.setConnectionMySQL(this.map_dbAcc.get(dataSources[0].trim()));
+            ResultSet resultSet = mysql_access.readDataBase(queries[0].trim());
+            while (resultSet.next()) {
+              tot = Integer.parseInt(resultSet.getString("Sum"));
+            }
+            mysql_access.close();
+          } else {
+            System.out.println("ATAF_RT: manca seconda query");
           }
-          mysql_access.close();
-
         } else if (this.idProc.equals("Services_Duplicate")) {
-
           TupleQuery tupleQueryPerc3 = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
           TupleQueryResult resultPerc3 = tupleQueryPerc3.evaluate();
           if (resultPerc3 != null) {
@@ -293,36 +299,101 @@ public class ManagerQuery implements Runnable, Serializable {
               tot = Integer.parseInt(totServ);
             }
           }
+        } else {
+          if(!this.query.contains("|")) {
+            TupleQuery tupleQueryPerc = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
+            TupleQueryResult resultPerc = tupleQueryPerc.evaluate();
+            if (resultPerc != null) {
+              String p1 = resultPerc.getBindingNames().get(0);
+              String p2 = null;
+              if(resultPerc.getBindingNames().size()>1)
+                p2 = resultPerc.getBindingNames().get(1);
+              if (resultPerc.hasNext()) {
+                BindingSet bindingSetEvent = resultPerc.next();
+                String v1 = bindingSetEvent.getValue(p1).stringValue();
+                if(p2==null) {
+                  if(this.metricType.contains("/")) {
+                    sumFixed = Integer.parseInt(v1);
+                    tot = Integer.parseInt(this.metricType.split("\\/")[1]);
+                  } else {
+                    percent = Double.parseDouble(v1);
+                  }
+                } else {
+                  String v2 = bindingSetEvent.getValue(p2).stringValue();
+                  sumFixed = Integer.parseInt(v1);
+                  tot = Integer.parseInt(v2);
+                }
+              }
+            }            
+          } else {
+            String[] queries = this.query.split("\\|");
+            TupleQuery tupleQueryPerc1 = con.prepareTupleQuery(QueryLanguage.SPARQL, queries[0].trim());
+            TupleQueryResult resultPerc1 = tupleQueryPerc1.evaluate();
+            if (resultPerc1 != null) {
+              String p1 = resultPerc1.getBindingNames().get(0);
+              if (resultPerc1.hasNext()) {
+                BindingSet bindingSetEvent = resultPerc1.next();
+                String v1 = bindingSetEvent.getValue(p1).stringValue();
+                sumFixed = Integer.parseInt(v1);
+              }
+            }            
+            
+            //TBD gestire caso in cui seconda query e' SQL e non SPARQL
+            TupleQuery tupleQueryPerc2 = con.prepareTupleQuery(QueryLanguage.SPARQL, queries[1].trim());
+            TupleQueryResult resultPerc2 = tupleQueryPerc2.evaluate();
+            if (resultPerc2 != null) {
+              String p1 = resultPerc2.getBindingNames().get(0);
+              if (resultPerc2.hasNext()) {
+                BindingSet bindingSetEvent = resultPerc2.next();
+                String v1 = bindingSetEvent.getValue(p1).stringValue();
+                tot = Integer.parseInt(v1);
+              }
+            }                        
+          }
         }
       } else if (this.queryType.equals("SQL")) {
         String[] queries2 = this.query.split("\\|");
         DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
         mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-        ResultSet resultSet = mysql_access.readDataBase(queries2[1].trim());
-        while (resultSet.next()) {
-          String tot_extract = resultSet.getString(1);
-          if (tot_extract != null) {
-            tot = Integer.parseInt(tot_extract);
+        if(queries2.length>1) {
+          ResultSet resultSet = mysql_access.readDataBase(queries2[1].trim());
+          while (resultSet.next()) {
+            String tot_extract = resultSet.getString(1);
+            if (tot_extract != null) {
+              tot = Integer.parseInt(tot_extract);
+            }
           }
         }
 
         //mysql_access.close();
         //mysql_access.setConnectionMySQL(this.db,"Km4CityApp");
-        resultSet = mysql_access.readDataBase(queries2[0].trim());
+        ResultSet resultSet = mysql_access.readDataBase(queries2[0].trim());
         while (resultSet.next()) {
-          String sum = resultSet.getString(1);
-          if (sum != null) {
-            sumFixed = Integer.parseInt(sum);
+          String value = resultSet.getString(1);
+          if (value != null) {
+            if(tot!=0)
+              sumFixed = Integer.parseInt(value);
+            else if(resultSet.getMetaData().getColumnCount()>1) {
+              tot = resultSet.getInt(2);
+              sumFixed = resultSet.getInt(1);
+            } else {
+              if(this.metricType.contains("/")) {
+                sumFixed = resultSet.getInt(1);
+                tot = Integer.parseInt(this.metricType.split("\\/")[1]);
+              } else {
+                percent = resultSet.getDouble(1);
+              }
+            }
           }
         }
         mysql_access.close();
       }
 
-      if (tot != 0) {
-        if (!(this.idProc.equals("Services_Duplicate"))) {
-          percent = (sumFixed * 100.0) / tot;
-        }
+      if (!(this.idProc.equals("Services_Duplicate")) && tot!=0 ) {
+        percent = (sumFixed * 100.0) / tot;
+      }
 
+      if(percent>=0) {
         this.almMng.updateStatusOnMeasuredValue(Utility.round(percent, 2));
         System.out.println(this.idProc + " " + percent);
 
@@ -332,13 +403,126 @@ public class ManagerQuery implements Runnable, Serializable {
         Date data_attuale = new Date();
         String data_attuale_fixed = df.format(data_attuale);
         String query_insert = "INSERT INTO Dashboard.Data"
-                + "(IdMetric_data, computationDate, value_num, value_perc1, value_perc2, value_perc3, value_text, quant_perc1, quant_perc2, quant_perc3, tot_perc1, tot_perc2, tot_perc3) VALUES"
-                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\",null,\"" + percent + "\" ,null,null, \"\",\"" + sumFixed + "\",null,null,\"" + tot + "\",null,null)";
+                + "(IdMetric_data, computationDate, value_perc1, quant_perc1, tot_perc1) VALUES"
+                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\",\"" + percent + "\",\"" + sumFixed + "\",\"" + tot + "\")";
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
       }
 
     } catch (Exception exp) {
+      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    }
+  }
+
+  private void executeQueryJVTable() {
+    try {
+      String labels1 = "";
+      String labels2 = "";
+      String desc = "";
+      String series = "";
+
+      if (this.queryType.equals("SPARQL")) {
+        Repository repo = buildSparqlRepository();
+        repo.initialize();
+        RepositoryConnection con = repo.getConnection();
+
+        TupleQuery tupleQuery = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
+        TupleQueryResult result = tupleQuery.evaluate();
+
+        if (result != null) {
+          desc = result.getBindingNames().get(0);
+          for(int i=1; i<result.getBindingNames().size(); i++) {
+            if(!labels1.isEmpty())
+              labels1 += ",";
+            labels1 += "\""+result.getBindingNames().get(i)+"\"";
+          }
+          while (result.hasNext()) {
+            BindingSet binding = result.next();
+
+            if(!series.isEmpty())
+              series += ", ";
+            series += "[";
+            for(int i=0; i<result.getBindingNames().size(); i++) {
+              String n = result.getBindingNames().get(i);
+              String v = "";
+              if (binding.getValue(n) != null) {
+                v = binding.getValue(n).stringValue();
+              }
+              if(i==0) {
+                if(!labels2.isEmpty())
+                  labels2 += ", ";
+                labels2 += "\""+v+"\"";
+              } else {
+                if(i>1)
+                  series += ", ";
+                if(v.matches("-?\\d+(\\.\\d+)?"))
+                  series += v;
+                else
+                  series += "\""+v+"\"";
+              }
+            }
+            series += "]";
+          }
+        }
+      } else if (this.queryType.equals("SQL")) {
+
+        DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
+        mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
+        ResultSet resultSet = mysql_access.readDataBase(this.query);
+        if (resultSet != null) {
+          int nCols = resultSet.getMetaData().getColumnCount();
+          if(nCols > 0)
+            desc = resultSet.getMetaData().getColumnLabel(1);
+          for(int i=2; i<=nCols; i++) {
+            if(!labels1.isEmpty())
+              labels1 += ",";
+            labels1 += "\""+resultSet.getMetaData().getColumnLabel(i)+"\"";
+          }
+            
+          while (resultSet.next()) {
+            if(!series.isEmpty())
+              series += ", ";
+            series += "[";
+            for(int i=1; i<=nCols; i++) {
+              String v = resultSet.getString(i);
+              if(i==1) {
+                if(!labels2.isEmpty())
+                  labels2 += ", ";
+                labels2 += "\""+v+"\"";
+              } else {
+                if(i>2)
+                  series += ", ";
+                if(v.matches("-?\\d+(\\.\\d+)?"))
+                  series += v;
+                else
+                  series += "\""+v+"\"";
+              }
+            }
+            series += "]";
+          }
+        }
+        mysql_access.close();
+      }
+
+      if (!labels1.isEmpty()) {
+        //this.almMng.updateStatusOnMeasuredValue(sumFixed);
+        String json = "{\"firstAxis\": {\"desc\": \"\",\"labels\": ["+labels1+"]},\"secondAxis\": {\"desc\": \""+desc+"\",\"labels\":["+labels2+"],\"series\":["+series+"]}}";
+        System.out.println(this.idProc + " " + json);
+        DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
+        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date data_attuale = new Date();
+        String data_attuale_fixed = df2.format(data_attuale);
+        //System.out.println(data_attuale_fixed);
+        String query_insert = "INSERT INTO Dashboard.Data"
+                + "(IdMetric_data, computationDate, series) VALUES"
+                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\",'" + json.replace("'", "\\'") +"')";
+
+        mysql_access2.writeDataBaseData(query_insert);
+        mysql_access2.close();
+      }
+    } catch (Exception exp) {
+      exp.printStackTrace();
       ErrorEmailSetUp(this.idProc, this.descrip, exp);
     }
   }
@@ -552,7 +736,8 @@ public class ManagerQuery implements Runnable, Serializable {
       HttpClient httpClient = new DefaultHttpClient(httpParameters);
       //String apiUrl = "http://servicemap.disit.org/WebAppGrafo/api/?selection=" + minlat + "%3B" + minlng + "%3B" + maxlat + "%3B" + maxlng + "%3B&categories=Wifi&format=json&maxResults=1000";
       //la query che determina l'area dei firenzewifi ritorna una area enorme che non copre la sola firenze
-      String apiUrl = "http://servicemap.disit.org/WebAppGrafo/api/?selection=COMUNE%20di%20FIRENZE&categories=Wifi&format=json&maxResults=1000";
+      Configuration conf = Configuration.getInstance();
+      String apiUrl = conf.get("servicemapApiBaseUrl", "http://servicemap.disit.org/WebAppGrafo/api/")+"?selection=COMUNE%20di%20FIRENZE&categories=Wifi&format=json&maxResults=1000";
       System.out.println(apiUrl);
       HttpGet httpGet = new HttpGet(apiUrl);
       httpGet.addHeader("Content-Type", "application/json");

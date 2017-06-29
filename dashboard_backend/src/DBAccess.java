@@ -94,6 +94,7 @@ public class DBAccess {
       return resultSet;
     } catch (Exception exp) {
       System.out.println("Errore in metodo readDataBase");
+      exp.printStackTrace();
       //Utility.WriteExcepLog(logger, exp);
       return null;
     }

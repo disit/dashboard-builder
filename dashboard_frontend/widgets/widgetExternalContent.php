@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -16,6 +16,7 @@
 
     include('../config.php');
 ?>
+
 <script type='text/javascript'>
     $(document).ready(function iframe(firstLoad) 
     {
@@ -58,13 +59,10 @@
         var url = "<?= $_GET['link_w'] ?>";
         var numCols = "<?= $_GET['numCols'] ?>";
         var wrapperW = $('#<?= $_GET['name'] ?>_div').outerWidth();
-        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
-            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
-            rangeMin, rangeMax, widgetParameters, mapQuery, topWrapper, originalWidth, originalHeight, height, zoomDisplayTimeout, wrapperH = null;
-        
+        var widgetProperties, styleParameters, topWrapper, height, zoomDisplayTimeout, wrapperH = null;
         
         //Definizioni di funzione specifiche del widget
-        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        //Restituisce il JSON delle soglie se presente, altrimenti NULL
         function getThresholdsJson()
         {
             var thresholdsJson = null;
@@ -297,6 +295,8 @@
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             
+            $('#<?= $_GET['name'] ?>_div').attr("data-noPointsUrl", url);
+            
             //Inizio eventuale codice ad hoc basato sui dati della metrica
             if((hostFile === "index") && (showTitle === "no"))
             {
@@ -326,6 +326,7 @@
             
             $("#<?= $_GET['name'] ?>_iFrame").load(iframeLoaded);
             $('#<?= $_GET['name'] ?>_iFrame').attr("src", url);
+            $('#<?= $_GET['name'] ?>_iFrame').attr("data-oldsrc", url);
             
             $('#<?= $_GET['name'] ?>_xPlus').on('click', function () 
             {
@@ -436,11 +437,12 @@
     });//Fine document ready 
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_GET['name'] ?>_div" data-emptyMapShown="false">
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>
+                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
@@ -460,6 +462,7 @@
         
         <div id="<?= $_GET['name'] ?>_content" class="content">
             <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_mapDiv" class="mapDiv"></div>
             <div id="<?= $_GET['name'] ?>_wrapper" class="iframeWrapper">
                 <div id="<?= $_GET['name'] ?>_zoomControls" class="iframeZoomControls">
                     <div id="<?= $_GET['name'] ?>_dimDiv" class="zoomControlsRow">
@@ -493,6 +496,7 @@
                 <div id="<?= $_GET['name'] ?>_zoomDisplay" class="zoomDisplay"></div>
                 <iframe id="<?= $_GET['name'] ?>_iFrame" class="iFrame"></iframe>
             </div>
+            <div id="<?= $_GET['name'] ?>_defaultMapDiv" class="defaultMapDiv"></div>
         </div>
     </div>	
 </div> 

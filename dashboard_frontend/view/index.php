@@ -1,6 +1,6 @@
 <?php 
     /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -82,7 +82,23 @@
     <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">-->
     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
     
+    <!-- OpenLayers -->
+    <!-- <script src="https://openlayers.org/api/OpenLayers.js"></script>-->
+    
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
+   integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
+   crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"
+   integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg=="
+   crossorigin=""></script>
+   
+   <!-- Dot dot dot -->
+   <script src="../dotdotdot/jquery.dotdotdot.js" type="text/javascript"></script>
+    
     <script src="../js/widgetsCommonFunctions.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../widgets/trafficEventsTypes.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../widgets/alarmTypes.js" type="text/javascript" charset="utf-8"></script>
 
     <script type='text/javascript'>
         var array_metrics = new Array();
@@ -104,7 +120,7 @@
             
             $.ajax({
                 url: "../management/get_data.php",
-                //Tocca lasciare il vecchio refuso "iddasboard" per non cambiare i link...
+                //Lasciare il vecchio refuso "iddasboard" per non cambiare i link
                 data: {action: "get_param_dashboard", dashboardId: <?= base64_decode($_GET['iddasboard']) ?>},
                 type: "GET",
                 async: true,
@@ -208,7 +224,7 @@
                         $("#clock").css("font-size", clockFontSizeMod + "pt");
                         
                         var whiteSpaceRegex = '^[ t]+';
-                        if((data[i].subtitle_header == "") || (data[i].subtitle_header == null) ||(typeof data[i].subtitle_header == 'undefined') ||(data[i].subtitle_header.match(whiteSpaceRegex)))
+                        if((data[i].subtitle_header === "") || (data[i].subtitle_header === null) ||(typeof data[i].subtitle_header === 'undefined') ||(data[i].subtitle_header.match(whiteSpaceRegex)))
                         {
                             $("#dashboardTitle").css("height", "100%");
                             $("#dashboardSubtitle").css("display", "none");
@@ -254,7 +270,7 @@
                             min_cols: num_cols,
                             max_size_x: 30,
                             max_rows: 50,
-                            extra_rows: 30,
+                            extra_rows: 40,
                             draggable: {ignore_dragging: true},
                             serialize_params: function ($w, wgd){
                                 return {
@@ -518,6 +534,88 @@
                 </div>
             </div>
         </div> 
+        
+        <!-- Modale cambio stato evacuation plan -->
+        <div class="modal fade" tabindex="-1" id="modalChangePlanStatus" role="dialog" aria-labelledby="myModalLabel">
+            <div id="modalChangePlanStatusDialog" class="modal-dialog modal-lg" role="document"> 
+                <div class="modal-content">
+                    <div id="modalChangePlanStatusModalTitle" class="modal-header centerWithFlex">
+                        evacuation plan status management
+                    </div>
+                    <div id="modalChangePlanStatusMain" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
+                                plan identifier
+                            </div> 
+                            <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
+                                current approval status
+                            </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-6 centerWithFlex" id="modalChangePlanStatusTitle" ></div> 
+                           <div class="col-sm-4 col-sm-offset-1 centerWithFlex" id="modalChangePlanStatusStatus"></div>
+                        </div>
+                       
+                        <div class="row">
+                           <div class="col-sm-6 col-sm-offset-3 centerWithFlex modalChangePlanStatusLabel">
+                               new approval status 
+                           </div> 
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-4 col-sm-offset-4 centerWithFlex">
+                               <select class="form-control" id="modalChangePlanStatusSelect" name="modalChangePlanStatusSelect" required></select> 
+                           </div> 
+                        </div>
+                    </div>
+                    <div id="modalChangePlanStatusWait" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                updating status, please wait
+                            </div> 
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                <i class="fa fa-spinner fa-spin" style="font-size:84px"></i>
+                            </div> 
+                        </div>
+                    </div>
+                    <div id="modalChangePlanStatusOk" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-10 col-sm-offset-1 centerWithFlex">
+                                status successfully updated
+                            </div> 
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                <i class="fa fa-thumbs-o-up" style="font-size:84px"></i>
+                            </div> 
+                        </div>
+                    </div>
+                    <div id="modalChangePlanStatusKo" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-12 centerWithFlex">
+                                error while trying to send new status to server, please try again
+                            </div> 
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                <i class="fa fa-thumbs-down" style="font-size:84px"></i>
+                            </div> 
+                        </div>
+                    </div>
+                    
+                    
+                    <input type="hidden" id="modalChangePlanStatusPlanId" />
+                    <input type="hidden" id="modalChangePlanStatusCurrentStatus" />
+                   
+                    <div id="modalChangePlanStatusFooter" class="modal-footer centerWithFlex">
+                       <button type="button" class="btn btn-secondary" id="modalChangePlanStatusCancelBtn">cancel</button>
+                       <button type="button" class="btn btn-primary" id="modalChangePlanStatusConfirmBtn">confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </div>
 </body>
 </html>

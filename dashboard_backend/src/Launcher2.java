@@ -50,8 +50,7 @@ public class Launcher2 implements Serializable {
           while (this.listProcess.next()) {
             try {
               if ((this.listProcess.getString("status").trim()).equals("Attivo")) {
-                if (!((this.listProcess.getString("processType").trim()).equals("API"))) {
-                  
+                if (!((this.listProcess.getString("processType").trim()).equals("API")) && this.listProcess.getString("queryType")!=null) {
                   String id = this.listProcess.getString("IdMetric").trim();
                   String desc = this.listProcess.getString("description");
                   //String status = this.listProcess.getString("status").trim();

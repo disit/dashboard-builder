@@ -1,5 +1,5 @@
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -16,7 +16,6 @@
 //Globals
 var series, widgetType, editors, editorsM, currentEditor, infoJson = null;
 
-//Definizioni di funzione
 //Usata in tutti i case dell'ascoltatore di cambio tipo widget in aggiunta widget
 function removeWidgetProcessGeneralFields(op)
 {
@@ -91,14 +90,13 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
 {
     var name, editor, infoNamesJsonFirstAxis, infoNamesJsonSecondAxis = null;
     series = seriesObject;
-    editors = editorsArray;
     
     $("#infoTextareaDiv textarea[id!='widgetInfoEditor']").remove();
     
     //Distruggiamo tutte le istanze precedenti dei CKEDITOR per le info
-    for (var key in editors) 
+    for (var key in editorsArray) 
     {
-        name = editors[key].attr('id');
+        name = editorsArray[key].attr('id');
         editor = CKEDITOR.instances[name.toString()];
         if(editor)
         {
@@ -118,7 +116,7 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
     
     switch (widgetType)
     {
-        case "widgetTable": case "widgetBarSeries": case "widgetScatterSeries": case "widgetLineSeries": case "widgetCurvedLineSeries": case "widgetPieChartSeries": case "widgetRadarSeries":
+        case "widgetTable": case "widgetBarSeries": case "widgetScatterSeries": case "widgetLineSeries": case "widgetCurvedLineSeries": case "widgetPieChartSeries": case "widgetRadarSeries": case "widgetFirstAid":
             var id = null;
             
             $("#infoMainSelect").empty();
@@ -142,10 +140,10 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
             $('label[for="infoMainSelect"]').show();
             $("#infoMainSelect").show();
             
-            editors['widgetInfoEditor'] = $('<textarea id ="widgetInfoEditor" name="widgetInfoEditor" rows="1"></textarea>');
-            editors['widgetInfoEditor'].addClass("ckeditor");
-            editors['widgetInfoEditor'].css("display", "none");
-            $('#infoTextareaDiv').append(editors['widgetInfoEditor']);
+            editorsArray['widgetInfoEditor'] = $('<textarea id ="widgetInfoEditor" name="widgetInfoEditor" rows="1"></textarea>');
+            editorsArray['widgetInfoEditor'].addClass("ckeditor");
+            editorsArray['widgetInfoEditor'].css("display", "none");
+            $('#infoTextareaDiv').append(editorsArray['widgetInfoEditor']);
             CKEDITOR.replace(editorsArray['widgetInfoEditor'].attr('id'), {
                 allowedContent: true,
                 language: 'en',
@@ -153,7 +151,7 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
                 height: '100'
             });
             
-            CKEDITOR.instances[editors['widgetInfoEditor'].attr('id')].on("instanceReady", hideCkEditors);
+            CKEDITOR.instances[editorsArray['widgetInfoEditor'].attr('id')].on("instanceReady", hideCkEditors);
             
             //Creazione editor di base per tutti i campi di entrambi gli assi
             for(var i in series.firstAxis.labels)
@@ -165,10 +163,10 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
                 infoNamesJsonFirstAxis.push(id);
                 
                 //Creazione textarea di base
-                editors[id] = $('<textarea id ="' + id + '" name="' + id + '" rows="1"></textarea>');
-                editors[id].addClass("ckeditor");
-                editors[id].css("display", "none");
-                $('#infoTextareaDiv').append(editors[id]);
+                editorsArray[id] = $('<textarea id ="' + id + '" name="' + id + '" rows="1"></textarea>');
+                editorsArray[id].addClass("ckeditor");
+                editorsArray[id].css("display", "none");
+                $('#infoTextareaDiv').append(editorsArray[id]);
             }
             
             for(var i in series.secondAxis.labels)
@@ -180,10 +178,10 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
                 infoNamesJsonSecondAxis.push(id);
                 
                 //Creazione textarea di base
-                editors[id] = $('<textarea id ="' + id + '" name="' + id + '" rows="1"></textarea>');
-                editors[id].addClass("ckeditor");   
-                editors[id].css("display", "none");
-                $('#infoTextareaDiv').append(editors[id]);
+                editorsArray[id] = $('<textarea id ="' + id + '" name="' + id + '" rows="1"></textarea>');
+                editorsArray[id].addClass("ckeditor");   
+                editorsArray[id].css("display", "none");
+                $('#infoTextareaDiv').append(editorsArray[id]);
             }
             
             //Storage dell'infoNamesJson nel campo hidden omonimo nel form
@@ -195,9 +193,14 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
             $("#infoMainSelect").append('<option value="fieldsInfo">Data informations</option>');
             $("#infoMainSelect").val(-1);
             
+            $("#infoMainSelect").off("change");
+            $("#infoAxisSelect").off("change");
+            $("#infoFieldSelect").off("change");
             $("#infoMainSelect").change(widgetInfoMainSelectHandler);    
             $("#infoAxisSelect").change(widgetInfoAxisHandler);
             $("#infoFieldSelect").change(widgetInfoFieldHandler);
+            
+            editors = editorsArray;
             break;
         
         default:
@@ -214,10 +217,10 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
             $("#infoFieldSelect").hide();
             
             //L'editor delle info widget viene creato per tutti i tipi di widget
-            editors['widgetInfoEditor'] = $('<textarea id ="widgetInfoEditor" name="widgetInfoEditor" rows="1"></textarea>');
-            editors['widgetInfoEditor'].addClass("ckeditor");
-            editors['widgetInfoEditor'].css("display", "none");
-            $('#infoTextareaDiv').append(editors['widgetInfoEditor']);
+            editorsArray['widgetInfoEditor'] = $('<textarea id ="widgetInfoEditor" name="widgetInfoEditor" rows="1"></textarea>');
+            editorsArray['widgetInfoEditor'].addClass("ckeditor");
+            editorsArray['widgetInfoEditor'].css("display", "none");
+            $('#infoTextareaDiv').append(editorsArray['widgetInfoEditor']);
             CKEDITOR.replace(editorsArray['widgetInfoEditor'].attr('id'), {
                 allowedContent: true,
                 language: 'en',
@@ -232,22 +235,26 @@ function showInfoWCkeditors(widgetType, editorsArray, seriesObject)
 function showInfoWCkeditorsM(widgetType, editorsArray, seriesObject, infoJsonObject, infoWidget)
 {
     var name, editor, infoNamesJsonFirstAxis, infoNamesJsonSecondAxis = null;
+    //var series = seriesObject;
     series = seriesObject;
     editorsM = editorsArray;
-    infoJson = infoJsonObject;
+    var infoJson = infoJsonObject;
 
     infoNamesJsonFirstAxis = new Array();
     infoNamesJsonSecondAxis = new Array();
     
     //Distruggiamo tutte le istanze precedenti dei CKEDITOR per le info
-    for (var key in editorsM) 
+    for(var key in editorsM) 
     {
         name = editorsM[key].attr('id');
         editor = CKEDITOR.instances[name.toString()];
+        
+        console.log("Editor in distruzione: " + name);
+        
         if(editor)
         {
             editor.destroy(true);
-            $('#infoTextareaDiv').find('#' + name).remove();
+            $('#infoTextareaDivM').find('#' + name).remove();
         }
     }
     
@@ -262,7 +269,79 @@ function showInfoWCkeditorsM(widgetType, editorsArray, seriesObject, infoJsonObj
     
     switch (widgetType)
     {
-        case "widgetTable":
+      case "widgetFirstAid":
+         var id = null;
+            
+         $('label[for="infoMainSelectM"]').show();
+         $("#infoMainSelectM").show();
+
+         editorsM['widgetInfoEditorM'] = $('<textarea id ="widgetInfoEditorM" name="widgetInfoEditorM" rows="1"></textarea>');
+         editorsM['widgetInfoEditorM'].addClass("ckeditor");
+         editorsM['widgetInfoEditorM'].css("display", "none");
+         editorsM['widgetInfoEditorM'].val(infoWidget);
+         $('#infoTextareaDivM').append(editorsM['widgetInfoEditorM']);
+         CKEDITOR.replace(editorsM['widgetInfoEditorM'].attr('id'), {
+             allowedContent: true,
+             language: 'en',
+             width: '100%',
+             height: '100'
+         });
+
+         CKEDITOR.instances[editorsM['widgetInfoEditorM'].attr('id')].on("instanceReady", hideCkEditors);
+
+         //Creazione editor di base per tutti i campi di entrambi gli assi
+         for(var i in series.firstAxis.labels)
+         {
+             //Sostituzione di eventuali spazi con '_' per creare gli id
+             id = series.firstAxis.labels[i].toString().replace(/\s/g, '_');
+
+             //Aggiunta del nome all'infoNamesJson
+             infoNamesJsonFirstAxis.push(id);
+
+             //Creazione textarea di base
+             editorsM[id] = $('<textarea id ="' + id + '" name="' + id + '" rows="1"></textarea>');
+             editorsM[id].addClass("ckeditor");
+             editorsM[id].val(infoJson.firstAxis[id]);
+             $('#infoTextareaDivM').append(editorsM[id]);
+             editorsM[id].css("display", "none");
+         }
+
+         for(var i in series.secondAxis.labels)
+         {
+             //Sostituzione di eventuali spazi con '_' per creare gli id
+             id = series.secondAxis.labels[i].toString().replace(/\s/g, '_');
+
+             //Aggiunta del nome all'infoNamesJson
+             infoNamesJsonSecondAxis.push(id);
+
+             //Creazione textarea di base
+             editorsM[id] = $('<textarea id ="' + id + '" name="' + id + '" rows="1"></textarea>');
+             editorsM[id].addClass("ckeditor"); 
+             editorsM[id].val(infoJson.secondAxis[id]);
+             $('#infoTextareaDivM').append(editorsM[id]);
+             editorsM[id].css("display", "none");
+         }
+
+         //Storage dell'infoNamesJson nel campo hidden omonimo nel form
+         $("#infoNamesJsonFirstAxisM").val(JSON.stringify(infoNamesJsonFirstAxis));
+         $("#infoNamesJsonSecondAxisM").val(JSON.stringify(infoNamesJsonSecondAxis));
+
+         //Popolamento della select del target
+         $("#infoMainSelectM").empty();
+         $("#infoMainSelectM").append('<option value="widgetInfo">Widget informations</option>');
+         $("#infoMainSelectM").append('<option value="fieldsInfo">Data informations</option>');
+         $("#infoMainSelectM").val(-1);
+         $('label[for="infoAxisSelectM"').hide();
+         $("#infoAxisSelectM").parent().hide();
+         $('label[for="infoFieldSelectM"').hide();
+         $("#infoFieldSelectM").parent().hide();
+
+         $("#infoMainSelectM").change(widgetInfoMainSelectHandlerM);    
+         $("#infoAxisSelectM").change(widgetInfoAxisHandlerM);
+         $("#infoFieldSelectM").change(widgetInfoFieldHandlerM);
+         break;
+      
+         case "widgetTable":
             var id = null;
             
             $('label[for="infoMainSelectM"]').show();
@@ -656,7 +735,19 @@ function widgetInfoMainSelectHandler()
             $("#widgetInfoCkEditorTitle").hide();
             //Popolamento della select degli assi
             $("#infoAxisSelect").append('<option value="' + series.firstAxis.desc + '">' + series.firstAxis.desc + '</option>');
-            $("#infoAxisSelect").append('<option value="' + series.secondAxis.desc + '">' + series.secondAxis.desc + '</option>');
+            
+            if($("#addWidgetFirstAidMode").length === 0)
+            {
+               $("#infoAxisSelect").append('<option value="' + series.secondAxis.desc + '">' + series.secondAxis.desc + '</option>');
+            }
+            else
+            {
+               if($("#addWidgetFirstAidMode").val() !== "singleSummary")
+               {
+                  $("#infoAxisSelect").append('<option value="' + series.secondAxis.desc + '">' + series.secondAxis.desc + '</option>');
+               }
+            }
+            
             $('label[for="infoAxisSelect"]').show();
             $("#infoAxisSelect").show();
             $("#infoAxisSelect").val(-1);
@@ -695,18 +786,31 @@ function widgetInfoMainSelectHandlerM()
             $("#widgetInfoCkEditorTitleRowM").hide();
             $("#widgetInfoCkEditorTitleM").hide();
             //Popolamento della select degli assi
+            $("#infoAxisSelectM").empty();
             $("#infoAxisSelectM").append('<option value="' + series.firstAxis.desc + '">' + series.firstAxis.desc + '</option>');
-            $("#infoAxisSelectM").append('<option value="' + series.secondAxis.desc + '">' + series.secondAxis.desc + '</option>');
+            
+            if($("#editWidgetFirstAidMode").length === 0)
+            {
+               $("#infoAxisSelectM").append('<option value="' + series.secondAxis.desc + '">' + series.secondAxis.desc + '</option>');
+            }
+            else
+            {
+               if($("#editWidgetFirstAidMode").val() !== "singleSummary")
+               {
+                  $("#infoAxisSelectM").append('<option value="' + series.secondAxis.desc + '">' + series.secondAxis.desc + '</option>');
+               }
+            }
             $('label[for="infoAxisSelectM"]').show();
+            $("#infoAxisSelectM").parent().show();
             $("#infoAxisSelectM").show();
             $("#infoAxisSelectM").val(-1);
             break;
             
         default:
-            $('label[for="infoAxisSelect"]').hide();
-            $('label[for="infoFieldSelect"]').hide();
-            $("#infoAxisSelect").hide();
-            $("#infoFieldSelect").hide();
+            $('label[for="infoAxisSelectM"]').hide();
+            $('label[for="infoFieldSelectM"]').hide();
+            $("#infoAxisSelectM").hide();
+            $("#infoFieldSelectM").hide();
             break;
     }
 }
@@ -719,6 +823,7 @@ function widgetInfoAxisHandler()
     $("#widgetInfoCkEditorTitleRow").hide();
     $("#widgetInfoCkEditorTitle").hide();
     $('label[for="infoFieldSelect"]').show();
+    $("#infoFieldSelect").parent().show();
     $("#infoFieldSelect").show();
     
     //Vengono nascosti i ckeditors pregressi
@@ -751,6 +856,7 @@ function widgetInfoAxisHandlerM()
     $("#widgetInfoCkEditorTitleRowM").hide();
     $("#widgetInfoCkEditorTitleM").hide();
     $('label[for="infoFieldSelectM"]').show();
+    $("#infoFieldSelectM").parent().show();
     $("#infoFieldSelectM").show();
     
     //Vengono nascosti i ckeditors pregressi
@@ -813,7 +919,6 @@ function widgetInfoFieldHandler()
             }
         }
     }
-    
 }
 
 //Usata solo in showInfoWCkeditorsM
@@ -826,10 +931,12 @@ function widgetInfoFieldHandlerM()
     $("#widgetInfoCkEditorTitleRowM").show();
     $("#widgetInfoCkEditorTitleM").show();
     
-    for (var key in editorsM) 
+    for(var key in editorsM) 
     {
         editorName = editorsM[key].attr('id');
+        
         editorInstance = CKEDITOR.instances[editorName.toString()];
+        
         if(id === editorName)
         {
             if(editorInstance)
@@ -1212,12 +1319,27 @@ function buildEmptyThrTables()
 {
     for(i = 0; i < series.firstAxis.labels.length; i++)
     {
-        thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+        if($("#select-widget").val() !== "widgetFirstAid")
+        {
+           thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+        }
+        else
+        {
+           thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+        }
     }
 
     for(var i = 0; i < series.secondAxis.labels.length; i++)
     {
-        thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+        
+        if($("#select-widget").val() !== "widgetFirstAid")
+        {
+           thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+        }
+        else
+        {
+           thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Short description</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+        }
     } 
 }
 
@@ -1544,7 +1666,19 @@ function refreshTableListeners(set, i)
            $( this ).click(delThrRange);
         });
         thrTables1[i].find('i.fa-plus').each(function() {
-           $( this ).click(addThrRange);
+           $(this).click(addThrRange);
+           /*if($("#select-widget").val() !== "widgetFirstAid")
+           {
+              $(this).click(addThrRange);
+           }
+           else
+           {
+              if($("#addWidgetRangeTableContainer table tr").length === 1)
+              {
+                 $(this).click(addThrRange);
+              }
+           }*/
+           
         });
         thrTables1[i].find('div.colorPicker').each(function() {
             field = $( this ).attr('data-field');
@@ -2033,36 +2167,43 @@ function addThrRange()
 
     if($('#alrAxisSel').val() === series.firstAxis.desc)
     {
-        //Aggiungiamo un elemento alle thrSeries in esame, di modo che poi possa accogliere i nuovi valori dal save di XEditor
-        newRangeObj = {
-            "min":"0",
-            "max":"0",
-            "color":"#FFFFFF",
-            "desc":""
-        };
-        currentParams.thresholdObject.firstAxis.fields[currentFieldIndex].thrSeries.push(newRangeObj);
+       if(($("#select-widget").val() !== "widgetFirstAid")|| (($("#select-widget").val() === "widgetFirstAid")&&(currentParams.thresholdObject.firstAxis.fields[currentFieldIndex].thrSeries.length === 0)))
+       {
+         //Aggiungiamo un elemento alle thrSeries in esame, di modo che poi possa accogliere i nuovi valori dal save di XEditor
+         newRangeObj = {
+             "min":"0",
+             "max":"0",
+             "color":"#FFFFFF",
+             "desc":""
+         };
+         currentParams.thresholdObject.firstAxis.fields[currentFieldIndex].thrSeries.push(newRangeObj);
 
-        //Aggiunta record alla thrTable dell'asse di appartenenza
-        newTableRow = $('<tr></tr>');
-        newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="min">0</a></td>');
-        newTableCell.find('a').editable();
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="max">0</td>');
-        newTableCell.find('a').editable();
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-        newTableRow.append(newTableCell);
-        newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
-        newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxis);                
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="desc"></a></td>');
-        newTableCell.find('a').editable();
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><a data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-        newTableCell.find('i').click(delThrRange);
-        newTableRow.append(newTableCell);
-        newTableRow.find('a.toBeEdited').on('save', updateParamsFirstAxis);
-        thrTables1[$('#alrFieldSel').val()].append(newTableRow);
+         //Aggiunta record alla thrTable dell'asse di appartenenza
+         newTableRow = $('<tr></tr>');
+         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="min">0</a></td>');
+         newTableCell.find('a').editable();
+         newTableRow.append(newTableCell);
+         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="max">0</td>');
+         newTableCell.find('a').editable();
+         newTableRow.append(newTableCell);
+
+         if($("#select-widget").val() !== "widgetFirstAid")
+         {
+            newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+            newTableRow.append(newTableCell);
+            newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
+            newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxis);                
+         }
+
+         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="desc"></a></td>');
+         newTableCell.find('a').editable();
+         newTableRow.append(newTableCell);
+         newTableCell = $('<td><a data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+         newTableCell.find('i').click(delThrRange);
+         newTableRow.append(newTableCell);
+         newTableRow.find('a.toBeEdited').on('save', updateParamsFirstAxis);
+         thrTables1[$('#alrFieldSel').val()].append(newTableRow);
+       }
     }
     else if($('#alrAxisSel').val() === series.secondAxis.desc)
     {
@@ -2277,8 +2418,15 @@ function buildThrTablesForEditWidget()
     var min, max, color, desc = null;
     for(i = 0; i < series.firstAxis.labels.length; i++)
     {
-        thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
-
+        if($("#select-widget-m").val() !== "widgetFirstAid")
+        {
+           thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
+        }
+        else
+        {
+           thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
+        }
+        
         if(currentParams !== null)
         {
             if(currentParams.thresholdObject.target === currentParams.thresholdObject.firstAxis.desc)
@@ -2292,8 +2440,12 @@ function buildThrTablesForEditWidget()
                         {
                             min = parseInt(thrSeries[k].min);
                             max = parseInt(thrSeries[k].max);
-                            color = thrSeries[k].color;
-                            desc = thrSeries[k].desc;
+                            
+                            if($("#select-widget-m").val() !== "widgetFirstAid")
+                            {
+                               color = thrSeries[k].color;
+                               desc = thrSeries[k].desc;
+                            }
 
                             //Aggiunta a tabella
                             newTableRow = $('<tr></tr>');
@@ -2302,11 +2454,14 @@ function buildThrTablesForEditWidget()
 
                             newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="max">' + max + '</a></td>');
                             newTableRow.append(newTableCell);
-
-                            newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                            newTableRow.append(newTableCell);
-                            newTableRow.find('div.colorPicker').colorpicker({color: color});
-                            newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxisM);
+                            
+                            if($("#select-widget-m").val() !== "widgetFirstAid")
+                            {
+                               newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                               newTableRow.append(newTableCell);
+                               newTableRow.find('div.colorPicker').colorpicker({color: color});
+                               newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxisM);
+                            }
                             
                             newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="desc">' + desc + '</a></td>');
                             newTableRow.append(newTableCell);
@@ -2323,7 +2478,15 @@ function buildThrTablesForEditWidget()
 
     for(var i = 0; i < series.secondAxis.labels.length; i++)
     {
-        thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
+        if($("#select-widget-m").val() !== "widgetFirstAid")
+        {
+           thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
+        }
+        else
+        {
+           thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
+        }
+      
         if(currentParams !== null)
         {
             if(currentParams.thresholdObject.target === currentParams.thresholdObject.secondAxis.desc)
@@ -2337,8 +2500,11 @@ function buildThrTablesForEditWidget()
                         {
                             min = parseInt(thrSeries[k].min);
                             max = parseInt(thrSeries[k].max);
-                            color = thrSeries[k].color;
-                            desc = thrSeries[k].desc;
+                            if($("#select-widget-m").val() !== "widgetFirstAid")
+                            {
+                               color = thrSeries[k].color;
+                               desc = thrSeries[k].desc;
+                            }
 
                             //Aggiunta a tabella
                             newTableRow = $('<tr></tr>');
@@ -2349,10 +2515,13 @@ function buildThrTablesForEditWidget()
                             newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="max">' + max + '</a></td>');
                             newTableRow.append(newTableCell);
                             
-                            newTableCell = $('<td><div class="input-group colorPicker" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                            newTableRow.find('div.colorPicker').colorpicker({color: color});
-                            newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSecondAxisM);
-                            newTableRow.append(newTableCell);
+                            if($("#select-widget-m").val() !== "widgetFirstAid")
+                            {
+                              newTableCell = $('<td><div class="input-group colorPicker" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                              newTableRow.find('div.colorPicker').colorpicker({color: color});
+                              newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSecondAxisM);
+                              newTableRow.append(newTableCell);
+                            }
                             
                             newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="desc">' + desc + '</a></td>');
                             newTableRow.append(newTableCell);
@@ -2675,36 +2844,42 @@ function addThrRangeM(){
 
     if($('#alrAxisSelM').val() === series.firstAxis.desc)
     {
-        //Aggiungiamo un elemento alle thrSeries in esame, di modo che poi possa accogliere i nuovi valori dal save di XEditor
-        newRangeObj = {
-            "min":"0",
-            "max":"0",
-            "color":"#FFFFFF",
-            "desc": ""
-        };
-        currentParams.thresholdObject.firstAxis.fields[currentFieldIndex].thrSeries.push(newRangeObj);
+       if(($("#select-widget-m").val() !== "widgetFirstAid")|| (($("#select-widget-m").val() === "widgetFirstAid")&&(currentParams.thresholdObject.firstAxis.fields[currentFieldIndex].thrSeries.length === 0)))
+       {
+         //Aggiungiamo un elemento alle thrSeries in esame, di modo che poi possa accogliere i nuovi valori dal save di XEditor
+         newRangeObj = {
+             "min":"0",
+             "max":"0",
+             "color":"#FFFFFF",
+             "desc": ""
+         };
+         currentParams.thresholdObject.firstAxis.fields[currentFieldIndex].thrSeries.push(newRangeObj);
 
-        //Aggiunta record alla thrTable dell'asse di appartenenza
-        newTableRow = $('<tr></tr>');
-        newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="min">0</a></td>');
-        newTableCell.find('a').editable();
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="max">0</td>');
-        newTableCell.find('a').editable();
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-        newTableRow.append(newTableCell);
-        newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
-        newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxisM);                
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="desc"></a></td>');
-        newTableCell.find('a').editable();
-        newTableRow.append(newTableCell);
-        newTableCell = $('<td><a data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-        newTableCell.find('i').click(delThrRangeM);
-        newTableRow.append(newTableCell);
-        newTableRow.find('a.toBeEdited').on('save', updateParamsFirstAxisM);
-        thrTables1[$('#alrFieldSelM').val()].append(newTableRow);
+         //Aggiunta record alla thrTable dell'asse di appartenenza
+         newTableRow = $('<tr></tr>');
+         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="min">0</a></td>');
+         newTableCell.find('a').editable();
+         newTableRow.append(newTableCell);
+         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="max">0</td>');
+         newTableCell.find('a').editable();
+         newTableRow.append(newTableCell);
+         if($("#select-widget-m").val() !== "widgetFirstAid")
+         {
+            newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+            newTableRow.append(newTableCell);
+            newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
+            newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxisM);                
+            newTableRow.append(newTableCell);
+         }
+         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="desc"></a></td>');
+         newTableCell.find('a').editable();
+         newTableRow.append(newTableCell);
+         newTableCell = $('<td><a data-axis="firstAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+         newTableCell.find('i').click(delThrRangeM);
+         newTableRow.append(newTableCell);
+         newTableRow.find('a.toBeEdited').on('save', updateParamsFirstAxisM);
+         thrTables1[$('#alrFieldSelM').val()].append(newTableRow);
+       }
     }
     else if($('#alrAxisSelM').val() === series.secondAxis.desc)
     {
@@ -2724,10 +2899,13 @@ function addThrRangeM(){
         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="max">0</td>');
         newTableCell.find('a').editable();
         newTableRow.append(newTableCell);
-        newTableCell = $('<td><div class="input-group colorPicker" data-axis="secondAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-        newTableRow.append(newTableCell);
-        newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
-        newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSecondAxisM);                
+        if($("#select-widget-m").val() !== "widgetFirstAid")
+        {
+           newTableCell = $('<td><div class="input-group colorPicker" data-axis="secondAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+           newTableRow.append(newTableCell);
+           newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
+           newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSecondAxisM);                
+        }
         newTableRow.append(newTableCell);
         newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + currentFieldIndex + '" data-series="' + currentSeriesIndex + '" data-param="desc"></a></td>');
         newTableCell.find('a').editable();

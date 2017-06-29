@@ -1,59 +1,16 @@
-@font-face {
-    font-family: SourceSansProRegular;
-    src: url(../fonts/source-sans-pro/SourceSansPro-Black.ttf);
-}
-
-@font-face {
-    font-family: CodeBold;
-    src: url(../fonts/Code/CodeBold.otf);
-}
-
-@font-face {
-    font-family: CodeLight;
-    src: url(../fonts/Code/CodeLight.otf);
-}
-
-@font-face {
-    font-family: AllerBold;
-    src: url(../fonts/Aller/AllerBold.ttf);
-}
-
-@font-face {
-    font-family: AllerBoldIt;
-    src: url(../fonts/Aller/AllerBoldIt.ttf);
-}
-
-@font-face {
-    font-family: AllerDisplay;
-    src: url(../fonts/Aller/AllerDisplay.ttf);
-}
-
-@font-face {
-    font-family: AllerItalic;
-    src: url(../fonts/Aller/AllerIt.ttf);
-}
-
-@font-face {
-    font-family: AllerLight;
-    src: url(../fonts/Aller/AllerLight.ttf);
-}
-
-@font-face {
-    font-family: AllerLightIt;
-    src: url(../fonts/Aller/AllerLightIt.ttf);
-}
-
-@font-face {
-    font-family: AllerRegular;
-    src: url(../fonts/Aller/AllerRegular.ttf);
-}
-
-
-/*Fine fonts*/
-
 .fa-plus:hover, .fa-close:hover
 {
     cursor: pointer;
+}
+
+.notVisible
+{
+   display: none;
+}
+
+.bold
+{
+   font-weight: bold;
 }
 
 .chartContainer
@@ -176,6 +133,42 @@
     vertical-align: middle;
 }
 
+.psTable
+{
+    width: 100%;
+    height: 100%;
+    float: left;
+    border: 1px solid #dddddd;
+    border-collapse: collapse;
+    /*Per avere colonne tutte della stessa larghezza*/
+    table-layout: fixed;
+    font-family: Verdana, sans-serif;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.psTable tr
+{
+    border: 1px solid #dddddd;
+    border-collapse: collapse;
+}
+
+.psTable th
+{
+    border: 1px solid #dddddd;
+    font-weight: bold;
+    border-collapse: collapse;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.psTable td
+{
+    border: 1px solid #dddddd;
+    border-collapse: collapse;
+    text-align: center;
+    vertical-align: middle;
+}
+
 .buttonsContainer
 {
     width: 40px;
@@ -184,7 +177,6 @@
     display: flex; 
     align-items: center; 
     justify-content: center;
-    /*border: fuchsia 1px solid;*/
 }
 
 .countdownContainer
@@ -195,7 +187,6 @@
     display: flex; 
     align-items: center; 
     justify-content: center;
-    /*border: red 1px solid;*/
 }
 
 .infoButtonContainer
@@ -206,7 +197,21 @@
     display: flex; 
     align-items: center; 
     justify-content: center;
-    /*border: green 1px solid;*/
+}
+
+.mapButtonContainer
+{
+   float: left;
+   width: 25px;
+   height: 100%;
+   display: none; 
+   align-items: center; 
+   justify-content: center;
+}
+
+.mapButton
+{
+   color: #337ab7;
 }
 
 .titleDiv
@@ -221,11 +226,11 @@
     line-height: 25px;
     text-align: center;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.20);
+    font-family: Verdana;
     /*Effetto fade in caso di allarme*/
     -webkit-transition: background 1.8s ease-in-out;
     -ms-transition:     background 1.8s ease-in-out;
     transition:         background 1.8s ease-in-out;
-    /*border: red 1px solid;*/
 }
 
 #FIRENZE
@@ -238,7 +243,6 @@
 {
     width: 100%;
     height: 25px;
-    /*border: black 1px solid;*/
 }
 
 .previsione-giorno
@@ -361,13 +365,10 @@
 {
     width: 100%;
     height: 30px;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
     display: flex; 
     align-items: center; 
     justify-content: center;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .pcLegendaContainer
@@ -375,10 +376,6 @@
     height: 100%;
     float: left;
     width: 270px;
-    
-    /*border-style: solid; 
-    border-color: orange; 
-    border-width: 1px;*/
 }
 
 .pcLegendaElement
@@ -389,9 +386,6 @@
     display: flex; 
     align-items: flex-end; 
     justify-content: center;
-    /*border-style: solid; 
-    border-color: blueviolet; 
-    border-width: 1px;*/
 }
 
 .pcLegendaElementMarginRight
@@ -462,21 +456,13 @@
 .meteoPcRow
 {
     width: 100%;
-    /*height: 30px;*/
-    /*margin-bottom: 5px;*/
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .meteoPcRowLast
 {
     width: 100%;
-    height: 30px;
+    /*height: 30px;*/
     margin-bottom: 0px;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .meteoPcDesc
@@ -489,10 +475,7 @@
     font-family: Verdana, Arial, sans-serif;
     font-variant: small-caps;
     font-weight: bold;
-    font-size: 16px;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
+    /*font-size: 16px;*/
 }
 
 .meteoPcIcon
@@ -500,9 +483,6 @@
     /*width: 30px;*/
     height: 100%;
     float: left;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 @keyframes alarm {
@@ -631,13 +611,17 @@
     animation: alarm 4s ease infinite; 
 }
 
+.mapDiv
+{
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
 .iframeWrapper
 {
     width: 100%;
     height: 100%;
-    /*border-style: solid; 
-    border-color: yellow; 
-    border-width: 5px;*/
 }
 
 .iframeZoomControls
@@ -663,7 +647,6 @@
 
 .iframeZoomControls i:hover
 {
-    /*color: #1B95E0;*/
     color: yellow;
 }
 
@@ -671,7 +654,6 @@
 {
     width: 100%;
     height: 33.3333%;
-    /*border: 1px solid red;*/
 }
 
 .zoomControlsLabelDiv
@@ -688,7 +670,6 @@
     font-variant: small-caps;
     color: white;
     float: left;
-    /*border: 1px solid white;*/
 }
 
 .zoomControlsButtonsDiv
@@ -723,7 +704,6 @@
     font-weight: bold;
     font-variant: small-caps;
     visibility: hidden;
-    /*border: 1px solid red;*/
 }
 
 
@@ -779,9 +759,6 @@
     /*width: 100%;
     height: 30px;
     margin-bottom: 5px;*/
-    /*border-style: solid; 
-    border-color: black; 
-    border-width: 1px;*/
 }
 
 .twitterIcon
@@ -805,9 +782,6 @@
     align-items: center; 
     justify-content: center; 
     text-align: center;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .twitterRow .turchese
@@ -845,67 +819,281 @@
     text-decoration: none;
 }
 
-.eventsRow
+.altriEventiTitle
 {
-    /*width: 100%;
-    height: 75px;
-    margin-bottom: 5px;*/
-    /*border-style: solid; 
-    border-color: black; 
-    border-width: 1px;*/
+   background: #d9d9d9;
+   background: -webkit-linear-gradient(#d9d9d9, #ffffff); 
+   background: -o-linear-gradient(#d9d9d9, #ffffff); 
+   background: -moz-linear-gradient(#d9d9d9, #ffffff);
+   background: linear-gradient(#d9d9d9, #ffffff); 
 }
 
-.turchese
+.altriEventi
 {
-    background-color: #39ceae;
+   background: #d9d9d9;
+   background: -webkit-linear-gradient(right, #d9d9d9, #ffffff); 
+   background: -o-linear-gradient(right, #d9d9d9, #ffffff); 
+   background: -moz-linear-gradient(right, #d9d9d9, #ffffff);
+   background: linear-gradient(to right, #d9d9d9, #ffffff); 
 }
 
-.turcheseGrad
+.apertureStraordinarieTitle
 {
-    background: #39ceae;
-    background: -webkit-linear-gradient(right, #39ceae, #7ed8a2); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, #39ceae, #7ed8a2); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, #39ceae, #7ed8a2); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, #39ceae, #7ed8a2); /* Standard syntax */
+   background: #ffcc00;
+   background: -webkit-linear-gradient(#ffcc00, #fff0b3); 
+   background: -o-linear-gradient(#ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(#ffcc00, #fff0b3);
+   background: linear-gradient(#ffcc00, #fff0b3); 
 }
 
-.arancio
+.apertureStraordinarie
 {
-    background-color: #e9883d;
+   background: #ffcc00;
+   background: -webkit-linear-gradient(right, #ffcc00, #fff0b3); 
+   background: -o-linear-gradient(right, #ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(right, #ffcc00, #fff0b3);
+   background: linear-gradient(to right, #ffcc00, #fff0b3); 
 }
 
-.arancioGrad
+.estateFiorentinaTitle
 {
-    background: #e9883d;
-    background: -webkit-linear-gradient(right, #e9883d, #faab3b); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, #e9883d, #faab3b); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, #e9883d, #faab3b); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, #e9883d, #faab3b); /* Standard syntax */
+   background: #00b300;
+   background: -webkit-linear-gradient(#00b300, #b3ffb3); 
+   background: -o-linear-gradient(#00b300, #b3ffb3); 
+   background: -moz-linear-gradient(#00b300, #b3ffb3);
+   background: linear-gradient(#00b300, #b3ffb3);
 }
 
-.viola
+.estateFiorentina
 {
-    background-color: #9386ff;
+   background: #00b300;
+   background: -webkit-linear-gradient(right, #00b300, #b3ffb3); 
+   background: -o-linear-gradient(right, #00b300, #b3ffb3); 
+   background: -moz-linear-gradient(right, #00b300, #b3ffb3);
+   background: linear-gradient(to right, #00b300, #b3ffb3); 
 }
 
-.violaGrad
+.fiereTitle
 {
-    background: #9386ff;
-    background: -webkit-linear-gradient(right, #9386ff, #db6ee2); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, #9386ff, #db6ee2); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, #9386ff, #db6ee2); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, #9386ff, #db6ee2); /* Standard syntax */
+   background: #ff66cc;
+   background: -webkit-linear-gradient(#ff66cc, #ffccee); 
+   background: -o-linear-gradient(#ff66cc, #ffccee); 
+   background: -moz-linear-gradient(#ff66cc, #ffccee);
+   background: linear-gradient(#ff66cc, #ffccee);
+}
+
+.fiere
+{
+   background: #ff66cc;
+   background: -webkit-linear-gradient(right, #ff66cc, #ffccee); 
+   background: -o-linear-gradient(right, #ff66cc, #ffccee); 
+   background: -moz-linear-gradient(right, #ff66cc, #ffccee);
+   background: linear-gradient(to right, #ff66cc, #ffccee); 
+}
+
+.filmTitle
+{
+   background: #ff9900;
+   background: -webkit-linear-gradient(#ff9900, #ffe0b3); 
+   background: -o-linear-gradient(#ff9900, #ffe0b3); 
+   background: -moz-linear-gradient(#ff9900, #ffe0b3);
+   background: linear-gradient(#ff9900, #ffe0b3); 
+}
+
+.film
+{
+   background: #ff9900;
+   background: -webkit-linear-gradient(right, #ff9900, #ffe0b3); 
+   background: -o-linear-gradient(right, #ff9900, #ffe0b3); 
+   background: -moz-linear-gradient(right, #ff9900, #ffe0b3);
+   background: linear-gradient(to right, #ff9900, #ffe0b3); 
+}
+
+.mostreTitle
+{
+   background: #70dbc4;
+   background: -webkit-linear-gradient(#70dbc4, #c2f0e7); 
+   background: -o-linear-gradient(#70dbc4, #c2f0e7); 
+   background: -moz-linear-gradient(#70dbc4, #c2f0e7);
+   background: linear-gradient(#70dbc4, #c2f0e7);
+}
+
+.mostre
+{
+   background: #70dbc4;
+   background: -webkit-linear-gradient(right, #70dbc4, #c2f0e7); 
+   background: -o-linear-gradient(right, #70dbc4, #c2f0e7); 
+   background: -moz-linear-gradient(right, #70dbc4, #c2f0e7);
+   background: linear-gradient(to right, #70dbc4, #c2f0e7); 
+}
+
+.musicaClassicaTitle
+{
+   background: #e6004c;
+   background: -webkit-linear-gradient(#e6004c, #ff99bb); 
+   background: -o-linear-gradient(#e6004c, #ff99bb); 
+   background: -moz-linear-gradient(#e6004c, #ff99bb);
+   background: linear-gradient(#e6004c, #ff99bb); 
+}
+
+.musicaClassica
+{
+   background: #cc0044;
+   background: -webkit-linear-gradient(right, #e6004c, #ff99bb); 
+   background: -o-linear-gradient(right, #e6004c, #ff99bb); 
+   background: -moz-linear-gradient(right, #e6004c, #ff99bb);
+   background: linear-gradient(to right, #e6004c, #ff99bb); 
+}
+
+.musicaRockTitle
+{
+   background: #bab3ff;
+   background: -webkit-linear-gradient(#bab3ff, #e8e6ff); 
+   background: -o-linear-gradient(#bab3ff, #e8e6ff); 
+   background: -moz-linear-gradient(#bab3ff, #e8e6ff); 
+   background: linear-gradient(#bab3ff, #e8e6ff);
+}
+
+.musicaRock
+{
+   background: #bab3ff;
+   background: -webkit-linear-gradient(right, #bab3ff, #e8e6ff); 
+   background: -o-linear-gradient(right, #bab3ff, #e8e6ff); 
+   background: -moz-linear-gradient(right, #bab3ff, #e8e6ff); 
+   background: linear-gradient(to right, #bab3ff, #e8e6ff);
+}
+
+.newsTitle
+{
+   background: #ff531a;
+   background: -webkit-linear-gradient(#ff531a, #ffc6b3); 
+   background: -o-linear-gradient(#ff531a, #ffc6b3); 
+   background: -moz-linear-gradient(#ff531a, #ffc6b3);
+   background: linear-gradient(#ff531a, #ffc6b3); 
+}
+
+.news
+{
+   background: #ff531a;
+   background: -webkit-linear-gradient(right, #ff531a, #ffc6b3); 
+   background: -o-linear-gradient(right, #ff531a, #ffc6b3); 
+   background: -moz-linear-gradient(right, #ff531a, #ffc6b3);
+   background: linear-gradient(to right, #ff531a, #ffc6b3); 
+}
+
+.convegniTitle
+{
+   background: #ffb3ff;
+   background: -webkit-linear-gradient(#ffb3ff, #ffe6ff); 
+   background: -o-linear-gradient(#ffb3ff, #ffe6ff); 
+   background: -moz-linear-gradient(#ffb3ff, #ffe6ff);
+   background: linear-gradient(#ffb3ff, #ffe6ff);
+}
+
+.convegni
+{
+   background: #ffb3ff;
+   background: -webkit-linear-gradient(right, #ffb3ff, #ffe6ff); 
+   background: -o-linear-gradient(right, #ffb3ff, #ffe6ff); 
+   background: -moz-linear-gradient(right, #ffb3ff, #ffe6ff);
+   background: linear-gradient(to right, #ffb3ff, #ffe6ff); 
+}
+
+.incontriLetterariTitle
+{
+   background: #33ccff;
+   background: -webkit-linear-gradient(#33ccff, #ccf2ff); 
+   background: -o-linear-gradient(#33ccff, #ccf2ff); 
+   background: -moz-linear-gradient(#33ccff, #ccf2ff);
+   background: linear-gradient(#33ccff, #ccf2ff);
+}
+
+.incontriLetterari
+{
+   background: #33ccff;
+   background: -webkit-linear-gradient(right, #33ccff, #ccf2ff); 
+   background: -o-linear-gradient(right, #33ccff, #ccf2ff); 
+   background: -moz-linear-gradient(right, #33ccff, #ccf2ff);
+   background: linear-gradient(to right, #33ccff, #ccf2ff); 
+}
+
+.sportTitle
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(#ff6666, #ffcccc); 
+   background: -o-linear-gradient(#ff6666, #ffcccc); 
+   background: -moz-linear-gradient(#ff6666, #ffcccc);
+   background: linear-gradient(#ff6666, #ffcccc); 
+}
+
+.sport
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -o-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -moz-linear-gradient(right, #ff6666, #ffcccc);
+   background: linear-gradient(to right, #ff6666, #ffcccc); 
+}
+
+.teatroTitle
+{
+   background: #d9b38c;
+   background: -webkit-linear-gradient(#d9b38c, #f2e6d9); 
+   background: -o-linear-gradient(#d9b38c, #f2e6d9); 
+   background: -moz-linear-gradient(#d9b38c, #f2e6d9);
+   background: linear-gradient(#d9b38c, #f2e6d9); 
+}
+
+.teatro
+{
+   background: #d9b38c;
+   background: -webkit-linear-gradient(right, #d9b38c, #f2e6d9); 
+   background: -o-linear-gradient(right, #d9b38c, #f2e6d9); 
+   background: -moz-linear-gradient(right, #d9b38c, #f2e6d9);
+   background: linear-gradient(to right, #d9b38c, #f2e6d9); 
+}
+
+.tradizioniPopolariTitle
+{
+   background: #e6e6e6;
+   background: -webkit-linear-gradient(#e6e6e6, #ffffff); 
+   background: -o-linear-gradient(#e6e6e6, #ffffff); 
+   background: -moz-linear-gradient(#e6e6e6, #ffffff);
+   background: linear-gradient(#e6e6e6, #ffffff); 
+}
+
+.tradizioniPopolari
+{
+   background: #e6e6e6;
+   background: -webkit-linear-gradient(right, #e6e6e6, #ffffff); 
+   background: -o-linear-gradient(right, #e6e6e6, #ffffff); 
+   background: -moz-linear-gradient(right, #e6e6e6, #ffffff);
+   background: linear-gradient(to right, #e6e6e6, #ffffff); 
+}
+
+.walkingTitle
+{
+   background: #39ac39;
+   background: -webkit-linear-gradient(#39ac39, #c6ecc6); 
+   background: -o-linear-gradient(#39ac39, #c6ecc6); 
+   background: -moz-linear-gradient(#39ac39, #c6ecc6);
+   background: linear-gradient(#39ac39, #c6ecc6); 
+}
+
+.walking
+{
+   background: #39ac39;
+   background: -webkit-linear-gradient(right, #39ac39, #c6ecc6); 
+   background: -o-linear-gradient(right, #39ac39, #c6ecc6); 
+   background: -moz-linear-gradient(right, #39ac39, #c6ecc6);
+   background: linear-gradient(to right, #39ac39, #c6ecc6); 
 }
 
 .eventIcon
 {
     float: left;
-    /*width: 45px;
+    width: 20%;
     height: 100%;
-    margin-right: 5px;*/
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .eventIconUp
@@ -921,7 +1109,7 @@
 
 .eventIconUp i
 {
-    font-size:30px;
+   font-size: 24px;
 }
 
 .eventIconUp img
@@ -952,79 +1140,108 @@
     font-size: 18px;
 }
 
-.eventContent
+.eventTitle
 {
-    float: left;
-    height: 100%;
-    color: black;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   float: left;
+   width: 100%;
+   color: black;
+   font-weight: bold;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   text-transform: uppercase;
+   white-space: nowrap; 
+   overflow: hidden;
+   text-overflow: ellipsis; 
+   line-height: 25px;
+   text-align: center;
+   vertical-align: middle;
 }
 
-.eventName
+/*.eventTitle:hover, .eventIconUp:hover, .eventIconDown:hover, .eventTime:hover
 {
-    float: left;
-    width: 100%;
-    height: 46%;
-    font-weight: bold;
-    line-height: 100%;
-    text-transform: uppercase;
-    
-    /*display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    text-align: center;*/
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
+   color: white;
+}*/
+
+div.tooltip-inner
+{
+   max-width: 500px;
+   font-family: Verdana;
 }
 
-.eventName p
+.eventDataContainer
 {
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-    height: 100%;
-    /*white-space: nowrap; 
-    overflow: hidden;
-    text-overflow: ellipsis;*/
+   float: left;
+   width: 100%;
+   height: 70%;
 }
 
-.eventTime
+.eventTime 
 {
     float: left;
-    width: 100%;
-    height: 27%;
-    /*font-size: 10px;*/
+    width: 80%;
+    height: 40%;
     margin-top: 0px;
     margin-bottom: 0px;
     display: flex; 
     align-items: center; 
-    justify-content: flex-start; 
+    justify-content: center; 
     text-align: center;
     padding-left: 5px;
     font-style: italic;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .eventAddress
 {
     float: left;
-    width: 100%;
-    height: 27%;
-    /*font-size: 10px;*/
+    width: 80%;
+    height: 60%;
     margin-top: 0px;
     display: flex; 
     align-items: center; 
-    justify-content: flex-start; 
+    justify-content: center; 
     text-align: center;
     margin-bottom: 0px;
     padding-left: 3px;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
+}
+
+.onMapSignal
+{
+   font-weight: bold;
+   display: none;
+   animation: onMapSignalAnimation 1.5s ease infinite;
+}
+
+.onMapPinAnimated
+{
+   animation: onMapSignalAnimation 1.5s ease infinite;
+}
+
+@keyframes onMapSignalAnimation 
+{
+   0% 
+   {
+       color: #000000;
+   }
+
+   30% 
+   {
+       color: #000000;
+   }
+
+   50% 
+   {
+       color: #FFFFFF;
+   }
+
+   70% 
+   {
+       color: #000000;
+   }
+
+   100% 
+   {
+       color: #000000;
+   }
 }
 
 .loadingDiv
@@ -1078,9 +1295,6 @@
     float:left; 
     width: 100%; 
     display: none;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .meteoContent
@@ -1095,9 +1309,6 @@
     width: 100%;
     height: 75px;
     display: block;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 2px;*/
 }
 
 .pcInfoContainer
@@ -1109,9 +1320,6 @@
     align-items: center; 
     justify-content: flex-start; 
     text-align: center;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .logoPc
@@ -1122,15 +1330,12 @@
     display: flex; 
     justify-content: center;
     align-items: center;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .logoPc img
 {
-    width: 100%;
-    height: 100%;
+    width: 238px;
+    height: 60px;
     object-fit: contain;
 }
 
@@ -1143,9 +1348,6 @@
     align-items: center; 
     justify-content: flex-end; 
     text-align: right;
-    /*border-style: solid; 
-    border-color: red; 
-    border-width: 1px;*/
 }
 
 .pcCountdown
@@ -1163,11 +1365,7 @@
     display: none;
     height: 100%;
     width: 21%;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
-
 
 .elementLink2
 {
@@ -1209,6 +1407,7 @@
 {
     color: white;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .bar_content
@@ -1254,9 +1453,6 @@
     font-weight: bold;
     height: 100%;
     float: left;
-    /*border-style: solid;
-    border-color: #05B2D2;
-    border-width: 1px;*/
 }
 
 .desc .desc_text{
@@ -1270,11 +1466,6 @@
     transition:         background 1.8s ease-in-out;
 }
 
-/*.desc_text_alr
-{
-    background-color: #FF0000;
-}*/
-
 .measure_td_value_central{
    text-align: center;
    font-weight: bold;    
@@ -1287,9 +1478,6 @@
     float:left;
     width: 33.3333%;
     height: 100%;
-    /*border-style: solid;
-    border-color: #05B2D2;
-    border-width: 1px;*/
 }
 
 .sceDesc
@@ -1307,9 +1495,6 @@
     align-items: flex-end;
     font-family: Verdana, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35); 
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .sceValueCpu
@@ -1318,9 +1503,6 @@
     width: 100%;
     margin: 0;
     padding: 0;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .sceValueRoundContainer
@@ -1332,9 +1514,6 @@
     align-items: center;
     margin: 0;
     padding: 0;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .sceValueRoundDiv
@@ -1349,9 +1528,6 @@
     background: -o-linear-gradient(#80ccff, #ccebff); 
     background: -moz-linear-gradient(#80ccff, #ccebff); 
     background: linear-gradient(to top, #80ccff, #ccebff);
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .sceValueDesc
@@ -1360,9 +1536,6 @@
     margin: 0;
     position: relative;
     top: 25%;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .sceDescP
@@ -1410,14 +1583,10 @@
     height: 100%;
     font-weight: bold;
     font-variant: small-caps;
-    /*border-style: solid;
-    border-width: 1px;
-    border-color: #de005c;*/
 }
 
 .atafLinesContainer
 {
-    /*display: block;*/
     width: 75%;
     border-radius: 15px;
     background: #80ccff;
@@ -1455,9 +1624,6 @@
     font-family: Verdana, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35); 
     font-size: 26px;
-    /*border-style: solid;
-    border-width: 1px;
-    border-color: red;*/
 }
 
 .atafValueContainer
@@ -1470,9 +1636,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    /*border-style: solid;
-    border-color: #05B2D2;
-    border-width: 3px;*/
 }
 
 .nav_ul
@@ -1497,10 +1660,6 @@
     font-weight: bold;
     border-radius: 50%;
     font-family: Verdana, Arial, sans-serif;
-    /*display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;*/
     background: #80ccff;
     background: -webkit-linear-gradient(#80ccff, #ccebff); 
     background: -o-linear-gradient(#80ccff, #ccebff); 
@@ -1568,7 +1727,6 @@ atafLastUpdateWrapper
 
 .atafLastUpdateContent
 {
-    /*display: none;*/
     width: 70%;
     height: 50%;
     display: flex;
@@ -1587,9 +1745,6 @@ atafLastUpdateWrapper
     background: -o-linear-gradient(#80ccff, #ccebff); 
     background: -moz-linear-gradient(#80ccff, #ccebff); 
     background: linear-gradient(to top, #80ccff, #ccebff);
-    /*border-style: solid;
-    border-color: blueviolet;
-    border-width: 1px;*/
 }
 
 .atafTab
@@ -1616,7 +1771,6 @@ atafLastUpdateWrapper
     width: 100%;
     font-family: Verdana, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35); 
-    /*border-style: solid; border-color: red; border-width: 2px;*/
 }
 
 .singleContentValue
@@ -1624,17 +1778,13 @@ atafLastUpdateWrapper
     font-weight: bold; 
     width: 100%;
     float: left;
-    align-items: center;
+    align-items: flex-end;
     display: flex;
     justify-content: center;
     text-align: center;
     overflow: hidden ;
     text-overflow: ellipsis;
-}
-
-.singleContentValue h2
-{
-    
+    /*border: 1px solid red;*/
 }
 
 .singleContentUdm
@@ -1646,6 +1796,7 @@ atafLastUpdateWrapper
     display: flex;
     align-items: flex-start; 
     justify-content: center;
+    /*border: 1px solid greenyellow;*/
 }
 
 .nomeJob
@@ -1660,9 +1811,6 @@ atafLastUpdateWrapper
     align-items: center;
     justify-content: center;
     text-align: center;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .statoJobContainerOk
@@ -1736,15 +1884,11 @@ atafLastUpdateWrapper
     height: 20%;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35);
-    /*font-variant: small-caps;*/
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 3px;*/
 }
 
 .dataJob
@@ -1757,9 +1901,6 @@ atafLastUpdateWrapper
     align-items: center;
     justify-content: center;
     text-align: center;
-    /*border-style: solid;
-    border-color: green;
-    border-width: 1px;*/
 }
 
 .row_data_line
@@ -1813,7 +1954,7 @@ atafLastUpdateWrapper
 .button
 {
     width: 100%; 
-    height: 100%;
+    /*height: 100%;*/
     white-space: normal; 
     padding: 3px; margin: 0; 
     font-weight: bold;
@@ -1840,10 +1981,11 @@ atafLastUpdateWrapper
     height: 100%;
 }
 
-.source_button{
-    float: left;
-    margin-left: 0px;
-    margin-right: 2px;
+.source_button
+{
+   float: left;
+   margin-left: 0px;
+   margin-right: 2px;
 }
 
 .countdown
@@ -2222,7 +2364,7 @@ atafLastUpdateWrapper
 
 .backgroundRed
 {
-    background-color: "yellow";
+    background-color: yellow;
 }
 
 .backgroundBlink
@@ -2232,4 +2374,990 @@ atafLastUpdateWrapper
       transition:         background 0.5s ease-in-out;
 }
 
+/*Animazioni allarme First Aid*/
+.alarmFirstAidLblActiveRed
+{
+    background-color: red;
+    animation: firstAidLblAlrRed 3s ease infinite; 
+}
 
+@keyframes firstAidLblAlrRed 
+{
+   0% 
+   {
+       background-color: #FF0000;
+   }
+
+   30% 
+   {
+       background-color: #FF0000;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #FF0000;
+   }
+
+   100% 
+   {
+       background-color: #FF0000;
+   }
+}
+
+.alarmFirstAidCellActiveRed
+{
+    background-color: red;
+    animation: firstAidCellAlrRed 3s ease infinite; 
+}
+
+@keyframes firstAidCellAlrRed 
+{
+   0% 
+   {
+       background-color: #ffb3b3;
+   }
+
+   30% 
+   {
+       background-color: #ffb3b3;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #ffb3b3;
+   }
+
+   100% 
+   {
+       background-color: #ffb3b3;
+   }
+}
+
+.alarmFirstAidLblActiveYellow
+{
+    animation: firstAidLblAlrYellow 3s ease infinite; 
+}
+
+@keyframes firstAidLblAlrYellow 
+{
+   0% 
+   {
+       background-color: #ffff00;
+   }
+
+   30% 
+   {
+       background-color: #ffff00;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #ffff00;
+   }
+
+   100% 
+   {
+       background-color: #ffff00;
+   }
+}
+
+.alarmFirstAidCellActiveYellow
+{
+    background-color: red;
+    animation: firstAidCellAlrYellow 3s ease infinite; 
+}
+
+@keyframes firstAidCellAlrYellow
+{
+   0% 
+   {
+       background-color: #ffff99;
+   }
+
+   30% 
+   {
+       background-color: #ffff99;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #ffff99;
+   }
+
+   100% 
+   {
+       background-color: #ffff99;
+   }
+}
+
+.alarmFirstAidLblActiveGreen
+{
+    animation: firstAidLblAlrGreen 3s ease infinite; 
+}
+
+@keyframes firstAidLblAlrGreen 
+{
+   0% 
+   {
+       background-color: #66ff33;
+   }
+
+   30% 
+   {
+       background-color: #66ff33;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #66ff33;
+   }
+
+   100% 
+   {
+       background-color: #66ff33;
+   }
+}
+
+.alarmFirstAidCellActiveGreen
+{
+    animation: firstAidCellAlrGreen 3s ease infinite; 
+}
+
+@keyframes firstAidCellAlrGreen
+{
+   0% 
+   {
+       background-color: #d9ffcc;
+   }
+
+   30% 
+   {
+       background-color: #d9ffcc;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #d9ffcc;
+   }
+
+   100% 
+   {
+       background-color: #d9ffcc;
+   }
+}
+
+.alarmFirstAidLblActiveBlue
+{
+    animation: firstAidLblAlrBlue 3s ease infinite; 
+}
+
+@keyframes firstAidLblAlrBlue
+{
+   0% 
+   {
+       background-color: #66ccff;
+   }
+
+   30% 
+   {
+       background-color: #66ccff;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #66ccff;
+   }
+
+   100% 
+   {
+       background-color: #66ccff;
+   }
+}
+
+.alarmFirstAidCellActiveBlue
+{
+    animation: firstAidCellAlrBlue 3s ease infinite; 
+}
+
+@keyframes firstAidCellAlrBlue
+{
+   0% 
+   {
+       background-color: #cceeff;
+   }
+
+   30% 
+   {
+       background-color: #cceeff;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #cceeff;
+   }
+
+   100% 
+   {
+       background-color: #cceeff;
+   }
+}
+
+.alarmFirstAidLblActiveWhite
+{
+    animation: firstAidLblAlrWhite 3s ease infinite; 
+}
+
+@keyframes firstAidLblAlrWhite
+{
+   0% 
+   {
+       background-color: #eeeeee;
+   }
+
+   30% 
+   {
+       background-color: #eeeeee;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #eeeeee;
+   }
+
+   100% 
+   {
+       background-color: #eeeeee;
+   }
+}
+
+.alarmFirstAidCellActiveWhite
+{
+    animation: firstAidCellAlrWhite 3s ease infinite; 
+}
+
+@keyframes firstAidCellAlrWhite
+{
+   0% 
+   {
+       background-color: #f2f2f2;
+   }
+
+   30% 
+   {
+       background-color: #f2f2f2;
+   }
+
+   50% 
+   {
+       background-color: transparent;
+   }
+
+   70% 
+   {
+       background-color: #f2f2f2;
+   }
+
+   100% 
+   {
+       background-color: #f2f2f2;
+   }
+}
+
+.trafficEventsButtonsContainer
+{
+   width: 100%;
+   height: 50px;
+}
+
+.trafficEventsButtonContainer
+{
+    width: 12.5%;
+    height: 100%;
+    padding-bottom: 0px;
+    float: left;
+    background: #33ccff;
+    background: -webkit-linear-gradient(right, #33ccff, #ccf2ff); 
+    background: -o-linear-gradient(right, #33ccff, #ccf2ff); 
+    background: -moz-linear-gradient(right, #33ccff, #ccf2ff);
+    background: linear-gradient(to right, #33ccff, #ccf2ff); 
+    /*border: 1px solid black;*/
+}
+
+.trafficEventsButtonIcon
+{
+    width: 100%;
+    height: 75%;
+    float: left;
+    /*border: 1px solid red;*/
+}
+
+.trafficEventsButtonIcon img
+{
+    object-fit: contain;
+    width: 85%;
+    height: 85%;
+}
+
+.trafficEventsButtonIndicator
+{
+    width: 100%;
+    height: 25%;
+    float: left;
+    font-variant: small-caps;
+    /*border: 1px solid red;*/
+}
+
+/*.trafficEventsButton
+{
+   width: 100px;
+   height: 45px;
+   float: left;
+   margin-right: 5px;
+}
+
+.trafficEventsButton:hover
+{
+   color: white;
+   cursor: pointer;
+}
+
+.trafficEventsButtonIcon
+{
+    width: 100%;
+    height: 75%;
+}
+
+.incidentsButtonMsgContainer
+{
+   width: 100%;
+   height: 25%;
+   font-family: Verdana;
+   font-variant: small-caps;
+   font-weight: bold;
+}
+
+.trafficEventsButtonIcon img
+{
+   object-fit: contain;
+    width: 92%;
+    height: 92%;
+}*/
+
+.trafficEventsRollerContainer
+{
+   width: 100%;
+   overflow-y: auto;
+}
+
+.trafficEventIcon
+{
+    float: left;
+    width: 12.5%;
+    height: 100%;
+    /*border: 1px solid white;*/
+}
+
+.trafficEventIcon img
+{
+    object-fit: contain;
+    width: 90%;
+    height: 90%;
+}
+
+.otherTrafficEventTitle
+{
+   background: #33ccff;
+   background: -webkit-linear-gradient(#33ccff, #ccf2ff); 
+   background: -o-linear-gradient(#33ccff, #ccf2ff); 
+   background: -moz-linear-gradient(#33ccff, #ccf2ff);
+   background: linear-gradient(#33ccff, #ccf2ff);
+}
+
+.otherTrafficEvent
+{
+   background: #33ccff;
+   background: -webkit-linear-gradient(right, #33ccff, #ccf2ff); 
+   background: -o-linear-gradient(right, #33ccff, #ccf2ff); 
+   background: -moz-linear-gradient(right, #33ccff, #ccf2ff);
+   background: linear-gradient(to right, #33ccff, #ccf2ff); 
+}
+
+.incidentTitle
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(#ff6666, #ffcccc); 
+   background: -o-linear-gradient(#ff6666, #ffcccc); 
+   background: -moz-linear-gradient(#ff6666, #ffcccc);
+   background: linear-gradient(#ff6666, #ffcccc); 
+}
+
+.incident
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -o-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -moz-linear-gradient(right, #ff6666, #ffcccc);
+   background: linear-gradient(to right, #ff6666, #ffcccc); 
+}
+.slipperyTitle
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(#ffcc00, #fff0b3); 
+   background: -o-linear-gradient(#ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(#ffcc00, #fff0b3);
+   background: linear-gradient(#ffcc00, #fff0b3); 
+}
+
+.slippery
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(right, #ffcc00, #fff0b3); 
+   background: -o-linear-gradient(right, #ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(right, #ffcc00, #fff0b3);
+   background: linear-gradient(to right, #ffcc00, #fff0b3); 
+}
+
+.highSeverityTitle
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(#ff6666, #ffcccc); 
+   background: -o-linear-gradient(#ff6666, #ffcccc); 
+   background: -moz-linear-gradient(#ff6666, #ffcccc);
+   background: linear-gradient(#ff6666, #ffcccc); 
+}
+
+.highSeverity
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -o-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -moz-linear-gradient(right, #ff6666, #ffcccc);
+   background: linear-gradient(to right, #ff6666, #ffcccc); 
+}
+
+.medSeverityTitle
+{
+   background: #ff9900;
+   background: -webkit-linear-gradient(#ff9900, #ffe0b3); 
+   background: -o-linear-gradient(#ff9900, #ffe0b3); 
+   background: -moz-linear-gradient(#ff9900, #ffe0b3);
+   background: linear-gradient(#ff9900, #ffe0b3); 
+}
+
+.medSeverity
+{
+   background: #ff9900;
+   background: -webkit-linear-gradient(right, #ff9900, #ffe0b3); 
+   background: -o-linear-gradient(right, #ff9900, #ffe0b3); 
+   background: -moz-linear-gradient(right, #ff9900, #ffe0b3);
+   background: linear-gradient(to right, #ff9900, #ffe0b3);
+}
+
+.lowSeverityTitle
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(#ffcc00, #fff0b3); 
+   background: -o-linear-gradient(#ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(#ffcc00, #fff0b3);
+   background: linear-gradient(#ffcc00, #fff0b3); 
+}
+
+.lowSeverity
+{
+   background: #ffdb4d;
+   background: -webkit-linear-gradient(right, #ffdb4d, #fff5cc); 
+   background: -o-linear-gradient(right, #ffdb4d, #fff5cc); 
+   background: -moz-linear-gradient(right, #ffdb4d, #fff5cc);
+   background: linear-gradient(to right, #ffdb4d, #fff5cc);  
+}
+
+/*.lowSeverityTitle
+{
+   background: #33ccff;
+   background: -webkit-linear-gradient(#33ccff, #ccf2ff); 
+   background: -o-linear-gradient(#33ccff, #ccf2ff); 
+   background: -moz-linear-gradient(#33ccff, #ccf2ff);
+   background: linear-gradient(#33ccff, #ccf2ff); 
+}
+
+.lowSeverity
+{
+   background: #33ccff;
+   background: -webkit-linear-gradient(right, #33ccff, #ccf2ff); 
+   background: -o-linear-gradient(right, #33ccff, #ccf2ff); 
+   background: -moz-linear-gradient(right, #33ccff, #ccf2ff);
+   background: linear-gradient(to right, #33ccff, #ccf2ff);  
+}*/
+
+.roadWorksTitle
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(#ffcc00, #fff0b3); 
+   background: -o-linear-gradient(#ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(#ffcc00, #fff0b3);
+   background: linear-gradient(#ffcc00, #fff0b3); 
+}
+
+.roadWorks
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(right, #ffcc00, #fff0b3); 
+   background: -o-linear-gradient(right, #ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(right, #ffcc00, #fff0b3);
+   background: linear-gradient(to right, #ffcc00, #fff0b3); 
+}
+
+.trafficEventDataContainer
+{
+   float: left;
+   width: 100%;
+   height: 70%;
+}
+
+/*.trafficEventDateTimeContainer
+{
+   float: left;
+   width: 75%;
+   height: 100%;
+}*/
+
+.trafficEventDateContainer, .trafficEventTimeContainer
+{
+   float: left;
+   width: 40%;
+   height: 50%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.trafficEventSeverityContainer
+{
+   float: left;
+   width: 20%;
+   height: 50%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.trafficEventMiddleContainer
+{
+   float: left;
+   width: 75%;
+   height: 100%;
+}
+
+.trafficEventSubTypeContainer
+{
+   float: left;
+   width: 100%;
+   height: 50%;
+   font-weight: bold;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+   white-space: nowrap; 
+   overflow: hidden;
+   text-overflow: ellipsis; 
+   line-height: 25px;
+   text-align: center;
+   vertical-align: middle;
+}
+
+/*.trafficEventDate 
+{
+    float: left;
+    width: 100%;
+    height: 35%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
+    padding-left: 5px;
+}
+
+.trafficEventTime 
+{
+    float: left;
+    width: 100%;
+    height: 65%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
+    padding-left: 5px;
+    font-family: Verdana;
+    font-style: italic;
+}*/
+
+.trafficEventMapPtr
+{
+    float: left;
+    width: 12.5%;
+    height: 100%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.trafficEventPinContainer
+{
+   float: left;
+   width: 100%;
+   height: 80%;
+   margin-top: 0px;
+   margin-bottom: 0px;
+   padding-bottom: 5px;
+   display: flex; 
+   align-items: flex-end; 
+   justify-content: center; 
+   text-align: center;
+}
+
+.trafficEventPinMsgContainer
+{
+   float: left;
+   width: 100%;
+   height: 20%;
+   margin-top: 0px;
+   margin-bottom: 0px;
+   padding-bottom: 10px;
+   display: flex; 
+   align-items: center; 
+   justify-content: center; 
+   text-align: center;
+   font-variant: small-caps;
+   font-weight: bold;
+}
+
+.trafficEventLink, .trafficEventLink:link, .trafficEventLink:visited, .trafficEventLink:active
+{
+   color: black;
+   text-decoration: none;
+}
+
+.trafficEventLink:hover
+{
+   color: white;
+   text-decoration: none;
+   cursor: pointer;
+}
+
+.onMapTrafficEventPinAnimated
+{
+   animation: onMapSignalAnimation 1.5s ease infinite;
+}
+
+.leafletPin
+{
+   width: 35px; height: 35px; /*border: 1px solid red;*/
+   transform: translate(-50%, -100%);
+}
+
+.mapPopupTitle
+{
+   display: block;
+   font-size: 16px;
+   font-weight: bold;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   text-align: center;
+}
+
+.mapPopupLine
+{
+   display: block;
+   /*font-weight: bold;*/
+   font-size: 14px;
+   font-variant: small-caps;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.15);
+   text-align: center;
+}
+
+.alarmSeverityContainer
+{
+   float: left;
+   width: 100%;
+   height: 50%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.alarmDateContainer, .alarmTimeContainer
+{
+   float: left;
+   width: 50%;
+   height: 50%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.planDetailsContainer
+{
+   float: left;
+   width: 75%;
+   height: 100%;
+}
+
+.planDateContainer
+{
+   float: left;
+   width: 50%;
+   height: 50%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.planStatusContainer
+{
+   float: left;
+   width: 100%;
+   height: 50%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.planDecisionContainer
+{
+   float: left;
+   width: 100%;
+   height: 80%;
+   margin-top: 0px;
+   margin-bottom: 0px;
+   padding-bottom: 5px;
+   display: flex; 
+   align-items: flex-end; 
+   justify-content: center; 
+   text-align: center;
+}
+
+.planDecisionLink, .planDecisionLink:link, .planDecisionLink:visited, .planDecisionLink:active
+{
+   color: black;
+   text-decoration: none;
+}
+
+.decisionPinMsgContainer
+{
+   float: left;
+   width: 100%;
+   height: 20%;
+   margin-top: 0px;
+   margin-bottom: 0px;
+   padding-bottom: 10px;
+   display: flex; 
+   align-items: center; 
+   justify-content: center; 
+   text-align: center;
+   font-variant: small-caps;
+   font-weight: bold;
+}
+
+.planDecisionLink img
+{
+   object-fit: contain;
+   width: 60%;
+   height: 60%;
+}
+
+.planProposedTitle
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(#ffcc00, #fff0b3); 
+   background: -o-linear-gradient(#ffcc00, #fff0b3); 
+   background: -moz-linear-gradient(#ffcc00, #fff0b3);
+   background: linear-gradient(#ffcc00, #fff0b3);  
+}
+
+.planProposed
+{
+   background: #ffdb4d;
+   background: -webkit-linear-gradient(right, #ffdb4d, #fff5cc); 
+   background: -o-linear-gradient(right, #ffdb4d, #fff5cc); 
+   background: -moz-linear-gradient(right, #ffdb4d, #fff5cc);
+   background: linear-gradient(to right, #ffdb4d, #fff5cc);    
+}
+
+
+.planProgressTitle
+{
+   background: #ff9900;
+   background: -webkit-linear-gradient(#ff9900, #ffe0b3); 
+   background: -o-linear-gradient(#ff9900, #ffe0b3); 
+   background: -moz-linear-gradient(#ff9900, #ffe0b3);
+   background: linear-gradient(#ff9900, #ffe0b3);
+}
+
+.planProgress
+{
+   background: #ff9900;
+   background: -webkit-linear-gradient(right, #ff9900, #ffe0b3); 
+   background: -o-linear-gradient(right, #ff9900, #ffe0b3); 
+   background: -moz-linear-gradient(right, #ff9900, #ffe0b3);
+   background: linear-gradient(to right, #ff9900, #ffe0b3); 
+}
+
+.planApprovedTitle
+{
+   background: #80ff80;
+   background: -webkit-linear-gradient(#80ff80, #ccffcc); 
+   background: -o-linear-gradient(#80ff80, #ccffcc); 
+   background: -moz-linear-gradient(#80ff80, #ccffcc);
+   background: linear-gradient(#80ff80, #ccffcc);
+}
+
+.planApproved
+{
+   background: #80ff80;
+   background: -webkit-linear-gradient(right, #80ff80, #ccffcc); 
+   background: -o-linear-gradient(right, #80ff80, #ccffcc); 
+   background: -moz-linear-gradient(right, #80ff80, #ccffcc);
+   background: linear-gradient(to right, #80ff80, #ccffcc);  
+}
+
+.planRejectedTitle
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(#ff6666, #ffcccc); 
+   background: -o-linear-gradient(#ff6666, #ffcccc); 
+   background: -moz-linear-gradient(#ff6666, #ffcccc);
+   background: linear-gradient(#ff6666, #ffcccc); 
+}
+
+.planRejected
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -o-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -moz-linear-gradient(right, #ff6666, #ffcccc);
+   background: linear-gradient(to right, #ff6666, #ffcccc); 
+}
+
+.planClosedTitle
+{
+   background: #e6e6e6;
+   background: -webkit-linear-gradient(#e6e6e6, #ffffff); 
+   background: -o-linear-gradient(#e6e6e6, #ffffff); 
+   background: -moz-linear-gradient(#e6e6e6, #ffffff);
+   background: linear-gradient(#e6e6e6, #ffffff); 
+}
+
+.planClosed
+{
+   background: #e6e6e6;
+   background: -webkit-linear-gradient(right, #e6e6e6, #ffffff); 
+   background: -o-linear-gradient(right, #e6e6e6, #ffffff); 
+   background: -moz-linear-gradient(right, #e6e6e6, #ffffff);
+   background: linear-gradient(to right, #e6e6e6, #ffffff); 
+}
+
+.resourceDateContainer, .resourceTimeContainer
+{
+   float: left;
+   width: 37.5%;
+   height: 100%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.networkNameContainer
+{
+   float: left;
+   width: 100%;
+   height: 50%;
+   /*font-weight: bold;*/
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.networkValueContainer
+{
+   float: left;
+   width: 100%;
+   height: 50%;
+   font-weight: bold;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.unclassifiedNodeTitle
+{
+   background: #d9d9d9;
+   background: -webkit-linear-gradient(#d9d9d9, #ffffff); 
+   background: -o-linear-gradient(#d9d9d9, #ffffff); 
+   background: -moz-linear-gradient(#d9d9d9, #ffffff);
+   background: linear-gradient(#d9d9d9, #ffffff);
+}
+
+.unclassifiedNode
+{
+   background: #d9d9d9;
+   background: -webkit-linear-gradient(right, #d9d9d9, #ffffff); 
+   background: -o-linear-gradient(right, #d9d9d9, #ffffff); 
+   background: -moz-linear-gradient(right, #d9d9d9, #ffffff);
+   background: linear-gradient(to right, #d9d9d9, #ffffff);   
+}
+
+.defaultMapDiv
+{
+    width: 100%;
+    height: 100%;
+    display: none;
+}

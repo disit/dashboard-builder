@@ -42,7 +42,7 @@
 
             while($r = mysqli_fetch_assoc($result)) 
             {
-                $parameters = array('param' => $r);
+               $parameters = array('param' => $r);
             }
         }    
         $par_json = json_encode($parameters);
