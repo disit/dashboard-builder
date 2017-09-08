@@ -16,23 +16,86 @@
 
     include '../config.php';
     
+    //Definizioni di funzione
+    
+    //Per ora non usata, per qualche motivo la chiamata è OK, i valori sul notificatore vengono indotti, ma non si entra nell'applicazione - Spostata lato client
+    /*function notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $appUsr, $appPwd)
+    {
+      $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogin&app=Dashboard&appUsr=' . $appUsr . '&appPwd=' . $appPwd;
+      $notificatorUrl = $notificatorUrl.$data;
+      
+      $options = array(
+          'http' => array(
+              'header'  => "Content-type: application/json\r\n",
+              'method'  => 'POST',
+              'timeout' => 3
+          )
+      );
+
+      try
+      {
+         $context  = stream_context_create($options);
+         $callResult = @file_get_contents($notificatorUrl, false, $context);
+      }
+      catch (Exception $ex) 
+      {
+         //Non facciamo niente di specifico in caso di mancata risposta dell'host
+      }
+    }*/
+    
+    function checkLdapMembership($connection, $userDn, $tool) 
+    {
+         $result = ldap_search($connection, 'dc=ldap,dc=disit,dc=org', '(&(objectClass=posixGroup)(memberUid=' . $userDn . '))');
+         $entries = ldap_get_entries($connection, $result);
+         foreach ($entries as $key => $value) 
+         {
+            if(is_numeric($key)) 
+            {
+               if($value["cn"]["0"] == $tool) 
+               {
+                  return true;
+               }
+            }
+         }
+         return false;
+     }
+   
+
+   function checkLdapRole($connection, $userDn, $role) 
+   {
+      $result = ldap_search($connection, 'dc=ldap,dc=disit,dc=org', '(&(objectClass=organizationalRole)(cn=' . $role . ')(roleOccupant=' . $userDn . '))');
+      $entries = ldap_get_entries($connection, $result);
+      foreach ($entries as $key => $value) 
+      {
+         if(is_numeric($key)) 
+         {
+            if($value["cn"]["0"] == $role) 
+            {
+               return true;
+            }
+         }
+      }
+      return false;
+  }
+    
+    
     function canEditDashboard()
     {
         $result = false;
-        if(isset($_SESSION['isAdmin']))
+        if(isset($_SESSION['loggedRole']))
         {
-            if($_SESSION['isAdmin'] == 0)
+            if($_SESSION['loggedRole'] == "Manager")
             {
                 //Utente non amministratore, edita una dashboard solo se ne é l'autore
-                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
                 {
                     $result = true;
                 }
             }
-            else if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
             {
                 //Utente amministratore, edita qualsiasi dashboard
-                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId'])))
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))
                 {
                     $result = true;
                 }
@@ -41,6 +104,7 @@
         return $result;
     }
 
+    //Fine definizioni di funzione
     session_start(); 
     $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
     mysqli_select_db($link, $dbname);
@@ -57,58 +121,55 @@
 
     if(isset($_REQUEST['register_confirm']))
     {
-        if(isset($_SESSION['isAdmin']))
+        if(isset($_SESSION['loggedRole']))
         {
-            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
-            {
-                $username = mysqli_real_escape_string($link, $_POST['inputUsername']);
-                $password = mysqli_real_escape_string($link, $_POST['inputPassword']); 
-                $firstname = mysqli_real_escape_string($link, $_POST['inputNameUser']); 
-                $lastname = mysqli_real_escape_string($link, $_POST['inputSurnameUser']);
-                $email = mysqli_real_escape_string($link, $_POST['inputEmail']);
-                
-                //24/03/2017 - Cambierà via via che implementiamo la nuova profilazione utente
-                if (isset($_POST['adminCheck'])) 
-                {
-                    $valueAdmin = 1;
-                } 
-                else 
-                {
-                    $valueAdmin = 0;
-                }
-                
-                $selqDbtbCheck = "SELECT * FROM `Dashboard`.`Users` WHERE username='$username'";
-                $resultCheck = mysqli_query($link, $selqDbtbCheck) or die(mysqli_error($link));
+            $username = mysqli_real_escape_string($link, $_POST['inputUsername']);
+            $password = mysqli_real_escape_string($link, $_POST['inputPassword']); 
+            $firstname = mysqli_real_escape_string($link, $_POST['inputNameUser']); 
+            $lastname = mysqli_real_escape_string($link, $_POST['inputSurnameUser']);
+            $email = mysqli_real_escape_string($link, $_POST['inputEmail']);
 
-                if (mysqli_num_rows($resultCheck) > 0) 
-                { 
+            //24/03/2017 - Cambierà via via che implementiamo la nuova profilazione utente
+            if (isset($_POST['adminCheck'])) 
+            {
+                $valueAdmin = 1;
+            } 
+            else 
+            {
+                $valueAdmin = 0;
+            }
+
+            $selqDbtbCheck = "SELECT * FROM `Dashboard`.`Users` WHERE username='$username'";
+            $resultCheck = mysqli_query($link, $selqDbtbCheck) or die(mysqli_error($link));
+
+            if (mysqli_num_rows($resultCheck) > 0) 
+            { 
+                mysqli_close($link);
+                echo '<script type="text/javascript">';
+                echo 'alert("Username già in uso da altro utente: Ripetere registrazione");';
+                echo 'window.location.href = "dashboard_register.php";';
+                echo '</script>';
+            } 
+            else 
+            {
+                $insqDbtb = "INSERT INTO Dashboard.Users(IdUser, username, password, name, surname, email, reg_data, status, ret_code, admin) VALUES (NULL, '$username', '$password', '$firstname', '$lastname', '$email', now(), 1, 1, '$valueAdmin')";
+                $result = mysqli_query($link, $insqDbtb) or die(mysqli_error($link));
+
+                if($result) 
+                {
                     mysqli_close($link);
                     echo '<script type="text/javascript">';
-                    echo 'alert("Username già in uso da altro utente: Ripetere registrazione");';
-                    echo 'window.location.href = "dashboard_register.php";';
+                    echo 'alert("Registrazione avvenuta con successo");';
+                    echo 'window.location.href = "dashboard_mng.php";';
                     echo '</script>';
                 } 
-                else 
+                else
                 {
-                    $insqDbtb = "INSERT INTO Dashboard.Users(IdUser, username, password, name, surname, email, reg_data, status, ret_code, admin) VALUES (NULL, '$username', '$password', '$firstname', '$lastname', '$email', now(), 1, 1, '$valueAdmin')";
-                    $result = mysqli_query($link, $insqDbtb) or die(mysqli_error($link));
-                    
-                    if($result) 
-                    {
-                        mysqli_close($link);
-                        echo '<script type="text/javascript">';
-                        echo 'alert("Registrazione avvenuta con successo");';
-                        echo 'window.location.href = "dashboard_mng.php";';
-                        echo '</script>';
-                    } 
-                    else
-                    {
-                        mysqli_close($link);
-                        echo '<script type="text/javascript">';
-                        echo 'alert("Error: Ripetere registrazione");';
-                        echo 'window.location.href = "dashboard_register.php";';
-                        echo '</script>';
-                    }
+                    mysqli_close($link);
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Error: Ripetere registrazione");';
+                    echo 'window.location.href = "dashboard_register.php";';
+                    echo '</script>';
                 }
             }
         }
@@ -116,35 +177,92 @@
     else if(isset($_REQUEST['login']))//Escape 
     {
         $username = mysqli_real_escape_string($link, $_POST['loginUsername']);
+        $ldapUsername = "cn=". $_POST['loginUsername'] . ",dc=ldap,dc=disit,dc=org";
         $password = mysqli_real_escape_string($link, $_POST['loginPassword']);
-
-        $query = "SELECT * FROM Dashboard.Users WHERE username = '$username' and password = '$password'";
-        $result = mysqli_query($link, $query);
-                
-        if($result == false) 
+        $ldapPassword = $_POST['loginPassword'];
+        $ldapOk = false;
+        
+        //Per prima cosa verifichiamo se è su LDAP, altrimenti su account list locale
+        $ds = ldap_connect($ldapServer, $ldapPort);
+        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+        $bind = ldap_bind($ds, $ldapUsername, $ldapPassword);
+        
+        if($ds && $bind)
         {
-            die(mysqli_error($link));
-        }
-
-        if(mysqli_num_rows($result) > 0) 
-        {
-            $_SESSION['loggedUsername'] = $username;
-
-            while($row = $result->fetch_assoc()) 
+            if(checkLdapMembership($ds, $ldapUsername, $ldapTool))
             {
-                $_SESSION['login_user_id'] = $row["IdUser"];
-                $_SESSION['isAdmin'] = $row["admin"];
+               if(checkLdapRole($ds, $ldapUsername, "ToolAdmin"))
+               {
+                  $ldapRole = "ToolAdmin";
+                  $ldapOk = true;
+                  $_SESSION['loggedUsername'] = $username;
+                  $_SESSION['loggedRole'] = "ToolAdmin";
+                  $_SESSION['loggedType'] = "ldap";
+                  //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+                  mysqli_close($link);
+                  header("location: dashboard_mng.php");
+               }
+               else
+               {
+                   if(checkLdapRole($ds, $ldapUsername, "AreaManager"))
+                   {
+                      $ldapRole = "AreaManager";
+                      $ldapOk = true;
+                      $_SESSION['loggedUsername'] = $username;
+                      $_SESSION['loggedRole'] = "AreaManager";
+                      $_SESSION['loggedType'] = "ldap";
+                      //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+                      mysqli_close($link);
+                      header("location: dashboard_mng.php");
+                   }
+                   else
+                   {
+                      if(checkLdapRole($ds, $ldapUsername, "Manager"))
+                      {
+                         $ldapRole = "Manager";
+                         $ldapOk = true;
+                         $_SESSION['loggedUsername'] = $username;
+                         $_SESSION['loggedRole'] = "Manager";
+                         $_SESSION['loggedType'] = "ldap";
+                         //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+                         mysqli_close($link);
+                         header("location: dashboard_mng.php");
+                      }
+                   }
+               }
             }
-            mysqli_close($link);
-            header("location: dashboard_mng.php");
-        } 
-        else 
+        }
+        
+        //Verifica su lista account locali se LDAP fallisce
+        if(!$ldapOk)
         {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Username e/o password errata/i: ripetere login");';
-            echo 'window.location.href = "index.php";';
-            echo '</script>';
+            $md5Pwd = md5($password);
+            $query = "SELECT * FROM Dashboard.Users WHERE username = '$username' AND password = '$md5Pwd' AND status = 1 AND admin <> 'Observer'";
+            $result = mysqli_query($link, $query);
+
+            if($result == false) 
+            {
+                die(mysqli_error($link));
+            }
+
+            if(mysqli_num_rows($result) > 0) 
+            {
+               $row = $result->fetch_assoc();
+               $_SESSION['loggedUsername'] = $username;
+               $_SESSION['loggedRole'] = $row["admin"];
+               $_SESSION['loggedType'] = "local";
+               //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+               mysqli_close($link);
+               header("location: dashboard_mng.php");
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo '<script type="text/javascript">';
+                echo 'alert("Username e/o password errata/i: ripetere login");';
+                echo 'window.location.href = "index.php";';
+                echo '</script>';
+            }
         }
     } 
     else if(isset($_REQUEST['creation_dashboard']))//Escape 
@@ -160,22 +278,24 @@
         $headerFontSize = mysqli_real_escape_string($link, $_POST['headerFontSize']);  
         $logoLink = null;
         $widgetsBorders = mysqli_real_escape_string($link, $_POST['widgetsBorders']); 
-        $widgetsBordersColor = mysqli_real_escape_string($link, $_POST['inputWidgetsBordersColor']); 
+        $widgetsBordersColor = mysqli_real_escape_string($link, $_POST['inputWidgetsBordersColor']);
+        $visibility = mysqli_real_escape_string($link, $_POST['inputDashboardVisibility']);
+        $selectedVisibilityUsers = [];
 
         if($headerFontSize > 45)
         {
             $headerFontSize = 45;
         }
-
-        $user_id = $_SESSION['login_user_id'];
+        
+        $dashboardAuthorName = $_SESSION['loggedUsername'];
 
         //Logo della dashboard
-        $uploadFolder ="../img/dashLogos/".$name_dashboard."/";
+        $uploadFolder = "../img/dashLogos/".$name_dashboard."/";
+        
+        $queryFail = false;
 
         if(isset($_POST['creation_dashboard']) && $_FILES['dashboardLogoInput']['size'] > 0)
         {
-            $dashboardAuthorId = $_SESSION['login_user_id'];
-            
             mkdir("../img/dashLogos/");
             mkdir($uploadFolder);
 
@@ -210,7 +330,7 @@
                     }  
                     else  
                     {  
-                        $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard' AND user='$user_id'";
+                        $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard' AND user='$dashboardAuthorName'";
                         $resultCheck2 = mysqli_query($link, $selqDbtbCheck2) or die(mysqli_error($link));
 
                         if (mysqli_num_rows($resultCheck2) > 0) 
@@ -239,33 +359,59 @@
 
                                 $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                                 (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `logoLink`, `widgetsBorders`, `widgetsBordersColor`) 
-                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$user_id', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor')";
+                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `logoLink`, `widgetsBorders`, `widgetsBordersColor`, visibility) 
+                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor', '$visibility')";
                             }
                             else
                             {
                                 $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                                 (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `widgetsBorders`, `widgetsBordersColor`) 
-                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$user_id', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor')";
+                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `widgetsBorders`, `widgetsBordersColor`, visibility) 
+                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor', '$visibility')";
                             }
 
+                            mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
                             $result3 = mysqli_query($link, $insqDbtb2) or die(mysqli_error($link));
+                            
                             if ($result3) 
                             {
                                 $_SESSION['dashboardAuthorName'] = $_SESSION['loggedUsername'];
-                                $_SESSION['dashboardAuthorId'] = $_SESSION['login_user_id'];
                                 $_SESSION['dashboardId'] = mysqli_insert_id($link);
-                                mysqli_close($link);
-                                header("location: dashboard_configdash.php");
+                                $newDashId = $_SESSION['dashboardId'];
+                                
+                                if($visibility == "restrict")
+                                {
+                                    if(isset($_POST['selectedVisibilityUsers']))
+                                    {
+                                        foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
+                                        {
+                                            $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '$selectedUser')";
+                                            $result4 = mysqli_query($link, $insertQuery) or die(mysqli_error($link));
+                                            if(!$result4)
+                                            {
+                                                $rollbackResult = mysqli_rollback($link);
+                                                mysqli_close($link);
+                                                $queryFail = true;
+                                                echo '<script type="text/javascript">';
+                                                echo 'alert("Error during dashboard creation: please repeat the procedure.");';
+                                                echo 'window.location.href = "dashboard_mng.php";';
+                                                echo '</script>';
+                                                die();
+                                            }
+                                        }
+                                    }
+                                }
                             } 
                             else 
                             {
+                                $rollbackResult = mysqli_rollback($link);
                                 mysqli_close($link);
+                                $queryFail = true;
                                 echo '<script type="text/javascript">';
                                 echo 'alert("Error during dashboard creation: please repeat the procedure.");';
                                 echo 'window.location.href = "dashboard_mng.php";';
                                 echo '</script>';
+                                die();
                             }
                         }
                     }
@@ -275,7 +421,7 @@
         else
         {
             //Nessun file caricato
-            $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard' AND user='$user_id'";
+            $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard' AND user='$dashboardAuthorName'";
             $resultCheck2 = mysqli_query($link, $selqDbtbCheck2) or die(mysqli_error($link));
 
             if (mysqli_num_rows($resultCheck2) > 0) 
@@ -291,18 +437,43 @@
                 //New version: lasciamo gli addendi espliciti per agevolare la lettura
                 $width = ($nCols * 78) + 10;
 
+                mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+                
                 $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                 (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`, `color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `widgetsBorders`, `widgetsBordersColor`) 
-                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$user_id', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$widgetsBorders', '$widgetsBordersColor')";
+                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`, `color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `widgetsBorders`, `widgetsBordersColor`, visibility) 
+                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$widgetsBorders', '$widgetsBordersColor', '$visibility')";
+                
                 $result3 = mysqli_query($link, $insqDbtb2) or die(mysqli_error($link));
+                
                 if ($result3) 
                 {
-                    $_SESSION['dashboardAuthorName'] = $_SESSION['loggedUsername'];
-                    $_SESSION['dashboardAuthorId'] = $_SESSION['login_user_id'];
-                    $_SESSION['dashboardId'] = mysqli_insert_id($link);
-                    mysqli_close($link);
-                    header("location: dashboard_configdash.php");
+                     $_SESSION['dashboardAuthorName'] = $_SESSION['loggedUsername'];
+                     $_SESSION['dashboardId'] = mysqli_insert_id($link);
+                     $newDashId = $_SESSION['dashboardId'];
+
+                     if($visibility == "restrict")
+                     {
+                         if(isset($_POST['selectedVisibilityUsers']))
+                         {
+                             foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
+                             {
+                                 $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '$selectedUser')";
+                                 $result4 = mysqli_query($link, $insertQuery) or die(mysqli_error($link));
+                                 if(!$result4)
+                                 {
+                                     $rollbackResult = mysqli_rollback($link);
+                                     mysqli_close($link);
+                                     $queryFail = true;
+                                     echo '<script type="text/javascript">';
+                                     echo 'alert("Error during dashboard creation: please repeat the procedure.");';
+                                     echo 'window.location.href = "dashboard_mng.php";';
+                                     echo '</script>';
+                                     die();
+                                 }
+                             }
+                         }
+                     }
                 } 
                 else 
                 {
@@ -314,12 +485,23 @@
                 }
             }
         }
+        
+        if(!$queryFail)
+        {
+            $_SESSION['dashboardAuthorName'] = $_SESSION['loggedUsername'];
+            $_SESSION['dashboardId'] = $newDashId;
+            $_SESSION['dashboardAuthorRole'] = $_SESSION['loggedRole'];
+            $commit = mysqli_commit($link);
+            mysqli_close($link);
+            header("location: dashboard_configdash.php");
+        }
     } 
     else if(isset($_REQUEST['add_widget']))//Escape 
     {
         if(isset($_POST['textarea-selected-metrics']) && $_POST['textarea-selected-metrics'] != "") 
         {
             $id_dashboard = $_SESSION['dashboardId'];
+            $dashboardName = $_SESSION['dashboardTitle'];
             $nextId = 1;
             $firstFreeRow = $_POST['firstFreeRowInput'];
             $selqDbtbMaxSel2 = "SELECT MAX(Id) AS MaxId FROM Dashboard.Config_widget_dashboard";
@@ -393,6 +575,26 @@
                 $gridLinesColor = NULL;
                 $linesWidth = NULL;
                 $alrThrLinesWidth = NULL;
+                $clockData = NULL;
+                $clockFont = NULL;
+                $enableFullscreenTab = 'no';
+                $enableFullscreenModal = 'no'; 
+                
+                if($type_widget == "widgetClock")
+                {
+                  if(isset($_REQUEST['addWidgetClockData']))
+                  {
+                     $clockData = $_REQUEST['addWidgetClockData'];
+                  }
+
+                  if(isset($_REQUEST['addWidgetClockFont']))
+                  {
+                     $clockFont = $_REQUEST['addWidgetClockFont'];
+                  }
+                  
+                  $styleParametersArray = array('clockData' => $clockData, 'clockFont' => $clockFont);
+                  $styleParameters = json_encode($styleParametersArray);
+                }
                 
                 if($type_widget == "widgetFirstAid")
                 {
@@ -1263,45 +1465,56 @@
                     $frame_color = mysqli_real_escape_string($link, $_POST['inputFrameColorWidget']); 
                 }
 
-                //Parametri
-                $parameters = NULL;
-                if(isset($_POST['parameters'])&&($_POST['parameters'] != ""))
-                {
-                   $parameters = $_POST['parameters'];
-                }
+               //Parametri
+               $parameters = NULL;
+               
+               if(isset($_POST['parameters'])&&($_POST['parameters'] != ""))
+               {
+                  if(($type_widget == 'widgetBarContent')||($type_widget == 'widgetColunmContent')||($type_widget == 'widgetGaugeChart')||($type_widget == 'widgetSingleContent')||($type_widget == 'widgetSpeedometer')||($type_widget == 'widgetTimeTrend')||($type_widget == 'widgetTimeTrendCompare'))
+                  {
+                     if($_POST['alrThrSel'] == "yes")
+                     {
+                        $parameters = $_POST['parameters'];
+                     }
+                  }
+                  else
+                  {
+                     $parameters = $_POST['parameters'];
+                  }
+               } 
 
                 //Gestione parametri per widget di stato del singolo processo
                 if($id_metric == 'Process')
                 {
-                    $host = $_POST['host'];
-                    $user = $_POST['user'];
-                    $pass = $_POST['pass'];
-                    $schedulerName = $_POST['schedulerName'];
-                    $jobArea = $_POST['jobArea'];
-                    $jobGroup = $_POST['jobGroup'];
-                    $jobName = $_POST['jobName'];
-                    $parametersArray = array('host' => $host, 'user' => $user, 'pass' => $pass, 'schedulerName' => $schedulerName, 'jobArea' => $jobArea, 'jobGroup' => $jobGroup, 'jobName' => $jobName);
-                    $parameters = json_encode($parametersArray);
+                  $host = $_POST['host'];
+                  $user = $_POST['user'];
+                  $pass = $_POST['pass'];
+                  $schedulerName = $_POST['schedulerName'];
+                  $jobArea = $_POST['jobArea'];
+                  $jobGroup = $_POST['jobGroup'];
+                  $jobName = $_POST['jobName'];
+                  $parametersArray = array('host' => $host, 'user' => $user, 'pass' => $pass, 'schedulerName' => $schedulerName, 'jobArea' => $jobArea, 'jobGroup' => $jobGroup, 'jobName' => $jobName);
+                  $parameters = json_encode($parametersArray);
                 }
 
-                if(isset($_POST['inputUrlWidget'])&& ($_POST['inputUrlWidget'] != ""))
+                if(isset($_POST['inputUrlWidget']))
                 {
-                    if (strpos($_POST['inputUrlWidget'], 'http://') === false) 
+                    if(preg_match('/^ *$/', $_POST['inputUrlWidget'])) 
                     {
-                        $url_widget = 'http://' . mysqli_real_escape_string($link, $_POST['inputUrlWidget']);
+                       $url_widget = "none";
                     }
-                    else 
+                    else
                     {
-                        $url_widget = mysqli_real_escape_string($link, $_POST['inputUrlWidget']);
+                       $url_widget = mysqli_real_escape_string($link, $_POST['inputUrlWidget']);
                     }
                 }
                 else
                 {
-                    $url_widget = NULL;
+                    $url_widget = "none";
                 }
 
                 $comune_widget = NULL;
-                if (isset($_POST['inputComuneWidget']) && $_POST['inputComuneWidget'] != "") 
+                if(isset($_POST['inputComuneWidget']) && $_POST['inputComuneWidget'] != "") 
                 {
                     $comune_widget = strtoupper($_POST['inputComuneWidget']);
                     $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $comune_widget . "_" . $id_dashboard . "_" . $type_widget . $nextId;
@@ -1312,12 +1525,63 @@
                 }
 
                 $int_temp_widget = NULL;
-                if (isset($_POST['select-IntTemp-Widget']) && $_POST['select-IntTemp-Widget'] != "") {
+                if(isset($_POST['select-IntTemp-Widget']) && $_POST['select-IntTemp-Widget'] != "") 
+                {
                     $int_temp_widget = $_POST['select-IntTemp-Widget'];
 
-                    if ($_POST['select-IntTemp-Widget'] != "Nessuno") {
+                    if($_POST['select-IntTemp-Widget'] != "Nessuno") 
+                    {
                         $name_widget = $name_widget . "_" . preg_replace('/ /', '', $_POST['select-IntTemp-Widget']);
                     }
+                }
+                
+                //Va messo qui perché serve il nome del widget
+                if($type_widget == "widgetButton")
+                {
+                   $styleParametersArray = [];
+                   $styleParametersArray["borderRadius"] = $_REQUEST['addWidgetBtnRadius'];
+                   
+                   if($_REQUEST['addWidgetBtnImgSelect'] == "yes")
+                   {
+                      if(isset($_FILES['addWidgetBtnFile']))
+                      {
+                        if($_FILES['addWidgetBtnFile']['size'] > 0)
+                        {
+                           if(!file_exists("../img/widgetButtonImages/"))
+                           {
+                              mkdir("../img/widgetButtonImages/");
+                           }
+                           
+                           if(!file_exists("../img/widgetButtonImages/" . $name_widget))
+                           {
+                              mkdir("../img/widgetButtonImages/" . $name_widget);
+                           }
+                           
+                           $pointIndex = strrpos($_FILES['addWidgetBtnFile']['name'], ".");
+                           $extension = substr($_FILES['addWidgetBtnFile']['name'], $pointIndex);
+                           $fileUploaded = move_uploaded_file($_FILES['addWidgetBtnFile']['tmp_name'], "../img/widgetButtonImages/" . $name_widget . "/image" . $extension);
+                           
+                           $styleParametersArray["hasImage"] = "yes";
+                           $styleParametersArray["imageWidth"] = $_REQUEST["addWidgetBtnImgWidth"];
+                           $styleParametersArray["imageHeight"] = $_REQUEST["addWidgetBtnImgHeight"];
+                           $styleParametersArray["imageName"] = "image" . $extension;
+                        }
+                        else
+                        {
+                           $styleParametersArray["hasImage"] = "no";
+                        }
+                      }
+                      else
+                      {
+                         $styleParametersArray["hasImage"] = "no";
+                      }
+                   }
+                   else
+                   {
+                      $styleParametersArray["hasImage"] = "no";
+                   }
+                   
+                  $styleParameters = json_encode($styleParametersArray); 
                 }
 
                 $inputUdmWidget = NULL;
@@ -1370,11 +1634,7 @@
                     $scaleX = 1;
                     $scaleY = 1;
                     
-                    $file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "a");
-                    
-                    
                     //Aggiornamento della lista dei target degli widget events
-                    //mysqli_autocommit($link, false);
                     mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
                     
                     $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '$id_dashboard'";
@@ -1416,17 +1676,170 @@
                      }
                 }
                 
-                if($insqDbtb3 = $link->prepare("INSERT INTO Dashboard.Config_widget_dashboard (Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) 
+                if(isset($_REQUEST['addWidgetRegisterGen']))
                 {
-                    $insqDbtb3->bind_param('isissiiiisssssssssssissssdisddssssss', $nextId, $name_widget, $id_dashboard, $id_metric, $type_widget, $firstFreeRow, $nCol, $sizeRowsWidget, $sizeColumnsWidget, $title_widget, $color_widget, $freq_widget, $int_temp_widget, $comune_widget, $message_widget, $url_widget, $parameters, $frame_color, $inputUdmWidget, $inputUdmPosition, $fontSize, $fontColor, $controlsPosition, $showTitle, $controlsVisibility, $zoomFactor, $defaultTab, $zoomControlsColor, $scaleX, $scaleY, $headerFontColor, $styleParameters, $infoJson, $serviceUri, $viewMode, $hospitalList);
+                   $notificatorRegistered = $_REQUEST['addWidgetRegisterGen'];
+                   $notificatorEnabled = $_REQUEST['addWidgetRegisterGen'];
+                }
+                else
+                {
+                   $notificatorRegistered = 'no';
+                   $notificatorEnabled = 'no';
+                }
+                
+               if($type_widget == 'widgetTrafficEvents')
+               {
+                  //31/08/2017 - Patch temporanea in attesa di avere tempo di mettere i controlli sul form
+                  $styleParameters = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50}';
+               }
+               
+                if(isset($_REQUEST['enableFullscreenTab']))
+                {
+                   $enableFullscreenTab = $_REQUEST['enableFullscreenTab'];
+                }
+                
+                if(isset($_REQUEST['enableFullscreenModal']))
+                {
+                   $enableFullscreenModal = $_REQUEST['enableFullscreenModal'];
+                }
+                
+                if($insqDbtb3 = $link->prepare("INSERT INTO Dashboard.Config_widget_dashboard (Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) 
+                {
+                    $insqDbtb3->bind_param('isissiiiisssssssssssissssdisddssssssssss', $nextId, $name_widget, $id_dashboard, $id_metric, $type_widget, $firstFreeRow, $nCol, $sizeRowsWidget, $sizeColumnsWidget, $title_widget, $color_widget, $freq_widget, $int_temp_widget, $comune_widget, $message_widget, $url_widget, $parameters, $frame_color, $inputUdmWidget, $inputUdmPosition, $fontSize, $fontColor, $controlsPosition, $showTitle, $controlsVisibility, $zoomFactor, $defaultTab, $zoomControlsColor, $scaleX, $scaleY, $headerFontColor, $styleParameters, $infoJson, $serviceUri, $viewMode, $hospitalList, $notificatorRegistered, $notificatorEnabled, $enableFullscreenTab, $enableFullscreenModal);
                     $result4 = $insqDbtb3->execute();
                     if($result4) 
                     {
                         mysqli_close($link);
                         header("location: dashboard_configdash.php");
+                        
+                        if(isset($_REQUEST['addWidgetRegisterGen']))
+                        {
+                           if($_REQUEST['addWidgetRegisterGen'] == "yes")
+                           {
+                              $url = $notificatorUrl;
+                              $genOriginalName = preg_replace('/\s+/', '+', $title_widget);
+                              $genOriginalType = preg_replace('/\s+/', '+', $id_metric);
+                              $containerName = preg_replace('/\s+/', '+', $dashboardName);
+                              $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
+                              $containerUrl = $appUrl . "/view/index.php?iddasboard=" . base64_encode($id_dashboard); 
+                              
+                              $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&url=" . $containerUrl;
+                              $url = $url.$data;
+                              
+                              $options = array(
+                                  'http' => array(
+                                      'header'  => "Content-type: application/json\r\n",
+                                      'method'  => 'POST'
+                                      //'timeout' => 2
+                                  )
+                              );
+
+                              try
+                              {
+                                 $context  = stream_context_create($options);
+                                 $callResult = @file_get_contents($url, false, $context);
+                                 
+                                 //Questo if è temporaneo, allargalo via via che aggiungi widget in grado di generare eventi.
+                                 if(($type_widget == 'widgetBarContent')||($type_widget == 'widgetColunmContent')||($type_widget == 'widgetGaugeChart')||($type_widget == 'widgetSingleContent')||($type_widget == 'widgetSpeedometer')||($type_widget == 'widgetTimeTrend')||($type_widget == 'widgetTimeTrendCompare'))
+                                 {
+                                    //Invio dei tipi di evento al notificatore
+                                    $paramsObj = json_decode($parameters, true);
+                                    if(count($paramsObj) > 0)
+                                    {
+                                       if(count($paramsObj["thresholdObject"] ) > 0)
+                                       {
+                                          foreach($paramsObj["thresholdObject"] as $eventType)
+                                          {
+                                             switch($eventType["op"])
+                                             {
+                                                case "less":
+                                                   $eventName = "Value < " . $eventType["thr1"];
+                                                   break;
+                                                
+                                                case "lessEqual":
+                                                   $eventName = "Value <= " . $eventType["thr1"];
+                                                   break;
+                                                
+                                                case "greater":
+                                                   $eventName = "Value > " . $eventType["thr1"];
+                                                   break;
+                                                
+                                                case "greaterEqual":
+                                                   $eventName = "Value >= " . $eventType["thr1"];
+                                                   break;
+                                                
+                                                case "equal":
+                                                   $eventName = "Value = " . $eventType["thr1"];
+                                                   break;
+                                                
+                                                case "notEqual":
+                                                   $eventName = "Value != " . $eventType["thr1"];
+                                                   break;
+                                                
+                                                case "intervalOpen":
+                                                   $eventName = $eventType["thr1"] . " < value < " . $eventType["thr2"];
+                                                   break;
+                                                
+                                                case "intervalClosed":
+                                                   $eventName = $eventType["thr1"] . " <= value <= " . $eventType["thr2"];
+                                                   break;
+                                                
+                                                case "intervalLeftOpen":
+                                                   $eventName = $eventType["thr1"] . " < value <= " . $eventType["thr2"];
+                                                   break;
+                                                
+                                                case "intervalRightOpen":
+                                                   $eventName = $eventType["thr1"] . " <= value < " . $eventType["thr2"];
+                                                   break;
+                                             }
+
+                                             if($eventType["desc"] != "")
+                                             {
+                                                $eventName = $eventName . " - " . $eventType["desc"];
+                                             }
+
+                                             $eventName = preg_replace('/\s+/', '+', $eventName);
+
+                                             $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                             $url = $url.$data;
+
+                                             $options = array(
+                                                 'http' => array(
+                                                     'header'  => "Content-type: application/json\r\n",
+                                                     'method'  => 'POST'
+                                                     //'timeout' => 2
+                                                 )
+                                             );
+
+                                             try
+                                             {
+                                                $context  = stream_context_create($options);
+                                                $callResult = @file_get_contents($url, false, $context);
+                                             }
+                                             catch (Exception $ex) 
+                                             {
+                                                //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                             }
+                                          }
+                                       }
+                                    }
+                                 }
+                              }
+                              catch (Exception $ex) 
+                              {
+                                 //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                              }
+                           }
+                        }
                     } 
                     else 
                     {
+                       if($type_widget == "widgetButton" && $fileUploaded)
+                       {
+                          unlink("../img/widgetButtonImages/" . $name_widget . "/image" . $extension);
+                          rmdir("../img/widgetButtonImages/" . $name_widget);
+                       }
+                       
                         mysqli_close($link);
                         echo '<script type="text/javascript">';
                         echo 'alert("Error: Ripetere inserimento widget");';
@@ -1460,17 +1873,15 @@
             echo 'window.location.href = "dashboard_configdash.php";';
             echo '</script>';
         }
-    } 
+    } //Fine caso add_widget
     else if(isset($_REQUEST['modify_dashboard']))//Escape 
     {
-        //Nuova versione
-        $isAdmin = $_SESSION['isAdmin'];
-        $loggedUserId = $_SESSION['login_user_id'];
+        $isAdmin = $_SESSION['loggedRole'];
         $dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardName']);
         $dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorName']);
         
         //Reperimento da DB del dashboardId e dell'id dell'autore della dashboard
-        $query = "SELECT Dashboard.Config_dashboard.Id as dashboardId, Users.username as dashboardAuthorName, Users.idUser as idUser FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser WHERE name_dashboard = '$dashboardName' AND Users.username = '$dashboardAuthorName'";
+        $query = "SELECT Dashboard.Config_dashboard.Id, Dashboard.Config_dashboard.name_dashboard, Dashboard.Config_dashboard.user FROM Dashboard.Config_dashboard WHERE name_dashboard = '$dashboardName' AND Dashboard.Config_dashboard.user = '$dashboardAuthorName'";
         $result = mysqli_query($link, $query) or die(mysqli_error($link));
 
         if($result) 
@@ -1479,20 +1890,20 @@
             {
                 while($row = mysqli_fetch_array($result)) 
                 {
-                    $_SESSION['dashboardId'] = $row['dashboardId'];
-                    $_SESSION['dashboardAuthorName'] = $row['dashboardAuthorName'];
-                    $_SESSION['dashboardAuthorId'] = $row['idUser'];
+                    $_SESSION['dashboardId'] = $row['Id'];
+                    $_SESSION['dashboardTitle'] = $row['name_dashboard'];
+                    $_SESSION['dashboardAuthorName'] = $row['user'];
                 }
             }
         } 
         mysqli_close($link);
         
-        if(isset($_SESSION['isAdmin']))
+        if(isset($_SESSION['loggedRole']))
         {
-            if($_SESSION['isAdmin'] == 0)
+            if($_SESSION['loggedRole'] == "Manager")
             {
                 //Utente non amministratore, edita una dashboard solo se ne é l'autore
-                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
                 {
                     header("location: dashboard_configdash.php");
                 }
@@ -1501,10 +1912,10 @@
                     header("location: unauthorizedUser.php");
                 }
             }
-            else if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
             {
                 //Utente amministratore, edita qualsiasi dashboard
-                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId']))) 
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))
                 {
                     header("location: dashboard_configdash.php");
                 }
@@ -1521,11 +1932,11 @@
     } 
     else if (isset($_REQUEST['disable_dashboard']))//Escape 
     {
-        $user_id = $_SESSION['login_user_id'];
+        $username = $_SESSION['loggedUsername'];
         $dashboardName = mysqli_real_escape_string($link, $_POST['select-dashboard-disable']);
         $new_status_dashboard = 0;
 
-        $updqDbtb2 = "UPDATE Dashboard.Config_dashboard SET status_dashboard = '$new_status_dashboard' WHERE name_dashboard = '$dashboardName' and user = '$user_id'";
+        $updqDbtb2 = "UPDATE Dashboard.Config_dashboard SET status_dashboard = '$new_status_dashboard' WHERE name_dashboard = '$dashboardName' and user = '$username'";
         $result6 = mysqli_query($link, $updqDbtb2) or die(mysqli_error($link));
 
         if($result6) 
@@ -1547,7 +1958,7 @@
     } 
     else if(isset($_REQUEST['modify_widget']))//Escape 
     {
-
+        $dashboardName2 = $_SESSION['dashboardTitle'];
         $type_widget_m = mysqli_real_escape_string($link, $_POST['select-widget-m']);
         $title_widget_m = NULL;
         $color_widget_m = mysqli_real_escape_string($link, $_POST['inputColorWidgetM']); 
@@ -1607,6 +2018,27 @@
         $gridLinesColorM = NULL;
         $linesWidthM = NULL;
         $alrThrLinesWidthM = NULL;
+        $clockDataM = NULL;
+        $clockFontM = NULL;
+        $enableFullscreenTabM = 'no';
+        $enableFullscreenModalM = 'no';
+
+        if($type_widget_m == "widgetClock")
+        {
+           if(isset($_REQUEST['editWidgetClockData']))
+           {
+              $clockDataM = $_REQUEST['editWidgetClockData'];
+           }
+
+           if(isset($_REQUEST['editWidgetClockFont']))
+           {
+              $clockFontM = $_REQUEST['editWidgetClockFont'];
+           }
+
+           $styleParametersArrayM = array('clockData' => $clockDataM, 'clockFont' => $clockFontM);
+           $styleParametersM = json_encode($styleParametersArrayM);
+        }
+        
         
          if($type_widget_m == "widgetProtezioneCivile")
          {
@@ -2469,42 +2901,52 @@
             $color_frame_m = mysqli_real_escape_string($link, $_POST['select-frameColor-Widget-m']);
         }
 
-        if ((isset($_POST['parametersM'])) &&( $_POST['parametersM']!=""))
+        if((isset($_POST['parametersM']))&&($_POST['parametersM'] != ""))
         {
-            $parametersM = $_POST['parametersM'];
-
-            //Eliminazione soglie che non sono sull'asse target per widget table
-            if(($type_widget_m == 'widgetTable') || ($type_widget_m == 'widgetLineSeries') || ($type_widget_m == "widgetCurvedLineSeries"))
+            if(($type_widget_m == 'widgetBarContent')||($type_widget_m == 'widgetColunmContent')||($type_widget_m == 'widgetGaugeChart')||($type_widget_m == 'widgetSingleContent')||($type_widget_m == 'widgetSpeedometer')||($type_widget_m == 'widgetTimeTrend')||($type_widget_m == 'widgetTimeTrendCompare'))
             {
-                $paramsDecoded = json_decode($parametersM);
-                $thrTarget = $paramsDecoded->thresholdObject->target;
-                if($thrTarget == $paramsDecoded->thresholdObject->firstAxis->desc)
-                {
-                    //Se il target è il primo asse eliminiamo le eventuali soglie (impostate da GUI) dal secondo asse
-                    for($i = 0; $i < count($paramsDecoded->thresholdObject->secondAxis->fields); $i++)
-                    {
-                        $paramsDecoded->thresholdObject->secondAxis->fields[$i]->thrSeries = array();
-                    }
+               if($_POST['alrThrSelM'] != "no")
+               {
+                  $parametersM = $_POST['parametersM'];
+               }
+            }
+            else
+            {
+               $parametersM = $_POST['parametersM'];
+               
+               //Eliminazione soglie che non sono sull'asse target per widget table
+               if(($type_widget_m == 'widgetTable') || ($type_widget_m == 'widgetLineSeries') || ($type_widget_m == "widgetCurvedLineSeries"))
+               {
+                   $paramsDecoded = json_decode($parametersM);
+                   $thrTarget = $paramsDecoded->thresholdObject->target;
+                   if($thrTarget == $paramsDecoded->thresholdObject->firstAxis->desc)
+                   {
+                       //Se il target è il primo asse eliminiamo le eventuali soglie (impostate da GUI) dal secondo asse
+                       for($i = 0; $i < count($paramsDecoded->thresholdObject->secondAxis->fields); $i++)
+                       {
+                           $paramsDecoded->thresholdObject->secondAxis->fields[$i]->thrSeries = array();
+                       }
 
-                    $parametersM = json_encode($paramsDecoded);
-                }
-                else 
-                {
-                    if($thrTarget == $paramsDecoded->thresholdObject->secondAxis->desc)
-                    {
-                        //Se il target è il secondo asse eliminiamo le eventuali soglie (impostate da GUI) dal primo asse
-                        for($i = 0; $i < count($paramsDecoded->thresholdObject->firstAxis->fields); $i++)
-                        {
-                            $paramsDecoded->thresholdObject->firstAxis->fields[$i]->thrSeries = array();
-                        }
+                       $parametersM = json_encode($paramsDecoded);
+                   }
+                   else 
+                   {
+                       if($thrTarget == $paramsDecoded->thresholdObject->secondAxis->desc)
+                       {
+                           //Se il target è il secondo asse eliminiamo le eventuali soglie (impostate da GUI) dal primo asse
+                           for($i = 0; $i < count($paramsDecoded->thresholdObject->firstAxis->fields); $i++)
+                           {
+                               $paramsDecoded->thresholdObject->firstAxis->fields[$i]->thrSeries = array();
+                           }
 
-                        $parametersM = json_encode($paramsDecoded);
-                    }
-                    else
-                    {
-                        $parametersM = NULL;
-                    }
-                }
+                           $parametersM = json_encode($paramsDecoded);
+                       }
+                       else
+                       {
+                           $parametersM = NULL;
+                       }
+                   }
+               }
             }
         }
 
@@ -2562,18 +3004,26 @@
 
         if(isset($_POST['urlWidgetM'])&& ($_POST['urlWidgetM'] != ""))
         {
-            if (strpos($_POST['urlWidgetM'], 'http://') === false) 
+            /*if (strpos($_POST['urlWidgetM'], 'http://') === false) 
             {
                 $url_m = 'http://' . $_POST['urlWidgetM'];
             }
             else 
             {
                 $url_m = $_POST['urlWidgetM'];
+            }*/
+            if(preg_match('/^ *$/', $_POST['urlWidgetM'])) 
+            {
+               $url_m = "none";
             }
+            else
+            {
+               $url_m = mysqli_real_escape_string($link, $_POST['urlWidgetM']);
+            }                                    
         }
         else
         {
-            $url_m = NULL;
+            $url_m = "none";
         }
 
         $inputUdmWidget = NULL;
@@ -2607,24 +3057,725 @@
         }
         
         $lastSeries = NULL;
+        
+         if($type_widget_m == 'widgetTrafficEvents')
+         {
+            //31/08/2017 - Patch temporanea in attesa di avere tempo di mettere i controlli sul form
+            $styleParametersM = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50}';
+         }
+         
+         if($type_widget_m == "widgetButton")
+         {
+            $styleParametersArray = [];
+            $styleParametersArray["borderRadius"] = $_REQUEST['editWidgetBtnRadius'];
 
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET type_w = ?, size_columns = ?, size_rows = ?, title_w = ?, color_w = ?, frequency_w = ?, temporal_range_w = ?, municipality_w = ?, infoMessage_w = ?, link_w = ?, parameters = ?, frame_color_w = ?, udm = ?, udmPos = ?, fontSize = ?, fontColor = ?, controlsPosition = ?, showTitle = ?, controlsVisibility = ?, defaultTab = ?, zoomControlsColor = ?, headerFontColor = ?, styleParameters = ?, infoJson = ?, serviceUri = ?, viewMode = ?, hospitalList = ?, lastSeries = ? WHERE name_w = ? AND id_dashboard = ?");
-        $upsqDbtb->bind_param('siisssssssssssissssisssssssssi', $type_widget_m, $col_m, $row_m, $title_widget_m, $color_widget_m, $freq_widget_m, $int_temp_widget_m, $comune_widget_m, $info_m, $url_m, $parametersM, $color_frame_m, $inputUdmWidget, $inputUdmPosition, $fontSizeM, $fontColorM, $controlsPosition, $showTitle, $controlsVisibility, $inputDefaultTabM, $zoomControlsColorM, $headerFontColorM, $styleParametersM, $infoJsonM, $serviceUri, $viewMode, $hospitalList, $lastSeries, $name_widget_m, $id_dashboard2);
-        $result7 = $upsqDbtb->execute();
+            if($_REQUEST['editWidgetBtnImgSelect'] == "yes")
+            {
+               $styleParametersArray["hasImage"] = "yes";
+               $styleParametersArray["imageWidth"] = $_REQUEST["editWidgetBtnImgWidth"];
+               $styleParametersArray["imageHeight"] = $_REQUEST["editWidgetBtnImgHeight"];
+               
+               if(isset($_FILES['editWidgetBtnFile']))
+               {
+                 if($_FILES['editWidgetBtnFile']['size'] > 0)
+                 {
+                    if(!file_exists("../img/widgetButtonImages/"))
+                    {
+                       mkdir("../img/widgetButtonImages/");
+                    }
 
-        if ($result7) 
+                    if(!file_exists("../img/widgetButtonImages/" . $name_widget_m))
+                    {
+                       mkdir("../img/widgetButtonImages/" . $name_widget_m);
+                    }
+                    else
+                    {
+                       array_map('unlink', glob("../img/widgetButtonImages/" . $name_widget_m . "/*.*"));
+                    }
+
+                    $pointIndex = strrpos($_FILES['editWidgetBtnFile']['name'], ".");
+                    $extension = substr($_FILES['editWidgetBtnFile']['name'], $pointIndex);
+                    $fileUploaded = move_uploaded_file($_FILES['editWidgetBtnFile']['tmp_name'], "../img/widgetButtonImages/" . $name_widget_m . "/image" . $extension);
+                    $styleParametersArray["imageName"] = "image" . $extension;
+                 }
+                 else
+                 {
+                    $filesArray = scandir("../img/widgetButtonImages/" . $name_widget_m);
+                    
+                    for($i = 0; $i < count($filesArray); $i++)
+                    {
+                       if(strpos($filesArray[$i], 'image') !== false)
+                       {
+                          $styleParametersArray["imageName"] = $filesArray[$i];
+                       }
+                    }
+                 }
+               }
+            }
+            else
+            {
+               $styleParametersArray["hasImage"] = "no";
+               if(file_exists("../img/widgetButtonImages/")&&file_exists("../img/widgetButtonImages/" . $name_widget_m))
+               {
+                  array_map('unlink', glob("../img/widgetButtonImages/" . $name_widget_m . "/*.*"));
+                  rmdir("../img/widgetButtonImages/" . $name_widget_m);
+               }
+            }
+
+           $styleParametersM = json_encode($styleParametersArray); 
+         }
+         
+        if(isset($_REQUEST['enableFullscreenTabM']))
         {
-            mysqli_close($link);
-            header("location: dashboard_configdash.php");
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error: Ripetere modifica widget");';
-            echo 'window.location.href = "dashboard_configdash.php";';
-            echo '</script>';
+           $enableFullscreenTabM = $_REQUEST['enableFullscreenTabM'];
         }
+
+        if(isset($_REQUEST['enableFullscreenModalM']))
+        {
+           $enableFullscreenModalM = $_REQUEST['enableFullscreenModalM'];
+        }
+        
+        /*Verifichiamo se è già stato registrato o no sul notificatore:
+          1) Se non registrato --> lo registriamo
+          2) Se già registrato --> ne aggiorniamo validità e titolo (nome generatore sul notificatore)
+         */
+        
+        $notificatorQuery = "SELECT notificatorRegistered, notificatorEnabled, title_w FROM Dashboard.Config_widget_dashboard WHERE name_w = '$name_widget_m' AND id_dashboard = '$id_dashboard2'";
+        $notificatorRs = mysqli_query($link, $notificatorQuery);
+        
+        if($notificatorRs)
+        {
+           $notificatorRow = mysqli_fetch_assoc($notificatorRs);
+           $notificatorRegistered = $notificatorRow['notificatorRegistered'];
+           $notificatorRegisteredOld = $notificatorRow['notificatorRegistered'];
+           $notificatorEnabled = $notificatorRow['notificatorEnabled'];
+           $notificatorEnabledOld = $notificatorRow['notificatorEnabled'];
+           $genOriginalName = $notificatorRow['title_w'];
+           
+           if($notificatorRegistered == "no")
+           {
+               if(isset($_REQUEST['editWidgetRegisterGen']))
+               {
+                  $notificatorRegisteredNew = $_REQUEST['editWidgetRegisterGen'];
+                  $notificatorEnabledNew = $_REQUEST['editWidgetRegisterGen'];
+               }
+               else
+               {
+                  $notificatorRegisteredNew = 'no';
+                  $notificatorEnabledNew = 'no';
+               }
+           }
+           else
+           {
+               $notificatorRegisteredNew = $notificatorRegistered;
+               if(isset($_REQUEST['editWidgetRegisterGen']))
+               {
+                  $notificatorEnabledNew = $_REQUEST['editWidgetRegisterGen'];
+               }
+               else
+               {
+                  $notificatorEnabledNew = 'no';
+               }
+           }
+           
+            $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET type_w = ?, size_columns = ?, size_rows = ?, title_w = ?, color_w = ?, frequency_w = ?, temporal_range_w = ?, municipality_w = ?, infoMessage_w = ?, link_w = ?, parameters = ?, frame_color_w = ?, udm = ?, udmPos = ?, fontSize = ?, fontColor = ?, controlsPosition = ?, showTitle = ?, controlsVisibility = ?, defaultTab = ?, zoomControlsColor = ?, headerFontColor = ?, styleParameters = ?, infoJson = ?, serviceUri = ?, viewMode = ?, hospitalList = ?, lastSeries = ?, notificatorRegistered = ?, notificatorEnabled = ?, enableFullscreenTab = ?, enableFullscreenModal = ? WHERE name_w = ? AND id_dashboard = ?");
+            $upsqDbtb->bind_param('siisssssssssssissssisssssssssssssi', $type_widget_m, $col_m, $row_m, $title_widget_m, $color_widget_m, $freq_widget_m, $int_temp_widget_m, $comune_widget_m, $info_m, $url_m, $parametersM, $color_frame_m, $inputUdmWidget, $inputUdmPosition, $fontSizeM, $fontColorM, $controlsPosition, $showTitle, $controlsVisibility, $inputDefaultTabM, $zoomControlsColorM, $headerFontColorM, $styleParametersM, $infoJsonM, $serviceUri, $viewMode, $hospitalList, $lastSeries, $notificatorRegisteredNew, $notificatorEnabledNew, $enableFullscreenTabM, $enableFullscreenModalM, $name_widget_m, $id_dashboard2);
+            $result7 = $upsqDbtb->execute();
+            
+            if($result7) 
+            {
+                mysqli_close($link);
+                header("location: dashboard_configdash.php");
+                
+                //1) Se non registrato e viene richiesto di abilitarlo da GUI --> lo registriamo (con registrazione dei tipi di evento, come in add);
+                if($notificatorRegistered == 'no')
+                {
+                   if(isset($_REQUEST['editWidgetRegisterGen']))
+                   {
+                      if($notificatorRegisteredNew == 'yes')
+                      {
+                        $url = $notificatorUrl;
+                        $genOriginalName = preg_replace('/\s+/', '+', $title_widget_m);
+                        $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
+                        $containerName = preg_replace('/\s+/', '+', $dashboardName2);
+                        $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
+                        
+                        $containerUrl = $appUrl . "/view/index.php?iddasboard=" . base64_encode($id_dashboard2); 
+
+                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&url=" . $containerUrl;
+                        $url = $url.$data;
+
+                        $options = array(
+                            'http' => array(
+                                'header'  => "Content-type: application/json\r\n",
+                                'method'  => 'POST'
+                                //'timeout' => 2
+                            )
+                        );
+
+                        try
+                        {
+                           $context  = stream_context_create($options);
+                           $callResult = @file_get_contents($url, false, $context);
+                           
+                           //Questo if è temporaneo, allargalo via via che aggiungi widget in grado di generare eventi.
+                           if(($type_widget_m == 'widgetBarContent')||($type_widget_m == 'widgetColunmContent')||($type_widget_m == 'widgetGaugeChart')||($type_widget_m == 'widgetSingleContent')||($type_widget_m == 'widgetSpeedometer')||($type_widget_m == 'widgetTimeTrend')||($type_widget_m == 'widgetTimeTrendCompare'))
+                           {
+                              //Invio dei tipi di evento al notificatore
+                              $thrObj = json_decode($parametersM, true);
+                              if(count($thrObj) > 0)
+                              {
+                                 if(count($thrObj["thresholdObject"] ) > 0)
+                                 {
+                                    foreach($thrObj["thresholdObject"] as $eventType)
+                                    {
+                                       switch($eventType["op"])
+                                       {
+                                          case "less":
+                                             $eventName = "Value < " . $eventType["thr1"];
+                                             break;
+
+                                          case "lessEqual":
+                                             $eventName = "Value <= " . $eventType["thr1"];
+                                             break;
+
+                                          case "greater":
+                                             $eventName = "Value > " . $eventType["thr1"];
+                                             break;
+
+                                          case "greaterEqual":
+                                             $eventName = "Value >= " . $eventType["thr1"];
+                                             break;
+
+                                          case "equal":
+                                             $eventName = "Value = " . $eventType["thr1"];
+                                             break;
+
+                                          case "notEqual":
+                                             $eventName = "Value != " . $eventType["thr1"];
+                                             break;
+
+                                          case "intervalOpen":
+                                             $eventName = $eventType["thr1"] . " < value < " . $eventType["thr2"];
+                                             break;
+
+                                          case "intervalClosed":
+                                             $eventName = $eventType["thr1"] . " <= value <= " . $eventType["thr2"];
+                                             break;
+
+                                          case "intervalLeftOpen":
+                                             $eventName = $eventType["thr1"] . " < value <= " . $eventType["thr2"];
+                                             break;
+
+                                          case "intervalRightOpen":
+                                             $eventName = $eventType["thr1"] . " <= value < " . $eventType["thr2"];
+                                             break;
+                                       }
+
+                                       if($eventType["desc"] != "")
+                                       {
+                                          $eventName = $eventName . " - " . $eventType["desc"];
+                                       }
+
+                                       $eventName = preg_replace('/\s+/', '+', $eventName);
+
+                                       $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                       $url = $url.$data;
+
+                                       $options = array(
+                                           'http' => array(
+                                               'header'  => "Content-type: application/json\r\n",
+                                               'method'  => 'POST'
+                                               //'timeout' => 2
+                                           )
+                                       );
+
+                                       try
+                                       {
+                                          $context  = stream_context_create($options);
+                                          $callResult = @file_get_contents($url, false, $context);
+                                       }
+                                       catch (Exception $ex) 
+                                       {
+                                          //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                        catch (Exception $ex) 
+                        {
+                           //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                        }
+                      }
+                   }
+                }
+                else//2) Se già registrato ne aggiorniamo sempre validità e titolo (nome generatore sul notificatore)
+                {
+                   if(isset($_REQUEST['editWidgetRegisterGen']))
+                   {
+                     //SETTING DELLA VALIDITA' DEL GENERATORE SUL NOTIFICATORE CHIAMANDO setGeneratorValidity
+                     $url = $notificatorUrl;
+                     $genOriginalName = preg_replace('/\s+/', '+', $genOriginalName);
+                     $genNewName = preg_replace('/\s+/', '+', $title_widget_m);
+                     $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
+                     $alrThrSelM = preg_replace('/\s+/', '+', $_REQUEST['alrThrSelM']);
+                     $containerName = preg_replace('/\s+/', '+', $_SESSION['dashboardTitle']);
+                     $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
+                     
+                     //$setEventsValidityTrue = "false";//Se era già registrato non riabilitiamo tutti i suoi eventi, sennò riabilitiamo anche quelli vecchi, per entrambi i casi di provenienza
+                     
+                     if($notificatorEnabledNew == 'yes')
+                     {
+                        $validity = 1;
+                     }
+                     else
+                     {
+                        $validity = 0;
+                     }
+                     
+                     //$data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity . "&setEventsValidityTrue=" . $setEventsValidityTrue;
+                     $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity;
+                     $url = $url.$data;
+                     
+                     $options = array(
+                         'http' => array(
+                             'header'  => "Content-type: application/json\r\n",
+                             'method'  => 'POST'
+                             //'timeout' => 2
+                         )
+                     );
+                     
+                     try
+                     {
+                        $context  = stream_context_create($options);
+                        $callResult = @file_get_contents($url, false, $context);
+                        
+                        //Caso edit soglie mantenendo il generatore registrato
+                        if(($_REQUEST['editWidgetRegisterGen'] == "yes")&&($notificatorEnabledNew == "yes")&&($notificatorEnabled == "yes"))
+                        {
+                           //Se soglie abilitate aggiorniamo dalle vecchie soglie alle nuove
+                           if($alrThrSelM == "yes")
+                           {
+                              //Aggiornamento lista degli eventi
+                              $parametersDiff = json_decode($_REQUEST['parametersDiff'], true);
+
+                              //Eventi aggiunti e modificati
+                              foreach($parametersDiff["addedChangedKept"] as $eventType)
+                              {
+                                 $op = $eventType["op"];
+                                 $opNew = $eventType["opNew"];
+                                 $thr1 = $eventType["thr1"];
+                                 $thr1New = $eventType["thr1New"];
+                                 $thr2 = $eventType["thr2"];
+                                 $thr2New = $eventType["thr2New"];
+                                 $desc = $eventType["desc"];
+                                 $descNew = $eventType["descNew"];
+                                 
+                                 switch($op)
+                                 {
+                                    case "less":
+                                       $oldEventName = "Value < " . $thr1;
+                                       break;
+
+                                    case "lessEqual":
+                                       $oldEventName = "Value <= " . $thr1;
+                                       break;
+
+                                    case "greater":
+                                       $oldEventName = "Value > " . $thr1;
+                                       break;
+
+                                    case "greaterEqual":
+                                       $oldEventName = "Value >= " . $thr1;
+                                       break;
+
+                                    case "equal":
+                                       $oldEventName = "Value = " . $thr1;
+                                       break;
+
+                                    case "notEqual":
+                                       $oldEventName = "Value != " . $thr1;
+                                       break;
+
+                                    case "intervalOpen":
+                                       $oldEventName = $thr1 . " < value < " . $thr2;
+                                       break;
+
+                                    case "intervalClosed":
+                                       $oldEventName = $thr1 . " <= value <= " . $thr2;
+                                       break;
+
+                                    case "intervalLeftOpen":
+                                       $oldEventName = $thr1 . " < value <= " . $thr2;
+                                       break;
+
+                                    case "intervalRightOpen":
+                                       $oldEventName = $thr1 . " <= value < " . $thr2;
+                                       break;
+                                 }
+
+                                 if($desc != "")
+                                 {
+                                   $oldEventName = $oldEventName . " - " . $desc;
+                                 }
+                                 
+                                 $oldEventName = preg_replace('/\s+/', '+', $oldEventName);
+                                 
+                                 switch($opNew)
+                                 {
+                                    case "less":
+                                       $newEventName = "Value < " . $thr1New;
+                                       break;
+
+                                    case "lessEqual":
+                                       $newEventName = "Value <= " . $thr1New;
+                                       break;
+
+                                    case "greater":
+                                       $newEventName = "Value > " . $thr1New;
+                                       break;
+
+                                    case "greaterEqual":
+                                       $newEventName = "Value >= " . $thr1New;
+                                       break;
+
+                                    case "equal":
+                                       $newEventName = "Value = " . $thr1New;
+                                       break;
+
+                                    case "notEqual":
+                                       $newEventName = "Value != " . $thr1New;
+                                       break;
+
+                                    case "intervalOpen":
+                                       $newEventName = $thr1New . " < value < " . $thr2New;
+                                       break;
+
+                                    case "intervalClosed":
+                                       $newEventName = $thr1New . " <= value <= " . $thr2New;
+                                       break;
+
+                                    case "intervalLeftOpen":
+                                       $newEventName = $thr1New . " < value <= " . $thr2New;
+                                       break;
+
+                                    case "intervalRightOpen":
+                                       $newEventName = $thr1New . " <= value < " . $thr2New;
+                                       break;
+                                 }
+
+                                 if($descNew != "")
+                                 {
+                                   $newEventName = $newEventName . " - " . $descNew;
+                                 }
+
+                                 $newEventName = preg_replace('/\s+/', '+', $newEventName);
+                                 //Eventi aggiunti
+                                 if(($eventType["added"]||($eventType["added"]&&$eventType["changed"]))&&(!$eventType["deleted"]))
+                                 {
+                                    $url = $notificatorUrl;
+                                    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $newEventName . "&thrCnt=1";
+                                    $url = $url.$data;
+
+                                    $options = array(
+                                        'http' => array(
+                                            'header'  => "Content-type: application/json\r\n",
+                                            'method'  => 'POST'
+                                            //'timeout' => 2
+                                        )
+                                    );
+
+                                    try
+                                    {
+                                       $context  = stream_context_create($options);
+                                       $callResult = @file_get_contents($url, false, $context);
+                                    }
+                                    catch (Exception $ex) 
+                                    {
+                                       //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                    }
+                                 }//Fine gestione eventi aggiunti
+                                 else
+                                 {
+                                    //Gestione eventi aggiornati
+                                    if((!$eventType["deleted"])&&($eventType["changed"]))
+                                    {
+                                       $url = $notificatorUrl;
+                                       $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=updateEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&oldEventType=' . $oldEventName . "&newEventType=" . $newEventName;
+                                       $url = $url.$data;
+
+                                       $options = array(
+                                           'http' => array(
+                                               'header'  => "Content-type: application/json\r\n",
+                                               'method'  => 'POST'
+                                               //'timeout' => 2
+                                           )
+                                       );
+
+                                       try
+                                       {
+                                          $context  = stream_context_create($options);
+                                          $callResult = @file_get_contents($url, false, $context);
+                                       }
+                                       catch (Exception $ex) 
+                                       {
+                                          //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                       }
+                                    }
+                                 }
+                              }//Fine del foreach degli eventi aggiunti ed editati
+
+                              //Gestione eventi cancellati
+                              foreach($parametersDiff["deleted"] as $eventType)
+                              {
+                                 $op = $eventType["opNew"];
+                                 $thr1 = $eventType["thr1New"];
+                                 $thr2 = $eventType["thr2New"];
+                                 $desc = $eventType["descNew"];
+                                 
+                                 switch($op)
+                                 {
+                                    case "less":
+                                       $eventName = "Value < " . $thr1;
+                                       break;
+
+                                    case "lessEqual":
+                                       $eventName = "Value <= " . $thr1;
+                                       break;
+
+                                    case "greater":
+                                       $eventName = "Value > " . $thr1;
+                                       break;
+
+                                    case "greaterEqual":
+                                       $eventName = "Value >= " . $thr1;
+                                       break;
+
+                                    case "equal":
+                                       $eventName = "Value = " . $thr1;
+                                       break;
+
+                                    case "notEqual":
+                                       $eventName = "Value != " . $thr1;
+                                       break;
+
+                                    case "intervalOpen":
+                                       $eventName = $thr1 . " < value < " . $thr2;
+                                       break;
+
+                                    case "intervalClosed":
+                                       $eventName = $thr1 . " <= value <= " . $thr2;
+                                       break;
+
+                                    case "intervalLeftOpen":
+                                       $eventName = $thr1 . " < value <= " . $thr2;
+                                       break;
+
+                                    case "intervalRightOpen":
+                                       $eventName = $thr1 . " <= value < " . $thr2;
+                                       break;
+                                 }
+
+                                 if($desc != "")
+                                 {
+                                   $eventName = $eventName . " - " . $desc;
+                                 }
+
+                                 $eventName = preg_replace('/\s+/', '+', $eventName);
+
+                                 if(($eventType["deleted"])&&(!$eventType["added"]))//Così scartiamo quelli aggiunti e subito cancellati prima del commit   
+                                 {
+                                    $url = $notificatorUrl;
+                                    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName;
+                                    $url = $url.$data;
+
+                                    $options = array(
+                                        'http' => array(
+                                            'header'  => "Content-type: application/json\r\n",
+                                            'method'  => 'POST'
+                                            //'timeout' => 2
+                                        )
+                                    );
+
+                                    try
+                                    {
+                                       $context  = stream_context_create($options);
+                                       $callResult = @file_get_contents($url, false, $context);
+                                    }
+                                    catch (Exception $ex) 
+                                    {
+                                       //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                    }
+                                 }
+                              }//Fine del foreach degli eventi cancellati
+                           }
+                           else//Se set thresholds è valorizzato a "no" disabilitiamo tutti gli eventi del generatore e cancelliamo notifiche relative a tali eventi
+                           {
+                              $url = $notificatorUrl;
+                              $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
+                              $url = $url.$data;
+
+                              $options = array(
+                                  'http' => array(
+                                      'header'  => "Content-type: application/json\r\n",
+                                      'method'  => 'POST'
+                                      //'timeout' => 2
+                                  )
+                              );
+
+                              try
+                              {
+                                 $context  = stream_context_create($options);
+                                 $callResult = @file_get_contents($url, false, $context);
+                              }
+                              catch (Exception $ex) 
+                              {
+                                 //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                              }
+                           }
+                        }
+                        
+                        //Caso passaggio da generatore disabilitato su notificatore ad abilitato su notificatore: riabilitiamo eventi presenti in form edit widget (ed eventuali relative notifiche) ed aggiungiamo nuovi
+                        if(($notificatorEnabledNew == "yes")&&($notificatorEnabled == "no"))
+                        {
+                           $thrObj = json_decode($parametersM, true);
+                           if(count($thrObj) > 0)
+                           {
+                              if(count($thrObj["thresholdObject"] ) > 0)
+                              {
+                                 foreach($thrObj["thresholdObject"] as $eventType)
+                                 {
+                                    $op = $eventType["op"];
+                                    $thr1 = $eventType["thr1"];
+                                    $thr2 = $eventType["thr2"];
+                                    $desc = $eventType["desc"];
+
+                                    switch($op)
+                                    {
+                                       case "less":
+                                          $eventName = "Value < " . $thr1;
+                                          break;
+
+                                       case "lessEqual":
+                                          $eventName = "Value <= " . $thr1;
+                                          break;
+
+                                       case "greater":
+                                          $eventName = "Value > " . $thr1;
+                                          break;
+
+                                       case "greaterEqual":
+                                          $eventName = "Value >= " . $thr1;
+                                          break;
+
+                                       case "equal":
+                                          $eventName = "Value = " . $thr1;
+                                          break;
+
+                                       case "notEqual":
+                                          $eventName = "Value != " . $thr1;
+                                          break;
+
+                                       case "intervalOpen":
+                                          $eventName = $thr1 . " < value < " . $thr2;
+                                          break;
+
+                                       case "intervalClosed":
+                                          $eventName = $thr1 . " <= value <= " . $thr2;
+                                          break;
+
+                                       case "intervalLeftOpen":
+                                          $eventName = $thr1 . " < value <= " . $thr2;
+                                          break;
+
+                                       case "intervalRightOpen":
+                                          $eventName = $thr1 . " <= value < " . $thr2;
+                                          break;
+                                    }
+
+                                    if($eventType["desc"] != "")
+                                    {
+                                       $eventName = $eventName . " - " . $eventType["desc"];
+                                    }
+
+                                    $eventName = preg_replace('/\s+/', '+', $eventName);
+
+                                    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                    $url = $url.$data;
+
+                                    $options = array(
+                                        'http' => array(
+                                            'header'  => "Content-type: application/json\r\n",
+                                            'method'  => 'POST'
+                                            //'timeout' => 2
+                                        )
+                                    );
+
+                                    try
+                                    {
+                                       $context  = stream_context_create($options);
+                                       $callResult = @file_get_contents($url, false, $context);
+                                    }
+                                    catch (Exception $ex) 
+                                    {
+                                       //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                        
+                        //Caso passaggio da generatore abilitato su notificatore a disabilitato su notificatore: ne disabilitiamo tutti gli eventi (e relative notifiche) SENZA CANCELLARLI FISICAMENTE
+                        if(($notificatorEnabledNew == "no")&&($notificatorEnabled == "yes"))
+                        {
+                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=disableAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
+                           $url = $url.$data;
+
+                           $options = array(
+                               'http' => array(
+                                   'header'  => "Content-type: application/json\r\n",
+                                   'method'  => 'POST'
+                                   //'timeout' => 2
+                               )
+                           );
+
+                           try
+                           {
+                              $context  = stream_context_create($options);
+                              $callResult = @file_get_contents($url, false, $context);
+                           }
+                           catch (Exception $ex) 
+                           {
+                              //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                           }
+                        }
+                     }
+                     catch (Exception $ex) 
+                     {
+                        //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                     }
+                   }
+                }
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo '<script type="text/javascript">';
+                echo 'alert("Errore: ripetere update widget");';
+                echo 'window.location.href = "dashboard_configdash.php";';
+                echo '</script>';
+            }
+         }
+         else 
+         {
+           mysqli_close($link);
+           echo '<script type="text/javascript">';
+           echo 'alert("Errore: ripetere update widget");';
+           echo 'window.location.href = "dashboard_configdash.php";';
+           echo '</script>';
+         }
     } 
     else if(isset($_REQUEST['add_new_metric']))//Escape 
     {
@@ -2919,7 +4070,7 @@
         $dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardNameForStatusChange']);
         $dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorNameForStatusChange']);
         
-        //Reperimento da DB del nome dell'autore della dashboard, del dashboardId e dell'id dell'autore della dashboard
+        //Reperimento da DB del nome dell'autore della dashboard, del dashboardId e dell'id dell'autore della dashboard (L'ID NON SERVE PIU')
         $query = "SELECT Dashboard.Config_dashboard.Id as dashboardId, Dashboard.Config_dashboard.status_dashboard as dashboardStatus, Users.username as dashboardAuthorName, Users.idUser as idUser FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser WHERE name_dashboard = '$dashboardName' AND Users.username = '$dashboardAuthorName'";
         $result = mysqli_query($link, $query) or die(mysqli_error($link));
         
@@ -2931,7 +4082,6 @@
                 {
                     $_SESSION['dashboardId'] = $row['dashboardId'];
                     $_SESSION['dashboardAuthorName'] = $dashboardAuthorName;
-                    $_SESSION['dashboardAuthorId'] = $row['idUser'];
                     $dashboardStatus = $row['dashboardStatus'];
                 }
                 
@@ -3252,7 +4402,7 @@
             echo '</script>';
         }
     }
-    elseif (isset($_REQUEST['scaleYUpdated'])) //Escape
+    elseif(isset($_REQUEST['scaleYUpdated'])) //Escape
     {
         $scaleY = mysqli_real_escape_string($link, $_REQUEST['scaleYUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
@@ -3322,4 +4472,21 @@
         
         mysqli_close($link);
     }
-?>
+    elseif(isset($_REQUEST['showHideDashboardHeader']))//Escape 
+    {
+        $newStatus = mysqli_real_escape_string($link, $_REQUEST['showHideDashboardHeader']);
+        $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+        $query = "UPDATE Dashboard.Config_dashboard SET headerVisible = $newStatus WHERE Id = $dashboardId";
+        $result = mysqli_query($link, $query);
+        
+        if($result) 
+        {
+           mysqli_close($link);
+           echo "Ok";
+        }
+        else
+        {
+           mysqli_close($link);
+           echo "Ko";
+        }
+    }

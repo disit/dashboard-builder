@@ -48,13 +48,13 @@
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
-        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
-            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
-            rangeMin, rangeMax, widgetParameters, paneObj, limSup1, limSup2, minGauge, maxGauge, shownValue, thicknessVal, plotOptionsObj, sizeRowsWidget, alarmSet = null;
+        var widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, udm,
+            widgetParameters, paneObj, minGauge, maxGauge, shownValue, thicknessVal, plotOptionsObj, sizeRowsWidget, alarmSet, 
+            plotBandObj, plotBandSet, hasNegativeValues = null;
         var metricId = "<?= $_GET['metric'] ?>";
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         var url = "<?= $_GET['link_w'] ?>";
-        var chartColors = new Array();
+        var hasThresholds = false;
         
         if(url === "null")
         {
@@ -62,19 +62,8 @@
         }
         
         //Definizioni di funzione specifiche del widget
-        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
-        function getThresholdsJson()
-        {
-            var thresholdsJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
-            {
-                thresholdsJson = widgetProperties.param.parameters; 
-            }
-            
-            return thresholdsJson;
-        }
         
-        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        //Restituisce il JSON delle info se presente, altrimenti NULL
         function getInfoJson()
         {
             var infoJson = null;
@@ -86,7 +75,7 @@
             return infoJson;
         }
         
-        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        //Restituisce il JSON delle info se presente, altrimenti NULL
         function getStyleParameters()
         {
             var styleParameters = null;
@@ -116,84 +105,19 @@
         {
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
-            widgetParameters = JSON.parse(widgetProperties.param.parameters);
+            widgetParameters = widgetProperties.param.parameters;
             udm = widgetProperties.param.udm;
             sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
             
             if(widgetParameters !== null)
             {
-                if((widgetParameters.rangeMin !== null) && (widgetParameters.rangeMin !== "") && (typeof widgetParameters.rangeMin !== "undefined"))
-                {
-                    rangeMin = widgetParameters.rangeMin;
-                }
-                else
-                {
-                    rangeMin = null;
-                }
-
-                if((widgetParameters.rangeMax !== null) && (widgetParameters.rangeMax !== "") && (typeof widgetParameters.rangeMax !== "undefined"))
-                {
-                    rangeMax = widgetParameters.rangeMax;
-                }
-                else
-                {
-                    rangeMax = null;
-                }
-
-                if((widgetParameters.color1 !== null) && (widgetParameters.color1 !== "") && (typeof widgetParameters.color1 !== "undefined")) 
-                {
-                    chartColors[0] = widgetParameters.color1;
-                }
-                else
-                {
-                    chartColors[0] = colors.GREEN;
-                }
-                
-                if((widgetParameters.color2 !== null) && (widgetParameters.color2 !== "") && (typeof widgetParameters.color2 !== "undefined")) 
-                {
-                    chartColors[1] = widgetParameters.color2;
-                }
-                else
-                {
-                    chartColors[1] = colors.ORANGE; 
-                }
-
-                if((widgetParameters.color3 !== null) && (widgetParameters.color3 !== "") && (typeof widgetParameters.color3 !== "undefined")) 
-                {
-                    chartColors[2] = widgetParameters.color3;
-                }
-                else
-                {
-                    chartColors[2] = colors.RED; 
-                }
-
-                if((widgetParameters.limitSup1 !== null) && (widgetParameters.limitSup1 !== "") && (typeof widgetParameters.limitSup1 !== "undefined")) 
-                {
-                    limSup1 = widgetParameters.limitSup1;
-                }
-                else
-                {
-                    limSup1 = null;
-                }
-
-                if((widgetParameters.limitSup2 !== null) && (widgetParameters.limitSup2 !== "") && (typeof widgetParameters.limitSup2 !== "undefined")) 
-                {
-                    limSup2 = widgetParameters.limitSup2;
-                }
-                else
-                {
-                    limSup2 = null;
-                }
-            }
-            else 
-            {
-                chartColors[0] = colors.GREEN; 
-                chartColors[1] = colors.ORANGE; 
-                chartColors[2] = colors.RED; 
-                limSup1 = null;
-                limSup2 = null;
-                rangeMin = null;
-                rangeMax = null;
+               widgetParameters = JSON.parse(widgetProperties.param.parameters);
+               
+               if(widgetParameters.hasOwnProperty("thresholdObject"))
+               {
+                  thresholdObject = widgetParameters.thresholdObject; 
+                  hasThresholds = true;
+               }
             }
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             
@@ -206,10 +130,8 @@
                     {
                         pattern = /Percentuale\//;
                         metricType = metricData.data[0].commit.author.metricType;
-                        threshold = parseInt(metricData.data[0].commit.author.threshold);
-                        thresholdEval = metricData.data[0].commit.author.thresholdEval;
-                        var seriesDat = [];
-
+                        hasNegativeValues = parseInt(metricData.data[0].commit.author.hasNegativeValues);
+                        
                         if(pattern.test(metricType))
                         {
                             minGauge = 0;
@@ -226,19 +148,28 @@
                                 case "Intero":
                                     if(metricData.data[0].commit.author.value_num !== null)
                                     {
-                                        shownValue = parseInt(metricData.data[0].commit.author.value_num);
-                                    }
-                                    
-                                    if((rangeMin !== null) && (rangeMax !== null))
-                                    {
-                                        minGauge = parseInt(rangeMin);
-                                        maxGauge = parseInt(rangeMax);
+                                       shownValue = parseInt(metricData.data[0].commit.author.value_num);
                                     }
                                     else
                                     {
-                                        minGauge = 0;
-                                        maxGauge = shownValue;
+                                       shownValue = 0;
                                     }
+                                    
+                                    if(hasNegativeValues === 0)
+                                    {
+                                       minGauge = 0;
+                                    }
+                                    else
+                                    {
+                                       minGauge = Math.floor(shownValue - (Math.random() * 25) - 10);
+                                    }
+                           
+                                    
+                                    if(minGauge > 0)
+                                    {
+                                       minGauge = 0;
+                                    }
+                                    maxGauge = Math.floor(shownValue + (Math.random() * 25) + 10);
                                     break;
 
                                 case "Float":
@@ -246,17 +177,26 @@
                                     {
                                         shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(1));
                                     }
-                                    
-                                    if((rangeMin !== null) && (rangeMax !== null))
+                                    else
                                     {
-                                        minGauge = parseInt(rangeMin);
-                                        maxGauge = parseInt(rangeMax);
+                                       shownValue = 0;
+                                    }
+                                    
+                                    if(hasNegativeValues === 0)
+                                    {
+                                       minGauge = 0;
                                     }
                                     else
                                     {
-                                        minGauge = 0;
-                                        maxGauge = shownValue;
+                                       minGauge = Math.floor(shownValue - (Math.random() * 25) - 10);
                                     }
+                                    
+                                    if(minGauge > 0)
+                                    {
+                                       minGauge = 0;
+                                    }
+                                    
+                                    maxGauge = Math.floor(shownValue + (Math.random() * 25) + 10);
                                     break;
 
                                 case "Percentuale":
@@ -273,29 +213,185 @@
                                     break;
                             }
                         }
-
-                        if(shownValue > maxGauge)
-                        {
-                            maxGauge = shownValue; 
-                        }
-                        if(shownValue < minGauge)
-                        {
-                            minGauge = shownValue; 
-                        }
-
-                        if(sizeRowsWidget <= 4)
-                        {
-                            thicknessVal = 7;
-                        }
-                        else
-                        {
-                            thicknessVal = 10;
-                        }
+                        
+                        var innerRadius = "92%";
+                        var outerRadius = "100%";
 
                         //Controllo tipo metrica non compatibile col widget
                         if((shownValue !== null) && (minGauge !== null) && (maxGauge !== null))
                         {
-                            if((threshold === null) || (thresholdEval === null))
+                           if(hasThresholds)
+                           {
+                              //Applicazione soglie
+                              plotBandSet = [];
+                              plotBandObj = null;//Va resettato ad ogni iterazione, per evitare di inserire bande colorate fuori scala e rovinare il widget
+                              
+                              var op, op1, op2 = null;
+                              
+                              for(var i = 0; i < thresholdObject.length; i++) 
+                              {
+                                 //Semiretta sinistra
+                                 if(((thresholdObject[i].op === "less")||(thresholdObject[i].op === "lessEqual"))&&(parseFloat(thresholdObject[i].thr1) >= minGauge))
+                                 {
+                                    if(thresholdObject[i].op === "less")
+                                    {
+                                       op = "<";
+                                    }
+                                    else
+                                    {
+                                       op = "<=";
+                                    }
+
+                                    if(thresholdObject[i].thr1 >= maxGauge)
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: minGauge, 
+                                          to: maxGauge, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                      };
+                                    }
+                                    else
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: minGauge, 
+                                          to: thresholdObject[i].thr1, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                      };
+                                    }
+                                 }
+                                 
+                                 //Semiretta destra
+                                 if(((thresholdObject[i].op === "greater")||(thresholdObject[i].op === "greaterEqual"))&&(parseFloat(thresholdObject[i].thr1) <= maxGauge))
+                                 {
+                                    if(thresholdObject[i].thr1 <= minGauge)
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: minGauge, 
+                                          to: maxGauge, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                       };
+                                    }
+                                    else
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: thresholdObject[i].thr1, 
+                                          to: maxGauge, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                      };
+                                    }
+                                 }
+                                 
+                                 //Uguale a
+                                 if((thresholdObject[i].op === "equal")&&(parseFloat(thresholdObject[i].thr1) <= maxGauge)&&(parseFloat(thresholdObject[i].thr1) >= minGauge))
+                                 {
+                                    var minLine = parseFloat(thresholdObject[i].thr1) - Math.abs(maxGauge - minGauge)*0.0025;
+                                    var maxLine = parseFloat(thresholdObject[i].thr1) + Math.abs(maxGauge - minGauge)*0.0025;       
+
+                                    plotBandObj  = {
+                                       color: thresholdObject[i].color, 
+                                       from: minLine, 
+                                       to: maxLine, 
+                                       innerRadius: innerRadius,
+                                       outerRadius: outerRadius
+                                    };
+                                 }
+                                 
+                                 //Diverso da
+                                 if((thresholdObject[i].op === "notEqual")&&(parseFloat(thresholdObject[i].thr1) <= maxGauge)&&(parseFloat(thresholdObject[i].thr1) >= minGauge))
+                                 {
+                                    var minLine = parseFloat(thresholdObject[i].thr1) - Math.abs(maxGauge - minGauge)*0.0025;
+                                    var maxLine = parseFloat(thresholdObject[i].thr1) + Math.abs(maxGauge - minGauge)*0.0025;       
+
+                                    plotBandObj  = {
+                                       color: thresholdObject[i].color, 
+                                       from: minLine, 
+                                       to: maxLine, 
+                                       innerRadius: innerRadius,
+                                       outerRadius: outerRadius
+                                    };                                  
+                                 }
+                                 
+                                 //Intervallo bi-limitato
+                                 if(((thresholdObject[i].op === "intervalOpen")||(thresholdObject[i].op === "intervalClosed")||(thresholdObject[i].op === "intervalLeftOpen")||(thresholdObject[i].op === "intervalRightOpen"))&&(!((parseFloat(thresholdObject[i].thr1) <= minGauge)&&(parseFloat(thresholdObject[i].thr2) <= minGauge)))&&(!((parseFloat(thresholdObject[i].thr1) >= maxGauge)&&(parseFloat(thresholdObject[i].thr2) >= maxGauge))))
+                                 {
+                                    //Sforamento inferiore
+                                    if((parseFloat(thresholdObject[i].thr1) <= minGauge)&&(parseFloat(thresholdObject[i].max) < maxGauge))
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: minGauge, 
+                                          to: thresholdObject[i].thr2, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                      };
+                                    }
+
+                                    //Sforamento superiore
+                                    if((parseFloat(thresholdObject[i].thr2) >= maxGauge)&&(parseFloat(thresholdObject[i].thr1) >= minGauge))
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: thresholdObject[i].thr1, 
+                                          to: maxGauge, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                      };
+                                    }
+
+                                    //Sforamento da ambo i lati
+                                    if((parseFloat(thresholdObject[i].thr2) >= maxGauge)&&(parseFloat(thresholdObject[i].thr1) <= minGauge))
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: minGauge, 
+                                          to: maxGauge, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                      };
+                                    }
+
+                                    //Nessun sforamento
+                                    if((parseFloat(thresholdObject[i].thr2) < maxGauge)&&(parseFloat(thresholdObject[i].thr1) > minGauge))
+                                    {
+                                       plotBandObj  = {
+                                          color: thresholdObject[i].color, 
+                                          from: thresholdObject[i].thr1, 
+                                          to: thresholdObject[i].thr2, 
+                                          innerRadius: innerRadius,
+                                          outerRadius: outerRadius
+                                      };
+                                    }
+                                    //In tutti gli altri casi (cioé con la banda interamente sopra il massimo o interamente sotto il minimo) non disegnamo banda colorata.
+                                 }
+                                 
+                                 if(plotBandObj !== null)
+                                 {
+                                    plotBandSet.push(plotBandObj);
+                                 }
+                              }
+                           }
+                           else
+                           {
+                              //Nessuna soglia, usiamo un colore di default
+                              plotBandSet = [{
+                                 from: minGauge,
+                                 to: maxGauge,
+                                 color: colors.GREEN,
+                                 innerRadius: innerRadius,
+                                 outerRadius: outerRadius
+                              }];
+                           }
+                           
+                           //NON CANCELLARE - Da riusare quando ripristiniamo il blink ad allarme attivo.
+                            /*if((threshold === null) || (thresholdEval === null))
                             {
                                 //In questo caso non mostriamo soglia d'allarme.
                                 threshold = 0;
@@ -462,7 +558,7 @@
                                         }];
                                         break;
                                  }
-                            }
+                            }*/
 
                             if(sizeRowsWidget <= 4)
                             {
@@ -539,7 +635,7 @@
                                             "text-shadow": "1px 1px 1px rgba(0,0,0,0.20)",
                                             "textOutline": "1px 1px contrast",
                                             fontFamily: 'Verdana'
-                                        },
+                                        }
                                     };
 
                                 yAxisObj = {
@@ -719,11 +815,8 @@
                     else
                     {
                         showWidgetContent(widgetName);
-			$('#<?= $_GET['name'] ?>_noDataAlert').show();
+                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
                     }  
-                
-                
-                    
                 }
                 else
                 {
@@ -749,13 +842,12 @@
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
                <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
             <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
                 <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 

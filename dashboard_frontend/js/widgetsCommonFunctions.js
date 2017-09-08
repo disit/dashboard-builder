@@ -29,7 +29,15 @@ function setHeaderFontColor(widget, color)
 //Usata in tutti gli widget
 function addLink(name, url, linkElement, elementToBeWrapped)
 {
-    if(url) 
+    /*if(url) 
+    {
+        if(linkElement.length === 0)
+        {
+           linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='_blank' class='elementLink2'></a>");
+           elementToBeWrapped.wrap(linkElement); 
+        }
+    }*/
+    if(url !== 'none' && url !== 'map') 
     {
         if(linkElement.length === 0)
         {
@@ -49,44 +57,46 @@ function showWidgetContent(widgetName)
 /*Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie*/
 function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor)
 {
-   var titleWidth = null;
-    
-   //Impostazione header
-   $("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
+    var titleWidth = null;
 
-   if(hostFile === "config")
-   {
-       titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 90 - 2));
-   }
-   else
-   {
-      $("#" + widgetName + "_buttonsDiv").css("display", "none");
-      titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 50 - 2));
-   }
+    //Impostazione header
+    $("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
+   
+    if((!widgetName.includes("widgetButton"))&&(!widgetName.includes("widgetExternalContent"))&&(!widgetName.includes("widgetTrendMentions")))
+    {
+        if(hostFile === "config")
+        {
+            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 25 - 2));
+        }
+        else
+        {
+           $("#" + widgetName + "_buttonsDiv").css("display", "none");
+           titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+        }
+        $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
+    }
     
-   $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
-   $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
-   $("#" + widgetName + "_countdownDiv").css("color", widgetHeaderFontColor);
-    
-   //Impostazione colore di background del widget
-   if(widgetName.indexOf("widgetGenericContent") > 0)
-   {
-      $("#" + widgetName + "_content").css("background-color", widgetHeaderColor);
-   }
-   else
-   {
-      $("#" + widgetName + "_content").css("background-color", widgetContentColor);
-   }
-    
-   //Impostazione altezza widget
-   var contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
-   $("#" + widgetName + "_content").css("height", contentHeight);
+    $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
+    $("#" + widgetName + "_countdownDiv").css("color", widgetHeaderFontColor);
+
+    //Impostazione colore di background del widget
+    if(widgetName.indexOf("widgetGenericContent") > 0)
+    {
+       $("#" + widgetName + "_content").css("background-color", widgetHeaderColor);
+    }
+    else
+    {
+       $("#" + widgetName + "_content").css("background-color", widgetContentColor);
+    }
+
+    //Impostazione altezza widget
+    var contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
+    $("#" + widgetName + "_content").css("height", contentHeight);
 }
 
 //Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie
 function startCountdown(widgetName, timeToReload, funcRef, elToEmpty, widgetType ,scrollerTimeout, eventNamesArray)
 {
-   console.log("Countdown started");
    var intervalRef = setInterval(function () {
         $("#" + widgetName + "_countdownDiv").text(timeToReload);
         timeToReload--;

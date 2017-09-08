@@ -42,8 +42,8 @@
         var timeToReload = <?= $_GET['freq'] ?>;
         var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, pattern, totValues, shownValues, 
             descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
-            rangeMin, rangeMax, widgetParameters, sizeRowsWidget, desc, plotArray, value, day, dayParts, timeParts, date, maxValue1, maxValue2, nInterval,
-            valueAtt, valuePrec, alarmSet = null;
+            rangeMin, rangeMax, widgetParameters, sizeRowsWidget, desc, plotLinesArray, value, day, dayParts, timeParts, date, maxValue1, maxValue2, nInterval,
+            valueAtt, valuePrec, alarmSet, plotLineObj = null;
         var metricId = "<?= $_GET['metric'] ?>";
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         var url = "<?= $_GET['link_w'] ?>";
@@ -84,19 +84,8 @@
         }
         
         //Definizioni di funzione specifiche del widget
-        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
-        function getThresholdsJson()
-        {
-            var thresholdsJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
-            {
-                thresholdsJson = widgetProperties.param.parameters; 
-            }
-            
-            return thresholdsJson;
-        }
         
-        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        //Restituisce il JSON delle info se presente, altrimenti NULL
         function getInfoJson()
         {
             var infoJson = null;
@@ -108,7 +97,7 @@
             return infoJson;
         }
         
-        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        //Restituisce il JSON delle info se presente, altrimenti NULL
         function getStyleParameters()
         {
             var styleParameters = null;
@@ -143,15 +132,14 @@
             widgetParameters = widgetProperties.param.parameters;
             sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
             
-            //Per ora non usato
-            /*if(widgetParameters !== null)
+            if(widgetParameters !== null)
             {
-                
+               widgetParameters = JSON.parse(widgetProperties.param.parameters);
+               if(widgetParameters.hasOwnProperty("thresholdObject"))
+               {
+                  thresholdObject = widgetParameters.thresholdObject; 
+               }
             }
-            else
-            {
-                
-            }*/
             
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             $.ajax({
@@ -163,10 +151,7 @@
                 success: function(metricData) 
                 {       
                     if(metricData.data.length > 0)
-                    {
-                        thresholdEval = metricData.data[0].commit.author.thresholdEval;
-                        threshold = metricData.data[0].commit.author.threshold;
-                        
+                    {   
                         for(var i = 0; i < metricData.data.length; i++) 
                         {
                             day = metricData.data[i].commit.author.computationDate;
@@ -231,16 +216,159 @@
                         maxValue2 = parseFloat((Math.max.apply(Math, valuesData2)).toFixed(1));
                         nInterval = parseFloat((Math.max(maxValue1, maxValue2) / 4).toFixed(1));
 
-                        if(flagNumeric && (threshold !== null) && (thresholdEval !== null))
+                        if(flagNumeric && (thresholdObject!== null))
                         {
-                            plotArray = [{
-                               color: '#FF9933', 
-                               dashStyle: 'shortdash', 
-                               value: threshold, 
-                               width: 2,
-                               zIndex: 5
-                            }];
-                            delta = Math.abs(value - threshold);
+                           plotLinesArray = []; 
+                           var op, op1, op2 = null;   
+                            
+                           for(var i in thresholdObject) 
+                           {
+                              //Semiretta sinistra
+                              if((thresholdObject[i].op === "less")||(thresholdObject[i].op === "lessEqual"))
+                              {
+                                 if(thresholdObject[i].op === "less")
+                                 {
+                                    op = "<";
+                                 }
+                                 else
+                                 {
+                                    op = "<=";
+                                 }
+                                 
+                                 plotLineObj = {
+                                    color: thresholdObject[i].color, 
+                                    dashStyle: 'shortdash', 
+                                    value: parseFloat(thresholdObject[i].thr1), 
+                                    width: 1,
+                                    zIndex: 5,
+                                    label: {
+                                       text: thresholdObject[i].desc + " " + op + " " + thresholdObject[i].thr1,
+                                       y: 12
+                                    }
+                                 };
+                                 plotLinesArray.push(plotLineObj);
+                              }
+                              else
+                              {
+                                 //Semiretta destra
+                                 if((thresholdObject[i].op === "greater")||(thresholdObject[i].op === "greaterEqual"))
+                                 {
+                                    if(thresholdObject[i].op === "greater")
+                                    {
+                                       op = ">";
+                                    }
+                                    else
+                                    {
+                                       op = ">=";
+                                    }
+                                    
+                                    //Semiretta destra
+                                    plotLineObj = {
+                                       color: thresholdObject[i].color, 
+                                       dashStyle: 'shortdash', 
+                                       value: parseFloat(thresholdObject[i].thr1), 
+                                       width: 1,
+                                       zIndex: 5,
+                                       label: {
+                                          text: thresholdObject[i].desc + " " + op + " " + thresholdObject[i].thr1
+                                       }
+                                    };
+                                    plotLinesArray.push(plotLineObj);
+                                 }
+                                 else
+                                 {
+                                    //Valore uguale a
+                                    if(thresholdObject[i].op === "equal")
+                                    {
+                                       op = "=";
+                                       plotLineObj = {
+                                          color: thresholdObject[i].color, 
+                                          dashStyle: 'shortdash', 
+                                          value: parseFloat(thresholdObject[i].thr1), 
+                                          width: 1,
+                                          zIndex: 5,
+                                          label: {
+                                             text: thresholdObject[i].desc + " " + op + " " + thresholdObject[i].thr1
+                                          }
+                                       };
+                                       plotLinesArray.push(plotLineObj);
+                                    }
+                                    else
+                                    {
+                                       //Valore diverso da
+                                       if(thresholdObject[i].op === "notEqual")
+                                       {
+                                          op = "!=";
+                                          plotLineObj = {
+                                             color: thresholdObject[i].color, 
+                                             dashStyle: 'shortdash', 
+                                             value: parseFloat(thresholdObject[i].thr1), 
+                                             width: 1,
+                                             zIndex: 5,
+                                             label: {
+                                                text: thresholdObject[i].desc + " " + op + " " + thresholdObject[i].thr1
+                                             }
+                                          };
+                                          plotLinesArray.push(plotLineObj);
+                                       }
+                                       else
+                                       {
+                                          //Intervallo bi-limitato
+                                          switch(thresholdObject[i].op)
+                                          {
+                                             case "intervalOpen":
+                                                op1 = ">";
+                                                op2 = "<";
+                                                break;
+
+                                             case "intervalClosed":
+                                                op1 = ">=";
+                                                op2 = "<=";
+                                                break;
+
+                                             case "intervalLeftOpen":
+                                                op1 = ">";
+                                                op2 = "<=";
+                                                break;
+
+                                             case "intervalRightOpen":
+                                                op1 = ">=";
+                                                op2 = "<";
+                                                break;   
+                                          }
+
+                                          plotLineObj = {
+                                             color: thresholdObject[i].color, 
+                                             dashStyle: 'shortdash', 
+                                             value: parseFloat(thresholdObject[i].thr1), 
+                                             width: 1,
+                                             zIndex: 5,
+                                             label: {
+                                                text: thresholdObject[i].desc + " " + op1 + " " + thresholdObject[i].thr1
+                                             }
+                                          };
+                                          plotLinesArray.push(plotLineObj);
+
+                                          plotLineObj = {
+                                             color: thresholdObject[i].color, 
+                                             dashStyle: 'shortdash', 
+                                             value: parseFloat(thresholdObject[i].thr2), 
+                                             width: 1,
+                                             zIndex: 5,
+                                             label: {
+                                                text: thresholdObject[i].desc + " " + op2 + " " + thresholdObject[i].thr2,
+                                                y: 12
+                                             }
+                                          };
+                                          plotLinesArray.push(plotLineObj);
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                           
+                           //Non cancellare, da recuperare quando ripristini il blink in caso di allarme
+                            /*delta = Math.abs(value - threshold);
                             //Distinguiamo in base all'operatore di confronto
                             switch(thresholdEval)
                             {
@@ -272,8 +400,8 @@
                                //Non gestiamo altri operatori 
                                default:
                                    break;
-                            }
-                        }//Errore o mancanza da copia/incolla?
+                            }*/
+                        }
                         
                         if(firstLoad !== false)
                         {
@@ -325,7 +453,7 @@
                                 min: 0,
                                 max: Math.max(maxValue1, maxValue2),
                                 tickInterval: nInterval,
-                                plotLines: plotArray,
+                                plotLines: plotLinesArray,
                                 labels: {
                                     enabled: true,
                                     style: {
@@ -459,13 +587,12 @@
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
                <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                    <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
             <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
                 <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 

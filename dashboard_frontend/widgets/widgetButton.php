@@ -19,7 +19,7 @@
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad)
     {
         var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetMainDivName = "<?= $_GET['name'] ?>";
+        var widgetName = "<?= $_GET['name'] ?>";
         var widgetContentColor = "<?= $_GET['color'] ?>";
         var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
         var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
@@ -32,8 +32,7 @@
         var button = $('#<?= $_GET['name'] ?>_button');
         var buttonText = '<?= $_GET['title'] ?>'.replace(/_/g, " ");
         var url = "<?= $_GET['link_w'] ?>";
-        var widgetProperties, buttonHeight, widgetTargetList, originalHeaderColor, originalBorderColor = null;
-        
+        var widgetProperties, buttonHeight, widgetTargetList, originalHeaderColor, originalBorderColor, styleParameters, innerWidth, innerHeight, innerTop, innerLeft = null;
         
         //Rimozione bordo per questo widget
         $("#" + widgetName).css("border", "none");
@@ -52,10 +51,11 @@
             }
             lum = lum || 0;
             var rgb = "#", c, i;
-            for (i = 0; i < 3; i++) {
-                    c = parseInt(hex.substr(i*2,2), 16);
-                    c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
-                    rgb += ("00"+c).substr(c.length);
+            for (i = 0; i < 3; i++) 
+            {
+               c = parseInt(hex.substr(i*2,2), 16);
+               c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+               rgb += ("00"+c).substr(c.length);
             }
             return rgb;
         }
@@ -71,39 +71,33 @@
         else
         {
             $('#<?= $_GET['name'] ?>_header').show();
-            var titleDivWidth = $('#<?= $_GET['name'] ?>_div').width() - 40;
-            $('#<?= $_GET['name'] ?>_titleDiv').css("width", titleDivWidth + "px");
             buttonHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
+            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+            $("#" + widgetName + "_buttonsDiv").show();
+            var titleDivWidth = $('#<?= $_GET['name'] ?>_div').width() - 50;
+            $('#<?= $_GET['name'] ?>_titleDiv').css("width", titleDivWidth + "px");
+            $('#<?= $_GET['name'] ?>_titleDiv').show();
         }
         
+        $("#" + widgetName + "_button").css("width", "100%");
         $("#" + widgetName + "_button").css("height", buttonHeight);
         button.css("background-color", color);
         $('#<?= $_GET['name'] ?>_button').css("font-size", fontSize +"px");
         $('#<?= $_GET['name'] ?>_button').css("color", fontColor);
-        $('#<?= $_GET['name'] ?>_button .ui-button-text').css("text-shadow", "1px 1px 1px rgba(0,0,0,0.35)");
-        $('#<?= $_GET['name'] ?>_button .ui-button-text').text(buttonText);
+        $('#<?= $_GET['name'] ?>_buttonText').css("text-shadow", "1px 1px 1px rgba(0,0,0,0.35)");
+        $('#<?= $_GET['name'] ?>_buttonText').text(buttonText);
         $("#" + widgetName + "_button").css("border", "none");
+        $('#<?= $_GET['name'] ?>_buttonInner').addClass("centerWithFlex");
         
         $("#" + widgetName + "_button").focus(function(){
            $(this).css("outline", "none");
         });   
         
-        
-        var hoverColor = lighterColor(color, -0.2);
-        
-        button.hover(function()
-        {
-            $(this).css("background-color", hoverColor);
-        }, 
-        function()
-        {
-            $(this).css("background-color", color);
-        });
-        
         widgetProperties = getWidgetProperties(widgetName);
         if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
         {
            widgetTargetList = JSON.parse(widgetProperties.param.parameters);
+           styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
            
            if((widgetTargetList !== null)&&(widgetTargetList !== 'null')&&(widgetTargetList !== 'undefined'))
            {
@@ -143,9 +137,72 @@
            {
               addLink(widgetMainDivName, url, linkElement, button);
            }
+           
+           
+           var minDim = null;
+           if($("#<?= $_GET['name'] ?>_button").width() > $("#<?= $_GET['name'] ?>_button").height())
+           {
+              minDim = $("#<?= $_GET['name'] ?>_button").height();
+           }
+           else
+           {
+              minDim = $("#<?= $_GET['name'] ?>_button").width();
+           }
+           
+           var borderRadius = Math.floor((parseInt(styleParameters.borderRadius) / 100)*minDim);
+           $('#<?= $_GET['name'] ?>_button').css("border-radius", borderRadius + "px");
+           $('#<?= $_GET['name'] ?>_button').css("position", "absolute");
+           $('#<?= $_GET['name'] ?>_buttonInner').css("position", "absolute");
+           
+           if(styleParameters.hasImage === 'no')
+           {
+              $('#<?= $_GET['name'] ?>_buttonInner').css("width", "100%");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("height", "100%");
+           }
+           else
+           {
+              $('#<?= $_GET['name'] ?>_buttonText').hide();
+              innerWidth = parseInt(styleParameters.imageWidth);
+              innerHeight = parseInt(styleParameters.imageHeight);
+              innerTop = Math.floor((100 - innerHeight)/2);
+              innerLeft = Math.floor((100 - innerWidth)/2);
+              $('#<?= $_GET['name'] ?>_buttonInner').css("width", innerWidth + "%");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("height", innerHeight + "%");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("top", innerTop + "%");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("left", innerLeft + "%");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("border-radius", "inherit");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("background-color", color);
+              $('#<?= $_GET['name'] ?>_buttonInner').css("background-image", "url(../img/widgetButtonImages/" + widgetName + "/" + styleParameters.imageName + ")");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("background-size", "100% 100%");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("background-repeat", "no-repeat");
+              $('#<?= $_GET['name'] ?>_buttonInner').css("background-position", "center center");
+           }
+           
+            $('#<?= $_GET['name'] ?>_button').mousedown(function(){
+               $(this).css("box-shadow", "1px 1px 2px black inset");
+            });
+
+            $('#<?= $_GET['name'] ?>_button').mouseup(function(){
+               $(this).css("box-shadow", "1px 1px 2px black");
+            });
+           
+           var hoverColor = lighterColor(color, -0.2);
+        
+            button.hover(function()
+            {
+                $(this).css("border-radius", borderRadius + "px");
+                $('#<?= $_GET['name'] ?>_buttonInner').css("border-radius", borderRadius + "px");
+                $(this).css("background-color", hoverColor);
+                $('#<?= $_GET['name'] ?>_buttonInner').css("background-color", hoverColor);
+            }, 
+            function()
+            {
+                $(this).css("border-radius", borderRadius + "px");
+                $('#<?= $_GET['name'] ?>_buttonInner').css("border-radius", borderRadius + "px");
+                $(this).css("background-color", color);
+                $('#<?= $_GET['name'] ?>_buttonInner').css("background-color", color);
+            });
         }
-        
-        
     });//Fine document ready
 </script>
 
@@ -154,13 +211,15 @@
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div> 
         </div>
         
-        <button type="button" id='<?= $_GET['name'] ?>_button' class="btn btn-primary button">
-            <span class="ui-button-text"></span>
-        </button>
+       <div id='<?= $_GET['name'] ?>_button' class='widgetButton'>
+           <div id='<?= $_GET['name'] ?>_buttonInner'>
+              <span id='<?= $_GET['name'] ?>_buttonText'></span>
+           </div>    
+        </div>
     </div>	
 </div> 

@@ -24,7 +24,7 @@
     $dashboardName = mysqli_real_escape_string($link, $_GET['dashboardName']); //Escape
     $dashboardAuthor = mysqli_real_escape_string($link, $_GET['dashboardAuthor']); //Escape
 
-    $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Dashboard.Users ON Config_dashboard.user = Users.IdUser WHERE Config_dashboard.name_dashboard = '$dashboardName' AND Users.username = '$dashboardAuthor'";
+    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.name_dashboard = '$dashboardName' AND Config_dashboard.user = '$dashboardAuthor'";
     $queryResult = mysqli_query($link, $query) or die(mysqli_error($link));
 
     if($queryResult) 

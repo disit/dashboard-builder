@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -17,29 +17,44 @@
 $username = "user";
 $password = "password";
 $dbname = "Dashboard";
-$production=true; 
+$esbHost = "localhost";
+$esbDbUsr = "user";
+$esbDbPwd = "passord";
+$esbDbName = "resolute";
+$ldapServer = 'localhost';
+$ldapPort = 389;
+$ldapTool = "Dashboard";
+$smtpHost = "localhost";
+$smtpAuth = "false";
+$emailFromAddress = "me@email.com";
+$emailFromName = "DISIT Dashboard Management System"; 
+$notificatorApiUsr = "alarmManager";
+$notificatorApiPwd = "passwd";
+$notificatorAppName = "Dashboard+Manager";
+$production = true; 
 
 if($production)
 {
   $host = "localhost";
+  $appUrl = "http://dashboard.km4city.org/dashboardSmartCity";
   $serviceMapUrlPrefix = "http://servicemap.disit.org/WebAppGrafo/";
   $internalServiceMapUrlPrefix = "http://...";
   $internalTwitterVigilanceHost = "http://...";
-  $esbHost = "localhost";
-  $esbDbUsr = "user";
-  $esbDbPwd = "password";
-  $esbDbName = "resolute";
+  $internalServiceMapUrlPrefix = "http://192.168.0.206:8080/WebAppGrafo/";
+  $internalTwitterVigilanceHost = "http://192.168.0.50";
+  $notificatorUrl = "http://.../notificator/restInterface.php";
+  $notificatorLink = "http://.../";
 }
 else
 {
   $host = "localhost";
-  $serviceMapUrlPrefix = "http://www.disit.org/ServiceMap/";
-  $internalServiceMapUrlPrefix = "http://...";
+  $appUrl = "http://localhost/temp";
+  $serviceMapUrlPrefix = "http://servicemap.disit.org/WebAppGrafo/";
+  $internalServiceMapUrlPrefix = "http://.../WebAppGrafo/";
   $internalTwitterVigilanceHost = "http://...";
-  $esbHost = "localhost";
-  $esbDbUsr = "user";
-  $esbDbPwd = "password";
-  $esbDbName = "resolute";
+  $notificatorUrl = "http://localhost/notificator/restInterface.php";
+  $notificatorLink = "http://localhost/notificator/";
+  /*$serviceMapUrlPrefix = "http://www.disit.org/ServiceMap/";
 }
 
 

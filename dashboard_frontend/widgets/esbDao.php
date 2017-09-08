@@ -30,25 +30,29 @@
         exit();
    }
    
-   /*$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
-   fwrite($file, "Started\n");
-   fwrite($file, "Operation: " . $_REQUEST["operation"] . "\n");
-   fwrite($file, "User id: " . $_SESSION["login_user_id"] . "\n");*/
-   
    if(isset($_REQUEST["operation"]))
    {
       switch($_REQUEST["operation"])
       {
          case "getTrafficEvents":
+            $choosenOption = $_REQUEST['choosenOption'];
+            $time = $_REQUEST['time'];
+            $timeUdm = $_REQUEST['timeUdm'];
+            $eventsBound = $_REQUEST['events'];
+            
             $events = [];
-            //$query = "SELECT * FROM resolute.resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL 30 MINUTE) ORDER BY event_time DESC";
-            //$query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL 30 MINUTE) AND (payload like '%\"severity\":10%' OR payload like '%\"severity\":8%')";
-            //$query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND payload like '%DISIT%'"; //AND event_time >= (NOW() - INTERVAL 30 MINUTE)
-            $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL 90 MINUTE)"; 
-            //$query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' ORDER BY event_time DESC";
-            //fwrite($file, "Query: " . $query . "\n");
+            
+            if($choosenOption == "time")
+            {
+               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL " . $time . " " . $timeUdm . ") ORDER BY event_time DESC"; 
+            }
+            else
+            {
+               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' ORDER BY event_time DESC LIMIT " . $eventsBound; 
+            }
+            
             $result = mysqli_query($esbLink, $query);
-
+            
             if($result) 
             {
                while($row = mysqli_fetch_assoc($result)) 
@@ -59,6 +63,20 @@
                   $eventRow['data_id'] = $row['data_id'];
                   $eventRow['data_type'] = $row['data_type'];
                   $eventRow['event_time'] = $row['event_time'];
+                  
+                  //$payloadArray = json_decode($row['payload']);
+                  
+                  //$file = fopen("C:\dashboardLog.txt", "a");
+                  
+                  
+                  /*if(property_exists($payloadArray, "notes"))
+                  {
+                      $encodedNotes = utf8_encode($payloadArray->notes);
+                      //fwrite($file, "Note: " . $encodedNotes . "\n");
+                      $payloadArray->notes = $encodedNotes;
+                  }*/
+                  
+                  //$eventRow['payload'] = json_encode($payloadArray);
                   $eventRow['payload'] = $row['payload'];
                   $eventRow['payload_class'] = $row['payload_class'];
                   $eventRow['sender_id'] = $row['sender_id'];

@@ -58,13 +58,13 @@
 
 <body>
     <?php
-        if(!isset($_SESSION['isAdmin']))
+        if(!isset($_SESSION['loggedRole']))
         {
             echo '<script type="text/javascript">';
             echo 'window.location.href = "unauthorizedUser.php";';
             echo '</script>';
         }
-        else if(($_SESSION['isAdmin'] != 1)&&($_SESSION['isAdmin'] != 2))
+        else if($_SESSION['loggedRole'] != "ToolAdmin")
         {
             echo '<script type="text/javascript">';
             echo 'window.location.href = "unauthorizedUser.php";';
@@ -98,20 +98,34 @@
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li>
-                        <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboard Builder</a>
+                        <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboards management</a>
                     </li>
                     <?php
-                        if(isset($_SESSION['isAdmin']))
-                        {
-                            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
-                            {
-                                echo '<li class="active"><a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a></li>';
-                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a></li>';
-                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a></li>';
-                                echo '<li><a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a></li>'; 
-                            }
+                        if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
+                        {     
+                           if($_SESSION['loggedType'] == "local")
+                           {
+                              echo '<li><a href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
+                           }
+                           
+                           if($_SESSION['loggedRole'] == "ToolAdmin")
+                           {
+                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
+                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
+                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
+                                echo '<li><a href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
+                                
+                           }
+                           
+                           if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
+                           {
+                              echo '<li><a href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
+                           }
                         }
                     ?>
+                    <li>
+                        <a href="<?php echo $notificatorLink?>" target="blank"> Notificator</a>
+                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -126,9 +140,9 @@
                             <br/>Metrics Overview
                         </h1>
                             <?php
-                                if(isset($_SESSION['isAdmin']))
+                                if(isset($_SESSION['loggedRole']))
                                 {
-                                    if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+                                    if($_SESSION['loggedRole'] == "ToolAdmin")
                                     {
                                         echo '<nav id="modify-bar-dashboard" class="navbar navbar-default">';
                                         echo '<div class="container-fluid">';
@@ -195,9 +209,8 @@
                     <h4 class="modal-title" id="myModalLabel">Add new Metric</h4>
                 </div>
                 <div class="modal-body">
-                    <!--<form id="new_metric" class="form-horizontal" role="form" method="post" action="" data-toggle="validator">-->
                     <form id="form-new-metric" class="form-horizontal" name="add_new_metric" role="form" method="post" action="" data-toggle="validator">
-                        <div class="tabbable"> <!-- Only required for left/right tabs -->
+                        <div class="tabbable"> 
                             <ul class="nav nav-tabs">
                                 <li class="active"><a href="#tab1" data-toggle="tab">General</a></li>
                                 <li><a href="#tab2" data-toggle="tab">Data acquisition</a></li>
@@ -316,9 +329,6 @@
                                         <div class="row">
                                             <label for="#" class="col-md-4 control-label">Data Source</label>
                                             <div class="col-md-6">
-                                                <!--
-                                                <input type="text" class="form-control" name="dataSourceMetric" id="dataSourceMetric">
-                                                -->
                                                 <select class="form-control" name="dataSourceMetric" id="dataSourceMetric">
                                                     <option>API</option>
                                                 </select>

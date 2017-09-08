@@ -26,20 +26,20 @@ error_reporting(E_ERROR | E_NOTICE);
 function canEditDashboard()
 {
     $result = false;
-    if(isset($_SESSION['isAdmin']))
+    if(isset($_SESSION['loggedRole']))
     {
-        if($_SESSION['isAdmin'] == 0)
+        if($_SESSION['loggedRole'] == "Manager")
         {
             //Utente non amministratore, edita una dashboard solo se ne é l'autore
-            if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
+            if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
             {
                 $result = true;
             }
         }
-        else if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+        else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
         {
             //Utente amministratore, edita qualsiasi dashboard
-            if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId'])))
+            if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))
             {
                 $result = true;
             }
@@ -65,25 +65,25 @@ if(isset($_GET['action']) && !empty($_GET['action']))
     if($action == "get_dashboards")//Escape 
     {
         $loggedUsername = $_SESSION['loggedUsername'];
-        $loggedUserId = $_SESSION['login_user_id'];
         
-        switch($_SESSION['isAdmin'])
+        switch($_SESSION['loggedRole'])
         {
-            case 0:
-                $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser WHERE Users.username = '$loggedUsername' ORDER BY Config_dashboard.name_dashboard ASC";
+            //Gestisce solo le proprie dashboard
+            case "Manager":
+                $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.user = '$loggedUsername' ORDER BY Config_dashboard.name_dashboard ASC";
                 break;
             
-            case 1:
-                $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users " .
-                         "ON Config_dashboard.user = Users.IdUser " . 
-                         "WHERE Users.username = '$loggedUsername' " . //Proprie dashboard
-                         "OR (Users.IdUser IN (SELECT IdUser FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT DISTINCT(poolId) FROM Dashboard.UsersPoolsRelations WHERE IdUser = '$loggedUserId' AND isAdmin = 1)) " .
-                         "AND Users.admin <> 2) " .
-                         "ORDER BY Config_dashboard.name_dashboard ASC";
-                break;
+            //Gestisce le proprie dashboard e di quelle dei manager dei pools di cui è admin 
+            case "AreaManager":
+               $query = "SELECT * FROM Dashboard.Config_dashboard AS dashes " .
+                         "WHERE dashes.user = '$loggedUsername' " . //Proprie dashboard
+                         "OR (dashes.user IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$loggedUsername' AND isAdmin = 1))) " .
+                         "ORDER BY dashes.name_dashboard ASC";
+               break;
             
-            case 2:
-                $query = "SELECT * FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser ORDER BY Config_dashboard.name_dashboard ASC";
+             //Gestisce tutte le dashboards
+             case "ToolAdmin":
+                $query = "SELECT * FROM Dashboard.Config_dashboard ORDER BY Config_dashboard.name_dashboard ASC";
                 break;
         }
         
@@ -99,10 +99,7 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                         "title_header" => $row['title_header'],
                         "creation_date" => $row['creation_date'],
                         "status" => $row['status_dashboard'],
-                        "id_user" => $row['IdUser'],
-                        "name_user" => $row['name'],
-                        "surname_user" => $row['surname'],
-                        "username" => $row['username'],
+                        "username" => $row['user'],
                         "reference" => $row['reference'],
                         "visibility" => $row["visibility"],
                         "logoFilename" => $row["logoFilename"]
@@ -146,8 +143,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                     "processTypeMetric" => $row2['processType'],
                     "thresholdMetric" => $row2['threshold'],
                     "thresholdEvalMetric" => $row2['thresholdEval'],
-                    "thresholdEvalCountMetric" => $row2['thresholdEvalCount'],
-                    "thresholdTimeMetric" => $row2['thresholdTime'],
+                    "thresholdEvalCountMetric" => $row2['sameDataAlarmCount'],
+                    "thresholdTimeMetric" => $row2['oldDataEvalTime'],
                     "storingDataMetric" => $row2['storingData']
                 );
                 array_push($metric_list, $metric);
@@ -408,7 +405,11 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                         "serviceUri" => $row5['serviceUri'],
                         "viewMode" => $row5['viewMode'],
                         "hospitalList" => $row5['hospitalList'],
-                        "lastSeries" => $row5['lastSeries']
+                        "lastSeries" => $row5['lastSeries'],
+                        "notificatorRegistered" => $row5['notificatorRegistered'],
+                        "notificatorEnabled" => $row5['notificatorEnabled'],
+                        "enableFullscreenTab" => $row5['enableFullscreenTab'],
+                        "enableFullscreenModal" => $row5['enableFullscreenModal']
                     );
                 }
             }
@@ -598,32 +599,29 @@ if(isset($_GET['action']) && !empty($_GET['action']))
     else if ($action == "get_widget_types")//Escape 
     {
         $array_widget = array();
-        if(isset($_SESSION['isAdmin']))
+        if(isset($_SESSION['loggedRole']))
         {
-            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+            $getWidget = "SELECT * FROM Dashboard.Widgets";
+            $elencoWidgets = mysqli_query($link, $getWidget) or die(mysqli_error($link));
+            if ($elencoWidgets->num_rows > 0) 
             {
-                $getWidget = "SELECT * FROM Dashboard.Widgets";
-                $elencoWidgets = mysqli_query($link, $getWidget) or die(mysqli_error($link));
-                if ($elencoWidgets->num_rows > 0) 
-                {
-                    while ($rowsW = mysqli_fetch_array($elencoWidgets)) {
-                        $typeWid = array(
-                            "type_widget" => $rowsW['id_type_widget'],
-                            "source_widget" => $rowsW['source_php_widget'],
-                            "min_row" => $rowsW['min_row'],
-                            "max_row" => $rowsW['max_row'],
-                            "min_col" => $rowsW['min_col'],
-                            "max_col" => $rowsW['max_col'],
-                            "type" => $rowsW['widgetType'],
-                            "n_met" => $rowsW['number_metrics_widget'],
-                            "color" => $rowsW['color_widgetOption'],
-                            "unique" => $rowsW['unique_metric'],
-                            "range" =>  $rowsW['numeric_rangeOption'],
-                        );
-                        array_push($array_widget, $typeWid);
-                    }
+                while ($rowsW = mysqli_fetch_array($elencoWidgets)) {
+                    $typeWid = array(
+                        "type_widget" => $rowsW['id_type_widget'],
+                        "source_widget" => $rowsW['source_php_widget'],
+                        "min_row" => $rowsW['min_row'],
+                        "max_row" => $rowsW['max_row'],
+                        "min_col" => $rowsW['min_col'],
+                        "max_col" => $rowsW['max_col'],
+                        "type" => $rowsW['widgetType'],
+                        "n_met" => $rowsW['number_metrics_widget'],
+                        "color" => $rowsW['color_widgetOption'],
+                        "unique" => $rowsW['unique_metric'],
+                        "range" =>  $rowsW['numeric_rangeOption'],
+                    );
+                    array_push($array_widget, $typeWid);
                 }
-            }   
+            }
         }
         mysqli_close($link);
         echo json_encode($array_widget);

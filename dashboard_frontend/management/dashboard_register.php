@@ -47,13 +47,13 @@
     </head>
     <body>
         <?php
-            if(!isset($_SESSION['isAdmin']))
+            if(!isset($_SESSION['loggedRole']))
             {
                 echo '<script type="text/javascript">';
                 echo 'window.location.href = "unauthorizedUser.php";';
                 echo '</script>';
             }
-            else if(($_SESSION['isAdmin'] != 1) && ($_SESSION['isAdmin'] != 2))
+            else if(($_SESSION['loggedRole'] != "Manager") && ($_SESSION['loggedRole'] != "AreaManager") && ($_SESSION['loggedRole'] != "ToolAdmin"))
             {
                 echo '<script type="text/javascript">';
                 echo 'window.location.href = "unauthorizedUser.php";';
@@ -98,9 +98,9 @@
                         </div>
                         <p>
                             <?php
-                                if(isset($_SESSION['isAdmin']))
+                                if(isset($_SESSION['loggedRole']))
                                 {
-                                    if(($_SESSION['isAdmin'] == 1)||($_SESSION['isAdmin'] == 2))
+                                    if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager")||($_SESSION['loggedRole'] == "Manager"))
                                     {
                                         echo '<button id="button_annulla" name="register_cancel" class="btn btn-default btn-lg" type="button" onclick="location.href = \'dashboard_mng.php\'">Annulla</button>';
                                         echo '<button id="button_register_confirm" name="register_confirm" class="btn btn-primary btn-lg" type="submit">Conferma</button>';

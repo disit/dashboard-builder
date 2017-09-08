@@ -1,5 +1,5 @@
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,28 +13,17 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-//import org.json.JSONValue;
-//import org.json.simple.parser.JSONParser;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
@@ -42,28 +31,39 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.sparql.SPARQLRepository;
-
 import virtuoso.sesame2.driver.VirtuosoRepository; 
-
 import utility.Configuration;
 import utility.Utility;
-
 import java.util.Date;
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.logging.Level;
-import org.openrdf.model.Literal;
+import com.google.gson.Gson;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Properties;
+import org.disit.model.*;
 
-public class ManagerQuery implements Runnable, Serializable {
-
-  private String idProc = null;
+public class ManagerQuery implements Runnable, Serializable 
+{
+  protected String idProc = null;
   private String descrip = null;
   private String query = null;
   private String queryType = null;
@@ -78,12 +78,14 @@ public class ManagerQuery implements Runnable, Serializable {
   private Configuration conf = null;
   private boolean started;
   private Long sleepTime;
-  private AlarmManager almMng;
+  //private AlarmManager almMng;
+  //private Integer thresholdTime;
+  private long sameDataAlarmCount;
 
   private final Logger logger = Logger.getLogger(ManagerQuery.class.getName());
 
-  public ManagerQuery(String id, String desc, String query, String queryType, String metricType, String processType, Long freq, String dataSourceId, Map<String, String[]> map_dbAccess, AlarmManager alarmMng) {
-    // TODO Auto-generated constructor stub
+  public ManagerQuery(String id, String desc, String query, String queryType, String metricType, String processType, Long freq, String dataSourceId, Map<String, String[]> map_dbAccess /*AlarmManager alarmMng,*/ /*Integer thresholdTime,*/) 
+  {
     this.map_dbAcc = map_dbAccess;
     this.conf = Configuration.getInstance();
     this.sparqlEndpoint = conf.get("sparqlEndpoint", (map_dbAccess.get("Km4CityRDF")[0]));
@@ -98,62 +100,745 @@ public class ManagerQuery implements Runnable, Serializable {
     this.processType = processType;
     this.sleepTime = freq;
     this.dataSourceId = dataSourceId;
-    this.almMng = alarmMng;
+    //this.almMng = alarmMng;
+    //this.thresholdTime = thresholdTime;
   }
 
-  public void run() {
-    this.started = true;
-    try {
-      Thread.sleep((int) (Math.random() * 10000)); //aspetta tempo random 0-10 secondi
-    } catch (InterruptedException ex) {
+  public void run() 
+  {
+     double lastMetricValue;
+     this.started = true;
+     
+    try 
+    {
+      Thread.sleep((int) (Math.random() * 5000)); //aspetta tempo random 0-5 secondi
+    } 
+    catch (InterruptedException ex) 
+    {
+       
     }
-    while (this.started) {
-      switch (this.processType) {
+    
+    while(this.started) 
+    {
+      switch (this.processType) 
+      {
         case "JVNum1":
-          executeQueryJVNum1();
+          lastMetricValue = executeQueryJVNum();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             this.checkMetricWidgetsRules(lastMetricValue);
+          }
           break;
+          
         case "JVPerc":
-          executeQueryJVPerc();
+          lastMetricValue = executeQueryJVPerc();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             this.checkMetricWidgetsRules(lastMetricValue);
+          }
           break;
+          
         case "JVTable":
           executeQueryJVTable();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             //CI AGGIUNGERAI LA SUA VERSIONE DEL METODO DI CONTROLLO SOGLIA
+          }
           break;
+          
         case "JVRidesAtaf":
           executeQueryJVRidesAtaf();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             //CI AGGIUNGERAI LA SUA VERSIONE DEL METODO DI CONTROLLO SOGLIA
+          }
           break;
+          
         case "JVSceOnNodes":
           executeQueryJVSce();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             //CI AGGIUNGERAI LA SUA VERSIONE DEL METODO DI CONTROLLO SOGLIA
+          }
           break;
+          
         case "jVPark":
-          executeQueryJVFreePark();
+          lastMetricValue = executeQueryJVFreePark();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             this.checkMetricWidgetsRules(lastMetricValue);
+          }
           break;
+          
         case "JVWifiOp":
-          executeQueryJVWifiOp();
+          lastMetricValue = executeQueryJVWifiOp();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             this.checkMetricWidgetsRules(lastMetricValue);
+          }
           break;
+          
         case "JVSmartDs":
           executeQueryJVSmartDs();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             //CI AGGIUNGERAI LA SUA VERSIONE DEL METODO DI CONTROLLO SOGLIA
+          }
           break;
+          
         case "JVTwRet":
           executeQueryJVTwRet();
+          if(this.checkConstantDataForTooMuchTime())
+          {
+             System.out.println("Dati costanti per troppi campionamenti per metrica: " + this.idProc);
+             notifyEvent("Same data for too much time", "Process: " + this.idProc);
+          }
+          else
+          {
+             //CI AGGIUNGERAI LA SUA VERSIONE DEL METODO DI CONTROLLO SOGLIA
+          }
           break;
+          
         default:
             break;
       }
-      try {
-        System.out.println(this.idProc+": Sleep " + sleepTime);
+      
+      try 
+      {
+        System.out.println(this.idProc + ": Sleep " + sleepTime);
         Thread.sleep(this.sleepTime);
-      } catch (InterruptedException exp) {
+      }
+      catch (InterruptedException exp) 
+      {
         //System.out.println(exp.getMessage());
         Utility.WriteExcepLog(this.logger, exp);
       }
     }
   }
+  
+  private void checkMetricWidgetsRules(double lastMetricValue)
+  {
+     Parameters parameters;
+     Rule rule; 
+     Gson gson = new Gson();
+     boolean notifyEvents;
+     //String min;
+     //String max;
+     String op;
+     String thr1;
+     String thr2;
+     String desc;
+     String widgetId;
+     String widgetName;
+     String widgetTitle;
+     String dashboardId;
+     String dashboardTitle;
+     
+     Properties conf2 = new Properties();
+     FileInputStream in = null;
+     try 
+     {
+         in = new FileInputStream("./config.properties");
+         conf2.load(in);
+         in.close();
+     } 
+     catch (FileNotFoundException ex) 
+     {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     catch (IOException ex) 
+     {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     
+     //Reperimento elenco delle regole dagli widget che mostrano la metrica in esame
+     Connection conn;
+     try 
+     {
+        conn = DriverManager.getConnection(conf2.getProperty("url"), conf2.getProperty("user"), conf2.getProperty("psw"));
+        Statement stm = conn.createStatement();
+        
+        String getRulesQuery = "SELECT widgets.Id AS widgetId, widgets.name_w AS widgetName, widgets.title_w AS widgetTitle, widgets.id_dashboard AS dashboardId, widgets.parameters AS parameters, " + 
+                               "dashboards.name_dashboard AS dashboardTitle " +
+                               "FROM Dashboard.Config_widget_dashboard AS widgets " +
+                               "INNER JOIN Dashboard.Config_dashboard AS dashboards " +
+                               "ON dashboards.Id = widgets.id_dashboard " +
+                               "WHERE widgets.type_w IN('widgetBarContent', 'widgetColunmContent', 'widgetGaugeChart', 'widgetSingleContent', 'widgetSpeedometer', 'widgetTimeTrend', 'widgetTimeTrendCompare') " +//Questo elenco è temporaneo, verrà ampliato via via che gestiamo più widgets
+                               "AND widgets.parameters IS NOT NULL " +
+                               "AND widgets.parameters <> '{}'" +
+                               "AND widgets.id_metric = '" + this.idProc + "'";
+     
+        ResultSet rs = stm.executeQuery(getRulesQuery);
+        
+        if(rs != null) 
+        {
+            try
+            {
+                while(rs.next())
+                {
+                  parameters = gson.fromJson(rs.getString("parameters"), Parameters.class);
+                  if((parameters == null) || (parameters.getThresholdObject() == null)) 
+                  {
+                    System.out.println("Widget " + rs.getString("widgetId") + " has invalid parameters " + rs.getString("parameters"));
+                    this.notifyEvent("Invalid parameters", "Widget name: " + rs.getString("widgetName") + " - Widget id: " + rs.getString("widgetId"));
+                    continue;
+                  }
+                  
+                  for(SingleRule singleRule : parameters.getThresholdObject()) 
+                  {
+                      rule = new Rule(singleRule.getNotifyEvents(), singleRule.getOp(), singleRule.getThr1(), singleRule.getThr2(), singleRule.getDesc(), String.valueOf(rs.getInt("widgetId")), rs.getString("widgetName"), rs.getString("widgetTitle"), this.idProc, String.valueOf(rs.getInt("dashboardId")), rs.getString("dashboardTitle"));
+                      notifyEvents = singleRule.getNotifyEvents();
+                      //Ma sono usati questi valori? Sembra di no (forse erano nel println?), provare a rimuoverli (commenta)
+                      op = singleRule.getOp();
+                      thr1 = singleRule.getThr1();
+                      thr2 = singleRule.getThr2();
+                      desc = singleRule.getDesc();
+                      widgetId = String.valueOf(rs.getInt("widgetId"));
+                      widgetName = rs.getString("widgetName");
+                      widgetTitle = rs.getString("widgetTitle");
+                      dashboardId = String.valueOf(rs.getInt("dashboardId"));
+                      dashboardTitle = rs.getString("dashboardTitle");
+                      
+                      //System.out.println("Thr1: " + rule.getThr1() + " - Thr2: " + rule.getThr2());
 
-  private void executeQueryJVNum1() {
-    try {
-      double sumFixed = -1;
+                      if(this.checkThrViolation(lastMetricValue, rule)&&notifyEvents)
+                      {
+                         System.out.println("Notifica eseguita");
+                         this.notifyEvent(lastMetricValue, rule);
+                      }
+                      else
+                      {
+                         System.out.println("Notifica NON eseguita");
+                      }
+                  } 
+               }
+               conn.close();
+            }
+            catch(SQLException ex) 
+            {
+               Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+            }
+         }
+     } 
+     catch (SQLException ex) 
+     {
+        Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+     }
+  }
+  
+  public boolean checkConstantDataForTooMuchTime() 
+  {
+     String metricData = "";
+     int oldDataInt = -1;
+     int newDataInt = -1;
+     double oldDataDouble = -1;
+     double newDataDouble = -1;
+     String oldDataString = "";
+     String newDataString = "";
+    
+     Properties conf2 = new Properties();
+     FileInputStream in = null;
+     try 
+     {
+         in = new FileInputStream("./config.properties");
+         conf2.load(in);
+         in.close();
+     } 
+     catch (FileNotFoundException ex) 
+     {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     catch (IOException ex) 
+     {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     
+     Connection conn;
+     try 
+     {
+        conn = DriverManager.getConnection(conf2.getProperty("url"), conf2.getProperty("user"), conf2.getProperty("psw"));
+        Statement stm = conn.createStatement();
+        
+        //SELEZIONA IL METRIC TYPE E, IN BASE AD ESSO, USA IL CAMPO GIUSTO DELLA TABELLA DEI DATI.
+        switch(this.metricType)
+        {
+           case "Intero":
+              metricData = "value_num";
+              break;
+              
+           case "Float":
+              metricData = "value_num";
+              break;
+              
+           case "Testuale":
+              metricData = "value_text";
+              break;
+              
+           case "Series":
+              metricData = "series";
+              break;
+        }
+        
+        if(this.metricType.contains("Percentuale"))
+        {
+           metricData = "value_perc1";
+        }
+        
+        String localQuery1 = "SELECT Descriptions.sameDataAlarmCount FROM Dashboard.Descriptions WHERE Descriptions.IdMetric = '" + this.idProc + "' AND sameDataAlarmCount IS NOT NULL";
+        ResultSet rs1;
+        try 
+        {
+           rs1 = stm.executeQuery(localQuery1);
+           if(rs1 != null) 
+           {
+              try
+              {
+                 if(rs1.next()) {
+                    this.sameDataAlarmCount = rs1.getLong("sameDataAlarmCount");
 
-      if (this.queryType.equals("SPARQL")) {
+                    String localQuery2 = "SELECT Data." + metricData + " " +
+                                         "FROM Dashboard.Data " +
+                                         "WHERE Data.IdMetric_data = '" + this.idProc + "' " +
+                                         "ORDER BY Data.computationDate DESC " +
+                                         "LIMIT " + this.sameDataAlarmCount;
+
+                    ResultSet rs2 = stm.executeQuery(localQuery2);
+
+                    if(rs2 != null) 
+                    {
+                       try
+                       {
+                          while(rs2.next())
+                             {
+                                 if(rs2.isFirst())
+                                 {
+                                   switch(this.metricType)
+                                   {
+                                      case "Intero":
+                                         oldDataInt = rs2.getInt(metricData);
+                                         newDataInt = rs2.getInt(metricData);
+                                         break;
+
+                                      case "Float":
+                                         oldDataDouble = rs2.getDouble(metricData);
+                                         newDataDouble = rs2.getDouble(metricData);
+                                         break;
+
+                                      case "Testuale":
+                                         oldDataString = rs2.getString(metricData);
+                                         newDataString = rs2.getString(metricData);
+                                         break;
+
+                                      case "Series":
+                                         oldDataString = rs2.getString(metricData);
+                                         newDataString = rs2.getString(metricData);
+                                         break;
+                                   }
+
+                                   if(this.metricType.contains("Percentuale"))
+                                   {
+                                      oldDataDouble = rs2.getDouble(metricData);
+                                      newDataDouble = rs2.getDouble(metricData);
+                                   }
+                                 }
+                                 else
+                                 {
+                                   switch(this.metricType)
+                                   {
+                                      case "Intero":
+                                         oldDataInt = newDataInt;
+                                         newDataInt = rs2.getInt(metricData);
+                                         if(oldDataInt != newDataInt)
+                                         {
+                                            return false;
+                                         }
+                                         break;
+
+                                      case "Float":
+                                         oldDataDouble = newDataDouble;
+                                         newDataDouble = rs2.getDouble(metricData);
+                                         if(oldDataDouble != newDataDouble)
+                                         {
+                                            return false;
+                                         }
+                                         break;
+
+                                      case "Testuale":
+                                         oldDataString = newDataString;
+                                         newDataString = rs2.getString(metricData);
+                                         if(!oldDataString.equals(newDataString))
+                                         {
+                                            return false;
+                                         }
+                                         break;
+
+                                      case "Series":
+                                         oldDataString = newDataString;
+                                         newDataString = rs2.getString(metricData);
+                                         if(!oldDataString.equals(newDataString))
+                                         {
+                                            return false;
+                                         }
+                                         break;
+                                   }
+
+                                   if(this.metricType.contains("Percentuale"))
+                                   {
+                                      oldDataDouble = newDataDouble;
+                                      newDataDouble = rs2.getDouble(metricData);
+                                      if(oldDataDouble != newDataDouble)
+                                      {
+                                         return false;
+                                      }
+                                   }
+                                 }
+                             }
+                            //Se si esce dal ciclo senza aver mai ritornato, allora i dati sono costanti
+                            return true;
+                      }
+                      catch(SQLException ex) 
+                      {
+                          Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+                          return false;
+                      }
+                   }
+                   else
+                   {
+                      return false;
+                   }
+                } 
+                else 
+                {
+                   return false;
+                }
+              }
+              catch(SQLException ex) 
+              {
+                  Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+                  return false;
+              }
+           }
+           else
+           {
+              return false;
+           }
+        }
+        catch(SQLException ex) 
+        {
+           Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+           return false;
+        }
+      }
+      catch(SQLException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+         return false;
+      }
+  }
+
+   private boolean checkThrViolation(Double value, Rule rule)
+   {
+      boolean result = false;
+      
+      switch(rule.getOp())
+      {
+         case "less":
+            if(value < Double.parseDouble(rule.getThr1()))
+            {
+               result = true;
+            }
+            break;
+            
+         case "lessEqual":
+            if(value <= Double.parseDouble(rule.getThr1()))
+            {
+               result = true;
+            }
+            break;
+            
+         case "greater":
+            if(value > Double.parseDouble(rule.getThr1()))
+            {
+               result = true;
+            }
+            break;
+            
+         case "greaterEqual":
+            if(value >= Double.parseDouble(rule.getThr1()))
+            {
+               result = true;
+            }
+            break;
+            
+         case "equal":
+            if(value == Double.parseDouble(rule.getThr1()))
+            {
+               result = true;
+            }
+            break;
+            
+         case "notEqual":
+            if(value != Double.parseDouble(rule.getThr1()))
+            {
+               result = true;
+            }
+            break;
+            
+         case "intervalOpen":
+            if((value > Double.parseDouble(rule.getThr1()))&&(value < Double.parseDouble(rule.getThr2())))
+            {
+               result = true;
+            }
+            break;
+            
+         case "intervalClosed":
+            
+            if((value >= Double.parseDouble(rule.getThr1()))&&(value <= Double.parseDouble(rule.getThr2())))
+            {
+               result = true;
+            }
+            break;
+            
+         case "intervalLeftOpen":
+            if((value > Double.parseDouble(rule.getThr1()))&&(value <= Double.parseDouble(rule.getThr2())))
+            {
+               result = true;
+            }
+            break;
+            
+         case "intervalRightOpen":
+            if((value >= Double.parseDouble(rule.getThr1()))&&(value < Double.parseDouble(rule.getThr2())))
+            {
+               result = true;
+            }
+            break;   
+      }
+      
+      return result;
+   }
+   
+   //Per mandare eventi sulle metriche (dati costanti da troppo tempo, ...)
+   private void notifyEvent(String eventType, String furtherDetails)
+   {
+      Properties conf2 = new Properties();
+     
+      try 
+      {
+         FileInputStream in = new FileInputStream("./config.properties");
+         conf2.load(in);
+         in.close();
+      } 
+      catch (FileNotFoundException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      catch (IOException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      
+      String url = conf2.getProperty("notificatorRestInterfaceUrl");
+      String charset = java.nio.charset.StandardCharsets.UTF_8.name();
+      String apiUsr = conf2.getProperty("notificatorRestInterfaceUsr");
+      String apiPwd = conf2.getProperty("notificatorRestInterfacePwd");
+      String operation = "notifyEvent";
+      String generatorOriginalName = this.idProc;
+      String generatorOriginalType = this.metricType;
+      String containerName = this.dataSourceId;
+      
+      Calendar date = new GregorianCalendar();
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      String eventTime = sdf.format(date.getTime());
+      String appName = "Dashboard Data Process";
+      String params = null;
+      
+		URL obj = null;
+      HttpURLConnection con = null;
+      try 
+      {
+         obj = new URL(url);
+         con = (HttpURLConnection) obj.openConnection();
+         
+         con.setRequestMethod("POST");
+         con.setRequestProperty("Accept-Charset", charset);
+         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
+         
+         params = String.format("apiUsr=%s&apiPwd=%s&appName=%s&operation=%s&generatorOriginalName=%s&generatorOriginalType=%s&containerName=%s&eventType=%s&eventTime=%s&furtherDetails=%s",
+         URLEncoder.encode(apiUsr, charset),
+         URLEncoder.encode(apiPwd, charset),
+         URLEncoder.encode(appName, charset),
+         URLEncoder.encode(operation, charset),
+         URLEncoder.encode(generatorOriginalName, charset),
+         URLEncoder.encode(generatorOriginalType, charset),
+         URLEncoder.encode(containerName, charset),
+         URLEncoder.encode(eventType, charset),
+         URLEncoder.encode(eventTime, charset),
+         URLEncoder.encode(furtherDetails, charset));
+      } 
+      catch (MalformedURLException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      } 
+      catch (IOException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+
+		// Questo rende la chiamata una POST
+		con.setDoOutput(true);
+		DataOutputStream wr = null;
+      
+      try 
+      {
+         wr = new DataOutputStream(con.getOutputStream());
+         wr.writeBytes(params);
+         wr.flush();
+         wr.close();
+         
+         int responseCode = con.getResponseCode();
+         String responseMessage = con.getResponseMessage();
+      } 
+      catch (IOException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+   }
+   
+   //Per mandare eventi sugli widget, cioè sulle soglie d'allarme poste sui valori.
+   private void notifyEvent(double valueNum, Rule rule)
+   {
+      Properties conf2 = new Properties();
+     
+      try 
+      {
+         FileInputStream in = new FileInputStream("./config.properties");
+         conf2.load(in);
+         in.close();
+      } 
+      catch (FileNotFoundException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      catch (IOException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      
+      String url = conf2.getProperty("notificatorRestInterfaceUrl");
+      String charset = java.nio.charset.StandardCharsets.UTF_8.name();
+      String apiUsr = conf2.getProperty("notificatorRestInterfaceUsr");
+      String apiPwd = conf2.getProperty("notificatorRestInterfacePwd");
+      String operation = "notifyEvent";
+      String generatorOriginalName = rule.getWidgetTitle();
+      String generatorOriginalType = rule.getMetricName();
+      String containerName = rule.getDashboardTitle();
+      String eventType = rule.getEventType();
+      String value = Double.toString(valueNum);
+      
+      Calendar date = new GregorianCalendar();
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+      String eventTime = sdf.format(date.getTime());
+      String appName = "Dashboard Manager";
+      String params = null;
+      
+		URL obj = null;
+      HttpURLConnection con = null;
+      try 
+      {
+         obj = new URL(url);
+         con = (HttpURLConnection) obj.openConnection();
+         
+         con.setRequestMethod("POST");
+         con.setRequestProperty("Accept-Charset", charset);
+         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
+         
+         params = String.format("apiUsr=%s&apiPwd=%s&appName=%s&operation=%s&generatorOriginalName=%s&generatorOriginalType=%s&containerName=%s&eventType=%s&eventTime=%s&value=%s",
+         URLEncoder.encode(apiUsr, charset),
+         URLEncoder.encode(apiPwd, charset),
+         URLEncoder.encode(appName, charset),
+         URLEncoder.encode(operation, charset),
+         URLEncoder.encode(generatorOriginalName, charset),
+         URLEncoder.encode(generatorOriginalType, charset),
+         URLEncoder.encode(containerName, charset),
+         URLEncoder.encode(eventType, charset),
+         URLEncoder.encode(eventTime, charset),
+         URLEncoder.encode(value, charset));
+      } 
+      catch (MalformedURLException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      } 
+      catch (IOException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+
+		// Questo rende la chiamata una POST
+		con.setDoOutput(true);
+		DataOutputStream wr = null;
+      
+      try 
+      {
+         wr = new DataOutputStream(con.getOutputStream());
+         wr.writeBytes(params);
+         wr.flush();
+         wr.close();
+         
+         int responseCode = con.getResponseCode();
+         String responseMessage = con.getResponseMessage();
+      } 
+      catch (IOException ex) 
+      {
+         Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+      }
+   }
+  
+  private double executeQueryJVNum() 
+  {
+     double sumFixed = -1;
+    try 
+    {
+      if(this.queryType.equals("SPARQL")) 
+      {
         Repository repo = buildSparqlRepository();
         repo.initialize();
         RepositoryConnection con = repo.getConnection();
@@ -161,50 +846,65 @@ public class ManagerQuery implements Runnable, Serializable {
         TupleQuery tupleQueryNum = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
         TupleQueryResult resultNum = tupleQueryNum.evaluate();
 
-        if (this.idProc.equals("Events_Day")) {
+        if(this.idProc.equals("Events_Day")) 
+        {
           DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
           Date data_inizio = new Date();
           String data_inizio_fixed = df.format(data_inizio);
-          if (resultNum != null) {
+          if (resultNum != null) 
+          {
             int count = 0;
-            while (resultNum.hasNext()) {
+            while(resultNum.hasNext()) 
+            {
               BindingSet bindingSetEvent = resultNum.next();
               String valueOfEDate = "";
               String valueOfSDate = "";
-              if (bindingSetEvent.getValue("endDate") != null) {
+              if (bindingSetEvent.getValue("endDate") != null) 
+              {
                 valueOfEDate = bindingSetEvent.getValue("endDate").stringValue();
               }
-              if (bindingSetEvent.getValue("startDate") != null) {
+              if (bindingSetEvent.getValue("startDate") != null) 
+              {
                 valueOfSDate = bindingSetEvent.getValue("startDate").stringValue();
               }
-              if ((!valueOfEDate.equals("")) || (valueOfEDate.equals("") && (valueOfSDate.equals(data_inizio_fixed)))) {
+              if ((!valueOfEDate.equals("")) || (valueOfEDate.equals("") && (valueOfSDate.equals(data_inizio_fixed)))) 
+              {
                 count++;
               }
             }
             sumFixed = count;
           }
-        } else {
-          if (resultNum != null) {
-            while (resultNum.hasNext()) {
+        } 
+        else 
+        {
+          if (resultNum != null) 
+          {
+            while (resultNum.hasNext()) 
+            {
               BindingSet bindingSetEvent = resultNum.next();
 
               String sum = "0";
-              if (bindingSetEvent.getValue("sum") != null) {
+              if (bindingSetEvent.getValue("sum") != null) 
+              {
                 sum = bindingSetEvent.getValue("sum").stringValue();
               }
               sumFixed = Double.parseDouble(sum);
             }
           }
         }
-      } else if (this.queryType.equals("SQL")) {
-
+      } 
+      else if(this.queryType.equals("SQL")) 
+      {
         DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-        ResultSet resultSet = mysql_access.readDataBase(this.query);
-        if (resultSet != null) {
-          while (resultSet.next()) {
+        mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
+        ResultSet resultSet = mysql_access.readDataBase(this.query,this);
+        if (resultSet != null) 
+        {
+          while (resultSet.next()) 
+          {
             String sum = resultSet.getString(1);
-            if (sum != null) {
+            if (sum != null) 
+            {
               sumFixed = Double.parseDouble(sum);
             }
           }
@@ -212,47 +912,60 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access.close();
       }
 
-      if (sumFixed != -1) {
-        //this.almMng.updateStatusOnMeasuredValue(sumFixed);
-        this.almMng.updateStatusOnMeasuredValue(Utility.round(sumFixed, 2));
+      if (sumFixed != -1) 
+      {
+        //this.almMng.updateStatusOnMeasuredValue(Utility.round(sumFixed, 2));
         System.out.println(this.idProc + " " + sumFixed);
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
         DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date data_attuale = new Date();
         String data_attuale_fixed = df2.format(data_attuale);
         //System.out.println(data_attuale_fixed);
         String query_insert = "INSERT INTO Dashboard.Data"
                 + "(IdMetric_data, computationDate, value_num, quant_perc1) VALUES"
-                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\"," + ((int)sumFixed) + ","+ sumFixed+")";
+                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\"," + ((int)sumFixed) + ","+ sumFixed +")";
 
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
       }
-    } catch (Exception exp) {
+    } 
+    catch(Exception exp) 
+    {
+      System.out.println("Exception for metric: "+this.idProc);
       exp.printStackTrace();
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+      
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);
+      this.notifyEvent("Import data error", msgBody);
+      //ErrorEmailSetUp(this.idProc, this.descrip, exp);
     }
+    
+    return sumFixed;
   }
 
-  private void executeQueryJVPerc() {
-    // TODO Auto-generated method stub
-
-    try {
-      double percent = -1;
-      int sumFixed = 0;
-      int tot = 0;
-
-      if (this.queryType.equals("SPARQL")) {
+  private double executeQueryJVPerc() 
+  {
+    double percent = -1;
+    int sumFixed = 0;
+    int tot = 0;
+    
+    try 
+    {
+      if (this.queryType.equals("SPARQL")) 
+      {
         Repository repo = buildSparqlRepository();
         repo.initialize();
         RepositoryConnection con = repo.getConnection();
 
-        if (this.idProc.equals("Meteo_Rt") || this.idProc.equals("Park_Rt") || this.idProc.equals("Sensors_Rt")) {
+        if (this.idProc.equals("Meteo_Rt") || this.idProc.equals("Park_Rt") || this.idProc.equals("Sensors_Rt")) 
+        {
           TupleQuery tupleQueryPerc = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
           TupleQueryResult resultPerc = tupleQueryPerc.evaluate();
-          if (resultPerc != null) {
-            while (resultPerc.hasNext()) {
+          if (resultPerc != null) 
+          {
+            while (resultPerc.hasNext()) 
+            {
               BindingSet bindingSetPerc = resultPerc.next();
               String sum = bindingSetPerc.getValue("sum").stringValue();
               sumFixed = Integer.parseInt(sum);
@@ -262,14 +975,19 @@ public class ManagerQuery implements Runnable, Serializable {
           String[] parts_metricType = this.metricType.split("\\/");
           tot = Integer.parseInt(parts_metricType[1]);
 
-        } else if (this.idProc.equals("Ataf_Rt")) {
+        } 
+        else if (this.idProc.equals("Ataf_Rt")) 
+        {
           String[] queries = this.query.split("\\|");
 
-          if(queries.length>1) {
+          if(queries.length>1) 
+          {
             TupleQuery tupleQueryPerc2 = con.prepareTupleQuery(QueryLanguage.SPARQL, queries[1].trim());
             TupleQueryResult resultPerc2 = tupleQueryPerc2.evaluate();
-            if (resultPerc2 != null) {
-              while (resultPerc2.hasNext()) {
+            if (resultPerc2 != null) 
+            {
+              while (resultPerc2.hasNext()) 
+              {
                 BindingSet bindingSetEvent2 = resultPerc2.next();
                 String sum = bindingSetEvent2.getValue("sum").stringValue();
                 sumFixed = Integer.parseInt(sum);
@@ -278,20 +996,27 @@ public class ManagerQuery implements Runnable, Serializable {
 
             String[] dataSources = this.dataSourceId.split("\\|");
             DBAccess mysql_access = new DBAccess();
-            mysql_access.setConnectionMySQL(this.map_dbAcc.get(dataSources[0].trim()));
-            ResultSet resultSet = mysql_access.readDataBase(queries[0].trim());
-            while (resultSet.next()) {
+            mysql_access.setConnection(this.map_dbAcc.get(dataSources[0].trim()));
+            ResultSet resultSet = mysql_access.readDataBase(queries[0].trim(),this);
+            while (resultSet.next()) 
+            {
               tot = Integer.parseInt(resultSet.getString("Sum"));
             }
             mysql_access.close();
-          } else {
+          } 
+          else 
+          {
             System.out.println("ATAF_RT: manca seconda query");
           }
-        } else if (this.idProc.equals("Services_Duplicate")) {
+        } 
+        else if(this.idProc.equals("Services_Duplicate")) 
+        {
           TupleQuery tupleQueryPerc3 = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
           TupleQueryResult resultPerc3 = tupleQueryPerc3.evaluate();
-          if (resultPerc3 != null) {
-            while (resultPerc3.hasNext()) {
+          if (resultPerc3 != null) 
+          {
+            while (resultPerc3.hasNext()) 
+            {
               BindingSet bindingSetEvent = resultPerc3.next();
               String totServ = bindingSetEvent.getValue("totServ").stringValue();
               String perc = bindingSetEvent.getValue("result").stringValue();
@@ -299,39 +1024,57 @@ public class ManagerQuery implements Runnable, Serializable {
               tot = Integer.parseInt(totServ);
             }
           }
-        } else {
-          if(!this.query.contains("|")) {
+        } 
+        else
+        {
+          if(!this.query.contains("|")) 
+          {
             TupleQuery tupleQueryPerc = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
             TupleQueryResult resultPerc = tupleQueryPerc.evaluate();
-            if (resultPerc != null) {
+            if (resultPerc != null) 
+            {
               String p1 = resultPerc.getBindingNames().get(0);
               String p2 = null;
               if(resultPerc.getBindingNames().size()>1)
-                p2 = resultPerc.getBindingNames().get(1);
-              if (resultPerc.hasNext()) {
+              {
+                 p2 = resultPerc.getBindingNames().get(1);
+              }
+                
+              if (resultPerc.hasNext()) 
+              {
                 BindingSet bindingSetEvent = resultPerc.next();
                 String v1 = bindingSetEvent.getValue(p1).stringValue();
-                if(p2==null) {
-                  if(this.metricType.contains("/")) {
+                if(p2==null) 
+                {
+                  if(this.metricType.contains("/")) 
+                  {
                     sumFixed = Integer.parseInt(v1);
                     tot = Integer.parseInt(this.metricType.split("\\/")[1]);
-                  } else {
+                  } 
+                  else 
+                  {
                     percent = Double.parseDouble(v1);
                   }
-                } else {
+                } 
+                else 
+                {
                   String v2 = bindingSetEvent.getValue(p2).stringValue();
                   sumFixed = Integer.parseInt(v1);
                   tot = Integer.parseInt(v2);
                 }
               }
             }            
-          } else {
+          } 
+          else 
+          {
             String[] queries = this.query.split("\\|");
             TupleQuery tupleQueryPerc1 = con.prepareTupleQuery(QueryLanguage.SPARQL, queries[0].trim());
             TupleQueryResult resultPerc1 = tupleQueryPerc1.evaluate();
-            if (resultPerc1 != null) {
+            if (resultPerc1 != null) 
+            {
               String p1 = resultPerc1.getBindingNames().get(0);
-              if (resultPerc1.hasNext()) {
+              if (resultPerc1.hasNext()) 
+              {
                 BindingSet bindingSetEvent = resultPerc1.next();
                 String v1 = bindingSetEvent.getValue(p1).stringValue();
                 sumFixed = Integer.parseInt(v1);
@@ -341,9 +1084,11 @@ public class ManagerQuery implements Runnable, Serializable {
             //TBD gestire caso in cui seconda query e' SQL e non SPARQL
             TupleQuery tupleQueryPerc2 = con.prepareTupleQuery(QueryLanguage.SPARQL, queries[1].trim());
             TupleQueryResult resultPerc2 = tupleQueryPerc2.evaluate();
-            if (resultPerc2 != null) {
+            if (resultPerc2 != null) 
+            {
               String p1 = resultPerc2.getBindingNames().get(0);
-              if (resultPerc2.hasNext()) {
+              if (resultPerc2.hasNext()) 
+              {
                 BindingSet bindingSetEvent = resultPerc2.next();
                 String v1 = bindingSetEvent.getValue(p1).stringValue();
                 tot = Integer.parseInt(v1);
@@ -351,36 +1096,49 @@ public class ManagerQuery implements Runnable, Serializable {
             }                        
           }
         }
-      } else if (this.queryType.equals("SQL")) {
+      } 
+      else if (this.queryType.equals("SQL")) 
+      {
         String[] queries2 = this.query.split("\\|");
         DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-        if(queries2.length>1) {
-          ResultSet resultSet = mysql_access.readDataBase(queries2[1].trim());
-          while (resultSet.next()) {
+        mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
+        if(queries2.length > 1) 
+        {
+          ResultSet resultSet = mysql_access.readDataBase(queries2[1].trim(),this);
+          while (resultSet.next()) 
+          {
             String tot_extract = resultSet.getString(1);
-            if (tot_extract != null) {
+            if (tot_extract != null) 
+            {
               tot = Integer.parseInt(tot_extract);
             }
           }
         }
 
-        //mysql_access.close();
-        //mysql_access.setConnectionMySQL(this.db,"Km4CityApp");
-        ResultSet resultSet = mysql_access.readDataBase(queries2[0].trim());
-        while (resultSet.next()) {
+        ResultSet resultSet = mysql_access.readDataBase(queries2[0].trim(),this);
+        while (resultSet.next()) 
+        {
           String value = resultSet.getString(1);
-          if (value != null) {
+          if (value != null) 
+          {
             if(tot!=0)
-              sumFixed = Integer.parseInt(value);
-            else if(resultSet.getMetaData().getColumnCount()>1) {
+            {
+               sumFixed = Integer.parseInt(value);
+            } 
+            else if(resultSet.getMetaData().getColumnCount() > 1) 
+            {
               tot = resultSet.getInt(2);
               sumFixed = resultSet.getInt(1);
-            } else {
-              if(this.metricType.contains("/")) {
+            }
+            else 
+            {
+              if(this.metricType.contains("/")) 
+              {
                 sumFixed = resultSet.getInt(1);
                 tot = Integer.parseInt(this.metricType.split("\\/")[1]);
-              } else {
+              } 
+              else 
+              {
                 percent = resultSet.getDouble(1);
               }
             }
@@ -389,16 +1147,18 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access.close();
       }
 
-      if (!(this.idProc.equals("Services_Duplicate")) && tot!=0 ) {
+      if (!(this.idProc.equals("Services_Duplicate")) && tot!=0 ) 
+      {
         percent = (sumFixed * 100.0) / tot;
       }
 
-      if(percent>=0) {
-        this.almMng.updateStatusOnMeasuredValue(Utility.round(percent, 2));
+      if(percent>=0) 
+      {
+        //this.almMng.updateStatusOnMeasuredValue(Utility.round(percent, 2));
         System.out.println(this.idProc + " " + percent);
 
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date data_attuale = new Date();
         String data_attuale_fixed = df.format(data_attuale);
@@ -408,20 +1168,28 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
       }
-
-    } catch (Exception exp) {
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    } 
+    catch(Exception exp) 
+    {
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);      
+      this.notifyEvent("Import data error", msgBody);
     }
+    
+    return percent;
   }
 
-  private void executeQueryJVTable() {
-    try {
+  private void executeQueryJVTable() 
+  {
+    try 
+    {
       String labels1 = "";
       String labels2 = "";
       String desc = "";
       String series = "";
 
-      if (this.queryType.equals("SPARQL")) {
+      if (this.queryType.equals("SPARQL")) 
+      {
         Repository repo = buildSparqlRepository();
         repo.initialize();
         RepositoryConnection con = repo.getConnection();
@@ -464,38 +1232,65 @@ public class ManagerQuery implements Runnable, Serializable {
             series += "]";
           }
         }
-      } else if (this.queryType.equals("SQL")) {
-
+      } 
+      else if (this.queryType.equals("SQL")) 
+      {
         DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-        ResultSet resultSet = mysql_access.readDataBase(this.query);
-        if (resultSet != null) {
+        mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
+        ResultSet resultSet = mysql_access.readDataBase(this.query,this);
+        if(resultSet != null)
+        {
           int nCols = resultSet.getMetaData().getColumnCount();
           if(nCols > 0)
-            desc = resultSet.getMetaData().getColumnLabel(1);
-          for(int i=2; i<=nCols; i++) {
+          {
+             desc = resultSet.getMetaData().getColumnLabel(1);
+          }
+            
+          for(int i=2; i<=nCols; i++) 
+          {
             if(!labels1.isEmpty())
-              labels1 += ",";
+            {
+               labels1 += ",";
+            }
+              
             labels1 += "\""+resultSet.getMetaData().getColumnLabel(i)+"\"";
           }
             
-          while (resultSet.next()) {
+          while (resultSet.next()) 
+          {
             if(!series.isEmpty())
-              series += ", ";
+            {
+               series += ", ";
+            }
+              
             series += "[";
-            for(int i=1; i<=nCols; i++) {
+            for(int i=1; i<=nCols; i++) 
+            {
               String v = resultSet.getString(i);
-              if(i==1) {
+              if(i==1)
+              {
                 if(!labels2.isEmpty())
-                  labels2 += ", ";
+                {
+                   labels2 += ", ";
+                }
+                  
                 labels2 += "\""+v+"\"";
-              } else {
+              } 
+              else 
+              {
                 if(i>2)
-                  series += ", ";
+                {
+                   series += ", ";
+                }
+                  
                 if(v.matches("-?\\d+(\\.\\d+)?"))
-                  series += v;
+                {
+                   series += v;
+                }
                 else
-                  series += "\""+v+"\"";
+                {
+                   series += "\""+v+"\"";
+                }
               }
             }
             series += "]";
@@ -509,7 +1304,7 @@ public class ManagerQuery implements Runnable, Serializable {
         String json = "{\"firstAxis\": {\"desc\": \"\",\"labels\": ["+labels1+"]},\"secondAxis\": {\"desc\": \""+desc+"\",\"labels\":["+labels2+"],\"series\":["+series+"]}}";
         System.out.println(this.idProc + " " + json);
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
         DateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date data_attuale = new Date();
         String data_attuale_fixed = df2.format(data_attuale);
@@ -521,23 +1316,29 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
       }
-    } catch (Exception exp) {
+    } 
+    catch (Exception exp) 
+    {
       exp.printStackTrace();
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);
+      this.notifyEvent("Import data error", msgBody);
     }
   }
 
-  private void executeQueryJVFreePark() {
-    try {
+  private double executeQueryJVFreePark() 
+  {
+    double percent = -1;
+    int free_total = 0;
+    int total_capacity = 0; 
+    
+    try 
+    {
       Repository repo = buildSparqlRepository();
       repo.initialize();
       RepositoryConnection con = repo.getConnection();
       TupleQuery tupleQueryParkFree = con.prepareTupleQuery(QueryLanguage.SPARQL, this.query);
       TupleQueryResult resultEvent = tupleQueryParkFree.evaluate();
-
-      double percent = -1;
-      int free_total = 0;
-      int total_capacity = 0;
 
       if (resultEvent != null) {
         while (resultEvent.hasNext()) {
@@ -551,7 +1352,7 @@ public class ManagerQuery implements Runnable, Serializable {
         if (total_capacity != 0) {
           percent = (free_total * 100.0) / total_capacity;
           DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-          mysql_access.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+          mysql_access.setConnection(this.map_dbAcc.get("Dashboard"));
           System.out.println("Posti liberi parcheggi di : " + free_total);
           System.out.println("Capacità parcheggi di : " + total_capacity);
           System.out.println("Precentuale posti liberi parcheggi di : " + percent);
@@ -565,9 +1366,9 @@ public class ManagerQuery implements Runnable, Serializable {
           mysql_access.close();
         } else {
           DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-          mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+          mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
           String LastCompDateQuery = "SELECT MAX(computationDate) as lastCompDate, value_num, value_perc1, value_perc2, value_perc3, value_text FROM Dashboard.Data WHERE IdMetric_data=\"" + this.idProc + "\" ORDER BY computationDate DESC";
-          ResultSet resultSet = mysql_access2.readDataBase(LastCompDateQuery);
+          ResultSet resultSet = mysql_access2.readDataBase(LastCompDateQuery,this);
           Timestamp lastTimestamp = null;
           Double[] lastValues = new Double[(resultSet.getMetaData().getColumnCount()) - 1];
           while (resultSet.next()) {
@@ -575,17 +1376,24 @@ public class ManagerQuery implements Runnable, Serializable {
             lastValues[0] = Double.parseDouble((resultSet.getString("value_perc1").trim()));
           }
           mysql_access2.close();
-          this.almMng.updateStatusOnComputingDate(lastTimestamp, lastValues);
+          //this.almMng.updateStatusOnComputingDate(lastTimestamp, lastValues);
         }
       }
-    } catch (Exception exp) {
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    } 
+    catch (Exception exp) 
+    {
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);      
+      this.notifyEvent("Import data error", msgBody);
     }
+    
+    return percent;
   }
 
-  private void executeQueryJVRidesAtaf() {
-    // TODO Auto-generated method stub
-    try {
+  private void executeQueryJVRidesAtaf() 
+  {
+    try 
+    {
       Repository repo = buildSparqlRepository();
       repo.initialize();
       RepositoryConnection con = repo.getConnection();
@@ -621,7 +1429,7 @@ public class ManagerQuery implements Runnable, Serializable {
           percent_inAnticipo = (num_inAnticipo * 100.0) / num_total;
           percent_inRitardo = (num_inRitardo * 100.0) / num_total;
           DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-          mysql_access.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+          mysql_access.setConnection(this.map_dbAcc.get("Dashboard"));
           System.out.println("Percentuale in orario : " + percent_inOrario);
           System.out.println("Percentuale in anticipo : " + percent_inAnticipo);
           System.out.println("Percentuale in ritardo : " + percent_inRitardo);
@@ -635,9 +1443,9 @@ public class ManagerQuery implements Runnable, Serializable {
           mysql_access.close();
         } else {
           DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-          mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+          mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
           String LastCompDateQuery = "SELECT MAX(computationDate) as lastCompDate, value_num, value_perc1, value_perc2, value_perc3, value_text FROM Dashboard.Data WHERE IdMetric_data=\"" + this.idProc + "\" ORDER BY computationDate DESC";
-          ResultSet resultSet = mysql_access2.readDataBase(LastCompDateQuery);
+          ResultSet resultSet = mysql_access2.readDataBase(LastCompDateQuery,this);
           Timestamp lastTimestamp = null;
           Double[] lastValues = new Double[(resultSet.getMetaData().getColumnCount()) - 1];
           while (resultSet.next()) {
@@ -647,26 +1455,29 @@ public class ManagerQuery implements Runnable, Serializable {
             lastValues[2] = Double.parseDouble((resultSet.getString("value_perc3").trim()));
           }
           mysql_access2.close();
-          this.almMng.updateStatusOnComputingDate(lastTimestamp, lastValues);
+          //this.almMng.updateStatusOnComputingDate(lastTimestamp, lastValues);
         }
       }
-    } catch (Exception exp) {
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    } 
+    catch (Exception exp) 
+    {
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);      
+      this.notifyEvent("Import data error", msgBody);
     }
   }
 
-  private void executeQueryJVTwRet() {
-    // TODO Auto-generated method stub
-    try {
-
+  private void executeQueryJVTwRet() 
+  {
+    try 
+    {
       int num_total = 0;
       int num_twitte = -1;
       int num_retwitte = -1;
       String[] queries = this.query.split("\\|");
 
       DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-      mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-      ResultSet resultSet = mysql_access.readDataBase(queries[1].trim());
+      mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
+      ResultSet resultSet = mysql_access.readDataBase(queries[1].trim(),this);
       while (resultSet.next()) {
         String count = resultSet.getString("count");
         if (count != null) {
@@ -674,7 +1485,7 @@ public class ManagerQuery implements Runnable, Serializable {
           System.out.println("Numero totale twitte/retwitte: " + num_total);
         }
       }
-      ResultSet resultSet3 = mysql_access.readDataBase(queries[0].trim());
+      ResultSet resultSet3 = mysql_access.readDataBase(queries[0].trim(),this);
       while (resultSet3.next()) {
         String count = resultSet3.getString("count");
         if (count != null) {
@@ -685,10 +1496,10 @@ public class ManagerQuery implements Runnable, Serializable {
       mysql_access.close();
 
       if (num_total != 0 && num_retwitte != -1) {
-        this.almMng.updateStatusOnMeasuredValue(Utility.round(new Integer(num_total).doubleValue(), 2));
+        //this.almMng.updateStatusOnMeasuredValue(Utility.round(new Integer(num_total).doubleValue(), 2));
 
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
         num_twitte = num_total - num_retwitte;
         System.out.println("Numero totale twitte: " + num_twitte);
 
@@ -701,14 +1512,21 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
       }
-    } catch (Exception exp) {
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    } 
+    catch (Exception exp) 
+    {
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);      
+      this.notifyEvent("Import data error", msgBody);
     }
   }
 
-  private void executeQueryJVWifiOp() {
-    // TODO Auto-generated method stub
-    try {
+  private double executeQueryJVWifiOp() 
+  {
+    double percent = -1;
+    
+    try 
+    {
       String[] queries = this.query.split("\\|");
 		//query = "SELECT min(latitude) as minlat, min(longitude) as minlng, max(latitude) as maxlat, max(longitude) as maxlng FROM sensors.sensors where network_name like 'FirenzeWiFi' and type='wifi'";
 		/*double minlat = -1;
@@ -767,20 +1585,19 @@ public class ManagerQuery implements Runnable, Serializable {
       int num_oper = -1;
       //mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
       DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-      mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-      ResultSet resultSet2 = mysql_access.readDataBase(queries[1].trim());
+      mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
+      ResultSet resultSet2 = mysql_access.readDataBase(queries[1].trim(),this);
       while (resultSet2.next()) {
         num_oper = Integer.parseInt(resultSet2.getString("sum"));
       }
       mysql_access.close();
 
       if (num_oper != -1 && num_total != 0) {
-        double percent = (num_oper * 100.0) / num_total;
+        percent = (num_oper * 100.0) / num_total;
         System.out.println("Percentuale Wifi operativi: " + percent);
-        this.almMng.updateStatusOnMeasuredValue(Utility.round(percent, 2));
-
+        //this.almMng.updateStatusOnMeasuredValue(Utility.round(percent, 2));
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
         Date data_attuale = new Date();
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String data_attuale_fixed = df.format(data_attuale);
@@ -790,9 +1607,14 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
       }
-    } catch (Exception exp) {
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    } 
+    catch (Exception exp) 
+    {
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);      
+      this.notifyEvent("Import data error", msgBody);
     }
+    return percent;
   }
 
   private void executeQueryJVSce() 
@@ -813,8 +1635,8 @@ public class ManagerQuery implements Runnable, Serializable {
       double cpu_load_total = 0;
 
       DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-      mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-      ResultSet resultSet = mysql_access.readDataBase(queries[0].trim());
+      mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
+      ResultSet resultSet = mysql_access.readDataBase(queries[0].trim(),this);
       int j = 0;
       if (resultSet != null) {
         while (resultSet.next()) {
@@ -825,7 +1647,7 @@ public class ManagerQuery implements Runnable, Serializable {
         for (int i = 0; i < id_nodes.length; i++) {
           if (id_nodes[i] != null) {
             String queryNode = (queries[1].trim()).replace("%%nodei%%", id_nodes[i]);
-            ResultSet resultSet2 = mysql_access.readDataBase(queryNode);
+            ResultSet resultSet2 = mysql_access.readDataBase(queryNode,this);
             while (resultSet2.next()) {
               String value = resultSet2.getString("value");
               String ipAddress = resultSet2.getString("value");
@@ -876,9 +1698,9 @@ public class ManagerQuery implements Runnable, Serializable {
 
       if (result != -1) {
 
-        this.almMng.updateStatusOnMeasuredValue(Utility.round(result, 2));
+        //this.almMng.updateStatusOnMeasuredValue(Utility.round(result, 2));
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
         Date data_attuale = new Date();
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String data_attuale_fixed = df.format(data_attuale);
@@ -896,22 +1718,27 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access2.close();
       }
 
-    } catch (Exception exp) {
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    } 
+    catch (Exception exp) 
+    {
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);      
+      this.notifyEvent("Import data error", msgBody);
     }
   }
 
-  private void executeQueryJVSmartDs() {
-    // TODO Auto-generated method stub
-    try {
+  private void executeQueryJVSmartDs() 
+  {
+    try 
+    {
       String objective = null;
       double percent_green = -1;
       double percent_white = -1;
       double percent_red = -1;
 
       DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-      mysql_access.setConnectionMySQL(this.map_dbAcc.get(this.dataSourceId));
-      ResultSet resultSet = mysql_access.readDataBase(this.query);
+      mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
+      ResultSet resultSet = mysql_access.readDataBase(this.query,this);
       while (resultSet.next()) {
         objective = resultSet.getString("objective");
         String green = resultSet.getString("green");
@@ -937,10 +1764,10 @@ public class ManagerQuery implements Runnable, Serializable {
 
       if (percent_green != -1 && percent_white != -1 && percent_red != -1) {
         double percentTot = percent_green + percent_white + percent_red;
-        this.almMng.updateStatusOnMeasuredValue(Utility.round(percentTot, 2));
+        //this.almMng.updateStatusOnMeasuredValue(Utility.round(percentTot, 2));
 
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-        mysql_access2.setConnectionMySQL(this.map_dbAcc.get("Dashboard"));
+        mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date data_attuale = new Date();
         String data_attuale_fixed = df.format(data_attuale);
@@ -950,28 +1777,13 @@ public class ManagerQuery implements Runnable, Serializable {
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
       }
-    } catch (Exception exp) {
-      ErrorEmailSetUp(this.idProc, this.descrip, exp);
+    } 
+    catch (Exception exp) 
+    {
+      Utility.WriteExcepLog(this.logger, exp);
+      String msgBody = Utility.exceptionMessage(exp, this.getClass().getName(), this.idProc+" - "+this.descrip);      
+      this.notifyEvent("Import data error", msgBody);
     }
-  }
-
-  private void ErrorEmailSetUp(String id, String description, Exception exception) {
-    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    Date actualDate = new Date();
-    String actualDate_fixed = df.format(actualDate);
-    String msgBody = "You're receiving this email from Km4City Dashboard because an error has occurred when the metrics calculation software has tried ";
-    msgBody += "to compute the Metric \"" + id + " - " + description + "\". This error is generated by " + exception.getClass().getSimpleName() + " exception thrown at " + actualDate_fixed;
-    msgBody += "\n\nError Details:";
-    msgBody += "\nDescription: Could not calculate the numeric values or percentages of the Metric \"" + id + " - " + description + "\"";
-    msgBody += "\nException: " + exception.getMessage();//.replace("\n", " ");
-    //msgBody += "\nCause: "+exception.getCause().getMessage();//.replace("\n", " ");
-    msgBody += "\nError Trace: See LogFile.log for deatils";
-    msgBody += "\nJava Class: " + this.getClass().getName();
-    msgBody += "\nDate: " + actualDate_fixed;
-    msgBody += "\n\nThis message is generated by the Km4City Dashboard. For support: info@disit.org";
-    msgBody += "\nPlease do not reply to this message.";
-    Utility.WriteExcepLog(this.logger, exception);
-    Utility.SendEmail(this.map_dbAcc.get("AlarmEmail"), msgBody, "[EXCEPTION] Km4City Dashboard");
   }
   
   private Repository buildSparqlRepository() {

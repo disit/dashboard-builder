@@ -59,7 +59,7 @@
         var url = "<?= $_GET['link_w'] ?>";
         var numCols = "<?= $_GET['numCols'] ?>";
         var wrapperW = $('#<?= $_GET['name'] ?>_div').outerWidth();
-        var widgetProperties, styleParameters, topWrapper, height, zoomDisplayTimeout, wrapperH = null;
+        var widgetProperties, styleParameters, topWrapper, height, zoomDisplayTimeout, wrapperH, titleWidth, sourceMapDivCopy = null;
         
         //Definizioni di funzione specifiche del widget
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
@@ -292,6 +292,9 @@
         if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
         {
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+            $("a.iconFullscreenModal").tooltip();
+            $("a.iconFullscreenTab").tooltip();
+            
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             
@@ -311,6 +314,91 @@
                 height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
                 wrapperH = parseInt($('#<?= $_GET['name'] ?>_div').outerHeight() - 25);
                 topWrapper = "25px";
+                
+                $("#" + widgetName + "_buttonsDiv").css("height", "100%");
+                $("#" + widgetName + "_buttonsDiv").css("float", "left");
+                
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size", "20px");
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function(){$(this).find("span").css("color", "red");}, function(){$(this).find("span").css("color", "#337ab7");});
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size", "20px");
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function(){$(this).find("span").css("color", "red");}, function(){$(this).find("span").css("color", "#337ab7");});
+                
+                if(hostFile === "config")
+                {
+                    if((widgetProperties.param.enableFullscreenModal === 'yes')&&(widgetProperties.param.enableFullscreenTab === 'yes'))
+                    {
+                       $("#" + widgetName + "_buttonsDiv").css("width", "100px");
+                       titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 100 - 2));
+                       $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).show();
+                       $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).show();
+                    }
+                    else
+                    {
+                       if((widgetProperties.param.enableFullscreenModal === 'yes')&&(widgetProperties.param.enableFullscreenTab === 'no'))
+                       {
+                           $("#" + widgetName + "_buttonsDiv").css("width", "75px");
+                           titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 75 - 2));
+                           $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).show();
+                           $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hide();
+                       }
+                       else
+                       {
+                          if((widgetProperties.param.enableFullscreenModal === 'no')&&(widgetProperties.param.enableFullscreenTab === 'yes')) 
+                          {
+                            $("#" + widgetName + "_buttonsDiv").css("width", "75px");
+                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 75 - 2));
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hide();
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).show();   
+                          }
+                          else
+                          {
+                            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 2));
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hide();
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hide();
+                          }
+                       }
+                    }
+                }
+                else
+                {
+                   $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                   $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
+                   
+                   if((widgetProperties.param.enableFullscreenTab === 'yes')&&(widgetProperties.param.enableFullscreenModal === 'yes'))
+                    {
+                       $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                       titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 2));
+                       $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).show();
+                       $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).show();
+                    }
+                    else
+                    {
+                       if((widgetProperties.param.enableFullscreenTab === 'yes')&&(widgetProperties.param.enableFullscreenModal === 'no'))
+                       {
+                           $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                           titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                           $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hide();
+                           $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).show();
+                       }
+                       else
+                       {
+                          if((widgetProperties.param.enableFullscreenTab === 'no')&&(widgetProperties.param.enableFullscreenModal === 'yes')) 
+                          {
+                              $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                              titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                              $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).show();
+                              $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hide();
+                          }
+                          else
+                          {
+                              $("#" + widgetName + "_buttonsDiv").hide();
+                              titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 2));
+                          }
+                       }
+                    }
+                }
+                $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
             }
 
             $('#<?= $_GET['name'] ?>_content').css("width", wrapperW + "px");
@@ -325,8 +413,20 @@
             }
             
             $("#<?= $_GET['name'] ?>_iFrame").load(iframeLoaded);
-            $('#<?= $_GET['name'] ?>_iFrame').attr("src", url);
-            $('#<?= $_GET['name'] ?>_iFrame').attr("data-oldsrc", url);
+            
+            switch(url)
+            {
+               case "map":
+                  break;
+                  
+               case "none":
+                  break;
+                  
+               default:
+                  $('#<?= $_GET['name'] ?>_iFrame').attr("src", url);
+                  $('#<?= $_GET['name'] ?>_iFrame').attr("data-oldsrc", url);
+                  break;
+            }
             
             $('#<?= $_GET['name'] ?>_xPlus').on('click', function () 
             {
@@ -429,6 +529,82 @@
                     alert("You have reached the minimum zoom factor");
                 }
             });
+            
+            $('#<?= $_GET['name'] ?>_buttonsDiv a.iconFullscreenModal').click(function()
+            {
+                switch(url)
+                {
+                    case "map":
+                      $("#modalLinkOpen h4.modal-title").html($("#<?= $_GET['name'] ?>_titleDiv").html());  
+                      $("#modalLinkOpenBodyIframe").hide(); 
+                      $("#modalLinkOpenBodyMap").empty();
+                      $("#modalLinkOpenBodyMap").show();
+                      //IN CORSO
+                      sourceMapDivCopy = $("#<?= $_GET['name'] ?>_mapDiv");
+                      $("#modalLinkOpenBodyMap").append(sourceMapDivCopy);
+                      
+                      
+                      
+                      
+                      $("#modalLinkOpen").modal('show');
+                      break;
+
+                   case "none": 
+                      $("#newTabLinkOpenImpossibileMsg").html("No external link is set for this widget: please change it and try again.");
+                      $("#newTabLinkOpenImpossibile").modal('show');
+                      setTimeout(function(){
+                          $("#newTabLinkOpenImpossibile").modal('hide');
+                      }, 4000);
+                      break;
+
+                   default:
+                      $("#modalLinkOpen h4.modal-title").html($("#<?= $_GET['name'] ?>_titleDiv").html());   
+                      $("#modalLinkOpenBodyMap").hide();
+                      $("#modalLinkOpenBodyIframe").show(); 
+                      $("#modalLinkOpenBodyIframe").attr("src", url); 
+                      $("#modalLinkOpen").modal('show');
+                      break;
+                }
+            });
+            
+            $("#modalLinkOpenCloseBtn").off();
+            $("#modalLinkOpenCloseBtn").click(function(){
+                $("#modalLinkOpen").modal('hide');
+                
+                setTimeout(function(){
+                    if(url === 'map')
+                    {
+                        sourceMapDivCopy = $("#<?= $_GET['name'] ?>_mapDiv");
+                        $("#<?= $_GET['name'] ?>_wrapper").before($("#<?= $_GET['name'] ?>_mapDiv"));
+                    } 
+                }, 150);
+            });
+            
+            $('#<?= $_GET['name'] ?>_buttonsDiv a.iconFullscreenTab').click(function()
+            {
+                switch(url)
+                {
+                   case "map":
+                      $("#newTabLinkOpenImpossibileMsg").html("It's not possibile to open an embedded map in an external page: please use the popup fullscreen option.");
+                      $("#newTabLinkOpenImpossibile").modal('show');
+                      setTimeout(function(){
+                          $("#newTabLinkOpenImpossibile").modal('hide');
+                      }, 4000);
+                      break;
+
+                   case "none": 
+                      $("#newTabLinkOpenImpossibileMsg").html("No external link is set for this widget: please change it and try again.");
+                      $("#newTabLinkOpenImpossibile").modal('show');
+                      setTimeout(function(){
+                          $("#newTabLinkOpenImpossibile").modal('hide');
+                      }, 4000);
+                      break;
+
+                   default:
+                      window.open(url, '_blank');
+                      break;
+                }
+            });
         }    
         else
         {
@@ -441,13 +617,14 @@
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
                <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+            <div id="<?= $_GET['name'] ?>_buttonsDiv">
+               <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+               <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+               <div class="singleBtnContainer"><a class="iconFullscreenModal" href="#" data-toggle="tooltip" title="Fullscreen popup"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></a></div>
+               <div class="singleBtnContainer"><a class="iconFullscreenTab" href="#" data-toggle="tooltip" title="Fullscreen new tab"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></div>
             </div>
         </div>
         

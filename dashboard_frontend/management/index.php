@@ -13,6 +13,8 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   include('process-form.php'); 
 ?>
 
 <!DOCTYPE html>
@@ -56,19 +58,9 @@
                             </label>
                         </div>
                         <p>
-                            <button id="button_login" name="login" class="btn btn-primary btn-lg btn-block" type="submit">Sign in</button>
+                           <button id="button_login" name="login" class="btn btn-primary btn-lg btn-block" type="submit">Sign in</button>
                         </p>
                     </form>
-                    <!--
-                    <div class="col-md-12 control">
-                        <div id="footer-form-login">
-                            Non hai un account! 
-                            <a href="#" onClick="location.href = 'dashboard_register.php'">
-                                Registrati qui
-                            </a>
-                        </div>
-                    </div>
-                    -->
                 </div>
             </div>    
         </div> <!-- /container -->
@@ -78,8 +70,40 @@
         <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 
         <script src="../js/bootstrap.min.js"></script>
-        <?php
-            include('process-form.php'); // Includes Login Script
-        ?>
+        
+        <script type='text/javascript'>
+            $(document).ready(function ()
+            {
+               var notificatorUrl = "<?php echo $notificatorUrl; ?>";
+               
+               $("#button_login").click(function()
+               {
+                  $.ajax({
+                     url: notificatorUrl,
+                     data: {
+                        apiUsr: "alarmManager",
+                        apiPwd: "d0c26091b8c8d4c42c02085ff33545c1", //MD5
+                        operation: "remoteLogin",
+                        app: "Dashboard",
+                        appUsr: $("#inputUsername").val(),
+                        appPwd: $("#inputPassword").val()
+                     },
+                     type: "POST",
+                     async: true,
+                     dataType: 'json',
+                     success: function (data) 
+                     {
+                        console.log("Remote login OK");
+                        console.log(JSON.stringify(data));
+                     },
+                     error: function (data)
+                     {
+                        console.log("Remote login KO");
+                        console.log(JSON.stringify(data));
+                     }
+                  });
+               });
+            });
+        </script>
     </body>
 </html>

@@ -131,6 +131,11 @@
     src: url(../fonts/cooper-hewitt/CooperHewitt-ThinItalic.otf.otf);
 }
 
+@font-face {
+    font-family: Digital;
+    src: url(../fonts/digital/DS-DIGIB.TTF);
+}
+
 body 
 {
     width: 100%;
@@ -507,9 +512,6 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
 
 #navbarDashboard
 {
-    /*border-style: solid;
-    border-color: blue;
-    border-width: 2px;*/
     width: 100%;
     height: 100px;
     margin-bottom: 100px;
@@ -858,7 +860,12 @@ ul.alert-dropdown {
 
 #wrapper-dashboard
 {
-    /*border-style: solid; border-color: red; border-width: 2px;*/
+   display: none;
+}
+
+#authFormContainer
+{
+   display: none;
 }
 
 #wrapper-dashboard-cfg
@@ -1139,4 +1146,479 @@ div.mainMenuItemContainer:hover
 #modalChangePlanStatusDialog.modal-lg
 {
    width: 65%;
+}
+
+#addPoolMainContainer, #delPoolMainContainer, #poolsUsersMainContainer
+{
+    width: 100%;
+}
+
+#addPoolNewPoolUsersContainer
+{
+    width: 100%;
+    max-height: 450px;
+    overflow: auto;
+}
+
+#addPoolNewPoolUsersTable
+{
+    width: 100%;
+    border: none;
+}
+
+#addPoolNewPoolUsersTable th.smallCell, td.smallCell
+{
+    width: 20%;
+    text-align: center;
+}
+
+#addPoolNewPoolUsersTable th.bigCell, td.bigCell
+{
+    width: 40%;
+    text-align: center;
+}
+
+#addPoolNewPoolUsersTable tr:nth-child(odd)
+{
+    background-color: white;
+}
+
+#addPoolNewPoolUsersTable tr:nth-child(even)
+{
+    background-color: #f2f2f2;
+}
+
+#addNewPoolButtonsContainer
+{
+    float: left;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#addNewPoolButtonsContainer button.btn-secondary
+{
+    margin-right: 10px;
+}
+
+#delPoolMainContainer #buttonsContainer
+{
+    /*border: 1px solid greenyellow;*/
+    padding-top: 31px;
+}
+
+#delPoolMainContainer #buttonsContainer i.fa-arrow-circle-right, #delPoolMainContainer #buttonsContainer i.fa-arrow-circle-left 
+{
+    cursor: pointer;
+}
+
+#delPoolMainContainer #buttonsContainer div
+{
+    width: 100%;
+    height: auto;
+    float: left;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    border: 1px solid white; /*Non cancellarlo, sennò li affianca*/
+}
+
+#delPoolMainSubContainer
+{
+    overflow: auto;
+    height: auto;
+    max-height: 250px;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+#delPoolTable, #outerMembersTable, #innerMembersTable
+{
+    width: 100%;
+}
+
+#delPoolTable tr:nth-child(odd)
+{
+    background-color: white;
+}
+
+#delPoolTable tr:nth-child(even)
+{
+    background-color: #f2f2f2;
+}
+
+#outerMembersTable tr:nth-child(odd), #innerMembersTable tr:nth-child(odd)
+{
+    background-color: white;
+}
+
+#outerMembersTable tr:nth-child(even), #innerMembersTable tr:nth-child(even)
+{
+    background-color: #f2f2f2;
+}
+
+#delPoolTable tr, #delPoolTable td, #delPoolTable th, #outerMembersTable tr, #outerMembersTable td, #outerMembersTable th, 
+#innerMembersTable tr, #innerMembersTable td, #innerMembersTable th
+{
+    text-align: center;
+}
+
+#delPoolTable td.smallCell, #delPoolTable th.smallCell
+{
+    width: 20%
+}
+
+#delPoolTable td.bigCell, #delPoolTable th.bigCell
+{
+    width: 40%
+}
+
+#delPoolTable td i.fa-remove
+{
+    cursor: pointer;
+}
+
+#delPoolTable a
+{
+    text-decoration: none;
+    border-bottom: none;
+}
+
+#editPoolsButtonsContainer
+{
+    display: none;
+}
+
+#editPoolsDiscardBtn, #editPoolsNamesDiscardBtn
+{
+    margin-right: 10px;
+}
+
+#outerUsersTableContainer, #innerUsersTableContainer
+{
+    width: 100%;
+    max-height: 400px;
+    overflow: auto;
+}
+
+#poolManagementRow
+{
+    display: none;
+}
+
+#outerUsersLabelContainer
+{
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    height: auto;
+}
+
+#innerUsersLabelContainer
+{
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    height: auto;
+}
+
+#saveUsersDataModal .modal-header, #discardUsersChangesModal .modal-header, #deleteUserModal .modal-header, #pageChangeModal .modal-header, 
+#addUserModal .modal-header, #addUserOkModal .modal-header, #addUserKoModal .modal-header, #addPoolOkModal .modal-header, #addPoolKoModal .modal-header,
+#deletePoolModal .modal-header, #deletePoolModal .modal-body, #delPoolOkModal .modal-header, #delPoolKoModal .modal-header, #editPoolsModal .modal-header,
+#editPoolsUndoModal .modal-header, #editPoolsLeavePageModal .modal-header, #editPoolsNamesModal .modal-header, #editPoolsNamesUndoModal .modal-header,
+#logoutViewModal .modal-header, #editUserModal .modal-header, #editUserOkModal .modal-header, #editUserKoModal .modal-header,
+#editAccountOkModal .modal-header, #editAccountKoModal .modal-header
+{
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+#addUserModal .modal-body, #saveUsersDataModal .modal-body, #discardUsersChangesModal .modal-body, #deleteUserModal .modal-body, 
+#pageChangeModal .modal-body, #addUserOkModal .modal-body, #addUserKoModal .modal-body, #addPoolOkModal .modal-body, #addPoolKoModal .modal-body,
+#deletePoolModal .modal-body, #delPoolOkModal .modal-body, #editPoolsModal .modal-body, #editPoolsUndoModal .modal-body, #editPoolsLeavePageModal .modal-body,
+#editPoolsNamesModal .modal-body, #editPoolsNamesUndoModal .modal-body, #logoutViewModal .modal-body, #editUserModal .modal-body, #editUserOkModal .modal-body, 
+#editUserKoModal .modal-body, #editAccountOkModal .modal-body, #editAccountKoModal .modal-body
+{
+    height: auto;
+}
+
+#addUserAdminRoleChoiceOuterContainer, #addUserAdminPoolsChoiceOuterContainer, #logoutViewModal
+{
+    display: none;
+}
+
+#addUserPoolsContainer, #editUserPoolsContainer
+{
+    width: 100%;
+    height: 100px;
+    overflow: auto;
+}
+
+#addUserPoolsTable, #addUserPoolsTable tr, #addUserPoolsTable td, #editUserPoolsTable, #editUserPoolsTable tr, #editUserPoolsTable td /*#addUserExistingPoolsTable, #addUserExistingPoolsTable tr, 
+#addUserExistingPoolsTable td, #addUserAddUsersToNewPoolTable, #addUserAddUsersToNewPoolTable tr, #addUserAddUsersToNewPoolTable td*/
+{
+    width: 100%;
+    border: none;
+}
+
+#addUserPoolsTable tr:nth-child(odd), #editUserPoolsTable tr:nth-child(odd)/*, #addUserExistingPoolsTable tr:nth-child(odd), #addUserAddUsersToNewPoolTable tr:nth-child(odd)*/
+{
+    background-color: white;
+}
+
+#addUserPoolsTable tr:nth-child(even), #editUserPoolsTable tr:nth-child(even)/*#addUserExistingPoolsTable tr:nth-child(even), #addUserAddUsersToNewPoolTable tr:nth-child(even)*/
+{
+    background-color: #f2f2f2;
+}
+
+#addUserPoolsTable th, #editUserPoolsTable th
+{
+   text-align: center;
+}
+
+#addUserPoolsTable .addUserPoolsTableMakeAdminHeader, #addUserPoolsTable .addUserPoolsTableMakeAdminCheckbox,
+#editUserPoolsTable .editUserPoolsTableMakeAdminHeader, #editUserPoolsTable .editUserPoolsTableMakeAdminCheckbox
+{
+   display: none;
+}
+
+#addUserPoolsTable td.checkboxCell, #addUserExistingPoolsTable td.checkboxCell,
+#editUserPoolsTable td.checkboxCell, #editUserExistingPoolsTable td.checkboxCell  
+{
+    width: 20%;
+    text-align: center;
+}
+
+#addUserPoolsTable td.poolNameCell, #editUserPoolsTable td.poolNameCell
+{
+    width: 60%;
+    text-align: center;
+}
+
+.modalBodyInnerDiv
+{
+    height: auto;
+    width: 100%;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+.addUserFormSubfieldContainer, .editUserFormSubfieldContainer
+{
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+.poolsManagementSubfieldContainer
+{
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+#usernameMsgM
+{
+   color: #337ab7;
+}
+
+#addUserForm input, #addUserForm password, #addUserForm select, #editUserForm input, #editUserForm password, #editUserForm select
+{
+    display: block;
+    width: 100%;
+    height: 22px;
+    text-align: center;
+}
+
+#addUserForm select
+{
+    display: block;
+    width: 100%;
+    height: 22px;
+    text-align-last: center;
+    padding-left: 15px;
+    direction: ltr;
+}
+
+#usersTable2 i.fa-remove:hover, #usersTable2 i.fa-cog:hover
+{
+   cursor: pointer;
+}
+
+#editUserModalBody
+{
+   display: none;
+}
+
+#editAccountCancelBtn
+{
+   margin-right: 10px;
+}
+
+.accountEditSubfieldContainer
+{
+    width: 100%;
+    height: auto;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+.accountEditSubfieldContainer input[type=text], .accountEditSubfieldContainer input[type=email], .accountEditSubfieldContainer input[type=password]
+{
+   text-align: center;
+}
+
+#accountActivationActivatingRow, #accountActivationOkRow, #accountActivationKoRow, #addUserModalCreating
+{
+   display: none;
+}
+
+label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersTableContainer
+{
+    display: none;
+}
+
+#inputDashboardVisibilityUsersTableContainer
+{
+    display: none;
+    max-height: 400px;
+    overflow: auto;
+}
+
+#inputDashboardVisibilityUsersTable
+{
+    width: 100%;
+}
+
+#inputDashboardVisibilityUsersTable tr, #inputDashboardVisibilityUsersTable td, #inputDashboardVisibilityUsersTable th
+{
+    text-align: center;
+}
+
+#inputDashboardVisibilityUsersTable tr:nth-child(odd)
+{
+    background-color: white;
+}
+
+#inputDashboardVisibilityUsersTable tr:nth-child(even)
+{
+    background-color: #f2f2f2;
+}
+
+#inputDashboardVisibilityUsersTable .selectCell
+{
+    width: 20%;
+}
+
+#inputDashboardVisibilityUsersTable .usernameCell
+{
+    width: 80%;
+}
+
+#getVisibilityError
+{
+    display: none;
+}
+
+#logoutViewModalOk, #logoutViewModalKo, #logoutViewModalUserNotRegistered, #logoutViewModalQueryKo
+{
+    display: none;
+}
+
+.logoutViewModalRow
+{
+    width: 100%; 
+    float: left; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+}
+
+.logoutViewModalLabel
+{
+    width: 43%; 
+    float: left;
+    display: flex; 
+    justify-content: flex-end; 
+    align-items: center;
+    padding-right: 10px;
+}
+
+.logoutViewModalInput
+{
+    width: 57%; 
+    float: left;
+    display: flex; 
+    justify-content: flex-start; 
+    align-items: center;
+}
+
+.logoutViewModalInput input
+{
+    width: 150px;
+}
+
+#viewLogoutBtn
+{
+    display: none;
+}
+
+#newTabLinkOpenImpossibile, #modalLinkOpen
+{
+    font-family: Verdana;
+}
+
+#newTabLinkOpenImpossibile div.modal-header h4
+{
+    font-size: 18px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.20);
+}
+
+#newTabLinkOpenImpossibileMsg, #newTabLinkOpenImpossibileIcon
+{
+    width: 100%;
+    text-align: center;
+}
+
+#newTabLinkOpenImpossibileIcon i.fa-frown-o
+{
+    font-size: 36px;
+}
+
+#modalLinkOpen div.modal-dialog
+{
+    width: 95vw;
+}
+
+#modalLinkOpenBodyIframe
+{
+    display: none;
+    width: 100%;
+    height: 80vh;
+}
+
+#modalLinkOpenBodyMap
+{
+    display: none;
+    width: 100%;
+    height: 80vh;
+    border: 1px solid red;
 }

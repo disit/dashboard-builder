@@ -21,7 +21,7 @@
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
         var scroller1, scroller2, scrollBottom1, scrollBottom2, contentHeight, contentWidth, sizeRowsWidget, icon, eventContentW, trendsNumber, quotesNumber, trendsContentHeight, quotesContentHeight, 
-            fakeTrendsDiv, fakeQuotesDiv, rowPercHeight, rowPercBottomMargin, rowPxHeight, rowPxBottomMargin, fullRowPxHeight, actualTab = null;
+            fakeTrendsDiv, fakeQuotesDiv, rowPercHeight, rowPercBottomMargin, rowPxHeight, rowPxBottomMargin, fullRowPxHeight, actualTab, countdown, timeToClearScroll, titleWidth = null;
         
         var speed = 140;
         var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
@@ -73,12 +73,12 @@
         
         if(hostFile === "config")
         {
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 90 - 2));
+            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 50 - 25 - 2));
         }
         else
         {
             $("#<?= $_GET['name'] ?>_buttonsDiv").css("display", "none");
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 50 - 2));
+            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 25 - 2));
         }
         
         $("#<?= $_GET['name'] ?>_titleDiv").css("width", titleWidth + "px");
@@ -183,7 +183,7 @@
                 $.ajax({
                     url: "../widgets/curlProxyForTwitterVg.php?url=<?=$internalTwitterVigilanceHost?>/query/query.php?trends=Firenze",
                     type: "GET",
-                    async: false,
+                    async: true,
                     dataType: 'json',
                     success: function (msg) {
                         var noHashTrend = null;
@@ -263,7 +263,7 @@
                             $.ajax({
                                 url: "../widgets/curlProxyForTwitterVg.php?url=<?=$internalTwitterVigilanceHost?>/query/query.php?mentions=Firenze",
                                 type: "GET",
-                                async: false,
+                                async: true,
                                 dataType: 'json',
                                 success: function (msg2) 
                                 {
@@ -329,178 +329,178 @@
                                             }
                                         }
                                     }
+                                    
+                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterRow').css("width", "100%");
+                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterRow').css("height", rowPercHeight + "%");
+                                    $("#<?= $_GET['name'] ?>_trendsContainer .twitterRow").css("margin-bottom", rowPercBottomMargin + "%");
+                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterIcon').css("width", iconPercWidth + "%");
+                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterIcon').css("height", "100%");
+                                    $("#<?= $_GET['name'] ?>_trendsContainer .twitterIcon").css("margin-right", rowPercBottomMargin + "%");
+                                    $('#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon').css("width", iconPercWidth + "%");
+                                    $('#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon').css("height", "100%");
+                                    $("#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon").css("margin-right", rowPercBottomMargin + "%");
+                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterContent').css("width", contentPercWidth + "%");
+
+                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterRow').css("width", "100%");
+                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterRow').css("height", rowPercHeight + "%");
+                                    $("#<?= $_GET['name'] ?>_quotesContainer .twitterRow").css("margin-bottom", rowPercBottomMargin + "%");
+                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterIcon').css("width", iconPercWidth + "%");
+                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterIcon').css("height", "100%");
+                                    $("#<?= $_GET['name'] ?>_quotesContainer .twitterIcon").css("margin-right", rowPercBottomMargin + "%");
+                                    $('#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon').css("width", iconPercWidth + "%");
+                                    $('#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon').css("height", "100%");
+                                    $("#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon").css("margin-right", rowPercBottomMargin + "%");
+                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterContent').css("width", contentPercWidth + "%");
+
+                                    //Listener all'evento slide del carousel
+                                    $('#<?= $_GET['name'] ?>_content').on('slid.bs.carousel', function (ev) 
+                                    {
+                                        var id = ev.relatedTarget.id;
+                                        clearInterval(scroller1);
+                                        clearInterval(scroller2);
+
+                                        if(defaultTab === -1)
+                                        {
+                                            switch(id)
+                                            {
+                                                case "<?= $_GET['name'] ?>_trendsContainer":
+                                                    actualTab = 1;        
+                                                    $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
+                                                    $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
+                                                    $('#<?= $_GET['name'] ?>_content').scrollTop(0);
+                                                    var calcContent = (trendsNumber * 32);
+                                                    var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                                    scrollBottom1 = calcContent - shownHeight - 2;
+                                                    scroller1 = setInterval(stepDownInterval1, speed);
+                                                    break;
+
+                                                case "<?= $_GET['name'] ?>_quotesContainer":
+                                                    actualTab = 2;
+                                                    $("#<?= $_GET['name'] ?>_trends_li").attr("class", "");
+                                                    $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "active"); 
+                                                    $('#<?= $_GET['name'] ?>_content').scrollTop(0);
+                                                    var calcContent = (quotesNumber * 32);
+                                                    var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                                    scrollBottom2 = calcContent - shownHeight - 2;
+                                                    scroller2 = setInterval(stepDownInterval2, speed);
+                                                    break;    
+                                            }
+                                        }
+                                    });
+
+                                    $("#<?= $_GET['name'] ?>_content").mouseenter(function() 
+                                    {
+                                        clearInterval(scroller1);
+                                        clearInterval(scroller2);
+                                    });
+
+                                    $("#<?= $_GET['name'] ?>_content").mouseleave(function(){
+                                        clearInterval(scroller1);
+                                        clearInterval(scroller2);
+
+                                        switch(actualTab)
+                                        {
+                                            case 1:
+                                                scroller1 = setInterval(stepDownInterval1, speed);
+                                                break;
+
+                                            case 2:
+                                                scroller2 = setInterval(stepDownInterval2, speed);
+                                                break;
+                                        }
+                                    });
+
+                                    switch(defaultTab)
+                                    {
+                                        case 0:
+                                            actualTab = 1;
+                                            $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
+                                            $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
+                                            clearInterval(scroller1);
+                                            clearInterval(scroller2);
+                                            $('#<?= $_GET['name'] ?>_content').carousel(0);
+                                            var calcContent = (trendsNumber * 32);
+                                            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                            scrollBottom1 = calcContent - shownHeight - 2;
+                                            scroller1 = setInterval(stepDownInterval1, speed);
+                                            $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                                            break;
+
+                                        case 1:
+                                            actualTab = 2;
+                                            $("#<?= $_GET['name'] ?>_trends_li").attr("class", "");
+                                            $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "active");
+                                            clearInterval(scroller1);
+                                            clearInterval(scroller2);
+                                            $('#<?= $_GET['name'] ?>_content').carousel(1);
+                                            var calcContent = (quotesNumber * 32);
+                                            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                            scrollBottom2 = calcContent - shownHeight - 2;
+                                            scroller2 = setInterval(stepDownInterval2, speed);
+                                            $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                                            break;
+
+                                        case -1:
+                                            actualTab = 1;
+                                            $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
+                                            $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
+                                            $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                                            $('#<?= $_GET['name'] ?>_content').attr('data-interval', 4000);
+                                            $('#<?= $_GET['name'] ?>_content').carousel('cycle');
+                                            clearInterval(scroller1);
+                                            clearInterval(scroller2);
+                                            var calcContent = (trendsNumber * 32);
+                                            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                            scrollBottom1 = calcContent - shownHeight - 2;
+                                            scroller1 = setInterval(stepDownInterval1, speed);
+                                            break;
+                                    }
+
+                                    timeToClearScroll = (counter - 0.5) * 1000;
+                                    setTimeout(function()
+                                    {
+                                        clearInterval(scroller1);
+                                        clearInterval(scroller2);
+                                    }, timeToClearScroll);
+
+                                    countdown = setInterval(function () 
+                                    {
+                                        $("#<?= $_GET['name'] ?>_countdownDiv").text(counter);
+                                        counter--;
+
+                                        if(counter > 60)
+                                        {
+                                            $("#<?= $_GET['name'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
+                                        } 
+                                        else 
+                                        {
+                                            $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
+                                        }
+                                        if(counter === 0) 
+                                        {
+                                            $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
+                                            clearInterval(countdown);
+                                            $('#<?= $_GET['name'] ?>_trendsContainer').empty();
+                                            $('#<?= $_GET['name'] ?>_quotesContainer').empty();
+                                            clearInterval(scroller1);
+                                            clearInterval(scroller2);
+                                            $("#<?= $_GET['name'] ?>_content").off();
+                                            $("#<?= $_GET['name'] ?>_content").scrollTop(0);
+                                            $('#<?= $_GET['name'] ?>_content').removeClass('slide');
+                                            $("#<?= $_GET['name'] ?>_trends_li").off();
+                                            $("#<?= $_GET['name'] ?>_quotes_li").off();
+                                            quotesNumber = null;
+                                            trendsNumber = null;
+                                            setTimeout(<?= $_GET['name'] ?>(false), 1000);
+                                        }
+                                    }, 1000);
                                 }
-                            });
+                            });//Fine AJAX più interno
                         } 
                         else 
                         {
                             $("#<?= $_GET['name'] ?>_content").html("<p><b>Principali Twitter Trends:</b> nessun dato disponibile</p><p><b>Citazioni:</b> nessun dato disponibile</p>");
                         }
-
-                        $('#<?= $_GET['name'] ?>_trendsContainer .twitterRow').css("width", "100%");
-                        $('#<?= $_GET['name'] ?>_trendsContainer .twitterRow').css("height", rowPercHeight + "%");
-                        $("#<?= $_GET['name'] ?>_trendsContainer .twitterRow").css("margin-bottom", rowPercBottomMargin + "%");
-                        $('#<?= $_GET['name'] ?>_trendsContainer .twitterIcon').css("width", iconPercWidth + "%");
-                        $('#<?= $_GET['name'] ?>_trendsContainer .twitterIcon').css("height", "100%");
-                        $("#<?= $_GET['name'] ?>_trendsContainer .twitterIcon").css("margin-right", rowPercBottomMargin + "%");
-                        $('#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon').css("width", iconPercWidth + "%");
-                        $('#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon').css("height", "100%");
-                        $("#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon").css("margin-right", rowPercBottomMargin + "%");
-                        $('#<?= $_GET['name'] ?>_trendsContainer .twitterContent').css("width", contentPercWidth + "%");
-                        
-                        $('#<?= $_GET['name'] ?>_quotesContainer .twitterRow').css("width", "100%");
-                        $('#<?= $_GET['name'] ?>_quotesContainer .twitterRow').css("height", rowPercHeight + "%");
-                        $("#<?= $_GET['name'] ?>_quotesContainer .twitterRow").css("margin-bottom", rowPercBottomMargin + "%");
-                        $('#<?= $_GET['name'] ?>_quotesContainer .twitterIcon').css("width", iconPercWidth + "%");
-                        $('#<?= $_GET['name'] ?>_quotesContainer .twitterIcon').css("height", "100%");
-                        $("#<?= $_GET['name'] ?>_quotesContainer .twitterIcon").css("margin-right", rowPercBottomMargin + "%");
-                        $('#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon').css("width", iconPercWidth + "%");
-                        $('#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon').css("height", "100%");
-                        $("#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon").css("margin-right", rowPercBottomMargin + "%");
-                        $('#<?= $_GET['name'] ?>_quotesContainer .twitterContent').css("width", contentPercWidth + "%");
-                        
-                        //Listener all'evento slide del carousel
-                        $('#<?= $_GET['name'] ?>_content').on('slid.bs.carousel', function (ev) 
-                        {
-                            var id = ev.relatedTarget.id;
-                            clearInterval(scroller1);
-                            clearInterval(scroller2);
-                            
-                            if(defaultTab === -1)
-                            {
-                                switch(id)
-                                {
-                                    case "<?= $_GET['name'] ?>_trendsContainer":
-                                        actualTab = 1;        
-                                        $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
-                                        $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
-                                        $('#<?= $_GET['name'] ?>_content').scrollTop(0);
-                                        var calcContent = (trendsNumber * 32);
-                                        var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
-                                        scrollBottom1 = calcContent - shownHeight - 2;
-                                        scroller1 = setInterval(stepDownInterval1, speed);
-                                        break;
-
-                                    case "<?= $_GET['name'] ?>_quotesContainer":
-                                        actualTab = 2;
-                                        $("#<?= $_GET['name'] ?>_trends_li").attr("class", "");
-                                        $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "active"); 
-                                        $('#<?= $_GET['name'] ?>_content').scrollTop(0);
-                                        var calcContent = (quotesNumber * 32);
-                                        var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
-                                        scrollBottom2 = calcContent - shownHeight - 2;
-                                        scroller2 = setInterval(stepDownInterval2, speed);
-                                        break;    
-                                }
-                            }
-                        });
-                        
-                        $("#<?= $_GET['name'] ?>_content").mouseenter(function() 
-                        {
-                            clearInterval(scroller1);
-                            clearInterval(scroller2);
-                        });
-                        
-                        $("#<?= $_GET['name'] ?>_content").mouseleave(function(){
-                            clearInterval(scroller1);
-                            clearInterval(scroller2);
-                            
-                            switch(actualTab)
-                            {
-                                case 1:
-                                    scroller1 = setInterval(stepDownInterval1, speed);
-                                    break;
-                                    
-                                case 2:
-                                    scroller2 = setInterval(stepDownInterval2, speed);
-                                    break;
-                            }
-                        });
-                        
-                        switch(defaultTab)
-                        {
-                            case 0:
-                                actualTab = 1;
-                                $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
-                                $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
-                                clearInterval(scroller1);
-                                clearInterval(scroller2);
-                                $('#<?= $_GET['name'] ?>_content').carousel(0);
-                                var calcContent = (trendsNumber * 32);
-                                var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
-                                scrollBottom1 = calcContent - shownHeight - 2;
-                                scroller1 = setInterval(stepDownInterval1, speed);
-                                $('#<?= $_GET['name'] ?>_content').addClass('slide');
-                                break;
-                                
-                            case 1:
-                                actualTab = 2;
-                                $("#<?= $_GET['name'] ?>_trends_li").attr("class", "");
-                                $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "active");
-                                clearInterval(scroller1);
-                                clearInterval(scroller2);
-                                $('#<?= $_GET['name'] ?>_content').carousel(1);
-                                var calcContent = (quotesNumber * 32);
-                                var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
-                                scrollBottom2 = calcContent - shownHeight - 2;
-                                scroller2 = setInterval(stepDownInterval2, speed);
-                                $('#<?= $_GET['name'] ?>_content').addClass('slide');
-                                break;
-
-                            case -1:
-                                actualTab = 1;
-                                $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
-                                $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
-                                $('#<?= $_GET['name'] ?>_content').addClass('slide');
-                                $('#<?= $_GET['name'] ?>_content').attr('data-interval', 4000);
-                                $('#<?= $_GET['name'] ?>_content').carousel('cycle');
-                                clearInterval(scroller1);
-                                clearInterval(scroller2);
-                                var calcContent = (trendsNumber * 32);
-                                var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
-                                scrollBottom1 = calcContent - shownHeight - 2;
-                                scroller1 = setInterval(stepDownInterval1, speed);
-                                break;
-                        }
-                        
-                        var timeToClearScroll = (counter - 0.5) * 1000;
-                        setTimeout(function()
-                        {
-                            clearInterval(scroller1);
-                            clearInterval(scroller2);
-                        }, timeToClearScroll);
-                        
-                        var countdown = setInterval(function () 
-                        {
-                            $("#<?= $_GET['name'] ?>_countdownDiv").text(counter);
-                            counter--;
-                            
-                            if(counter > 60)
-                            {
-                                $("#<?= $_GET['name'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
-                            } 
-                            else 
-                            {
-                                $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
-                            }
-                            if(counter === 0) 
-                            {
-                                $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
-                                clearInterval(countdown);
-                                $('#<?= $_GET['name'] ?>_trendsContainer').empty();
-                                $('#<?= $_GET['name'] ?>_quotesContainer').empty();
-                                clearInterval(scroller1);
-                                clearInterval(scroller2);
-                                $("#<?= $_GET['name'] ?>_content").off();
-                                $("#<?= $_GET['name'] ?>_content").scrollTop(0);
-                                $('#<?= $_GET['name'] ?>_content').removeClass('slide');
-                                $("#<?= $_GET['name'] ?>_trends_li").off();
-                                $("#<?= $_GET['name'] ?>_quotes_li").off();
-                                quotesNumber = null;
-                                trendsNumber = null;
-                                setTimeout(<?= $_GET['name'] ?>(false), 1000);
-                            }
-                        }, 1000);
                     }
                 });
             }//Chiusura success getParametersWidgets
@@ -513,13 +513,12 @@
         
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
                <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
             <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
                 <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 

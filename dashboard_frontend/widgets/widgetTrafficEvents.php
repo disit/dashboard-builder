@@ -18,7 +18,7 @@
     include('../config.php');
 ?>
 
-<script type='text/javascript'>
+<script type='text/javascript' charset="utf-8">
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad)  
     {
         <?php
@@ -189,8 +189,35 @@
 
              eventStartDate = day + "/" + month + "/" + eventStart.getFullYear().toString(); 
              eventStartTime = hour + ":" + min + ":" + sec;
-             eventNameWithCase = eventsArray[key].payload.notes.replace(/\./g, "");
-             eventName = eventsArray[key].payload.notes.replace(/\./g, "").toLowerCase();
+             
+             if(eventsArray[key].payload.hasOwnProperty("notes"))
+             {
+               
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/\./g, "");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/Â/g, "");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/\?/g, "");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/â/g, "");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/ã/g, "à");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/õ/g, "ò");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/€/g, "ò");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/âœ/g, "ò");
+               
+               eventName = eventsArray[key].payload.notes.replace(/\./g, "").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/Â/g, "").toLowerCase();   
+               eventName = eventsArray[key].payload.notes.replace(/\?/g, "").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/â/g, "").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/ã/g, "").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/õ/g, "").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/€/g, "").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/âœ/g, "ò").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/âœ/g, "ò").toLowerCase();
+             }
+             else
+             {
+               eventNameWithCase = "Event with no name";
+               eventName = "event with no name";
+             }
+             
              eventLat = eventsArray[key].payload.coords.latitude;
              eventLng = eventsArray[key].payload.coords.longitude;
              eventSeverity = eventsArray[key].payload.severity;
@@ -1169,7 +1196,7 @@
         if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
         {
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            styleParameters = getStyleParameters();//Usato come misura tampone per scegliere fra gli ultimi XX eventi e gli ultimi YY minuti
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             
             widgetTargetList = JSON.parse(widgetProperties.param.parameters);
@@ -1190,7 +1217,11 @@
                url: "../widgets/esbDao.php",
                type: "POST",
                data: {
-                  operation: "getTrafficEvents"
+                  operation: "getTrafficEvents",
+                  choosenOption: styleParameters.choosenOption,
+                  time: styleParameters.time,
+                  timeUdm: styleParameters.timeUdm,
+                  events: styleParameters.events
                },
                async: true,
                dataType: 'json',
@@ -1204,8 +1235,6 @@
                   {
                       elToEmpty.empty();
                   }
-                  
-                  //console.log(JSON.stringify(data));
                   
                   $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height() - 50); 
                 
@@ -2355,8 +2384,8 @@
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                    <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
             <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
                 <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 

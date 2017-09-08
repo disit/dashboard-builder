@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -23,20 +23,20 @@
     function canEditDashboard()
     {
         $result = false;
-        if(isset($_SESSION['isAdmin']))
+        if(isset($_SESSION['loggedRole']))
         {
-            if($_SESSION['isAdmin'] == 0)
+            if($_SESSION['loggedRole'] == "Manager")
             {
                 //Utente non amministratore, edita una dashboard solo se ne é l'autore
-                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&($_SESSION['loggedUsername'] == $_SESSION['dashboardAuthorName']))
                 {
                     $result = true;
                 }
             }
-            else if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
+            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
             {
                 //Utente amministratore, edita qualsiasi dashboard
-                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName']))&&(isset($_SESSION['dashboardAuthorId'])))
+                if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))
                 {
                     $result = true;
                 }
@@ -54,6 +54,9 @@
         exit();
     }
     
+    mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+    $queryFail = false;
+    
     if(isset($_REQUEST['ident'])&&canEditDashboard())
     {
         $response = array();
@@ -69,6 +72,7 @@
         $widgetsBorders = mysqli_real_escape_string($link, $_REQUEST['widgetsBorders']); 
         $widgetsBordersColor = mysqli_real_escape_string($link, $_REQUEST['inputWidgetsBordersColor']); 
         $headerFontColor = mysqli_real_escape_string($link, $_REQUEST['headerFontColor']); 
+        $visibility = mysqli_real_escape_string($link, $_POST['inputDashboardVisibility']);
         $filename = NULL;
         //$logoLink = $_REQUEST['dashboardLogoLinkInput'];
         $logoLink = NULL;
@@ -129,42 +133,115 @@
             }
             else 
             {
-                $query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoFilename = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ? WHERE Id = ?");
-                $query->bind_param('sssiisssissssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $filename, $logoLink, $widgetsBorders, $widgetsBordersColor, $dashboardId);
-                $result = $query->execute();
+                /*$query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoFilename = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ?, visibility = ? WHERE Id = ?");
+                $query->bind_param('sssiisssisssssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $filename, $logoLink, $widgetsBorders, $widgetsBordersColor, $visibility, $dashboardId);
                 
-                $response["newLogo"] = "YES";
-                $response["fileName"] = $uploadFolder . $filename;
-                $response["logoLink"] = $logoLink;
-                $response["width"] = $width;
-                $response["num_cols"] = $nCols;
+                $result = $query->execute();*/
+                
+                $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoFilename = '$filename', logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility' WHERE Id = $dashboardId";
+            
+               $result = mysqli_query($link, $query);  
+               
+                //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
+                //fwrite($file, "Query (with file): " . $query . "\n");
+                
+                if(!$result)
+                {
+                    $rollbackResult = mysqli_rollback($link);
+                    mysqli_close($link);
+                    $queryFail = true;
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Error during dashboard update: please repeat the procedure.");';
+                    echo 'window.location.href = "dashboard_configdash.php";';
+                    echo '</script>';
+                    die();
+                }
+                else
+                {
+                  $response["newLogo"] = "YES";
+                  $response["fileName"] = $uploadFolder . $filename;
+                  $response["logoLink"] = $logoLink;
+                  $response["width"] = $width;
+                  $response["num_cols"] = $nCols;
+                }
             }
         }//Nessun nuovo file caricato
         else
         {
-            $query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ? WHERE Id = ?");
-            $query->bind_param('sssiisssisssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $logoLink, $widgetsBorders, $widgetsBordersColor, $dashboardId);
-            $result = $query->execute();
-            $response["newLogo"] = "NO";
-            $response["logoLink"] = $logoLink;
-            $response["width"] = $width;
-            $response["num_cols"] = $nCols;
+            /*$query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ?, visibility = ? WHERE Id = ?");
+            $query->bind_param('sssiisssisssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $logoLink, $widgetsBorders, $widgetsBordersColor, $visibility, $dashboardId);
+            $result = $query->execute();*/
+           
+            $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility' WHERE Id = $dashboardId";
+            
+            $result = mysqli_query($link, $query);
+            
+            //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
+            //fwrite($file, "Query (no file): " . $query . "\n");
+            
+            if(!$result)
+            {
+               $rollbackResult = mysqli_rollback($link);
+               mysqli_close($link);
+               $queryFail = true;
+               echo '<script type="text/javascript">';
+               echo 'alert("Error during dashboard update: please repeat the procedure.");';
+               echo 'window.location.href = "dashboard_configdash.php";';
+               echo '</script>';
+               die();
+            }
+            else
+            {
+               $response["newLogo"] = "NO";
+               $response["logoLink"] = $logoLink;
+               $response["width"] = $width;
+               $response["num_cols"] = $nCols;
+            }
         }
+        
+        //Cancellazione vecchi permessi di visualizzazione
+         $delOldPermissionsQuery = "DELETE FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId";
+         $delOldPermissionsResult = mysqli_query($link, $delOldPermissionsQuery);
 
-        if(!$result7) 
+         if(!$delOldPermissionsResult)
+         {
+             $rollbackResult = mysqli_rollback($link);
+             mysqli_close($link);
+             $queryFail = true;
+             echo '<script type="text/javascript">';
+             echo 'alert("Error during dashboard update: please repeat the procedure.");';
+             echo 'window.location.href = "dashboard_configdash.php";';
+             echo '</script>';
+             die();
+         }
+         else
+         {
+            if($visibility == "restrict")
+            {
+               foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
+               {
+                  $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($dashboardId, '$selectedUser')";
+                  $result4 = mysqli_query($link, $insertQuery);
+               }
+            }
+         }
+        
+        if(!$queryFail) 
         {
-            echo 'Something has gone wrong: dashboard update has been cancelled';
-        }
-        else
-        {
+            $commit = mysqli_commit($link);
+            mysqli_close($link);
             echo json_encode($response);
         }
     }
     else 
     {
-        echo 'Something has gone wrong: dashboard update has been cancelled';
+       mysqli_close($link);
+       echo '<script type="text/javascript">';
+       echo 'alert("Error during dashboard update: please repeat the procedure.");';
+       echo 'window.location.href = "dashboard_configdash.php";';
+       echo '</script>';
     }
-    mysqli_close($link);
+    
 
 
 

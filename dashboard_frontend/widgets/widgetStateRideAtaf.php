@@ -18,6 +18,8 @@
 <script type='text/javascript'>
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
+        var titleWidth = null;
+        
         $('#<?= $_GET['name'] ?>_desc').width('74%');
         <?php
             $titlePatterns = array();
@@ -33,12 +35,12 @@
         
         if(hostFile === "config")
         {
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 90 - 2));
+            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 50 - 25 - 2));
         }
         else
         {
             $("#<?= $_GET['name'] ?>_buttonsDiv").css("display", "none");
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 50 - 2));
+            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 25 - 2));
         }
         
         $("#<?= $_GET['name'] ?>_titleDiv").css("width", titleWidth + "px");
@@ -368,13 +370,12 @@
         
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-                <!--<a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a>-->
                <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
             <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
                 <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 

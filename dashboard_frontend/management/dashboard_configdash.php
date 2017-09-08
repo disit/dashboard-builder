@@ -100,9 +100,6 @@
     <link href="../bootstrapSelect/css/bootstrap-select.css" rel="stylesheet"/>
     <script src="../bootstrapSelect/js/bootstrap-select.js"></script>
     
-    <!-- OpenLayers -->
-    <!-- <script src="https://openlayers.org/api/OpenLayers.js"></script>-->
-    
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
    integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
@@ -113,6 +110,10 @@
     
    <!-- Dot dot dot -->
    <script src="../dotdotdot/jquery.dotdotdot.js" type="text/javascript"></script>
+   
+   <!-- Bootstrap slider -->
+   <script src="../bootstrapSlider/bootstrap-slider.js"></script>
+   <link href="../bootstrapSlider/css/bootstrap-slider.css" rel="stylesheet"/>
    
     <script src="../js/widgetsCommonFunctions.js" type="text/javascript" charset="utf-8"></script>
     <script src="../js/dashboard_configdash.js" type="text/javascript" charset="utf-8"></script>
@@ -132,7 +133,7 @@
    
          <div id="editDashboardMenu" class="container-fluid centerWithFlex">
             <div class="mainMenuItemContainer">
-               <a id="link_add_widget" href="#" data-toggle="modal" data-target="#modal-add-widget">
+               <a id="link_add_widget" href="#" data-toggle="modal"> <!-- data-target="#modal-add-widget" -->
                   <div class="mainMenuIconContainer centerWithFlex">
                      <img src="../img/editDashMenu/add.png" width="25" height="25">
                   </div>
@@ -217,8 +218,8 @@
                     <ul id="containerUl"></ul>  
                 </div>
                 <div id="logos" class="footerLogos">
-                    <a title="Twitter" href="http://www.twitter.com" target="_new" class="footerLogo"><i class='fa fa-twitter'></i></a>
-                    <a title="Twitter vigilance" href="http://www.disit.org/tv" target="_new" class="footerLogo"><i class='fa fa-eye'></i></a>
+                    <!--<a title="Twitter" href="http://www.twitter.com" target="_new" class="footerLogo"><i class='fa fa-twitter'></i></a>
+                    <a title="Twitter vigilance" href="http://www.disit.org/tv" target="_new" class="footerLogo"><i class='fa fa-eye'></i></a>-->
                     <a title="Disit" href="http://www.disit.org" target="_new" class="footerLogo"><img src="../img/disitLogo.png" /></a>
                 </div>
         </div><!-- Fine container-fluid -->
@@ -233,9 +234,9 @@
                     <h4 class="modal-title" id="myModalLabel">Add new widget to dashboard</h4>
                 </div>
                 <div id="modal-add-widget-body" class="modal-body">
-                    <form id="form-setting-widget" class="form-horizontal" name="form-setting-widget" role="form" method="post" action="" data-toggle="validator"> <!-- novalidate -->
+                    <form id="form-setting-widget" class="form-horizontal" name="form-setting-widget" role="form" method="post" action="" enctype="multipart/form-data" data-toggle="validator"> <!-- novalidate -->
                         <div class="well wellCustom2left" id="metricAndWidgetChoice">
-                            <legend class="legend-form-group">Metric and widget choice</legend> <!-- class="noMarginBottom" -->
+                            <legend class="legend-form-group">Metric and widget choice</legend> 
                             <div id="metricAndWidgetChoiceContent" class="form-group">
                                 <div class="row">
                                     <label for="select-metric" class="col-md-4 control-label">Metric</label>
@@ -304,8 +305,6 @@
                                         </div>
                                     </div>
                                 </div>    
-
-
                                 <div id ="jobsAreasRow" class="row" style="display: none">    
                                 <label for="inputJobsAreasWidget" class="col-md-4 control-label" style="display: none">Jobs areas</label>
                                     <div id="inputJobsAreasWidgetDiv" class="col-md-6" style="display: none">
@@ -480,15 +479,16 @@
                         </div>
                         
                         <div class="well wellCustomFooter">
-                            <button id="button_add_widget" name="add_widget" type="submit" class="btn btn-primary widgetFormButton">Create</button>
-                            <button id="button_reset_add_widget" class="btn btn-danger widgetFormButton widgetFormButtonMargin" type="reset">Reset</button>
-                            <button id="button_close_popup" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin" data-dismiss="modal">Close</button>
+                            <button id="button_add_widget" name="add_widget" type="submit" class="btn btn-primary widgetFormButton" disabled>Confirm</button>
+                            <!--<button id="button_reset_add_widget" class="btn btn-danger widgetFormButton widgetFormButtonMargin" type="reset">Reset</button>-->
+                            <button id="button_close_popup" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin" data-dismiss="modal">Cancel</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div> 
+    
     <!-- Modale modifica dashboard -->
     <div class="modal fade" id="modal-modify-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <!-- Vecchio codice -->
@@ -586,6 +586,32 @@
                                 </div>
                             </div>
                         </div>
+                       <div class="well">
+                            <legend class="legend-form-group">Dashboard visibility</legend>
+                            <div class="form-group">
+                                <div class="row">
+                                    <label for="inputDashboardVisibility" class="col-md-4 control-label">People who can see this dashboard</label>
+                                    <div class="col-md-6">
+                                        <select name="inputDashboardVisibility" class="form-control" id="inputDashboardVisibility" required>
+                                            <option value="author">Dashboard author only</option>
+                                            <option value="restrict">Author and a set of selected users</option>
+                                            <option value="public">Everybody (public)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="inputDashboardVisibilityUsersTable" class="col-md-4 control-label">Single users who can see this dashboard</label>
+                                    <div class="col-md-6" id="inputDashboardVisibilityUsersTableContainer">
+                                        <table id="inputDashboardVisibilityUsersTable">
+                                            <tr>
+                                                <th class="selectCell">Select</th>
+                                                <th class="usernameCell">Username</th>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="modal-footer">
                             <button id="button_close_popup_modify_dashboard" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -640,7 +666,7 @@
                     <h4 class="modal-title">Modify widget</h4>
                 </div>
                 <div class="modal-body">
-                    <form id="form-modify-widget" class="form-horizontal" name="form-modify-widget" role="form" method="post" action="" data-toggle="validator">
+                    <form id="form-modify-widget" class="form-horizontal" name="form-modify-widget" role="form" method="post" action="" enctype="multipart/form-data" data-toggle="validator">
                         <!-- Nuovo codice -->
                         <div class="well wellCustom2left" id="metricAndWidgetChoiceM">
                             <legend class="legend-form-group">Metric and widget choice</legend>
@@ -831,12 +857,10 @@
                         <div class="well wellCustom2left" id="specificParamsM">
                             <legend class="legend-form-group">Specific widget properties</legend>
                             <!--NON CANCELLARE -->
-                            <input type="hidden" id="parametersM" name="parametersM">
-                            <!--NON CANCELLARE -->
-                            <input type="hidden" id="barsColorsM" name="barsColorsM">
+                            <input type="hidden" id="parametersM" name="parametersM" />
+                            <input type="hidden" id="parametersDiff" name="parametersDiff" />
+                            <input type="hidden" id="barsColorsM" name="barsColorsM" />
                         </div>
-                        
-                        
                         <div class="well wellCustom2right" id="infoTextareaDivM">
                             <legend class="legend-form-group">Widget detailed informations</legend>
                             <div class="row">
@@ -865,8 +889,8 @@
                         
                         
                         <div class="well wellCustomFooter">
-                            <button id="button_modify_widget" name="modify_widget" class="btn btn-primary widgetFormButton" type="submit">Modify</button>
-                            <button id="closeModifyWidgetBtn" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin" data-dismiss="modal">Close</button>   
+                            <button id="button_modify_widget" name="modify_widget" class="btn btn-primary widgetFormButton" type="submit">Confirm</button>
+                            <button id="closeModifyWidgetBtn" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin" data-dismiss="modal">Cancel</button>   
                         </div>
                     </form>
                 </div>
@@ -924,7 +948,44 @@
                     </div>
                 </div>
             </div>
-        </div>   
+        </div>
+        
+        <!-- Modale impossibilità di apertura link in nuovo tab per widgetExternalContent -->
+        <div class="modal fade" tabindex="-1" id="newTabLinkOpenImpossibile" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document"> 
+                <div class="modal-content">
+                    <div class="modal-header centerWithFlex">
+                        <h4 class="modal-title">External content</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="newTabLinkOpenImpossibileMsg"></div>
+                        <div id="newTabLinkOpenImpossibileIcon">
+                             <i class="fa fa-frown-o"></i>           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modale di apertura link in popup per widgetExternalContent -->
+        <div class="modal fade" tabindex="-1" id="modalLinkOpen" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document"> 
+                <div class="modal-content">
+                    <div class="modal-header centerWithFlex">
+                        <h4 class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="modalLinkOpenBody">
+                            <iframe id="modalLinkOpenBodyIframe"></iframe>
+                            <div id="modalLinkOpenBodyMap"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="modalLinkOpenCloseBtn" class="btn btn-primary">Back to dashboard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         
             <script type='text/javascript'>
                 var gridster, num_cols, indicatore, datoTitle, datoSubtitle, datoColor, datoWidth, datoRemains, nuovaDashboard, headerFontSize, headerModFontSize, subtitleFontSize, clockFontSizeMod, dashboardName, logoFilename, logoLink, temp, widgetsArray, nomeComune, metricType = null;
@@ -934,19 +995,17 @@
                 var elencoJobsGroupsPerScheduler = [[],[],[]];
                 var firstFreeRow = 1;
                 var comuniLammaArray = new Array();
+                var addWidgetConditionsArray = new Array();
+                var editWidgetConditionsArray = null; //Lascialo così, il vettore viene istanziato ad ogni apertura di modale.
                 
                 $("#button_close_popup").click(function()
                 {
-                    $('#infoNamesJsonFirstAxis').val('');
-                    $('#infoNamesJsonSecondAxis').val('');
-                    $('#infoTextareaDiv').children('.cke').remove();
-                    $('#infoTextareaDiv').children('textarea').remove();
+                    location.reload();
                 });
                 
                 $("#closeModifyWidgetBtn").click(function()
                 {
-                    $('#infoTextareaDivM').children('.cke').remove();
-                    $('#infoTextareaDivM').children('textarea').remove();
+                    location.reload();
                 });
                 
                 $(document).ready(function ()
@@ -954,19 +1013,122 @@
                     var widgetsBorders, widgetsBordersColor, hospitalList = null;
                     var editorsArray = new Array();
                     var editorsArrayM = new Array();
+                    
                     $.fn.editable.defaults.mode = 'inline';
+                    setAddWidgetConditionsArray(addWidgetConditionsArray);
                     
                     var dashboardId = "<?= $_SESSION['dashboardId'] ?>";
                     var dashboardIdEncoded = window.btoa(dashboardId);
                     $("#dashboardViewLink").attr("href", "../view/index.php?iddasboard=" + dashboardIdEncoded);
                     
-                    
                     var iconH = $("div.mainMenuItemContainer").height();
                     $("div.mainMenuIconContainer").css("height", iconH + "px");
                     
+                    $("#link_add_widget").click(function()
+                    {
+                       $("#modal-add-widget").modal("show");
+                       addWidgetConditionsArray["selectedMetricAndWidget"] = false;
+                       $('#button_add_metric_widget').css("color", "red");
+                       addWidgetConditionsArray["title"] = false;
+                       $("label[for=inputTitleWidget]").css("color", "red");
+                       addWidgetConditionsArrayLocal["thrs"] = true;
+                       
+                       //Controllo presenza titolo
+                       $("#inputTitleWidget").off();
+                       $("#inputTitleWidget").on('input', function(){
+                           var pattern = /^$/; 
+                           if(pattern.test($(this).val()))
+                           {
+                               addWidgetConditionsArray["title"] = false;
+                               $("label[for=inputTitleWidget]").css("color", "red");
+                           }
+                           else
+                           {
+                              var newTitle = $(this).val();
+                              
+                              if($("div.titleDiv").length > 0)
+                              {
+                                 $("div.titleDiv").each(function(i)
+                                 {
+                                    if($(this).html() === newTitle)
+                                    {
+                                       addWidgetConditionsArray["title"] = false;
+                                       $("label[for=inputTitleWidget]").css("color", "red");
+                                       return false;
+                                    }
+                                    else
+                                    {
+                                       addWidgetConditionsArray["title"] = true;
+                                       $("label[for=inputTitleWidget]").css("color", "black");
+                                    }
+                                 });
+                              }
+                              else
+                              {
+                                 addWidgetConditionsArray["title"] = true;
+                                 $("label[for=inputTitleWidget]").css("color", "black");
+                              }
+                           }
+                           checkAddWidgetConditions();
+                       });
+                    });
+                    
+                    $('#inputDashboardVisibility').change(function(){
+                        if($(this).val() === 'restrict') 
+                        {
+                            $('label[for="inputDashboardVisibilityUsersTable"]').show();
+                            $('#inputDashboardVisibilityUsersTableContainer').show();
+                        }
+                        else
+                        {
+                            $('label[for="inputDashboardVisibilityUsersTable"]').hide();
+                            $('#inputDashboardVisibilityUsersTableContainer').hide();
+                        }
+                     });
+                     
+                     $.ajax({
+                        url: "getUserVisibilitySetForEditDash.php",
+                        type: "GET",
+                        async: true,
+                        dataType: 'json',
+                        cache: false, 
+                        success: function (data) 
+                        {
+                            $("#inputDashboardVisibility").val(data.visibility);
+                            $('#inputDashboardVisibility').trigger("change");
+        
+                            for(var i = 0; i < data.users.length; i++)
+                            {
+                                if(data.users[i].consultationSetUser === data.users[i].enabledViewUser)
+                                {
+                                    $("#inputDashboardVisibilityUsersTable").append('<tr><td><input type="checkbox" name="selectedVisibilityUsers[]" checked="checked" value="' + data.users[i].consultationSetUser + '"/></td><td>' + data.users[i].username + '</td></tr>'); 
+                                }
+                                else
+                                {
+                                    $("#inputDashboardVisibilityUsersTable").append('<tr><td><input type="checkbox" name="selectedVisibilityUsers[]" value="' + data.users[i].consultationSetUser + '"/></td><td>' + data.users[i].username + '</td></tr>'); 
+                                }
+                            }
+                            
+                            //Metodo apposito per settare/desettare gli attributi checked sulle checkbox
+                            $('#inputDashboardVisibilityUsersTable input[type="checkbox"').off('click');
+                            $('#inputDashboardVisibilityUsersTable input[type="checkbox"').click(function(){
+                                if($(this).attr("checked") === "checked")
+                                {
+                                    $(this).removeAttr("checked");
+                                }
+                                else
+                                {
+                                    $(this).attr("checked", "true");
+                                }
+                            });
+                        },
+                        error: function (data) 
+                        {
+                            console.log("KO: " + JSON.stringify(data));
+                        }
+                    });
+                    
                     $.ajax({
-                        //url: "http://servicemap.km4city.org/WebAppGrafo/api/v1/?selection=43.81224123241114;11.25284173812866&requestFrom=user&categories=First_aid&maxResults=100&maxDists=180&format=json&uid=a6d838155294cd8f7801f406397ebb7dcea06036507913bed20c7ada179367f5&lang=it&geometry=true",
-                        //url: "http://servicemap.km4city.org/WebAppGrafo/api/v1/?selection=43.81224123241114;11.25284173812866&categories=First_aid&maxResults=100&maxDists=200&format=json&lang=it",
                         url: "<?=$serviceMapUrlPrefix?>api/v1/?selection=43.81224123241114;11.25284173812866&categories=First_aid&maxResults=100&maxDists=200&format=json&lang=it",
                         type: "GET",
                         async: true,
@@ -1003,17 +1165,19 @@
                     });
                     
                     $.ajax({
-                        url: "http://192.168.0.206:8890/sparql?query=select+distinct+%3Fn+%7B%0D%0A%3Fs+a+km4c%3AMunicipality.%0D%0A%3Fs+foaf%3Aname+%3Fn%0D%0A%7D+order+by+%3Fn&format=json",
+                        url: "http://servicemap.km4city.org/WebAppGrafo/sparql?query=select+distinct+%3Fn+%7B%0D%0A%3Fs+a+km4c%3AMunicipality.%0D%0A%3Fs+foaf%3Aname+%3Fn%0D%0A%7D+order+by+%3Fn&format=json",
                         type: "GET",
                         async: true,
-                        dataType: 'jsonp',
-                        success: function (data) {
+                        dataType: 'json',
+                        success: function (data) 
+                        {
                             for(var i = 0; i < data.results.bindings.length; i++)
                             {
                                 comuniLammaArray.push(data.results.bindings[i].n.value);
                             }
                         },
-                        error: function (data) {
+                        error: function (data) 
+                        {
                             console.log("Errore nella chiamata Sparql per reperimento comuni Lamma");
                         }
                     });
@@ -1023,6 +1187,7 @@
                         data: {action: "get_param_dashboard"},
                         type: "GET",
                         async: true,
+                        cache: false,
                         dataType: 'json',
                         success: function (data) {
                             for (var i = 0; i < data.length; i++)
@@ -1230,7 +1395,8 @@
                                 url: "get_data.php",
                                 data: {action: "get_widgets_dashboard"},
                                 type: "GET",
-                                async: false,
+                                async: true,
+                                cache: false,
                                 dataType: 'json',
                                 success: function (data) 
                                 {
@@ -1246,7 +1412,7 @@
                                         min_cols: num_cols,
                                         max_size_x: 30,
                                         max_rows: 50,
-                                        extra_rows: 40,
+                                        extra_rows: 50,
                                         draggable: {
                                             //ignore_dragging: true,
                                             stop: function(){
@@ -1261,15 +1427,16 @@
                                                 });
                                             }
                                         },
-                                        serialize_params: function (w, wgd) {
+                                        serialize_params: function (w, wgd) 
+                                        {
                                             return {
                                                 id: w.attr('id'),
                                                 col: wgd.col,
                                                 row: wgd.row,
                                                 size_x: wgd.size_x,
                                                 size_y: wgd.size_y
-                                            }
-                                        }, 
+                                            };
+                                        } 
                                     });
                                     
                                     if (widgetsArray.length > 0) 
@@ -1346,15 +1513,10 @@
                                     }
                                     $('#firstFreeRowInput').val(firstFreeRow);
                                 },
-                                error: function (jqXHR, textStatus, errorThrown) {
-                                    alert('An error occurred... Look at the console (F12 or Ctrl+Shift+I, Console tab) for more information!');
-                                    $('#pageWrapperCfg').html('<p>status code: ' + jqXHR.status + '</p><p>errorThrown: ' + errorThrown + '</p><p>jqXHR.responseText:</p><div>' + jqXHR.responseText + '</div>');
-                                    console.log('jqXHR:');
-                                    console.log(jqXHR);
-                                    console.log('textStatus:');
-                                    console.log(textStatus);
-                                    console.log('errorThrown:');
-                                    console.log(errorThrown);
+                                error: function(data) 
+                                {
+                                    console.log("Errore in chiamata di get_data.php --> get_widgets_dashboard");
+                                    console.log(JSON.stringify(data));
                                 }
                             });
                         }
@@ -1444,7 +1606,7 @@
                         url: "get_data.php",
                         data: {action: "getSchedulers"},
                         type: "GET",
-                        async: false,
+                        async: true,
                         dataType: 'json',
                         success: function (data) {
                             for(var i = 0; i < data.length; i++) 
@@ -1544,11 +1706,11 @@
                             success: function(data)
                             {
                                 location.reload(true);
-                                console.log("Indicatore: " + indicatore);
                             },
-                            error: function (jqXHR, textStatus, errorThrown) 
+                            error:function (error) 
                             {
-                                alert('An error occurred... Look at the console (F12 or Ctrl+Shift+I, Console tab) for more information!');
+                               console.log("Errore in chiamata di get_data.php --> get_widgets_dashboard");
+                               console.log(error);
                             }
                         });
                     });
@@ -1617,9 +1779,10 @@
                             $('#select-metric').val(-1);
 
                         },
-                        error: function (jqXHR, textStatus, errorThrown) 
+                        error: function (error) 
                         {
-                            alert('An error occurred... Look at the console (F12 or Ctrl+Shift+I, Console tab) for more information!');
+                           console.log("Errore in chiamata di get_data.php --> get_metrics");
+                           console.log(error);
                         }
                     });
 
@@ -1648,7 +1811,6 @@
                                 value_text += "Status: " + array_metrics[j]['status'] + ".";
                                 $("#textarea-metric-c").val(value_text);
                                 $("#inputFreqWidget").val(array_metrics[j]['freq']);
-                                $("#inputTitleWidget").val(array_metrics[j]['descShort']);
 
                                 if ($("#select-widget").is(':enabled')) 
                                 {
@@ -1765,18 +1927,11 @@
                                     }
 
                                 },
-                                error: function (jqXHR, textStatus, errorThrown) 
+                                error: function(errorMsg) 
                                 {
-
-                                    //$('#pageWrapperCfg').html('<p>status code: ' + jqXHR.status + '</p><p>errorThrown: ' + errorThrown + '</p><p>jqXHR.responseText:</p><div>' + jqXHR.responseText + '</div>');
-                                    console.log('jqXHR:');
-                                    console.log(jqXHR);
-                                    console.log('textStatus:');
-                                    console.log(textStatus);
-                                    console.log('errorThrown:');
-                                    console.log(errorThrown);
-                                    }
-
+                                   console.log("Error calling get_data.php --> getJobAreas");
+                                   console.log(errorMsg);
+                                }
                             });    
                         }
                     }).change();
@@ -1879,14 +2034,10 @@
                                     }
                                     $('#inputJobsNamesWidget').prop('selectedIndex', -1);
                                 },
-                                error: function (jqXHR, textStatus, errorThrown) 
+                                error: function (errorMsg) 
                                 {
-                                    console.log('jqXHR:');
-                                    console.log(jqXHR);
-                                    console.log('textStatus:');
-                                    console.log(textStatus);
-                                    console.log('errorThrown:');
-                                    console.log(errorThrown);
+                                   console.log("Error calling get_data.php --> getJobNamesForJobGroup");
+                                   console.log(errorMsg);
                                 }
                             });
                         }
@@ -2032,11 +2183,83 @@
                             }//Fine del for
 
                             //Nuovo codice per form personalizzato: espanderlo con altri case via via che si implementa il form personalizzato.
+                            //Titolo obbligatorio per tutti
+                            $('#inputTitleWidget').prop('required', true);
+                            
                             switch($('#select-widget').val())
                             {
+                               case "widgetClock":
+                                 $('#inputUrlWidget').val('none');
+                                 $("#titleLabel").html("Title");
+                                 $("#bckColorLabel").html("Background color");
+                                 $('#inputFontSize').val(16);
+                                 $('#inputFontSize').attr('disabled', false);
+                                 $('#inputFontSize').prop('required', true);
+                                 $('#inputFontColor').val("#000000");
+                                 $('#widgetFontColor').css("background-color", "#000000");
+                                 $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000"});
+                                 $('#link_help_modal-add-widget').css("display", "");
+                                 $('#inputFrameColorWidget').attr('disabled', false);
+                                 $('#inputFrameColorWidget').val('#eeeeee');
+                                 $('#inputFrameColorWidget').prop('required', false);
+                                 $('#select-IntTemp-Widget').attr('disabled', true);
+                                 $('#select-IntTemp-Widget').prop('required', false);
+                                 $('#inputFreqWidget').attr('disabled', true);
+                                 $('#inputFreqWidget').val('');
+                                 $('#inputFreqWidget').prop('required', false);
+                                 $('#inputHeaderFontColorWidget').attr('disabled', false);
+                                 $('#inputHeaderFontColorWidget').prop('required', true);
+                                 $('#inputHeaderFontColorWidget').val("#000000");
+                                 $('#widgetHeaderFontColor').css("background-color", "#000000");
+                                 $('#inputUdmWidget').prop("required", false);
+                                 $('#inputUdmWidget').attr("disabled", true);
+                                 $('#inputUdmPosition').prop("required", false);
+                                 $('#inputUdmPosition').attr("disabled", true);
+                                 $('#inputUdmWidget').val("");
+                                 $("#inputUdmPosition").val(-1);
+                                 $('#addWidgetFirstAidHospital').attr("disabled", true);
+                                 $('#addWidgetFirstAidHospital').prop("required", false);
+                                 $('#addWidgetFirstAidHospital').val(-1);
+                                 $('#inputFirstAidRow').hide();
+
+                                 showInfoWCkeditors($('#select-widget').val(), editorsArray, null);
+
+                                 //Parametri specifici del widget
+                                 $('#specificWidgetPropertiesDiv .row').remove();
+
+                                 //Rimozione eventuali campi del subform general per widget process
+                                 removeWidgetProcessGeneralFields("addWidget");
+                                 var newFormRow, newLabel, newInnerDiv, newSelect, newInput = null;
+                                 
+                                 //Nuova riga
+                                 //Clock data e clock font type
+                                 newFormRow = $('<div class="row"></div>');
+                                 newLabel = $('<label for="addWidgetClockData" class="col-md-2 control-label">Shown data</label>');
+                                 newInnerDiv = $('<div class="col-md-3"></div>');
+                                 newSelect = $('<select name="addWidgetClockData" class="form-control" id="addWidgetClockData"></select>');
+                                 newSelect.append('<option value="date">Date</option>');
+                                 newSelect.append('<option value="time">Time</option>');
+                                 newSelect.append('<option value="dateTime">Date and time</option>');
+                                 newSelect.val("dateTime");
+                                 newInnerDiv.append(newSelect);
+                                 newFormRow.append(newLabel);
+                                 newFormRow.append(newInnerDiv);
+                                 
+                                 newLabel = $('<label for="addWidgetClockFont" class="col-md-2 control-label">Font type</label>');
+                                 newInnerDiv = $('<div class="col-md-3"></div>');
+                                 newSelect = $('<select name="addWidgetClockFont" class="form-control" id="addWidgetClockFont"></select>');
+                                 newSelect.append('<option value="normal">Normal</option>');
+                                 newSelect.append('<option value="lcd">LCD like</option>');
+                                 newInnerDiv.append(newSelect);
+                                 newFormRow.append(newLabel);
+                                 newFormRow.append(newInnerDiv);
+                                 
+                                 $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                 break;
+                               
                                case "widgetNetworkAnalysis":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -2137,7 +2360,7 @@
                                
                                 case "widgetResources":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -2238,7 +2461,7 @@
                                 
                                  case "widgetEvacuationPlans":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -2371,7 +2594,7 @@
                                
                                  case "widgetAlarms":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -2502,7 +2725,7 @@
                                
                                  case "widgetTrafficEvents":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -3301,7 +3524,7 @@
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
                                     
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -3617,7 +3840,7 @@
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
                                         
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -4014,7 +4237,7 @@
                                     break;
         
                                 case "widgetScatterSeries":
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -4221,7 +4444,7 @@
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
                                     
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -4489,7 +4712,6 @@
                                         }
                                     });
 
-
                                     //Codice di creazione soglie
                                     //Nuova riga
                                     //Set thresholds
@@ -4562,7 +4784,7 @@
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
                                     
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -4889,7 +5111,7 @@
                                     $('#link_help_modal-add-widget').css("display", "");
                                     $('#inputUrlWidget').attr("disabled", "true");
                                     $('#inputUrlWidget').prop("required", "false");
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $('#inputTitleWidget').val('');
                                     $("#bckColorLabel").html("Background color");
@@ -4995,7 +5217,7 @@
                                     break;
 
                                 case "widgetButton":
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Button text");
                                     $("#bckColorLabel").html("Button color");
                                     $('#inputFontSize').prop('required', true);
@@ -5037,9 +5259,100 @@
                                     $('#specificWidgetPropertiesDiv .row').remove();
                                     
                                     //Nuova riga
+                                    //Border radius and button image yes/no
+                                    newFormRow = $('<div class="row"></div>');
+                                    newLabel = $('<label for="addWidgetBtnRadius" class="col-md-2 control-label">Border radius</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    var newControl = $('<input id="addWidgetBtnRadius" name="addWidgetBtnRadius" data-slider-id="addWidgetBtnRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>');
+                                    newInnerDiv.append(newControl);
+                                    newInnerDiv.find('#addWidgetBtnRadius').bootstrapSlider({
+                                       formatter: function(value) {
+                                          return value + "%";
+                                       }
+                                    });
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    
+                                    newLabel = $('<label for="addWidgetBtnImgSelect" class="col-md-2 control-label">Button image</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select id="addWidgetBtnImgSelect" name="addWidgetBtnImgSelect" class="form-control"></select>');
+                                    newSelect.append('<option value="yes">Yes</option>');
+                                    newSelect.append('<option value="no">No</option>');
+                                    newSelect.val("no");
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    
+                                    //Nuova riga
+                                    //Button image file chooser
+                                    newFormRow = $('<div class="row"></div>');
+                                    newFormRow.hide();
+                                    newLabel = $('<label for="addWidgetBtnFile" class="col-md-2 control-label">Image file</label>');
+                                    newInnerDiv = $('<div class="col-md-8"></div>');
+                                    var btnImgMaxSize = $('<input type="hidden" name="MAX_FILE_SIZE" value="1000000" />');
+                                    newInnerDiv.append(btnImgMaxSize);
+                                    var newControl = $('<div class="input-group"><label class="input-group-btn"><span class="btn btn-primary">Browse<input id="addWidgetBtnFile" name="addWidgetBtnFile" type="file" style="display: none;" accept="image/*"></span></label><input id="addWidgetBtnFilename" type="text" class="form-control" readonly=""></div>');
+                                    
+                                    newInnerDiv.append(newControl);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    
+                                    newControl.find("input[type=file]").change(function() 
+                                    {
+                                        var filename = $(this).val().replace(/\\/g, '/').replace(/.*\//, '');
+                                        $("#addWidgetBtnFilename").val(filename);
+                                    });
+                                    
+                                    //Nuova riga
+                                    //Button image width and height
+                                    newFormRow = $('<div class="row"></div>');
+                                    newFormRow.hide();
+                                    newLabel = $('<label for="addWidgetBtnImgWidth" class="col-md-2 control-label">Image width</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    var newControl = $('<input id="addWidgetBtnImgWidth" name="addWidgetBtnImgWidth" data-slider-id="addWidgetBtnImgWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100"/>');
+                                    newInnerDiv.append(newControl);
+                                    newInnerDiv.find('#addWidgetBtnImgWidth').bootstrapSlider({
+                                       formatter: function(value) {
+                                          return value + "%";
+                                       }
+                                    });
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    
+                                    newLabel = $('<label for="addWidgetBtnImgHeight" class="col-md-2 control-label">Image height</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    var newControl = $('<input id="addWidgetBtnImgHeight" name="addWidgetBtnImgHeight" data-slider-id="addWidgetBtnImgHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100"/>');
+                                    newInnerDiv.append(newControl);
+                                    newInnerDiv.find('#addWidgetBtnImgHeight').bootstrapSlider({
+                                       formatter: function(value) {
+                                          return value + "%";
+                                       }
+                                    });
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    
+                                    $("#addWidgetBtnImgSelect").off();
+                                    $("#addWidgetBtnImgSelect").change(function(){
+                                       if($(this).val() === 'yes')
+                                       {
+                                          $("#specificWidgetPropertiesDiv div.row").eq(1).show();
+                                          $("#specificWidgetPropertiesDiv div.row").eq(2).show();
+                                       }
+                                       else
+                                       {
+                                          $("#specificWidgetPropertiesDiv div.row").eq(1).hide();
+                                          $("#specificWidgetPropertiesDiv div.row").eq(2).hide();
+                                       }
+                                    });
+                                    
+                                    //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available target widgets</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetGeolocationWidgets" class="form-control" id="addWidgetGeolocationWidgets" multiple></select>');
 
@@ -5094,10 +5407,10 @@
                                     break;
 
                                 case "widgetSingleContent":
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
-                                    $('#inputFontSize').val("");
+                                    $('#inputFontSize').val("24");
                                     $('#inputFontSize').attr('disabled', false);
                                     $('#inputFontSize').prop('required', true);
                                     $('#inputFontColor').val("#000000");
@@ -5134,11 +5447,14 @@
 
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
+                                    
+                                    //Aggiunta campo per registrare il widget presso il notificatore
+                                    addWidgetNotificatorAndThresholdFields();
                                     break;
 
                                 case "widgetGenericContent":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("");
@@ -5180,7 +5496,7 @@
 
                                 case "widgetBarContent":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("16");
@@ -5218,11 +5534,14 @@
 
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
+                                    
+                                    //Aggiunta campo per registrare il widget presso il notificatore
+                                    addWidgetNotificatorAndThresholdFields();
                                     break;
 
                                 case "widgetColunmContent":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("20");
@@ -5260,11 +5579,14 @@
 
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
+                                    
+                                    //Aggiunta campo per registrare il widget presso il notificatore
+                                    addWidgetNotificatorAndThresholdFields();
                                     break;
 
                                 case "widgetGaugeChart":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("");
@@ -5303,6 +5625,9 @@
 
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
+                                    
+                                    //Aggiunta campo per registrare il widget presso il notificatore
+                                    addWidgetNotificatorAndThresholdFields();
                                     break;
 
                                 case "widgetPieChart":
@@ -5311,7 +5636,7 @@
                                     var series, seriesString, table1Shown, table2Shown, valuePerc, newHiddenColors, colorsTable1, colorsTable2, colorsArray1, colorsArray2, descriptions, defaultColorsArray, newColorsTableContainer, newColorsTable1Container, newColorsTable2Container, newRow, newCell, valuesNum, newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer, thrSimpleTables, thrTables1, thrTables2, currentParams, i, k, currentFieldIndex, currentSeriesIndex = null;
                                     
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("");
@@ -5858,7 +6183,7 @@
 
                                 case "widgetSce":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("");
@@ -5901,7 +6226,7 @@
 
                                 case "widgetSmartDS":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("16");
@@ -5943,7 +6268,7 @@
 
                                 case "widgetTimeTrend":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("11");
@@ -5979,11 +6304,14 @@
                                     $('#specificWidgetPropertiesDiv .row').remove();
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
+                                    
+                                    //Aggiunta campo per registrare il widget presso il notificatore
+                                    addWidgetNotificatorAndThresholdFields();
                                     break;
 
                                 case "widgetTimeTrendCompare":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("11");
@@ -6022,11 +6350,14 @@
 
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
+                                    
+                                    //Aggiunta campo per registrare il widget presso il notificatore
+                                    addWidgetNotificatorAndThresholdFields();
                                     break;
 
                                 case "widgetEvents":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -6167,7 +6498,7 @@
 
                                 case "widgetTrendMentions":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -6227,7 +6558,7 @@
 
                                 case "widgetPrevMeteo":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $("#inputComuneRow").show();
                                     $('#inputComuneWidget').val("");
                                     $('#inputComuneWidget').attr("placeholder", "Type city name's first letters");
@@ -6293,7 +6624,7 @@
 
                                 case "widgetServiceMap":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     /*$("#inputComuneRow").css("display", "");
                                     $('#inputComuneWidget').val("");
                                     $("label[for='inputComuneWidget']").css("display", "");
@@ -6342,13 +6673,7 @@
 
                                 case "widgetSpeedometer":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
-                                    /*$("#inputComuneRow").css("display", "");
-                                    $('#inputComuneWidget').val("");
-                                    $("label[for='inputComuneWidget']").text("Context");
-                                    $("label[for='inputComuneWidget']").css("display", "");
-                                    $('#inputComuneWidget').css("display", "");
-                                    $('#inputComuneWidget').attr('disabled', true);*/
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', false);
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
@@ -6390,17 +6715,14 @@
 
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
+                                    
+                                    //Aggiunta campo per registrare il widget presso il notificatore
+                                    addWidgetNotificatorAndThresholdFields();
                                     break;
 
                                 case "widgetStateRideAtaf":
                                     $('#inputTitleWidget').val('');
-                                    /*$("#inputComuneRow").css("display", "");
-                                    $('#inputComuneWidget').val("");
-                                    $("label[for='inputComuneWidget']").css("display", "");
-                                    $("label[for='inputComuneWidget']").text("Context");
-                                    $('#inputComuneWidget').css("display", "");
-                                    $('#inputComuneWidget').attr('disabled', true);*/
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', false);
                                     $('#inputUrlWidget').prop('required', false);
                                     $("#titleLabel").html("Title");
@@ -6462,7 +6784,7 @@
 
                                 case "widgetExternalContent":
                                     $('#inputTitleWidget').val('');
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", true);
                                     $('#inputUrlWidget').attr("disabled", false);
                                     $("#titleLabel").html("Title"); 
@@ -6505,6 +6827,30 @@
                                     $('#specificWidgetPropertiesDiv .row').remove();
                                     
                                     //Nuova riga
+                                    //Full screen controls
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="enableFullscreenTab" class="col-md-2 control-label">Enable fullscreen in new tab</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select class="form-control" id="enableFullscreenTab" name="enableFullscreenTab"></select>');
+                                    newSelect.append('<option value="yes">Yes</option>');
+                                    newSelect.append('<option value="no">No</option>');
+                                    newSelect.val("yes");
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    
+                                    newLabel = $('<label for="enableFullscreenModal" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select class="form-control" id="enableFullscreenModal" name="enableFullscreenModal"></select>');
+                                    newSelect.append('<option value="yes">Yes</option>');
+                                    newSelect.append('<option value="no">No</option>');
+                                    newSelect.val("yes");
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    
+                                    //Nuova riga
                                     //Zoom controls visibility
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
@@ -6517,9 +6863,6 @@
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    newLabel.show();
-                                    newInnerDiv.show();
-                                    newSelect.show();
                                     
                                     //Zoom factor
                                     newLabel = $('<label for="inputZoomFactor" class="col-md-2 control-label">Zoom factor (%)</label>');
@@ -6530,9 +6873,6 @@
                                     newInnerDiv.append(newInput);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    newLabel.show();
-                                    newInnerDiv.show();
-                                    newInput.show();
                                     
                                     //Nuova riga
                                     //Zoom controls position
@@ -6576,7 +6916,7 @@
                                     break;    
 
                                 default:
-                                    $('#inputUrlWidget').val('');
+                                    $('#inputUrlWidget').val('none');
                                     $('#inputFontSize').val("");
                                     $('#inputFontColor').val("");
                                     $('#widgetFontColor').css("background-color", "#eeeeee");
@@ -6621,7 +6961,7 @@
 
                     $('#button_add_metric_widget').click(function () 
                     {
-                        if ($('#select-metric').val()) 
+                        if($('#select-metric').val()) 
                         {
                             var value_selected = $('#select-metric').val();
                             for (var i = 0; i < array_metrics.length; i++) 
@@ -6669,7 +7009,16 @@
                                     }
                                 }
                             }
+                            addWidgetConditionsArray["selectedMetricAndWidget"] = true;
+                            $('#button_add_metric_widget').css("color", "black");
                         }
+                        else
+                        {
+                           addWidgetConditionsArray["selectedMetricAndWidget"] = false;
+                           $('#button_add_metric_widget').css("color", "red");
+                        }
+                        
+                        checkAddWidgetConditions();
                     });
 
                     $('.link_help_modal-add-widget').click(function () {
@@ -6694,14 +7043,10 @@
                                     window.location.reload(true);
                                 }
                             },
-                            error: function (jqXHR, textStatus, errorThrown) {
-                                $('#pageWrapperCfg').html('<p>status code: ' + jqXHR.status + '</p><p>errorThrown: ' + errorThrown + '</p><p>jqXHR.responseText:</p><div>' + jqXHR.responseText + '</div>');
-                                console.log('jqXHR:');
-                                console.log(jqXHR);
-                                console.log('textStatus:');
-                                console.log(textStatus);
-                                console.log('errorThrown:');
-                                console.log(errorThrown);
+                            error: function (errorMsg) 
+                            {
+                                console.log("Error calling save_config_widgets.php");
+                                console.log(errorMsg);
                             }
                         });
                     });
@@ -6710,6 +7055,7 @@
                     //Duplicazione della dashboard
                     $('#button_duplicate_dashboard').click(function () {
                         var dashboardParams = {};
+                        dashboardParams['sourceDashboardId'] = "<?= $_SESSION['dashboardId'] ?>";
                         dashboardParams['sourceDashboardName'] = $('#nameCurrentDashboard').val();
                         dashboardParams['sourceDashboardAuthorName'] = "<?= $_SESSION['dashboardAuthorName'] ?>";
                         dashboardParams['newDashboardName'] = $('#nameNewDashboard').val();
@@ -6735,7 +7081,8 @@
                         }
                     });
 
-                    $('#button_reset_add_widget').click(function () 
+                    //Pulsante di reset eliminato
+                    /*$('#button_reset_add_widget').click(function () 
                     {
                         $('#select-widget').removeAttr('disabled');
                         $('#select-widget').find('option').remove();
@@ -6744,7 +7091,7 @@
                             $('#select-metric').append('<option>' + array_metrics[i]['id'] + '</option>');
                         }
                         udpate_select_metric();
-                    });
+                    });*/
 
                     //Listener cancellazione widget
                     $(document).on('click', '.icon-remove-widget', function () {
@@ -6767,6 +7114,45 @@
                         $("#inputColumn-m").empty();
                         $("#inputRows-m").empty();
                         $("#inputComuneRowM").hide();
+                        
+                        editWidgetConditionsArray = new Array();
+                        setEditWidgetConditionsArray(editWidgetConditionsArray);
+                        editWidgetConditionsArray["title"] = true;
+                        
+                        //Controllo presenza titolo
+                        $("#inputTitleWidgetM").off();
+                        $("#inputTitleWidgetM").on('input', function(){
+                            var pattern = /^$/; 
+                            if(pattern.test($(this).val()))
+                            {
+                                editWidgetConditionsArray["title"] = false;
+                                $("label[for=inputTitleWidgetM]").css("color", "red");
+                            }
+                            else
+                            {
+                               var newTitle = $(this).val();
+                               $("div.titleDiv").each(function(i)
+                               {
+                                  if($(this).parents("li.gridsterCell").attr("id") !== name_widget_m)
+                                  {
+                                    if($(this).html() === newTitle)
+                                    {
+                                       editWidgetConditionsArray["title"] = false;
+                                       $("label[for=inputTitleWidgetM]").css("color", "red");
+                                       return false;
+                                    }
+                                    else
+                                    {
+                                       editWidgetConditionsArray["title"] = true;
+                                       $("label[for=inputTitleWidgetM]").css("color", "black");
+                                    }
+                                  }
+                               });
+                            }
+                            checkEditWidgetConditions();
+                        });
+                        
+                        
                         
                         $.ajax({
                             url: "get_data.php",
@@ -6832,8 +7218,82 @@
                                     $("#textarea-metric-widget-m").val(value_text_widget);
                                 }
                                 
+                                //Titolo obbligatorio per tutti
+                                $('#inputTitleWidgetM').prop('required', true);
+                                
                                 switch($('#select-widget-m').val())
-                                {
+                                { 
+                                    case "widgetClock":
+                                        $('#link_help_modal-add-widget-m').css("display", "");
+                                        $('#inputTitleWidgetM').attr('disabled', false);
+                                        $("label[for='inputTitleWidgetM']").html("Title");
+                                        $("label[for='inputColorWidgetM']").html("Background color");
+                                        $('#inputColorWidgetM').attr('disabled', false);
+                                        $('#inputColorWidgetM').prop('required', true);
+                                        $('#inputFontSizeM').attr('disabled', false);
+                                        $('#inputFontSizeM').prop('required', true);
+                                        $('#inputFontColorM').attr('disabled', false);
+                                        $('#inputFontColorM').prop('required', true);
+                                        $('#select-frameColor-Widget-m').attr('disabled', false);
+                                        $('#select-frameColor-Widget-m').prop('required', true);
+                                        $('#select-frameColor-Widget-m').val('');
+                                        $('#select-IntTemp-Widget-m').val(-1);
+                                        $('#select-IntTemp-Widget-m').prop('disabled', true);
+                                        $('#select-IntTemp-Widget-m').prop('required', false);
+                                        $('#inputFreqWidgetM').prop('disabled', true);
+                                        $('#inputFreqWidgetM').prop('required', false);
+                                        $('#inputFreqWidgetM').val('');
+                                        $('#inputComuneWidgetM').attr('disabled', true);
+                                        $('#urlWidgetM').attr('disabled', false);
+                                        $('#inputHeaderFontColorWidgetM').attr('disabled', false);
+                                        $('#inputHeaderFontColorWidgetM').prop('required', true);
+                                        $('#inputUdmWidgetM').prop("required", false);
+                                        $('#inputUdmWidgetM').attr("disabled", true);
+                                        $('#inputUdmPositionM').prop("required", false);
+                                        $('#inputUdmPositionM').attr("disabled", true);
+                                        $("#inputUdmPositionM").val(-1);
+                                        
+                                       showInfoWCkeditorsM($('#select-widget-m').val(), editorsArrayM, null, null, info_mess);
+                                        
+                                       //Parametri specifici del widget
+                                       $('#specificParamsM .row').remove();
+                                       //Rimozione eventuali campi del subform general per widget process
+                                       removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                       var styleParameters, newFormRow, newLabel, newInnerDiv, newSelect, newInput = null;
+                                        
+                                       if(styleParamsRaw !== null) 
+                                       {
+                                          styleParameters = JSON.parse(styleParamsRaw);
+                                       } 
+                                        
+                                       //Nuova riga
+                                       //Clock data e clock font type
+                                       newFormRow = $('<div class="row"></div>');
+                                       newLabel = $('<label for="editWidgetClockData" class="col-md-2 control-label">Shown data</label>');
+                                       newInnerDiv = $('<div class="col-md-3"></div>');
+                                       newSelect = $('<select name="editWidgetClockData" class="form-control" id="editWidgetClockData"></select>');
+                                       newSelect.append('<option value="date">Date</option>');
+                                       newSelect.append('<option value="time">Time</option>');
+                                       newSelect.append('<option value="dateTime">Date and time</option>');
+                                       newSelect.val(styleParameters.clockData);
+                                       newInnerDiv.append(newSelect);
+                                       newFormRow.append(newLabel);
+                                       newFormRow.append(newInnerDiv);
+
+                                       newLabel = $('<label for="editWidgetClockFont" class="col-md-2 control-label">Font type</label>');
+                                       newInnerDiv = $('<div class="col-md-3"></div>');
+                                       newSelect = $('<select name="editWidgetClockFont" class="form-control" id="editWidgetClockFont"></select>');
+                                       newSelect.append('<option value="normal">Normal</option>');
+                                       newSelect.append('<option value="lcd">LCD like</option>');
+                                       newSelect.val(styleParameters.clockFont);
+                                       newInnerDiv.append(newSelect);
+                                       newFormRow.append(newLabel);
+                                       newFormRow.append(newInnerDiv);
+
+                                       $("#specificParamsM").append(newFormRow);
+                                       break;
+                                        
                                    case "widgetNetworkAnalysis":
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
@@ -7388,9 +7848,6 @@
                                              eventTypeSelect.append('<option value="' + eventTypeNum + '">' + trafficEventTypes[key].desc + '</option>');
                                           }
                                           
-                                          /*eventTypeSelect.append('<option value="1">Incident</option>');
-                                          eventTypeSelect.append('<option value="25">Road works</option>');
-                                          eventTypeSelect.append('<option value="others">Others</option>');*/
                                           eventTypeSelect.val(-1);
                                           newFormRow.append(newLabel);
                                           newInnerDiv.append(eventTypeSelect);
@@ -7735,7 +8192,6 @@
                                                 break;
 
                                              case "singleDetails":
-                                                console.log("Passato a single details");
                                                 $('label[for=editWidgetFirstAidHospitals]').hide();
                                                 $('#editWidgetFirstAidHospitals').parent().parent().hide();
                                                 $('label[for=editWidgetFirstAidHospital]').show();
@@ -9493,10 +9949,6 @@
                                             styleParameters = JSON.parse(styleParamsRaw);
                                         }
                                         
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$('#inputComuneWidgetM').css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputComuneWidgetM').attr('disabled', true);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -10414,6 +10866,10 @@
                                         break;
                                         
                                     case "widgetButton":
+                                       if(styleParamsRaw !== null) 
+                                        {
+                                            styleParameters = JSON.parse(styleParamsRaw);
+                                        }
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Button text");
@@ -10454,10 +10910,144 @@
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
                                         
+                                        //console.log("Test: " + styleParameters.hasImage);
+                                        //console.log("Test: " + styleParameters.borderRadius);
+                                        
+                                       //Nuova riga
+                                       //Border radius and button image yes/no
+                                       newFormRow = $('<div class="row"></div>');
+                                       newLabel = $('<label for="editWidgetBtnRadius" class="col-md-2 control-label">Border radius</label>');
+                                       newInnerDiv = $('<div class="col-md-3"></div>');
+                                       var newControl = $('<input id="editWidgetBtnRadius" name="editWidgetBtnRadius" data-slider-id="editWidgetBtnRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>');
+                                       newInnerDiv.append(newControl);
+                                       newInnerDiv.find('#editWidgetBtnRadius').bootstrapSlider({
+                                          value: styleParameters.borderRadius,
+                                          formatter: function(value) {
+                                             return value + "%";
+                                          }
+                                       });
+                                       newFormRow.append(newLabel);
+                                       newFormRow.append(newInnerDiv);
+
+                                       newLabel = $('<label for="editWidgetBtnImgSelect" class="col-md-2 control-label">Button image</label>');
+                                       newInnerDiv = $('<div class="col-md-3"></div>');
+                                       newSelect = $('<select id="editWidgetBtnImgSelect" name="editWidgetBtnImgSelect" class="form-control"></select>');
+                                       newSelect.append('<option value="yes">Yes</option>');
+                                       newSelect.append('<option value="no">No</option>');
+                                       newSelect.val("no");
+                                       newInnerDiv.append(newSelect);
+                                       newFormRow.append(newLabel);
+                                       newFormRow.append(newInnerDiv);
+                                       
+                                       if(styleParamsRaw !== null) 
+                                       {
+                                           newSelect.val(styleParameters.hasImage);
+                                       }
+                                       
+                                       $("#specificParamsM").append(newFormRow);
+                                       
+                                       //Nuova riga
+                                       //Button image file chooser
+                                       newFormRow = $('<div class="row"></div>');
+                                       newFormRow.hide();
+                                       newLabel = $('<label for="editWidgetBtnFile" class="col-md-2 control-label">Image file</label>');
+                                       newInnerDiv = $('<div class="col-md-8"></div>');
+                                       var btnImgMaxSize = $('<input type="hidden" name="MAX_FILE_SIZE" value="1000000" />');
+                                       newInnerDiv.append(btnImgMaxSize);
+                                       var newControl = $('<div class="input-group"><label class="input-group-btn"><span class="btn btn-primary">Browse<input id="editWidgetBtnFile" name="editWidgetBtnFile" type="file" style="display: none;" accept="image/*"></span></label><input id="editWidgetBtnFilename" type="text" class="form-control" readonly=""></div>');
+
+                                       newInnerDiv.append(newControl);
+                                       newFormRow.append(newLabel);
+                                       newFormRow.append(newInnerDiv);
+                                       $("#specificParamsM").append(newFormRow);
+
+                                       newControl.find("input[type=file]").change(function() 
+                                       {
+                                          var filename = $(this).val().replace(/\\/g, '/').replace(/.*\//, '');
+                                          $("#editWidgetBtnFilename").val(filename);
+                                       });
+                                       
+                                       if(styleParameters.hasImage === 'yes')
+                                       {
+                                          newFormRow.show();
+                                       }
+
+                                       //Nuova riga
+                                       //Button image width and height
+                                       newFormRow = $('<div class="row"></div>');
+                                       newFormRow.hide();
+                                       newLabel = $('<label for="editWidgetBtnImgWidth" class="col-md-2 control-label">Image width</label>');
+                                       newInnerDiv = $('<div class="col-md-3"></div>');
+                                       var newControl = $('<input id="editWidgetBtnImgWidth" name="editWidgetBtnImgWidth" data-slider-id="editWidgetBtnImgWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
+                                       newInnerDiv.append(newControl);
+                                       
+                                       var widthValue = null;
+                                       if(styleParameters.hasImage === 'yes')
+                                       {
+                                          widthValue = styleParameters.imageWidth;
+                                       }
+                                       else
+                                       {
+                                          widthValue = 100;
+                                       }
+                                       
+                                       newInnerDiv.find('#editWidgetBtnImgWidth').bootstrapSlider({
+                                          value: widthValue,
+                                          formatter: function(value) {
+                                             return value + "%";
+                                          }
+                                       });
+                                       newFormRow.append(newLabel);
+                                       newFormRow.append(newInnerDiv);
+
+                                       newLabel = $('<label for="editWidgetBtnImgHeight" class="col-md-2 control-label">Image height</label>');
+                                       newInnerDiv = $('<div class="col-md-3"></div>');
+                                       var newControl = $('<input id="editWidgetBtnImgHeight" name="editWidgetBtnImgHeight" data-slider-id="editWidgetBtnImgHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100"/>');
+                                       newInnerDiv.append(newControl);
+                                       
+                                       var heightValue = null;
+                                       if(styleParameters.hasImage === 'yes')
+                                       {
+                                          heightValue = styleParameters.imageHeight;
+                                       }
+                                       else
+                                       {
+                                          heightValue = 100;
+                                       }
+                                       newInnerDiv.find('#editWidgetBtnImgHeight').bootstrapSlider({
+                                          value: heightValue,
+                                          formatter: function(value) {
+                                             return value + "%";
+                                          }
+                                       });
+                                       newFormRow.append(newLabel);
+                                       newFormRow.append(newInnerDiv);
+                                       $("#specificParamsM").append(newFormRow);
+                                       
+                                       if(styleParameters.hasImage === 'yes')
+                                       {
+                                          newFormRow.show();
+                                       }
+
+                                       $("#editWidgetBtnImgSelect").off();
+                                       $("#editWidgetBtnImgSelect").change(function(){
+                                          if($(this).val() === 'yes')
+                                          {
+                                             $("#specificParamsM div.row").eq(1).show();
+                                             $("#specificParamsM div.row").eq(2).show();
+                                          }
+                                          else
+                                          {
+                                             $("#specificParamsM div.row").eq(1).hide();
+                                             $("#specificParamsM div.row").eq(2).hide();
+                                          }
+                                       });
+                                        
+                                        
                                        //Nuova riga
                                        //Target widgets geolocation
                                        newFormRow = $('<div class="row"></div>');
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available target widgets</label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select name="editWidgetGeolocationWidgets" class="form-control" id="editWidgetGeolocationWidgets" multiple></select>');
 
@@ -10591,8 +11181,12 @@
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+                                        
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                        //Campo di registrazione widget sul Notificatore
+                                        editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
                                         break;
                                         
                                     case "widgetBarContent":
@@ -10629,15 +11223,15 @@
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+                                        
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                        //Campo di registrazione widget sul Notificatore
+                                        editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
                                         break;
                                         
                                     case "widgetColunmContent":
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
-                                        //$('#inputComuneWidgetM').css("display", "");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -10671,15 +11265,15 @@
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+                                        
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                        //Campo di registrazione widget sul Notificatore
+                                        editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
                                         break;
                                         
                                     case "widgetGaugeChart":
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
-                                        //$('#inputComuneWidgetM').css("display", "");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -10714,8 +11308,12 @@
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+                                        
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                        //Campo di registrazione widget sul Notificatore
+                                        editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
                                         break;
                                         
                                     case "widgetPieChart":
@@ -10728,10 +11326,6 @@
                                         var table1Shown = false;
                                         var table2Shown = false;
                                         
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
-                                        //$('#inputComuneWidgetM').css("display", "");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -11479,10 +12073,6 @@
                                         break;
                                         
                                     case "widgetTimeTrend":
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
-                                        //$('#inputComuneWidgetM').css("display", "");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -11525,13 +12115,12 @@
                                         
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                        //Campo di registrazione widget sul Notificatore
+                                        editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
                                         break;
                                     
                                     case "widgetTimeTrendCompare":
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
-                                        //$('#inputComuneWidgetM').css("display", "");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -11572,8 +12161,12 @@
                                         {
                                             $('#inputComuneWidgetM').attr('disabled', false);
                                         }
+                                        
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                        //Campo di registrazione widget sul Notificatore
+                                        editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
                                         break;
                                         
                                     case "widgetEvents":
@@ -11863,14 +12456,6 @@
                                         $('#inputUdmPositionM').prop("required", false);
                                         $('#inputUdmPositionM').attr("disabled", true);
                                         $('#inputUdmPositionM').val(-1);
-                                        /*if(data['municipality_metric_widget'] == null) 
-                                        {
-                                            $('#inputComuneWidgetM').attr('disabled', true);
-                                        } 
-                                        else 
-                                        {
-                                            $('#inputComuneWidgetM').attr('disabled', false);
-                                        }*/
                                         
                                         showInfoWCkeditorsM($('#select-widget-m').val(), editorsArrayM, null, null, info_mess);
                                         
@@ -11881,10 +12466,6 @@
                                         break; 
                                         
                                     case "widgetSpeedometer":
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
-                                        //$('#inputComuneWidgetM').css("display", "");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -11930,15 +12511,15 @@
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+                                        
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+                                        
+                                        //Campo di registrazione widget sul Notificatore
+                                        editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
                                         break;
                                         
                                     case "widgetStateRideAtaf":
-                                        //$("#inputComuneRowM").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").css("display", "");
-                                        //$("label[for='inputComuneWidgetM']").text("Context");
-                                        //$('#inputComuneWidgetM').css("display", "");
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -12043,6 +12624,30 @@
 
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+                                        
+                                        //Nuova riga
+                                        //Full screen controls
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="enableFullscreenTabM" class="col-md-2 control-label">Enable fullscreen in new tab</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="enableFullscreenTabM" name="enableFullscreenTabM"></select>');
+                                        newSelect.append('<option value="yes">Yes</option>');
+                                        newSelect.append('<option value="no">No</option>');
+                                        newSelect.val(data['enableFullscreenTab']);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+
+                                        newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="enableFullscreenModalM" name="enableFullscreenModalM"></select>');
+                                        newSelect.append('<option value="yes">Yes</option>');
+                                        newSelect.append('<option value="no">No</option>');
+                                        newSelect.val(data['enableFullscreenModal']);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
                                         
                                         //Nuova riga
                                         //Zoom controls visibility
@@ -12170,7 +12775,7 @@
                                 
                                 if((dimMapRaw != null) && (dimMapRaw != "null") && (typeof dimMapRaw != "undefined") && (dimMapRaw != ""))
                                  {
-                                           dimMap = JSON.parse(dimMapRaw);
+                                    dimMap = JSON.parse(dimMapRaw);
                                  }
                                 
                                 if(dimMap == null)
@@ -12305,15 +12910,10 @@
                                 
                                 $('#modal-modify-widget').modal('show');
                             },
-                            error: function (jqXHR, textStatus, errorThrown) 
+                            error: function (errorMsg) 
                             {
-                                $('#pageWrapperCfg').html('<p>status code: ' + jqXHR.status + '</p><p>errorThrown: ' + errorThrown + '</p><p>jqXHR.responseText:</p><div>' + jqXHR.responseText + '</div>');
-                                console.log('jqXHR:');
-                                console.log(jqXHR);
-                                console.log('textStatus:');
-                                console.log(textStatus);
-                                console.log('errorThrown:');
-                                console.log(errorThrown);
+                                console.log("Error calling get_data.php --> get_param_widget");
+                                console.log(errorMsg);
                             }
                         });
                     });
@@ -12405,14 +13005,10 @@
                                     }
 
                                 },
-                                error: function (jqXHR, textStatus, errorThrown) 
+                                error: function (errorMsg) 
                                 {
-                                    console.log('jqXHR:');
-                                    console.log(jqXHR);
-                                    console.log('textStatus:');
-                                    console.log(textStatus);
-                                    console.log('errorThrown:');
-                                    console.log(errorThrown);
+                                    console.log("Error calling get_data.php --> getJobAreas");
+                                    console.log(errorMsg);
                                 }
                             });    
                         }
@@ -12517,14 +13113,10 @@
                                     }
                                     $('#inputJobsNamesWidgetM').prop('selectedIndex', -1);
                                 },
-                                error: function (jqXHR, textStatus, errorThrown) 
+                                error: function (errorMsg) 
                                 {
-                                    console.log('jqXHR:');
-                                    console.log(jqXHR);
-                                    console.log('textStatus:');
-                                    console.log(textStatus);
-                                    console.log('errorThrown:');
-                                    console.log(errorThrown);
+                                   console.log("Error calling getJobs.php --> getJobNamesForJobGroup");
+                                   console.log(errorMsg);
                                 }
                             });
                         }

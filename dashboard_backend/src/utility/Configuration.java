@@ -15,7 +15,6 @@
 
 package utility;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -26,27 +25,32 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author bellini
- */
-public class Configuration {
+
+public class Configuration 
+{
   static final private String PROP = "config.properties";
   static private Configuration  conf=null;
-  static public Configuration getInstance() {
-    if(conf==null)
-      conf= new Configuration();
+  static public Configuration getInstance() 
+  {
+    if(conf == null)
+    {
+       conf= new Configuration();
+    }
+      
     return conf;
   }
 
   private Map<String, String> map = new TreeMap<String, String>();
 
-  Configuration() {
+  Configuration() 
+  {
     load();
   }
   
-  public void load() {
-    try {
+  public void load() 
+  {
+    try 
+    {
       System.out.println("Loading properties from "+PROP);
       Properties p = new Properties();
       FileInputStream file=new FileInputStream(PROP);
@@ -55,43 +59,58 @@ public class Configuration {
       
       Enumeration<?> names = p.propertyNames();
       System.out.println("Configuration:");
-      while(names.hasMoreElements()) {
+      while(names.hasMoreElements()) 
+      {
         String n=(String)names.nextElement();
         System.out.println("  "+n+"=\""+p.getProperty(n)+"\"");
         map.put(n,p.getProperty(n));
       }
 
-    } catch (IOException ex) {
+    } 
+    catch (IOException ex) 
+    {
       ex.printStackTrace();
       Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
     }    
   }
 
-  public String get(String key, String def) {
+  public String get(String key, String def) 
+  {
     String value=map.get(key);
-    if(value==null)
-      return def;
+    if(value == null)
+    {
+       return def;
+    }
+      
     return value;
   }
 
-  public String getSet(String key, String def) {
-    String value=map.get(key);
-    if(value==null) {
+  public String getSet(String key, String def) 
+  {
+    String value = map.get(key);
+    if(value == null) 
+    {
       map.put(key,def);
       return def;
     }
     return value;
   }
   
-  public String asHtml() {
+  public String asHtml()
+  {
     String html="<p>"+System.getProperty("user.home")+PROP+"</p><ul>";
-    for(Entry<String, String> x: map.entrySet()) {
+    for(Entry<String, String> x: map.entrySet()) 
+    {
       html+="<li><b>"+x.getKey()+"</b>: \""+x.getValue()+"\"</li>";
     }
+    
     html+="</ul>";
-    if(map.size()==0) {
+    
+    if(map.size()==0) 
+    {
       html+="<p><b>WARNING! empty configuration file</b></p>";
     }
+    
     return html;
   }
 }

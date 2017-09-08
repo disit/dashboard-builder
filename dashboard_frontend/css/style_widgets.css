@@ -1,3 +1,13 @@
+div.widgetButton
+{
+   box-shadow: 1px 1px 2px black;
+}
+
+div.widgetButton:hover
+{
+   cursor: pointer;
+}
+
 .fa-plus:hover, .fa-close:hover
 {
     cursor: pointer;
@@ -171,12 +181,23 @@
 
 .buttonsContainer
 {
-    width: 40px;
+    width: 50px;
     height: 100%;
     float: left;
     display: flex; 
     align-items: center; 
     justify-content: center;
+}
+
+div.singleBtnContainer
+{
+   width: 25px;
+   height: 100%;
+   float: left;
+   display: flex; 
+   align-items: center; 
+   justify-content: center;
+   text-align: center;
 }
 
 .countdownContainer
@@ -187,6 +208,7 @@
     display: flex; 
     align-items: center; 
     justify-content: center;
+    text-align: center;
 }
 
 .infoButtonContainer
@@ -197,6 +219,7 @@
     display: flex; 
     align-items: center; 
     justify-content: center;
+    text-align: center;
 }
 
 .mapButtonContainer
@@ -3357,7 +3380,29 @@ atafLastUpdateWrapper
 
 .defaultMapDiv
 {
-    width: 100%;
-    height: 100%;
-    display: none;
+   width: 100%;
+   height: 100%;
+   display: none;
+}
+
+.clockDate, .clockTime
+{
+   width: 100%;
+   height: 50%;
+   padding-bottom: 2.5%;
+   display: flex;
+   align-items: flex-end; 
+   justify-content: center;
+   text-align: center;
+}
+
+.clockTime
+{
+   width: 100%;
+   height: 50%;
+   padding-top: 2.5%;
+   display: flex;
+   align-items: flex-start; 
+   justify-content: center;
+   text-align: center;
 }

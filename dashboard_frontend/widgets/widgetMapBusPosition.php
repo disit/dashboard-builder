@@ -40,7 +40,11 @@ include('../config.php');
 </script>
 <div class="widget">
     <div class='ui-widget-content'>        
-        <div id="<?= $_GET['name'] ?>_desc" class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+        <div id="<?= $_GET['name'] ?>_desc" class="desc"></div>
+        <div class="icons-modify-widget">
+            <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+            <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+        </div>
         <iframe id="<?= $_GET['name'] ?>_map_content" class="map_bus_position"></iframe>
     </div>	
 </div> 

@@ -14,7 +14,1065 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
 //Globals
-var series, widgetType, editors, editorsM, currentEditor, infoJson = null;
+var series, widgetType, editors, editorsM, currentEditor, infoJson, currentParamsSingleValueWidget, parametersDiff, addWidgetConditionsArrayLocal, editWidgetConditionsArrayLocal = null;
+
+function setAddWidgetConditionsArray(addWidgetConditionsArrayAtt)
+{
+   addWidgetConditionsArrayLocal = addWidgetConditionsArrayAtt;
+}
+
+function setEditWidgetConditionsArray(editWidgetConditionsArrayAtt)
+{
+   editWidgetConditionsArrayLocal = editWidgetConditionsArrayAtt;
+}
+
+function checkAddWidgetConditions()
+{
+    var enableButton = true;
+
+    for(var key in addWidgetConditionsArrayLocal) 
+    {
+        if(addWidgetConditionsArrayLocal[key] === false)
+        {
+            enableButton = false;
+            break;
+        }
+    }
+
+    if(enableButton)
+    {
+        $("#button_add_widget").attr("disabled", false);
+    }
+    else
+    {
+        $("#button_add_widget").attr("disabled", true);
+    }
+}
+
+function checkEditWidgetConditions()
+{
+    var enableButton = true;
+
+    for(var key in editWidgetConditionsArrayLocal) 
+    {
+        if(editWidgetConditionsArrayLocal[key] === false)
+        {
+            enableButton = false;
+            break;
+        }
+    }
+
+    if(enableButton)
+    {
+        $("#button_modify_widget").attr("disabled", false);
+    }
+    else
+    {
+        $("#button_modify_widget").attr("disabled", true);
+    }
+}
+
+function countAddWidgetThrConditions()
+{
+   return $("#addWidgetRangeTable tbody tr td input[type=checkbox]").length;
+}
+
+function countEditWidgetThrConditions()
+{
+   return $("#editWidgetRangeTable tbody tr td input[type=checkbox]").length;
+}
+
+function addWidgetNotificatorAndThresholdFields()
+{
+   var newFormRow, newLabel, newInnerDiv, newSelect = null;
+   
+   //Non cancellarla
+   currentParamsSingleValueWidget = null;
+                             
+   //Nuova riga
+   newFormRow = $('<div class="row"></div>');
+   newLabel = $('<label for="addWidgetRegisterGen" class="col-md-2 control-label">Register to Notificator</label>');
+   newInnerDiv = $('<div class="col-md-3"></div>');
+   newSelect = $('<select name="addWidgetRegisterGen" class="form-control" id="addWidgetRegisterGen"></select>');
+   newSelect.append('<option value="yes">Yes</option>');
+   newSelect.append('<option value="no">No</option>');
+   newSelect.val("no");
+   newInnerDiv.append(newSelect);
+   newFormRow.append(newLabel);
+   newFormRow.append(newInnerDiv);
+   
+   //Set thresholds
+   newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+   newInnerDiv = $('<div class="col-md-3"></div>');
+   newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
+   newSelect.append('<option value="yes">Yes</option>');
+   newSelect.append('<option value="no">No</option>');
+   newSelect.val('no');
+   newInnerDiv.append(newSelect);
+   newFormRow.append(newLabel);
+   newFormRow.append(newInnerDiv);
+   
+   $("#specificWidgetPropertiesDiv").append(newFormRow);
+   
+   //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
+   $('#alrThrSel').change(function(){
+      if($(this).val() === "no")
+      {
+         $("#addWidgetRangeTableContainer").hide();
+         $("label[for=alrThrSel]").css("color", "black");
+         delete addWidgetConditionsArrayLocal["thrQt"];
+      }
+      else
+      {
+         $("#addWidgetRangeTableContainer").show();
+         if(countAddWidgetThrConditions() > 0)
+         {
+            addWidgetConditionsArrayLocal["thrQt"] = true;
+            $("label[for=alrThrSel]").css("color", "black");
+         }
+         else
+         {
+            addWidgetConditionsArrayLocal["thrQt"] = false;
+            $("label[for=alrThrSel]").css("color", "red");
+         }
+      }
+      
+      checkAddWidgetConditions();
+   });
+   
+   //Nuova riga
+   //Contenitore per tabella delle soglie
+   var addWidgetRangeTableContainer = $('<div id="addWidgetRangeTableContainer" class="row rowCenterContent"></div>');
+   var addWidgetRangeTable = $("<table id='addWidgetRangeTable' class='table table-bordered table-condensed thrRangeTable'><col style='width:10%'><col style='width:20%'><col style='width:10%'><col style='width:10%'><col style='width:20%'><col style='width:20%'><col style='width:10%'><tr><td>Notify events</td><td>Thr operator</td><td>Thr 1</td><td>Thr 2</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+   addWidgetRangeTableContainer.append(addWidgetRangeTable);
+   addWidgetRangeTableContainer.hide();
+   $("#specificWidgetPropertiesDiv").append(addWidgetRangeTableContainer);
+   
+   $("#addWidgetRangeTable i.fa-plus").click(addThrRangeSingleValueWidget);
+}
+
+function addThrRangeSingleValueWidget()
+{
+   var newTableRow, newTableCell, newRangeObj = null;
+
+   //Gestione caso nessuna soglia pregressa: costruiamo l'object literal per i parametri
+   if(currentParamsSingleValueWidget === null)
+   {
+      //Creazione del JSON dei parametri
+      currentParamsSingleValueWidget = {
+         thresholdObject: []
+      };
+   }
+   
+   newRangeObj = {
+       notifyEvents: false,
+       op: "less",
+       thr1: 0,
+       thr2: 0,
+       color: "#FFFFFF",
+       desc: ""
+   };
+   
+   currentParamsSingleValueWidget.thresholdObject.push(newRangeObj);
+
+   //Aggiunta record alla thrTable dell'asse di appartenenza
+   newTableRow = $('<tr></tr>');
+   
+   newTableCell = $('<td><input data-param="notifyEvents" type="checkbox" /></td>');
+   newTableCell.find("input").change(updateParamsSingleValueWidget);
+   newTableRow.append(newTableCell);
+   
+   newTableCell = $('<td><select data-param="op" class="thrOpSelect"></select></td>');
+   newTableCell.find("select").append('<option value="less">&lt;</option>');
+   newTableCell.find("select").append('<option value="lessEqual">&le;</option>');
+   newTableCell.find("select").append('<option value="greater">&gt;</option>');
+   newTableCell.find("select").append('<option value="greaterEqual">&ge;</option>');
+   newTableCell.find("select").append('<option value="equal">&equals;</option>');
+   newTableCell.find("select").append('<option value="notEqual">&ne;</option>');
+   newTableCell.find("select").append('<option value="intervalOpen">a &lt; val &lt; b</option>');
+   newTableCell.find("select").append('<option value="intervalClosed">a &le; val &le; b</option>');
+   newTableCell.find("select").append('<option value="intervalLeftOpen">a &lt; val &le; b</option>');
+   newTableCell.find("select").append('<option value="intervalRightOpen">a &le; val &lt; b</option>');
+   newTableRow.append(newTableCell);
+   
+   newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="thr1">0</a></td>');
+   newTableCell.find('a').editable();
+   newTableRow.append(newTableCell);
+   
+   newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="thr2"></td>');
+   newTableCell.find('a').editable({
+      disabled: true
+   });
+   newTableRow.append(newTableCell);
+
+   newTableCell = $('<td><div class="input-group colorPicker" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+   newTableRow.append(newTableCell);
+   newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
+   newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSingleValueWidget); 
+
+   newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="desc"></a></td>');
+   newTableCell.find('a').editable();
+   newTableRow.append(newTableCell);
+   newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+   newTableCell.find('i').click(delThrRangeingleValueWidget);
+   newTableRow.append(newTableCell);
+   newTableRow.find('a.toBeEdited').on('save', updateParamsSingleValueWidget);
+   
+   newTableRow.find('td select.thrOpSelect').change(updateParamsSingleValueWidget);
+   
+   $("#addWidgetRangeTable").append(newTableRow);    
+   $('#parameters').val(JSON.stringify(currentParamsSingleValueWidget));
+   
+   var rowCount = countAddWidgetThrConditions();
+   
+   if(rowCount > 0)
+   {
+      addWidgetConditionsArrayLocal["thrQt"] = true;
+      $("label[for=alrThrSel]").css("color", "black");
+      addWidgetConditionsArrayLocal["thrVal" + (rowCount - 1)] = true;
+   }
+   else
+   {
+      addWidgetConditionsArrayLocal["thrQt"] = false;
+      $("label[for=alrThrSel]").css("color", "red");
+   }
+   
+   checkAddWidgetConditions();
+}
+
+function updateParamsSingleValueWidget(e, params) 
+{
+   var param = $(this).attr('data-param');
+   var rowIndex = $(this).parents("tr").index() - 1;
+   var newValue = null;
+   //var numberPattern = /^\d*\.?\d+$/;
+   var numberPattern = /^-?\d*\.?\d+$/;
+   
+   //Aggiornamento dei parametri
+   switch(param)
+   {
+      case 'notifyEvents':
+         newValue = $(this).prop("checked");
+         currentParamsSingleValueWidget.thresholdObject[rowIndex].notifyEvents = newValue;
+         break;
+         
+      case 'op':
+         newValue = $(this).val();
+         currentParamsSingleValueWidget.thresholdObject[rowIndex].op = newValue;
+         
+         if(($(this).val() === "intervalOpen")||($(this).val() === "intervalClosed")||($(this).val() === "intervalLeftOpen")||($(this).val() === "intervalRightOpen"))
+         {
+            $(this).parents("tr").find('td a[data-param=thr2]').editable('enable');
+            $(this).parents("tr").find('td a[data-param=thr2]').editable('setValue', 0);
+            
+            if(numberPattern.test($(this).parents("tr").find('td a[data-param=thr1]').editable('getValue', true)))
+            {  
+               //Coerenza fra thr1 e thr2
+               if(parseFloat($(this).parents("tr").find('td a[data-param=thr1]').editable('getValue', true)) < parseFloat($(this).parents("tr").find("td a[data-param=thr2]").editable('getValue', true)))
+               {
+                  addWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                  $(this).parents("tr").find("td a[data-param=thr1]").css("color", "#337ab7");
+                  $(this).parents("tr").find("td a[data-param=thr2]").css("color", "#337ab7");
+               }
+               else
+               {
+                  addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                  $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+                  $(this).parents("tr").find("td a[data-param=thr2]").css("color", "red");
+               }
+            }
+            else
+            {
+               addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+               $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+            }
+         }
+         else
+         {
+            $(this).parents("tr").find('td a[data-param=thr2]').editable('disable');
+            $(this).parents("tr").find('td a[data-param=thr2]').html("");
+            
+            if(numberPattern.test($(this).parents("tr").find('td a[data-param=thr1]').editable('getValue', true)))
+            {  
+               addWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+               $(this).parents("tr").find("td a[data-param=thr1]").css("color", "#337ab7");
+               $(this).parents("tr").find("td a[data-param=thr2]").css("color", "#337ab7");
+            }
+            else
+            {
+               addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+               $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+            }
+         }
+         break;   
+      
+       case 'thr1':
+           newValue = params.newValue;
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].thr1 = newValue;
+           
+           if(numberPattern.test(newValue))
+           {
+               if(($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalClosed")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalLeftOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalRightOpen"))
+               {
+                  //Coerenza con thr2 
+                  if(numberPattern.test($(this).parents("tr").find("td a[data-param=thr2]").editable('getValue', true)))
+                  {
+                     if(parseFloat(newValue) < parseFloat($(this).parents("tr").find("td a[data-param=thr2]").editable('getValue', true)))
+                     {
+                        addWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                        $(this).css("color", "#337ab7");
+                        $(this).parents("tr").find("td a[data-param=thr2]").css("color", "#337ab7");
+                     }
+                     else
+                     {
+                        addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                        $(this).css("color", "red");
+                        $(this).parents("tr").find("td a[data-param=thr2]").css("color", "red");
+                     }
+                  }
+                  else
+                  {
+                     addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                     $(this).parents("tr").find("td a[data-param=thr2]").css("color", "red");
+                  }
+               }
+               else
+               {
+                  addWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                  $(this).css("color", "#337ab7");
+               }
+           }
+           else
+           {
+              addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+              $(this).css("color", "red");
+           }
+           break;
+
+       case 'thr2':
+           newValue = params.newValue;
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].thr2 = newValue;
+           
+           if(numberPattern.test(newValue))
+           {
+               if(($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalClosed")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalLeftOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalRightOpen"))
+               {
+                  //Coerenza con thr2 
+                  if(numberPattern.test($(this).parents("tr").find("td a[data-param=thr1]").editable('getValue', true)))
+                  {
+                     if(parseFloat(newValue) > parseFloat($(this).parents("tr").find("td a[data-param=thr1]").editable('getValue', true)))
+                     {
+                        addWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                        $(this).parents("tr").find("td a[data-param=thr1]").css("color", "#337ab7");
+                        $(this).css("color", "#337ab7");
+                     }
+                     else
+                     {
+                        addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                        $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+                        $(this).css("color", "red");
+                     }
+                  }
+                  else
+                  {
+                     addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                     $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+                  }
+               }
+               else
+               {
+                  addWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                  $(this).css("color", "#337ab7");
+               }
+           }
+           else
+           {
+              addWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+              $(this).css("color", "red");
+           }
+           break;
+
+       case 'color':
+           newValue = $(this).colorpicker('getValue');
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].color = newValue;
+           break;
+
+       case 'desc':
+           newValue = params.newValue;
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].desc = newValue;
+           break;    
+
+       default:
+           console.log("Default");
+           break;
+   }
+   
+   $('#parameters').val(JSON.stringify(currentParamsSingleValueWidget));
+   checkAddWidgetConditions();
+}
+
+function delThrRangeingleValueWidget(e)
+{
+   var delIndex = parseInt($(this).parents('tr').index() - 1);
+   var oldIndex = null;
+   var tempArray = new Array();
+   
+   //Cancellazione della riga dalla tabella 
+   $(this).parents('tr').remove();
+   delete addWidgetConditionsArrayLocal["thrVal" + delIndex];
+   
+   for(var key in addWidgetConditionsArrayLocal)
+   {
+      if(key.includes("thrVal"))
+      {
+         oldIndex = parseInt(key.substr(6));
+         
+         if(oldIndex > delIndex)
+         {
+            tempArray["thrVal" + parseInt(oldIndex - 1)] = addWidgetConditionsArrayLocal[key];
+         }
+         else
+         {
+            tempArray[key] = addWidgetConditionsArrayLocal[key];
+         }
+      }
+      else
+      {
+         tempArray[key] = addWidgetConditionsArrayLocal[key];
+      }
+   }
+   
+   addWidgetConditionsArrayLocal = null;
+   addWidgetConditionsArrayLocal = tempArray;
+   
+   //Aggiornamento JSON parametri
+   currentParamsSingleValueWidget.thresholdObject.splice(delIndex, 1);
+   
+   $('#parameters').val(JSON.stringify(currentParamsSingleValueWidget));
+   if(countAddWidgetThrConditions() > 0)
+   {
+      addWidgetConditionsArrayLocal["thrQt"] = true;
+      $("label[for=alrThrSel]").css("color", "black");
+   }
+   else
+   {
+      addWidgetConditionsArrayLocal["thrQt"] = false;
+      $("label[for=alrThrSel]").css("color", "red");
+   }
+   checkAddWidgetConditions();
+}
+
+function editWidgetGeneratorRegisterField(notificatorRegistered, notificatorEnabled, parameters)
+{
+   var newFormRow, newLabel, newInnerDiv, newSelect, newTableRow, newTableCell, op, thr1, thr2, color, desc, notifyEvents, newDiffObj = null;
+   
+   //Nuova riga
+   newFormRow = $('<div class="row"></div>');
+   newLabel = $('<label for="editWidgetRegisterGen" class="col-md-2 control-label">Register to Notificator</label>');
+   newInnerDiv = $('<div class="col-md-3"></div>');
+   newSelect = $('<select name="editWidgetRegisterGen" class="form-control" id="editWidgetRegisterGen"></select>');
+   newSelect.append('<option value="yes">Yes</option>');
+   newSelect.append('<option value="no">No</option>');
+   
+   if(notificatorRegistered == "no")
+   {
+      newSelect.val("no");
+   }
+   else
+   {
+      newSelect.val(notificatorEnabled);
+   }
+   
+   newInnerDiv.append(newSelect);
+   newFormRow.append(newLabel);
+   newFormRow.append(newInnerDiv);
+   
+   //Set thresholds
+   newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+   newInnerDiv = $('<div class="col-md-3"></div>');
+   newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
+   newSelect.append('<option value="yes">Yes</option>');
+   newSelect.append('<option value="no">No</option>');
+   
+   if(parameters === null)
+   {
+      newSelect.val("no");
+      currentParamsSingleValueWidget = null;
+      parametersDiff = null;
+   }
+   else
+   {
+      newSelect.val("yes");
+      $('#parametersM').val(parameters);
+      currentParamsSingleValueWidget = JSON.parse(parameters);
+      //Costruzione dell'oggetto che terrà traccia delle modifiche ai tipi di evento
+      parametersDiff = {
+         addedChangedKept: [],
+         deleted: []
+      };
+       
+      for(var i in currentParamsSingleValueWidget.thresholdObject)
+      {
+         newDiffObj = {
+            op: null,
+            opNew: null,
+            thr1: null,
+            thr1New: null,
+            thr2: null,
+            thr2New: null,
+            desc: null,
+            descNew: null,
+            added: false,
+            changed: false,
+            deleted: false
+         };
+         
+         newDiffObj.op = currentParamsSingleValueWidget.thresholdObject[i].op;
+         newDiffObj.opNew = currentParamsSingleValueWidget.thresholdObject[i].op;
+         newDiffObj.thr1 = currentParamsSingleValueWidget.thresholdObject[i].thr1;
+         newDiffObj.thr1New = currentParamsSingleValueWidget.thresholdObject[i].thr1;
+         newDiffObj.thr1 = currentParamsSingleValueWidget.thresholdObject[i].thr1;
+         newDiffObj.thr1New = currentParamsSingleValueWidget.thresholdObject[i].thr1;
+         newDiffObj.thr2 = currentParamsSingleValueWidget.thresholdObject[i].thr2;
+         newDiffObj.thr2New = currentParamsSingleValueWidget.thresholdObject[i].thr2;
+         newDiffObj.desc = currentParamsSingleValueWidget.thresholdObject[i].desc;
+         newDiffObj.descNew = currentParamsSingleValueWidget.thresholdObject[i].desc;
+         
+         parametersDiff.addedChangedKept.push(newDiffObj);
+      }
+      
+      editWidgetConditionsArrayLocal["thrQt"] = true;
+      
+      $('#parametersDiff').val(JSON.stringify(parametersDiff));
+   }
+   
+   newInnerDiv.append(newSelect);
+   newFormRow.append(newLabel);
+   newFormRow.append(newInnerDiv);
+   
+   $("#specificParamsM").append(newFormRow);
+   
+   //Contenitore per tabella delle soglie
+   var editWidgetRangeTableContainer = $('<div id="editWidgetRangeTableContainer" class="row rowCenterContent"></div>');
+   var editWidgetRangeTable = $("<table id='editWidgetRangeTable' class='table table-bordered table-condensed thrRangeTable'><col style='width:10%'><col style='width:20%'><col style='width:10%'><col style='width:10%'><col style='width:20%'><col style='width:20%'><col style='width:10%'><tr><td>Notify events</td><td>Thr operator</td><td>Thr 1</td><td>Thr 2</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+   editWidgetRangeTableContainer.append(editWidgetRangeTable);
+   
+   $("#specificParamsM").append(editWidgetRangeTableContainer);
+   
+   if(parameters === null)
+   {
+      editWidgetRangeTableContainer.hide();
+   }
+   else
+   {
+      //Caricamento tabella
+      for(var k = 0; k < currentParamsSingleValueWidget.thresholdObject.length; k++)
+      {
+         editWidgetConditionsArrayLocal["thrVal" + k] = true;
+         
+         
+         notifyEvents = currentParamsSingleValueWidget.thresholdObject[k].notifyEvents;
+         op = currentParamsSingleValueWidget.thresholdObject[k].op;
+         thr1 = parseFloat(currentParamsSingleValueWidget.thresholdObject[k].thr1);
+         
+         if((op === "intervalOpen")||(op === "intervalClosed")||(op === "intervalLeftOpen")||(op === "intervalRightOpen"))
+         {
+            thr2 = parseFloat(currentParamsSingleValueWidget.thresholdObject[k].thr2);
+         }
+         else
+         {
+            thr2 = 0;
+         }
+          
+          color = currentParamsSingleValueWidget.thresholdObject[k].color;
+          desc = currentParamsSingleValueWidget.thresholdObject[k].desc;
+
+          //Aggiunta a tabella
+          newTableRow = $('<tr></tr>');
+          
+          newTableCell = $('<td><input data-param="notifyEvents" type="checkbox" /></td>');
+          if(notifyEvents)
+          {
+             newTableCell.find("input").prop("checked", true);
+          }
+          newTableCell.find("input").change(updateParamsSingleValueWidgetM);
+          newTableRow.append(newTableCell);
+          
+          newTableCell = $('<td><select data-param="op" class="thrOpSelect"></select></td>');
+          newTableCell.find("select").append('<option value="less">&lt;</option>');
+          newTableCell.find("select").append('<option value="lessEqual">&le;</option>');
+          newTableCell.find("select").append('<option value="greater">&gt;</option>');
+          newTableCell.find("select").append('<option value="greaterEqual">&ge;</option>');
+          newTableCell.find("select").append('<option value="equal">&equals;</option>');
+          newTableCell.find("select").append('<option value="notEqual">&ne;</option>');
+          newTableCell.find("select").append('<option value="intervalOpen">a &lt; val &lt; b</option>');
+          newTableCell.find("select").append('<option value="intervalClosed">a &le; val &le; b</option>');
+          newTableCell.find("select").append('<option value="intervalLeftOpen">a &lt; val &le; b</option>');
+          newTableCell.find("select").append('<option value="intervalRightOpen">a &le; val &lt; b</option>');
+          newTableRow.append(newTableCell);
+          
+          newTableCell.find("select").val(currentParamsSingleValueWidget.thresholdObject[k].op);
+          
+          newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="thr1">' + thr1 + '</a></td>');
+          newTableRow.append(newTableCell);
+
+          newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="thr2"></a></td>');
+          newTableRow.append(newTableCell);
+
+          newTableCell = $('<td><div class="input-group colorPicker" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+          newTableRow.append(newTableCell);
+          newTableRow.find('div.colorPicker').colorpicker({color: color});
+          newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSingleValueWidgetM);
+
+          newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="desc">' + desc + '</a></td>');
+          newTableRow.append(newTableCell);
+
+          newTableCell = $('<td><a href="#"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+          newTableCell.find('i').click(delThrRangeingleValueWidgetM);
+          newTableRow.append(newTableCell);
+          
+          newTableRow.find("a.toBeEdited").editable();
+          if((op === "intervalOpen")||(op === "intervalClosed")||(op === "intervalLeftOpen")||(op === "intervalRightOpen"))
+          {
+              newTableRow.find('a[data-param=thr2]').editable('enable');
+              newTableRow.find('a[data-param=thr2]').editable('setValue', thr2);
+          }
+          else
+          {
+              newTableRow.find('a[data-param=thr2]').editable('disable');
+              newTableRow.find('a[data-param=thr2]').html("");
+          }
+          
+          editWidgetRangeTable.append(newTableRow);
+          newTableRow.find("a.toBeEdited").on('save', updateParamsSingleValueWidgetM);
+      }
+      
+      editWidgetRangeTableContainer.show();
+      
+      $('#editWidgetRangeTable tr td select.thrOpSelect').change(updateParamsSingleValueWidgetM);
+   }
+   
+   $("#editWidgetRangeTable i.fa-plus").click(addThrRangeSingleValueWidgetM);
+   
+   //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
+   $('#alrThrSelM').change(function(){
+      if($(this).val() === "no")
+      {
+         $("#editWidgetRangeTableContainer").hide();
+         $("label[for=alrThrSelM]").css("color", "black");
+         delete editWidgetConditionsArrayLocal["thrQt"];
+      }
+      else
+      {
+         $("#editWidgetRangeTableContainer").show();
+         if(countEditWidgetThrConditions() > 0)
+         {
+            editWidgetConditionsArrayLocal["thrQt"] = true;
+            $("label[for=alrThrSelM]").css("color", "black");
+         }
+         else
+         {
+            editWidgetConditionsArrayLocal["thrQt"] = false;
+            $("label[for=alrThrSelM]").css("color", "red");
+         }
+      }
+
+      checkEditWidgetConditions();
+   });
+   
+   checkEditWidgetConditions();
+   
+   /*console.log("Params:");
+   console.log(JSON.stringify($('#parametersM').val()));
+   console.log("------------------");
+   console.log("Diff:");
+   console.log(JSON.stringify($('#parametersDiff').val()));*/
+}
+
+function updateParamsSingleValueWidgetM(e, params) 
+{
+   var param = $(this).attr('data-param');
+   var rowIndex = $(this).parents("tr").index() - 1;
+   var newValue = null;
+   var numberPattern = /^-?\d*\.?\d+$/;
+   
+   if(currentParamsSingleValueWidget == null)
+   {
+      currentParamsSingleValueWidget = {
+         thresholdObject: []
+      };
+      
+      parametersDiff = {
+         addedChangedKept: [],
+         deleted: []
+      };
+   }
+   
+   //Aggiornamento dei parametri
+   switch(param)
+   {
+       case 'notifyEvents':
+         newValue = $(this).prop("checked");
+         currentParamsSingleValueWidget.thresholdObject[rowIndex].notifyEvents = newValue;
+         break;
+         
+       case 'op':
+         newValue = $(this).val();
+         currentParamsSingleValueWidget.thresholdObject[rowIndex].op = newValue;
+         parametersDiff.addedChangedKept[rowIndex].opNew = newValue;
+         parametersDiff.addedChangedKept[rowIndex].changed = true;
+         
+         if(($(this).val() === "intervalOpen")||($(this).val() === "intervalClosed")||($(this).val() === "intervalLeftOpen")||($(this).val() === "intervalRightOpen"))
+         {
+            $(this).parents("tr").find('td a[data-param=thr2]').editable('enable');
+            $(this).parents("tr").find('td a[data-param=thr2]').editable('setValue', 0);
+            
+            if(numberPattern.test($(this).parents("tr").find('td a[data-param=thr1]').editable('getValue', true)))
+            {  
+               //Coerenza fra thr1 e thr2
+               if(parseFloat($(this).parents("tr").find('td a[data-param=thr1]').editable('getValue', true)) < parseFloat($(this).parents("tr").find("td a[data-param=thr2]").editable('getValue', true)))
+               {
+                  editWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                  $(this).parents("tr").find("td a[data-param=thr1]").css("color", "#337ab7");
+                  $(this).parents("tr").find("td a[data-param=thr2]").css("color", "#337ab7");
+               }
+               else
+               {
+                  editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                  $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+                  $(this).parents("tr").find("td a[data-param=thr2]").css("color", "red");
+               }
+            }
+            else
+            {
+               editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+               $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+            }
+         }
+         else
+         {
+            $(this).parents("tr").find('td a[data-param=thr2]').editable('disable');
+            $(this).parents("tr").find('td a[data-param=thr2]').html("");
+            
+            if(numberPattern.test($(this).parents("tr").find('td a[data-param=thr1]').editable('getValue', true)))
+            {  
+               editWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+               $(this).parents("tr").find("td a[data-param=thr1]").css("color", "#337ab7");
+               $(this).parents("tr").find("td a[data-param=thr2]").css("color", "#337ab7");
+            }
+            else
+            {
+               editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+               $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+            }
+         }
+         
+         break;   
+      
+       case 'thr1':
+           newValue = params.newValue;
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].thr1 = newValue;
+           parametersDiff.addedChangedKept[rowIndex].thr1New = newValue;
+           parametersDiff.addedChangedKept[rowIndex].changed = true;
+           
+           if(numberPattern.test(newValue))
+           {
+               if(($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalClosed")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalLeftOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalRightOpen"))
+               {
+                  //Coerenza con thr2 
+                  if(numberPattern.test($(this).parents("tr").find("td a[data-param=thr2]").editable('getValue', true)))
+                  {
+                     if(parseFloat(newValue) < parseFloat($(this).parents("tr").find("td a[data-param=thr2]").editable('getValue', true)))
+                     {
+                        editWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                        $(this).css("color", "#337ab7");
+                        $(this).parents("tr").find("td a[data-param=thr2]").css("color", "#337ab7");
+                     }
+                     else
+                     {
+                        editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                        $(this).css("color", "red");
+                        $(this).parents("tr").find("td a[data-param=thr2]").css("color", "red");
+                     }
+                  }
+                  else
+                  {
+                     editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                     $(this).parents("tr").find("td a[data-param=thr2]").css("color", "red");
+                  }
+               }
+               else
+               {
+                  editWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                  $(this).css("color", "#337ab7");
+               }
+           }
+           else
+           {
+              editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+              $(this).css("color", "red");
+           }
+           break;
+
+       case 'thr2':
+           newValue = params.newValue;
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].thr2 = newValue;
+           parametersDiff.addedChangedKept[rowIndex].thr2New = newValue;
+           parametersDiff.addedChangedKept[rowIndex].changed = true;
+           
+           if(numberPattern.test(newValue))
+           {
+               if(($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalClosed")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalLeftOpen")||($(this).parents("tr").find("td select.thrOpSelect").val() === "intervalRightOpen"))
+               {
+                  //Coerenza con thr2 
+                  if(numberPattern.test($(this).parents("tr").find("td a[data-param=thr1]").editable('getValue', true)))
+                  {
+                     if(parseFloat(newValue) > parseFloat($(this).parents("tr").find("td a[data-param=thr1]").editable('getValue', true)))
+                     {
+                        editWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                        $(this).parents("tr").find("td a[data-param=thr1]").css("color", "#337ab7");
+                        $(this).css("color", "#337ab7");
+                     }
+                     else
+                     {
+                        editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                        $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+                        $(this).css("color", "red");
+                     }
+                  }
+                  else
+                  {
+                     editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+                     $(this).parents("tr").find("td a[data-param=thr1]").css("color", "red");
+                  }
+               }
+               else
+               {
+                  editWidgetConditionsArrayLocal["thrVal" + rowIndex] = true;
+                  $(this).css("color", "#337ab7");
+               }
+           }
+           else
+           {
+              editWidgetConditionsArrayLocal["thrVal" + rowIndex] = false;
+              $(this).css("color", "red");
+           }
+           break;  
+
+       case 'color':
+           newValue = $(this).colorpicker('getValue');
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].color = newValue;
+           break;
+
+       case 'desc':
+           newValue = params.newValue;
+           currentParamsSingleValueWidget.thresholdObject[rowIndex].desc = newValue;
+           parametersDiff.addedChangedKept[rowIndex].descNew = newValue;
+           parametersDiff.addedChangedKept[rowIndex].changed = true;
+           break;    
+
+       default:
+           console.log("Default");
+           break;
+   }
+   
+   $('#parametersM').val(JSON.stringify(currentParamsSingleValueWidget));
+   $('#parametersDiff').val(JSON.stringify(parametersDiff));
+   
+   checkEditWidgetConditions();
+   
+   /*console.log("Params:");
+   console.log(JSON.stringify($('#parametersM').val()));
+   console.log("------------------");
+   console.log("Diff:");
+   console.log(JSON.stringify($('#parametersDiff').val()));*/
+}
+
+function addThrRangeSingleValueWidgetM()
+{
+   var newTableRow, newTableCell, newRangeObj, newDiffObj = null;
+
+   //Gestione caso nessuna soglia pregressa: costruiamo l'object literal per i parametri
+   if(currentParamsSingleValueWidget === null)
+   {
+      //Creazione del JSON dei parametri
+      currentParamsSingleValueWidget = {
+         thresholdObject: []
+      };
+      
+      parametersDiff = {
+         addedChangedKept: [],
+         deleted: []
+      };
+   }
+
+   //Aggiungiamo un elemento alle thrSeries in esame, di modo che poi possa accogliere i nuovi valori dal save di XEditor
+   newRangeObj = {
+       notifyEvents: false,
+       op: "less",
+       thr1: 0,
+       thr2: 0,
+       color: "#FFFFFF",
+       desc: ""
+   };
+   
+   newDiffObj = {
+      op: "less",
+      opNew: "less",
+      thr1: 0,
+      thr1New: 0,
+      thr2: 0,
+      thr2New: 0,
+      desc: "",
+      descNew: "",
+      added: true,
+      changed: false,
+      deleted: false
+   };
+   
+   currentParamsSingleValueWidget.thresholdObject.push(newRangeObj);
+   parametersDiff.addedChangedKept.push(newDiffObj);
+   
+   //Aggiunta record alla thrTable dell'asse di appartenenza
+   newTableRow = $('<tr></tr>');
+   
+   newTableCell = $('<td><input data-param="notifyEvents" type="checkbox" /></td>');
+   newTableCell.find("input").change(updateParamsSingleValueWidgetM);
+   newTableRow.append(newTableCell);
+   
+   newTableCell = $('<td><select data-param="op" class="thrOpSelect"></select></td>');
+   newTableCell.find("select").append('<option value="less">&lt;</option>');
+   newTableCell.find("select").append('<option value="lessEqual">&le;</option>');
+   newTableCell.find("select").append('<option value="greater">&gt;</option>');
+   newTableCell.find("select").append('<option value="greaterEqual">&ge;</option>');
+   newTableCell.find("select").append('<option value="equal">&equals;</option>');
+   newTableCell.find("select").append('<option value="notEqual">&ne;</option>');
+   newTableCell.find("select").append('<option value="intervalOpen">a &lt; val &lt; b</option>');
+   newTableCell.find("select").append('<option value="intervalClosed">a &le; val &le; b</option>');
+   newTableCell.find("select").append('<option value="intervalLeftOpen">a &lt; val &le; b</option>');
+   newTableCell.find("select").append('<option value="intervalRightOpen">a &le; val &lt; b</option>');
+   newTableRow.append(newTableCell);
+   
+   newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="thr1">0</a></td>');
+   newTableCell.find('a').editable();
+   newTableRow.append(newTableCell);
+   
+   newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="thr2"></td>');
+   newTableCell.find('a').editable({
+      disabled: true
+   });
+   newTableRow.append(newTableCell);
+
+   newTableCell = $('<td><div class="input-group colorPicker" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+   newTableRow.append(newTableCell);
+   newTableRow.find('div.colorPicker').colorpicker({color: "#FFFFFF"});
+   newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSingleValueWidgetM); 
+
+   newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="desc"></a></td>');
+   newTableCell.find('a').editable();
+   newTableRow.append(newTableCell);
+   newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+   newTableCell.find('i').click(delThrRangeingleValueWidgetM);
+   newTableRow.append(newTableCell);
+   newTableRow.find('a.toBeEdited').on('save', updateParamsSingleValueWidgetM);
+   newTableRow.find('select.thrOpSelect').change(updateParamsSingleValueWidgetM);
+   newTableRow.find('select.thrOpSelect').change(function(){
+     if(($(this).val() === "intervalOpen")||($(this).val() === "intervalClosed")||($(this).val() === "intervalLeftOpen")||($(this).val() === "intervalRightOpen"))
+     {
+        newTableRow.find('a[data-param=thr2]').editable('enable');
+        newTableRow.find('a[data-param=thr2]').editable('setValue', 0);
+     }
+     else
+     {
+        newTableRow.find('a[data-param=thr2]').editable('disable');
+        newTableRow.find('a[data-param=thr2]').html("");
+     }
+   });
+   $("#editWidgetRangeTable").append(newTableRow);    
+   $('#parametersM').val(JSON.stringify(currentParamsSingleValueWidget));
+   $('#parametersDiff').val(JSON.stringify(parametersDiff));
+   
+   if(countEditWidgetThrConditions() > 0)
+   {
+      editWidgetConditionsArrayLocal["thrQt"] = true;
+      $("label[for=alrThrSelM]").css("color", "black");
+   }
+   else
+   {
+      editWidgetConditionsArrayLocal["thrQt"] = false;
+      $("label[for=alrThrSelM]").css("color", "red");
+   }
+   
+   checkEditWidgetConditions();
+   
+   /*console.log("Params:");
+   console.log(JSON.stringify($('#parametersM').val()));
+   console.log("------------------");
+   console.log("Diff:");
+   console.log(JSON.stringify($('#parametersDiff').val()));*/
+}
+
+function delThrRangeingleValueWidgetM(e)
+{
+   var delIndex = parseInt($(this).parents('tr').index() - 1);
+   var oldIndex = null;
+   var tempArray = new Array();
+   //Cancellazione della riga dalla tabella 
+   $(this).parents('tr').remove();
+   delete editWidgetConditionsArrayLocal["thrVal" + delIndex];
+   
+   for(var key in editWidgetConditionsArrayLocal)
+   {
+      if(key.includes("thrVal"))
+      {
+         oldIndex = parseInt(key.substr(6));
+         
+         if(oldIndex > delIndex)
+         {
+            tempArray["thrVal" + parseInt(oldIndex - 1)] = editWidgetConditionsArrayLocal[key];
+         }
+         else
+         {
+            tempArray[key] = editWidgetConditionsArrayLocal[key];
+         }
+      }
+      else
+      {
+         tempArray[key] = editWidgetConditionsArrayLocal[key];
+      }
+   }
+   
+   editWidgetConditionsArrayLocal = null;
+   editWidgetConditionsArrayLocal = tempArray;
+   
+   //Aggiornamento JSON parametri
+   currentParamsSingleValueWidget.thresholdObject.splice(delIndex, 1);
+   parametersDiff.addedChangedKept[delIndex].deleted = true;
+   parametersDiff.deleted.push(parametersDiff.addedChangedKept[delIndex]);
+   parametersDiff.addedChangedKept.splice(delIndex, 1);
+   
+   $('#parametersM').val(JSON.stringify(currentParamsSingleValueWidget));
+   $('#parametersDiff').val(JSON.stringify(parametersDiff));
+   
+   if(countEditWidgetThrConditions() > 0)
+   {
+      editWidgetConditionsArrayLocal["thrQt"] = true;
+      $("label[for=alrThrSelM]").css("color", "black");
+   }
+   else
+   {
+      editWidgetConditionsArrayLocal["thrQt"] = false;
+      $("label[for=alrThrSelM]").css("color", "red");
+   }
+   
+   checkEditWidgetConditions();
+   
+   /*console.log("Params:");
+   console.log(JSON.stringify($('#parametersM').val()));
+   console.log("------------------");
+   console.log("Diff:");
+   console.log(JSON.stringify($('#parametersDiff').val()));*/
+}
 
 //Usata in tutti i case dell'ascoltatore di cambio tipo widget in aggiunta widget
 function removeWidgetProcessGeneralFields(op)

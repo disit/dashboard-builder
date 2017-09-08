@@ -14,7 +14,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-    
    include('process-form.php'); 
 ?>
 
@@ -52,6 +51,9 @@
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">   
+    
+    <!-- Custom scripts -->
+    <script type="text/javascript" src="../js/dashboard_mng.js"></script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -79,26 +81,39 @@
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
                 <li><a href="#"><span class="glyphicon glyphicon-user" aria-hidden="true"></span><span id="usernameHeader"><?= $_SESSION['loggedUsername']; ?></span></a></li>
-                <li><a href="logout.php">Logout</a></li>
+                <li><a id="logoutBtn" href="logout.php">Logout</a></li>
             </ul>
             <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li class="active">
-                        <a href="../management/dashboard_mng.php" ><i class="fa fa-fw fa-dashboard"></i> Dashboard Builder</a> <!-- style="background-color: #e3f2fd; color: #337ab7" --> 
+                        <a href="../management/dashboard_mng.php" ><i class="fa fa-fw fa-dashboard"></i> Dashboards management</a>
                     </li>
                     <?php
-                        if(isset($_SESSION['isAdmin']))
-                        {
-                            if(($_SESSION['isAdmin'] == 1) || ($_SESSION['isAdmin'] == 2))
-                            {
-                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng"><i class="fa fa-fw fa-dashboard"></i> Metrics</a></li>';
-                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng"><i class="fa fa-fw fa-dashboard"></i> Widgets</a></li>';
-                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng"><i class="fa fa-fw fa-dashboard"></i>Sources</a></li>';
-                                echo '<li><a href="../management/dashboard_register.php" id="link_user_register"><i class="fa fa-fw fa-dashboard"></i> Users</a></li>'; 
-                            }
+                        if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
+                        {     
+                           if($_SESSION['loggedType'] == "local")
+                           {
+                              echo '<li><a href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
+                           }
+                           
+                           if($_SESSION['loggedRole'] == "ToolAdmin")
+                           {
+                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
+                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
+                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
+                                echo '<li><a href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
+                           }
+                           
+                           if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
+                           {
+                              echo '<li><a href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
+                           }
                         }
                     ?>
+                    <li>
+                        <a href="<?php echo $notificatorLink?>" target="blank"> Notificator</a>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -255,6 +270,28 @@
                                 </div>
                             </div>
                         </div>
+                       <div class="well">
+                            <legend class="legend-form-group">Dashboard visibility</legend>
+                            <div class="form-group">
+                                <div class="row">
+                                    <label for="inputDashboardVisibility" class="col-md-4 control-label">People who can see this dashboard</label>
+                                    <div class="col-md-6">
+                                        <select name="inputDashboardVisibility" class="form-control" id="inputDashboardVisibility" required>
+                                            <option value="author">Dashboard author only</option>
+                                            <option value="restrict">Author and a set of selected users</option>
+                                            <option value="public">Everybody (public)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label for="inputDashboardVisibilityUsersTable" class="col-md-4 control-label">Single users who can see this dashboard</label>
+                                    <div class="col-md-6" id="inputDashboardVisibilityUsersTableContainer">
+                                        <table id="inputDashboardVisibilityUsersTable">
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
                 </div>
                 <div class="modal-footer">
                     <button id="button_close_popup" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -393,8 +430,58 @@
     <script type='text/javascript'>
         $(document).ready(function () 
         {
+            var loggedRole = "<?= $_SESSION['loggedRole'] ?>";
+            var loggedType = "<?= $_SESSION['loggedType'] ?>";
+            var usr = "<?= $_SESSION['loggedUsername'] ?>";
+            var userVisibilitySet = null;
             var array_dahsboards = new Array();
             $('#color_hf').css("background-color", '#ffffff');
+            
+            setGlobals(loggedRole, usr, loggedType, userVisibilitySet);
+            
+            $("#logoutBtn").click(function(event)
+            {
+               event.preventDefault();
+               
+               $.ajax({
+                  url: "http://localhost/Notificator/restInterface.php",
+                  data: {
+                     apiUsr: "alarmManager",
+                     apiPwd: "d0c26091b8c8d4c42c02085ff33545c1", //MD5
+                     operation: "remoteLogout",
+                     app: "Dashboard",
+                     appUsr: usr
+                  },
+                  type: "POST",
+                  async: true,
+                  dataType: 'json',
+                  success: function (data) 
+                  {
+                     console.log("Correct");
+                     console.log(data);
+                     location.href = "logout.php";
+                  },
+                  error: function (data)
+                  {
+                     console.log("Error");
+                     console.log(data);
+                     location.href = "logout.php";
+                  }
+               });
+            });
+            
+            $('#inputDashboardVisibility').change(function(){
+               if($(this).val() === 'restrict') 
+               {
+                   $('label[for="inputDashboardVisibilityUsersTable"]').show();
+                   $('#inputDashboardVisibilityUsersTableContainer').show();
+               }
+               else
+               {
+                   $('label[for="inputDashboardVisibilityUsersTable"]').hide();
+                   $('#inputDashboardVisibilityUsersTableContainer').hide();
+               }
+            });
             
             $('#inputWidthDashboard').on('input',function(e)
             {
@@ -420,7 +507,7 @@
                 url: "get_data.php",
                 data: {action: "get_dashboards"},
                 type: "GET",
-                async: false,
+                async: true,
                 dataType: 'json',
                 success: function (data) 
                 {
@@ -430,15 +517,10 @@
                             name: data[i].dashboard['name'],
                             title: data[i].dashboard['title_header'],
                             date: data[i].dashboard['creation_date'],
-                            nameUser: data[i].dashboard['name_user'],
-                            surnameUser: data[i].dashboard['surname_user'],
                             status: data[i].dashboard['status'],
                             username: data[i].dashboard['username'],
                             reference: data[i].dashboard['reference']
                         };
-                        
-                        $("#select-dashboard").append('<option>' + array_dahsboards[i]['name'] + '</option>');
-                        $("#select-dashboard-disable").append('<option>' + array_dahsboards[i]['name'] + '</option>');
                         
                         var trCode = null;
                         
@@ -475,24 +557,6 @@
                 $('#dashboardLogoLinkInput').removeAttr('disabled');
             });
 
-            $('#select-dashboard-disable').change(function () 
-            {
-                var str = "";
-                $("#select-dashboard-disable option:selected").each(function () 
-                {
-                    str += $(this).text();
-                });
-                var value_text = "";
-                for (var j = 0; j < array_dahsboards.length; j++) {
-                    if (array_dahsboards[j]['name'] === str) 
-                    {
-                        $("#inputTitleDashboard-disable").val(array_dahsboards[j]['title']);
-                        $("#inputUserDashboard-disable").val(array_dahsboards[j]['nameUser'] + " " + array_dahsboards[j]['surnameUser']);
-                    }
-                }
-                $("#textarea-metric").val(value_text);
-            }).change();
-
             //Listener apertura view di una dashboard
             $(document).on('click', '.button-preview', function () 
             {
@@ -519,6 +583,44 @@
                 $('#selectedDashboardNameForStatusChange').val($(this).parent().parent().find('.name_dash').text());
                 $("#selectedDashboardAuthorNameForStatusChange").val($(this).parent().parent().find('.name_user').text());
             });
+            
+            //Caricamento dell'insieme di visibilità per l'utente collegato
+            $.ajax({
+               url: "getUserVisibilitySet.php",
+               type: "POST",
+               async: true,
+               dataType: 'JSON',
+               cache: false, 
+               success: function (data) 
+               {
+                   userVisibilitySet = data;
+
+                   $("#inputDashboardVisibilityUsersTable").append('<tr><th class="selectCell">Select</th><th class="usernameCell">Username</th></tr>');
+
+                   for(var i = 0; i < userVisibilitySet.length; i++)
+                   {
+                      $("#inputDashboardVisibilityUsersTable").append('<tr><td><input type="checkbox" name="selectedVisibilityUsers[]" value="' + userVisibilitySet[i] + '"/></td><td>' + userVisibilitySet[i] + '</td></tr>'); 
+                   }
+
+                   //Metodo apposito per settare/desettare gli attributi checked sulle checkbox
+                   $('#inputDashboardVisibilityUsersTable input[type="checkbox"').off('click');
+                   $('#inputDashboardVisibilityUsersTable input[type="checkbox"').click(function(){
+                       if($(this).attr("checked") === "checked")
+                       {
+                           $(this).removeAttr("checked");
+                       }
+                       else
+                       {
+                           $(this).attr("checked", "true");
+                       }
+                   });
+               },
+               error: function (data) 
+               {
+                   //TBD
+                   console.log("Error: " + JSON.stringify(data));
+               }
+           });
         });
     </script>
 </body>

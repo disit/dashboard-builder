@@ -478,9 +478,6 @@
         <div id='<?= $_GET['name'] ?>_logo' class="pcLogosContainer">
             <div id='<?= $_GET['name'] ?>_alarmDivPc' class="alarmDivPc">
                 <div id="<?= $_GET['name'] ?>_info" class="pcInfoContainer">
-                <!--<a id ="info_modal" href="#" class="info_source">
-                    <img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button">
-                </a>-->
                   <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
                 </div>
                 <div id="<?= $_GET['name'] ?>_logoPc" class="logoPc">
@@ -488,13 +485,8 @@
                 </div>
 
                 <div id="<?= $_GET['name'] ?>_iconsModifyWidget" class="iconsModifyPcWidget">
-                    <a class="icon-cfg-widget" href="#">
-                        <span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span>
-                    </a>
-                    <a class="icon-remove-widget" href="#">
-                        <span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span>
-                    </a>
-                    <div id="countdown_<?= $_GET['name'] ?>" class="pcCountdown"></div>
+                    <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                    <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 </div>
                 <div id="<?= $_GET['name'] ?>_pcCountdownContainer" class="pcCountdownContainer">
                     <div id="countdown_<?= $_GET['name'] ?>" class="pcCountdown"></div>

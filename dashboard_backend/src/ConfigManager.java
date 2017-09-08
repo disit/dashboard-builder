@@ -1,5 +1,5 @@
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -24,33 +24,29 @@ import java.util.logging.Logger;
 
 import utility.Utility;
 
-public class ConfigManager {
+public class ConfigManager 
+{
 
   private Map<String, String[]> mapProperties = null;
   private final Logger logger = Logger.getLogger(ConfigManager.class.getName());
 
-  public ConfigManager() {
+  public ConfigManager() 
+  {
     this.mapProperties = new HashMap<String, String[]>();
   }
 
-  public boolean loadConfigFile() {
+  public boolean loadConfigFile() 
+  {
     Properties prop = new Properties();
     InputStream input = null;
     String[] property = null;
-    try {
-
+    try 
+    {
       input = new FileInputStream("./config.properties");
 
-      if (input != null) {
-        // load a properties file
+      if (input != null) 
+      {
         prop.load(input);
-
-        // get the property value and print it out
-				/*property= new String[4];
-         property[0]=prop.getProperty("url");
-         property[1]=prop.getProperty("database");
-         property[2]=prop.getProperty("user");
-         property[3]=prop.getProperty("psw");*/
         this.mapProperties.put("Dashboard", new String[]{prop.getProperty("url"), prop.getProperty("database"), prop.getProperty("user"), prop.getProperty("psw")});
 
         this.mapProperties.put("AlarmEmail", new String[]{prop.getProperty("mailhost"), prop.getProperty("mailuser"), prop.getProperty("mailpsw"), prop.getProperty("mailport"),
@@ -59,17 +55,21 @@ public class ConfigManager {
         input.close();
 
         return true;
-      } else {
+      } 
+      else 
+      {
         return false;
       }
-    } catch (Exception exp) {
+    } 
+    catch (Exception exp) 
+    {
       Utility.WriteExcepLog(logger, exp);
-      //System.out.println(ex.getMessage());
       return false;
     }
   }
 
-  public Map<String, String[]> getMapProperties() {
+  public Map<String, String[]> getMapProperties() 
+  {
     return this.mapProperties;
   }
 }

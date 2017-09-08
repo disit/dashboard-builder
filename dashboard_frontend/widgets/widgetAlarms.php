@@ -450,12 +450,15 @@
             {
                for(var widgetName in widgetTargetList) 
                {
-                  if($("#" + widgetName + "_div").attr("data-emptymapshown") === "false")
+                  if(widgetTargetList[widgetName].length > 0)
                   {
-                     $("#" + widgetName + "_wrapper").hide();
-                     $("#" + widgetName + "_defaultMapDiv").show();
-                     loadDefaultMap(widgetName);
-                     $("#" + widgetName + "_div").attr("data-emptymapshown", "true");
+                     if($("#" + widgetName + "_div").attr("data-emptymapshown") === "false")
+                     {
+                        $("#" + widgetName + "_wrapper").hide();
+                        $("#" + widgetName + "_defaultMapDiv").show();
+                        loadDefaultMap(widgetName);
+                        $("#" + widgetName + "_div").attr("data-emptymapshown", "true");
+                     }
                   }
                }
             }
@@ -1731,8 +1734,8 @@
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a>
-                <a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a>
+                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
+                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
             <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
                 <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 

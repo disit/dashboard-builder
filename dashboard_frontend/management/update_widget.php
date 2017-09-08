@@ -26,14 +26,28 @@ mysqli_autocommit($link, false);
 $dashboardId = $_SESSION['dashboardId'];
 $widgetName = mysqli_real_escape_string($link, $_GET['nameWidget']);
 
-//$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "a");
-
 if (isset($_GET['operation']) && !empty($_GET['operation'])) 
 {
     $operation = mysqli_real_escape_string($link, $_GET['operation']);
     if($operation == "remove") 
     {
        mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE); 
+       
+       $notificatorQuery = "SELECT id_metric, title_w, type_w FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetName' AND id_dashboard = '$dashboardId'";
+       $result0 = mysqli_query($link, $notificatorQuery);
+       
+       if($result0)
+       {
+         $row0 = mysqli_fetch_assoc($result0);
+         $generatorOriginalName = $row0['title_w'];
+         $generatorOriginalType = $row0['id_metric'];
+         $widgetType = $row0['type_w'];
+       }
+       else
+       {
+         $generatorOriginalName = null;
+         $generatorOriginalType = null;
+       }
        
        $query1 = "DELETE FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetName' AND id_dashboard = '$dashboardId'";
        $result1 = mysqli_query($link, $query1);
@@ -171,6 +185,37 @@ if (isset($_GET['operation']) && !empty($_GET['operation']))
                   $commit = mysqli_commit($link);
                   mysqli_close($link);
                   header("location: dashboard_configdash.php");
+                  
+                  //"Cancellazione" (validità settata a 0) del generatore dal notificatore
+                  if(($generatorOriginalName != null)&&($generatorOriginalType != null))
+                  {
+                     $url = $notificatorUrl;
+                     $generatorOriginalName = preg_replace('/\s+/', '+', $generatorOriginalName);
+                     $generatorOriginalType = preg_replace('/\s+/', '+', $generatorOriginalType);
+                     $containerName = preg_replace('/\s+/', '+', $_SESSION['dashboardTitle']);
+                     $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
+
+                     $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $generatorOriginalName . '&generatorOriginalType=' . $generatorOriginalType . '&containerName=' . $containerName;
+                     $url = $url.$data;
+
+                     $options = array(
+                         'http' => array(
+                             'header'  => "Content-type: application/json\r\n",
+                             'method'  => 'POST'
+                             //'timeout' => 2
+                         )
+                     );
+
+                     try
+                     {
+                        $context  = stream_context_create($options);
+                        $callResult = @file_get_contents($url, false, $context);
+                     }
+                     catch (Exception $ex) 
+                     {
+                        //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                     }
+                  }
                }
                else
                {
@@ -185,8 +230,46 @@ if (isset($_GET['operation']) && !empty($_GET['operation']))
             else
             {
                $commit = mysqli_commit($link);
+               
+               if(($widgetType == "widgetButton")&&(file_exists("../img/widgetButtonImages/" . $widgetName)))
+               {
+                  array_map('unlink', glob("../img/widgetButtonImages/" . $widgetName . "/*.*"));
+                  rmdir("../img/widgetButtonImages/" . $widgetName);
+               }
+               
                mysqli_close($link);
                header("location: dashboard_configdash.php");
+               
+               //"Cancellazione" (validità settata a 0) del generatore dal notificatore
+               if(($generatorOriginalName != null)&&($generatorOriginalType != null))
+               {
+                  $url = $notificatorUrl;
+                  $generatorOriginalName = preg_replace('/\s+/', '+', $generatorOriginalName);
+                  $generatorOriginalType = preg_replace('/\s+/', '+', $generatorOriginalType);
+                  $containerName = preg_replace('/\s+/', '+', $_SESSION['dashboardTitle']);
+                  $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
+
+                  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $generatorOriginalName . '&generatorOriginalType=' . $generatorOriginalType . '&containerName=' . $containerName;
+                  $url = $url.$data;
+
+                  $options = array(
+                      'http' => array(
+                          'header'  => "Content-type: application/json\r\n",
+                          'method'  => 'POST'
+                          //'timeout' => 2
+                      )
+                  );
+
+                  try
+                  {
+                     $context  = stream_context_create($options);
+                     $callResult = @file_get_contents($url, false, $context);
+                  }
+                  catch (Exception $ex) 
+                  {
+                     //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                  }
+               }
             }
         } 
         else 
