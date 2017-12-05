@@ -152,6 +152,8 @@ public class Launcher2 implements Serializable
       }
       
       String url = conf2.getProperty("notificatorRestInterfaceUrl");
+      if(url.equals(""))
+        return;
       String charset = java.nio.charset.StandardCharsets.UTF_8.name();
       String apiUsr = conf2.getProperty("notificatorRestInterfaceUsr");
       String apiPwd = conf2.getProperty("notificatorRestInterfacePwd");

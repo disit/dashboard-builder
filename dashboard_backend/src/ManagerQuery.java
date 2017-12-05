@@ -69,10 +69,6 @@ public class ManagerQuery implements Runnable, Serializable
   private String queryType = null;
   private String metricType = null;
   private String processType = null;
-  private String sparqlEndpoint = null;
-  private String sparqlType = null;
-  private int maxTime = 0;
-  private String km4cVersion = null;
   private String dataSourceId = null;
   private Map<String, String[]> map_dbAcc = null;
   private Configuration conf = null;
@@ -88,10 +84,6 @@ public class ManagerQuery implements Runnable, Serializable
   {
     this.map_dbAcc = map_dbAccess;
     this.conf = Configuration.getInstance();
-    this.sparqlEndpoint = conf.get("sparqlEndpoint", (map_dbAccess.get("Km4CityRDF")[0]));
-    this.sparqlType = conf.getSet("sparqlType", "virtuoso");
-    this.maxTime = 3 * 60 * (sparqlType.equals("virtuoso") ? 1000 : 1); //3 min
-    this.km4cVersion = conf.getSet("km4cVersion", "new");
     this.idProc = id;
     this.descrip = desc;
     this.query = query;
@@ -100,8 +92,6 @@ public class ManagerQuery implements Runnable, Serializable
     this.processType = processType;
     this.sleepTime = freq;
     this.dataSourceId = dataSourceId;
-    //this.almMng = alarmMng;
-    //this.thresholdTime = thresholdTime;
   }
 
   public void run() 
@@ -678,6 +668,9 @@ public class ManagerQuery implements Runnable, Serializable
       }
       
       String url = conf2.getProperty("notificatorRestInterfaceUrl");
+      if(url.equals(""))
+        return;
+      
       String charset = java.nio.charset.StandardCharsets.UTF_8.name();
       String apiUsr = conf2.getProperty("notificatorRestInterfaceUsr");
       String apiPwd = conf2.getProperty("notificatorRestInterfacePwd");
@@ -765,6 +758,9 @@ public class ManagerQuery implements Runnable, Serializable
       }
       
       String url = conf2.getProperty("notificatorRestInterfaceUrl");
+      if(url.equals(""))
+        return;
+      
       String charset = java.nio.charset.StandardCharsets.UTF_8.name();
       String apiUsr = conf2.getProperty("notificatorRestInterfaceUsr");
       String apiPwd = conf2.getProperty("notificatorRestInterfacePwd");
