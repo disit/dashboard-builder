@@ -1,6 +1,6 @@
 ﻿/*
  Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
- For licensing, see LICENSE.html or http://ckeditor.com/license
+ For licensing, see LICENSE.html or https://ckeditor.com/license
 */
 (function(){function z(a){return a&&a.domId&&a.getInputElement().$?a.getInputElement():a&&a.$?a:!1}function I(a){if(!a)throw"Languages-by-groups list are required for construct selectbox";var c=[],e="",d;for(d in a)for(var f in a[d]){var h=a[d][f];"en_US"==h?e=h:c.push(h)}c.sort();e&&c.unshift(e);return{getCurrentLangGroup:function(c){a:{for(var d in a)for(var e in a[d])if(e.toUpperCase()===c.toUpperCase()){c=d;break a}c=""}return c},setLangList:function(){var c={},d;for(d in a)for(var e in a[d])c[a[d][e]]=
 e;return c}()}}var g=function(){var a=function(a,b,d){d=d||{};var f=d.expires;if("number"==typeof f&&f){var h=new Date;h.setTime(h.getTime()+1E3*f);f=d.expires=h}f&&f.toUTCString&&(d.expires=f.toUTCString());b=encodeURIComponent(b);a=a+"\x3d"+b;for(var k in d)b=d[k],a+="; "+k,!0!==b&&(a+="\x3d"+b);document.cookie=a};return{postMessage:{init:function(a){window.addEventListener?window.addEventListener("message",a,!1):window.attachEvent("onmessage",a)},send:function(a){var b=Object.prototype.toString,

@@ -56,7 +56,7 @@
            seconds = "0" + seconds;
         }
             
-        var ctime = day + " " + now.getDate() + " " + month + " @ " + hours + ":" + minutes + ":" + seconds;
+        var ctime = day + " " + now.getDate() + " " + month + " " + hours + ":" + minutes + ":" + seconds;
         timeContainer.innerHTML = ctime;
         setTimeout("updateTime()", 1000);
     }

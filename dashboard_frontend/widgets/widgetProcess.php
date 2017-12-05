@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,10 +13,12 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
             $titlePatterns = array();
@@ -46,6 +48,20 @@
         var metricId = "<?= $_GET['metric'] ?>";
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         var url = "<?= $_GET['link_w'] ?>";
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        
+         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+		showHeader = false;
+	}
+	else
+	{
+		showHeader = true;
+	}
         
         //Definizioni di funzione specifiche del widget
         /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
@@ -84,7 +100,7 @@
             return styleParameters;
         }
         //Fine definizioni di funzione 
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -119,6 +135,7 @@
                     pass = contenuto.pass;
                     jobName = contenuto.jobName;
                     sizeRowsWidget = parseInt(msg.param.size_rows);
+                    manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
 
                     $.ajax({
                         url: "../widgets/getProcessStatus.php",
@@ -205,9 +222,9 @@
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetProcess", null, null);
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
 });//Fine document ready
 </script>
 

@@ -4,8 +4,8 @@
 	"version": "v1.2",
 	"description": "jQuery FileStyle for Bootstrap - Customization of input html file for Bootstrap Twitter",
 	"keywords": ["jquery", "file", "upload", "boostrap", "multiple", "input", "style"],
-	"homepage": "http://markusslima.github.io/bootstrap-filestyle/",
-	"demo": "http://markusslima.github.io/bootstrap-filestyle/",
+	"homepage": "https://markusslima.github.io/bootstrap-filestyle/",
+	"demo": "https://markusslima.github.io/bootstrap-filestyle/",
 	"bugs": "https://github.com/markusslima/bootstrap-filestyle/issues",
 	"author": {
 		"name": "Markus Lima",
@@ -24,7 +24,7 @@
 	"licenses": [
 		{
 			"type": "MIT",
-			"url": "http://www.opensource.org/licenses/MIT"
+			"url": "https://www.opensource.org/licenses/MIT"
 		}
 	],
 	"devDependencies": {

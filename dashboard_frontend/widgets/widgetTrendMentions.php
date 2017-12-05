@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,26 +13,42 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-    include('../config.php');
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge"); 
 ?>
 
 <script type='text/javascript'>
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
     {
-        var scroller1, scroller2, scrollBottom1, scrollBottom2, contentHeight, contentWidth, sizeRowsWidget, icon, eventContentW, trendsNumber, quotesNumber, trendsContentHeight, quotesContentHeight, 
-            fakeTrendsDiv, fakeQuotesDiv, rowPercHeight, rowPercBottomMargin, rowPxHeight, rowPxBottomMargin, fullRowPxHeight, actualTab, countdown, timeToClearScroll, titleWidth = null;
-        
+        var scroller1, scroller2, scrollBottom1, scrollBottom2, contentHeight, trendsNumber, quotesNumber, trendsContentHeight, quotesContentHeight, 
+            rowPercHeight, rowPxHeight, fullRowPxHeight, actualTab, countdown, timeToClearScroll, titleWidth, fontRatio, fullRowPercHeight, contentPercWidth, iconWidth, contentWidth = null;
+        var hostFile = "<?= $_GET['hostFile'] ?>";
         var speed = 140;
         var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
         actualTab = 1;
+        
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+        {
+            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 23);
+            $('#<?= $_GET['name'] ?>_header').hide();
+        }
+        else
+        {
+            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - headerHeight - 23);
+            $('#<?= $_GET['name'] ?>_header').show();
+        }
         
         var counter = <?= $_GET['freq'] ?>;
         
         function stepDownInterval1()
         {
             var pos = $('#<?= $_GET['name'] ?>_content').scrollTop();
-            if(pos < (scrollBottom1 - 3))
+            if(pos < (scrollBottom1 - 15))
             {
                 pos++;
             }
@@ -46,7 +62,8 @@
         function stepDownInterval2()
         {
             var pos = $('#<?= $_GET['name'] ?>_content').scrollTop();
-            if(pos < (scrollBottom2 - 5))
+            
+            if(pos < (scrollBottom2 - 15))
             {
                 pos++;
             }
@@ -87,7 +104,7 @@
         $("#<?= $_GET['name'] ?>_countdownDiv").css("color", "<?= $_GET['headerFontColor'] ?>");
         $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
         
-        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25 - 23);
+        
         var loadingFontDim = 13;
         var loadingIconDim = 20;
         
@@ -105,9 +122,10 @@
         $("#<?= $_GET['name'] ?>_tabsContainer").css("backgroundColor", '<?= $_GET['color'] ?>');
         
         var colore_frame = "<?= $_GET['frame_color'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
+        
         $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
-        $('#<?= $_GET['name'] ?>_content').css("overflow", "auto");
+        $('#<?= $_GET['name'] ?>_content').css("overflow-y", "scroll");
+        $('#<?= $_GET['name'] ?>_content').css("overflow-x", "auto");
         
         $("#<?= $_GET['name'] ?>_trends_li").click(function() 
         {
@@ -117,7 +135,7 @@
             clearInterval(scroller2);
             $("#<?= $_GET['name'] ?>_content").scrollTop(0);
             $("#<?= $_GET['name'] ?>_content").carousel(0);
-            var calcContent = (trendsNumber * 32);
+            var calcContent = (trendsNumber * 30);
             var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
             scrollBottom1 = calcContent - shownHeight - 2;
             scroller1 = setInterval(stepDownInterval1, speed);
@@ -134,52 +152,48 @@
             clearInterval(scroller1);
             $("#<?= $_GET['name'] ?>_content").scrollTop(0);
             $("#<?= $_GET['name'] ?>_content").carousel(1);
-            var calcContent = (quotesNumber * 32);
+            var calcContent = (quotesNumber * 30);
             var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
             scrollBottom2 = calcContent - shownHeight - 2;
             scroller2 = setInterval(stepDownInterval2, speed);
             $("#<?= $_GET['name'] ?>_trends_li a").blur();
             $("#<?= $_GET['name'] ?>_quotes_li a").blur();
         });
-    
+        
         $.ajax({//Inizio AJAX getParametersWidgets.php
             url: "../widgets/getParametersWidgets.php",
             type: "GET",
             data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
             async: true,
             dataType: 'json',
-            success: function (msg) {
+            success: function (msg) 
+            {
                 var sizeColumns = null;
                 if (msg !== null)
                 {
                     sizeColumns = parseInt(msg.param.size_columns);
                 }
-                
+                manageInfoButtonVisibility(msg.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
                 //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
                 fontRatio = parseInt((sizeColumns / 4)*15);
                 fontRatio = fontRatio.toString() + "px";
-                eventContentW = parseInt($('#<?= $_GET['name'] ?>_div').width() - 70 - 17);
                 
                 contentHeight = $('#<?= $_GET['name'] ?>_div').prop("offsetHeight") - 25 - 18;
-                contentWidth = parseInt($('#<?= $_GET['name'] ?>_div').prop("offsetWidth") - 17);//Indifferente variarla, perchè?
 
                 $('#<?= $_GET['name'] ?>_trendsContainer').css("height", contentHeight + "px");
                 $('#<?= $_GET['name'] ?>_quotesContainer').css("height", contentHeight + "px");
 
                 rowPercHeight =  Math.floor(30 * 100 / contentHeight);
-                rowPercBottomMargin =  Math.floor(2 * 100 / contentHeight);
-                if(rowPercBottomMargin < 1)
-                {
-                    rowPercBottomMargin = 1;
-                }
-                
+                fullRowPercHeight = rowPercHeight;
                 rowPxHeight = rowPercHeight * contentHeight / 100;
-                rowPxBottomMargin = rowPercBottomMargin * contentHeight / 100;
-                fullRowPxHeight = rowPxHeight + rowPxBottomMargin;
+                //rowPxHeight = 30;
+                //fullRowPxHeight = rowPxHeight;
                 
-                var iconPercWidth = Math.floor(30 * 100 / contentWidth);
-                var contentPercWidth = 100 - 2*rowPercBottomMargin - 2*iconPercWidth;
-        
+                iconWidth = Math.floor(30 * 100 / ($('#<?= $_GET['name'] ?>_div').prop("offsetWidth") - 17));
+                contentPercWidth = 100 - iconWidth;
+                //iconWidth = 30;
+                //contentWidth = $('#<?= $_GET['name'] ?>_div').prop("offsetWidth") - iconWidth - 17;
+                
                 $.ajax({
                     url: "../widgets/curlProxyForTwitterVg.php?url=<?=$internalTwitterVigilanceHost?>/query/query.php?trends=Firenze",
                     type: "GET",
@@ -188,8 +202,6 @@
                     success: function (msg) {
                         var noHashTrend = null;
                         var linkHashTrend = null;
-                        var valueTrends = "";
-                        var titleTrends = "";
                         
                         if(firstLoad !== false)
                         {
@@ -200,35 +212,31 @@
                         
                         if((msg.contents) instanceof Array) 
                         {
+                            $('#<?= $_GET['name'] ?>_trendsContainer').empty();
                             trendsNumber = msg.contents.length;
                             for (var i = 0; i < trendsNumber; i++) 
                             {
                                 noHashTrend = msg.contents[i].request.substring(1);
                                 linkHashTrend = "<a href='https://twitter.com/search?q=%23" + noHashTrend + "&src=typd' target='_blank' data-toggle='tooltip' title='See tweets for this trend on Twitter'>" + msg.contents[i].request.toLowerCase() + "</a>";
-                                var newRow = $("<div style='border: border: 1px solid red' class='twitterRow'></div>");
-                                var newIcon = $("<div class='twitterIcon'></div>");
-                                var newVigIcon = $("<div class='vigilanceIcon'></div>");
-                                var vigilanceLink = "http://www.disit.org/tv/index.php?p=retweet_ricerche&ricerca=%23" + noHashTrend + "&dashboard=true";
+                                var newRow = $('<div class="twitterRow"></div>');
+                                var newVigIcon = $("<div class='vigilanceIcon azzurroGrad'></div>");
+                                var vigilanceLink = "https://www.disit.org/tv/index.php?p=retweet_ricerche&ricerca=%23" + noHashTrend + "&dashboard=true";
                                 var vigIcon= $("<a href='" + vigilanceLink + "' target='blank'><i class='fa fa-eye' data-toggle='tooltip' title='See statistics for this trend on Twitter Vigilance'></i></a>");
-                                var icon = $("<i class='fa fa-twitter'></i>");
-                                newIcon.append(icon);
                                 newVigIcon.append(vigIcon);
                                 var newContent = $("<div class='twitterContent azzurroGrad'></div>");
                                 trendsContentHeight = fullRowPxHeight * msg.contents.length;
                                 
                                 newContent.html(linkHashTrend);
-                                newRow.append(newIcon);
                                 newRow.append(newVigIcon);
                                 newRow.append(newContent);
-                                
-                                if(i  === (msg.contents.length - 1))
-                                {
-                                    newRow.css("margin-bottom", "0px");
-                                }
                                 $('#<?= $_GET['name'] ?>_trendsContainer').append(newRow);
+                                newRow.css("width", "100%");
+                                newRow.css("height", rowPercHeight + "%");
+                                newVigIcon.css("width", iconWidth + "%");
+                                newVigIcon.css("height", "100%");
+                                newContent.css("width", contentPercWidth + "%");
+                                newContent.css("height", "100%");
                             }
-                            
-                            $('#<?= $_GET['name'] ?>_trendsContainer .azzurroGrad').css("width", eventContentW + "px");
                             
                             if(sizeColumns <= 4)
                             {
@@ -267,38 +275,36 @@
                                 dataType: 'json',
                                 success: function (msg2) 
                                 {
-                                    var valueMentions = "";
-                                    var titleMentions = "";
                                     var noAtMention = null;
                                     var linkMention = null;
                                     quotesNumber = msg2.contents.length;
                                     quotesContentHeight = fullRowPxHeight * quotesNumber;
+                                    
+                                    $('#<?= $_GET['name'] ?>_quotesContainer').empty();
                                     for(var i = 0; i < quotesNumber; i++) 
                                     {
                                         noAtMention = msg2.contents[i].request.substring(1).toLowerCase();
                                         linkMention = "<a href='https://twitter.com/search?q=%40" + noAtMention + "&src=typd' target='_blank' data-toggle='tooltip' title='See Twitter page for this mention'>" + msg2.contents[i].request.toLowerCase() + "</a>";
                                         var newRow = $("<div class='twitterRow'></div>");
-                                        var newIcon = $("<div class='twitterIcon turchese'></div>");
-                                        var newVigIcon = $("<div class='vigilanceIcon turchese'></div>");
-                                        var icon= $("<i class='fa fa-twitter'></i>");
-                                        var vigilanceLink = "http://www.disit.org/tv/index.php?p=retweet_ricerche&ricerca=%40" + noAtMention + "&dashboard=true";
+                                        var newVigIcon = $("<div class='vigilanceIcon turcheseGrad'></div>");
+                                        var vigilanceLink = "https://www.disit.org/tv/index.php?p=retweet_ricerche&ricerca=%40" + noAtMention + "&dashboard=true";
                                         var vigIcon= $("<a href='" + vigilanceLink + "' target='blank'><i class='fa fa-eye' data-toggle='tooltip' title='See statistics for this mention on Twitter Vigilance'></i></a>");
-                                        newIcon.append(icon);
                                         newVigIcon.append(vigIcon);
                                         var newContent = $("<div class='twitterContent turcheseGrad'></div>");
                                         
                                         newContent.html(linkMention);
-                                        newRow.append(newIcon);
                                         newRow.append(newVigIcon);
                                         newRow.append(newContent);
-                                        if(i === (quotesNumber - 1))
-                                        {
-                                            newRow.css("margin-bottom", "0px");
-                                        }
+                                        
                                         $('#<?= $_GET['name'] ?>_quotesContainer').append(newRow);
+                                        
+                                        newRow.css("width", "100%");
+                                        newRow.css("height", rowPercHeight + "%");
+                                        newVigIcon.css("width", iconWidth + "%");
+                                        newVigIcon.css("height", "100%");
+                                        newContent.css("width", contentPercWidth + "%");
+                                        newContent.css("height", "100%");
                                     }
-                                    
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .turcheseGrad').css("width", eventContentW + "px");
                                     
                                     if(sizeColumns <= 4)
                                     {
@@ -329,28 +335,6 @@
                                             }
                                         }
                                     }
-                                    
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterRow').css("width", "100%");
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterRow').css("height", rowPercHeight + "%");
-                                    $("#<?= $_GET['name'] ?>_trendsContainer .twitterRow").css("margin-bottom", rowPercBottomMargin + "%");
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterIcon').css("width", iconPercWidth + "%");
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterIcon').css("height", "100%");
-                                    $("#<?= $_GET['name'] ?>_trendsContainer .twitterIcon").css("margin-right", rowPercBottomMargin + "%");
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon').css("width", iconPercWidth + "%");
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon').css("height", "100%");
-                                    $("#<?= $_GET['name'] ?>_trendsContainer .vigilanceIcon").css("margin-right", rowPercBottomMargin + "%");
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .twitterContent').css("width", contentPercWidth + "%");
-
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterRow').css("width", "100%");
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterRow').css("height", rowPercHeight + "%");
-                                    $("#<?= $_GET['name'] ?>_quotesContainer .twitterRow").css("margin-bottom", rowPercBottomMargin + "%");
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterIcon').css("width", iconPercWidth + "%");
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterIcon').css("height", "100%");
-                                    $("#<?= $_GET['name'] ?>_quotesContainer .twitterIcon").css("margin-right", rowPercBottomMargin + "%");
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon').css("width", iconPercWidth + "%");
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon').css("height", "100%");
-                                    $("#<?= $_GET['name'] ?>_quotesContainer .vigilanceIcon").css("margin-right", rowPercBottomMargin + "%");
-                                    $('#<?= $_GET['name'] ?>_quotesContainer .twitterContent').css("width", contentPercWidth + "%");
 
                                     //Listener all'evento slide del carousel
                                     $('#<?= $_GET['name'] ?>_content').on('slid.bs.carousel', function (ev) 
@@ -368,7 +352,7 @@
                                                     $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
                                                     $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
                                                     $('#<?= $_GET['name'] ?>_content').scrollTop(0);
-                                                    var calcContent = (trendsNumber * 32);
+                                                    var calcContent = (trendsNumber * 30);
                                                     var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
                                                     scrollBottom1 = calcContent - shownHeight - 2;
                                                     scroller1 = setInterval(stepDownInterval1, speed);
@@ -379,7 +363,7 @@
                                                     $("#<?= $_GET['name'] ?>_trends_li").attr("class", "");
                                                     $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "active"); 
                                                     $('#<?= $_GET['name'] ?>_content').scrollTop(0);
-                                                    var calcContent = (quotesNumber * 32);
+                                                    var calcContent = (quotesNumber * 30);
                                                     var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
                                                     scrollBottom2 = calcContent - shownHeight - 2;
                                                     scroller2 = setInterval(stepDownInterval2, speed);
@@ -419,7 +403,7 @@
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
                                             $('#<?= $_GET['name'] ?>_content').carousel(0);
-                                            var calcContent = (trendsNumber * 32);
+                                            var calcContent = (trendsNumber * 30);
                                             var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
                                             scrollBottom1 = calcContent - shownHeight - 2;
                                             scroller1 = setInterval(stepDownInterval1, speed);
@@ -433,7 +417,7 @@
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
                                             $('#<?= $_GET['name'] ?>_content').carousel(1);
-                                            var calcContent = (quotesNumber * 32);
+                                            var calcContent = (quotesNumber * 30);
                                             var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
                                             scrollBottom2 = calcContent - shownHeight - 2;
                                             scroller2 = setInterval(stepDownInterval2, speed);
@@ -449,7 +433,7 @@
                                             $('#<?= $_GET['name'] ?>_content').carousel('cycle');
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
-                                            var calcContent = (trendsNumber * 32);
+                                            var calcContent = (trendsNumber * 30);
                                             var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
                                             scrollBottom1 = calcContent - shownHeight - 2;
                                             scroller1 = setInterval(stepDownInterval1, speed);
@@ -480,8 +464,6 @@
                                         {
                                             $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
                                             clearInterval(countdown);
-                                            $('#<?= $_GET['name'] ?>_trendsContainer').empty();
-                                            $('#<?= $_GET['name'] ?>_quotesContainer').empty();
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
                                             $("#<?= $_GET['name'] ?>_content").off();
@@ -494,6 +476,11 @@
                                             setTimeout(<?= $_GET['name'] ?>(false), 1000);
                                         }
                                     }, 1000);
+                                },
+                                error: function(errorData)
+                                {
+                                    console.log("Error retrieving quotes from TV");
+                                    console.log(JSON.stringify(errorData));
                                 }
                             });//Fine AJAX più interno
                         } 
@@ -501,16 +488,25 @@
                         {
                             $("#<?= $_GET['name'] ?>_content").html("<p><b>Principali Twitter Trends:</b> nessun dato disponibile</p><p><b>Citazioni:</b> nessun dato disponibile</p>");
                         }
-                    }
+                    },
+                    error: function(errorData)
+                    {
+                        console.log("Error retrieving trends from TV");
+                        console.log(JSON.stringify(errorData));
+                    }    
                 });
-            }//Chiusura success getParametersWidgets
+            //Chiusura success getParametersWidgets
+            },
+            error: function(errorData)
+            {
+                console.log(JSON.stringify(errorData));
+            }
         });    
  });
 </script>
 
 <div class="widget" id="<?= $_GET['name'] ?>_div">
     <div class='ui-widget-content'>
-        
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
                <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>

@@ -34,7 +34,7 @@
         // Add the background image to the container
         Highcharts.wrap(Highcharts.Chart.prototype, 'getContainer', function(proceed) {
             proceed.call(this);
-            this.container.style.background = 'url(http://www.highcharts.com/samples/graphics/sand.png)';
+            this.container.style.background = 'url(https://www.highcharts.com/samples/graphics/sand.png)';
         });
 
 

@@ -176,7 +176,7 @@ var trafficEventTypes = {
            },
            type26 : {
               desc: "Rerouting",
-              icon: "rereouting.png",
+              icon: "rerouting.png",
               mapIconLow: "genericMapLow.png",
               mapIconMed: "genericMapMed.png",
               mapIconHigh: "genericMapHigh.png"

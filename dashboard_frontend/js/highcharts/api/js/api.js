@@ -12,7 +12,7 @@ var $hilighted,
 	buildPage;
 
 function loadScript(url, callback) {
-	//http://www.nczonline.net/blog/2009/07/28/the-best-way-to-load-external-javascript/
+	//https://www.nczonline.net/blog/2009/07/28/the-best-way-to-load-external-javascript/
 	var script = document.createElement("script");
 	script.type = "text/javascript";
 	if (script.readyState){  //IE
@@ -88,7 +88,7 @@ function hilight (id) {
 		$detailsWrap.animate({ scrollTop: $hilighted.offset().top + $detailsWrap.scrollTop() - 160 }, 400);
 
 		// Workaround for weird case where an element wont scroll under certain conditions
-		// http://stackoverflow.com/questions/1830080/jquery-scrolltop-doesnt-seem-to-work-in-safari-or-chrome-windows#answer-4165094
+		// https://stackoverflow.com/questions/1830080/jquery-scrolltop-doesnt-seem-to-work-in-safari-or-chrome-windows#answer-4165094
 		$('body, html, document').animate({ scrollTop: $hilighted.offset().top + $detailsWrap.scrollTop() - 160 }, 400);
 	}
 	linkId = id.replace(/[^a-z0-9<>\\]+/gi,'.');
@@ -273,10 +273,10 @@ function getMemberInfo(member) {
 function modifyRichCard(member) {
 	var cardScript = $('#richCard'),
 		json = {
-			"@context": "http://schema.org/",
+			"@context": "https://schema.org/",
 			"@type": "APIReference",
 			"name": member,
-			"image": "http://api.highcharts.com/resources/images/" + PRODUCTNAME + ".svg",
+			"image": "https://api.highcharts.com/resources/images/" + PRODUCTNAME + ".svg",
 			"description": getMemberInfo(member).description
 		};
 

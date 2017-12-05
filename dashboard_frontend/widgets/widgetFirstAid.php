@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,12 +13,14 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
      
     //Inizio JQuery document ready handler
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
             $titlePatterns = array();
@@ -45,13 +47,37 @@
         var url = "<?= $_GET['link_w'] ?>"; 
         var styleParameters, legendHeight, serviceUri, viewMode = null;
         var tableRows = [];
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+            showHeader = false;
+	}
+	else
+	{
+            showHeader = true;
+	}
         
         //Definizioni di funzione specifiche del widget
         
         //Funzione di calcolo ed applicazione dell'altezza della tabella
         function setTableHeight()
         {
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
+            var height = null;
+            if((embedWidget === true) && (embedWidgetPolicy === 'auto'))
+            {
+                height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight"));
+            }
+            else
+            {
+                //TBD - Vanno gestiti i futuri casi di policy manuale e show/hide header a scelta utente
+                height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - headerHeight);
+            }
+            
             $("#<?= $_GET['name'] ?>_table").css("height", height);
         }
         
@@ -59,7 +85,7 @@
         function updateLastSeries(seriesObj)
         {
            $.ajax({
-                url: "process-form.php",
+                url: "../management/process-form.php",
                 data: {
                    updatedLastSeries: JSON.stringify(seriesObj),
                    widgetName: widgetName
@@ -69,12 +95,12 @@
                 //dataType: 'json',
                 success: function (data) 
                 {
-                   //console.log("OK");
+                   //Non facciamo niente di specifico
                 },
                 error: function (data)
                 {
-                   console.log("Error");
-                   console.log(data);
+                   console.log("Save last series KO");
+                   console.log(JSON.stringify(data));
                 }
                 
            });
@@ -198,7 +224,7 @@
                for(var i = 0; i < widgetHospitalList.length; i++)
                {
                   $.ajax({
-                     url: "http://servicemap.km4city.org/WebAppGrafo/api/v1/?serviceUri=" + widgetHospitalList[i] + "&requestFrom=app&format=json&uid=96d8ecaedc0f2e33262b7c2abd8492d0bbd438a25bcebc392def069553a66a5b&lang=it",
+                     url: "https://servicemap.km4city.org/WebAppGrafo/api/v1/?serviceUri=" + widgetHospitalList[i] + "&requestFrom=app&format=json&uid=96d8ecaedc0f2e33262b7c2abd8492d0bbd438a25bcebc392def069553a66a5b&lang=it",
                      type: "GET",
                      async: true,
                      dataType: 'json',
@@ -300,6 +326,11 @@
                         
                         if(hospitalsLoaded === widgetHospitalList.length)
                         {
+                            if(firstLoad === false)
+                            {
+                                $("#<?= $_GET['name'] ?>_table").empty();
+                            }
+                            
                            for(var z = 0; z < tableRows.length; z++)
                            {
                               $("#<?= $_GET['name'] ?>_table").append(tableRows[z]);
@@ -373,6 +404,11 @@
                         
                         if(hospitalsLoaded === widgetHospitalList.length)
                         {
+                            if(firstLoad === false)
+                            {
+                                $("#<?= $_GET['name'] ?>_table").empty();
+                            }
+                            
                            for(var z = 0; z < tableRows.length; z++)
                            {
                               $("#<?= $_GET['name'] ?>_table").append(tableRows[z]);
@@ -437,7 +473,7 @@
             else
             {
                $.ajax({
-                  url: "http://servicemap.km4city.org/WebAppGrafo/api/v1/?serviceUri=" + serviceUri + "&requestFrom=app&format=json&uid=96d8ecaedc0f2e33262b7c2abd8492d0bbd438a25bcebc392def069553a66a5b&lang=it",
+                  url: "https://servicemap.km4city.org/WebAppGrafo/api/v1/?serviceUri=" + serviceUri + "&requestFrom=app&format=json&uid=96d8ecaedc0f2e33262b7c2abd8492d0bbd438a25bcebc392def069553a66a5b&lang=it",
                   type: "GET",
                   async: true,
                   dataType: 'json',
@@ -584,6 +620,11 @@
                                 newCell.css('color', fontColor);
                                 dataRow.append(newCell);
                              }
+                             
+                            if(firstLoad === false)
+                            {
+                                $("#<?= $_GET['name'] ?>_table").empty();
+                            }
 
                              $("#<?= $_GET['name'] ?>_table").append(headerRow);
                              $("#<?= $_GET['name'] ?>_table").append(dataRow);  
@@ -649,7 +690,12 @@
 
                              colsQt = parseInt(parseInt(series.firstAxis.labels.length) + 1);
                              rowsQt = parseInt(parseInt(series.secondAxis.labels.length) + 1);
-
+                             
+                            if(firstLoad === false)
+                            {
+                                $("#<?= $_GET['name'] ?>_table").empty();
+                            }
+                             
                              for(var i = 0; i < rowsQt; i++)
                              {
                                  newRow = $("<tr></tr>");
@@ -822,7 +868,7 @@
                   },
                   error: function (data)
                   {
-                    switch(viewMode)
+                       switch(viewMode)
                        {
                           case "singleSummary":
                              series = {  
@@ -1565,7 +1611,7 @@
             url = null;
         }
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         
         if(firstLoad !== false)
         {
@@ -1583,24 +1629,21 @@
         if(widgetProperties !== null)
         {
             //Inizio codice ad hoc basato sulle proprietà del widget
+            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
             var parametersObj = JSON.parse(widgetProperties.param.parameters);
             serviceUri = widgetProperties.param.serviceUri;
             viewMode = widgetProperties.param.viewMode;
             var styleParametersString = widgetProperties.param.styleParameters;
             styleParameters = jQuery.parseJSON(styleParametersString);
             
-            if(firstLoad === false)
-            {
-                elToEmpty.empty();
-            }
             //Fine codice ad hoc basato sulle proprietà del widget
             populateTable(serviceUri);       
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetTable", null, null);
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
 </script>
@@ -1634,7 +1677,15 @@
         </div>
         
         <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <!--<p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>-->
+            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+                    No data available
+                </div>
+                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                    <i class="fa fa-times"></i>
+                </div>
+           </div>
             <table id="<?= $_GET['name'] ?>_table" class="psTable">
             </table>
         </div>

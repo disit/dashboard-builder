@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,12 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-    include('../config.php');
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge"); 
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad)  
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
     {
         <?php
             $titlePatterns = array();
@@ -52,6 +52,11 @@
         var timeToReload = <?= $_GET['freq'] ?>;
         var elToEmpty = $("#<?= $_GET['name'] ?>_rollerContainer");
         var url = "<?= $_GET['link_w'] ?>";
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
         
         var eventsOnMaps = {};
         var widgetTargetListFlags = [];
@@ -61,6 +66,15 @@
         {
             url = null;
         }
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+	   showHeader = false;
+	}
+	else
+	{
+            showHeader = true;
+	} 
    
         timeFontSize = parseInt(fontSize*1.6);
         dateFontSize = parseInt(fontSize*0.95);
@@ -92,22 +106,31 @@
         //Definizioni di funzione
         function loadDefaultMap(widgetName)
         {
-            var mapdiv = widgetName + "_defaultMapDiv";
-            var mapRef = L.map(mapdiv).setView([43.769789, 11.255694], 11);
+            if($('#' + widgetName + '_defaultMapDiv div.leaflet-map-pane').length > 0)
+            {
+               //Basta nasconderla, tanto viene distrutta e ricreata ad ogni utilizzo (per ora).
+               $('#' + widgetName + '_wrapper').hide();
+               $('#' + widgetName + '_defaultMapDiv').show();
+            }
+            else
+            {
+                var mapdiv = widgetName + "_defaultMapDiv";
+                var mapRef = L.map(mapdiv).setView([43.769789, 11.255694], 11);
 
-            L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-               attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-               maxZoom: 18
-            }).addTo(mapRef);
-            mapRef.attributionControl.setPrefix('');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                   attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                   maxZoom: 18
+                }).addTo(mapRef);
+                mapRef.attributionControl.setPrefix('');
+            }
         }
         
         function populateWidget(fromSort)
         {
            var name, value = null;
            
-           //Mappa vuota sui target
-            if(fromSort !== true)
+           //Mappa vuota sui target - Commentata il 21/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map" 
+            /*if(fromSort !== true)
             {
                for(var index in widgetTargetList) 
                {
@@ -115,11 +138,12 @@
                   {
                      $("#" + widgetTargetList[index] + "_wrapper").hide();
                      $("#" + widgetTargetList[index] + "_defaultMapDiv").show();
-                     loadDefaultMap(widgetTargetList[index]);
+                     //Mappa vuota sui target - Commentata il 11/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map"
+                     //loadDefaultMap(widgetTargetList[index]);
                      $("#" + widgetTargetList[index] + "_div").attr("data-emptymapshown", "true");
                   }
                }
-            }
+            }*/
            
            
            $('#<?= $_GET['name'] ?>_rollerContainer').empty();
@@ -167,9 +191,10 @@
              icon = $('<img src="../img/networkIcons/node.png "/>');
              
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle">' + name + '</div>');
+             eventTitle = $('<div class="eventTitle centerWithFlex">' + name + '</div>');
              eventTitle.addClass(backgroundTitleClass);
              eventTitle.css("font-size", fontSize + "px");
+             eventTitle.css("font-weight", "bold");
              eventTitle.css("height", "30%");
              $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
 
@@ -351,9 +376,10 @@
              eventTooltip = nodeMeasureDesc1;  
              
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle">' + name + '</div>');
+             eventTitle = $('<div class="eventTitle centerWithFlex">' + name + '</div>');
              eventTitle.addClass(backgroundTitleClass);
              eventTitle.css("font-size", fontSize + "px");
+             eventTitle.css("font-weight", "bold");
              eventTitle.css("height", "30%");
              $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
 
@@ -552,9 +578,10 @@
              eventTooltip = edgeMeasureDesc;  
              
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle">' + name + '</div>');
+             eventTitle = $('<div class="eventTitle centerWithFlex">' + name + '</div>');
              eventTitle.addClass(backgroundTitleClass);
              eventTitle.css("font-size", fontSize + "px");
+             eventTitle.css("font-weight", "bold");
              eventTitle.css("height", "30%");
              $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
 
@@ -726,13 +753,14 @@
         function addEventToMap(eventLink, widgetName, index)
         {
            var serviceId = eventLink.attr("data-serviceid");
-           //var serviceMapUrl = "http://servicemap.disit.org/WebAppGrafo/api/v1/?format=html&serviceUri=http://www.disit.org/km4city/resource/" + serviceId;
-           var serviceMapUrl = "http://servicemap.disit.org/WebAppGrafo/api/v1/?format=html&maxDists=0.03&categories=BusStop;PublicTransportLine&selection=http://www.disit.org/km4city/resource/" + serviceId;
+           var serviceMapUrl = "<?php echo $serviceMapUrlPrefix; ?>" + "api/v1/?format=html&maxDists=0.03&categories=BusStop;PublicTransportLine&selection=https://www.disit.org/km4city/resource/" + serviceId;
            
            $("#" + widgetName + "_mapDiv").hide();
            $("#" + widgetName + "_defaultMapDiv").hide();
            $("#" + widgetName + "_wrapper").show();
            $("#" + widgetName + "_iFrame").attr("src", serviceMapUrl);
+           $("#" + widgetName + "_driverWidgetType").val("newtworkAnalysis");
+           $("#" + widgetName + "_netAnalysisServiceMapUrl").val(serviceMapUrl + "&controls=show");
            widgetTargetListFlags[index] = true;
         }
         
@@ -740,7 +768,13 @@
         {
            $("#" + widgetName + "_wrapper").hide();
            widgetTargetListFlags[index] = false;
+           $("#" + widgetName + "_driverWidgetType").val("");
+           $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
+           $("#" + widgetName + "_buttonUrl").val("");
+           $("#" + widgetName + "_recreativeEventsUrl").val("");
            $("#" + widgetName + "_defaultMapDiv").show();
+           $("#" + widgetName + "_driverWidgetType").val("newtworkAnalysis");
+           $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
         }
         
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
@@ -795,7 +829,7 @@
         }
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         $("#<?= $_GET['name'] ?>_buttonsContainer").css("background-color", $("#<?= $_GET['name'] ?>_header").css("background-color"));
         
         if(firstLoad === false)
@@ -816,7 +850,7 @@
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
-            
+            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
             widgetTargetList = JSON.parse(widgetProperties.param.parameters);
             if(widgetTargetList !== null)
             {
@@ -859,64 +893,80 @@
                   }
                   
                   //Inserimento una tantum degli eventi nell'apposito array (per ordinamenti)
-                  globalPayload = JSON.parse(data.payload);
-                  
-                  $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height()); 
-                  eventsNumber = globalPayload.edge_measures[0].critical_edges.length + globalPayload.node_measures[0].critical_nodes.length + globalPayload.node_measures[1].critical_nodes.length;
-                  
-                  widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
-                  shownHeight = $("#<?= $_GET['name'] ?>_rollerContainer").prop("offsetHeight");
-                  rowPercHeight =  75 * 100 / shownHeight;
-                  contentHeightPx = eventsNumber * 100;
-                  eventContentWPerc = null;
-
-                  if(contentHeightPx > shownHeight)
+                  if(data.length === 0)
                   {
-                      eventContentW = parseInt(widgetWidth - 45 - 22);
+                      $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
+                      $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
+                      $("#<?= $_GET['name'] ?>_noDataAlert").show();
                   }
                   else
                   {
-                      eventContentW = parseInt(widgetWidth - 45 - 5);
-                  }
-                  
-                  eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
-                  
-                  populateWidget();
-                  
-               scroller = setInterval(stepDownInterval, speed);
-               var timeToClearScroll = (timeToReload - 0.5) * 1000;
-               
-               setTimeout(function()
-               {
-                   clearInterval(scroller);
-                   $("#<?= $_GET['name'] ?>_rollerContainer").off();
-                   
-                   //$(document).off("esbEventAdded");
+                    globalPayload = JSON.parse(data.payload); 
+                    eventsNumber = globalPayload.edge_measures[0].critical_edges.length + globalPayload.node_measures[0].critical_nodes.length + globalPayload.node_measures[1].critical_nodes.length;
+                    $('#<?= $_GET['name'] ?>_rollerContainer').show();
+                    $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height());
+                    widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
+                    shownHeight = $("#<?= $_GET['name'] ?>_rollerContainer").prop("offsetHeight");
+                    rowPercHeight =  75 * 100 / shownHeight;
+                    contentHeightPx = eventsNumber * 100;
+                    eventContentWPerc = null;
 
-                   //Ripristino delle homepage native per gli widget targets al reload
-                   /*var wName = null;
-                   for(var i in widgetTargetList) 
+                    if(contentHeightPx > shownHeight)
+                    {
+                        eventContentW = parseInt(widgetWidth - 45 - 22);
+                    }
+                    else
+                    {
+                        eventContentW = parseInt(widgetWidth - 45 - 5);
+                    }
+
+                    eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
+
+                    populateWidget();
+
+                    scroller = setInterval(stepDownInterval, speed);
+                    var timeToClearScroll = (timeToReload - 0.5) * 1000;
+
+                    setTimeout(function()
+                    {
+                          clearInterval(scroller);
+                          $("#<?= $_GET['name'] ?>_rollerContainer").off();
+
+                          //$(document).off("esbEventAdded");
+
+                          //Ripristino delle mappe native per gli widget targets al reload
+                          var wName = null;
+                          for(var i in widgetTargetList) 
+                          {
+                             /*wName = widgetTargetList[i];
+                             if(widgetTargetListFlags[i] === true)
+                             {
+                                $("#" + wName + "_iFrame").attr("src", $("#" + wName + "_iFrame").attr("data-oldsrc"));
+                             }*/
+        
+                            if($("#" + widgetTargetList[i] + "_driverWidgetType").val() === 'newtworkAnalysis')
+                            {
+                                loadDefaultMap(widgetTargetList[i]);
+                            }
+                            else
+                            {
+                                //console.log("Attualmente non pilotato da newtworkAnalysis");
+                            }
+                          }
+
+                    }, timeToClearScroll);
+
+
+                   $("#<?= $_GET['name'] ?>_rollerContainer").mouseenter(function() 
                    {
-                      wName = widgetTargetList[i];
-                      if(widgetTargetListFlags[i] === true)
-                      {
-                         $("#" + wName + "_iFrame").attr("src", $("#" + wName + "_iFrame").attr("data-oldsrc"));
-                      }
-                   }*/
+                       clearInterval(scroller);
+                   });
 
-               }, timeToClearScroll);
-
-
-               $("#<?= $_GET['name'] ?>_rollerContainer").mouseenter(function() 
-               {
-                   clearInterval(scroller);
-               });
-
-               $("#<?= $_GET['name'] ?>_rollerContainer").mouseleave(function()
-               {    
-                  scroller = setInterval(stepDownInterval, speed);
-               });
-                  
+                   $("#<?= $_GET['name'] ?>_rollerContainer").mouseleave(function()
+                   {    
+                      scroller = setInterval(stepDownInterval, speed);
+                   });
+                  }
                },
                error: function (data)
                {
@@ -931,10 +981,10 @@
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
         }
         
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetNetworkAnalysis", test, eventNames);
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
     });//Fine document ready
 </script>
 
@@ -964,7 +1014,14 @@
         </div>
         
         <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+                    No data available
+                </div>
+                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                    <i class="fa fa-times"></i>
+                </div>
+           </div>
             <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
                <div id="<?= $_GET['name'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
             </div>

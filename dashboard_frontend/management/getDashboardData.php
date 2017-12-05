@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -177,7 +177,7 @@
            }
         }
         
-        $query = "SELECT * FROM Config_widget_dashboard INNER JOIN Widgets ON Config_widget_dashboard.type_w=Widgets.id_type_widget WHERE id_dashboard = '$dashboardId'";
+        $query = "SELECT * FROM Config_widget_dashboard INNER JOIN Widgets ON Config_widget_dashboard.type_w=Widgets.id_type_widget WHERE id_dashboard = '$dashboardId' ORDER BY n_row, n_column ASC";
         $result = mysqli_query($link, $query) or die(mysqli_error($link));
         $dashboardWidgets = array();
 
@@ -289,7 +289,7 @@
         $authorLdapUsername = "cn=". $row["username"] . ",dc=ldap,dc=disit,dc=org";
         $response["visibility"] = $visibility;
         
-        if(($row["role"] == NULL) || ($row["role"] == "NULL"))
+        if(/*($row["role"] == NULL) || ($row["role"] == "NULL")*/false)
         {
             //Autore LDAP
             $ds = ldap_connect($ldapServer, $ldapPort);
@@ -374,7 +374,7 @@
                                       else
                                       {
                                          //Controlliamo se è un tool admin
-                                         if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                                         if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                                          {
                                             $response["detail"] = "Ok";
                                             $response["context"] = "View";
@@ -412,7 +412,7 @@
                                   }
                                   else
                                   {//Controlliamo se è tool admin
-                                    if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                                    if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                                     {
                                        $response["detail"] = "Ok";
                                        $response["context"] = "View";
@@ -433,7 +433,7 @@
 
                           case "ToolAdmin":
                              //Controlliamo se è un tool admin
-                              if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                              if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                               {
                                  $response["detail"] = "Ok";
                                  $response["context"] = "View";
@@ -481,16 +481,16 @@
                         $row = mysqli_fetch_array($result);
                         $tool = "Dashboard";
                         
-                        $ds2 = ldap_connect($ldapServer, $ldapPort);
+                        /*$ds2 = ldap_connect($ldapServer, $ldapPort);
                         ldap_set_option($ds2, LDAP_OPT_PROTOCOL_VERSION, 3);
                         $bind = ldap_bind($ds2);
                         
                         $ldapusr = "cn=" . $applicantUsername . ",dc=ldap,dc=disit,dc=org";
                         
                         $ldapMember = checkMembership($ds2, $ldapusr, $tool);
-                        ldap_unbind($ds2);
+                        ldap_unbind($ds2);*/
                          
-                         if(($row["isRegistered"] <= 0)&&($ldapMember == false))
+                         if(($row["isRegistered"] <= 0)&&(/*$ldapMember == false*/true))
                          {
                            $response["detail"] = "userNotRegistered";
                            $proceed = false;
@@ -549,7 +549,7 @@
                                       else
                                       {
                                          //Controlliamo se è un tool admin
-                                         if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                                         if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                                          {
                                             $response["detail"] = "Ok";
                                             $response["context"] = "View";
@@ -590,7 +590,7 @@
                                 else
                                 {
                                   //Se non è l'autore, controlliamo se è un tool admin
-                                  if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)) 
+                                  if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true) 
                                   {
                                      $response["detail"] = "Ok";
                                      $response["context"] = "View";
@@ -612,7 +612,7 @@
 
                          case "ToolAdmin":
                             //Controlliamo se è un tool admin
-                            if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                            if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                             {
                                $response["detail"] = "Ok";
                                $response["context"] = "View";
@@ -689,7 +689,7 @@
                                           else
                                           {
                                              //Controlliamo se è un tool admin
-                                             if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                                             if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                                              {
                                                 $response["detail"] = "Ok";
                                                 $response["context"] = "View";
@@ -767,7 +767,7 @@
                                           else
                                           {
                                              //Controlliamo se è un tool admin
-                                             if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                                             if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                                              {
                                                 $response["detail"] = "Ok";
                                                 $response["context"] = "View";
@@ -796,7 +796,7 @@
 
                         case "ToolAdmin":
                            //Controlliamo se è un tool admin
-                            if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                            if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                             {
                                $response["detail"] = "Ok";
                                $response["context"] = "View";
@@ -869,16 +869,16 @@
                         $row = mysqli_fetch_array($result);
                         $tool = "Dashboard";
                         
-                        $ds2 = ldap_connect($ldapServer, $ldapPort);
+                        /*$ds2 = ldap_connect($ldapServer, $ldapPort);
                         ldap_set_option($ds2, LDAP_OPT_PROTOCOL_VERSION, 3);
                         $bind = ldap_bind($ds2);
                         
                         $ldapusr = "cn=" . $applicantUsername . ",dc=ldap,dc=disit,dc=org";
                         
                         $ldapMember = checkMembership($ds2, $ldapusr, $tool);
-                        ldap_unbind($ds2);
+                        ldap_unbind($ds2);*/
                          
-                         if(($row["isRegistered"] <= 0)&&($ldapMember == false))
+                         if(($row["isRegistered"] <= 0)&&(/*$ldapMember == false*/true))
                          {
                            $response["detail"] = "userNotRegistered";
                            $proceed = false;
@@ -954,7 +954,7 @@
                                            else
                                            {
                                               //Controlliamo se è un tool admin
-                                              if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                                              if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                                               {
                                                  $response["detail"] = "Ok";
                                                  $response["context"] = "View";
@@ -1035,7 +1035,7 @@
                                           else
                                           {
                                               //Controlliamo se è un tool admin
-                                             if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                                             if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                                              {
                                                 $response["detail"] = "Ok";
                                                 $response["context"] = "View";
@@ -1065,7 +1065,7 @@
 
                          case "ToolAdmin":
                             //Controlliamo se è un tool admin
-                            if(isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort))
+                            if(/*isToolAdmin($link, $applicantUsername, $ldapServer, $ldapPort)*/true)
                             {
                                $response["detail"] = "Ok";
                                $response["context"] = "View";

@@ -1,6 +1,6 @@
 ﻿/*
  Copyright (c) 2003-2016, CKSource - Frederico Knabben. All rights reserved.
- For licensing, see LICENSE.md or http://ckeditor.com/license
+ For licensing, see LICENSE.md or https://ckeditor.com/license
 */
 CKEDITOR.dialog.add("a11yHelp",function(l){var a=l.lang.a11yhelp,n=CKEDITOR.tools.getNextId(),e={8:a.backspace,9:a.tab,13:a.enter,16:a.shift,17:a.ctrl,18:a.alt,19:a.pause,20:a.capslock,27:a.escape,33:a.pageUp,34:a.pageDown,35:a.end,36:a.home,37:a.leftArrow,38:a.upArrow,39:a.rightArrow,40:a.downArrow,45:a.insert,46:a["delete"],91:a.leftWindowKey,92:a.rightWindowKey,93:a.selectKey,96:a.numpad0,97:a.numpad1,98:a.numpad2,99:a.numpad3,100:a.numpad4,101:a.numpad5,102:a.numpad6,103:a.numpad7,104:a.numpad8,
 105:a.numpad9,106:a.multiply,107:a.add,109:a.subtract,110:a.decimalPoint,111:a.divide,112:a.f1,113:a.f2,114:a.f3,115:a.f4,116:a.f5,117:a.f6,118:a.f7,119:a.f8,120:a.f9,121:a.f10,122:a.f11,123:a.f12,144:a.numLock,145:a.scrollLock,186:a.semiColon,187:a.equalSign,188:a.comma,189:a.dash,190:a.period,191:a.forwardSlash,192:a.graveAccent,219:a.openBracket,220:a.backSlash,221:a.closeBracket,222:a.singleQuote};e[CKEDITOR.ALT]=a.alt;e[CKEDITOR.SHIFT]=a.shift;e[CKEDITOR.CTRL]=a.ctrl;var f=[CKEDITOR.ALT,CKEDITOR.SHIFT,

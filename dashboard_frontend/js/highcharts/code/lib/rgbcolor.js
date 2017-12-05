@@ -2,7 +2,7 @@
 
  A class to parse color values
  @author Stoyan Stefanov <sstoo@gmail.com>
- @link   http://www.phpied.com/rgb-color-parser-in-javascript/
+ @link   https://www.phpied.com/rgb-color-parser-in-javascript/
  @license Use it if you like it
 */
 (function(f){function g(b){this.ok=!1;"#"==b.charAt(0)&&(b=b.substr(1,6));b=b.replace(/ /g,"");b=b.toLowerCase();var m={aliceblue:"f0f8ff",antiquewhite:"faebd7",aqua:"00ffff",aquamarine:"7fffd4",azure:"f0ffff",beige:"f5f5dc",bisque:"ffe4c4",black:"000000",blanchedalmond:"ffebcd",blue:"0000ff",blueviolet:"8a2be2",brown:"a52a2a",burlywood:"deb887",cadetblue:"5f9ea0",chartreuse:"7fff00",chocolate:"d2691e",coral:"ff7f50",cornflowerblue:"6495ed",cornsilk:"fff8dc",crimson:"dc143c",cyan:"00ffff",darkblue:"00008b",

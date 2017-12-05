@@ -27,7 +27,7 @@ public class Main {
     if (db_conf.loadConfigFile())
     {
       DBAccess db_access = new DBAccess(db_conf.getMapProperties().get("AlarmEmail"));
-      String queryDescriptions = "SELECT * FROM Descriptions";
+      String queryDescriptions = "SELECT * FROM Descriptions WHERE process = 'DashboardProcess'";
       db_access.setConnection(db_conf.getMapProperties().get("Dashboard"));
       if (db_access.readDataBase(queryDescriptions) != null) 
       {

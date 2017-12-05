@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -47,14 +47,10 @@
     
     if(!$link->set_charset("utf8")) 
     {
-        echo '<script type="text/javascript">';
-        echo 'alert("KO");';
-        echo '</script>';
-        printf("Error loading character set utf8: %s\n", $link->error);
         exit();
     }
     
-    mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+    mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
     $queryFail = false;
     
     if(isset($_REQUEST['ident'])&&canEditDashboard())
@@ -74,8 +70,24 @@
         $headerFontColor = mysqli_real_escape_string($link, $_REQUEST['headerFontColor']); 
         $visibility = mysqli_real_escape_string($link, $_POST['inputDashboardVisibility']);
         $filename = NULL;
-        //$logoLink = $_REQUEST['dashboardLogoLinkInput'];
         $logoLink = NULL;
+        $embeddable = mysqli_real_escape_string($link, $_POST['embeddable']);
+        $headerVisible = $_POST['headerVisible'];
+        if(isset($_POST['authorizedPagesJson']))
+        {
+            if(($_POST['authorizedPagesJson'] != "[]")&&($_POST['authorizedPagesJson'] != ""))
+            {
+               $authorizedPagesJson = mysqli_real_escape_string($link, $_POST['authorizedPagesJson']); 
+            }
+            else
+            {
+                $authorizedPagesJson = NULL;
+            }
+        }
+        else
+        {
+            $authorizedPagesJson = NULL;
+        }
         
         if($headerFontSize > 45)
         {
@@ -91,10 +103,6 @@
         if(($_REQUEST['dashboardLogoLinkInput'] != NULL) && ($_REQUEST['dashboardLogoLinkInput'] != ''))
         {
             $logoLink = mysqli_real_escape_string($link, $_REQUEST['dashboardLogoLinkInput']); 
-            if (strpos($logoLink, 'http://') === false) 
-            {
-                $logoLink = 'http://' . $logoLink;
-            }
         }
         
         //Nuovo file caricato, si cancella il vecchio e si aggiorna il nome del file su DB.
@@ -102,28 +110,33 @@
         {
             if(!file_exists("../img/dashLogos/"))
             {
-                mkdir("../img/dashLogos/");
+                $oldMask = umask(0);
+                mkdir("../img/dashLogos/", 0777);
+                umask($oldMask);
             }
             
             if(!file_exists($uploadFolder))
             {
-                mkdir($uploadFolder);
+                $oldMask = umask(0);
+                mkdir($uploadFolder, 0777);
+                umask($oldMask);
             }
             else
             {
                 $oldFiles = glob($uploadFolder . '*');
                 foreach($oldFiles as $fileToDel)
                 { 
-                    if(is_file($fileToDel) && strpos(basename($fileToDel), 'old'))
+                    if(is_file($fileToDel))
                     {
                        unlink($fileToDel);
                     }
                 }
             }
             
-            $pointIndex = strrpos($_FILES['dashboardLogoInput']['name'], ".");
+            /*$pointIndex = strrpos($_FILES['dashboardLogoInput']['name'], ".");
             $extension = substr($_FILES['dashboardLogoInput']['name'], $pointIndex);
-            $filename = 'logo'.$extension;
+            $filename = 'logo'.$extension;*/
+            $filename = $_FILES['dashboardLogoInput']['name'];
             
             if(!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder.$filename))  
             {  
@@ -133,17 +146,9 @@
             }
             else 
             {
-                /*$query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoFilename = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ?, visibility = ? WHERE Id = ?");
-                $query->bind_param('sssiisssisssssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $filename, $logoLink, $widgetsBorders, $widgetsBordersColor, $visibility, $dashboardId);
-                
-                $result = $query->execute();*/
-                
-                $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoFilename = '$filename', logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility' WHERE Id = $dashboardId";
-            
+               chmod($uploadFolder.$filename, 0666); 
+               $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoFilename = '$filename', logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility', headerVisible = $headerVisible, embeddable = '$embeddable', authorizedPagesJson = '$authorizedPagesJson' WHERE Id = $dashboardId";
                $result = mysqli_query($link, $query);  
-               
-                //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
-                //fwrite($file, "Query (with file): " . $query . "\n");
                 
                 if(!$result)
                 {
@@ -168,16 +173,8 @@
         }//Nessun nuovo file caricato
         else
         {
-            /*$query = $link->prepare("UPDATE Dashboard.Config_dashboard SET title_header = ?, subtitle_header = ?, color_header = ?, width = ?, num_columns = ?, color_background = ?, external_frame_color = ?, headerFontColor = ?, headerFontSize = ?, logoLink = ?, widgetsBorders = ?, widgetsBordersColor = ?, visibility = ? WHERE Id = ?");
-            $query->bind_param('sssiisssisssi', $newDashboardTitle, $newDashboardSubtitle, $newDashboardColor, $width, $nCols, $newDashboardBckColor, $newDashboardExtColor, $headerFontColor, $headerFontSize, $logoLink, $widgetsBorders, $widgetsBordersColor, $visibility, $dashboardId);
-            $result = $query->execute();*/
-           
-            $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility' WHERE Id = $dashboardId";
-            
+            $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility', headerVisible = $headerVisible, embeddable = '$embeddable', authorizedPagesJson = '$authorizedPagesJson' WHERE Id = $dashboardId";
             $result = mysqli_query($link, $query);
-            
-            //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
-            //fwrite($file, "Query (no file): " . $query . "\n");
             
             if(!$result)
             {

@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,8 +13,8 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-    include('../config.php');
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge"); 
 ?>
 <script type='text/javascript'>
     $(document).ready(function iframe(firstLoad) 
@@ -41,10 +41,22 @@
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
-        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
-            descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
-            rangeMin, rangeMax, widgetParameters, mapQuery = null;
+        var widgetProperties,styleParameters, mapQuery = null;
         var metricId = "<?= $_GET['metric'] ?>";
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+	   showHeader = false;
+	}
+	else
+	{
+           showHeader = true;
+	}  
         
         //Definizioni di funzione specifiche del widget
         /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
@@ -83,7 +95,7 @@
             return styleParameters;
         }
         //Fine definizioni di funzione 
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -100,6 +112,7 @@
         {
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
 
             //Inizio eventuale codice ad hoc basato sui dati della metrica
@@ -131,14 +144,14 @@
                        //TBD
                     }
                 },
-                error: function (jqXHR, textStatus, errorThrow) {
-                    alert(errorThrow);
+                error: function (dataError) {
+                    console.log(JSON.stringify(dataError));
                 }
             });
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
         }
     });//Fine document ready
 </script>

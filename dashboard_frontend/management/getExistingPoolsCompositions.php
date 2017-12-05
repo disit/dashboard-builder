@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -42,14 +42,8 @@
       return false;
   }
    
-   //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
-   
    if(!$link->set_charset("utf8")) 
    {
-       echo '<script type="text/javascript">';
-       echo 'alert("KO");';
-       echo '</script>';
-       printf("Error loading character set utf8: %s\n", $link->error);
        exit();
    }
 
@@ -61,7 +55,7 @@
          $temp = [];
          $ldapUsers = [];
 
-         $ds = ldap_connect($ldapServer, $ldapPort);
+         /*$ds = ldap_connect($ldapServer, $ldapPort);
          ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
          $bind = ldap_bind($ds);
 
@@ -111,7 +105,7 @@
                }
                $ldapUsers[$name] = $role;
             }
-         }
+         }*/
 
          $query = "SELECT * FROM Dashboard.UsersPools";
          $result = mysqli_query($link, $query);

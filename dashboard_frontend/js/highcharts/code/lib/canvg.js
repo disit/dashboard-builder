@@ -3,9 +3,9 @@
  canvg.js - Javascript SVG parser and renderer on Canvas
  MIT Licensed
  Gabe Lerner (gabelerner@gmail.com)
- http://code.google.com/p/canvg/
+ https://code.google.com/p/canvg/
 
- Requires: rgbcolor.js - http://www.phpied.com/rgb-color-parser-in-javascript/
+ Requires: rgbcolor.js - https://www.phpied.com/rgb-color-parser-in-javascript/
 */
 (function(x,y){"undefined"!==typeof define&&define.amd?define("canvgModule",["rgbcolor","stackblur"],y):"undefined"!==typeof module&&module.exports&&(module.exports=y(require("rgbcolor"),require("stackblur")));x.canvg=y(x.RGBColor,x.stackBlur)})("undefined"!==typeof window?window:this,function(x,y){function A(h){var a=[0,0,0],l=function(c,b){var e=h.match(c);null!=e&&(a[b]+=e.length,h=h.replace(c," "))};h=h.replace(/:not\(([^\)]*)\)/g,"     $1 ");h=h.replace(/{[^]*/gm," ");l(B,1);l(C,0);l(D,1);l(E,
 2);l(F,1);l(G,1);h=h.replace(/[\*\s\+>~]/g," ");h=h.replace(/[#\.]/g," ");l(H,2);return a.join("")}function I(h){var a={opts:h,FRAMERATE:30,MAX_VIRTUAL_PIXELS:3E4,log:function(a){}};1==a.opts.log&&"undefined"!=typeof console&&(a.log=function(a){console.log(a)});a.init=function(c){var b=0;a.UniqueId=function(){b++;return"canvg"+b};a.Definitions={};a.Styles={};a.StylesSpecificity={};a.Animations=[];a.Images=[];a.ctx=c;a.ViewPort=new function(){this.viewPorts=[];this.Clear=function(){this.viewPorts=

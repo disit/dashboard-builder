@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -17,6 +17,7 @@
 
     include('process-form.php');
     include('../config.php');
+    session_start();
 ?>
 
 <html lang="en">
@@ -34,20 +35,9 @@
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
-    
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-    
-    <!-- jQuery -->
-    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
     <script src="../js/jquery-1.10.1.min.js"></script>
     
     <!-- JQUERY UI -->
-    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
     <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
@@ -57,8 +47,8 @@
     <script src="../js/bootstrap-colorpicker.min.js"></script>
     
     <!-- Bootstrap editable tables -->
-    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
     
     <!-- Font awesome icons -->
     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
@@ -101,27 +91,27 @@
             </ul>
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul id="navbarLinks" class="nav navbar-nav side-nav">
-                    <li><a href="../management/dashboard_mng.php">Dashboards management</a></li>
+                    <li><a href="../management/dashboard_mng.php" class="internalLink">Dashboards management</a></li>
                     <?php
                         if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
                         {     
                            if($_SESSION['loggedType'] == "local")
                            {
-                              echo '<li class="active"><a href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
+                              echo '<li class="active"><a class="internalLink" href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
                            }
                            
                            if($_SESSION['loggedRole'] == "ToolAdmin")
                            {
-                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
-                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
-                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
-                                echo '<li><a href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
                                 
                            }
                            
                            if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
                            {
-                              echo '<li><a href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
+                              echo '<li><a class="internalLink" href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
                            }
                         }
                     ?>
@@ -215,7 +205,7 @@
                              </div>  
                            </div> 
                            <div class="row">
-                              <button type="button" id="editAccountConfirmBtn" class="btn btn-primary pull-right" disabled="true">Apply changes</button>
+                              <button type="button" id="editAccountConfirmBtn" class="btn btn-primary pull-right internalLink" disabled="true">Apply changes</button>
                               <button type="button" id="editAccountCancelBtn" class="btn btn-secondary pull-right" data-dismiss="modal">Undo changes</button>
                            </div>
                         </div>

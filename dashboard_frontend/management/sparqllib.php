@@ -4,7 +4,7 @@
 # Christopher Gutteridge 2010
 #  cjg@ecs.soton.ac.uk
 #  LGPL License 
-#  http://graphite.ecs.soton.ac.uk/sparqllib/
+#  https://graphite.ecs.soton.ac.uk/sparqllib/
 #  https://github.com/cgutteridge/PHP-SPARQL-Lib
 ###############################
 
@@ -311,7 +311,7 @@ class sparql_connection
 	function test_load() 
 	{
 		$output = $this->dispatchQuery( 
-		  "LOAD <http://graphite.ecs.soton.ac.uk/sparqllib/examples/loadtest.rdf>" );
+		  "LOAD <https://graphite.ecs.soton.ac.uk/sparqllib/examples/loadtest.rdf>" );
 		return !isset( $this->errno );
 	}
 
@@ -379,7 +379,7 @@ class sparql_result
 }
 
 
-# class xx_xml adapted code found at http://php.net/manual/en/function.xml-parse.php
+# class xx_xml adapted code found at https://php.net/manual/en/function.xml-parse.php
 # class is cc-by 
 # hello at rootsy dot co dot uk / 24-May-2008 09:30
 class xx_xml {
@@ -400,7 +400,7 @@ class xx_xml {
 	var $type;
 
 	// function with the default parameter value
-	function xx_xml($url='http://www.opocot.com', $type='url') {
+	function xx_xml($url='https://www.opocot.com', $type='url') {
 		$this->type = $type;
 		$this->url  = $url;
 		$this->parse();

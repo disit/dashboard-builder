@@ -1,6 +1,6 @@
 <?php 
     /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,6 +13,120 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include '../config.php';
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
+
+   //Va studiata una soluzione, per ora tolto error reporting
+   error_reporting(0);
+   
+   $dashId = base64_decode($_REQUEST['iddasboard']);
+   
+   session_start();
+   
+    $link = mysqli_connect($host, $username, $password) or die();
+    mysqli_select_db($link, $dbname);
+
+    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = $dashId";
+    $queryResult = mysqli_query($link, $query) or die(mysqli_error($link));
+    
+    if(isset($_REQUEST['embedPolicy']))
+    {
+        $embedPolicy = $_REQUEST['embedPolicy'];
+    }
+    else
+    {
+        $embedPolicy = 'manual';
+    }
+    
+    if(isset($_REQUEST['autofit']))
+    {
+        $embedAutofit = $_REQUEST['autofit'];
+    }
+    else
+    {
+        $embedAutofit = 'no';
+    }
+    
+    if(isset($_REQUEST['showHeader']))
+    {
+        $showHeaderEmbedded = $_REQUEST['showHeader'];
+    }
+    else
+    {
+        $showHeaderEmbedded = 'yes';
+    }
+
+    if($queryResult) 
+    {
+       if($queryResult->num_rows > 0) 
+       {     
+           while($row = mysqli_fetch_array($queryResult)) 
+           {
+              $embeddable = $row['embeddable'];
+              $authorizedPages = $row['authorizedPagesJson'];
+           }
+       }
+       else
+       {
+           $embeddable = 'no';
+       }
+    }
+    else
+    {
+        $embeddable = 'no';
+    }
+    
+   mysqli_close($link);
+   
+   if(isset($_SERVER['HTTP_REFERER']))
+   {
+       if((strpos($_SERVER['HTTP_REFERER'], "http://".$appHost) !== false)||(strpos($_SERVER['HTTP_REFERER'], "https://".$appHost) !== false))
+       {
+           //Caso embed in una dashboard e previewer: in questo caso dev'essere sempre possibile fare l'embed
+           $embeddable = 'yes';
+       }
+       else
+       {
+            //Caso embed in pagina esterna
+            if($embeddable == "no")
+            {
+                header('X-Frame-Options: DENY');
+            }
+            else
+            {
+                if(($authorizedPages != '')&&($authorizedPages != null)&&($authorizedPages != 'NULL'))
+                {
+                    $authorizedPages = json_decode($authorizedPages);
+                    $isAuthorized = false;
+                    for($i = 0; $i < count($authorizedPages); $i++)
+                    {
+                        if(strpos($_SERVER['HTTP_REFERER'], $authorizedPages[$i]) !== false)
+                        {
+                            $isAuthorized = true;
+                            break;
+                        }
+                    }
+
+                    if(!$isAuthorized)
+                    {
+                        header('X-Frame-Options: DENY');
+                    }
+                }
+                else
+                {
+                    header('X-Frame-Options: DENY');
+                }
+            }
+        }
+   } 
+   else 
+   {
+       //Va studiata una soluzione, per ora tolto error reporting
+       /*if(strpos($_SERVER['HTTP_REFERER'], $appUrl) !== false)
+       {
+           $embeddable = 'no';
+       } */
+   }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,35 +139,24 @@
     <title>Dashboard Management System</title>
 
     <!-- Bootstrap Core CSS -->
-    <!--<link href="../css/bootstrap.min.css" rel="stylesheet">-->
     <link href="../css/bootstrap.css" rel="stylesheet">
     
     <!-- Modernizr -->
     <script src="../js/modernizr-custom.js"></script>
 
     <!-- Custom CSS -->
-    <link href="../css/dashboard.css" rel="stylesheet">
+    <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../css/jquery.gridster.css">
-    <!--<link rel="stylesheet" type="text/css" href="../css/new/jquery.gridster.css">-->
-    <link rel="stylesheet" href="../css/style_widgets.css" type="text/css" />
+    <link rel="stylesheet" href="../css/style_widgets.css?v=<?php echo time();?>" type="text/css" />
     
     <!-- Material icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
     
     <!-- jQuery -->
-    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
     <script src="../js/jquery-1.10.1.min.js"></script>
     
     <!-- JQUERY UI -->
-    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
     <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
@@ -61,14 +164,8 @@
 
     <!-- Gridster -->
     <script src="../js/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>
-    <!--<script src="../js/new/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>-->
 
-    <!-- Highcharts -->
-    <!--<script src="http://code.highcharts.com/highcharts.js"></script>-->
-    <!--<script src="http://code.highcharts.com/modules/exporting.js"></script>-->
-    <!--<script src="https://code.highcharts.com/highcharts-more.js"></script>-->
-    <!--<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>-->
-    <!--<script src="https://code.highcharts.com/highcharts-3d.js"></script>-->  
+    <!-- Highcharts --> 
     <script src="../js/highcharts/code/highcharts.js"></script>
     <script src="../js/highcharts/code/modules/exporting.js"></script>
     <script src="../js/highcharts/code/highcharts-more.js"></script>
@@ -79,7 +176,6 @@
     <script src="../js/tinyColor.js" type="text/javascript" charset="utf-8"></script>
     
     <!-- Font awesome icons -->
-    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">-->
     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
     
     <!-- Leaflet -->
@@ -90,26 +186,81 @@
    integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg=="
    crossorigin=""></script>
    
+   <!-- Leaflet marker cluster plugin -->
+   <link rel="stylesheet" href="../leaflet-markercluster/MarkerCluster.css" />
+   <link rel="stylesheet" href="../leaflet-markercluster/MarkerCluster.Default.css" />
+   <link rel="stylesheet" href="../leaflet-markercluster/leaflet.markercluster-src.js" />
+   
    <!-- Dot dot dot -->
    <script src="../dotdotdot/jquery.dotdotdot.js" type="text/javascript"></script>
+   
+    <!-- Bootstrap select -->
+    <link href="../bootstrapSelect/css/bootstrap-select.css" rel="stylesheet"/>
+    <script src="../bootstrapSelect/js/bootstrap-select.js"></script>
     
-    <script src="../js/widgetsCommonFunctions.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../widgets/trafficEventsTypes.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../widgets/alarmTypes.js" type="text/javascript" charset="utf-8"></script>
+    <!-- Moment -->
+    <script type="text/javascript" src="../moment/moment.js"></script>
+    
+    <!-- Bootstrap datetimepicker -->
+    <script src="../datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
+    <link rel="stylesheet" href="../datetimepicker/build/css/bootstrap-datetimepicker.min.css">
+    
+    <!-- Weather icons -->
+    <link rel="stylesheet" href="../img/meteoIcons/singleColor/css/weather-icons.css?v=<?php echo time();?>">
+    
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    
+    <script src="../js/widgetsCommonFunctions.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
+    <script src="../widgets/trafficEventsTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
+    <script src="../widgets/alarmTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
+    <script src="../widgets/fakeGeoJsons.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
 
     <script type='text/javascript'>
         var array_metrics = new Array();
         var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardName, logoFilename, logoLink, 
             clockFontSizeMod, logoWidth, logoHeight, headerVisible = null;
+    
+        var dashboardZoomEventHandler = function(event)
+        {
+            document.body.style.zoom = event.data;
+        };
+
+        window.addEventListener('message', dashboardZoomEventHandler, false);    
         
         $(document).ready(function () 
         {
-            var widgetsBorders, widgetsBordersColor = null;
+            var widgetsBorders, widgetsBordersColor, embedWidget, embedWidgetPolicy, headerVisible, wrapperWidth = null;
             var firstLoad = true;
             var loggedUserFirstAttempt = true;
-            var headerVisible = 1;
             
-            $("#showHideHeader").off("click");
+            var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo $_REQUEST['embedPreview'];}else{echo 'false';} ?>";
+            /*$.ajax({
+                url: "<?php echo $googleFontsApi; ?>",
+                data: {
+                    key: "<?php echo $googleApiKey; ?>",
+                    sort: "alpha"
+                },
+                type: "GET",
+                async: true,
+                dataType: 'json',
+                success: function(googleFonts) 
+                {
+                    var family = null;
+                    for(var i = 0; i < googleFonts.items.length; i++)
+                    {
+                        family = googleFonts.items[i].family;
+                        $('head').append('<link rel="stylesheet" type="text/css" href="<?php echo $googleApiForSingleFont; ?>' + family + '">');
+                    }
+                },
+                error: function(errorData)
+                {
+                    console.log("Error downloading Google Fonts");  
+                }
+            });*/
+            //Questo ti dice il grado di zoom
+            //console.log("window.devicePixelRatio: " + window.devicePixelRatio.toFixed(2));
+            
+            /*$("#showHideHeader").off("click");
             $("#showHideHeader").click(function()
             {
                if(headerVisible === 1)
@@ -150,14 +301,65 @@
                      console.log(data);
                   }
                });
-            });
+            });*/
             
             //Definizioni di funzione
             function loadDashboard(dashboardParams, dashboardWidgets)
             {
-                var num_cols;
+                var num_cols, minEmbedDim, autofitAlertFontSize;
                 
-                for (var i = 0; i < dashboardParams.length; i++)
+                if('<?php echo $embeddable; ?>' === 'yes')
+                {
+                    if(window.self !== window.top)
+                    {
+                        if(('<?php echo $embedPolicy; ?>' === 'auto')||(('<?php echo $embedPolicy; ?>' !== 'auto')&&('<?php echo $embedAutofit; ?>' === 'yes')))
+                        {
+                            $('#autofitAlert').css("width", $(window).width());
+                            $('#autofitAlert').css("height", $(window).height());
+                            $('#autofitAlertMsgContainer').css("height", $(window).height()*0.45);
+                            $('#autofitAlertIconContainer').css("height", $(window).height()*0.55);
+                            
+                            if($(window).height() < $(window).width())
+                            {
+                                minEmbedDim = $(window).height();
+                            }
+                            else
+                            {
+                                minEmbedDim = $(window).width();
+                            }
+                            
+                            if((minEmbedDim > 0) && (minEmbedDim < 300))
+                            {
+                                autofitAlertFontSize = 16;
+                            }
+                            else
+                            {
+                                if((minEmbedDim >= 300) && (minEmbedDim < 600))
+                                {
+                                    autofitAlertFontSize = 24;
+                                }
+                                else
+                                {
+                                    if((minEmbedDim >= 600) && (minEmbedDim < 900))
+                                    {
+                                        autofitAlertFontSize = 32;
+                                    }
+                                    else
+                                    {
+                                        autofitAlertFontSize = 36;
+                                    }
+                                }
+                            }
+                            
+                            $('#autofitAlertMsgContainer').css("font-size", autofitAlertFontSize + "px");
+                            $('#autofitAlertIconContainer i.fa-spin').css("font-size", autofitAlertFontSize*2 + "px");
+                            
+                            $('#autofitAlert').show();
+                        }
+                    }
+                }
+                
+                for(var i = 0; i < dashboardParams.length; i++)
                 {
                     dashboardName = dashboardParams[i].name_dashboard;
                     logoFilename = dashboardParams[i].logoFilename;
@@ -166,16 +368,21 @@
                     widgetsBorders = dashboardParams[i].widgetsBorders;
                     widgetsBordersColor = dashboardParams[i].widgetsBordersColor;
                     $("#headerLogoImg").css("display", "none");
-                    var wrapperWidth = parseInt(dashboardParams[i].width) + 40;
+                    wrapperWidth = parseInt(dashboardParams[i].width) + 40;
+                    //Le parti commentate sono da spunto per futura modifica che toglie i marginin dx e sx, ma questo sconvolge tutte le dashboard esistenti, si farà in futuro
                     $("#wrapper-dashboard").css("width", wrapperWidth);
-                    $("#container-widgets").css("width", dashboardParams[i].width);
+                    $("#container-widgets").css("width", /*wrapperWidth*/dashboardParams[i].width);
                     $("#wrapper-dashboard").css("margin", "0 auto");
                     $("#navbarDashboard").css("background-color", dashboardParams[i].color_header);
+                    
                     //Sfondo
                     $("body").css("background-color", dashboardParams[i].external_frame_color);
                     $("#page-wrapper").css("background-color", dashboardParams[i].external_frame_color);
                     $("#container-widgets").css("background-color", dashboardParams[i].color_background);
                     $("#container-widgets").css("border-top-color",dashboardParams[i].color_background);
+                    
+                    //$('#page-wrapper div.container-fluid').css('padding-left', '0px');
+                    //$('#page-wrapper div.container-fluid').css('padding-right', '0px');
 
                     headerFontSize = dashboardParams[i].headerFontSize;
                     subtitleFontSize = parseInt(dashboardParams[i].headerFontSize * 0.22);
@@ -202,7 +409,6 @@
                         }
                         else
                         {
-
                             if(a > 320)
                             {
                                 headerModFontSize = parseInt((headerFontSize*0.75));
@@ -252,6 +458,12 @@
                     $("#dashboardTitle").text(dashboardParams[i].title_header);
                     $("#clock").css("color", headerFontColor);
                     $("#clock").css("font-size", clockFontSizeMod + "pt");
+                    
+                    /*$('#dashboardHeaderMenuTab').css("position", "fixed");
+                    $('#dashboardHeaderMenuTab').css("top", $('#navbarDashboard').height());
+                    $('#dashboardHeaderMenuTab').css("left", $(document).width() - $('#dashboardHeaderMenuTab').width());
+                    $('#dashboardHeaderMenuTab').css("color", headerFontColor);
+                    $('#dashboardHeaderMenuTab').css("background-color", $('#navbarDashboard').css("background-color"));*/
 
                     var whiteSpaceRegex = '^[ t]+';
                     if((dashboardParams[i].subtitle_header === "") || (dashboardParams[i].subtitle_header === null) ||(typeof dashboardParams[i].subtitle_header === 'undefined') ||(dashboardParams[i].subtitle_header.match(whiteSpaceRegex)))
@@ -292,27 +504,53 @@
                     num_cols = dashboardParams[i].num_columns;
                     num_rows = dashboardParams[i].num_rows;
                 }//Fine del primo for
-                
-               if(headerVisible === '1')
+               
+               if(window.self === window.top)
                {
-                  $("#navbarDashboard").show();
-                  $("#navbarDashboard").css("margin-bottom", "100px");
-                  $("#headerSpacer").show();
-                  $("#showHideHeader i").attr("class", "fa fa-compress");
-                  $("#showHideHeader").attr("title", "Hide dashboard header");
+                    //Controllo mostrare/nascondere header su view principale
+                    if(headerVisible === '1')
+                    {
+                       $("#navbarDashboard").show();
+                       $("#navbarDashboard").css("margin-bottom", "100px");
+                       $("#headerSpacer").show();
+                       $("#showHideHeader i").attr("class", "fa fa-compress");
+                       $("#showHideHeader").attr("title", "Hide dashboard header");
+                    }
+                    else
+                    {
+                       $("#navbarDashboard").hide();
+                       $("#navbarDashboard").css("margin-bottom", "0px");
+                       $("#headerSpacer").hide();
+                       $("#showHideHeader i").attr("class", "fa fa-expand");
+                       $("#showHideHeader").attr("title", "Show dashboard header");
+                    } 
                }
                else
                {
-                  $("#navbarDashboard").hide();
-                  $("#navbarDashboard").css("margin-bottom", "0px");
-                  $("#headerSpacer").hide();
-                  $("#showHideHeader i").attr("class", "fa fa-expand");
-                  $("#showHideHeader").attr("title", "Show dashboard header");
+                    //Controllo mostrare/nascondere header in modalità embedded
+                    if('<?php echo $embedPolicy; ?>' === 'auto')
+                    {
+                        $('#navbarDashboard').hide();
+                        $('#navbarDashboard').css("margin-bottom", "0px");
+                        $('#headerSpacer').hide();
+                    }
+                    else
+                    {
+                        if('<?php echo $showHeaderEmbedded; ?>' === 'no')
+                        {
+                            $('#navbarDashboard').hide();
+                            $('#navbarDashboard').css("margin-bottom", "0px");
+                            $('#headerSpacer').hide();
+                        }
+                    }
                }
-
+               
+                var gridsterCellW = 76;
+                var gridsterCellH = 38;
+               
                 jQuery(function (){ 
                     jQuery(".gridster ul").gridster({
-                        widget_base_dimensions: [76, 38],
+                        widget_base_dimensions: [gridsterCellW, gridsterCellH],
                         widget_margins: [1, 1],
                         min_cols: num_cols,
                         max_size_x: 30,
@@ -333,7 +571,7 @@
 
                 var gridster = $("#container-widgets ul").gridster().data('gridster');
 
-                for (var i = 0; i < dashboardWidgets.length; i++)
+                for(var i = 0; i < dashboardWidgets.length; i++)
                 {
                     var name_w = dashboardWidgets[i]['name_widget'];
                     var widgetId = dashboardWidgets[i]['Id_w'];
@@ -372,12 +610,23 @@
                         type_metric.push(dashboardWidgets[i]['metrics_prop'][k]['type_metric']);
                         source_metric.push(dashboardWidgets[i]['metrics_prop'][k]['source_metric']);
                     }
+                    
+                    if(('<?php echo $embeddable; ?>' === 'yes')&&(window.self !== window.top))
+                    {
+                        embedWidget = true;
+                    }
+                    else
+                    {
+                        embedWidget = false;
+                    }
+                    embedWidgetPolicy = '<?php echo $embedPolicy; ?>';
 
-                    $("#container-widgets ul").find("li#" + name_w).load("../widgets/" + encodeURIComponent(dashboardWidgets[i]['type_widget']) + ".php?name=" + encodeURIComponent(name_w) + "&hostFile=index" + "&idWidget=" + encodeURIComponent(widgetId) + "&metric=" + encodeURIComponent(dashboardWidgets[i]['id_metric_widget']) +
-                            "&freq=" + encodeURIComponent(dashboardWidgets[i]['frequency_widget']) + "&title=" + encodeURIComponent(dashboardWidgets[i]['title_widget']) + "&color=" + encodeURIComponent(dashboardWidgets[i]['color_widget']) + "&source=" + "&info=" + encodeURIComponent(dashboardWidgets[i]['message_widget']) + encodeURIComponent(source_metric) +
+                    $("#container-widgets ul").find("li#" + name_w).load("../widgets/" + encodeURIComponent(dashboardWidgets[i]['type_widget']) + ".php?name=" + encodeURIComponent(name_w) + "&hostFile=index" + "&idWidget=" + encodeURIComponent(widgetId) + "&metric=" + encodeURIComponent(dashboardWidgets[i]['id_metric_widget']) + "&embedWidget=" + embedWidget + "&embedWidgetPolicy=" + embedWidgetPolicy +
+                            "&freq=" + encodeURIComponent(dashboardWidgets[i]['frequency_widget']) + "&title=" + encodeURIComponent(dashboardWidgets[i]['title_widget']) + "&color=" + encodeURIComponent(dashboardWidgets[i]['color_widget']) + /*"&info=" + encodeURIComponent(dashboardWidgets[i]['message_widget']) +*/ "&source=" + encodeURIComponent(source_metric) +
                             "&type_metric=" + encodeURIComponent(type_metric) + "&tmprange=" + encodeURIComponent(time) + "&city=" + encodeURIComponent(dashboardWidgets[i]['municipality_widget']) + "&link_w=" + encodeURIComponent(dashboardWidgets[i]['link_w']) + "&frame_color="+encodeURIComponent(dashboardWidgets[i]['frame_color']) + 
                             "&udm=" + encodeURIComponent(dashboardWidgets[i]['udm']) + "&fontSize=" + encodeURIComponent(dashboardWidgets[i]['fontSize']) + "&fontColor=" + encodeURIComponent(dashboardWidgets[i]['fontColor']) +
-                            "&headerFontColor=" + encodeURIComponent(dashboardWidgets[i]['headerFontColor']) + "&numCols=" + encodeURIComponent(num_cols) + "&sizeX=" + encodeURIComponent(dashboardWidgets[i]['size_columns_widget']) + "&sizeY=" + encodeURIComponent(dashboardWidgets[i]['size_rows_widget']) + "&controlsPosition=" + encodeURIComponent(dashboardWidgets[i]['controlsPosition']) + "&zoomControlsColor=" + encodeURIComponent(dashboardWidgets[i]['zoomControlsColor']) + "&showTitle=" + encodeURIComponent(dashboardWidgets[i]['showTitle']) + "&controlsVisibility=" + encodeURIComponent(dashboardWidgets[i]['controlsVisibility']) + "&zoomFactor=" + encodeURIComponent(dashboardWidgets[i]['zoomFactor']) + "&defaultTab=" + encodeURIComponent(dashboardWidgets[i]['defaultTab']) + "&scaleX=" + encodeURIComponent(dashboardWidgets[i]['scaleX']) + "&scaleY=" + encodeURIComponent(dashboardWidgets[i]['scaleY']));
+                            "&headerFontColor=" + encodeURIComponent(dashboardWidgets[i]['headerFontColor']) + "&numCols=" + encodeURIComponent(num_cols) + "&sizeX=" + encodeURIComponent(dashboardWidgets[i]['size_columns_widget']) + "&sizeY=" + encodeURIComponent(dashboardWidgets[i]['size_rows_widget']) + "&controlsPosition=" + encodeURIComponent(dashboardWidgets[i]['controlsPosition']) + "&zoomControlsColor=" + encodeURIComponent(dashboardWidgets[i]['zoomControlsColor']) + "&showTitle=" + encodeURIComponent(dashboardWidgets[i]['showTitle']) + "&controlsVisibility=" + encodeURIComponent(dashboardWidgets[i]['controlsVisibility']) + "&zoomFactor=" + encodeURIComponent(dashboardWidgets[i]['zoomFactor']) + "&defaultTab=" + encodeURIComponent(dashboardWidgets[i]['defaultTab']) + "&scaleX=" + encodeURIComponent(dashboardWidgets[i]['scaleX']) + "&scaleY=" + encodeURIComponent(dashboardWidgets[i]['scaleY'])
+                    );
 
                 }//Fine del secondo for
 
@@ -478,6 +727,231 @@
                         }
                     });
                 });
+                
+                if(('<?php echo $embeddable; ?>' === 'yes')&&(window.self !== window.top))
+                {
+                    if('<?php echo $embedPolicy; ?>' === 'auto')
+                    {
+                        //Cambia logo se embedded in sito diverso dal dashboard manager
+                        if(!document.referrer.includes(window.self.location.host)||((embedPreview === 'true')&&(document.referrer.includes(window.self.location.host))))
+                        {
+                            $('#page-wrapper div.container-fluid div.footerLogos').hide();
+                            $('#page-wrapper #embedAutoLogoContainer').css("width", $('#wrapper-dashboard').css("width"));
+                            $('#page-wrapper div.container-fluid div.footerLogos').hide();
+                            $('#page-wrapper #embedAutoLogoContainer').css("background-color", $('#container-widgets').css("background-color"));
+                            $('#page-wrapper #embedAutoLogoContainer').css("display", "flex");
+                            $('#page-wrapper #embedAutoLogoContainer').css("align-items", "flex-start");
+                            $('#page-wrapper #embedAutoLogoContainer').css("justify-content", "flex-start");
+                            $('#page-wrapper #embedAutoLogoContainer').css("margin-left", "10px");
+                        }
+                        
+                        $('#wrapper-dashboard').css("width", $('#wrapper-dashboard').width() - 40);
+                        $('#page-wrapper div.container-fluid').css('padding-left', '0px');
+                        $('#page-wrapper div.container-fluid').css('padding-right', '0px');
+                        
+                        var widthRatio, heightRatio, iframeW, iframeH, iframeCase = null;
+                        
+                        //Il timeout serve per consentire a Gridster il caricamento degli widget, purtroppo Gridster non innesca eventi in tal senso
+                        setTimeout(function(){
+                            if($(window).width() < $('#wrapper-dashboard').width())
+                            {
+                                iframeW = '0';
+                            }
+                            else
+                            {
+                               iframeW = '1';
+                            }
+
+                            if($(window).height() < $('#wrapper-dashboard').height())
+                            {
+                                iframeH = '0';
+                            }
+                            else
+                            {
+                                iframeH = '1';
+                            }
+
+                            iframeCase = iframeW + iframeH;
+                            
+                            //console.log("iframeCase: " + iframeCase);
+                            
+                            switch(iframeCase)
+                            {
+                                case '00':
+                                    widthRatio = parseInt($(window).width() + 17) / $('#wrapper-dashboard').width();
+                                    heightRatio = parseInt($(window).height() + 17) / $('#wrapper-dashboard').height();
+                                    $('body').css('overflow', 'hidden');
+
+                                    $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css('-ms-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-webkit-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-moz-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    break;
+                                    
+                                case '01':
+                                    widthRatio = parseInt($(window).width() + 0) / $('#wrapper-dashboard').width();
+                                    heightRatio = parseInt($(window).height() + 17) / $('#wrapper-dashboard').height();
+                                    $('body').css('overflow', 'hidden');
+
+                                    $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css('-ms-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-webkit-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-moz-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    break;    
+
+                                case '10':
+                                    widthRatio = parseInt($(window).width() + 17) / $('#wrapper-dashboard').width();
+                                    heightRatio = parseInt($(window).height() + 0) / $('#wrapper-dashboard').height();
+                                    $('body').css('overflow', 'hidden');
+                                    var gapX = parseInt(($(window).width() - $('#wrapper-dashboard').width())/2);
+                                    $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css('-ms-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-webkit-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-moz-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    break;
+                                    
+                                case '11':
+                                    widthRatio = parseInt($(window).width() + 0) / $('#wrapper-dashboard').width();
+                                    heightRatio = parseInt($(window).height() - 5) / $('#wrapper-dashboard').height();
+                                    $('body').css('overflow', 'hidden');
+                                    var gapX = parseInt(($(window).width() - $('#wrapper-dashboard').width())/2);
+                                    $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                    $('#wrapper-dashboard').css('-ms-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-webkit-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('-moz-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    $('#wrapper-dashboard').css('transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                    break;    
+                            }
+                            $('#autofitAlert').hide();
+                        }, 2500);
+                    }
+                    else
+                    {
+                        //Cambia logo se embedded in sito diverso dal dashboard manager
+                        if(!document.referrer.includes(window.self.location.host)||((embedPreview === 'true')&&(document.referrer.includes(window.self.location.host))))
+                        {
+                            $('#page-wrapper #embedAutoLogoContainer').css("width", $('#container-widgets').css("width"));
+                            $('#page-wrapper div.container-fluid div.footerLogos').hide();
+                            $('#page-wrapper #embedAutoLogoContainer').css("background-color", $('#container-widgets').css("background-color"));
+                            $('#page-wrapper #embedAutoLogoContainer').css("display", "flex");
+                            $('#page-wrapper #embedAutoLogoContainer').css("align-items", "flex-start");
+                            $('#page-wrapper #embedAutoLogoContainer').css("justify-content", "flex-start");
+                            $('#page-wrapper #embedAutoLogoContainer').css("margin-left", "10px");
+                        }
+                        
+                        //Autofit in modalità manuale
+                        if('<?php echo $embedAutofit; ?>' === 'yes')
+                        {
+                            $('#wrapper-dashboard').css("width", $('#wrapper-dashboard').width() - 40);
+                            $('#page-wrapper div.container-fluid').css('padding-left', '0px');
+                            $('#page-wrapper div.container-fluid').css('padding-right', '0px');
+
+                            var widthRatio, heightRatio, iframeW, iframeH, iframeCase = null;
+
+                            //Il timeout serve per consentire a Gridster il caricamento degli widget, purtroppo Gridster non innesca eventi in tal senso
+                            setTimeout(function(){
+                                if($(window).width() < $('#wrapper-dashboard').width())
+                                {
+                                    iframeW = '0';
+                                }
+                                else
+                                {
+                                   iframeW = '1';
+                                }
+
+                                if($(window).height() < $('#wrapper-dashboard').height())
+                                {
+                                    iframeH = '0';
+                                }
+                                else
+                                {
+                                    iframeH = '1';
+                                }
+
+                                iframeCase = iframeW + iframeH;
+
+                                switch(iframeCase)
+                                {
+                                    case '00':
+                                        widthRatio = parseInt($(window).width() + 17) / $('#wrapper-dashboard').width();
+                                        heightRatio = parseInt($(window).height() + 17) / $('#wrapper-dashboard').height();
+                                        $('body').css('overflow', 'hidden');
+
+                                        $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css('-ms-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-webkit-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-moz-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        break;
+                                        
+                                    case '01':
+                                        widthRatio = parseInt($(window).width() + 0) / $('#wrapper-dashboard').width();
+                                        heightRatio = parseInt($(window).height() + 17) / $('#wrapper-dashboard').height();
+                                        $('body').css('overflow', 'hidden');
+
+                                        $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css('-ms-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-webkit-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-moz-transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('transform', 'scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        break;    
+
+                                    case '10':
+                                        widthRatio = parseInt($(window).width() + 17) / $('#wrapper-dashboard').width();
+                                        heightRatio = parseInt($(window).height() + 0) / $('#wrapper-dashboard').height();
+                                        $('body').css('overflow', 'hidden');
+                                        var gapX = parseInt(($(window).width() - $('#wrapper-dashboard').width())/2);
+                                        $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css('-ms-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-webkit-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-moz-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        break;
+
+                                    case '11':
+                                        widthRatio = parseInt($(window).width() + 0) / $('#wrapper-dashboard').width();
+                                        heightRatio = parseInt($(window).height() + 0) / $('#wrapper-dashboard').height();
+                                        $('body').css('overflow', 'hidden');
+                                        var gapX = parseInt(($(window).width() - $('#wrapper-dashboard').width())/2);
+                                        $('#wrapper-dashboard').css("-ms-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-webkit-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("-moz-transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css("transform-origin", '0 0');
+                                        $('#wrapper-dashboard').css('-ms-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-webkit-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('-moz-transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        $('#wrapper-dashboard').css('transform', 'translateX(-' + gapX + 'px) scale(' + widthRatio + ', ' + heightRatio + ')');
+                                        break;    
+                                }
+                                $('#autofitAlert').hide();
+                            }, 2500); 
+                        }
+                    }
+                }
             }
             
             function authUser()
@@ -705,8 +1179,22 @@
         <div class="col-xs-4"></div><!-- Celle vuote di utilità -->
     </div> 
     
+    <div id="autofitAlert">
+        <div class="row">
+            <div id="autofitAlertMsgContainer" class="col-xs-12">
+               Auto refit in progress, please wait                    
+            </div>                     
+        </div>
+        <div class="row">
+            <div id="autofitAlertIconContainer" class="col-xs-12">
+               <i class="fa fa-circle-o-notch fa-spin"></i>                    
+            </div>                     
+        </div>                        
+    </div>
+    
+    
     <div id="wrapper-dashboard">
-        <!-- New header -->
+        <!-- Header -->
         <nav id="navbarDashboard" class="navbar navbar-inverse navbar-fixed-top noBorder" role="navigation">
             <div id="navbarDashboardHeader">
                 <div class="dashboardHeaderLeft">
@@ -715,25 +1203,40 @@
                 </div>
             </div>
             <div id="headerLogo">
-                    <img id="headerLogoImg"/>
+                <img id="headerLogoImg"/>
             </div>
             <div id="clock"><?php include('../widgets/time.php'); ?></div>    
         </nav>
+        <!--<div id="dashboardHeaderMenu">
+            <div class="dashboardHeaderMenuItem">
+               show/hide header             
+            </div>
+            <div class="dashboardHeaderMenuItem">
+               show/hide footer             
+            </div>
+        </div>
+        <div id="dashboardHeaderMenuTab">
+            menu            
+        </div>-->
         <span id="headerSpacer"><br/><br/><br/><br/><br/><br/></span>
+        
+        <!-- page-wrapper -->
         <div id="page-wrapper">
             <div class="container-fluid">
                 <div id="container-widgets" class="gridster">
                     <ul></ul>    
                 </div>
+                <div id="embedAutoLogoContainer">
+                    <a title="Km4City" href="https://www.km4city.org" target="_new"><img id="embedAutoLogo" src="../img/PoweredByKm4City1Line.png" /></a>
+                </div>
                 <div id="logos" class="footerLogos">
-                    <a href="#" class="footerLogo" id="showHideHeader"><i class='fa fa-compress'></i></a>
+                    <!--<a href="#" class="footerLogo" id="showHideHeader"><i class='fa fa-compress'></i></a>-->
                     <a title="Logout from this dashboard" href="#" class="footerLogo"><i id="viewLogoutBtn" class="fa fa-sign-out"></i></a>
-                    <!--<a title="Twitter vigilance" href="http://www.disit.org/tv" target="_new" class="footerLogo"><i class='fa fa-eye'></i></a>-->
-                    <a title="Disit" href="http://www.disit.org" target="_new" class="footerLogo"><img src="../img/disitLogo.png" /></a>
+                    <a title="Disit" href="https://www.disit.org" target="_new" class="footerLogo"><img src="../img/disitLogo.png" /></a>
                 </div>
             </div>
         </div>
-        <!-- page-wrapper -->
+        
         <!-- modale informazioni generali del widget -->
         <div class="modal fade" tabindex="-1" id="dialog-information-widget" role="dialog" aria-labelledby="myModalLabel">
             <div class="modal-dialog" role="document" id="info01"> 
@@ -820,21 +1323,81 @@
             </div>
         </div>
         
-        <!-- Modale di apertura link in popup per widgetExternalContent -->
-        <div class="modal fade" tabindex="-1" id="modalLinkOpen" role="dialog" aria-labelledby="myModalLabel">
-            <div class="modal-dialog" role="document"> 
+        <!-- Modale cambio stato evacuation plan -->
+        <div class="modal fade" tabindex="-1" id="modalChangePlanStatus" role="dialog" aria-labelledby="myModalLabel">
+            <div id="modalChangePlanStatusDialog" class="modal-dialog modal-lg" role="document"> 
                 <div class="modal-content">
-                    <div class="modal-header centerWithFlex">
-                        <h4 class="modal-title"></h4>
+                    <div id="modalChangePlanStatusModalTitle" class="modal-header centerWithFlex">
+                        evacuation plan status management
                     </div>
-                    <div class="modal-body">
-                        <div id="modalLinkOpenBody">
-                            <iframe id="modalLinkOpenBodyIframe"></iframe>
-                            <div id="modalLinkOpenBodyMap"></div>
+                    <div id="modalChangePlanStatusMain" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
+                                plan identifier
+                            </div> 
+                            <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
+                                current approval status
+                            </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-6 centerWithFlex" id="modalChangePlanStatusTitle" ></div> 
+                           <div class="col-sm-4 col-sm-offset-1 centerWithFlex" id="modalChangePlanStatusStatus"></div>
+                        </div>
+                       
+                        <div class="row">
+                           <div class="col-sm-6 col-sm-offset-3 centerWithFlex modalChangePlanStatusLabel">
+                               new approval status 
+                           </div> 
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-4 col-sm-offset-4 centerWithFlex">
+                               <select class="form-control" id="modalChangePlanStatusSelect" name="modalChangePlanStatusSelect" required></select> 
+                           </div> 
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" id="modalLinkOpenCloseBtn">Back to dashboard</button>
+                    <div id="modalChangePlanStatusWait" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                updating status, please wait
+                            </div> 
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                <i class="fa fa-spinner fa-spin" style="font-size:84px"></i>
+                            </div> 
+                        </div>
+                    </div>
+                    <div id="modalChangePlanStatusOk" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-10 col-sm-offset-1 centerWithFlex">
+                                status successfully updated
+                            </div> 
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                <i class="fa fa-thumbs-o-up" style="font-size:84px"></i>
+                            </div> 
+                        </div>
+                    </div>
+                    <div id="modalChangePlanStatusKo" class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-sm-12 centerWithFlex">
+                                error while trying to send new status to server, please try again
+                            </div> 
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                                <i class="fa fa-thumbs-down" style="font-size:84px"></i>
+                            </div> 
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="modalChangePlanStatusPlanId" />
+                    <input type="hidden" id="modalChangePlanStatusCurrentStatus" />
+                   
+                    <div id="modalChangePlanStatusFooter" class="modal-footer centerWithFlex">
+                       <button type="button" class="btn btn-secondary" id="modalChangePlanStatusCancelBtn">cancel</button>
+                       <button type="button" class="btn btn-primary" id="modalChangePlanStatusConfirmBtn">confirm</button>
                     </div>
                 </div>
             </div>

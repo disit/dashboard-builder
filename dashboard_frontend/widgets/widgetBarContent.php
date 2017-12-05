@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,6 +13,8 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include '../config.php';
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
@@ -24,7 +26,7 @@
     };
     var parameters = {};
 
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId)  
     {
         <?php
             $titlePatterns = array();
@@ -35,30 +37,116 @@
             $replacements[1] = '&apos;';
             $title = $_GET['title'];
         ?> 
-                
+        var headerHeight = 25;        
         var hostFile = "<?= $_GET['hostFile'] ?>";
         var widgetName = "<?= $_GET['name'] ?>";
         var divContainer = $("#<?= $_GET['name'] ?>_content");
         var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
         var nome_wid = "<?= $_GET['name'] ?>_div";
         var linkElement = $('#<?= $_GET['name'] ?>_link_w');
         var color = '<?= $_GET['color'] ?>';
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
         var widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern,  
-            udm, delta, rangeMin, rangeMax, widgetParameters, alarmSet = null;
-        var metricId = "<?= $_GET['metric'] ?>";
+            udm, delta, rangeMin, rangeMax, widgetParameters, alarmSet, countdownRef, metricName, widgetTitle, 
+            widgetHeaderColor, widgetHeaderFontColor, widgetOriginalBorderColor, urlToCall, geoJsonServiceData, showHeader = null;
+        
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         var url = "<?= $_GET['link_w'] ?>";
         var barColors = new Array();
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+            showHeader = false;
+	}
+	else
+	{
+            showHeader = true;
+	} 
         
         if(url === "null")
         {
             url = null;
         }
+        
+        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+        {
+            metricName = "<?= $_GET['metric'] ?>";
+            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+            widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+            widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        }
+        else
+        {
+            metricName = metricNameFromDriver;
+            widgetTitleFromDriver.replace(/_/g, " ");
+            widgetTitleFromDriver.replace(/\'/g, "&apos;");
+            widgetTitle = widgetTitleFromDriver;
+            $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+            widgetHeaderColor = widgetHeaderColorFromDriver;
+            widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+        }
+        
+        $(document).off('changeMetricFromButton_' + widgetName);
+        $(document).on('changeMetricFromButton_' + widgetName, function(event) 
+        {
+            if((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange"))
+            {
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, /*null,*/ null, null, null);
+            }
+        });
+        
+        $(document).off('mouseOverLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOverLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            widgetOriginalBorderColor = $("#" + widgetName).css("border-color");
+            $("#<?= $_GET['name'] ?>_titleDiv").html(event.widgetTitle);
+            $("#" + widgetName).css("border-color", event.color1);
+            $("#<?= $_GET['name'] ?>_header").css("background", event.color1);
+            $("#<?= $_GET['name'] ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("color", "black");
+        });
+        
+        $(document).off('mouseOutLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOutLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
+            $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
+            $("#<?= $_GET['name'] ?>_header").css("background", widgetHeaderColor);
+            $("#<?= $_GET['name'] ?>_header").css("color", widgetHeaderFontColor);
+        });
+        
+        $(document).off('showLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('showLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            if(event.targetWidget === widgetName)
+            {
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, null, /*event.randomSingleGeoJsonIndex,*/ event.marker, event.mapRef, event.fakeId);
+            }
+        });
+        
+        $(document).off('restoreOriginalLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('restoreOriginalLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            if(event.targetWidget === widgetName)
+            {
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $_GET['frame_color'] ?>", "<?= $_GET['headerFontColor'] ?>", false, null, null, null, null, null, null);
+            }
+        });
         
         //Definizioni di funzione specifiche del widget
         //Restituisce il JSON delle info se presente, altrimenti NULL
@@ -84,72 +172,9 @@
             
             return styleParameters;
         }
-        //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
-        if(firstLoad === false)
+        function populateWidget()
         {
-            showWidgetContent(widgetName);
-        }
-        else
-        {
-            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-        }
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        widgetProperties = getWidgetProperties(widgetName);
-        
-        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
-        {
-            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
-            widgetParameters = widgetProperties.param.parameters;
-
-            if(widgetParameters !== null)
-            {
-               widgetParameters = JSON.parse(widgetProperties.param.parameters);
-               if(widgetParameters.hasOwnProperty("thresholdObject"))
-               {
-                  thresholdObject = widgetParameters.thresholdObject; 
-               }
-               
-               if((widgetParameters.rangeMin !== null) && (widgetParameters.rangeMin !== "") && (typeof widgetParameters.rangeMin !== "undefined"))
-               {
-                    rangeMin = widgetParameters.rangeMin;
-               }
-
-                if((widgetParameters.rangeMax !== null) && (widgetParameters.rangeMax !== "") && (typeof widgetParameters.rangeMax !== "undefined"))
-                {
-                    rangeMax = widgetParameters.rangeMax;
-                }
-
-                //I colori andranno spostati in styleParameters appena esponiamo la loro gestione sul form add/edit widget
-                if((widgetParameters.color1 !== null) && (widgetParameters.color1 !== "") && (typeof widgetParameters.color1 !== "undefined")) 
-                {
-                    barColors[0] = widgetParameters.color1;
-                }
-                else
-                {
-                    barColors[0] = colors.GREEN; 
-                }
-
-                if((widgetParameters.color2 !== null) && (widgetParameters.color2 !== "") && (typeof widgetParameters.color2 !== "undefined")) 
-                {
-                    barColors[1] = widgetParameters.color2;
-                }
-                else
-                {
-                    barColors[1] = colors.LOW_YELLOW;
-                }
-            }
-            else 
-            {
-                barColors[0] = colors.GREEN;
-                barColors[1] = colors.LOW_YELLOW; 
-            }
-            
-            //Fine eventuale codice ad hoc basato sulle proprietà del widget
-            metricData = getMetricData(metricId);
             if(metricData !== null)
             {
                 if(metricData.data[0] !== 'undefined')
@@ -165,7 +190,7 @@
                         var plotLinesObj = [];
                         var udm = "";
                         var op = null;
-               
+
                         //Costruzione delle plot lines delle soglie
                         if(thresholdObject !== null)
                         {
@@ -181,8 +206,7 @@
                                  {
                                     op = "<=";
                                  }
-                                 
-                                 
+
                                  //Semiretta sinistra
                                  plotLineObj = {
                                     color: thresholdObject[i].color, 
@@ -212,7 +236,7 @@
                                     {
                                        op = ">=";
                                     }
-                                    
+
                                     //Semiretta destra
                                     plotLineObj = {
                                        color: thresholdObject[i].color, 
@@ -357,10 +381,23 @@
                             switch(metricType)
                             {
                                 case "Intero":
-                                    if((rangeMin !== null) && (rangeMax !== null))
+                                    if((rangeMin !== null) && (rangeMax !== null) && (rangeMin !== undefined) && (rangeMax !== undefined))
                                     {
                                         minGauge = parseInt(rangeMin);
                                         maxGauge = parseInt(rangeMax);
+                                    }
+                                    else
+                                    {
+                                        if(parseInt(metricData.data[0].commit.author.value_num) >= 0)
+                                        {
+                                           minGauge = 0;
+                                        }
+                                        else
+                                        {
+                                           minGauge = parseInt(metricData.data[0].commit.author.value_num)*1.4;
+                                        }
+
+                                        maxGauge = Math.floor(Math.abs(parseInt(metricData.data[0].commit.author.value_num)*1.7));
                                     }
 
                                     if(metricData.data[0].commit.author.value_num !== null)
@@ -372,10 +409,23 @@
                                     break;
 
                                 case "Float":
-                                    if((rangeMin !== null) && (rangeMax !== null))
+                                    if((rangeMin !== null) && (rangeMax !== null) && (rangeMin !== undefined) && (rangeMax !== undefined))
                                     {
                                         minGauge = parseInt(rangeMin);
                                         maxGauge = parseInt(rangeMax);    
+                                    }
+                                    else
+                                    {
+                                        if(parseInt(metricData.data[0].commit.author.value_num) >= 0)
+                                        {
+                                           minGauge = 0;
+                                        }
+                                        else
+                                        {
+                                           minGauge = parseInt(metricData.data[0].commit.author.value_num)*1.4;
+                                        }
+
+                                        maxGauge = Math.abs(parseInt(metricData.data[0].commit.author.value_num)*1.7);
                                     }
 
                                     if(metricData.data[0].commit.author.value_num !== null)
@@ -397,6 +447,11 @@
                                         {
                                             shownValue = 100;
                                         }
+
+                                        if(shownValue < 0)
+                                        {
+                                            shownValue = 0;
+                                        }
                                         shownValueCompl = maxGauge - shownValue;
                                         shownValueCompl = parseFloat(parseFloat(shownValueCompl).toFixed(1));
                                     }
@@ -407,7 +462,7 @@
                             }
                         }
 
-                        if((shownValue !== null) && (minGauge !== null) && (maxGauge !== null))
+                        if((shownValue !== null) && (shownValue !== undefined) && (minGauge !== null) && (minGauge !== undefined) && (maxGauge !== null) && (maxGauge !== undefined))
                         {
                            //26/07/2017 - NON CANCELLARE, DA AGGIORNARE QUANDO RIPRISTINIAMO IL BLINK DELLA TESTATA IN CASO DI ALLARME.
                             /*if(thresholdObject === null)
@@ -489,8 +544,11 @@
                             }
                             else
                             {
-                                elToEmpty.empty();
+                                elToEmpty.empty();    
                             }
+                            
+                            $('#<?= $_GET['name'] ?>_noDataAlert').hide();
+                            $("#<?= $_GET['name'] ?>_chartContainer").show();
 
                             //Disegno del diagramma
                             $('#<?= $_GET['name'] ?>_chartContainer').highcharts({
@@ -515,7 +573,7 @@
                                 yAxis: yAxisObj,
                                 tooltip: {
                                     enabled: false,
-                                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+                                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>',
                                     shared: true
                                 },
                                 plotOptions: {
@@ -555,32 +613,299 @@
                                     pointWidth: 200
                                 }]
                             });
-                        } 
+                        }
+                        else
+                        {
+                            showWidgetContent(widgetName);
+                            if(firstLoad !== false)
+                            {
+                               $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                               $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                            }
+                        }
                     }
                     else
                     {
                         showWidgetContent(widgetName);
-                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                        if(firstLoad !== false)
+                        {
+                           $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                           $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                        }
                     }  
                 }
                 else
                 {
                     showWidgetContent(widgetName);
-                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    if(firstLoad !== false)
+                    {
+                       $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                       $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
                 }
-                //Fine eventuale codice ad hoc basato sui dati della metrica
             }
             else
             {
                 showWidgetContent(widgetName);
-                $('#<?= $_GET['name'] ?>_noDataAlert').show();
-            } 
+                if(firstLoad !== false)
+                {
+                   $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                   $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                }
+            }
+        }
+        //Fine definizioni di funzione 
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
         }
         else
         {
-            alert("Error while loading widget properties");
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetBarContent", null, null);
+        
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
+        //widgetProperties = getWidgetProperties(widgetName);
+        
+        $.ajax({
+            url: getParametersWidgetUrl,
+            type: "GET",
+            data: {"nomeWidget": [widgetName]},
+            async: true,
+            dataType: 'json',
+            success: function (data) 
+            {
+                widgetProperties = data;
+                
+                if((widgetProperties !== null) && (widgetProperties !== undefined))
+                {
+                    //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+                    styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+                    widgetParameters = widgetProperties.param.parameters;
+                    
+                    if(widgetParameters !== null)
+                    {
+                       widgetParameters = JSON.parse(widgetProperties.param.parameters);
+                       if(widgetParameters.hasOwnProperty("thresholdObject"))
+                       {
+                          thresholdObject = widgetParameters.thresholdObject; 
+                       }
+
+                       if((widgetParameters.rangeMin !== null) && (widgetParameters.rangeMin !== "") && (widgetParameters.rangeMin !== undefined))
+                       {
+                            rangeMin = widgetParameters.rangeMin;
+                       }
+
+                        if((widgetParameters.rangeMax !== null) && (widgetParameters.rangeMax !== "") && (widgetParameters.rangeMax !== undefined))
+                        {
+                            rangeMax = widgetParameters.rangeMax;
+                        }
+
+                        //I colori andranno spostati in styleParameters appena esponiamo la loro gestione sul form add/edit widget
+                        if((widgetParameters.color1 !== null) && (widgetParameters.color1 !== "") && (typeof widgetParameters.color1 !== "undefined")) 
+                        {
+                            barColors[0] = widgetParameters.color1;
+                        }
+                        else
+                        {
+                            barColors[0] = colors.GREEN; 
+                        }
+
+                        if((widgetParameters.color2 !== null) && (widgetParameters.color2 !== "") && (typeof widgetParameters.color2 !== "undefined")) 
+                        {
+                            barColors[1] = widgetParameters.color2;
+                        }
+                        else
+                        {
+                            barColors[1] = colors.LOW_YELLOW;
+                        }
+                    }
+                    else 
+                    {
+                        barColors[0] = colors.GREEN;
+                        barColors[1] = colors.LOW_YELLOW;
+                    }
+
+                    //Fine eventuale codice ad hoc basato sulle proprietà del widget
+                    if(fromGisExternalContent)
+                    {
+                        if((fromGisFakeId !== null) && (fromGisFakeId !== 'null') && (fromGisFakeId !== undefined))
+                        {
+                            urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + fromGisFakeId;
+                        }
+                        else
+                        {
+                            urlToCall = "<?php echo $serviceMapUrlPrefix; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&format=json";
+                        }
+                        
+                        $.ajax({
+                            url: urlToCall,
+                            type: "GET",
+                            data: {},
+                            async: true,
+                            dataType: 'json',
+                            success: function(geoJsonServiceData) 
+                            {
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv a.info_source').hide();
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').show();
+
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').off('click');
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').click(function(){
+                                    if($(this).attr('data-onMap') === 'false')
+                                    {
+                                        if(fromGisMapRef.hasLayer(fromGisMarker))
+                                        {
+                                            fromGisMarker.fire('click');
+                                        }
+                                        else
+                                        {
+                                            fromGisMapRef.addLayer(fromGisMarker);
+                                            fromGisMarker.fire('click');
+                                        } 
+                                        $(this).attr('data-onMap', 'true');
+                                        $(this).html('near_me');
+                                        $(this).css('color', 'white');
+                                        $(this).css('text-shadow', '2px 2px 4px black');
+                                    }
+                                    else
+                                    {
+                                        fromGisMapRef.removeLayer(fromGisMarker);
+                                        $(this).attr('data-onMap', 'false');
+                                        $(this).html('navigation');
+                                        $(this).css('color', '#337ab7');
+                                        $(this).css('text-shadow', 'none');
+                                    }
+                                });
+
+                                metricData = {  
+                                    "data":[  
+                                       {  
+                                          "commit":{  
+                                             "author":{  
+                                                "IdMetric_data": fromGisExternalContentField,
+                                                "computationDate": null,
+                                                "value_num":null,
+                                                "value_perc1": null,
+                                                "value_perc2": null,
+                                                "value_perc3": null,
+                                                "value_text": null,
+                                                "quant_perc1": null,
+                                                "quant_perc2": null,
+                                                "quant_perc3": null,
+                                                "tot_perc1": null,
+                                                "tot_perc2": null,
+                                                "tot_perc3": null,
+                                                "series": null,
+                                                "descrip": fromGisExternalContentField,
+                                                "metricType": null,
+                                                "threshold":null,
+                                                "thresholdEval":null,
+                                                "field1Desc": null,
+                                                "field2Desc": null,
+                                                "field3Desc": null,
+                                                "hasNegativeValues": "1"
+                                             }
+                                          }
+                                       }
+                                    ]
+                                };
+                                
+                                var fatherNode = null;
+                                if(geoJsonServiceData.hasOwnProperty("BusStop"))
+                                {
+                                    fatherNode = geoJsonServiceData.BusStop;
+                                }
+                                else
+                                {
+                                    if(geoJsonServiceData.hasOwnProperty("Sensor"))
+                                    {
+                                        fatherNode = geoJsonServiceData.Sensor;
+                                    }
+                                    else
+                                    {
+                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                        fatherNode = geoJsonServiceData.Service;
+                                    }
+                                }
+
+                                var serviceProperties = fatherNode.features[0].properties;
+                                var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                                var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                                var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                                serviceSubclass = serviceSubclass.replace(/_/g, " ");
+
+                                var numberPattern = /^-?\d*\.?\d+$/;
+                                var integerPattern = /^[+\-]?\d+$/;
+                                
+                                if(numberPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
+                                {
+                                    if(integerPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
+                                    {
+                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                        metricData.data[0].commit.author.metricType = "Intero"; 
+                                    }
+                                    else
+                                    {
+                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                        metricData.data[0].commit.author.metricType = "Float"; 
+                                    }
+                                }
+                                else
+                                {
+                                    metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                    metricData.data[0].commit.author.metricType = "Testuale";
+                                }
+                            },
+                            error: function(errorData)
+                            {
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                            },
+                            complete: function()
+                            {
+                                populateWidget(); 
+                            }
+                        });
+                    }
+                    else
+                    {
+                        $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').hide();
+                        $('#<?= $_GET['name'] ?>_infoButtonDiv a.info_source').show();
+                        manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
+                        metricData = getMetricData(metricName);
+                        populateWidget(); 
+                    } 
+                }
+                else
+                {
+                    console.log("Errore in caricamento proprietà widget");
+                    showWidgetContent(widgetName);
+                    if(firstLoad !== false)
+                    {
+                       $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                       $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
+                }
+            },
+            error: function(errorData)
+            {
+               console.log("Errore in caricamento proprietà widget");
+               console.log(JSON.stringify(errorData));
+               showWidgetContent(widgetName);
+               if(firstLoad !== false)
+               {
+                  $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                  $('#<?= $_GET['name'] ?>_noDataAlert').show();
+               }
+            },
+            complete: function()
+            {
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId);
+            }
+        });
     });//Fine document ready
 </script>
 
@@ -589,6 +914,7 @@
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
                <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+               <i class="material-icons gisDriverPin" data-onMap="false">navigation</i>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
@@ -610,7 +936,14 @@
         </div>
         
         <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+                    No data available
+                </div>
+                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                    <i class="fa fa-times"></i>
+                </div>
+            </div>
             <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer"></div>
         </div>
     </div>	

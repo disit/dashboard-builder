@@ -2,9 +2,9 @@
  * canvg.js - Javascript SVG parser and renderer on Canvas
  * MIT Licensed
  * Gabe Lerner (gabelerner@gmail.com)
- * http://code.google.com/p/canvg/
+ * https://code.google.com/p/canvg/
  *
- * Requires: rgbcolor.js - http://www.phpied.com/rgb-color-parser-in-javascript/
+ * Requires: rgbcolor.js - https://www.phpied.com/rgb-color-parser-in-javascript/
  */
  (function ( global, factory ) {
 
@@ -106,8 +106,8 @@
 		};
 	} else {
 		// requires Sizzle: https://github.com/jquery/sizzle/wiki/Sizzle-Documentation
-		// or jQuery: http://jquery.com/download/
-		// or Zepto: http://zeptojs.com/#
+		// or jQuery: https://jquery.com/download/
+		// or Zepto: https://zeptojs.com/#
 		// without it, this is a ReferenceError
 
 		if (typeof jQuery === 'function' || typeof Zepto === 'function') {
@@ -521,7 +521,7 @@
 			}
 
 			this.addBezierCurve = function(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y) {
-				// from http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+				// from https://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
 				var p0 = [p0x, p0y], p1 = [p1x, p1y], p2 = [p2x, p2y], p3 = [p3x, p3y];
 				this.addPoint(p0[0], p0[1]);
 				this.addPoint(p3[0], p3[1]);
@@ -710,7 +710,7 @@
 
 		// aspect ratio
 		svg.AspectRatio = function(ctx, aspectRatio, width, desiredWidth, height, desiredHeight, minX, minY, refX, refY) {
-			// aspect ratio - http://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
+			// aspect ratio - https://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
 			aspectRatio = svg.compressSpaces(aspectRatio);
 			aspectRatio = aspectRatio.replace(/^defer\s/,''); // ignore defer
 			var align = aspectRatio.split(' ')[0] || 'xMidYMid';
@@ -1296,7 +1296,7 @@
 			this.base(node);
 
 			var d = this.attribute('d').value;
-			// TODO: convert to real lexer based on http://www.w3.org/TR/SVG11/paths.html#PathDataBNF
+			// TODO: convert to real lexer based on https://www.w3.org/TR/SVG11/paths.html#PathDataBNF
 			d = d.replace(/,/gm,' '); // get rid of all commas
 			// As the end of a match can also be the start of the next match, we need to run this replace twice.
 			for(var i=0; i<2; i++)
@@ -1544,7 +1544,7 @@
 							var cp = pp.getAsCurrentPoint();
 
 							// Conversion from endpoint to center parameterization
-							// http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+							// https://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
 							// x1', y1'
 							var currp = new svg.Point(
 								Math.cos(xAxisRotation) * (curr.x - cp.x) / 2.0 + Math.sin(xAxisRotation) * (curr.y - cp.y) / 2.0,
@@ -2549,7 +2549,7 @@
 				if (element != null) {
 					var tempSvg = element;
 					if (element.type == 'symbol') {
-						// render me using a temporary svg element in symbol cases (http://www.w3.org/TR/SVG/struct.html#UseElement)
+						// render me using a temporary svg element in symbol cases (https://www.w3.org/TR/SVG/struct.html#UseElement)
 						tempSvg = new svg.Element.svg();
 						tempSvg.type = 'svg';
 						tempSvg.attributes['viewBox'] = new svg.Property('viewBox', element.attribute('viewBox').value);
@@ -2741,7 +2741,7 @@
 			this.base(node);
 
 			var matrix = svg.ToNumberArray(this.attribute('values').value);
-			switch (this.attribute('type').valueOrDefault('matrix')) { // http://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
+			switch (this.attribute('type').valueOrDefault('matrix')) { // https://www.w3.org/TR/SVG/filters.html#feColorMatrixElement
 				case 'saturate':
 					var s = matrix[0];
 					matrix = [0.213+0.787*s,0.715-0.715*s,0.072-0.072*s,0,0,

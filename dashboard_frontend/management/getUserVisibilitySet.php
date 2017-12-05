@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -48,10 +48,6 @@
    
    if(!$link->set_charset("utf8")) 
    {
-       echo '<script type="text/javascript">';
-       echo 'alert("KO");';
-       echo '</script>';
-       printf("Error loading character set utf8: %s\n", $link->error);
        exit();
    }
 
@@ -120,7 +116,7 @@
                $temp = [];
                $users = [];
                
-               $ds = ldap_connect($ldapServer, $ldapPort);
+               /*$ds = ldap_connect($ldapServer, $ldapPort);
                ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
                $bind = ldap_bind($ds);
 
@@ -152,7 +148,7 @@
                      $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
                      array_push($users, $name);
                   }
-               }
+               }*/
 
                 //Reperimento elenco utenti locali
                 $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";

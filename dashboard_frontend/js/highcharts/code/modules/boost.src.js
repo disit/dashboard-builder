@@ -601,7 +601,7 @@
          * Return a full Point object based on the index. The boost module uses stripped point objects
          * for performance reasons.
          * @param   {Number} boostPoint A stripped-down point object
-         * @returns {Object}   A Point object as per http://api.highcharts.com/highcharts#Point
+         * @returns {Object}   A Point object as per https://api.highcharts.com/highcharts#Point
          */
         Series.prototype.getPoint = function(boostPoint) {
             var point = boostPoint;

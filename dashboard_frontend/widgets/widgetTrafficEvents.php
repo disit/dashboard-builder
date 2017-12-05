@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,12 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-    include('../config.php');
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript' charset="utf-8">
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad)  
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
     {
         <?php
             $titlePatterns = array();
@@ -64,6 +64,20 @@
         var severitySortState = 0;
         var timeSortState = 0;
         var typeSortState = 0;
+        var headerHeight = 25;
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+            showHeader = false;
+	}
+	else
+	{
+            showHeader = true;
+	} 
         
         var targetsArrayForNotify = [];
         
@@ -192,25 +206,16 @@
              
              if(eventsArray[key].payload.hasOwnProperty("notes"))
              {
-               
                eventNameWithCase = eventsArray[key].payload.notes.replace(/\./g, "");
-               eventNameWithCase = eventsArray[key].payload.notes.replace(/Â/g, "");
-               eventNameWithCase = eventsArray[key].payload.notes.replace(/\?/g, "");
-               eventNameWithCase = eventsArray[key].payload.notes.replace(/â/g, "");
-               eventNameWithCase = eventsArray[key].payload.notes.replace(/ã/g, "à");
-               eventNameWithCase = eventsArray[key].payload.notes.replace(/õ/g, "ò");
-               eventNameWithCase = eventsArray[key].payload.notes.replace(/€/g, "ò");
-               eventNameWithCase = eventsArray[key].payload.notes.replace(/âœ/g, "ò");
-               
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/'/g, "&apos;");
+               eventNameWithCase = eventsArray[key].payload.notes.replace(/\u0027/g, "&apos;");
+               //Queste due istruzioni (anche una sola delle due) fanno troncare il fumetto nella mappa se la stringa contiene solo singoli apostrofi
+               //eventNameWithCase = eventsArray[key].payload.notes.replace(/"/g, "&quot;");
+               //eventNameWithCase = eventsArray[key].payload.notes.replace(/\u0022/g, "&quot;");
+            
                eventName = eventsArray[key].payload.notes.replace(/\./g, "").toLowerCase();
-               eventName = eventsArray[key].payload.notes.replace(/Â/g, "").toLowerCase();   
-               eventName = eventsArray[key].payload.notes.replace(/\?/g, "").toLowerCase();
-               eventName = eventsArray[key].payload.notes.replace(/â/g, "").toLowerCase();
-               eventName = eventsArray[key].payload.notes.replace(/ã/g, "").toLowerCase();
-               eventName = eventsArray[key].payload.notes.replace(/õ/g, "").toLowerCase();
-               eventName = eventsArray[key].payload.notes.replace(/€/g, "").toLowerCase();
-               eventName = eventsArray[key].payload.notes.replace(/âœ/g, "ò").toLowerCase();
-               eventName = eventsArray[key].payload.notes.replace(/âœ/g, "ò").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/'/g, "&apos;").toLowerCase();
+               eventName = eventsArray[key].payload.notes.replace(/\u0027/g, "&apos;").toLowerCase();
              }
              else
              {
@@ -256,7 +261,7 @@
              eventTooltip = trafficEventTypes["type" + eventType].desc; 
 
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle">' + eventName + '</div>');
+             eventTitle = $('<div class="eventTitle"><p class="eventTitlePar">' + eventName + '</p></div>');
              eventTitle.addClass(backgroundTitleClass);
              eventTitle.css("font-size", fontSize + "px");
              eventTitle.css("height", "30%");
@@ -543,8 +548,8 @@
 
             }//Fine del for 
             
-            //Mappa vuota sui target
-            if(fromSort !== true)
+            //Mappa vuota sui target - Commentata il 21/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map" 
+            /*if(fromSort !== true)
             {
                for(var widgetName in widgetTargetList) 
                {
@@ -556,7 +561,7 @@
                      $("#" + widgetName + "_div").attr("data-emptymapshown", "true");
                   }
                }
-            }
+            }*/
             
             $('#<?= $_GET['name'] ?>_rollerContainer [data-toggle="tooltip"]').tooltip({
                html: true
@@ -565,14 +570,23 @@
         
         function loadDefaultMap(widgetName)
         {
-            var mapdiv = widgetName + "_defaultMapDiv";
-            var mapRef = L.map(mapdiv).setView([43.769789, 11.255694], 11);
+            if($('#' + widgetName + '_defaultMapDiv div.leaflet-map-pane').length > 0)
+            {
+                //Basta nasconderla, tanto viene distrutta e ricreata ad ogni utilizzo (per ora).
+               $('#' + widgetName + '_mapDiv').hide();
+               $('#' + widgetName + '_defaultMapDiv').show();
+            }
+            else
+            {
+                var mapdiv = widgetName + "_defaultMapDiv";
+                var mapRef = L.map(mapdiv).setView([43.769789, 11.255694], 11);
 
-            L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-               attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-               maxZoom: 18
-            }).addTo(mapRef);
-            mapRef.attributionControl.setPrefix('');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                   attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                   maxZoom: 18
+                }).addTo(mapRef);
+                mapRef.attributionControl.setPrefix('');
+            }
         }
         
         function removeAllEventsFromMap(eventType)
@@ -595,8 +609,7 @@
                               $("#" + widgetName + "_mapDiv").remove();
                               $("#" + widgetName + "_content").append('<div id="' + widgetName + '_mapDiv" class="mapDiv"></div>');
                               $("#" + widgetName + "_mapDiv").hide();
-                              //$("#" + widgetName + "_wrapper").show();
-                              //$("#" + widgetName + "_iFrame").attr("src", eventsOnMaps[widgetName].noPointsUrl);
+                              $("#" + widgetName + "_wrapper").hide();
                               $("#" + widgetName + "_defaultMapDiv").show();
                            }
 
@@ -606,17 +619,25 @@
                            }
 
                            eventsOnMaps[widgetName].eventsPoints.splice(0);
-                           eventsOnMaps[widgetName].eventsNumber = 0; 
+                           eventsOnMaps[widgetName].eventsNumber = 0;
+                           
                         }
                      }
-                  }
-               }
-               $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink[data-eventtype=" + eventType + "]").each(function(i){
-                  $(this).attr("data-onMap", 'false');
-                  $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("");
-                  $(this).removeClass("onMapTrafficEventPinAnimated");
-                  $(this).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
-               });
+                }
+                
+                $("#" + widgetName + "_driverWidgetType").val("");
+                $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
+                $("#" + widgetName + "_buttonUrl").val("");
+                $("#" + widgetName + "_recreativeEventsUrl").val("");
+                updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
+            }
+            
+            $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink[data-eventtype=" + eventType + "]").each(function(i){
+               $(this).attr("data-onMap", 'false');
+               $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("");
+               $(this).removeClass("onMapTrafficEventPinAnimated");
+               $(this).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
+            });
          }
         
         function addAllEventsToMap(eventType)
@@ -654,8 +675,8 @@
 
                         eventsOnMaps[widgetName].mapRef = L.map(mapdiv).setView([43.769805, 11.256064], 17);
 
-                        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                           attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                           attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
                            maxZoom: 18
                         }).addTo(eventsOnMaps[widgetName].mapRef);
                         eventsOnMaps[widgetName].mapRef.attributionControl.setPrefix('');
@@ -731,19 +752,21 @@
                             insertIndex = eventsOnMaps[widgetName].eventsNumber - 1;
                             eventsOnMaps[widgetName].eventsPoints[insertIndex][8] = marker;
                             popupText = "<span class='mapPopupTitle'>" + eventName + "</span>" + 
-                                        "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime + "</span>" + 
-                                        "<span class='mapPopupLine'>TYPE: " + trafficEventTypes["type" + eventType].desc.toUpperCase() + "</span>" +
-                                        "<span class='mapPopupLine'>SUBTYPE: " + trafficEventSubTypes["subType" + eventSubtype].toUpperCase() + "</span>" +
-                                        "<span class='mapPopupLine'>SEVERITY: " + eventseveritynum + " - <span style='background-color: " + severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
+                                        "<span class='mapPopupLine'><i>Start date:</i>" + eventStartDate + " - " + eventStartTime + "</span>" + 
+                                        "<span class='mapPopupLine'><i>Event type:</i> " + trafficEventTypes["type" + eventType].desc.toUpperCase() + "</span>" +
+                                        "<span class='mapPopupLine'><i>Event subtype:</i> " + trafficEventSubTypes["subType" + eventSubtype].toUpperCase() + "</span>" +
+                                        "<span class='mapPopupLine'><i>Event severity:</i> " + eventseveritynum + " - <span style='background-color: " + severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
 
                             eventsOnMaps[widgetName].mapRef.addLayer(marker);
-                            marker.bindPopup(popupText, {offset: [-5, -40]});
+                            marker.bindPopup(popupText, {offset: [-5, -40], maxWidth : 600});
                             
                            $(this).attr("data-onMap", 'true');
                            $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
                            $(this).addClass("onMapTrafficEventPinAnimated");
                            $(this).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
                        });//Fine each
+                       
+                       updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
                         
                        //Centratura mappa
                        if(eventsOnMaps[widgetName].eventsNumber > 1)
@@ -797,6 +820,23 @@
             });
         }
         
+        function updateFullscreenPointsList(widgetNameLocal, eventsPointsLocal)
+        {
+            var temp = null;
+            $("#" + widgetNameLocal + "_driverWidgetType").val("trafficEvents");
+            $('#' + widgetNameLocal + '_modalLinkOpen input.fullscreenEventPoint').remove();
+            
+            for(var i = 0; i < eventsPointsLocal.length; i++)
+            { 
+              if($('#' + widgetNameLocal + '_fullscreenEvent_' + i).length <= 0)
+              {
+                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="trafficEvent" id="<?= $_GET['name'] ?>_fullscreenEvent_' + i + '"/>');
+                temp.val(eventsPointsLocal[i].join("||"));
+                $('#' + widgetNameLocal + '_modalLinkOpen div.modalLinkOpenBody').append(temp);
+              }
+            }
+        }
+        
         function addEventToMap(eventLink, widgetName)
         {
            var minLat, minLng, maxLat, maxLng, targetName, mapdiv, markerLocation, marker, popupText, pinIcon = null;
@@ -830,6 +870,8 @@
            eventsOnMaps[widgetName].eventsPoints.push(coordsAndType);
            eventsOnMaps[widgetName].eventsNumber++;
            
+           updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
+           
             //Leaflet
             $("#" + widgetName + "_wrapper").hide();
             $("#" + widgetName + "_defaultMapDiv").hide();
@@ -848,8 +890,8 @@
 
             eventsOnMaps[widgetName].mapRef = L.map(mapdiv).setView([lat, lng], 17);
 
-            L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-               attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+               attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
                maxZoom: 18
             }).addTo(eventsOnMaps[widgetName].mapRef);
             eventsOnMaps[widgetName].mapRef.attributionControl.setPrefix('');
@@ -870,8 +912,6 @@
                eventStartDate = eventsOnMaps[widgetName].eventsPoints[i][6];
                eventStartTime = eventsOnMaps[widgetName].eventsPoints[i][7];
 
-               //console.log("Lat: " + lat + " - Lng: " + lng + " - Event type: " + eventType + " - Event name: " + eventName + " - Event severity: " + eventSeverity + " - Event subtype: " + eventSubtype + " - Event start date: " + eventStartDate + " - Event start time: " + eventStartTime);
-
                switch(eventSeverity)
                {
                   case "Low":
@@ -890,8 +930,6 @@
                      break;   
                } 
 
-               //console.log("Map pin img: " + mapPinImg + " - Severity color: " + severityColor);
-
                pinIcon = new L.DivIcon({
                    className: null,
                    html: '<img src="' + mapPinImg + '" class="leafletPin" />'
@@ -901,13 +939,13 @@
                marker = new L.Marker(markerLocation, {icon: pinIcon});
                eventsOnMaps[widgetName].eventsPoints[i][8] = marker;
                popupText = "<span class='mapPopupTitle'>" + eventName + "</span>" + 
-                           "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime + "</span>" + 
-                           "<span class='mapPopupLine'>TYPE: " + trafficEventTypes["type" + eventType].desc.toUpperCase() + "</span>" +
-                           "<span class='mapPopupLine'>SUBTYPE: " + trafficEventSubTypes["subType" + eventSubtype].toUpperCase() + "</span>" +
-                           "<span class='mapPopupLine'>SEVERITY: " + eventseveritynum + " - <span style='background-color: " + severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
+                           "<span class='mapPopupLine'><i>Start date</i>: " + eventStartDate + " - " + eventStartTime + "</span>" + 
+                           "<span class='mapPopupLine'><i>Event type</i>: " + trafficEventTypes["type" + eventType].desc.toUpperCase() + "</span>" +
+                           "<span class='mapPopupLine'><i>Event subtype</i>: " + trafficEventSubTypes["subType" + eventSubtype].toUpperCase() + "</span>" +
+                           "<span class='mapPopupLine'><i>Event severity</i>: " + eventseveritynum + " - <span style='background-color: " + severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
 
                eventsOnMaps[widgetName].mapRef.addLayer(marker);
-               lastPopup = marker.bindPopup(popupText, {offset: [-5, -40]}).openPopup();
+               lastPopup = marker.bindPopup(popupText, {offset: [-5, -40], maxWidth : 600}).openPopup();
                
                //Calcolo del rettangolo di visualizzazione
                if(eventsOnMaps[widgetName].eventsPoints[i][0] < minLng)
@@ -957,10 +995,13 @@
                  }
                  else
                  {
+                    $("#" + widgetName + "_driverWidgetType").val("");
+                    $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
+                    $("#" + widgetName + "_buttonUrl").val("");
+                    $("#" + widgetName + "_recreativeEventsUrl").val(""); 
                     $("#" + widgetName + "_mapDiv").hide();
                     $("#" + widgetName + "_defaultMapDiv").show();
-                    //$("#" + widgetName + "_wrapper").show();
-                    //$("#" + widgetName + "_iFrame").attr("src", eventsOnMaps[widgetName].noPointsUrl);
+                    $("#" + widgetName + "_wrapper").hide();
                  }
               }
               
@@ -970,7 +1011,9 @@
               }
                
               eventsOnMaps[widgetName].eventsPoints.splice(0);
-              eventsOnMaps[widgetName].eventsNumber = 0; 
+              eventsOnMaps[widgetName].eventsNumber = 0;
+              
+              updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
            }
         }
         
@@ -995,6 +1038,8 @@
            eventsOnMaps[widgetName].eventsPoints.splice(index, 1);
            eventsOnMaps[widgetName].eventsNumber--;
            
+           updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
+           
            if(lastPopup !== null)
            {
               lastPopup.closePopup();
@@ -1018,8 +1063,8 @@
 
             eventsOnMaps[widgetName].mapRef = L.map(mapdiv).setView([43.769805, 11.256064], 17);
 
-            L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-               attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+               attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
                maxZoom: 18
             }).addTo(eventsOnMaps[widgetName].mapRef);
             eventsOnMaps[widgetName].mapRef.attributionControl.setPrefix('');
@@ -1041,8 +1086,6 @@
                eventStartTime = eventsOnMaps[widgetName].eventsPoints[i][7];
                eventseveritynum = eventsOnMaps[widgetName].eventsPoints[i][9];
 
-               //console.log("Lat: " + lat + " - Lng: " + lng + " - Event type: " + eventType + " - Event name: " + eventName + " - Event severity: " + eventSeverity + " - Event subtype: " + eventSubtype + " - Event start date: " + eventStartDate + " - Event start time: " + eventStartTime);
-
                switch(eventSeverity)
                {
                   case "Low":
@@ -1061,8 +1104,6 @@
                      break;   
                } 
 
-               //console.log("Map pin img: " + mapPinImg + " - Severity color: " + severityColor);
-
                pinIcon = new L.DivIcon({
                    className: null,
                    html: '<img src="' + mapPinImg + '" class="leafletPin" />'
@@ -1072,13 +1113,13 @@
                marker = new L.Marker(markerLocation, {icon: pinIcon});
                eventsOnMaps[widgetName].eventsPoints[i][8] = marker;
                popupText = "<span class='mapPopupTitle'>" + eventName + "</span>" + 
-                           "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime + "</span>" + 
-                           "<span class='mapPopupLine'>TYPE: " + trafficEventTypes["type" + eventType].desc.toUpperCase() + "</span>" +
-                           "<span class='mapPopupLine'>SUBTYPE: " + trafficEventSubTypes["subType" + eventSubtype].toUpperCase() + "</span>" +
-                           "<span class='mapPopupLine'>SEVERITY: " + eventseveritynum + " - <span style='background-color: " + severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
+                           "<span class='mapPopupLine'><i>Start time:</i> " + eventStartDate + " - " + eventStartTime + "</span>" + 
+                           "<span class='mapPopupLine'><i>Event type:</i> " + trafficEventTypes["type" + eventType].desc.toUpperCase() + "</span>" +
+                           "<span class='mapPopupLine'><i>Event subtype</i>: " + trafficEventSubTypes["subType" + eventSubtype].toUpperCase() + "</span>" +
+                           "<span class='mapPopupLine'><i>Event severity:</i> " + eventseveritynum + " - <span style='background-color: " + severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
 
                eventsOnMaps[widgetName].mapRef.addLayer(marker);
-               lastPopup = marker.bindPopup(popupText, {offset: [-5, -40]});
+               lastPopup = marker.bindPopup(popupText, {offset: [-5, -40], maxWidth : 600});
                
                //Calcolo del rettangolo di visualizzazione
                if(eventsOnMaps[widgetName].eventsPoints[i][0] < minLng)
@@ -1117,10 +1158,13 @@
               }
               else
               {
+                 $("#" + widgetName + "_wrapper").hide(); 
                  $("#" + widgetName + "_mapDiv").hide();
                  $("#" + widgetName + "_defaultMapDiv").show();
-                 //$("#" + widgetName + "_wrapper").show();
-                 //$("#" + widgetName + "_iFrame").attr("src", eventsOnMaps[widgetName].noPointsUrl);
+                 $("#" + widgetName + "_driverWidgetType").val("");
+                 $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
+                 $("#" + widgetName + "_buttonUrl").val("");
+                 $("#" + widgetName + "_recreativeEventsUrl").val("");
               }
             }
         }
@@ -1177,7 +1221,7 @@
         }
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         $("#<?= $_GET['name'] ?>_buttonsContainer").css("background-color", $("#<?= $_GET['name'] ?>_header").css("background-color"));
         
         if(firstLoad === false)
@@ -1197,6 +1241,7 @@
         {
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
             styleParameters = getStyleParameters();//Usato come misura tampone per scegliere fra gli ultimi XX eventi e gli ultimi YY minuti
+            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             
             widgetTargetList = JSON.parse(widgetProperties.param.parameters);
@@ -1236,6 +1281,12 @@
                       elToEmpty.empty();
                   }
                   
+                  //console.log("TRAFFIC EVENTS:");
+                  //console.log(JSON.stringify(data));
+                  
+                  $("#<?= $_GET['name'] ?>_noDataAlert").hide();
+                  $('#<?= $_GET['name'] ?>_buttonsContainer').show();
+                  $("#<?= $_GET['name'] ?>_rollerContainer").show();
                   $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height() - 50); 
                 
                   eventsNumber = Object.keys(data).length;
@@ -1263,6 +1314,28 @@
                     data[key].payload = localPayload;
                     eventsArray.push(data[key]); 
                   }
+                  
+                    /*eventsArray.sort(function(a,b) 
+                    {
+                        //return b.payload.start_time - a.payload.start_time;
+                        var itemA = new Date(a.payload.start_time); 
+                        var itemB = new Date(b.payload.start_time);
+                        if (itemA < itemB)
+                        {
+                           return 1;
+                        }
+                        else
+                        {
+                           if (itemA > itemB)
+                           {
+                              return -1;
+                           }
+                           else
+                           {
+                              return 0; 
+                           }
+                        }
+                    });*/
                   
                   populateWidget(false);
                   
@@ -1658,8 +1731,26 @@
                                 break;
 
                             case 2:
-                                eventsArray.sort(function(a,b) {
-                                    return a.id - b.id;
+                                eventsArray.sort(function(a,b) 
+                                {
+                                    //return b.payload.start_time - a.payload.start_time;
+                                    var itemA = new Date(a.payload.start_time); 
+                                    var itemB = new Date(b.payload.start_time);
+                                    if (itemA < itemB)
+                                    {
+                                       return 1;
+                                    }
+                                    else
+                                    {
+                                       if (itemA > itemB)
+                                       {
+                                          return -1;
+                                       }
+                                       else
+                                       {
+                                          return 0; 
+                                       }
+                                    }
                                 });
                                 
                                 populateWidget(true);
@@ -2318,7 +2409,6 @@
                  }
                });
                
-               
                scroller = setInterval(stepDownInterval, speed);
                var timeToClearScroll = (timeToReload - 0.5) * 1000;
                
@@ -2333,14 +2423,18 @@
                    $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
                    $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html("");
 
-                   //Ripristino delle homepage native per gli widget targets al reload
-                   /*for(var widgetName in widgetTargetList) 
-                   {
-                      if(eventsOnMaps[widgetName].eventsNumber > 0)
-                      {
-                         $("#" + widgetName + "_iFrame").attr("src", eventsOnMaps[widgetName].noPointsUrl);
-                      }
-                   }*/
+                    //Ripristino delle homepage native per gli widget targets al reload
+                    for(var widgetName in widgetTargetList) 
+                    {
+                       if($("#" + widgetName + "_driverWidgetType").val() === 'trafficEvents')
+                       {
+                           loadDefaultMap(widgetName);
+                       }
+                       else
+                       {
+                           //console.log("Attualmente non pilotato da trafficEvents");
+                       }
+                    }
                }, timeToClearScroll);
 
 
@@ -2362,17 +2456,18 @@
                   console.log(JSON.stringify(data));
                   
                   showWidgetContent(widgetName);
-                  $("#<?= $_GET['name'] ?>_table").css("display", "none"); 
-                  $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
+                  $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
+                  $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
+                  $("#<?= $_GET['name'] ?>_noDataAlert").show();
                }
             });
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
         }
         
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetTrafficEvents", test, eventNames);
+        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
     });//Fine document ready
 </script>
 
@@ -2402,8 +2497,15 @@
         </div>
         
         <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
+               <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
+                    <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+                        No data available
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                        <i class="fa fa-times"></i>
+                    </div>
+               </div>  
                <div id="<?= $_GET['name'] ?>_buttonsContainer" class="trafficEventsButtonsContainer">
                    <div class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">

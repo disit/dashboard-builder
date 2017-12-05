@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,12 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-    include('../config.php');
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad)  
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
     {
         <?php
             $titlePatterns = array();
@@ -54,6 +54,11 @@
         var timeToReload = <?= $_GET['freq'] ?>;
         var elToEmpty = $("#<?= $_GET['name'] ?>_rollerContainer");
         var url = "<?= $_GET['link_w'] ?>";
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
         
         var plansObj = {};
         var plansOrderedIds = [];
@@ -67,6 +72,15 @@
         {
             url = null;
         }
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+            showHeader = false;
+	}
+	else
+	{
+            showHeader = true;
+	}
    
         timeFontSize = parseInt(fontSize*1.6);
         dateFontSize = parseInt(fontSize*0.95);
@@ -110,16 +124,24 @@
         //Definizioni di funzione
         function loadDefaultMap(widgetName)
         {
-            var mapdiv = widgetName + "_defaultMapDiv";
-            var mapRef = L.map(mapdiv).setView([43.769789, 11.255694], 11);
+            if($('#' + widgetName + '_defaultMapDiv div.leaflet-map-pane').length > 0)
+            {
+                //Basta nasconderla, tanto viene distrutta e ricreata ad ogni utilizzo (per ora).
+               $('#' + widgetName + '_mapDiv').hide();
+               $('#' + widgetName + '_defaultMapDiv').show();
+            }
+            else
+            {
+                var mapdiv = widgetName + "_defaultMapDiv";
+                var mapRef = L.map(mapdiv).setView([43.769789, 11.255694], 11);
 
-            L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-               attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-               maxZoom: 18
-            }).addTo(mapRef);
-            mapRef.attributionControl.setPrefix('');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                   attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                   maxZoom: 18
+                }).addTo(mapRef);
+                mapRef.attributionControl.setPrefix('');
+            }
         }
-        
         
         function populateWidget(fromSort)
         {
@@ -216,7 +238,7 @@
              
 
              newRow.css("height", rowPercHeight + "%");
-             planTitle = $('<div class="eventTitle">' + planName + '</div>');
+             planTitle = $('<div class="eventTitle"><p class="eventTitlePar">' + planName + '</p></div>');
              planTitle.addClass(backgroundTitleClass);
              planTitle.css("font-size", fontSize + "px");
              planTitle.css("height", "30%");
@@ -500,8 +522,8 @@
              });
              i++;
              
-             //Mappa vuota sui target
-            if(fromSort !== true)
+            //Mappa vuota sui target - Commentata il 21/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map" 
+            /*if(fromSort !== true)
             {
                for(var widgetName in widgetTargetList) 
                {
@@ -513,7 +535,7 @@
                      $("#" + widgetName + "_div").attr("data-emptymapshown", "true");
                   }
                }
-            }
+            }*/
 
             }//Fine del for 
         }
@@ -530,12 +552,18 @@
                  $("#" + widgetName + "_mapDiv").remove();
                  $('<div id="' + widgetName + '_mapDiv" class="mapDiv"></div>').insertBefore("#" + widgetName + "_wrapper");
                  
+                 $("#" + widgetName + "_wrapper").hide();
+                 
                  if(fromSort)
                  {
                     $("#" + widgetName + "_mapDiv").show();
                  }
                  else
                  {
+                    $("#" + widgetName + "_driverWidgetType").val("");
+                    $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
+                    $("#" + widgetName + "_buttonUrl").val("");
+                    $("#" + widgetName + "_recreativeEventsUrl").val(""); 
                     $("#" + widgetName + "_mapDiv").hide();
                     $("#" + widgetName + "_defaultMapDiv").show();
                  }
@@ -543,6 +571,21 @@
               
               plansOnMaps[widgetName].shownPolyGroup = null;
            }
+        }
+        
+        function updateFullscreenPointsList(widgetNameLocal, polyIndex, poly, pathsQt)
+        {
+            var temp = null;
+            $("#" + widgetNameLocal + "_driverWidgetType").val("evacuationPlans");
+            for(var i = 0; i < poly._latlngs.length; i++)
+            {  
+              if($('#' + widgetNameLocal + '_fullscreenEvent_' + i).length <= 0)
+              {
+                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="evacuationPlan" data-pathsQt="' + pathsQt + '"data-polyColor="' + poly.options.color + '" data-polyIndex="' + polyIndex + '" id="<?= $_GET['name'] ?>_fullscreenEvent_' + i + '"/>');
+                temp.val(JSON.stringify(poly._latlngs[i]));
+                $('#' + widgetNameLocal + '_modalLinkOpen div.modalLinkOpenBody').append(temp);
+              }
+            }
         }
         
         function addEventToMap(eventLink, widgetName)
@@ -575,24 +618,21 @@
 
             plansOnMaps[widgetName].mapRef = L.map(mapdiv).setView([43.769728, 11.255552], 14);
 
-            L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-               attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+               attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
                maxZoom: 18
             }).addTo(plansOnMaps[widgetName].mapRef);
             plansOnMaps[widgetName].mapRef.attributionControl.setPrefix('');
             
             plansOnMaps[widgetName].shownPolyGroup = null;
-           
             plansOnMaps[widgetName].shownPolyGroup = L.featureGroup(); 
+           
+           //Aggiungerla sempre qui
+           $('#' + widgetName + '_modalLinkOpen input.fullscreenEventPoint').remove();
            
            for(var j = 0; j < plansObj[planId].payload.evacuation_paths.length; j++)
            {
                path = [];
-               if(colors[j%6] === 'blue')
-               {
-                  console.log("Path n. " + j);
-               }
-               
                
                for(var i = 0; i < plansObj[planId].payload.evacuation_paths[j].coords.length; i++)
                {
@@ -603,6 +643,8 @@
                }
                polyline = L.polyline(path, {color: colors[j%6]});
                plansOnMaps[widgetName].shownPolyGroup.addLayer(polyline);
+               
+               updateFullscreenPointsList(widgetName, j, polyline, plansObj[planId].payload.evacuation_paths.length);
            }
            
            plansOnMaps[widgetName].shownPolyGroup.addTo(plansOnMaps[widgetName].mapRef);
@@ -613,6 +655,11 @@
         {
            plansOnMaps[widgetName].mapRef.removeLayer(plansOnMaps[widgetName].shownPolyGroup);
            plansOnMaps[widgetName].shownPolyGroup = null;
+           $("#" + widgetName + "_driverWidgetType").val("");
+           $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
+           $("#" + widgetName + "_buttonUrl").val("");
+           $("#" + widgetName + "_recreativeEventsUrl").val("");
+           $("#" + widgetName + "_wrapper").hide();
            $("#" + widgetName + "_mapDiv").hide();
            $("#" + widgetName + "_defaultMapDiv").show();
         }
@@ -669,7 +716,7 @@
         }
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         $("#<?= $_GET['name'] ?>_buttonsContainer").css("background-color", $("#<?= $_GET['name'] ?>_header").css("background-color"));
         
         if(firstLoad === false)
@@ -692,6 +739,7 @@
             //Fine eventuale codice ad hoc basato sulle proprietà del widget
             
             widgetTargetList = JSON.parse(widgetProperties.param.parameters);
+            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
             
             for(var name in widgetTargetList) 
             {
@@ -721,7 +769,9 @@
                       elToEmpty.empty();
                   }
                   
-                  //console.log(JSON.stringify(data));
+                  $("#<?= $_GET['name'] ?>_noDataAlert").hide();
+                  $('#<?= $_GET['name'] ?>_buttonsContainer').show();
+                  $("#<?= $_GET['name'] ?>_rollerContainer").show();
                   
                   $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height() - 50); 
                   
@@ -770,6 +820,26 @@
                        
                        plansOrderedIds.push(dataId);
                      }
+                     
+                     plansOrderedIds.sort(function(a,b){
+                        var itemA = new Date(plansObj[a].event_time); 
+                        var itemB = new Date(plansObj[b].event_time);
+                        if (itemA > itemB)
+                        {
+                           return -1;
+                        }
+                        else
+                        {
+                           if (itemA < itemB)
+                           {
+                              return 1;
+                           }
+                           else
+                           {
+                              return 0; 
+                           }
+                        }
+                    });
 
                      populateWidget(false);
                      
@@ -801,7 +871,7 @@
                         var planId = $("#modalChangePlanStatusPlanId").val();
                         
                         $.ajax({
-                           url: "http://www.resolute-eu.org/cxf/resolute/commands/plan/status/?consumerId=urn:rixf:org.disit/dashboard_manager&evacuationPlanId=urn:rixf:gr.certh/evacuationplan_ID/" + planId + "&status=" + newStatus,
+                           url: "https://www.resolute-eu.org/cxf/resolute/commands/plan/status/?consumerId=urn:rixf:org.disit/dashboard_manager&evacuationPlanId=urn:rixf:gr.certh/evacuationplan_ID/" + planId + "&status=" + newStatus,
                            type: "POST",
                            contentType: 'application/json', 
                            async: true,
@@ -1047,9 +1117,23 @@
                                case 2:
                                    timeSortState = 0;
                                    plansOrderedIds.sort(function(a,b){
-                                       var itemA = parseInt(plansObj[a].id); 
-                                       var itemB = parseInt(plansObj[b].id);
-                                       return itemA - itemB;
+                                       var itemA = new Date(plansObj[a].event_time); 
+                                       var itemB = new Date(plansObj[b].event_time);
+                                       if (itemA > itemB)
+                                       {
+                                          return -1;
+                                       }
+                                       else
+                                       {
+                                          if (itemA < itemB)
+                                          {
+                                             return 1;
+                                          }
+                                          else
+                                          {
+                                             return 0; 
+                                          }
+                                       }
                                    });
                                    
                                    populateWidget(true);
@@ -1206,6 +1290,19 @@
                             
                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
+                            
+                            //Ripristino delle homepage native per gli widget targets al reload, se pilotati per ultimi da questo widget
+                            for(var widgetName in widgetTargetList) 
+                            {
+                               if($("#" + widgetName + "_driverWidgetType").val() === 'evacuationPlans')
+                               {
+                                   loadDefaultMap(widgetName);
+                               }
+                               else
+                               {
+                                   //console.log("Attualmente non pilotato da evacuationPlans");
+                               }
+                            }
 
                         }, timeToClearScroll);
 
@@ -1227,17 +1324,21 @@
                   console.log(JSON.stringify(data));
                   
                   showWidgetContent(widgetName);
-                  $("#<?= $_GET['name'] ?>_table").css("display", "none"); 
-                  $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
+                  $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
+                  $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
+                  $("#<?= $_GET['name'] ?>_noDataAlert").show();
                }
             });
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
+            $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
+            $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
+            $("#<?= $_GET['name'] ?>_noDataAlert").show();
         }
         
-        intervalRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetEvacuationPlans", test, planNames);
+        intervalRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         
     });//Fine document ready
 </script>
@@ -1268,8 +1369,15 @@
         </div>
         
         <div id="<?= $_GET['name'] ?>_content" class="content">
-            
             <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
+               <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
+                    <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+                        No data available
+                    </div>
+                    <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                        <i class="fa fa-times"></i>
+                    </div>
+               </div>  
                <div id="<?= $_GET['name'] ?>_buttonsContainer" class="trafficEventsButtonsContainer centerWithFlex">
                    <div class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">
@@ -1284,7 +1392,6 @@
                       <div id="<?= $_GET['name'] ?>_decisionSortMsg" class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
                </div>
-               <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
                <div id="<?= $_GET['name'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
             </div>
         </div>

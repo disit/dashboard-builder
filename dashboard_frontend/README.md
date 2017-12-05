@@ -9,4 +9,5 @@ This component is a PHP web application
 ## Import DB tables
 - see details in the dashboard_backend component
 ## Configure
-- edit the config.php file at least to set the host and credentials for the DB
+- edit the config.php file at least to set the host and credentials for the DB.
+- change the permissions to the img folder to allow the webserver to write in this folder. (e.g. "chwon -R www-data.www-data img")

@@ -186,9 +186,9 @@ public class DBAccess
          return;
       }
 
-		// Questo rende la chiamata una POST
-		con.setDoOutput(true);
-		DataOutputStream wr = null;
+        // Questo rende la chiamata una POST
+        con.setDoOutput(true);
+        DataOutputStream wr = null;
       
       try 
       {

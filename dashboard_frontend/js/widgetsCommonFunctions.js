@@ -1,5 +1,5 @@
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,7 +13,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-/*Globals*/
+//Globals
 var loadingFontDim = 13;
 var loadingIconDim = 20;
 var getParametersWidgetUrl = "../widgets/getParametersWidgets.php";
@@ -29,14 +29,6 @@ function setHeaderFontColor(widget, color)
 //Usata in tutti gli widget
 function addLink(name, url, linkElement, elementToBeWrapped)
 {
-    /*if(url) 
-    {
-        if(linkElement.length === 0)
-        {
-           linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='_blank' class='elementLink2'></a>");
-           elementToBeWrapped.wrap(linkElement); 
-        }
-    }*/
     if(url !== 'none' && url !== 'map') 
     {
         if(linkElement.length === 0)
@@ -47,38 +39,70 @@ function addLink(name, url, linkElement, elementToBeWrapped)
     }
 }
 
-/*Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie*/
+//Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie
 function showWidgetContent(widgetName)
 {
     $("#" + widgetName + "_loading").css("display", "none");
     $("#" + widgetName + "_content").css("display", "block");
 }
 
-/*Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie*/
-function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor)
+//Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie
+function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight)
 {
-    var titleWidth = null;
-
-    //Impostazione header
-    $("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
-   
-    if((!widgetName.includes("widgetButton"))&&(!widgetName.includes("widgetExternalContent"))&&(!widgetName.includes("widgetTrendMentions")))
+    var titleWidth, contentHeight = null;
+    if(showHeader === true)
     {
-        if(hostFile === "config")
+        //Impostazione header
+        $("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
+        $("#" + widgetName + "_infoButtonDiv a.info_source").css("color", widgetHeaderFontColor);
+        if(widgetHeaderFontColor !== widgetHeaderColor)
         {
-            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 25 - 2));
+            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer a.iconFullscreenModal").css("color", widgetHeaderFontColor);
+            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer a.iconFullscreenTab").css("color", widgetHeaderFontColor);
+            $("#" + widgetName + "_countdownDiv").css("border-color", widgetHeaderFontColor);
         }
-        else
+        
+        if((!widgetName.includes("widgetButton"))&&(!widgetName.includes("widgetExternalContent"))&&(!widgetName.includes("widgetTrendMentions")))
         {
-           $("#" + widgetName + "_buttonsDiv").css("display", "none");
-           titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+            if(hostFile === "config")
+            {
+                if(widgetName.includes("widgetSelector"))
+                {
+                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 2));
+                }
+                else
+                {
+                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 25 - 2));
+                }
+            }
+            else
+            {
+                $("#" + widgetName + "_buttonsDiv").css("display", "none");
+                if(widgetName.includes("widgetSelector"))
+                {
+                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 2));
+                }
+                else
+                {
+                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                }
+            }
+            $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
         }
-        $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
+
+        $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
+        $("#" + widgetName + "_countdownDiv").css("color", widgetHeaderFontColor);
+
+        //Impostazione altezza widget
+        contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - headerHeight);
+    }
+    else
+    {
+        //Impostazione altezza widget
+        contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight"));
+        $('#' + widgetName + '_header').hide();
     }
     
-    $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
-    $("#" + widgetName + "_countdownDiv").css("color", widgetHeaderFontColor);
-
     //Impostazione colore di background del widget
     if(widgetName.indexOf("widgetGenericContent") > 0)
     {
@@ -88,14 +112,16 @@ function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderC
     {
        $("#" + widgetName + "_content").css("background-color", widgetContentColor);
     }
-
-    //Impostazione altezza widget
-    var contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
+    
     $("#" + widgetName + "_content").css("height", contentHeight);
+    if(widgetHeaderColor === widgetHeaderFontColor)
+    {
+        $("#" + widgetName + "_titleDiv").css("text-shadow", "none");
+    }
 }
 
 //Usata in widgetTable e tutti widget sulle serie, incluso nuovo pie
-function startCountdown(widgetName, timeToReload, funcRef, elToEmpty, widgetType ,scrollerTimeout, eventNamesArray)
+function startCountdownOld(widgetName, timeToReload, funcRef, elToEmpty, widgetType , scrollerTimeout, eventNamesArray, metricNameFromDriverLocal, widgetTitleFromDriverLocal, widgetHeaderColorFromDriverLocal, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)
 {
    var intervalRef = setInterval(function () {
         $("#" + widgetName + "_countdownDiv").text(timeToReload);
@@ -120,7 +146,41 @@ function startCountdown(widgetName, timeToReload, funcRef, elToEmpty, widgetType
                 $("#<?= $_GET['name'] ?>_alarmDiv").removeClass("alarmDivActive");
                 $("#<?= $_GET['name'] ?>_alarmDiv").addClass("alarmDiv");  
             }*/
-            setTimeout(funcRef(false), 1000);
+            setTimeout(funcRef(false, metricNameFromDriverLocal, widgetTitleFromDriverLocal, widgetHeaderColorFromDriverLocal, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef), 1000);
+        }
+    }, 1000);
+    
+    return intervalRef;
+}
+
+function startCountdown(widgetName, timeToReload, funcRef, metricNameFromDriverLocal, widgetTitleFromDriverLocal, widgetHeaderColorFromDriverLocal, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId)
+{
+   //console.log("fromGisFakeId in start countdown: " + fromGisFakeId); 
+   var intervalRef = setInterval(function () {
+        $("#" + widgetName + "_countdownDiv").text(timeToReload);
+        timeToReload--;
+        if (timeToReload > 60) 
+        {
+            $("#" + widgetName + "_countdownDiv").text(Math.floor(timeToReload / 60) + "m");
+        } 
+        else 
+        {
+            $("#" + widgetName + "_countdownDiv").text(timeToReload + "s");
+        }
+        
+        if(timeToReload === 0) 
+        {
+            $("#" + widgetName + "_countdownDiv").text(timeToReload + "s");
+            clearInterval(intervalRef);
+            
+            //Da ripristinare
+            /*if(alarmSet)
+            {
+                $("#<?= $_GET['name'] ?>_alarmDiv").removeClass("alarmDivActive");
+                $("#<?= $_GET['name'] ?>_alarmDiv").addClass("alarmDiv");  
+            }*/
+           
+            setTimeout(funcRef(false, metricNameFromDriverLocal, widgetTitleFromDriverLocal, widgetHeaderColorFromDriverLocal, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId), 1000);
         }
     }, 1000);
     
@@ -158,13 +218,42 @@ function getWidgetProperties(widgetName)
         {
             properties = data;
         },
-        error: function()
+        error: function(errorData)
         {
-           
+           console.log("Errore in caricamento proprietà widget per widget " + widgetName);
+           console.log(JSON.stringify(errorData));
         }
     });
-    
     return properties;
+}
+
+function manageInfoButtonVisibility(infoMsg, headerContainer)
+{
+   if(infoMsg === null || infoMsg === undefined)
+   {
+       if(headerContainer.attr('id').includes('alarmDivPc'))
+       {
+           headerContainer.find('div.pcInfoContainer a.info_source').hide();
+       }
+       else
+       {
+           headerContainer.find('div.infoButtonContainer a.info_source').hide();
+       }
+   }
+   else
+   {
+        if((infoMsg.trim() === "")||(infoMsg.trim().length === 0))
+        {
+            if(headerContainer.attr('id').includes('alarmDivPc'))
+            {
+                headerContainer.find('div.pcInfoContainer a.info_source').hide();
+            }
+            else
+            {
+                headerContainer.find('div.infoButtonContainer a.info_source').hide();
+            }
+        }
+   }
 }
 
 //Usata in widgetTable.php, dashboard_configdash.php

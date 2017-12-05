@@ -1,22 +1,22 @@
 Software License Agreement
 ==========================
 
-CKEditor - The text editor for Internet - http://ckeditor.com
+CKEditor - The text editor for Internet - https://ckeditor.com
 Copyright (c) 2003-2016, CKSource - Frederico Knabben. All rights reserved.
 
 Licensed under the terms of any of the following licenses at your
 choice:
 
  - GNU General Public License Version 2 or later (the "GPL")
-   http://www.gnu.org/licenses/gpl.html
+   https://www.gnu.org/licenses/gpl.html
    (See Appendix A)
 
  - GNU Lesser General Public License Version 2.1 or later (the "LGPL")
-   http://www.gnu.org/licenses/lgpl.html
+   https://www.gnu.org/licenses/lgpl.html
    (See Appendix B)
 
  - Mozilla Public License Version 1.1 or later (the "MPL")
-   http://www.mozilla.org/MPL/MPL-1.1.html
+   https://www.mozilla.org/MPL/MPL-1.1.html
    (See Appendix C)
 
 You are not required to, but if you want to explicitly declare the
@@ -43,7 +43,7 @@ The following libraries are included in CKEditor under the MIT license (see Appe
 
 Parts of code taken from the following libraries are included in CKEditor under the MIT license (see Appendix D):
 
-* jQuery (inspired the domReady function, ckeditor_base.js) - Copyright (c) 2011 John Resig, http://jquery.com/
+* jQuery (inspired the domReady function, ckeditor_base.js) - Copyright (c) 2011 John Resig, https://jquery.com/
 
 The following libraries are included in CKEditor under the SIL Open Font License, Version 1.1 (see Appendix E):
 
@@ -1255,7 +1255,7 @@ EXHIBIT A -Mozilla Public License.
      ``The contents of this file are subject to the Mozilla Public License
      Version 1.1 (the "License"); you may not use this file except in
      compliance with the License. You may obtain a copy of the License at
-     http://www.mozilla.org/MPL/
+     https://www.mozilla.org/MPL/
 
      Software distributed under the License is distributed on an "AS IS"
      basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the

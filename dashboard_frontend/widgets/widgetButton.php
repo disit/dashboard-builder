@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,6 +13,8 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
@@ -32,7 +34,11 @@
         var button = $('#<?= $_GET['name'] ?>_button');
         var buttonText = '<?= $_GET['title'] ?>'.replace(/_/g, " ");
         var url = "<?= $_GET['link_w'] ?>";
-        var widgetProperties, buttonHeight, widgetTargetList, originalHeaderColor, originalBorderColor, styleParameters, innerWidth, innerHeight, innerTop, innerLeft = null;
+        var hasChangeMetric = false;
+        var justClicked = false;
+        var widgetProperties, buttonHeight, widgetTargetList, originalHeaderColor, originalBorderColor, originalTitle, 
+            originalHeaderFontColor, styleParameters, innerWidth, innerHeight, innerTop, innerLeft,
+            outerMinDim, innerMinDim, outerBorderRadius, innerBorderRadius = null;
         
         //Rimozione bordo per questo widget
         $("#" + widgetName).css("border", "none");
@@ -63,15 +69,20 @@
         
         setWidgetLayout(hostFile, widgetMainDivName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
         
+        $("#" + widgetName + "_button").css("width", "98%");
         if(hostFile === 'index')
         {
             $('#<?= $_GET['name'] ?>_header').hide();
-            buttonHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight"));
+            $("#" + widgetName + "_button").css("height", "98%");
         }
         else
         {
             $('#<?= $_GET['name'] ?>_header').show();
-            buttonHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
+            buttonHeight = $("#" + widgetName + "_div").prop("offsetHeight") - 25;
+            var widgetHeight = $("#" + widgetName + "_div").prop("offsetHeight");
+            var contentHeight = parseFloat(buttonHeight / widgetHeight);
+            contentHeight = (contentHeight * 100) - 2;
+            $("#" + widgetName + "_button").css("height", contentHeight + "%");
             $("#" + widgetName + "_buttonsDiv").css("width", "50px");
             $("#" + widgetName + "_buttonsDiv").show();
             var titleDivWidth = $('#<?= $_GET['name'] ?>_div').width() - 50;
@@ -79,19 +90,17 @@
             $('#<?= $_GET['name'] ?>_titleDiv').show();
         }
         
-        $("#" + widgetName + "_button").css("width", "100%");
-        $("#" + widgetName + "_button").css("height", buttonHeight);
         button.css("background-color", color);
         $('#<?= $_GET['name'] ?>_button').css("font-size", fontSize +"px");
         $('#<?= $_GET['name'] ?>_button').css("color", fontColor);
         $('#<?= $_GET['name'] ?>_buttonText').css("text-shadow", "1px 1px 1px rgba(0,0,0,0.35)");
         $('#<?= $_GET['name'] ?>_buttonText').text(buttonText);
         $("#" + widgetName + "_button").css("border", "none");
-        $('#<?= $_GET['name'] ?>_buttonInner').addClass("centerWithFlex");
+        $('#<?= $_GET['name'] ?>_buttonBackground').addClass("centerWithFlex");
         
         $("#" + widgetName + "_button").focus(function(){
            $(this).css("outline", "none");
-        });   
+        });
         
         widgetProperties = getWidgetProperties(widgetName);
         if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
@@ -99,37 +108,117 @@
            widgetTargetList = JSON.parse(widgetProperties.param.parameters);
            styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
            
-           if((widgetTargetList !== null)&&(widgetTargetList !== 'null')&&(widgetTargetList !== 'undefined'))
+           for(var index in widgetTargetList.changeMetricTargetsJson)
+           {
+               if(widgetTargetList.changeMetricTargetsJson[index] !== "noMetricChange")
+               {
+                   hasChangeMetric = true;
+                   break;
+               }
+           }
+           
+           if((widgetTargetList.geoTargetsJson.length > 0)||(hasChangeMetric))
            {
                button.hover(
                   function() 
                   {
-                     originalHeaderColor = new Array();
-                     originalBorderColor = new Array();
+                     originalHeaderColor = {
+                         changeMetricTargetsJson: {},
+                         geoTargetsJson: []
+                     };
+                     originalBorderColor = {
+                         changeMetricTargetsJson: {},
+                         geoTargetsJson: []
+                     };
+                     originalTitle = {
+                         changeMetricTargetsJson: {},
+                         geoTargetsJson: []
+                     };
+                     originalHeaderFontColor = {
+                         changeMetricTargetsJson: {},
+                         geoTargetsJson: []
+                     };
                      
-                     for(var i = 0; i < widgetTargetList.length; i++)
+                     for(var widgetName in widgetTargetList.changeMetricTargetsJson)
                      {
-                        originalHeaderColor[i] = $("#" + widgetTargetList[i] + "_header").css("background-color");
-                        originalBorderColor[i] = $("#" + widgetTargetList[i]).css("border-color");
-                        $("#" + widgetTargetList[i] + "_header").css("background", hoverColor);
-                        $("#" + widgetTargetList[i]).css("border-color", hoverColor);
+                        if(widgetTargetList.changeMetricTargetsJson[widgetName] !== "noMetricChange")
+                        {
+                           originalHeaderColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                           originalBorderColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName).css("border-color");
+                           originalTitle.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_titleDiv").html();
+                           originalHeaderFontColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_titleDiv").css("color");
+                           
+                           $("#" + widgetName + "_header").css("background", hoverColor);
+                           $("#" + widgetName).css("border-color", hoverColor);
+                           $("#" + widgetName + "_titleDiv").html(buttonText);
+                           $("#" + widgetName + "_titleDiv").css("color", fontColor);
+                        }
+                     }
+                     
+                     for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
+                     {
+                        originalHeaderColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background-color");
+                        originalBorderColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color");
+                        originalTitle.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html();
+                        originalHeaderFontColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color");
+                        
+                        $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background", hoverColor);
+                        $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color", hoverColor);
+                        $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html(buttonText);
+                        $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color", fontColor);
                      }
                   }, 
                   function() 
                   {
-                     for(var i = 0; i < widgetTargetList.length; i++)
+                     if(justClicked === false)
                      {
-                        $("#" + widgetTargetList[i] + "_header").css("background", originalHeaderColor[i]);
-                        $("#" + widgetTargetList[i]).css("border-color", originalBorderColor[i]);
+                        for(var widgetName in widgetTargetList.changeMetricTargetsJson)
+                        {
+                           if(widgetTargetList.changeMetricTargetsJson[widgetName] !== "noMetricChange")
+                           {
+                              $("#" + widgetName + "_header").css("background", originalHeaderColor.changeMetricTargetsJson[widgetName]);
+                              $("#" + widgetName).css("border-color", originalBorderColor.changeMetricTargetsJson[widgetName]); 
+                              $("#" + widgetName + "_titleDiv").html(originalTitle.changeMetricTargetsJson[widgetName]);
+                              $("#" + widgetName + "_titleDiv").css("color", originalHeaderFontColor.changeMetricTargetsJson[widgetName]);
+                           }
+                        } 
+
+                        for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
+                        {
+                           $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background", originalHeaderColor.geoTargetsJson[i]);
+                           $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color", originalBorderColor.geoTargetsJson[i]);
+                           $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html(originalTitle.geoTargetsJson[i]);
+                           $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color", originalHeaderFontColor.geoTargetsJson[i]);
+                        } 
+                     }
+                     else
+                     {
+                         justClicked = false;
                      }
                   }
                );
     
             button.click(function()
             {
-               for(var i = 0; i < widgetTargetList.length; i++)
+               justClicked = true; 
+                
+               for(var widgetName in widgetTargetList.changeMetricTargetsJson)
                {
-                  $("#" + widgetTargetList[i] + "_iFrame").attr("src", url);
+                    $.event.trigger({
+                        type: "changeMetricFromButton_" + widgetName,
+                        targetWidget: widgetName,
+                        newMetricName: widgetTargetList.changeMetricTargetsJson[widgetName],
+                        newTargetTitle: buttonText,
+                        newHeaderAndBorderColor: color,
+                        newHeaderFontColor: fontColor
+                    }); 
+               }
+                
+               for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
+               {
+                  $("#" + widgetTargetList.geoTargetsJson[i] + "_driverWidgetType").val("button"); 
+                  $("#" + widgetTargetList.geoTargetsJson[i] + "_buttonUrl").val(url);
+                  $("#" + widgetTargetList.geoTargetsJson[i] + "_iFrame").attr("src", url);
                }
             });
            }
@@ -138,44 +227,83 @@
               addLink(widgetMainDivName, url, linkElement, button);
            }
            
-           
-           var minDim = null;
            if($("#<?= $_GET['name'] ?>_button").width() > $("#<?= $_GET['name'] ?>_button").height())
            {
-              minDim = $("#<?= $_GET['name'] ?>_button").height();
+              outerMinDim = $("#<?= $_GET['name'] ?>_button").height();
            }
            else
            {
-              minDim = $("#<?= $_GET['name'] ?>_button").width();
+              outerMinDim = $("#<?= $_GET['name'] ?>_button").width();
            }
            
-           var borderRadius = Math.floor((parseInt(styleParameters.borderRadius) / 100)*minDim);
-           $('#<?= $_GET['name'] ?>_button').css("border-radius", borderRadius + "px");
-           $('#<?= $_GET['name'] ?>_button').css("position", "absolute");
-           $('#<?= $_GET['name'] ?>_buttonInner').css("position", "absolute");
+           outerBorderRadius = Math.floor((parseInt(styleParameters.borderRadius) / 200)*outerMinDim); //Dividiamo per due oltre che per 100, è un raggio
+           
+           $('#<?= $_GET['name'] ?>_button').css("border-radius", outerBorderRadius + "px");
+           
            
            if(styleParameters.hasImage === 'no')
            {
-              $('#<?= $_GET['name'] ?>_buttonInner').css("width", "100%");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("height", "100%");
+                $('#<?= $_GET['name'] ?>_buttonBackground').hide();
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').hide();
+                
+                if(styleParameters.showText === "yes")
+                {
+                    $('#<?= $_GET['name'] ?>_buttonText').css("height", "100%");
+                    $('#<?= $_GET['name'] ?>_buttonText').show();
+                }
+                else
+                {
+                    $('#<?= $_GET['name'] ?>_buttonText').hide();
+                }
            }
            else
            {
-              $('#<?= $_GET['name'] ?>_buttonText').hide();
-              innerWidth = parseInt(styleParameters.imageWidth);
-              innerHeight = parseInt(styleParameters.imageHeight);
-              innerTop = Math.floor((100 - innerHeight)/2);
-              innerLeft = Math.floor((100 - innerWidth)/2);
-              $('#<?= $_GET['name'] ?>_buttonInner').css("width", innerWidth + "%");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("height", innerHeight + "%");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("top", innerTop + "%");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("left", innerLeft + "%");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("border-radius", "inherit");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("background-color", color);
-              $('#<?= $_GET['name'] ?>_buttonInner').css("background-image", "url(../img/widgetButtonImages/" + widgetName + "/" + styleParameters.imageName + ")");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("background-size", "100% 100%");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("background-repeat", "no-repeat");
-              $('#<?= $_GET['name'] ?>_buttonInner').css("background-position", "center center");
+                innerWidth = parseInt(styleParameters.imageWidth);
+                innerHeight = parseInt(styleParameters.imageHeight);
+                innerTop = Math.floor((100 - innerHeight)/2);
+                innerLeft = Math.floor((100 - innerWidth)/2);
+                
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("width", innerWidth + "%");
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("height", innerHeight + "%");
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("top", innerTop + "%");
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("left", innerLeft + "%");
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("background-color", color);
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("background-image", "url(../img/widgetButtonImages/" + widgetName + "/" + styleParameters.imageName + ")");
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("background-size", "100% 100%");
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("background-repeat", "no-repeat");
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("background-position", "center center");
+                
+                if(styleParameters.showText === "yes")
+                {
+                    $('#<?= $_GET['name'] ?>_buttonBackground').css("height", "80%");
+                    $('#<?= $_GET['name'] ?>_buttonText').css("height", "20%");
+                    $('#<?= $_GET['name'] ?>_buttonBackground').css("border-radius", outerBorderRadius + "px");
+                    
+                    $('#<?= $_GET['name'] ?>_buttonText').show();
+                    $('#<?= $_GET['name'] ?>_buttonBackground').show();
+                    $('#<?= $_GET['name'] ?>_buttonInnerBackground').show();
+                }
+                else
+                {
+                    $('#<?= $_GET['name'] ?>_buttonText').hide();
+                    $('#<?= $_GET['name'] ?>_buttonBackground').css("height", "100%");
+                    $('#<?= $_GET['name'] ?>_buttonBackground').css("border-radius", outerBorderRadius + "px");
+                    
+                    $('#<?= $_GET['name'] ?>_buttonBackground').show();
+                    $('#<?= $_GET['name'] ?>_buttonInnerBackground').show();
+                }
+                
+                if($('#<?= $_GET['name'] ?>_buttonInnerBackground').width() > $('#<?= $_GET['name'] ?>_buttonInnerBackground').height())
+                {
+                   innerMinDim = $('#<?= $_GET['name'] ?>_buttonInnerBackground').height();
+                }
+                else
+                {
+                   innerMinDim = $('#<?= $_GET['name'] ?>_buttonInnerBackground').width();
+                }
+
+                innerBorderRadius = Math.floor((parseInt(styleParameters.borderRadius) / 200)*innerMinDim); //Dividiamo per due oltre che per 100, è un raggio
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("border-radius", innerBorderRadius + "px");
            }
            
             $('#<?= $_GET['name'] ?>_button').mousedown(function(){
@@ -190,17 +318,15 @@
         
             button.hover(function()
             {
-                $(this).css("border-radius", borderRadius + "px");
-                $('#<?= $_GET['name'] ?>_buttonInner').css("border-radius", borderRadius + "px");
                 $(this).css("background-color", hoverColor);
-                $('#<?= $_GET['name'] ?>_buttonInner').css("background-color", hoverColor);
+                $('#<?= $_GET['name'] ?>_buttonBackground').css("background-color", hoverColor);
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("background-color", hoverColor);
             }, 
             function()
             {
-                $(this).css("border-radius", borderRadius + "px");
-                $('#<?= $_GET['name'] ?>_buttonInner').css("border-radius", borderRadius + "px");
                 $(this).css("background-color", color);
-                $('#<?= $_GET['name'] ?>_buttonInner').css("background-color", color);
+                $('#<?= $_GET['name'] ?>_buttonBackground').css("background-color", color);
+                $('#<?= $_GET['name'] ?>_buttonInnerBackground').css("background-color", color);
             });
         }
     });//Fine document ready
@@ -217,9 +343,10 @@
         </div>
         
        <div id='<?= $_GET['name'] ?>_button' class='widgetButton'>
-           <div id='<?= $_GET['name'] ?>_buttonInner'>
-              <span id='<?= $_GET['name'] ?>_buttonText'></span>
-           </div>    
+           <div id='<?= $_GET['name'] ?>_buttonBackground' class='widgetButtonBackground'>
+               <div id="<?= $_GET['name'] ?>_buttonInnerBackground"></div>
+           </div> 
+           <div id='<?= $_GET['name'] ?>_buttonText' class='widgetButtonTextContainer centerWithFlex'></div>
         </div>
     </div>	
 </div> 

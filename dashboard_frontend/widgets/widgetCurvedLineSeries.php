@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,10 +13,12 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
             $titlePatterns = array();
@@ -39,10 +41,26 @@
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
-        var metricId = "<?= $_GET['metric'] ?>";
+        var metricName = "<?= $_GET['metric'] ?>";
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         var url = "<?= $_GET['link_w'] ?>";
-        var widgetProperties, metricData, metricType, series, styleParameters, legendHeight, chartType, highchartsChartType, dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, stackingOption, widgetHeight, xAxisDataset, lineWidth, xAxisTitle = null;
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        var widgetProperties, metricData, metricType, series, styleParameters, legendHeight, chartType, highchartsChartType, 
+            dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, stackingOption, 
+            widgetHeight, xAxisDataset, lineWidth, xAxisTitle, metricName, widgetTitle, countdownRef = null;
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+            showHeader = false;
+	}
+	else
+	{
+            showHeader = true;
+	} 
         
         //Definizioni di funzione specifiche del widget
         
@@ -170,12 +188,12 @@
                 //Non trasposto
                 if(styleParameters.xAxisDataset === series.firstAxis.desc)
                 {
-                    for (var i in series.secondAxis.series) 
+                    for(var i in series.secondAxis.series) 
                     {
                         seriesName = series.secondAxis.labels[i];
                         seriesValues = series.secondAxis.series[i];
 
-                        if(styleParameters.barsColorsSelect === 'manual')
+                        if((styleParameters.barsColorsSelect === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                         {
                             singleObject = {
                                 name: seriesName,
@@ -246,7 +264,7 @@
                             seriesArray[j] = series.secondAxis.series[j][i];
                         }
                         
-                        if(styleParameters.barsColorsSelect === 'manual')
+                        if((styleParameters.barsColorsSelect === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                         {
                             singleObject = {
                                 name: seriesName,
@@ -339,7 +357,8 @@
                         trasposto = true;
                     }
 
-                    if(singleInfo !== '')
+                    //if(singleInfo !== '')
+                    if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                     {
                         infoIcon = '  <i class="fa fa-info-circle handPointer" data-axis="y" data-label="' + $(this).html() + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>';
                         $(this).append(infoIcon);
@@ -389,7 +408,7 @@
                 x0 = x0 - l/2;
                 x1 = x1 - l/2;
 
-                if((thresholdsJson !== null) && (thresholdsJson !== 'undefined'))
+                if((thresholdsJson !== null)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                 {
                     if(thresholdsJson.thresholdObject.firstAxis.desc === styleParameters.xAxisDataset)
                     {
@@ -532,7 +551,7 @@
             var wHeight = $("#<?= $_GET['name'] ?>_div").height();
             
             //Applicazione dei menu a comparsa sulle labels che hanno già ricevuto il caret (freccia) dall'esecuzione del metodo getXAxisCategories
-            if(thresholdsJson !== null)
+            if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 if(trasposto === false)
                 {
@@ -600,17 +619,25 @@
                             singleInfo = infoJson.firstAxis[id];
 
                             //Aggiunta pulsante info
-                            if(singleInfo !== '')
+                            //if(singleInfo !== '')
+                            if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                             {
                                 //Aggiunta legenda sulle soglie
-                                if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries.length > 0))
+                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                                 {
-                                    newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
-                                        '<div style="display: inline" class="thrLegend">' + 
-                                        '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
-                                            '<ul class="dropdown-menu thrLegend">' +
-                                            '</ul>' +
-                                        '</div>';
+                                    if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries.length > 0))
+                                    {
+                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
+                                            '<div style="display: inline" class="thrLegend">' + 
+                                            '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
+                                                '<ul class="dropdown-menu thrLegend">' +
+                                                '</ul>' +
+                                            '</div>';
+                                    }
+                                    else
+                                    {
+                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
+                                    } 
                                 }
                                 else
                                 {
@@ -620,13 +647,20 @@
                             else
                             {
                                 //Aggiunta legenda sulle soglie
-                                if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries.length > 0))
+                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                                 {
-                                    newLabel = '<div style="display: inline" class="thrLegend">' + 
-                                        '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
-                                            '<ul class="dropdown-menu">' +
-                                            '</ul>' +
-                                        '</div>';
+                                    if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries.length > 0))
+                                    {
+                                        newLabel = '<div style="display: inline" class="thrLegend">' + 
+                                            '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
+                                                '<ul class="dropdown-menu">' +
+                                                '</ul>' +
+                                            '</div>';
+                                    }
+                                    else
+                                    {
+                                        newLabel = label;
+                                    } 
                                 }
                                 else
                                 {
@@ -651,17 +685,25 @@
                             singleInfo = infoJson.secondAxis[id];
 
                             //Aggiunta pulsante info
-                            if(singleInfo !== '')
+                            //if(singleInfo !== '')
+                            if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                             {
                                 //Aggiunta legenda sulle soglie
-                                if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.secondAxis.fields[i].thrSeries.length > 0))
+                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                                 {
-                                    newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
-                                        '<div style="display: inline" class="thrLegend">' + 
-                                        '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
-                                            '<ul class="dropdown-menu thrLegend">' +
-                                            '</ul>' +
-                                        '</div>';
+                                    if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.secondAxis.fields[i].thrSeries.length > 0))
+                                    {
+                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
+                                            '<div style="display: inline" class="thrLegend">' + 
+                                            '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
+                                                '<ul class="dropdown-menu thrLegend">' +
+                                                '</ul>' +
+                                            '</div>';
+                                    }
+                                    else
+                                    {
+                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
+                                    } 
                                 }
                                 else
                                 {
@@ -671,13 +713,20 @@
                             else
                             {
                                 //Aggiunta legenda sulle soglie
-                                if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.secondAxis.fields[i].thrSeries.length > 0))
+                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                                 {
-                                    newLabel = '<div style="display: inline" class="thrLegend">' + 
-                                        '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
-                                            '<ul class="dropdown-menu">' +
-                                            '</ul>' +
-                                        '</div>';
+                                    if((thresholdsJson !== null)&&(thresholdsJson.thresholdObject.secondAxis.fields[i].thrSeries.length > 0))
+                                    {
+                                        newLabel = '<div style="display: inline" class="thrLegend">' + 
+                                            '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
+                                                '<ul class="dropdown-menu">' +
+                                                '</ul>' +
+                                            '</div>';
+                                    }
+                                    else
+                                    {
+                                        newLabel = label;
+                                    } 
                                 }
                                 else
                                 {
@@ -702,7 +751,36 @@
             url = null;
         }
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+        {
+            metricName = "<?= $_GET['metric'] ?>";
+            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+            widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+            widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        }
+        else
+        {
+            metricName = metricNameFromDriver;
+            widgetTitleFromDriver.replace(/_/g, " ");
+            widgetTitleFromDriver.replace(/\'/g, "&apos;");
+            widgetTitle = widgetTitleFromDriver;
+            $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+            widgetHeaderColor = widgetHeaderColorFromDriver;
+            widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+        }
+        
+        $(document).off('changeMetricFromButton_' + widgetName);
+        $(document).on('changeMetricFromButton_' + widgetName, function(event) 
+        {
+            if((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange"))
+            {
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, /*null,*/ null, null);
+            }
+        });
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -712,7 +790,7 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
         widgetProperties = getWidgetProperties(widgetName);
         if(widgetProperties !== null)
         {
@@ -721,6 +799,8 @@
             styleParameters = jQuery.parseJSON(styleParametersString);
             chartType = styleParameters.chartType;
             lineWidth = styleParameters.lineWidth;
+            
+            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
             
             switch(chartType)
             {
@@ -756,9 +836,9 @@
             }
             
             
-            /*Fine codice ad hoc basato sulle proprietà del widget*/
+            //Fine codice ad hoc basato sulle proprietà del widget
             
-            metricData = getMetricData(metricId);
+            metricData = getMetricData(metricName);
             if(metricData.data.length !== 0)
             {
                 metricType = metricData.data[0].commit.author.metricType;
@@ -784,10 +864,16 @@
                 if(firstLoad !== false)
                 {
                     showWidgetContent(widgetName);
+                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
+                    $("#<?= $_GET['name'] ?>_chartContainer").show();
+                    $("#<?= $_GET['name'] ?>_table").show();
                 }
                 else
                 {
                     elToEmpty.empty();
+                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
+                    $("#<?= $_GET['name'] ?>_chartContainer").show();
+                    $("#<?= $_GET['name'] ?>_table").show();
                 }
                 
                 $(function () {
@@ -890,7 +976,7 @@
                                 var thresholdObject, desc, min, max, color, label, index, target, message, valueSource = null;
                                 var rangeOnThisField = false;
                                 
-                                if((thresholdsJson !== null) && (thresholdsJson !== 'undefined'))
+                                if((thresholdsJson !== null) && (thresholdsJson !== 'undefined') &&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                                 {
                                     if(thresholdsJson.thresholdObject.firstAxis.desc === styleParameters.xAxisDataset)
                                     {
@@ -967,7 +1053,6 @@
                                     rangeOnThisField = false;
                                     message = "No range defined on this field";
                                 }
-                                
                                 
                                 if(rangeOnThisField)
                                 {
@@ -1049,15 +1134,16 @@
             else
             {
                showWidgetContent(widgetName);
-               $("#<?= $_GET['name'] ?>_chartContainer").css("display", "none"); 
-               $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
+               $("#<?= $_GET['name'] ?>_chartContainer").hide();
+               $("#<?= $_GET['name'] ?>_table").hide(); 
+               $('#<?= $_GET['name'] ?>_noDataAlert').show();
             }        
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetCurvedLineSeries", null, null);
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
 </script>

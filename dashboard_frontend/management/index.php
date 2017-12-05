@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2016 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -32,11 +32,9 @@
         <link href="../css/signin.css" rel="stylesheet">
 
         <!-- jQuery -->
-        <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
         <script src="../js/jquery-1.10.1.min.js"></script>
         
         <!-- JQUERY UI -->
-        <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
         <script src="../js/jqueryUi/jquery-ui.js"></script>
     </head>
     <body>
@@ -60,6 +58,7 @@
                         <p>
                            <button id="button_login" name="login" class="btn btn-primary btn-lg btn-block" type="submit">Sign in</button>
                         </p>
+                        <?php if(isset($_REQUEST['sessionExpired'])){echo '<p>Session expired</p>';}?>
                     </form>
                 </div>
             </div>    
@@ -75,6 +74,7 @@
             $(document).ready(function ()
             {
                var notificatorUrl = "<?php echo $notificatorUrl; ?>";
+               var internalDest = false;
                
                $("#button_login").click(function()
                {

@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,8 +14,12 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
     session_start();
+    include '../config.php';
+    include 'process-form.php';
     
-    unset($_SESSION['loggedUsername']);
+    $username = $_SESSION['loggedUsername'];
+    
+    /*unset($_SESSION['loggedUsername']);
     unset($_SESSION['loggedRole']);
     unset($_SESSION['loggedType']);
     unset($_SESSION['dashboardId']);
@@ -29,7 +33,24 @@
        { 
           unset($_SESSION[$key]);
        }
+    }*/
+    
+    $_SESSION = array();
+
+    if(ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
     }
     
+    session_destroy();
+    
     header("location: index.php"); 
+    
+    notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
+    
+    
+    
 

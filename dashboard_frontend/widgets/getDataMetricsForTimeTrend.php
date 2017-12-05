@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -29,10 +29,6 @@
 
         if (!$link->set_charset("utf8")) 
         {
-            echo '<script type="text/javascript">';
-            echo 'alert("KO");';
-            echo '</script>';
-            printf("Error loading character set utf8: %s\n", $link->error);
             exit();
         }
 
@@ -81,7 +77,7 @@
         $rows = array();
         $i = -1;
         
-        foreach ($id as $idValue) 
+        foreach($id as $idValue) 
         {
             $idValue = mysqli_real_escape_string($link, $idValue);
             foreach ($rangedays as $rangedaysValue) 
@@ -89,7 +85,7 @@
                 $rangedaysValue = mysqli_real_escape_string($link, $rangedaysValue);
                 
                 $i++;
-                $sql = "SELECT IdMetric_data, computationDate, value_perc1, MAX(value_num)as value, description_short as descrip, Descriptions.threshold, Descriptions.thresholdEval from Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
+                $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(description_short) as descrip, max(Descriptions.threshold) as threshold, max(Descriptions.thresholdEval) as thresholdEval from Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
                 $result = $link->query($sql);
                 
                 while($r = mysqli_fetch_assoc($result)) 

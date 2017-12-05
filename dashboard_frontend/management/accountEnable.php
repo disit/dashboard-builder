@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,6 +14,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
    include('../config.php');
+   session_start();
 ?>
 
 <!DOCTYPE html>
@@ -31,11 +32,9 @@
         <link href="../css/signin.css" rel="stylesheet">
 
         <!-- jQuery -->
-        <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
         <script src="../js/jquery-1.10.1.min.js"></script>
         
         <!-- JQUERY UI -->
-        <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
         <script src="../js/jqueryUi/jquery-ui.js"></script>
         
         <!-- Font awesome icons -->
@@ -76,8 +75,6 @@
                }
             }
         ?>
-       
-       
        
         <div id="container-form" class="container">
             <div id="panel-form" class="panel panel-primary">

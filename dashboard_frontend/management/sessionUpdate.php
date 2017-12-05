@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -16,6 +16,7 @@
 
 
     include '../config.php';
+    session_start();
    
     //Altrimenti restituisce in output le warning
     error_reporting(E_ERROR | E_NOTICE);
@@ -25,10 +26,6 @@
     
     if(!$link->set_charset("utf8")) 
     {
-        echo '<script type="text/javascript">';
-        echo 'alert("KO");';
-        echo '</script>';
-        printf("Error loading character set utf8: %s\n", $link->error);
         exit();
     }
     

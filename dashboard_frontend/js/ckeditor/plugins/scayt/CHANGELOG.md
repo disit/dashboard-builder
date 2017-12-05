@@ -3,10 +3,10 @@ SCAYT plugin for CKEditor 4 Changelog
 ### CKEditor 4.5.6
 
 New Features:
-* CKEditor [language addon](http://ckeditor.com/addon/language) support
-* CKEditor [placeholder addon](http://ckeditor.com/addon/placeholder) support
+* CKEditor [language addon](https://ckeditor.com/addon/language) support
+* CKEditor [placeholder addon](https://ckeditor.com/addon/placeholder) support
 * Drag and Drop support
-* *Experimental* GRAYT functionality http://www.webspellchecker.net/samples/scayt-ckeditor-plugin.html#25
+* *Experimental* GRAYT functionality https://www.webspellchecker.net/samples/scayt-ckeditor-plugin.html#25
 
 Fixed issues:
 * [#98](https://github.com/WebSpellChecker/ckeditor-plugin-scayt/issues/98) SCAYT Affects Dialog Double Click. Fixed in SCAYT Core.

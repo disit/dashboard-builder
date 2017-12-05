@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -31,32 +31,37 @@ $emailFromName = "DISIT Dashboard Management System";
 $notificatorApiUsr = "alarmManager";
 $notificatorApiPwd = "passwd";
 $notificatorAppName = "Dashboard+Manager";
+$googleFontsApi = "https://www.googleapis.com/webfonts/v1/webfonts";
+$googleApiForSingleFont = "https://fonts.googleapis.com/css?family=";
+$googleApiKey = "..."; //used for fonts
+$bannerMeteoAlertUrl = "http://www.cfr.toscana.it/banner/banner_cfr.php";
+$pcGeneralBulletinUrl = "http://protezionecivile.comune.fi.it/?cat=5&feed=json";
+
 $production = true; 
 
 if($production)
 {
   $host = "localhost";
-  $appUrl = "http://dashboard.km4city.org/dashboardSmartCity";
-  $serviceMapUrlPrefix = "http://servicemap.disit.org/WebAppGrafo/";
-  $internalServiceMapUrlPrefix = "http://...";
-  $internalTwitterVigilanceHost = "http://...";
-  $internalServiceMapUrlPrefix = "http://192.168.0.206:8080/WebAppGrafo/";
-  $internalTwitterVigilanceHost = "http://192.168.0.50";
-  $notificatorUrl = "http://.../notificator/restInterface.php";
-  $notificatorLink = "http://.../";
+  $appUrl = "http://localhost";
+  $appHost = "localhost";
+  $serviceMapUrlPrefix = "https://servicemap.disit.org/WebAppGrafo/";
+  $internalServiceMapUrlPrefix = "";
+  $internalTwitterVigilanceHost = "";
+  $notificatorUrl = ""; //"http://localhost/notificator/restInterface.php";
+  $notificatorLink = "http://localhost/notificator/";
+  $cacheControlMaxAge = 1800;
+  $sessionDuration = 14400;
 }
 else
 {
   $host = "localhost";
-  $appUrl = "http://localhost/temp";
-  $serviceMapUrlPrefix = "http://servicemap.disit.org/WebAppGrafo/";
-  $internalServiceMapUrlPrefix = "http://.../WebAppGrafo/";
-  $internalTwitterVigilanceHost = "http://...";
-  $notificatorUrl = "http://localhost/notificator/restInterface.php";
-  $notificatorLink = "http://localhost/notificator/";
-  /*$serviceMapUrlPrefix = "http://www.disit.org/ServiceMap/";
+  $appUrl = "http://localhost";
+  $appHost = "localhost";
+  $serviceMapUrlPrefix = "https://servicemap.disit.org/WebAppGrafo/";
+  $internalServiceMapUrlPrefix = "";
+  $internalTwitterVigilanceHost = "";
+  $notificatorUrl = ""; //"http://localhost/notificator/www/restInterface.php";
+  $notificatorLink = "http://localhost/notificator/www";
+  $cacheControlMaxAge = 30;
+  $sessionDuration = 3600;
 }
-
-
-
-

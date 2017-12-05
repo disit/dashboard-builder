@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -185,7 +185,7 @@
                      $temp = [];
                      $usersList = [];
 
-                     $ds = ldap_connect($ldapServer, $ldapPort);
+                     /*$ds = ldap_connect($ldapServer, $ldapPort);
                      ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
                      $bind = ldap_bind($ds);
 
@@ -217,7 +217,7 @@
                            $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
                            array_push($usersList, $name);
                         }
-                     }
+                     }*/
 
                       //Reperimento elenco utenti locali
                       $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
@@ -260,7 +260,7 @@
                }
                else
                {
-                  if(($authorRole == NULL)||($authorRole == 'NULL'))
+                  if(/*($authorRole == NULL)||($authorRole == 'NULL')*/false)
                   {
                      $ldapAuthor = "cn=". $author . ",dc=ldap,dc=disit,dc=org";
                      $ds = ldap_connect($ldapServer, $ldapPort);
@@ -293,7 +293,7 @@
                      case "ToolAdmin":
                         $temp = [];
                         $usersList = [];
-                        $ds = ldap_connect($ldapServer, $ldapPort);
+                        /*$ds = ldap_connect($ldapServer, $ldapPort);
                         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
                         $bind = ldap_bind($ds);
 
@@ -325,7 +325,7 @@
                               $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
                               array_push($usersList, $name);
                            }
-                        }
+                        }*/
 
                          //Reperimento elenco utenti locali
                          $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
@@ -372,7 +372,7 @@
                         $temp = [];
                         $usersList = [];
 
-                        $ds = ldap_connect($ldapServer, $ldapPort);
+                        /*$ds = ldap_connect($ldapServer, $ldapPort);
                         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
                         $bind = ldap_bind($ds);
 
@@ -404,7 +404,7 @@
                               $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
                               array_push($usersList, $name);
                            }
-                        }
+                        }*/
 
                          //Reperimento elenco utenti locali
                          $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
@@ -455,7 +455,7 @@
                         $usersList = [];
 
                         //Reperimento elenco utenti LDAP (con rimozione dei tool admin)   
-                        $ds = ldap_connect($ldapServer, $ldapPort);
+                        /*$ds = ldap_connect($ldapServer, $ldapPort);
                         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
                         $bind = ldap_bind($ds);
 
@@ -487,7 +487,7 @@
                               $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
                               array_push($usersList, $name);
                            }
-                        }
+                        }*/
 
                          //Reperimento elenco utenti locali (Con rimozione degli area manager dei pool di cui fa parte l'autore della dashboard, inclusi tali area manager di orgine LDAP)
                          $query2 = "SELECT username FROM Dashboard.Users " .

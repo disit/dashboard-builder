@@ -1,11 +1,112 @@
+div.loadingDivIframe
+{
+    display: none;
+    width: 100%;
+    float: left;
+    font-size: 13px;
+}
+
+div.loadingTextDiv
+{
+    width: 100%; 
+    height: 50%;
+    font-family: Verdana, sans-serif;
+    font-size: 18px;
+    display: flex; 
+    align-items: flex-end; 
+    justify-content: center; 
+    text-align: center;
+}
+
+div.loadingIconDiv
+{
+    width: 100%; 
+    height: 50%; 
+    display: flex; 
+    align-items: flex-start; 
+    justify-content: center; 
+    text-align: center;
+}
+
+div.loadingIconDivIframe
+{
+    width: 100%; 
+    height: 50%; 
+    display: flex; 
+    align-items: flex-start; 
+    justify-content: center; 
+    text-align: center;
+    font-size: 56px;
+}
+
+div.loadingDiv, div.noDataAlert, div.loadErrorAlert
+{
+    float: left;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+div.loadErrorAlertText, div.noDataAlertText
+{
+    width: 100%;
+    height: 50%;
+    float: left;
+    font-family: Verdana, sans-serif;
+    text-align: center; 
+    font-size: 18px; 
+    display: flex;
+    align-items: flex-end; 
+    justify-content: center;
+    text-align: center;
+    padding-bottom: 2%;
+}
+
+div.loadErrorAlertIcon, div.noDataAlertIcon
+{
+    width: 100%;
+    height: 50%;
+    float: left;
+    font-family: Verdana, sans-serif;
+    text-align: center; 
+    display: flex;
+    align-items: flex-start; 
+    justify-content: center;
+    text-align: center;
+}
+
+div.loadErrorAlertIcon i.fa-warning, div.noDataAlertIcon i.fa-times
+{
+    font-size: 56px; 
+}
+
 div.widgetButton
 {
+   font-family: Verdana; 
    box-shadow: 1px 1px 2px black;
 }
 
 div.widgetButton:hover
 {
    cursor: pointer;
+}
+
+div.widgetButtonTextContainer
+{
+    width: 100%;
+    float: left;
+    font-weight: bold;
+}
+
+div.widgetButtonBackground
+{
+    width: 100%;
+    float: left;
+}
+
+div.widgetSeparator
+{
+    background-color: transparent;
 }
 
 .fa-plus:hover, .fa-close:hover
@@ -317,6 +418,7 @@ div.singleBtnContainer
    word-wrap: break-word;
    text-align: center;
    width: 100%;
+   height: 100%;
 }
 
 .pcGeneralDiv img
@@ -384,11 +486,17 @@ div.singleBtnContainer
     display: block;
 }
 
+.pcMeteoDiv
+{
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 .meteoPcLegendaRow
 {
     width: 100%;
-    height: 30px;
-    margin-bottom: 2px;
+    height: 12.5%;
     display: flex; 
     align-items: center; 
     justify-content: center;
@@ -396,30 +504,30 @@ div.singleBtnContainer
 
 .pcLegendaContainer
 {
+    width: 100%;
     height: 100%;
     float: left;
-    width: 270px;
 }
 
 .pcLegendaElement
 {
     height: 100%;
-    width: 60px;
+    width: 25%;
     float: left;
     display: flex; 
-    align-items: flex-end; 
+    align-items: center; 
     justify-content: center;
 }
 
 .pcLegendaElementMarginRight
 {
-    margin-right: 10px;
+    /*margin-right: 10px;*/
 }
 
 .pcLegendaNessuno
 {
     width: 100%;
-    height: 80%;
+    height: 100%;
     background: linear-gradient(to right, #E2FF8C, #99CC00);
     display: flex; 
     align-items: center; 
@@ -427,14 +535,13 @@ div.singleBtnContainer
     font-variant: small-caps;
     font-weight: bold;
     font-family: Verdana, Arial, sans-serif;
-    font-size: 18px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
 }
 
 .pcLegendaBasso
 {
     width: 100%;
-    height: 80%;
+    height: 100%;
     background: linear-gradient(to right, #FAFAAF, #FFFF00);
     display: flex; 
     align-items: center; 
@@ -442,14 +549,13 @@ div.singleBtnContainer
     font-variant: small-caps;
     font-weight: bold;
     font-family: Verdana, Arial, sans-serif;
-    font-size: 18px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
 }
 
 .pcLegendaMedio
 {
     width: 100%;
-    height: 80%;
+    height: 100%;
     background: linear-gradient(to right, #FFD382, #FFA500);
     display: flex; 
     align-items: center; 
@@ -457,14 +563,13 @@ div.singleBtnContainer
     font-variant: small-caps;
     font-weight: bold;
     font-family: Verdana, Arial, sans-serif;
-    font-size: 18px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
 }
 
 .pcLegendaAlto
 {
     width: 100%;
-    height: 80%;
+    height: 100%;
     background: linear-gradient(to right, #FF7878, #FF0000);
     display: flex; 
     align-items: center; 
@@ -472,20 +577,12 @@ div.singleBtnContainer
     font-variant: small-caps;
     font-weight: bold;
     font-family: Verdana, Arial, sans-serif;
-    font-size: 18px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
 }
 
 .meteoPcRow
 {
     width: 100%;
-}
-
-.meteoPcRowLast
-{
-    width: 100%;
-    /*height: 30px;*/
-    margin-bottom: 0px;
 }
 
 .meteoPcDesc
@@ -498,12 +595,10 @@ div.singleBtnContainer
     font-family: Verdana, Arial, sans-serif;
     font-variant: small-caps;
     font-weight: bold;
-    /*font-size: 16px;*/
 }
 
 .meteoPcIcon
 {
-    /*width: 30px;*/
     height: 100%;
     float: left;
 }
@@ -634,7 +729,7 @@ div.singleBtnContainer
     animation: alarm 4s ease infinite; 
 }
 
-.mapDiv
+div.mapDiv, div.gisMapDiv
 {
     width: 100%;
     height: 100%;
@@ -747,8 +842,6 @@ div.singleBtnContainer
 .twitterContent
 {
     float:left; 
-    width: 100%; 
-    height: 100%;
     color: black;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
@@ -777,28 +870,9 @@ div.singleBtnContainer
     font-size: 12px;
 }
 
-.twitterRow
-{
-    /*width: 100%;
-    height: 30px;
-    margin-bottom: 5px;*/
-}
-
-.twitterIcon
-{
-    float: left;
-    background-color: #1B95E0;
-    font-size: 22px;
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    text-align: center;
-}
-
 .vigilanceIcon
 {
     float: left;
-    background-color: #1B95E0;
     color: black;
     font-size: 22px;
     display: flex; 
@@ -815,19 +889,19 @@ div.singleBtnContainer
 .twitterRow .azzurroGrad
 {
     background: #1B95E0;
-    background: -webkit-linear-gradient(right, #1B95E0, #8ecbf1); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, #1B95E0, #8ecbf1); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, #1B95E0, #8ecbf1); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, #1B95E0, #8ecbf1); /* Standard syntax */
+    background: -webkit-linear-gradient(left top, #1B95E0, #8ecbf1); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(bottom right, #1B95E0, #8ecbf1); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(bottom right, #1B95E0, #8ecbf1); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to bottom right, #1B95E0, #8ecbf1); /* Standard syntax */
 }
 
 .twitterRow .turcheseGrad
 {
     background: #39ceae;
-    background: -webkit-linear-gradient(right, #39ceae, #adebdd); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(right, #39ceae, #adebdd); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(right, #39ceae, #adebdd); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to right, #39ceae, #adebdd); /* Standard syntax */
+    background: -webkit-linear-gradient(left top, #39ceae, #adebdd); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(bottom right, #39ceae, #adebdd); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(bottom right, #39ceae, #adebdd); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to bottom right, #39ceae, #adebdd); /* Standard syntax */
 }
 
 .vigilanceIcon a, .twitterContent a, .twitterContent a:link, .twitterContent a:visited, .twitterContent a:active
@@ -862,20 +936,20 @@ div.singleBtnContainer
 
 .apertureStraordinarieTitle
 {
-   background: #ffcc00;
-   background: -webkit-linear-gradient(#ffcc00, #fff0b3); 
-   background: -o-linear-gradient(#ffcc00, #fff0b3); 
-   background: -moz-linear-gradient(#ffcc00, #fff0b3);
-   background: linear-gradient(#ffcc00, #fff0b3); 
+   background: #ffdb4d;
+   background: -webkit-linear-gradient(#ffdb4d, #fff0b3); 
+   background: -o-linear-gradient(#ffdb4d, #fff0b3); 
+   background: -moz-linear-gradient(#ffdb4d, #fff0b3);
+   background: linear-gradient(#ffdb4d, #fff0b3); 
 }
 
 .apertureStraordinarie
 {
-   background: #ffcc00;
-   background: -webkit-linear-gradient(right, #ffcc00, #fff0b3); 
-   background: -o-linear-gradient(right, #ffcc00, #fff0b3); 
-   background: -moz-linear-gradient(right, #ffcc00, #fff0b3);
-   background: linear-gradient(to right, #ffcc00, #fff0b3); 
+   background: #ffdb4d;
+   background: -webkit-linear-gradient(right, #ffdb4d, #fff0b3); 
+   background: -o-linear-gradient(right, #ffdb4d, #fff0b3); 
+   background: -moz-linear-gradient(right, #ffdb4d, #fff0b3);
+   background: linear-gradient(to right, #ffdb4d, #fff0b3); 
 }
 
 .estateFiorentinaTitle
@@ -898,74 +972,74 @@ div.singleBtnContainer
 
 .fiereTitle
 {
-   background: #ff66cc;
-   background: -webkit-linear-gradient(#ff66cc, #ffccee); 
-   background: -o-linear-gradient(#ff66cc, #ffccee); 
-   background: -moz-linear-gradient(#ff66cc, #ffccee);
-   background: linear-gradient(#ff66cc, #ffccee);
+   background: #ff80d5;
+   background: -webkit-linear-gradient(#ff80d5, #ffe6f7); 
+   background: -o-linear-gradient(#ff66cc, #ffe6f7); 
+   background: -moz-linear-gradient(#ff66cc, #ffe6f7);
+   background: linear-gradient(#ff66cc, #ffe6f7);
 }
 
 .fiere
 {
-   background: #ff66cc;
-   background: -webkit-linear-gradient(right, #ff66cc, #ffccee); 
-   background: -o-linear-gradient(right, #ff66cc, #ffccee); 
-   background: -moz-linear-gradient(right, #ff66cc, #ffccee);
-   background: linear-gradient(to right, #ff66cc, #ffccee); 
+   background: #ff80d5;
+   background: -webkit-linear-gradient(right, #ff80d5, #ffe6f7); 
+   background: -o-linear-gradient(right, #ff80d5, #ffe6f7); 
+   background: -moz-linear-gradient(right, #ff80d5, #ffe6f7);
+   background: linear-gradient(to right, #ff80d5, #ffe6f7); 
 }
 
 .filmTitle
 {
-   background: #ff9900;
-   background: -webkit-linear-gradient(#ff9900, #ffe0b3); 
-   background: -o-linear-gradient(#ff9900, #ffe0b3); 
-   background: -moz-linear-gradient(#ff9900, #ffe0b3);
-   background: linear-gradient(#ff9900, #ffe0b3); 
+   background: #ffad33;
+   background: -webkit-linear-gradient(#ffad33, #ffe0b3); 
+   background: -o-linear-gradient(#ffad33, #ffe0b3); 
+   background: -moz-linear-gradient(#ffad33, #ffe0b3);
+   background: linear-gradient(#ffad33, #ffe0b3); 
 }
 
 .film
 {
-   background: #ff9900;
-   background: -webkit-linear-gradient(right, #ff9900, #ffe0b3); 
-   background: -o-linear-gradient(right, #ff9900, #ffe0b3); 
-   background: -moz-linear-gradient(right, #ff9900, #ffe0b3);
-   background: linear-gradient(to right, #ff9900, #ffe0b3); 
+   background: #ffad33;
+   background: -webkit-linear-gradient(right, #ffad33, #ffe0b3); 
+   background: -o-linear-gradient(right, #ffad33, #ffe0b3); 
+   background: -moz-linear-gradient(right, #ffad33, #ffe0b3);
+   background: linear-gradient(to right, #ffad33, #ffe0b3); 
 }
 
 .mostreTitle
 {
-   background: #70dbc4;
-   background: -webkit-linear-gradient(#70dbc4, #c2f0e7); 
-   background: -o-linear-gradient(#70dbc4, #c2f0e7); 
-   background: -moz-linear-gradient(#70dbc4, #c2f0e7);
-   background: linear-gradient(#70dbc4, #c2f0e7);
+   background: #66d9ff;
+   background: -webkit-linear-gradient(#66d9ff, #b3ecff); 
+   background: -o-linear-gradient(#66d9ff, #b3ecff); 
+   background: -moz-linear-gradient(#66d9ff, #b3ecff);
+   background: linear-gradient(#66d9ff, #b3ecff);
 }
 
 .mostre
 {
-   background: #70dbc4;
-   background: -webkit-linear-gradient(right, #70dbc4, #c2f0e7); 
-   background: -o-linear-gradient(right, #70dbc4, #c2f0e7); 
-   background: -moz-linear-gradient(right, #70dbc4, #c2f0e7);
-   background: linear-gradient(to right, #70dbc4, #c2f0e7); 
+   background: #66d9ff;
+   background: -webkit-linear-gradient(right, #66d9ff, #b3ecff); 
+   background: -o-linear-gradient(right, #66d9ff, #b3ecff); 
+   background: -moz-linear-gradient(right, #66d9ff, #b3ecff);
+   background: linear-gradient(to right, #66d9ff, #b3ecff); 
 }
 
 .musicaClassicaTitle
 {
-   background: #e6004c;
-   background: -webkit-linear-gradient(#e6004c, #ff99bb); 
-   background: -o-linear-gradient(#e6004c, #ff99bb); 
-   background: -moz-linear-gradient(#e6004c, #ff99bb);
-   background: linear-gradient(#e6004c, #ff99bb); 
+   background: #ff6699;
+   background: -webkit-linear-gradient(#ff6699, #ffb3cc); 
+   background: -o-linear-gradient(#ff6699, #ffb3cc); 
+   background: -moz-linear-gradient(#ff6699, #ffb3cc);
+   background: linear-gradient(#ff6699, #ffb3cc); 
 }
 
 .musicaClassica
 {
-   background: #cc0044;
-   background: -webkit-linear-gradient(right, #e6004c, #ff99bb); 
-   background: -o-linear-gradient(right, #e6004c, #ff99bb); 
-   background: -moz-linear-gradient(right, #e6004c, #ff99bb);
-   background: linear-gradient(to right, #e6004c, #ff99bb); 
+   background: #ff6699;
+   background: -webkit-linear-gradient(right, #ff6699, #ffb3cc); 
+   background: -o-linear-gradient(right, #ff6699, #ffb3cc); 
+   background: -moz-linear-gradient(right, #ff6699, #ffb3cc);
+   background: linear-gradient(to right, #ff6699, #ffb3cc); 
 }
 
 .musicaRockTitle
@@ -988,20 +1062,20 @@ div.singleBtnContainer
 
 .newsTitle
 {
-   background: #ff531a;
-   background: -webkit-linear-gradient(#ff531a, #ffc6b3); 
-   background: -o-linear-gradient(#ff531a, #ffc6b3); 
-   background: -moz-linear-gradient(#ff531a, #ffc6b3);
-   background: linear-gradient(#ff531a, #ffc6b3); 
+   background: #ff794d;
+   background: -webkit-linear-gradient(#ff794d, #ffc6b3); 
+   background: -o-linear-gradient(#ff794d, #ffc6b3); 
+   background: -moz-linear-gradient(#ff794d, #ffc6b3);
+   background: linear-gradient(#ff794d, #ffc6b3); 
 }
 
 .news
 {
-   background: #ff531a;
-   background: -webkit-linear-gradient(right, #ff531a, #ffc6b3); 
-   background: -o-linear-gradient(right, #ff531a, #ffc6b3); 
-   background: -moz-linear-gradient(right, #ff531a, #ffc6b3);
-   background: linear-gradient(to right, #ff531a, #ffc6b3); 
+   background: #ff794d;
+   background: -webkit-linear-gradient(right, #ff794d, #ffc6b3); 
+   background: -o-linear-gradient(right, #ff794d, #ffc6b3); 
+   background: -moz-linear-gradient(right, #ff794d, #ffc6b3);
+   background: linear-gradient(to right, #ff794d, #ffc6b3); 
 }
 
 .convegniTitle
@@ -1024,38 +1098,38 @@ div.singleBtnContainer
 
 .incontriLetterariTitle
 {
-   background: #33ccff;
-   background: -webkit-linear-gradient(#33ccff, #ccf2ff); 
-   background: -o-linear-gradient(#33ccff, #ccf2ff); 
-   background: -moz-linear-gradient(#33ccff, #ccf2ff);
-   background: linear-gradient(#33ccff, #ccf2ff);
+   background: #80dfff;
+   background: -webkit-linear-gradient(#80dfff, #b3ecff); 
+   background: -o-linear-gradient(#80dfff, #b3ecff); 
+   background: -moz-linear-gradient(#80dfff, #b3ecff);
+   background: linear-gradient(#80dfff, #b3ecff);
 }
 
 .incontriLetterari
 {
-   background: #33ccff;
-   background: -webkit-linear-gradient(right, #33ccff, #ccf2ff); 
-   background: -o-linear-gradient(right, #33ccff, #ccf2ff); 
-   background: -moz-linear-gradient(right, #33ccff, #ccf2ff);
-   background: linear-gradient(to right, #33ccff, #ccf2ff); 
+   background: #80dfff;
+   background: -webkit-linear-gradient(right, #80dfff, #b3ecff); 
+   background: -o-linear-gradient(right, #80dfff, #b3ecff); 
+   background: -moz-linear-gradient(right, #80dfff, #b3ecff);
+   background: linear-gradient(to right, #80dfff, #b3ecff); 
 }
 
 .sportTitle
 {
-   background: #ff6666;
-   background: -webkit-linear-gradient(#ff6666, #ffcccc); 
-   background: -o-linear-gradient(#ff6666, #ffcccc); 
-   background: -moz-linear-gradient(#ff6666, #ffcccc);
-   background: linear-gradient(#ff6666, #ffcccc); 
+   background: #ff8080;
+   background: -webkit-linear-gradient(#ff8080, #ffb3b3); 
+   background: -o-linear-gradient(#ff8080, #ffb3b3); 
+   background: -moz-linear-gradient(#ff8080, #ffb3b3);
+   background: linear-gradient(#ff8080, #ffb3b3); 
 }
 
 .sport
 {
-   background: #ff6666;
-   background: -webkit-linear-gradient(right, #ff6666, #ffcccc); 
-   background: -o-linear-gradient(right, #ff6666, #ffcccc); 
-   background: -moz-linear-gradient(right, #ff6666, #ffcccc);
-   background: linear-gradient(to right, #ff6666, #ffcccc); 
+   background: #ff8080;
+   background: -webkit-linear-gradient(right, #ff8080, #ffb3b3); 
+   background: -o-linear-gradient(right, #ff8080, #ffb3b3); 
+   background: -moz-linear-gradient(right, #ff8080, #ffb3b3);
+   background: linear-gradient(to right, #ff8080, #ffb3b3); 
 }
 
 .teatroTitle
@@ -1096,30 +1170,38 @@ div.singleBtnContainer
 
 .walkingTitle
 {
-   background: #39ac39;
-   background: -webkit-linear-gradient(#39ac39, #c6ecc6); 
-   background: -o-linear-gradient(#39ac39, #c6ecc6); 
-   background: -moz-linear-gradient(#39ac39, #c6ecc6);
-   background: linear-gradient(#39ac39, #c6ecc6); 
+   background: #66cc66;
+   background: -webkit-linear-gradient(#66cc66, #b3e6b3); 
+   background: -o-linear-gradient(#66cc66, #b3e6b3); 
+   background: -moz-linear-gradient(#66cc66, #b3e6b3);
+   background: linear-gradient(#66cc66, #b3e6b3); 
 }
 
 .walking
 {
-   background: #39ac39;
-   background: -webkit-linear-gradient(right, #39ac39, #c6ecc6); 
-   background: -o-linear-gradient(right, #39ac39, #c6ecc6); 
-   background: -moz-linear-gradient(right, #39ac39, #c6ecc6);
-   background: linear-gradient(to right, #39ac39, #c6ecc6); 
+   background: #66cc66;
+   background: -webkit-linear-gradient(right, #66cc66, #b3e6b3); 
+   background: -o-linear-gradient(right, #66cc66, #b3e6b3); 
+   background: -moz-linear-gradient(right, #66cc66, #b3e6b3);
+   background: linear-gradient(to right, #66cc66, #b3e6b3); 
 }
 
 .eventIcon
 {
     float: left;
-    width: 20%;
     height: 100%;
 }
 
-.eventIconUp
+span.recreativeEventPinShowMsg, span.recreativeEventPinHideMsg
+{
+   display: none;
+   font-size: 12px;
+   font-variant: small-caps;
+   font-weight: bold;
+   text-shadow: 1px 1px 2px black; 
+}
+
+/*.eventIconUp
 {
     width: 100%;
     height: 60%;
@@ -1132,7 +1214,7 @@ div.singleBtnContainer
 
 .eventIconUp i
 {
-   font-size: 24px;
+   font-size: 18px;
 }
 
 .eventIconUp img
@@ -1160,30 +1242,103 @@ div.singleBtnContainer
 
 .eventIconDown i
 {
-    font-size: 18px;
-}
+    font-size: 14px;
+}*/
 
 .eventTitle
 {
    float: left;
    width: 100%;
+   height: 100%;
+   white-space: normal;
+   overflow: hidden;
+}
+
+p.eventTitlePar
+{
+   display: block;
+   width: 100%;
+   height: auto;
+   max-height: 100%;
+   text-align: center;
+   word-wrap: break-word;
+   overflow: hidden;
    color: black;
    font-weight: bold;
    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
    text-transform: uppercase;
-   white-space: nowrap; 
-   overflow: hidden;
-   text-overflow: ellipsis; 
-   line-height: 25px;
-   text-align: center;
-   vertical-align: middle;
 }
 
-/*.eventTitle:hover, .eventIconUp:hover, .eventIconDown:hover, .eventTime:hover
+p.recreativeEventTitlePar
 {
-   color: white;
-}*/
+   display: block;
+   width: 100%;
+   height: auto;
+   max-height: 100%;
+   text-align: center;
+   word-wrap: break-word;
+   overflow: hidden;
+   color: black;
+   /*font-family: "Coolwonder";*/
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-weight: bold;
+}
+
+.recreativeEventMapTitle
+{
+   color: black;
+   font-weight: bold;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   /*font-family: "Coolwonder";*/
+   /*text-shadow: 1px 1px 1px rgba(0,0,0,0.25);*/
+   text-transform: uppercase; 
+   font-size: 14px;
+   text-align: center;
+}
+
+.recreativeEventMapBtnContainer
+{
+    text-align: center;
+}
+
+.recreativeEventMapDataContainer
+{
+    margin-top: 10px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    /*font-family: "Coolwonder";*/
+    font-size: 12px;
+}
+
+.recreativeEventMapDescContainer, .recreativeEventMapTimingContainer, .recreativeEventMapContactsContainer
+{
+    display: none;
+}
+
+.recreativeEventMapBtn
+{
+    border: none;
+    color: black;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+    text-transform: uppercase; 
+    font-size: 11px;
+    margin-right: 6px;
+}
+
+.recreativeEventMapBtnActive
+{
+    font-weight: bold;
+}
+
+
+.recreativeEventMapSubtitle
+{
+    display: none;
+    font-size: 12px;
+    font-weight: normal;
+}
 
 div.tooltip-inner
 {
@@ -1195,13 +1350,21 @@ div.tooltip-inner
 {
    float: left;
    width: 100%;
-   height: 70%;
+   /*height: 70%;*/
+   height: 40%;
+}
+
+.eventDataRightContainer
+{
+    float: left;
+    width: 80%;
+    height: 100%;
 }
 
 .eventTime 
 {
     float: left;
-    width: 80%;
+    width: 100%;
     height: 40%;
     margin-top: 0px;
     margin-bottom: 0px;
@@ -1211,12 +1374,13 @@ div.tooltip-inner
     text-align: center;
     padding-left: 5px;
     font-style: italic;
+    background-color: transparent;
 }
 
-.eventAddress
+/*.eventAddress
 {
     float: left;
-    width: 80%;
+    width: 100%;
     height: 60%;
     margin-top: 0px;
     display: flex; 
@@ -1225,7 +1389,8 @@ div.tooltip-inner
     text-align: center;
     margin-bottom: 0px;
     padding-left: 3px;
-}
+    background-color: transparent;
+}*/
 
 .onMapSignal
 {
@@ -1267,52 +1432,6 @@ div.tooltip-inner
    }
 }
 
-.loadingDiv
-{
-    display: none;
-    width: 100%;
-    float: left;
-}
-
-.loadingDivIframe
-{
-    display: none;
-    width: 100%;
-    float: left;
-    font-size: 13px;
-}
-
-.loadingTextDiv
-{
-    width: 100%; 
-    height: 50%; 
-    display: flex; 
-    align-items: flex-end; 
-    justify-content: center; 
-    text-align: center;
-}
-
-.loadingIconDiv
-{
-    width: 100%; 
-    height: 50%; 
-    display: flex; 
-    align-items: flex-start; 
-    justify-content: center; 
-    text-align: center;
-}
-
-.loadingIconDivIframe
-{
-    width: 100%; 
-    height: 50%; 
-    display: flex; 
-    align-items: flex-start; 
-    justify-content: center; 
-    text-align: center;
-    font-size: 20px;
-}
-
 .content
 {
     float:left; 
@@ -1328,10 +1447,9 @@ div.tooltip-inner
 
 .pcLogosContainer
 {
-    float:left; 
+    float: left; 
     width: 100%;
     height: 75px;
-    display: block;
 }
 
 .pcInfoContainer
@@ -1428,7 +1546,7 @@ div.tooltip-inner
 
 .eventLink:hover
 {
-    color: white;
+    /*color: white;*/
     text-decoration: none;
     cursor: pointer;
 }
@@ -1445,7 +1563,7 @@ div.tooltip-inner
     margin: 0 auto;
 }
 
-.colunm_content
+.column_content
 {
     text-align:center;
     margin: 0 auto;
@@ -1969,7 +2087,8 @@ atafLastUpdateWrapper
 
 .pcContainer
 {
-    overflow:auto;
+    /*overflow: auto;*/
+    overflow: hidden;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35);
     font-family: Verdana, Arial, sans-serif;
 }
@@ -1977,7 +2096,6 @@ atafLastUpdateWrapper
 .button
 {
     width: 100%; 
-    /*height: 100%;*/
     white-space: normal; 
     padding: 3px; margin: 0; 
     font-weight: bold;
@@ -2811,8 +2929,16 @@ atafLastUpdateWrapper
     height: 92%;
 }*/
 
+.trafficEventsSearchFilterContainer
+{
+   display: none; 
+   width: 100%;
+   border: 1px solid red;
+}
+
 .trafficEventsRollerContainer
 {
+   display: none; 
    width: 100%;
    overflow-y: auto;
 }
@@ -2822,7 +2948,6 @@ atafLastUpdateWrapper
     float: left;
     width: 12.5%;
     height: 100%;
-    /*border: 1px solid white;*/
 }
 
 .trafficEventIcon img
@@ -3129,7 +3254,7 @@ atafLastUpdateWrapper
 .mapPopupTitle
 {
    display: block;
-   font-size: 16px;
+   font-size: 15px;
    font-weight: bold;
    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
@@ -3139,9 +3264,7 @@ atafLastUpdateWrapper
 .mapPopupLine
 {
    display: block;
-   /*font-weight: bold;*/
    font-size: 14px;
-   font-variant: small-caps;
    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
    text-shadow: 1px 1px 1px rgba(0,0,0,0.15);
    text-align: center;
@@ -3405,4 +3528,439 @@ atafLastUpdateWrapper
    align-items: flex-start; 
    justify-content: center;
    text-align: center;
+}
+
+div.gisRollerContainer
+{
+   width: 100%;
+   height: 100%;
+   overflow-y: auto;
+}
+
+div.gisMapPtrContainer
+{
+    float: left;
+    /*width: 17.5%;*/
+    height: 100%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+div.gisQueryDescContainer
+{
+    float: left;
+    /*width: 82.5%;*/
+    height: 100%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    white-space: normal;
+    overflow: hidden;
+}
+
+p.gisQueryDescPar
+{
+   display: block;
+   width: 100%;
+   height: auto;
+   max-height: 100%;
+   text-align: center;
+   word-wrap: break-word;
+   overflow: hidden;
+   font-family: Verdana, sans-serif;
+}
+
+div.gisPinContainer
+{
+   float: left;
+   width: 100%;
+   /*height: 80%;*/
+   height: 100%;
+   margin-top: 0px;
+   margin-bottom: 0px;
+   padding-bottom: 0px;
+   display: flex; 
+   /*align-items: flex-end; */
+   align-items: center;
+   justify-content: center; 
+   text-align: center;
+}
+
+span.gisPinShowMsg, span.gisPinHideMsg, span.gisPinNoQueryMsg, span.gisPinNoMapsMsg
+{
+   display: none;
+   font-size: 14px;
+   font-variant: small-caps;
+   font-weight: bold;
+   text-shadow: 2px 2px 4px black;
+}
+
+.gisPinLink, .gisPinLink:link, .gisPinLink:visited, .gisPinLink:active
+{
+   color: black;
+   text-decoration: none;
+   display: flex;
+   align-items: center;
+   justify-content: center; 
+   text-align: center;
+   width: 100%;
+   height: 100%;
+}
+
+.gisPinLink:hover
+{
+   color: white;
+   text-decoration: none;
+   cursor: pointer;
+}
+
+i.gisLoadingIcon, i.gisLoadErrorIcon
+{
+    display: none;
+}
+
+div.gisMapLoadingDiv
+{
+    width: 200px;
+    height: 100px;
+    position: absolute;
+    opacity: 0;
+    z-index: 9999;
+    -webkit-transition: opacity 0.35s, top 0.2s; /* Safari */
+    transition: opacity 0.35s, top 0.175s;
+    display: none;
+}
+
+p.gisMapLoadingDivTextPar
+{
+   display: block;
+   width: 100%;
+   height: auto;
+   max-height: 100%;
+   text-align: center;
+   white-space: normal;
+   word-wrap: break-word;
+   overflow: hidden;
+   font-size: 16px;
+   font-variant: small-caps;
+}
+
+.leaflet-popup-content-wrapper, .leaflet-popup-content
+ {
+   -webkit-border-radius: 0 !important;
+   -moz-border-radius: 0 !important;
+    border-radius: 0 !important;
+    font-family: "Verdana", Arial, sans-serif;
+ }
+ 
+ .leaflet-popup-content p
+ {
+     font-size: 12px;
+     line-height: 175%;
+ }
+ 
+ h3.gisPopupTitle
+ {
+    font-size: 15px;
+    font-weight: bold;
+ }
+ 
+ table.gisPopupTable th, table.gisPopupTable td
+ {
+    padding-left: 5px;
+    padding-right: 5px;
+    text-align: center;
+ }
+ 
+ table.gisPopupTable td
+ {
+    font-weight: normal;
+ }
+ 
+ table.gisPopupTable button.btn-sm
+ {
+    line-height: 1.0;
+ }
+ 
+ i.gisDriverPin
+ {
+     color: #337ab7;
+     font-size: 22px;
+     display: none;
+ }
+ 
+ i.gisDriverPin:hover
+ {
+    cursor: pointer; 
+ }
+ 
+ div.meteoTodayContainer, div.meteoTodayLeftContainer, div.meteoTodayRightContainer, div.meteoOtherDaysContainer
+ {
+     float: left;
+     background-color: transparent;
+ }
+ 
+ div.meteoCityContainer, div.meteoDateContainer, div.meteoDescContainer, div.meteoLammaContainer, div.meteoIconContainer, div.meteoTempContainer
+ {
+     background-color: transparent;
+     /*border: 1px solid red;*/
+ }
+ 
+ div.meteoDateContainer
+ {
+     font-family: "Roboto-Medium";
+     /*font-size: 24px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: flex-start;
+     text-align: center;
+ }
+ 
+ div.meteoDateContainerCentered
+ {
+     font-family: "Roboto-Medium";
+     /*font-size: 24px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+ div.meteoCityContainer
+ {
+     font-family: "Roboto-Bold";
+     /*font-size: 28px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: flex-start;
+     text-align: center;
+ }
+ 
+ div.meteoCityContainerCentered
+ {
+     font-family: "Roboto-Bold";
+     /*font-size: 28px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+ div.meteoDescContainer
+ {
+     font-family: "Roboto-Medium";
+     /*font-size: 22px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: flex-start;
+     text-align: center;
+ }
+ 
+ div.meteoDescContainerCentered
+ {
+     font-family: "Roboto-Medium";
+     /*font-size: 22px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+  div.meteoLammaContainer
+ {
+     font-family: "Roboto-Medium";
+     /*font-size: 22px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+     /*border: 1px solid red;*/
+ }
+ 
+ div.meteoTempContainer
+ {
+     font-family: "Roboto-Medium";
+     /*font-size: 22px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+ div.meteoTempContainerCentered
+ {
+     font-family: "Roboto-Medium";
+     /*font-size: 22px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+ a.lammaLink:hover, a.lammaLink:active, a:lammaLink:link, a:lammaLink:target, a:lammaLink:valid, a:lammaLink:visited
+ {
+     text-decoration: none;
+ }
+ 
+ div.meteoOtherDaysCellNoShadow
+ {
+    background: transparent; 
+ }
+ 
+ div.meteoOtherDaysCell
+ {
+    background: rgba(0, 0, 0, 0.1); /* For browsers that do not support gradients */
+    background: -webkit-linear-gradient(left top, rgba(0, 0, 0, 0.1) , rgba(255, 255, 255, 0.0)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(bottom right, rgba(0, 0, 0, 0.1) , rgba(255, 255, 255, 0.0)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(bottom right, rgba(0, 0, 0, 0.1) , rgba(255, 255, 255, 0.0)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.1) , rgba(255, 255, 255, 0.0)); /* Standard syntax */
+ }
+ 
+ div.meteoOtherDaysCellDarkerH
+ {
+    background: rgba(0, 0, 0, 0.3); /* For browsers that do not support gradients */
+    background: -webkit-linear-gradient(left top, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(bottom right, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(bottom right, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* Standard syntax */
+ }
+ 
+ div.meteoOtherDaysCellDarkerV
+ {
+    background: rgba(0, 0, 0, 0.3); /* For browsers that do not support gradients */
+    background: -webkit-linear-gradient(/*left*/ top, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(bottom /*right*/, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(bottom /*right*/, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(to bottom /*right*/, rgba(0, 0, 0, 0.3) , rgba(255, 255, 255, 0.2)); /* Standard syntax */
+ }
+ 
+ div.otherDayDateContainer
+ {
+     background-color: transparent;
+     font-family: "Roboto-Medium";
+     /*font-size: 12px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+ div.otherDayTempContainer
+ {
+     background-color: transparent;
+     font-family: "Roboto-Medium";
+     /*font-size: 12px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+ div.otherDayDescContainer
+ {
+     background-color: transparent;
+     font-family: "Roboto-Medium";
+     /*font-size: 12px;*/
+     display: flex;
+     align-items: center; 
+     justify-content: center;
+     text-align: center;
+ }
+ 
+ i.gisPinIcon
+ {
+     display: none;
+ }
+ 
+ div.gisPinCustomIcon
+ {
+     display: none;
+     width: 100%;
+     height: 100%;
+     /*border: 1px solid red;*/
+ }
+ 
+ div.gisPinCustomIconUp
+ {
+     display: block;
+     width: 100%;
+     height: 100%;    
+ }
+ 
+ div.gisPinCustomIconDown
+ {
+     display: none;
+     width: 100%;
+     margin: 0;
+     padding: 0;
+ }
+ 
+ div.gisPinCustomIconDown i
+ {
+     /*display: block;*/
+     /*width: auto;
+     height: auto;*/
+     color: #00cc00;
+     margin: 0;
+     padding: 0;
+     /*border: 1px solid red;*/
+ }
+ 
+  .serverStatus
+{
+    width: 100%;
+    height: 20%;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.35);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color:#000000;
+}
+
+ .serverStatusContainerOk
+{
+    width: 95%;
+    height: 95%;
+    font-variant: small-caps;
+    border-radius: 15px; 
+   -moz-border-radius: 15px; /* firefox */
+   -webkit-border-radius: 10px;
+    background: #00cc00;
+    background: -webkit-linear-gradient(#00cc00, #66ff66); 
+    background: -o-linear-gradient(#00cc00, #66ff66); 
+    background: -moz-linear-gradient(#00cc00, #66ff66); 
+    background: linear-gradient(to top, #00cc00, #66ff66);
+}
+.serverStatusContainerNotFound
+{
+    width: 95%;
+    height: 95%;
+    font-variant: small-caps;
+    border-radius: 15px; 
+   -moz-border-radius: 15px; /* firefox */
+   -webkit-border-radius: 10px;
+    background: #ffcc00;
+    background: -webkit-linear-gradient(#ffcc00, #fff0b3); 
+    background: -o-linear-gradient(#ffcc00, #fff0b3); 
+    background: -moz-linear-gradient(#ffcc00, #fff0b3); 
+    background: linear-gradient(to top, #ffcc00, #fff0b3);
+ 
+}
+
+.serverStatusContainerKo
+{
+    width: 95%;
+    height: 95%;
+    font-variant: small-caps;
+    border-radius: 15px; 
+   -moz-border-radius: 15px; /* firefox */
+   -webkit-border-radius: 10px;
+    background: #ff0000;
+    background: -webkit-linear-gradient(#ff0000, #ff6666); 
+    background: -o-linear-gradient(#ff0000, #ff6666); 
+    background: -moz-linear-gradient(#ff0000, #ff6666); 
+    background: linear-gradient(to top, #ff0000, #ff6666);
+   
 }

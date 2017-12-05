@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -15,20 +15,57 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
     include '../config.php';
+    require '../phpmailer/PHPMailerAutoload.php';
     
     //Definizioni di funzione
-    
-    //Per ora non usata, per qualche motivo la chiamata è OK, i valori sul notificatore vengono indotti, ma non si entra nell'applicazione - Spostata lato client
-    /*function notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $appUsr, $appPwd)
+    function notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $notificatorToolName)
     {
-      $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogin&app=Dashboard&appUsr=' . $appUsr . '&appPwd=' . $appPwd;
-      $notificatorUrl = $notificatorUrl.$data;
+        if($notificatorUrl != "")
+		{
+			$usr = md5($username);
+			$clientApplication = md5($notificatorToolName);
+			
+		    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogin&usr=' . $usr . '&clientApplication=' . $clientApplication;
+		    $notificatorUrl = $notificatorUrl.$data;
+		  
+		    $options = array(
+			  'http' => array(
+				  'header'  => "Content-type: application/json\r\n",
+				  'method'  => 'POST',
+				  'timeout' => 30
+			  )
+		    );
+
+		    try
+		    {
+			   $context  = stream_context_create($options);
+			   $callResult = @file_get_contents($notificatorUrl, false, $context);
+		    }
+		    catch (Exception $ex) 
+		    {
+			   //Non facciamo niente di specifico in caso di mancata risposta dell'host
+		    }
+		}
+    }
+    
+    function notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $notificatorToolName)
+    {
+      if($notificatorUrl == "")  
+        return;
+      /*$logoutAuthObj = ['username' => $username, 'clientApplication' => $ldapTool];
+        $logoutAuthJson = json_encode($logoutAuthObj);
+        $logoutAuthJsonMd5 = md5($logoutAuthJson);*/
+        $usr = md5($username);
+        $clientApplication = md5($notificatorToolName);
+        
+        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogout&usr=' . $usr . '&clientApplication=' . $clientApplication;
+        $notificatorUrl = $notificatorUrl.$data;
       
       $options = array(
           'http' => array(
               'header'  => "Content-type: application/json\r\n",
               'method'  => 'POST',
-              'timeout' => 3
+              'timeout' => 30
           )
       );
 
@@ -36,12 +73,39 @@
       {
          $context  = stream_context_create($options);
          $callResult = @file_get_contents($notificatorUrl, false, $context);
+         
+         //$file = fopen("C:\dashboardLog.txt", "w");
+         //fwrite($file, "Call result: " . $callResult . "\n");
       }
       catch (Exception $ex) 
       {
          //Non facciamo niente di specifico in caso di mancata risposta dell'host
       }
-    }*/
+    }
+    
+    function returnManagedStringForDb($original)
+    {
+        if($original == NULL)
+        {
+            return "NULL";
+        }
+        else
+        {
+            return "'" . $original . "'";
+        }
+    }
+    
+    function returnManagedNumberForDb($original)
+    {
+        if($original == NULL)
+        {
+            return "NULL";
+        }
+        else
+        {
+            return $original;
+        }
+    }
     
     function checkLdapMembership($connection, $userDn, $tool) 
     {
@@ -105,7 +169,7 @@
     }
 
     //Fine definizioni di funzione
-    session_start(); 
+     
     $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
     mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR | E_NOTICE);
@@ -121,6 +185,7 @@
 
     if(isset($_REQUEST['register_confirm']))
     {
+        session_start();
         if(isset($_SESSION['loggedRole']))
         {
             $username = mysqli_real_escape_string($link, $_POST['inputUsername']);
@@ -187,7 +252,7 @@
         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
         $bind = ldap_bind($ds, $ldapUsername, $ldapPassword);
         
-        if($ds && $bind)
+        if($ds && $bind/*false*/)
         {
             if(checkLdapMembership($ds, $ldapUsername, $ldapTool))
             {
@@ -195,10 +260,14 @@
                {
                   $ldapRole = "ToolAdmin";
                   $ldapOk = true;
+                  ini_set('session.gc_maxlifetime', $sessionDuration);
+                  session_set_cookie_params($sessionDuration);
+                  session_start();
+                  session_regenerate_id();
                   $_SESSION['loggedUsername'] = $username;
                   $_SESSION['loggedRole'] = "ToolAdmin";
                   $_SESSION['loggedType'] = "ldap";
-                  //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+                  notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
                   mysqli_close($link);
                   header("location: dashboard_mng.php");
                }
@@ -208,10 +277,14 @@
                    {
                       $ldapRole = "AreaManager";
                       $ldapOk = true;
+                      ini_set('session.gc_maxlifetime', $sessionDuration);
+                      session_set_cookie_params($sessionDuration);
+                      session_start();
+                      session_regenerate_id();
                       $_SESSION['loggedUsername'] = $username;
                       $_SESSION['loggedRole'] = "AreaManager";
                       $_SESSION['loggedType'] = "ldap";
-                      //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+                      notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
                       mysqli_close($link);
                       header("location: dashboard_mng.php");
                    }
@@ -221,10 +294,14 @@
                       {
                          $ldapRole = "Manager";
                          $ldapOk = true;
+                         ini_set('session.gc_maxlifetime', $sessionDuration);
+                         session_set_cookie_params($sessionDuration);
+                         session_start();
+                         session_regenerate_id();
                          $_SESSION['loggedUsername'] = $username;
                          $_SESSION['loggedRole'] = "Manager";
                          $_SESSION['loggedType'] = "ldap";
-                         //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+                         notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
                          mysqli_close($link);
                          header("location: dashboard_mng.php");
                       }
@@ -248,10 +325,14 @@
             if(mysqli_num_rows($result) > 0) 
             {
                $row = $result->fetch_assoc();
+               ini_set('session.gc_maxlifetime', $sessionDuration);
+               session_set_cookie_params($sessionDuration);
+               session_start();
+               session_regenerate_id();
                $_SESSION['loggedUsername'] = $username;
                $_SESSION['loggedRole'] = $row["admin"];
                $_SESSION['loggedType'] = "local";
-               //notificatorLogin($notificatorUrl, $notificatorApiUsr, $notificatorApiPwd, $username, $password);
+               notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
                mysqli_close($link);
                header("location: dashboard_mng.php");
             } 
@@ -267,6 +348,7 @@
     } 
     else if(isset($_REQUEST['creation_dashboard']))//Escape 
     {
+        session_start();
         $name_dashboard = mysqli_real_escape_string($link, $_POST['inputNameDashboard']); 
         $title = mysqli_real_escape_string($link, $_POST['inputTitleDashboard']);  
         $subtitle = mysqli_real_escape_string($link, $_POST['inputSubTitleDashboard']);  
@@ -277,9 +359,29 @@
         $headerFontColor = mysqli_real_escape_string($link, $_POST['headerFontColor']);  
         $headerFontSize = mysqli_real_escape_string($link, $_POST['headerFontSize']);  
         $logoLink = null;
+        $filename = null;
         $widgetsBorders = mysqli_real_escape_string($link, $_POST['widgetsBorders']); 
         $widgetsBordersColor = mysqli_real_escape_string($link, $_POST['inputWidgetsBordersColor']);
         $visibility = mysqli_real_escape_string($link, $_POST['inputDashboardVisibility']);
+        $embeddable = mysqli_real_escape_string($link, $_POST['embeddable']);
+        $headerVisible = $_POST['headerVisible'];
+        
+        if(isset($_POST['authorizedPagesJson']))
+        {
+            if(($_POST['authorizedPagesJson'] != "[]")&&($_POST['authorizedPagesJson'] != ""))
+            {
+               $authorizedPagesJson = mysqli_real_escape_string($link, $_POST['authorizedPagesJson']); 
+            }
+            else
+            {
+                $authorizedPagesJson = NULL;
+            }
+        }
+        else
+        {
+            $authorizedPagesJson = NULL;
+        }
+        
         $selectedVisibilityUsers = [];
 
         if($headerFontSize > 45)
@@ -296,8 +398,10 @@
 
         if(isset($_POST['creation_dashboard']) && $_FILES['dashboardLogoInput']['size'] > 0)
         {
-            mkdir("../img/dashLogos/");
-            mkdir($uploadFolder);
+            $oldMask = umask(0);
+            mkdir("../img/dashLogos/", 0777);
+            mkdir($uploadFolder, 0777);
+            umask($oldMask);
 
             if(!is_dir($uploadFolder))  
             {  
@@ -317,9 +421,10 @@
                 }
                 else
                 {
-                    $pointIndex = strrpos($_FILES['dashboardLogoInput']['name'], ".");
-                    $extension = substr($_FILES['dashboardLogoInput']['name'], $pointIndex);
-                    $filename = 'logo'.$extension;
+                    //$pointIndex = strrpos($_FILES['dashboardLogoInput']['name'], ".");
+                    //$extension = substr($_FILES['dashboardLogoInput']['name'], $pointIndex);
+                    //$filename = 'logo'.$extension;
+                    $filename = $_FILES['dashboardLogoInput']['name'];
 
                     if(!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder.$filename))  
                     {  
@@ -330,10 +435,11 @@
                     }  
                     else  
                     {  
+                        chmod($uploadFolder.$filename, 0666);
                         $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard' AND user='$dashboardAuthorName'";
                         $resultCheck2 = mysqli_query($link, $selqDbtbCheck2) or die(mysqli_error($link));
 
-                        if (mysqli_num_rows($resultCheck2) > 0) 
+                        if(mysqli_num_rows($resultCheck2) > 0) 
                         { 
                             mysqli_close($link);
                             echo '<script type="text/javascript">';
@@ -348,29 +454,22 @@
 
                             if($_POST['dashboardLogoLinkInput'] != '')
                             {
-                                if(strpos($_POST['dashboardLogoLinkInput'], 'http://') === false) 
-                                {
-                                    $logoLink = 'http://' . $_POST['dashboardLogoLinkInput'];
-                                }
-                                else 
-                                {
-                                    $logoLink = $_POST['dashboardLogoLinkInput'];
-                                }
+                                $logoLink = $_POST['dashboardLogoLinkInput'];
 
                                 $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                                 (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `logoLink`, `widgetsBorders`, `widgetsBordersColor`, visibility) 
-                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor', '$visibility')";
+                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `logoLink`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson) 
+                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson')";
                             }
                             else
                             {
                                 $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                                 (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `widgetsBorders`, `widgetsBordersColor`, visibility) 
-                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor', '$visibility')";
+                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson) 
+                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson')";
                             }
 
-                            mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+                            mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
                             $result3 = mysqli_query($link, $insqDbtb2) or die(mysqli_error($link));
                             
                             if ($result3) 
@@ -437,12 +536,12 @@
                 //New version: lasciamo gli addendi espliciti per agevolare la lettura
                 $width = ($nCols * 78) + 10;
 
-                mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+                mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
                 
                 $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                 (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`, `color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `widgetsBorders`, `widgetsBordersColor`, visibility) 
-                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$widgetsBorders', '$widgetsBordersColor', '$visibility')";
+                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`, `color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson) 
+                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson')";
                 
                 $result3 = mysqli_query($link, $insqDbtb2) or die(mysqli_error($link));
                 
@@ -493,11 +592,13 @@
             $_SESSION['dashboardAuthorRole'] = $_SESSION['loggedRole'];
             $commit = mysqli_commit($link);
             mysqli_close($link);
+            
             header("location: dashboard_configdash.php");
         }
     } 
     else if(isset($_REQUEST['add_widget']))//Escape 
     {
+        session_start();
         if(isset($_POST['textarea-selected-metrics']) && $_POST['textarea-selected-metrics'] != "") 
         {
             $id_dashboard = $_SESSION['dashboardId'];
@@ -577,8 +678,27 @@
                 $alrThrLinesWidth = NULL;
                 $clockData = NULL;
                 $clockFont = NULL;
+                $rectDim = NULL;
                 $enableFullscreenTab = 'no';
                 $enableFullscreenModal = 'no'; 
+                $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidget']);
+                
+                if($type_widget == "widgetPrevMeteo")
+                {
+                    $styleParametersArray = array('orientation' => $_REQUEST['orientation'], 'language' => $_REQUEST['language'], 'todayDim' => $_REQUEST['todayDim'], 'backgroundMode' => $_REQUEST['backgroundMode'], 'iconSet' => $_REQUEST['iconSet']);
+                    $styleParameters = json_encode($styleParametersArray);
+                }
+                
+                if($type_widget == "widgetSelector")
+                {
+                  if(isset($_REQUEST['addGisRectDim']))
+                  {
+                     $rectDim = $_REQUEST['addGisRectDim'];
+                  }
+                  
+                  $styleParametersArray = array('rectDim' => $rectDim, 'activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor']);
+                  $styleParameters = json_encode($styleParametersArray);
+                }
                 
                 if($type_widget == "widgetClock")
                 {
@@ -606,13 +726,17 @@
 
                     foreach ($infoNamesJsonFirstAxis as $name) 
                     {
-                        $infoJsonFirstAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
                     foreach ($infoNamesJsonSecondAxis as $name) 
                     {
-                        $infoJsonSecondAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
@@ -687,13 +811,17 @@
 
                         foreach ($infoNamesJsonFirstAxis as $name) 
                         {
-                            $infoJsonFirstAxis[$name] = $_POST[$name];
+                            //Hack per metriche contenenti indirizzi IP
+                            $name = preg_replace('/\./', "_", $name);
+                            $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                         }
                         unset($name);
 
                         foreach ($infoNamesJsonSecondAxis as $name) 
                         {
-                            $infoJsonSecondAxis[$name] = $_POST[$name];
+                            //Hack per metriche contenenti indirizzi IP
+                            $name = preg_replace('/\./', "_", $name);
+                            $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                         }
                         unset($name);
 
@@ -835,13 +963,17 @@
 
                     foreach ($infoNamesJsonFirstAxis as $name) 
                     {
-                        $infoJsonFirstAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
                     foreach ($infoNamesJsonSecondAxis as $name) 
                     {
-                        $infoJsonSecondAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
@@ -959,13 +1091,17 @@
 
                     foreach ($infoNamesJsonFirstAxis as $name) 
                     {
-                        $infoJsonFirstAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
                     foreach ($infoNamesJsonSecondAxis as $name) 
                     {
-                        $infoJsonSecondAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
@@ -1062,7 +1198,6 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
 
-
                 if($type_widget == "widgetBarSeries")
                 {
                     $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
@@ -1070,16 +1205,20 @@
                     $infoJsonObject = [];
                     $infoJsonFirstAxis = [];
                     $infoJsonSecondAxis = [];
-
-                    foreach ($infoNamesJsonFirstAxis as $name) 
+                    
+                    foreach($infoNamesJsonFirstAxis as $name) 
                     {
-                        $infoJsonFirstAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
-
-                    foreach ($infoNamesJsonSecondAxis as $name) 
+                      
+                    foreach($infoNamesJsonSecondAxis as $name) 
                     {
-                        $infoJsonSecondAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
@@ -1186,13 +1325,17 @@
 
                     foreach ($infoNamesJsonFirstAxis as $name) 
                     {
-                        $infoJsonFirstAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
                     foreach ($infoNamesJsonSecondAxis as $name) 
                     {
-                        $infoJsonSecondAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
@@ -1318,13 +1461,17 @@
 
                     foreach ($infoNamesJsonFirstAxis as $name) 
                     {
-                        $infoJsonFirstAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
                     foreach ($infoNamesJsonSecondAxis as $name) 
                     {
-                        $infoJsonSecondAxis[$name] = $_POST[$name];
+                        //Hack per metriche contenenti indirizzi IP
+                        $name = preg_replace('/\./', "_", $name);
+                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
                     }
                     unset($name);
 
@@ -1394,7 +1541,6 @@
                 
                 if($type_widget == "widgetProtezioneCivile")
                 {
-                   
                   if(isset($_POST['meteoTabFontSize']) && ($_POST['meteoTabFontSize'] != "") && ($_POST['meteoTabFontSize'] != null))
                   {
                       $meteoTabFontSize = mysqli_real_escape_string($link, $_POST['meteoTabFontSize']);
@@ -1429,7 +1575,7 @@
                     $controlsPosition = mysqli_real_escape_string($link, $_POST['inputControlsPosition']); 
                 }
 
-                if(isset($_POST['inputShowTitle'])&&($_POST['inputShowTitle']!="")&&($type_widget == 'widgetExternalContent'))
+                if(isset($_POST['inputShowTitle'])&&($_POST['inputShowTitle']!="")/*&&($type_widget == 'widgetExternalContent')*/)
                 {
                     $showTitle = mysqli_real_escape_string($link, $_POST['inputShowTitle']); 
                 }
@@ -1470,7 +1616,7 @@
                
                if(isset($_POST['parameters'])&&($_POST['parameters'] != ""))
                {
-                  if(($type_widget == 'widgetBarContent')||($type_widget == 'widgetColunmContent')||($type_widget == 'widgetGaugeChart')||($type_widget == 'widgetSingleContent')||($type_widget == 'widgetSpeedometer')||($type_widget == 'widgetTimeTrend')||($type_widget == 'widgetTimeTrendCompare'))
+                  if(($type_widget == 'widgetServerStatus')||($type_widget == 'widgetBarContent')||($type_widget == 'widgetColumnContent')||($type_widget == 'widgetGaugeChart')||($type_widget == 'widgetSingleContent')||($type_widget == 'widgetSpeedometer')||($type_widget == 'widgetTimeTrend')||($type_widget == 'widgetTimeTrendCompare'))
                   {
                      if($_POST['alrThrSel'] == "yes")
                      {
@@ -1514,15 +1660,21 @@
                 }
 
                 $comune_widget = NULL;
-                if(isset($_POST['inputComuneWidget']) && $_POST['inputComuneWidget'] != "") 
+                /*if(isset($_POST['inputComuneWidget']) && $_POST['inputComuneWidget'] != "") 
                 {
                     $comune_widget = strtoupper($_POST['inputComuneWidget']);
-                    $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $comune_widget . "_" . $id_dashboard . "_" . $type_widget . $nextId;
+                    $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . preg_replace('/ /', '_', $comune_widget) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
                 } 
                 else  
                 {
                     $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
-                }
+                }*/
+                
+                if(isset($_POST['inputComuneWidget']) && $_POST['inputComuneWidget'] != "") 
+                {
+                    $comune_widget = strtoupper($_POST['inputComuneWidget']);
+                } 
+                $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
 
                 $int_temp_widget = NULL;
                 if(isset($_POST['select-IntTemp-Widget']) && $_POST['select-IntTemp-Widget'] != "") 
@@ -1536,6 +1688,42 @@
                 }
                 
                 //Va messo qui perché serve il nome del widget
+                if($type_widget == "widgetSelector")
+                {
+                  if(!is_dir("../img/widgetSelectorImages"))
+                  {
+                     mkdir("../img/widgetSelectorImages/", 0777);
+                  }
+
+                  if(!is_dir("../img/widgetSelectorImages/" . $name_widget))
+                  {
+                      mkdir("../img/widgetSelectorImages/" . $name_widget, 0777);
+                  }
+                  
+                  $parametersSelectorArray = json_decode($parameters, true);
+                  //$file = fopen("C:\dashboardLog.txt", "a");
+                    foreach($_FILES["addSelectorLogos"]["error"] as $key => $error) 
+                    {
+                        mkdir("../img/widgetSelectorImages/" . $name_widget . "/q" . $key, 0777);
+                        
+                        if($error == UPLOAD_ERR_OK) 
+                        {
+                            $tmp_name = $_FILES["addSelectorLogos"]["tmp_name"][$key];
+                            $name = basename($_FILES["addSelectorLogos"]["name"][$key]);
+                            move_uploaded_file($tmp_name, "../img/widgetSelectorImages/" . $name_widget . "/q" . $key . "/" . $name);
+                            
+                            $parametersSelectorArray['queries'][$key]['symbolMode'] = 'man';
+                            $parametersSelectorArray['queries'][$key]['symbolFile'] = "../img/widgetSelectorImages/" . $name_widget . "/q" . $key . "/" . $name;
+                        }
+                        else
+                        {
+                            $parametersSelectorArray['queries'][$key]['symbolMode'] = 'auto';
+                        }
+                        
+                        $parameters = json_encode($parametersSelectorArray);
+                    }
+                }
+                
                 if($type_widget == "widgetButton")
                 {
                    $styleParametersArray = [];
@@ -1549,22 +1737,25 @@
                         {
                            if(!file_exists("../img/widgetButtonImages/"))
                            {
-                              mkdir("../img/widgetButtonImages/");
+                              $oldMask = umask(0); 
+                              mkdir("../img/widgetButtonImages/", 0777);
+                              umask($oldMask);
                            }
                            
                            if(!file_exists("../img/widgetButtonImages/" . $name_widget))
                            {
-                              mkdir("../img/widgetButtonImages/" . $name_widget);
+                              $oldMask = umask(0); 
+                              mkdir("../img/widgetButtonImages/" . $name_widget, 0777);
+                              umask($oldMask);
                            }
                            
-                           $pointIndex = strrpos($_FILES['addWidgetBtnFile']['name'], ".");
-                           $extension = substr($_FILES['addWidgetBtnFile']['name'], $pointIndex);
-                           $fileUploaded = move_uploaded_file($_FILES['addWidgetBtnFile']['tmp_name'], "../img/widgetButtonImages/" . $name_widget . "/image" . $extension);
+                           $fileUploaded = move_uploaded_file($_FILES['addWidgetBtnFile']['tmp_name'], "../img/widgetButtonImages/" . $name_widget . "/" . $_FILES['addWidgetBtnFile']['name']);
+                           chmod("../img/widgetButtonImages/" . $name_widget . "/" . $_FILES['addWidgetBtnFile']['name'], 0666);
                            
                            $styleParametersArray["hasImage"] = "yes";
                            $styleParametersArray["imageWidth"] = $_REQUEST["addWidgetBtnImgWidth"];
                            $styleParametersArray["imageHeight"] = $_REQUEST["addWidgetBtnImgHeight"];
-                           $styleParametersArray["imageName"] = "image" . $extension;
+                           $styleParametersArray["imageName"] = $_FILES['addWidgetBtnFile']['name'];
                         }
                         else
                         {
@@ -1580,6 +1771,8 @@
                    {
                       $styleParametersArray["hasImage"] = "no";
                    }
+                   
+                   $styleParametersArray["showText"] = $_REQUEST['addWidgetShowButtonText'];
                    
                   $styleParameters = json_encode($styleParametersArray); 
                 }
@@ -1621,6 +1814,13 @@
                 {
                     $viewMode = mysqli_real_escape_string($link, $_POST['addWidgetFirstAidMode']);
                 }
+                else
+                {
+                    if(isset($_POST['widgetEventsMode'])) 
+                    {
+                        $viewMode = mysqli_real_escape_string($link, $_POST['widgetEventsMode']);
+                    }
+                }
                 
                 $hospitalList = NULL;
                 if(isset($_POST['hospitalList']) && ($_POST['hospitalList'] != '') && (!empty($_POST['hospitalList']))) 
@@ -1635,7 +1835,7 @@
                     $scaleY = 1;
                     
                     //Aggiornamento della lista dei target degli widget events
-                    mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
+                    mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
                     
                     $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '$id_dashboard'";
                     $resultUpdTargetQuery = mysqli_query($link, $updTargetQuery);
@@ -1703,14 +1903,36 @@
                    $enableFullscreenModal = $_REQUEST['enableFullscreenModal'];
                 }
                 
-                if($insqDbtb3 = $link->prepare("INSERT INTO Dashboard.Config_widget_dashboard (Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) 
-                {
+                
+                    /*$insqDbtb3 = $link->prepare("INSERT INTO Dashboard.Config_widget_dashboard (Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $insqDbtb3->bind_param('isissiiiisssssssssssissssdisddssssssssss', $nextId, $name_widget, $id_dashboard, $id_metric, $type_widget, $firstFreeRow, $nCol, $sizeRowsWidget, $sizeColumnsWidget, $title_widget, $color_widget, $freq_widget, $int_temp_widget, $comune_widget, $message_widget, $url_widget, $parameters, $frame_color, $inputUdmWidget, $inputUdmPosition, $fontSize, $fontColor, $controlsPosition, $showTitle, $controlsVisibility, $zoomFactor, $defaultTab, $zoomControlsColor, $scaleX, $scaleY, $headerFontColor, $styleParameters, $infoJson, $serviceUri, $viewMode, $hospitalList, $notificatorRegistered, $notificatorEnabled, $enableFullscreenTab, $enableFullscreenModal);
-                    $result4 = $insqDbtb3->execute();
+                    $result4 = $insqDbtb3->execute();*/
+                
+                    $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily) " .
+                                 "VALUES($nextId , " . returnManagedStringForDb($name_widget) . ", " . returnManagedNumberForDb($id_dashboard) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb($int_temp_widget) . ", " . returnManagedStringForDb($comune_widget) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb($parameters) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb($styleParameters) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ")";
+                    
+                    $result4 = mysqli_query($link, $insqDbtb3);
+                    
                     if($result4) 
                     {
                         mysqli_close($link);
-                        header("location: dashboard_configdash.php");
+                        
+                        if(isset($_REQUEST['addWidgetShowNotificator']))
+                        {
+                            if($_REQUEST['addWidgetShowNotificator'] == "1")
+                            {
+                               header("location: dashboard_configdash.php?openNotificator=1&dashId=" . $id_dashboard ."&widgetTitle=" . $title_widget);                 
+                            }
+                            else
+                            {
+                                header("location: dashboard_configdash.php");
+                            }
+                        }
+                        else
+                        {
+                            header("location: dashboard_configdash.php");
+                        }
+                        
                         
                         if(isset($_REQUEST['addWidgetRegisterGen']))
                         {
@@ -1740,7 +1962,7 @@
                                  $callResult = @file_get_contents($url, false, $context);
                                  
                                  //Questo if è temporaneo, allargalo via via che aggiungi widget in grado di generare eventi.
-                                 if(($type_widget == 'widgetBarContent')||($type_widget == 'widgetColunmContent')||($type_widget == 'widgetGaugeChart')||($type_widget == 'widgetSingleContent')||($type_widget == 'widgetSpeedometer')||($type_widget == 'widgetTimeTrend')||($type_widget == 'widgetTimeTrendCompare'))
+                                 if(($type_widget == 'widgetServerStatus')||($type_widget == 'widgetBarContent')||($type_widget == 'widgetColumnContent')||($type_widget == 'widgetGaugeChart')||($type_widget == 'widgetSingleContent')||($type_widget == 'widgetSpeedometer')||($type_widget == 'widgetTimeTrend')||($type_widget == 'widgetTimeTrendCompare'))
                                  {
                                     //Invio dei tipi di evento al notificatore
                                     $paramsObj = json_decode($parameters, true);
@@ -1846,15 +2068,6 @@
                         echo 'window.location.href = "dashboard_configdash.php";';
                         echo '</script>';
                     }
-                } 
-                else 
-                {
-                    die("Error message: ". $mysqli->error);
-                    echo '<script type="text/javascript">';
-                    echo 'alert("Error:' . $mysqli->error . '");';
-                    echo 'window.location.href = "dashboard_configdash.php";';
-                    echo '</script>';
-                }
             }
             else 
             {
@@ -1864,7 +2077,6 @@
                 echo 'window.location.href = "dashboard_configdash.php";';
                 echo '</script>';
             }
-
         } 
         else 
         {
@@ -1876,6 +2088,7 @@
     } //Fine caso add_widget
     else if(isset($_REQUEST['modify_dashboard']))//Escape 
     {
+        session_start();
         $isAdmin = $_SESSION['loggedRole'];
         $dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardName']);
         $dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorName']);
@@ -1958,6 +2171,7 @@
     } 
     else if(isset($_REQUEST['modify_widget']))//Escape 
     {
+        session_start();
         $dashboardName2 = $_SESSION['dashboardTitle'];
         $type_widget_m = mysqli_real_escape_string($link, $_POST['select-widget-m']);
         $title_widget_m = NULL;
@@ -2022,7 +2236,25 @@
         $clockFontM = NULL;
         $enableFullscreenTabM = 'no';
         $enableFullscreenModalM = 'no';
+        $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
+        
+        if($type_widget_m == "widgetPrevMeteo")
+        {
+            $styleParametersArrayM = array('orientation' => $_REQUEST['orientationM'], 'language' => $_REQUEST['languageM'], 'todayDim' => $_REQUEST['todayDimM'], 'backgroundMode' => $_REQUEST['backgroundModeM'], 'iconSet' => $_REQUEST['iconSetM']);
+            $styleParametersM = json_encode($styleParametersArrayM);
+        }
+        
+        if($type_widget_m == "widgetSelector")
+        {
+          if(isset($_REQUEST['editGisRectDim']))
+          {
+             $rectDim = $_REQUEST['editGisRectDim'];
+          }
 
+          $styleParametersArrayM = array('rectDim' => $rectDim, 'activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor']);
+          $styleParametersM = json_encode($styleParametersArrayM);
+        }
+        
         if($type_widget_m == "widgetClock")
         {
            if(isset($_REQUEST['editWidgetClockData']))
@@ -2071,13 +2303,17 @@
 
             foreach ($infoNamesJsonFirstAxisM as $nameM) 
             {
-                $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
             foreach ($infoNamesJsonSecondAxisM as $nameM) 
             {
-                $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
@@ -2153,13 +2389,17 @@
 
                 foreach ($infoNamesJsonFirstAxisM as $nameM) 
                 {
-                    $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+                    //Hack per metriche contenenti indirizzi IP
+                    $nameM = preg_replace('/\./', "_", $nameM);
+                    $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
                 }
                 unset($nameM);
 
                 foreach ($infoNamesJsonSecondAxisM as $nameM) 
                 {
-                    $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+                    //Hack per metriche contenenti indirizzi IP
+                    $nameM = preg_replace('/\./', "_", $nameM);
+                    $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
                 }
                 unset($nameM);
 
@@ -2301,13 +2541,17 @@
 
             foreach ($infoNamesJsonFirstAxisM as $nameM) 
             {
-                $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
             foreach ($infoNamesJsonSecondAxisM as $nameM) 
             {
-                $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
@@ -2428,13 +2672,17 @@
 
             foreach ($infoNamesJsonFirstAxisM as $nameM) 
             {
-                $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
             foreach ($infoNamesJsonSecondAxisM as $nameM) 
             {
-                $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
@@ -2541,13 +2789,17 @@
 
             foreach ($infoNamesJsonFirstAxisM as $nameM) 
             {
-                $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
             foreach ($infoNamesJsonSecondAxisM as $nameM) 
             {
-                $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
@@ -2652,15 +2904,19 @@
             $infoJsonFirstAxisM = [];
             $infoJsonSecondAxisM = [];
 
-            foreach ($infoNamesJsonFirstAxisM as $nameM) 
+            foreach($infoNamesJsonFirstAxisM as $nameM) 
             {
-                $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
             foreach ($infoNamesJsonSecondAxisM as $nameM) 
             {
-                $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
@@ -2785,13 +3041,17 @@
 
             foreach ($infoNamesJsonFirstAxisM as $nameM) 
             {
-                $infoJsonFirstAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
             foreach ($infoNamesJsonSecondAxisM as $nameM) 
             {
-                $infoJsonSecondAxisM[$nameM] = $_POST[$nameM];
+                //Hack per metriche contenenti indirizzi IP
+                $nameM = preg_replace('/\./', "_", $nameM);
+                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
             }
             unset($nameM);
 
@@ -2903,7 +3163,7 @@
 
         if((isset($_POST['parametersM']))&&($_POST['parametersM'] != ""))
         {
-            if(($type_widget_m == 'widgetBarContent')||($type_widget_m == 'widgetColunmContent')||($type_widget_m == 'widgetGaugeChart')||($type_widget_m == 'widgetSingleContent')||($type_widget_m == 'widgetSpeedometer')||($type_widget_m == 'widgetTimeTrend')||($type_widget_m == 'widgetTimeTrendCompare'))
+            if(($type_widget_m == 'widgetServerStatus')||($type_widget_m == 'widgetBarContent')||($type_widget_m == 'widgetColumnContent')||($type_widget_m == 'widgetGaugeChart')||($type_widget_m == 'widgetSingleContent')||($type_widget_m == 'widgetSpeedometer')||($type_widget_m == 'widgetTimeTrend')||($type_widget_m == 'widgetTimeTrendCompare'))
             {
                if($_POST['alrThrSelM'] != "no")
                {
@@ -2945,6 +3205,94 @@
                        {
                            $parametersM = NULL;
                        }
+                   }
+               }
+               else
+               {
+                   if($type_widget_m == 'widgetSelector')
+                   {
+                        if(!is_dir("../img/widgetSelectorImages"))
+                        {
+                           mkdir("../img/widgetSelectorImages/", 0777);
+                        }
+
+                        if(!is_dir("../img/widgetSelectorImages/" . $name_widget_m))
+                        {
+                            mkdir("../img/widgetSelectorImages/" . $name_widget_m, 0777);
+                        }
+
+                        $parametersSelectorArray = json_decode($parametersM, false);
+                        //$file = fopen("C:\dashboardLog.txt", "a");
+                        for($i = (count($parametersSelectorArray->queries) - 1); $i >= 0; $i--)
+                        {
+                            if(isset($parametersSelectorArray->queries[$i]->deleted))
+                            {
+                                if($parametersSelectorArray->queries[$i]->deleted == true)
+                                {
+                                    array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
+                                    rmdir("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i);
+                                    
+                                    $remainingDirs = scandir("../img/widgetSelectorImages/" . $name_widget_m);
+                                    for($j = 0; $j < count($remainingDirs); $j++)
+                                    {
+                                        if(file_exists("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $j)&&($j > $i))
+                                        {
+                                            rename("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $j, "../img/widgetSelectorImages/" . $name_widget_m . "/q" . ($j - 1));
+                                        }
+                                        
+                                        if(($j > $i)&&isset($parametersSelectorArray->queries[$j]->symbolFile))
+                                        {
+                                            $pattern = '/q(\d+)/';
+                                            $replace = "/q" . ($j - 1) ."/";
+                                            $parametersSelectorArray->queries[$j]->symbolFile = preg_replace($pattern, $replace, $parametersSelectorArray->queries[$j]->symbolFile);
+                                        }
+                                    }
+                                    
+                                    unset($parametersSelectorArray->queries[$i]);
+                                } 
+                            }
+                            else 
+                            {
+                                if(!is_dir("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i))
+                                {
+                                   mkdir("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i, 0777);
+                                }
+                                
+                                //Crash undefined offset
+                                $error = $_FILES["editSelectorLogos"]["error"][$i];
+
+                                if($error == UPLOAD_ERR_OK) 
+                                {
+                                    $tmp_name = $_FILES["editSelectorLogos"]["tmp_name"][$i];
+                                    $name = basename($_FILES["editSelectorLogos"]["name"][$i]);
+
+                                    //Cancellazione files preesistenti (sarà uno solo)
+                                    array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
+
+                                    move_uploaded_file($tmp_name, "../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/" . $name);
+
+                                    $parametersSelectorArray->queries[$i]->symbolMode = 'man';
+                                    $parametersSelectorArray->queries[$i]->symbolFile = "../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/" . $name;
+                                }
+                                else
+                                {
+                                    //Casi di logo automatico o logo manuale ma non cambiato, non facciamo niente di specifico
+                                    if($parametersSelectorArray->queries[$i]->symbolMode == 'auto')
+                                    {
+                                        array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
+                                        unset($parametersSelectorArray->queries[$i]->symbolFile);
+                                    }
+                                }
+                                
+                                if(isset($parametersSelectorArray->queries[$i]->added))
+                                {
+                                    unset($parametersSelectorArray->queries[$i]->added);
+                                }
+                            }
+                        }
+                        
+                        $parametersSelectorArray->queries = array_values($parametersSelectorArray->queries);
+                        $parametersM = json_encode($parametersSelectorArray);
                    }
                }
             }
@@ -3004,14 +3352,6 @@
 
         if(isset($_POST['urlWidgetM'])&& ($_POST['urlWidgetM'] != ""))
         {
-            /*if (strpos($_POST['urlWidgetM'], 'http://') === false) 
-            {
-                $url_m = 'http://' . $_POST['urlWidgetM'];
-            }
-            else 
-            {
-                $url_m = $_POST['urlWidgetM'];
-            }*/
             if(preg_match('/^ *$/', $_POST['urlWidgetM'])) 
             {
                $url_m = "none";
@@ -3049,6 +3389,13 @@
         {
             $viewMode = mysqli_real_escape_string($link, $_POST['editWidgetFirstAidMode']);
         }
+        else
+        {
+            if(isset($_POST['widgetEventsModeM'])) 
+            {
+                $viewMode = mysqli_real_escape_string($link, $_POST['widgetEventsModeM']);
+            }
+        }
 
         $hospitalList = NULL;
         if(isset($_POST['hospitalListM']) && ($_POST['hospitalListM'] != '') && (!empty($_POST['hospitalListM']))) 
@@ -3065,51 +3412,66 @@
          }
          
          if($type_widget_m == "widgetButton")
-         {
+         { 
             $styleParametersArray = [];
             $styleParametersArray["borderRadius"] = $_REQUEST['editWidgetBtnRadius'];
 
             if($_REQUEST['editWidgetBtnImgSelect'] == "yes")
-            {
+            { 
                $styleParametersArray["hasImage"] = "yes";
                $styleParametersArray["imageWidth"] = $_REQUEST["editWidgetBtnImgWidth"];
                $styleParametersArray["imageHeight"] = $_REQUEST["editWidgetBtnImgHeight"];
                
                if(isset($_FILES['editWidgetBtnFile']))
-               {
+               { 
                  if($_FILES['editWidgetBtnFile']['size'] > 0)
                  {
                     if(!file_exists("../img/widgetButtonImages/"))
                     {
-                       mkdir("../img/widgetButtonImages/");
+                       $oldMask = umask(0); 
+                       mkdir("../img/widgetButtonImages/", 0777);
+                       umask($oldMask);
                     }
 
                     if(!file_exists("../img/widgetButtonImages/" . $name_widget_m))
                     {
-                       mkdir("../img/widgetButtonImages/" . $name_widget_m);
+                       $oldMask = umask(0); 
+                       mkdir("../img/widgetButtonImages/" . $name_widget_m, 0777);
+                       umask($oldMask);
                     }
                     else
                     {
                        array_map('unlink', glob("../img/widgetButtonImages/" . $name_widget_m . "/*.*"));
                     }
 
-                    $pointIndex = strrpos($_FILES['editWidgetBtnFile']['name'], ".");
-                    $extension = substr($_FILES['editWidgetBtnFile']['name'], $pointIndex);
-                    $fileUploaded = move_uploaded_file($_FILES['editWidgetBtnFile']['tmp_name'], "../img/widgetButtonImages/" . $name_widget_m . "/image" . $extension);
-                    $styleParametersArray["imageName"] = "image" . $extension;
+                    $fileUploaded = move_uploaded_file($_FILES['editWidgetBtnFile']['tmp_name'], "../img/widgetButtonImages/" . $name_widget_m . "/" . $_FILES['editWidgetBtnFile']['name']);
+                    chmod("../img/widgetButtonImages/" . $name_widget_m . "/" . $_FILES['editWidgetBtnFile']['name'], 0666);
+                    $styleParametersArray["imageName"] = $_FILES['editWidgetBtnFile']['name'];
                  }
                  else
                  {
                     $filesArray = scandir("../img/widgetButtonImages/" . $name_widget_m);
+                    $styleParametersArray["imageName"] = $filesArray[0];
                     
                     for($i = 0; $i < count($filesArray); $i++)
                     {
-                       if(strpos($filesArray[$i], 'image') !== false)
+                       if(($filesArray[$i] !== ".") && ($filesArray[$i] !== ".."))
                        {
                           $styleParametersArray["imageName"] = $filesArray[$i];
                        }
                     }
                  }
+               }
+               else
+               {
+                   $filesArray = scandir("../img/widgetButtonImages/" . $name_widget_m);
+                   for($i = 0; $i < count($filesArray); $i++)
+                   {
+                       if(($filesArray[$i] !== ".") && ($filesArray[$i] !== ".."))
+                       {
+                          $styleParametersArray["imageName"] = $filesArray[$i];
+                       }
+                   }
                }
             }
             else
@@ -3121,8 +3483,9 @@
                   rmdir("../img/widgetButtonImages/" . $name_widget_m);
                }
             }
-
-           $styleParametersM = json_encode($styleParametersArray); 
+            
+            $styleParametersArray["showText"] = $_REQUEST['editWidgetShowButtonText'];
+            $styleParametersM = json_encode($styleParametersArray); 
          }
          
         if(isset($_REQUEST['enableFullscreenTabM']))
@@ -3178,585 +3541,624 @@
                }
            }
            
-            $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET type_w = ?, size_columns = ?, size_rows = ?, title_w = ?, color_w = ?, frequency_w = ?, temporal_range_w = ?, municipality_w = ?, infoMessage_w = ?, link_w = ?, parameters = ?, frame_color_w = ?, udm = ?, udmPos = ?, fontSize = ?, fontColor = ?, controlsPosition = ?, showTitle = ?, controlsVisibility = ?, defaultTab = ?, zoomControlsColor = ?, headerFontColor = ?, styleParameters = ?, infoJson = ?, serviceUri = ?, viewMode = ?, hospitalList = ?, lastSeries = ?, notificatorRegistered = ?, notificatorEnabled = ?, enableFullscreenTab = ?, enableFullscreenModal = ? WHERE name_w = ? AND id_dashboard = ?");
+            /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET type_w = ?, size_columns = ?, size_rows = ?, title_w = ?, color_w = ?, frequency_w = ?, temporal_range_w = ?, municipality_w = ?, infoMessage_w = ?, link_w = ?, parameters = ?, frame_color_w = ?, udm = ?, udmPos = ?, fontSize = ?, fontColor = ?, controlsPosition = ?, showTitle = ?, controlsVisibility = ?, defaultTab = ?, zoomControlsColor = ?, headerFontColor = ?, styleParameters = ?, infoJson = ?, serviceUri = ?, viewMode = ?, hospitalList = ?, lastSeries = ?, notificatorRegistered = ?, notificatorEnabled = ?, enableFullscreenTab = ?, enableFullscreenModal = ? WHERE name_w = ? AND id_dashboard = ?");
             $upsqDbtb->bind_param('siisssssssssssissssisssssssssssssi', $type_widget_m, $col_m, $row_m, $title_widget_m, $color_widget_m, $freq_widget_m, $int_temp_widget_m, $comune_widget_m, $info_m, $url_m, $parametersM, $color_frame_m, $inputUdmWidget, $inputUdmPosition, $fontSizeM, $fontColorM, $controlsPosition, $showTitle, $controlsVisibility, $inputDefaultTabM, $zoomControlsColorM, $headerFontColorM, $styleParametersM, $infoJsonM, $serviceUri, $viewMode, $hospitalList, $lastSeries, $notificatorRegisteredNew, $notificatorEnabledNew, $enableFullscreenTabM, $enableFullscreenModalM, $name_widget_m, $id_dashboard2);
-            $result7 = $upsqDbtb->execute();
-            
+            $result7 = $upsqDbtb->execute();*/
+           
+           $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m) 
+                       . ", title_w = " . returnManagedStringForDb($title_widget_m) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m) 
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", infoMessage_w = " . returnManagedStringForDb($info_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM) 
+                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) 
+                       . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility) 
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM) 
+                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ", viewMode = " . returnManagedStringForDb($viewMode) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . " WHERE name_w = '$name_widget_m' AND id_dashboard = $id_dashboard2";
+           $result7 = mysqli_query($link, $upsqDbtb);
+           
             if($result7) 
             {
-                mysqli_close($link);
-                header("location: dashboard_configdash.php");
+                //Lasciarle separate, sennò non funziona
+                $updateInfoJson = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET infoJson = ? WHERE name_w = ? AND id_dashboard = ?");
+                $updateInfoJson->bind_param('ssi', $infoJsonM, $name_widget_m, $id_dashboard2);
+                $result8 = $updateInfoJson->execute();
                 
-                //1) Se non registrato e viene richiesto di abilitarlo da GUI --> lo registriamo (con registrazione dei tipi di evento, come in add);
-                if($notificatorRegistered == 'no')
+                if($result8)
                 {
-                   if(isset($_REQUEST['editWidgetRegisterGen']))
-                   {
-                      if($notificatorRegisteredNew == 'yes')
-                      {
-                        $url = $notificatorUrl;
-                        $genOriginalName = preg_replace('/\s+/', '+', $title_widget_m);
-                        $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
-                        $containerName = preg_replace('/\s+/', '+', $dashboardName2);
-                        $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
-                        
-                        $containerUrl = $appUrl . "/view/index.php?iddasboard=" . base64_encode($id_dashboard2); 
-
-                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&url=" . $containerUrl;
-                        $url = $url.$data;
-
-                        $options = array(
-                            'http' => array(
-                                'header'  => "Content-type: application/json\r\n",
-                                'method'  => 'POST'
-                                //'timeout' => 2
-                            )
-                        );
-
-                        try
+                    mysqli_close($link);
+                    if(isset($_REQUEST['editWidgetShowNotificator']))
+                    {
+                        if($_REQUEST['editWidgetShowNotificator'] == "1")
                         {
-                           $context  = stream_context_create($options);
-                           $callResult = @file_get_contents($url, false, $context);
-                           
-                           //Questo if è temporaneo, allargalo via via che aggiungi widget in grado di generare eventi.
-                           if(($type_widget_m == 'widgetBarContent')||($type_widget_m == 'widgetColunmContent')||($type_widget_m == 'widgetGaugeChart')||($type_widget_m == 'widgetSingleContent')||($type_widget_m == 'widgetSpeedometer')||($type_widget_m == 'widgetTimeTrend')||($type_widget_m == 'widgetTimeTrendCompare'))
-                           {
-                              //Invio dei tipi di evento al notificatore
-                              $thrObj = json_decode($parametersM, true);
-                              if(count($thrObj) > 0)
-                              {
-                                 if(count($thrObj["thresholdObject"] ) > 0)
-                                 {
-                                    foreach($thrObj["thresholdObject"] as $eventType)
-                                    {
-                                       switch($eventType["op"])
-                                       {
-                                          case "less":
-                                             $eventName = "Value < " . $eventType["thr1"];
-                                             break;
-
-                                          case "lessEqual":
-                                             $eventName = "Value <= " . $eventType["thr1"];
-                                             break;
-
-                                          case "greater":
-                                             $eventName = "Value > " . $eventType["thr1"];
-                                             break;
-
-                                          case "greaterEqual":
-                                             $eventName = "Value >= " . $eventType["thr1"];
-                                             break;
-
-                                          case "equal":
-                                             $eventName = "Value = " . $eventType["thr1"];
-                                             break;
-
-                                          case "notEqual":
-                                             $eventName = "Value != " . $eventType["thr1"];
-                                             break;
-
-                                          case "intervalOpen":
-                                             $eventName = $eventType["thr1"] . " < value < " . $eventType["thr2"];
-                                             break;
-
-                                          case "intervalClosed":
-                                             $eventName = $eventType["thr1"] . " <= value <= " . $eventType["thr2"];
-                                             break;
-
-                                          case "intervalLeftOpen":
-                                             $eventName = $eventType["thr1"] . " < value <= " . $eventType["thr2"];
-                                             break;
-
-                                          case "intervalRightOpen":
-                                             $eventName = $eventType["thr1"] . " <= value < " . $eventType["thr2"];
-                                             break;
-                                       }
-
-                                       if($eventType["desc"] != "")
-                                       {
-                                          $eventName = $eventName . " - " . $eventType["desc"];
-                                       }
-
-                                       $eventName = preg_replace('/\s+/', '+', $eventName);
-
-                                       $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
-                                       $url = $url.$data;
-
-                                       $options = array(
-                                           'http' => array(
-                                               'header'  => "Content-type: application/json\r\n",
-                                               'method'  => 'POST'
-                                               //'timeout' => 2
-                                           )
-                                       );
-
-                                       try
-                                       {
-                                          $context  = stream_context_create($options);
-                                          $callResult = @file_get_contents($url, false, $context);
-                                       }
-                                       catch (Exception $ex) 
-                                       {
-                                          //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                                       }
-                                    }
-                                 }
-                              }
-                           }
+                           header("location: dashboard_configdash.php?openNotificator=1&dashId=" . $id_dashboard2 ."&widgetTitle=" . $title_widget_m);                 
                         }
-                        catch (Exception $ex) 
+                        else
                         {
-                           //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                            header("location: dashboard_configdash.php");
                         }
-                      }
-                   }
+                    }
+                    else
+                    {
+                        header("location: dashboard_configdash.php");
+                    }
+
+                    //1) Se non registrato e viene richiesto di abilitarlo da GUI --> lo registriamo (con registrazione dei tipi di evento, come in add);
+                    if($notificatorRegistered == 'no')
+                    {
+                       if(isset($_REQUEST['editWidgetRegisterGen']))
+                       {
+                          if($notificatorRegisteredNew == 'yes')
+                          {
+                            $url = $notificatorUrl;
+                            $genOriginalName = preg_replace('/\s+/', '+', $title_widget_m);
+                            $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
+                            $containerName = preg_replace('/\s+/', '+', $dashboardName2);
+                            $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
+
+                            $containerUrl = $appUrl . "/view/index.php?iddasboard=" . base64_encode($id_dashboard2); 
+
+                            $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&url=" . $containerUrl;
+                            $url = $url.$data;
+
+                            $options = array(
+                                'http' => array(
+                                    'header'  => "Content-type: application/json\r\n",
+                                    'method'  => 'POST'
+                                    //'timeout' => 2
+                                )
+                            );
+
+                            try
+                            {
+                               $context  = stream_context_create($options);
+                               $callResult = @file_get_contents($url, false, $context);
+
+                               //Questo if è temporaneo, allargalo via via che aggiungi widget in grado di generare eventi.
+                               if(($type_widget_m == 'widgetServerStatus')||($type_widget_m == 'widgetBarContent')||($type_widget_m == 'widgetColumnContent')||($type_widget_m == 'widgetGaugeChart')||($type_widget_m == 'widgetSingleContent')||($type_widget_m == 'widgetSpeedometer')||($type_widget_m == 'widgetTimeTrend')||($type_widget_m == 'widgetTimeTrendCompare'))
+                               {
+                                  //Invio dei tipi di evento al notificatore
+                                  $thrObj = json_decode($parametersM, true);
+                                  if(count($thrObj) > 0)
+                                  {
+                                     if(count($thrObj["thresholdObject"] ) > 0)
+                                     {
+                                        foreach($thrObj["thresholdObject"] as $eventType)
+                                        {
+                                           switch($eventType["op"])
+                                           {
+                                              case "less":
+                                                 $eventName = "Value < " . $eventType["thr1"];
+                                                 break;
+
+                                              case "lessEqual":
+                                                 $eventName = "Value <= " . $eventType["thr1"];
+                                                 break;
+
+                                              case "greater":
+                                                 $eventName = "Value > " . $eventType["thr1"];
+                                                 break;
+
+                                              case "greaterEqual":
+                                                 $eventName = "Value >= " . $eventType["thr1"];
+                                                 break;
+
+                                              case "equal":
+                                                 $eventName = "Value = " . $eventType["thr1"];
+                                                 break;
+
+                                              case "notEqual":
+                                                 $eventName = "Value != " . $eventType["thr1"];
+                                                 break;
+
+                                              case "intervalOpen":
+                                                 $eventName = $eventType["thr1"] . " < value < " . $eventType["thr2"];
+                                                 break;
+
+                                              case "intervalClosed":
+                                                 $eventName = $eventType["thr1"] . " <= value <= " . $eventType["thr2"];
+                                                 break;
+
+                                              case "intervalLeftOpen":
+                                                 $eventName = $eventType["thr1"] . " < value <= " . $eventType["thr2"];
+                                                 break;
+
+                                              case "intervalRightOpen":
+                                                 $eventName = $eventType["thr1"] . " <= value < " . $eventType["thr2"];
+                                                 break;
+                                           }
+
+                                           if($eventType["desc"] != "")
+                                           {
+                                              $eventName = $eventName . " - " . $eventType["desc"];
+                                           }
+
+                                           $eventName = preg_replace('/\s+/', '+', $eventName);
+
+                                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                           $url = $url.$data;
+
+                                           $options = array(
+                                               'http' => array(
+                                                   'header'  => "Content-type: application/json\r\n",
+                                                   'method'  => 'POST'
+                                                   //'timeout' => 2
+                                               )
+                                           );
+
+                                           try
+                                           {
+                                              $context  = stream_context_create($options);
+                                              $callResult = @file_get_contents($url, false, $context);
+                                           }
+                                           catch (Exception $ex) 
+                                           {
+                                              //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                           }
+                                        }
+                                     }
+                                  }
+                               }
+                            }
+                            catch (Exception $ex) 
+                            {
+                               //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                            }
+                          }
+                       }
+                    }
+                    else//2) Se già registrato ne aggiorniamo sempre validità e titolo (nome generatore sul notificatore)
+                    {
+                       if(isset($_REQUEST['editWidgetRegisterGen']))
+                       {
+                         //SETTING DELLA VALIDITA' DEL GENERATORE SUL NOTIFICATORE CHIAMANDO setGeneratorValidity
+                         $url = $notificatorUrl;
+                         $genOriginalName = preg_replace('/\s+/', '+', $genOriginalName);
+                         $genNewName = preg_replace('/\s+/', '+', $title_widget_m);
+                         $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
+                         $alrThrSelM = preg_replace('/\s+/', '+', $_REQUEST['alrThrSelM']);
+                         $containerName = preg_replace('/\s+/', '+', $_SESSION['dashboardTitle']);
+                         $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
+
+                         //$setEventsValidityTrue = "false";//Se era già registrato non riabilitiamo tutti i suoi eventi, sennò riabilitiamo anche quelli vecchi, per entrambi i casi di provenienza
+
+                         if($notificatorEnabledNew == 'yes')
+                         {
+                            $validity = 1;
+                         }
+                         else
+                         {
+                            $validity = 0;
+                         }
+
+                         //$data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity . "&setEventsValidityTrue=" . $setEventsValidityTrue;
+                         $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity;
+                         $url = $url.$data;
+
+                         $options = array(
+                             'http' => array(
+                                 'header'  => "Content-type: application/json\r\n",
+                                 'method'  => 'POST'
+                                 //'timeout' => 2
+                             )
+                         );
+
+                         try
+                         {
+                            $context  = stream_context_create($options);
+                            $callResult = @file_get_contents($url, false, $context);
+
+                            //Caso edit soglie mantenendo il generatore registrato
+                            if(($_REQUEST['editWidgetRegisterGen'] == "yes")&&($notificatorEnabledNew == "yes")&&($notificatorEnabled == "yes"))
+                            {
+                               //Se soglie abilitate aggiorniamo dalle vecchie soglie alle nuove
+                               if($alrThrSelM == "yes")
+                               {
+                                  //Aggiornamento lista degli eventi
+                                  $parametersDiff = json_decode($_REQUEST['parametersDiff'], true);
+
+                                  //Eventi aggiunti e modificati
+                                  foreach($parametersDiff["addedChangedKept"] as $eventType)
+                                  {
+                                     $op = $eventType["op"];
+                                     $opNew = $eventType["opNew"];
+                                     $thr1 = $eventType["thr1"];
+                                     $thr1New = $eventType["thr1New"];
+                                     $thr2 = $eventType["thr2"];
+                                     $thr2New = $eventType["thr2New"];
+                                     $desc = $eventType["desc"];
+                                     $descNew = $eventType["descNew"];
+
+                                     switch($op)
+                                     {
+                                        case "less":
+                                           $oldEventName = "Value < " . $thr1;
+                                           break;
+
+                                        case "lessEqual":
+                                           $oldEventName = "Value <= " . $thr1;
+                                           break;
+
+                                        case "greater":
+                                           $oldEventName = "Value > " . $thr1;
+                                           break;
+
+                                        case "greaterEqual":
+                                           $oldEventName = "Value >= " . $thr1;
+                                           break;
+
+                                        case "equal":
+                                           $oldEventName = "Value = " . $thr1;
+                                           break;
+
+                                        case "notEqual":
+                                           $oldEventName = "Value != " . $thr1;
+                                           break;
+
+                                        case "intervalOpen":
+                                           $oldEventName = $thr1 . " < value < " . $thr2;
+                                           break;
+
+                                        case "intervalClosed":
+                                           $oldEventName = $thr1 . " <= value <= " . $thr2;
+                                           break;
+
+                                        case "intervalLeftOpen":
+                                           $oldEventName = $thr1 . " < value <= " . $thr2;
+                                           break;
+
+                                        case "intervalRightOpen":
+                                           $oldEventName = $thr1 . " <= value < " . $thr2;
+                                           break;
+                                     }
+
+                                     if($desc != "")
+                                     {
+                                       $oldEventName = $oldEventName . " - " . $desc;
+                                     }
+
+                                     $oldEventName = preg_replace('/\s+/', '+', $oldEventName);
+
+                                     switch($opNew)
+                                     {
+                                        case "less":
+                                           $newEventName = "Value < " . $thr1New;
+                                           break;
+
+                                        case "lessEqual":
+                                           $newEventName = "Value <= " . $thr1New;
+                                           break;
+
+                                        case "greater":
+                                           $newEventName = "Value > " . $thr1New;
+                                           break;
+
+                                        case "greaterEqual":
+                                           $newEventName = "Value >= " . $thr1New;
+                                           break;
+
+                                        case "equal":
+                                           $newEventName = "Value = " . $thr1New;
+                                           break;
+
+                                        case "notEqual":
+                                           $newEventName = "Value != " . $thr1New;
+                                           break;
+
+                                        case "intervalOpen":
+                                           $newEventName = $thr1New . " < value < " . $thr2New;
+                                           break;
+
+                                        case "intervalClosed":
+                                           $newEventName = $thr1New . " <= value <= " . $thr2New;
+                                           break;
+
+                                        case "intervalLeftOpen":
+                                           $newEventName = $thr1New . " < value <= " . $thr2New;
+                                           break;
+
+                                        case "intervalRightOpen":
+                                           $newEventName = $thr1New . " <= value < " . $thr2New;
+                                           break;
+                                     }
+
+                                     if($descNew != "")
+                                     {
+                                       $newEventName = $newEventName . " - " . $descNew;
+                                     }
+
+                                     $newEventName = preg_replace('/\s+/', '+', $newEventName);
+                                     //Eventi aggiunti
+                                     if(($eventType["added"]||($eventType["added"]&&$eventType["changed"]))&&(!$eventType["deleted"]))
+                                     {
+                                        $url = $notificatorUrl;
+                                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $newEventName . "&thrCnt=1";
+                                        $url = $url.$data;
+
+                                        $options = array(
+                                            'http' => array(
+                                                'header'  => "Content-type: application/json\r\n",
+                                                'method'  => 'POST'
+                                                //'timeout' => 2
+                                            )
+                                        );
+
+                                        try
+                                        {
+                                           $context  = stream_context_create($options);
+                                           $callResult = @file_get_contents($url, false, $context);
+                                        }
+                                        catch (Exception $ex) 
+                                        {
+                                           //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                        }
+                                     }//Fine gestione eventi aggiunti
+                                     else
+                                     {
+                                        //Gestione eventi aggiornati
+                                        if((!$eventType["deleted"])&&($eventType["changed"]))
+                                        {
+                                           $url = $notificatorUrl;
+                                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=updateEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&oldEventType=' . $oldEventName . "&newEventType=" . $newEventName;
+                                           $url = $url.$data;
+
+                                           $options = array(
+                                               'http' => array(
+                                                   'header'  => "Content-type: application/json\r\n",
+                                                   'method'  => 'POST'
+                                                   //'timeout' => 2
+                                               )
+                                           );
+
+                                           try
+                                           {
+                                              $context  = stream_context_create($options);
+                                              $callResult = @file_get_contents($url, false, $context);
+                                           }
+                                           catch (Exception $ex) 
+                                           {
+                                              //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                           }
+                                        }
+                                     }
+                                  }//Fine del foreach degli eventi aggiunti ed editati
+
+                                  //Gestione eventi cancellati
+                                  foreach($parametersDiff["deleted"] as $eventType)
+                                  {
+                                     $op = $eventType["opNew"];
+                                     $thr1 = $eventType["thr1New"];
+                                     $thr2 = $eventType["thr2New"];
+                                     $desc = $eventType["descNew"];
+
+                                     switch($op)
+                                     {
+                                        case "less":
+                                           $eventName = "Value < " . $thr1;
+                                           break;
+
+                                        case "lessEqual":
+                                           $eventName = "Value <= " . $thr1;
+                                           break;
+
+                                        case "greater":
+                                           $eventName = "Value > " . $thr1;
+                                           break;
+
+                                        case "greaterEqual":
+                                           $eventName = "Value >= " . $thr1;
+                                           break;
+
+                                        case "equal":
+                                           $eventName = "Value = " . $thr1;
+                                           break;
+
+                                        case "notEqual":
+                                           $eventName = "Value != " . $thr1;
+                                           break;
+
+                                        case "intervalOpen":
+                                           $eventName = $thr1 . " < value < " . $thr2;
+                                           break;
+
+                                        case "intervalClosed":
+                                           $eventName = $thr1 . " <= value <= " . $thr2;
+                                           break;
+
+                                        case "intervalLeftOpen":
+                                           $eventName = $thr1 . " < value <= " . $thr2;
+                                           break;
+
+                                        case "intervalRightOpen":
+                                           $eventName = $thr1 . " <= value < " . $thr2;
+                                           break;
+                                     }
+
+                                     if($desc != "")
+                                     {
+                                       $eventName = $eventName . " - " . $desc;
+                                     }
+
+                                     $eventName = preg_replace('/\s+/', '+', $eventName);
+
+                                     if(($eventType["deleted"])&&(!$eventType["added"]))//Così scartiamo quelli aggiunti e subito cancellati prima del commit   
+                                     {
+                                        $url = $notificatorUrl;
+                                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName;
+                                        $url = $url.$data;
+
+                                        $options = array(
+                                            'http' => array(
+                                                'header'  => "Content-type: application/json\r\n",
+                                                'method'  => 'POST'
+                                                //'timeout' => 2
+                                            )
+                                        );
+
+                                        try
+                                        {
+                                           $context  = stream_context_create($options);
+                                           $callResult = @file_get_contents($url, false, $context);
+                                        }
+                                        catch (Exception $ex) 
+                                        {
+                                           //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                        }
+                                     }
+                                  }//Fine del foreach degli eventi cancellati
+                               }
+                               else//Se set thresholds è valorizzato a "no" disabilitiamo tutti gli eventi del generatore e cancelliamo notifiche relative a tali eventi
+                               {
+                                  $url = $notificatorUrl;
+                                  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
+                                  $url = $url.$data;
+
+                                  $options = array(
+                                      'http' => array(
+                                          'header'  => "Content-type: application/json\r\n",
+                                          'method'  => 'POST'
+                                          //'timeout' => 2
+                                      )
+                                  );
+
+                                  try
+                                  {
+                                     $context  = stream_context_create($options);
+                                     $callResult = @file_get_contents($url, false, $context);
+                                  }
+                                  catch (Exception $ex) 
+                                  {
+                                     //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                  }
+                               }
+                            }
+
+                            //Caso passaggio da generatore disabilitato su notificatore ad abilitato su notificatore: riabilitiamo eventi presenti in form edit widget (ed eventuali relative notifiche) ed aggiungiamo nuovi
+                            if(($notificatorEnabledNew == "yes")&&($notificatorEnabled == "no"))
+                            {
+                               $thrObj = json_decode($parametersM, true);
+                               if(count($thrObj) > 0)
+                               {
+                                  if(count($thrObj["thresholdObject"] ) > 0)
+                                  {
+                                     foreach($thrObj["thresholdObject"] as $eventType)
+                                     {
+                                        $op = $eventType["op"];
+                                        $thr1 = $eventType["thr1"];
+                                        $thr2 = $eventType["thr2"];
+                                        $desc = $eventType["desc"];
+
+                                        switch($op)
+                                        {
+                                           case "less":
+                                              $eventName = "Value < " . $thr1;
+                                              break;
+
+                                           case "lessEqual":
+                                              $eventName = "Value <= " . $thr1;
+                                              break;
+
+                                           case "greater":
+                                              $eventName = "Value > " . $thr1;
+                                              break;
+
+                                           case "greaterEqual":
+                                              $eventName = "Value >= " . $thr1;
+                                              break;
+
+                                           case "equal":
+                                              $eventName = "Value = " . $thr1;
+                                              break;
+
+                                           case "notEqual":
+                                              $eventName = "Value != " . $thr1;
+                                              break;
+
+                                           case "intervalOpen":
+                                              $eventName = $thr1 . " < value < " . $thr2;
+                                              break;
+
+                                           case "intervalClosed":
+                                              $eventName = $thr1 . " <= value <= " . $thr2;
+                                              break;
+
+                                           case "intervalLeftOpen":
+                                              $eventName = $thr1 . " < value <= " . $thr2;
+                                              break;
+
+                                           case "intervalRightOpen":
+                                              $eventName = $thr1 . " <= value < " . $thr2;
+                                              break;
+                                        }
+
+                                        if($eventType["desc"] != "")
+                                        {
+                                           $eventName = $eventName . " - " . $eventType["desc"];
+                                        }
+
+                                        $eventName = preg_replace('/\s+/', '+', $eventName);
+
+                                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                        $url = $url.$data;
+
+                                        $options = array(
+                                            'http' => array(
+                                                'header'  => "Content-type: application/json\r\n",
+                                                'method'  => 'POST'
+                                                //'timeout' => 2
+                                            )
+                                        );
+
+                                        try
+                                        {
+                                           $context  = stream_context_create($options);
+                                           $callResult = @file_get_contents($url, false, $context);
+                                        }
+                                        catch (Exception $ex) 
+                                        {
+                                           //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                                        }
+                                     }
+                                  }
+                               }
+                            }
+
+                            //Caso passaggio da generatore abilitato su notificatore a disabilitato su notificatore: ne disabilitiamo tutti gli eventi (e relative notifiche) SENZA CANCELLARLI FISICAMENTE
+                            if(($notificatorEnabledNew == "no")&&($notificatorEnabled == "yes"))
+                            {
+                               $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=disableAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
+                               $url = $url.$data;
+
+                               $options = array(
+                                   'http' => array(
+                                       'header'  => "Content-type: application/json\r\n",
+                                       'method'  => 'POST'
+                                       //'timeout' => 2
+                                   )
+                               );
+
+                               try
+                               {
+                                  $context  = stream_context_create($options);
+                                  $callResult = @file_get_contents($url, false, $context);
+                               }
+                               catch (Exception $ex) 
+                               {
+                                  //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                               }
+                            }
+                         }
+                         catch (Exception $ex) 
+                         {
+                            //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                         }
+                       }
+                    }
                 }
-                else//2) Se già registrato ne aggiorniamo sempre validità e titolo (nome generatore sul notificatore)
+                else
                 {
-                   if(isset($_REQUEST['editWidgetRegisterGen']))
-                   {
-                     //SETTING DELLA VALIDITA' DEL GENERATORE SUL NOTIFICATORE CHIAMANDO setGeneratorValidity
-                     $url = $notificatorUrl;
-                     $genOriginalName = preg_replace('/\s+/', '+', $genOriginalName);
-                     $genNewName = preg_replace('/\s+/', '+', $title_widget_m);
-                     $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
-                     $alrThrSelM = preg_replace('/\s+/', '+', $_REQUEST['alrThrSelM']);
-                     $containerName = preg_replace('/\s+/', '+', $_SESSION['dashboardTitle']);
-                     $appUsr = preg_replace('/\s+/', '+', $_SESSION['loggedUsername']); 
-                     
-                     //$setEventsValidityTrue = "false";//Se era già registrato non riabilitiamo tutti i suoi eventi, sennò riabilitiamo anche quelli vecchi, per entrambi i casi di provenienza
-                     
-                     if($notificatorEnabledNew == 'yes')
-                     {
-                        $validity = 1;
-                     }
-                     else
-                     {
-                        $validity = 0;
-                     }
-                     
-                     //$data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity . "&setEventsValidityTrue=" . $setEventsValidityTrue;
-                     $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity;
-                     $url = $url.$data;
-                     
-                     $options = array(
-                         'http' => array(
-                             'header'  => "Content-type: application/json\r\n",
-                             'method'  => 'POST'
-                             //'timeout' => 2
-                         )
-                     );
-                     
-                     try
-                     {
-                        $context  = stream_context_create($options);
-                        $callResult = @file_get_contents($url, false, $context);
-                        
-                        //Caso edit soglie mantenendo il generatore registrato
-                        if(($_REQUEST['editWidgetRegisterGen'] == "yes")&&($notificatorEnabledNew == "yes")&&($notificatorEnabled == "yes"))
-                        {
-                           //Se soglie abilitate aggiorniamo dalle vecchie soglie alle nuove
-                           if($alrThrSelM == "yes")
-                           {
-                              //Aggiornamento lista degli eventi
-                              $parametersDiff = json_decode($_REQUEST['parametersDiff'], true);
-
-                              //Eventi aggiunti e modificati
-                              foreach($parametersDiff["addedChangedKept"] as $eventType)
-                              {
-                                 $op = $eventType["op"];
-                                 $opNew = $eventType["opNew"];
-                                 $thr1 = $eventType["thr1"];
-                                 $thr1New = $eventType["thr1New"];
-                                 $thr2 = $eventType["thr2"];
-                                 $thr2New = $eventType["thr2New"];
-                                 $desc = $eventType["desc"];
-                                 $descNew = $eventType["descNew"];
-                                 
-                                 switch($op)
-                                 {
-                                    case "less":
-                                       $oldEventName = "Value < " . $thr1;
-                                       break;
-
-                                    case "lessEqual":
-                                       $oldEventName = "Value <= " . $thr1;
-                                       break;
-
-                                    case "greater":
-                                       $oldEventName = "Value > " . $thr1;
-                                       break;
-
-                                    case "greaterEqual":
-                                       $oldEventName = "Value >= " . $thr1;
-                                       break;
-
-                                    case "equal":
-                                       $oldEventName = "Value = " . $thr1;
-                                       break;
-
-                                    case "notEqual":
-                                       $oldEventName = "Value != " . $thr1;
-                                       break;
-
-                                    case "intervalOpen":
-                                       $oldEventName = $thr1 . " < value < " . $thr2;
-                                       break;
-
-                                    case "intervalClosed":
-                                       $oldEventName = $thr1 . " <= value <= " . $thr2;
-                                       break;
-
-                                    case "intervalLeftOpen":
-                                       $oldEventName = $thr1 . " < value <= " . $thr2;
-                                       break;
-
-                                    case "intervalRightOpen":
-                                       $oldEventName = $thr1 . " <= value < " . $thr2;
-                                       break;
-                                 }
-
-                                 if($desc != "")
-                                 {
-                                   $oldEventName = $oldEventName . " - " . $desc;
-                                 }
-                                 
-                                 $oldEventName = preg_replace('/\s+/', '+', $oldEventName);
-                                 
-                                 switch($opNew)
-                                 {
-                                    case "less":
-                                       $newEventName = "Value < " . $thr1New;
-                                       break;
-
-                                    case "lessEqual":
-                                       $newEventName = "Value <= " . $thr1New;
-                                       break;
-
-                                    case "greater":
-                                       $newEventName = "Value > " . $thr1New;
-                                       break;
-
-                                    case "greaterEqual":
-                                       $newEventName = "Value >= " . $thr1New;
-                                       break;
-
-                                    case "equal":
-                                       $newEventName = "Value = " . $thr1New;
-                                       break;
-
-                                    case "notEqual":
-                                       $newEventName = "Value != " . $thr1New;
-                                       break;
-
-                                    case "intervalOpen":
-                                       $newEventName = $thr1New . " < value < " . $thr2New;
-                                       break;
-
-                                    case "intervalClosed":
-                                       $newEventName = $thr1New . " <= value <= " . $thr2New;
-                                       break;
-
-                                    case "intervalLeftOpen":
-                                       $newEventName = $thr1New . " < value <= " . $thr2New;
-                                       break;
-
-                                    case "intervalRightOpen":
-                                       $newEventName = $thr1New . " <= value < " . $thr2New;
-                                       break;
-                                 }
-
-                                 if($descNew != "")
-                                 {
-                                   $newEventName = $newEventName . " - " . $descNew;
-                                 }
-
-                                 $newEventName = preg_replace('/\s+/', '+', $newEventName);
-                                 //Eventi aggiunti
-                                 if(($eventType["added"]||($eventType["added"]&&$eventType["changed"]))&&(!$eventType["deleted"]))
-                                 {
-                                    $url = $notificatorUrl;
-                                    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $newEventName . "&thrCnt=1";
-                                    $url = $url.$data;
-
-                                    $options = array(
-                                        'http' => array(
-                                            'header'  => "Content-type: application/json\r\n",
-                                            'method'  => 'POST'
-                                            //'timeout' => 2
-                                        )
-                                    );
-
-                                    try
-                                    {
-                                       $context  = stream_context_create($options);
-                                       $callResult = @file_get_contents($url, false, $context);
-                                    }
-                                    catch (Exception $ex) 
-                                    {
-                                       //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                                    }
-                                 }//Fine gestione eventi aggiunti
-                                 else
-                                 {
-                                    //Gestione eventi aggiornati
-                                    if((!$eventType["deleted"])&&($eventType["changed"]))
-                                    {
-                                       $url = $notificatorUrl;
-                                       $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=updateEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&oldEventType=' . $oldEventName . "&newEventType=" . $newEventName;
-                                       $url = $url.$data;
-
-                                       $options = array(
-                                           'http' => array(
-                                               'header'  => "Content-type: application/json\r\n",
-                                               'method'  => 'POST'
-                                               //'timeout' => 2
-                                           )
-                                       );
-
-                                       try
-                                       {
-                                          $context  = stream_context_create($options);
-                                          $callResult = @file_get_contents($url, false, $context);
-                                       }
-                                       catch (Exception $ex) 
-                                       {
-                                          //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                                       }
-                                    }
-                                 }
-                              }//Fine del foreach degli eventi aggiunti ed editati
-
-                              //Gestione eventi cancellati
-                              foreach($parametersDiff["deleted"] as $eventType)
-                              {
-                                 $op = $eventType["opNew"];
-                                 $thr1 = $eventType["thr1New"];
-                                 $thr2 = $eventType["thr2New"];
-                                 $desc = $eventType["descNew"];
-                                 
-                                 switch($op)
-                                 {
-                                    case "less":
-                                       $eventName = "Value < " . $thr1;
-                                       break;
-
-                                    case "lessEqual":
-                                       $eventName = "Value <= " . $thr1;
-                                       break;
-
-                                    case "greater":
-                                       $eventName = "Value > " . $thr1;
-                                       break;
-
-                                    case "greaterEqual":
-                                       $eventName = "Value >= " . $thr1;
-                                       break;
-
-                                    case "equal":
-                                       $eventName = "Value = " . $thr1;
-                                       break;
-
-                                    case "notEqual":
-                                       $eventName = "Value != " . $thr1;
-                                       break;
-
-                                    case "intervalOpen":
-                                       $eventName = $thr1 . " < value < " . $thr2;
-                                       break;
-
-                                    case "intervalClosed":
-                                       $eventName = $thr1 . " <= value <= " . $thr2;
-                                       break;
-
-                                    case "intervalLeftOpen":
-                                       $eventName = $thr1 . " < value <= " . $thr2;
-                                       break;
-
-                                    case "intervalRightOpen":
-                                       $eventName = $thr1 . " <= value < " . $thr2;
-                                       break;
-                                 }
-
-                                 if($desc != "")
-                                 {
-                                   $eventName = $eventName . " - " . $desc;
-                                 }
-
-                                 $eventName = preg_replace('/\s+/', '+', $eventName);
-
-                                 if(($eventType["deleted"])&&(!$eventType["added"]))//Così scartiamo quelli aggiunti e subito cancellati prima del commit   
-                                 {
-                                    $url = $notificatorUrl;
-                                    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName;
-                                    $url = $url.$data;
-
-                                    $options = array(
-                                        'http' => array(
-                                            'header'  => "Content-type: application/json\r\n",
-                                            'method'  => 'POST'
-                                            //'timeout' => 2
-                                        )
-                                    );
-
-                                    try
-                                    {
-                                       $context  = stream_context_create($options);
-                                       $callResult = @file_get_contents($url, false, $context);
-                                    }
-                                    catch (Exception $ex) 
-                                    {
-                                       //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                                    }
-                                 }
-                              }//Fine del foreach degli eventi cancellati
-                           }
-                           else//Se set thresholds è valorizzato a "no" disabilitiamo tutti gli eventi del generatore e cancelliamo notifiche relative a tali eventi
-                           {
-                              $url = $notificatorUrl;
-                              $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
-                              $url = $url.$data;
-
-                              $options = array(
-                                  'http' => array(
-                                      'header'  => "Content-type: application/json\r\n",
-                                      'method'  => 'POST'
-                                      //'timeout' => 2
-                                  )
-                              );
-
-                              try
-                              {
-                                 $context  = stream_context_create($options);
-                                 $callResult = @file_get_contents($url, false, $context);
-                              }
-                              catch (Exception $ex) 
-                              {
-                                 //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                              }
-                           }
-                        }
-                        
-                        //Caso passaggio da generatore disabilitato su notificatore ad abilitato su notificatore: riabilitiamo eventi presenti in form edit widget (ed eventuali relative notifiche) ed aggiungiamo nuovi
-                        if(($notificatorEnabledNew == "yes")&&($notificatorEnabled == "no"))
-                        {
-                           $thrObj = json_decode($parametersM, true);
-                           if(count($thrObj) > 0)
-                           {
-                              if(count($thrObj["thresholdObject"] ) > 0)
-                              {
-                                 foreach($thrObj["thresholdObject"] as $eventType)
-                                 {
-                                    $op = $eventType["op"];
-                                    $thr1 = $eventType["thr1"];
-                                    $thr2 = $eventType["thr2"];
-                                    $desc = $eventType["desc"];
-
-                                    switch($op)
-                                    {
-                                       case "less":
-                                          $eventName = "Value < " . $thr1;
-                                          break;
-
-                                       case "lessEqual":
-                                          $eventName = "Value <= " . $thr1;
-                                          break;
-
-                                       case "greater":
-                                          $eventName = "Value > " . $thr1;
-                                          break;
-
-                                       case "greaterEqual":
-                                          $eventName = "Value >= " . $thr1;
-                                          break;
-
-                                       case "equal":
-                                          $eventName = "Value = " . $thr1;
-                                          break;
-
-                                       case "notEqual":
-                                          $eventName = "Value != " . $thr1;
-                                          break;
-
-                                       case "intervalOpen":
-                                          $eventName = $thr1 . " < value < " . $thr2;
-                                          break;
-
-                                       case "intervalClosed":
-                                          $eventName = $thr1 . " <= value <= " . $thr2;
-                                          break;
-
-                                       case "intervalLeftOpen":
-                                          $eventName = $thr1 . " < value <= " . $thr2;
-                                          break;
-
-                                       case "intervalRightOpen":
-                                          $eventName = $thr1 . " <= value < " . $thr2;
-                                          break;
-                                    }
-
-                                    if($eventType["desc"] != "")
-                                    {
-                                       $eventName = $eventName . " - " . $eventType["desc"];
-                                    }
-
-                                    $eventName = preg_replace('/\s+/', '+', $eventName);
-
-                                    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
-                                    $url = $url.$data;
-
-                                    $options = array(
-                                        'http' => array(
-                                            'header'  => "Content-type: application/json\r\n",
-                                            'method'  => 'POST'
-                                            //'timeout' => 2
-                                        )
-                                    );
-
-                                    try
-                                    {
-                                       $context  = stream_context_create($options);
-                                       $callResult = @file_get_contents($url, false, $context);
-                                    }
-                                    catch (Exception $ex) 
-                                    {
-                                       //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                                    }
-                                 }
-                              }
-                           }
-                        }
-                        
-                        //Caso passaggio da generatore abilitato su notificatore a disabilitato su notificatore: ne disabilitiamo tutti gli eventi (e relative notifiche) SENZA CANCELLARLI FISICAMENTE
-                        if(($notificatorEnabledNew == "no")&&($notificatorEnabled == "yes"))
-                        {
-                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=disableAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
-                           $url = $url.$data;
-
-                           $options = array(
-                               'http' => array(
-                                   'header'  => "Content-type: application/json\r\n",
-                                   'method'  => 'POST'
-                                   //'timeout' => 2
-                               )
-                           );
-
-                           try
-                           {
-                              $context  = stream_context_create($options);
-                              $callResult = @file_get_contents($url, false, $context);
-                           }
-                           catch (Exception $ex) 
-                           {
-                              //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                           }
-                        }
-                     }
-                     catch (Exception $ex) 
-                     {
-                        //Non facciamo niente di specifico in caso di mancata risposta dell'host
-                     }
-                   }
+                    mysqli_close($link);
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Errore: ripetere update widget");';
+                    echo 'window.location.href = "dashboard_configdash.php";';
+                    echo '</script>';
                 }
             } 
             else 
@@ -3779,6 +4181,7 @@
     } 
     else if(isset($_REQUEST['add_new_metric']))//Escape 
     {
+        session_start();
         $valueThreshold = 'null';
         $valueThresholdEvalCount = 'null';
         $valueTresholdTime = 'null';
@@ -4067,6 +4470,7 @@
     } 
     else if(isset($_REQUEST['modify_status_dashboard']))//Escape
     {
+        session_start();
         $dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardNameForStatusChange']);
         $dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorNameForStatusChange']);
         
@@ -4364,11 +4768,15 @@
     }
     elseif(isset($_REQUEST['zoomFactorUpdated'])) //Escape
     {
+        session_start();
         $zoomFactor = mysqli_real_escape_string($link, $_REQUEST['zoomFactorUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET zoomFactor = ? WHERE Id = ? ");
+        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET zoomFactor = ? WHERE Id = ? ");
         $upsqDbtb->bind_param('di', $zoomFactor, $idWidget);
-        $resultQuery = $upsqDbtb->execute();
+        $resultQuery = $upsqDbtb->execute();*/
+        
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET zoomFactor = " . returnManagedNumberForDb($zoomFactor) . " WHERE Id = $idWidget";
+        $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
         {
@@ -4384,11 +4792,15 @@
     }
     elseif(isset($_REQUEST['scaleXUpdated'])) //Escape
     {
+        session_start();
         $scaleX = mysqli_real_escape_string($link, $_REQUEST['scaleXUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET scaleX = ? WHERE Id = ? ");
+        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET scaleX = ? WHERE Id = ? ");
         $upsqDbtb->bind_param('di', $scaleX, $idWidget);
-        $resultQuery = $upsqDbtb->execute();
+        $resultQuery = $upsqDbtb->execute();*/
+        
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleX = " . returnManagedNumberForDb($scaleX) . " WHERE Id = $idWidget";
+        $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
         {
@@ -4404,11 +4816,15 @@
     }
     elseif(isset($_REQUEST['scaleYUpdated'])) //Escape
     {
+        session_start();
         $scaleY = mysqli_real_escape_string($link, $_REQUEST['scaleYUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET scaleY = ? WHERE Id = ? ");
+        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET scaleY = ? WHERE Id = ? ");
         $upsqDbtb->bind_param('di', $scaleY, $idWidget);
-        $resultQuery = $upsqDbtb->execute();
+        $resultQuery = $upsqDbtb->execute();*/
+        
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleY = " . returnManagedNumberForDb($scaleY) . " WHERE Id = $idWidget";
+        $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
         {
@@ -4422,13 +4838,17 @@
             echo '</script>';
         }
     }
-    elseif (isset($_REQUEST['widthUpdated'])) //Escape
+    elseif(isset($_REQUEST['widthUpdated'])) //Escape
     {
+        session_start();
         $width = mysqli_real_escape_string($link, $_REQUEST['widthUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET size_columns = ? WHERE Id = ? ");
+        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET size_columns = ? WHERE Id = ? ");
         $upsqDbtb->bind_param('ii', $width, $idWidget);
-        $resultQuery = $upsqDbtb->execute();
+        $resultQuery = $upsqDbtb->execute();*/
+        
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_columns = " . returnManagedNumberForDb($width) . " WHERE Id = $idWidget";
+        $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
         {
@@ -4444,11 +4864,15 @@
     }
     elseif(isset($_REQUEST['heightUpdated']))//Escape 
     {
+        session_start();
         $height = mysqli_real_escape_string($link, $_REQUEST['heightUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET size_rows = ? WHERE Id = ? ");
+        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET size_rows = ? WHERE Id = ? ");
         $upsqDbtb->bind_param('ii', $height, $idWidget);
-        $resultQuery = $upsqDbtb->execute();
+        $resultQuery = $upsqDbtb->execute();*/
+        
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_rows = " . returnManagedNumberForDb($height) . " WHERE Id = $idWidget";
+        $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
         {
@@ -4464,16 +4888,21 @@
     }
     elseif(isset($_REQUEST['updatedLastSeries']))//Escape 
     {
+        session_start();
         $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
         $updatedSeries = $_REQUEST['updatedLastSeries'];
-        $upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET lastSeries = ? WHERE name_w = ? ");
+        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET lastSeries = ? WHERE name_w = ? ");
         $upsqDbtb->bind_param('ss', $updatedSeries, $widgetName);
-        $resultQuery = $upsqDbtb->execute();
+        $resultQuery = $upsqDbtb->execute();*/
+        
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET lastSeries = " . returnManagedStringForDb($updatedSeries) . " WHERE name_w = $widgetName";
+        $resultQuery = mysqli_query($link, $upsqDbtb);
         
         mysqli_close($link);
     }
     elseif(isset($_REQUEST['showHideDashboardHeader']))//Escape 
     {
+        session_start();
         $newStatus = mysqli_real_escape_string($link, $_REQUEST['showHideDashboardHeader']);
         $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
         $query = "UPDATE Dashboard.Config_dashboard SET headerVisible = $newStatus WHERE Id = $dashboardId";
@@ -4483,6 +4912,59 @@
         {
            mysqli_close($link);
            echo "Ok";
+        }
+        else
+        {
+           mysqli_close($link);
+           echo "Ko";
+        }
+    }
+    elseif(isset($_REQUEST['getMetricsForWidgetType']))//Escape 
+    {
+        session_start();
+        $widgetId = mysqli_real_escape_string($link, $_REQUEST['widgetId']);
+        $query1 = "SELECT Widgets.widgetType " .
+                  "FROM Dashboard.Config_widget_dashboard " .
+                  "LEFT JOIN Dashboard.Widgets " . 
+                  "ON Config_widget_dashboard.type_w = Widgets.id_type_widget " .                     
+                  "WHERE Config_widget_dashboard.name_w = '$widgetId'";
+        $rs1 = mysqli_query($link, $query1);
+        
+        $result = [];
+        
+        if($rs1) 
+        {
+            $row1 = mysqli_fetch_array($rs1);
+            $metricMacroTypes = explode("|", $row1['widgetType']);
+            $metricMacroTypesForQuery = "(";
+            
+            for($i = 0; $i < count($metricMacroTypes); $i++)
+            {
+                if($i < (count($metricMacroTypes) - 1))
+                {
+                    $metricMacroTypesForQuery .= "'" . $metricMacroTypes[$i] . "', ";
+                }
+                else
+                {
+                    $metricMacroTypesForQuery .= "'" . $metricMacroTypes[$i] . "'";
+                }
+            }
+            
+            $metricMacroTypesForQuery .= ")";
+            
+            $query2 = "SELECT IdMetric FROM Dashboard.Descriptions WHERE metricType IN " . $metricMacroTypesForQuery . " ORDER BY Descriptions.IdMetric ASC";
+            
+            $rs2 = mysqli_query($link, $query2);
+
+            while($row2 = mysqli_fetch_array($rs2)) 
+            {
+                array_push($result, $row2["IdMetric"]);
+            }
+            
+            //Eliminiamo i duplicati
+            $result = array_unique($result);
+            mysqli_close($link);
+            echo json_encode($result);
         }
         else
         {

@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,12 +13,13 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId)  
     {
-        //$("#<?= $_GET['name'] ?>_chartContainer").css("height", height); a cosa serviva?
         <?php
             $titlePatterns = array();
             $titlePatterns[0] = '/_/';
@@ -28,21 +29,109 @@
             $replacements[1] = '&apos;';
             $title = $_GET['title'];
         ?>
+        var headerHeight = 25;
         var hostFile = "<?= $_GET['hostFile'] ?>";
         var widgetName = "<?= $_GET['name'] ?>";
         var divContainer = $("#<?= $_GET['name'] ?>_content");
         var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
         var nome_wid = "<?= $_GET['name'] ?>_div";
         var linkElement = $('#<?= $_GET['name'] ?>_link_w');
         var color = '<?= $_GET['color'] ?>';
         var fontSize = "<?= $_GET['fontSize'] ?>";
         var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
-        var widgetProperties, styleParameters, metricType, pattern, udm, udmPos, threshold, thresholdEval, 
-            delta, deltaPerc, sizeRowsWidget, fontSize, value, metricType, height, fontRatio, fontRatioSmall = null;
-        var metricId = "<?= $_GET['metric'] ?>";
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        
+        var widgetProperties, styleParameters, metricType, metricName, pattern, udm, udmPos, threshold, thresholdEval, 
+            delta, deltaPerc, sizeRowsWidget, fontSize, value, metricType, countdownRef, widgetTitle, metricData, widgetHeaderColor, 
+            widgetHeaderFontColor, widgetOriginalBorderColor, urlToCall, geoJsonServiceData, showHeader = null;
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+            showHeader = false;
+	}
+	else
+	{
+	    showHeader = true;
+	} 
+            
+        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+        {
+            metricName = "<?= $_GET['metric'] ?>";
+            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+            widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+            widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>"; 
+        }
+        else
+        {
+            metricName = metricNameFromDriver;
+            widgetTitleFromDriver.replace(/_/g, " ");
+            widgetTitleFromDriver.replace(/\'/g, "&apos;");
+            widgetTitle = widgetTitleFromDriver;
+            $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+            widgetHeaderColor = widgetHeaderColorFromDriver;
+            widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+        }
+        
+        $(document).off('changeMetricFromButton_' + widgetName);
+        $(document).on('changeMetricFromButton_' + widgetName, function(event) 
+        {
+            if((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange"))
+            {
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, null, null, null, null);
+            }
+        });
+        
+        $(document).off('mouseOverLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOverLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            widgetOriginalBorderColor = $("#" + widgetName).css("border-color");
+            $("#<?= $_GET['name'] ?>_titleDiv").html(event.widgetTitle);
+            $("#" + widgetName).css("border-color", event.color1);
+            $("#<?= $_GET['name'] ?>_header").css("background", event.color1);
+            $("#<?= $_GET['name'] ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= $_GET['name'] ?>_header").css("color", "black");
+        });
+        
+        $(document).off('mouseOutLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOutLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
+            $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
+            $("#<?= $_GET['name'] ?>_header").css("background", widgetHeaderColor);
+            $("#<?= $_GET['name'] ?>_header").css("color", widgetHeaderFontColor);
+        });
+        
+        $(document).off('showLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('showLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            if(event.targetWidget === widgetName)
+            {
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, null, /*event.randomSingleGeoJsonIndex,*/ event.marker, event.mapRef, event.fakeId);
+            }
+        });
+        
+        $(document).off('restoreOriginalLastDataFromExternalContentGis_' + widgetName);
+        $(document).on('restoreOriginalLastDataFromExternalContentGis_' + widgetName, function(event) 
+        {
+            if(event.targetWidget === widgetName)
+            {
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $_GET['frame_color'] ?>", "<?= $_GET['headerFontColor'] ?>", false, null, null, null, null, /*null,*/ null, null, null);
+            }
+        });
+        
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
         elToEmpty.css("font-family", "Verdana");
         var url = "<?= $_GET['link_w'] ?>";
@@ -54,7 +143,7 @@
         var pattern = /Percentuale\//;
         
         //Definizioni di funzione specifiche del widget
-        /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
+        //Restituisce il JSON delle soglie se presente, altrimenti NULL
         function getThresholdsJson()
         {
             var thresholdsJson = null;
@@ -66,7 +155,7 @@
             return thresholdsJson;
         }
         
-        /*Restituisce il JSON delle info se presente, altrimenti NULL*/
+        //Restituisce il JSON delle info se presente, altrimenti NULL
         function getInfoJson()
         {
             var infoJson = null;
@@ -89,31 +178,9 @@
             
             return styleParameters;
         }
-        //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
-        if(firstLoad === false)
+        function populateWidget()
         {
-            showWidgetContent(widgetName);
-        }
-        else
-        {
-            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-        }
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        widgetProperties = getWidgetProperties(widgetName);
-        
-        if((widgetProperties !== null) && (widgetProperties !== ''))
-        {
-            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
-            udm = widgetProperties.param.udm;
-            udmPos = widgetProperties.param.udmPos;
-            sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
-            
-            //Fine eventuale codice ad hoc basato sulle proprietà del widget
-            metricData = getMetricData(metricId);
             if(metricData !== null)
             {
                 if(metricData.data[0] !== 'undefined')
@@ -124,12 +191,16 @@
                         if(firstLoad !== false)
                         {
                             showWidgetContent(widgetName);
+                            $('#<?= $_GET['name'] ?>_noDataAlert').hide();
+                            $("#<?= $_GET['name'] ?>_loadErrorAlert").hide();
+                            $("#<?= $_GET['name'] ?>_chartContainer").show();
                         }
                         else
                         {
                             $("#" + widgetName + "_value").empty();
                             $("#" + widgetName + "_udm").empty();
                         }
+                        
                         metricType = metricData.data[0].commit.author.metricType;
                         threshold = metricData.data[0].commit.author.threshold;
                         thresholdEval = metricData.data[0].commit.author.thresholdEval;
@@ -175,126 +246,357 @@
                         var fontSizeUdm = parseInt(fontSize*0.6);
                         $("#<?= $_GET['name'] ?>_value").css("font-size", fontSize + "px");
                         $("#<?= $_GET['name'] ?>_udm").css("font-size", fontSizeUdm + "px");
-
-                        if(udm !== null)
+                        
+                        
+                        if((metricType === "Testuale") && (value === "-"))
                         {
-                           if(udmPos === 'next')
-                           {   
-                              if((value !== null) && (value !== "") && (value !== "undefined"))
-                              {
-                                 $("#<?= $_GET['name'] ?>_chartContainer").show();
-                                 $("#<?= $_GET['name'] ?>_value").show();
-                                 $("#<?= $_GET['name'] ?>_udm").hide();
-                                 $("#<?= $_GET['name'] ?>_value").css("height", "100%");             
-                                 $("#<?= $_GET['name'] ?>_value").css("alignItems", "center"); 
-                                 $("#<?= $_GET['name'] ?>_value").html(value + udm);
-                              }
-                              else
-                              {
-                                 $("#<?= $_GET['name'] ?>_value").hide();
-                                 $("#<?= $_GET['name'] ?>_udm").hide(); 
-                                 $("#<?= $_GET['name'] ?>_chartContainer").hide();
-                                 $('#<?= $_GET['name'] ?>_noDataAlert').show();
-                              }
-                           }
-                           else
-                           {
-                              if((value !== null) && (value !== "") && (value !== "undefined"))
-                              {
-                                 $("#<?= $_GET['name'] ?>_chartContainer").show();
-                                 $("#<?= $_GET['name'] ?>_value").show();
-                                 $("#<?= $_GET['name'] ?>_udm").show();
-                                 $("#<?= $_GET['name'] ?>_value").css("height", "60%");
-                                 $("#<?= $_GET['name'] ?>_value").html(value);
-                                 $("#<?= $_GET['name'] ?>_udm").css("height", "40%");
-                                 $("#<?= $_GET['name'] ?>_udm").html(udm);
-                              }
-                              else
-                              {
-                                 $("#<?= $_GET['name'] ?>_value").hide();
-                                 $("#<?= $_GET['name'] ?>_udm").hide();
-                                 $("#<?= $_GET['name'] ?>_chartContainer").hide();
-                                 $('#<?= $_GET['name'] ?>_noDataAlert').show();
-                              }
-                           }
+                            showWidgetContent(widgetName);
+                            $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                            $('#<?= $_GET['name'] ?>_noDataAlert').show();
                         }
                         else
                         {
-                            if((value !== null) && (value !== "") && (value !== "undefined"))
+                            if(udm !== null)
                             {
-                                $("#<?= $_GET['name'] ?>_udm").css("display", "none");
-                                $("#<?= $_GET['name'] ?>_value").css("height", "100%");
-                                $("#<?= $_GET['name'] ?>_value").html(value);
+                               if(udmPos === 'next')
+                               {   
+                                  if((value !== null) && (value !== "") && (value !== undefined))
+                                  {
+                                     $("#<?= $_GET['name'] ?>_chartContainer").show();
+                                     $("#<?= $_GET['name'] ?>_value").show();
+                                     $("#<?= $_GET['name'] ?>_udm").hide();
+                                     $("#<?= $_GET['name'] ?>_value").css("height", "100%");             
+                                     $("#<?= $_GET['name'] ?>_value").css("alignItems", "center"); 
+                                     $("#<?= $_GET['name'] ?>_value").html(value + udm);
+                                  }
+                                  else
+                                  {
+                                     $("#<?= $_GET['name'] ?>_value").hide();
+                                     $("#<?= $_GET['name'] ?>_udm").hide(); 
+                                     $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                                     $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                  }
+                               }
+                               else
+                               {
+                                  if((value !== null) && (value !== "") && (value !== undefined))
+                                  {
+                                     $("#<?= $_GET['name'] ?>_chartContainer").show();
+                                     $("#<?= $_GET['name'] ?>_value").show();
+                                     $("#<?= $_GET['name'] ?>_udm").show();
+                                     $("#<?= $_GET['name'] ?>_value").css("height", "60%");
+                                     $("#<?= $_GET['name'] ?>_value").html(value);
+                                     $("#<?= $_GET['name'] ?>_udm").css("height", "40%");
+                                     $("#<?= $_GET['name'] ?>_udm").html(udm);
+                                  }
+                                  else
+                                  {
+                                     $("#<?= $_GET['name'] ?>_value").hide();
+                                     $("#<?= $_GET['name'] ?>_udm").hide();
+                                     $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                                     $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                  }
+                               }
                             }
                             else
                             {
-                                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                if((value !== null) && (value !== "") && (value !== undefined))
+                                {
+                                    $("#<?= $_GET['name'] ?>_udm").css("display", "none");
+                                    $("#<?= $_GET['name'] ?>_value").css("height", "100%");
+                                    $("#<?= $_GET['name'] ?>_value").html(value);
+                                }
+                                else
+                                {
+                                    $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                }
                             }
-                        }
-                        
-                        $("#<?= $_GET['name'] ?>_value").css("color", fontColor);
-                        $("#<?= $_GET['name'] ?>_udm").css("color", fontColor);
 
-                        if(flagNumeric && (threshold !== null) && (thresholdEval !== null))
-                        {
-                            delta = Math.abs(value - threshold);
-                            //Distinguiamo in base all'operatore di confronto
-                            switch(thresholdEval)
+                            $("#<?= $_GET['name'] ?>_value").css("color", fontColor);
+                            $("#<?= $_GET['name'] ?>_udm").css("color", fontColor);
+
+                            //Non cancellare, va riadattata appena aggiorneremo la gestione visiva degli allarmi
+                            /*if(flagNumeric && (threshold !== null) && (thresholdEval !== null))
                             {
-                               //Allarme attivo se il valore attuale è sotto la soglia
-                               case '<':
-                                   if(value < threshold)
-                                   {
-                                      alarmSet = true;
-                                   }
-                                   break;
+                                delta = Math.abs(value - threshold);
+                                //Distinguiamo in base all'operatore di confronto
+                                switch(thresholdEval)
+                                {
+                                   //Allarme attivo se il valore attuale è sotto la soglia
+                                   case '<':
+                                       if(value < threshold)
+                                       {
+                                          alarmSet = true;
+                                       }
+                                       break;
 
-                               //Allarme attivo se il valore attuale è sopra la soglia
-                               case '>':
-                                   if(value > threshold)
-                                   {
-                                      alarmSet = true;
-                                   }
-                                   break;
+                                   //Allarme attivo se il valore attuale è sopra la soglia
+                                   case '>':
+                                       if(value > threshold)
+                                       {
+                                          alarmSet = true;
+                                       }
+                                       break;
 
-                               //Allarme attivo se il valore attuale è uguale alla soglia (errore sui float = 0.1% la distanza dalla soglia rispetto alla soglia stessa)
-                               case '=':
-                                   deltaPerc = (delta / threshold)*100;
-                                   if(deltaPerc < 0.01)
-                                   {
-                                       alarmSet = true;
-                                   }
-                                   break;    
+                                   //Allarme attivo se il valore attuale è uguale alla soglia (errore sui float = 0.1% la distanza dalla soglia rispetto alla soglia stessa)
+                                   case '=':
+                                       deltaPerc = (delta / threshold)*100;
+                                       if(deltaPerc < 0.01)
+                                       {
+                                           alarmSet = true;
+                                       }
+                                       break;    
 
-                               //Non gestiamo altri operatori 
-                               default:
-                                   break;
-                            }
+                                   //Non gestiamo altri operatori 
+                                   default:
+                                       break;
+                                }
+                            }*/
                         }
                     }
                     else
                     {
                         showWidgetContent(widgetName);
-                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                        if(firstLoad !== false)
+                        {
+                            $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                            $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                        }
                     }
                 }
                 else
                 {
                     showWidgetContent(widgetName);
-                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    if(firstLoad !== false)
+                    {
+                        $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
                 } 
             }
             else
             {
                 showWidgetContent(widgetName);
-                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                if(firstLoad !== false)
+                {
+                    $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                }
             } 
+        }
+        //Fine definizioni di funzione 
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        if(firstLoad === false)
+        {
+            showWidgetContent(widgetName);
         }
         else
         {
-            alert("Error while loading widget properties");
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetSingleContent", null, null);
+        
+        addLink(widgetName, url, linkElement, divContainer);
+        $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
+        //widgetProperties = getWidgetProperties(widgetName);
+        
+        $.ajax({
+            url: getParametersWidgetUrl,
+            type: "GET",
+            data: {"nomeWidget": [widgetName]},
+            async: true,
+            dataType: 'json',
+            success: function (data) 
+            {
+                widgetProperties = data;
+                if((widgetProperties !== null) && (widgetProperties !== ''))
+                {
+                    //Inizio eventuale codice ad hoc basato sulle proprietà del widget
+                    styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+                    udm = widgetProperties.param.udm;
+                    udmPos = widgetProperties.param.udmPos;
+                    sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
+
+                    //Fine eventuale codice ad hoc basato sulle proprietà del widget
+
+                    if(fromGisExternalContent)
+                    {
+                        if((fromGisFakeId !== null) && (fromGisFakeId !== 'null') && (fromGisFakeId !== undefined))
+                        {
+                            urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + fromGisFakeId;
+                        }
+                        else
+                        {
+                            urlToCall = "<?php echo $serviceMapUrlPrefix; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&format=json";
+                        }
+
+                        $.ajax({
+                            url: urlToCall,
+                            type: "GET",
+                            data: {},
+                            async: true,
+                            dataType: 'json',
+                            success: function(geoJsonServiceData) 
+                            {
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv a.info_source').hide();
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').show();
+
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').off('click');
+                                $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').click(function(){
+                                    if($(this).attr('data-onMap') === 'false')
+                                    {
+                                        if(fromGisMapRef.hasLayer(fromGisMarker))
+                                        {
+                                            fromGisMarker.fire('click');
+                                        }
+                                        else
+                                        {
+                                            fromGisMapRef.addLayer(fromGisMarker);
+                                            fromGisMarker.fire('click');
+                                        } 
+                                        $(this).attr('data-onMap', 'true');
+                                        $(this).html('near_me');
+                                        $(this).css('color', 'white');
+                                        $(this).css('text-shadow', '2px 2px 4px black');
+                                    }
+                                    else
+                                    {
+                                        fromGisMapRef.removeLayer(fromGisMarker);
+                                        $(this).attr('data-onMap', 'false');
+                                        $(this).html('navigation');
+                                        $(this).css('color', '#337ab7');
+                                        $(this).css('text-shadow', 'none');
+                                    }
+                                });
+
+                                metricData = {  
+                                    "data":[  
+                                       {  
+                                          "commit":{  
+                                             "author":{  
+                                                "IdMetric_data": fromGisExternalContentField,
+                                                "computationDate": null,
+                                                "value_num":null,
+                                                "value_perc1": null,
+                                                "value_perc2": null,
+                                                "value_perc3": null,
+                                                "value_text": null,
+                                                "quant_perc1": null,
+                                                "quant_perc2": null,
+                                                "quant_perc3": null,
+                                                "tot_perc1": null,
+                                                "tot_perc2": null,
+                                                "tot_perc3": null,
+                                                "series": null,
+                                                "descrip": fromGisExternalContentField,
+                                                "metricType": null,
+                                                "threshold":null,
+                                                "thresholdEval":null,
+                                                "field1Desc": null,
+                                                "field2Desc": null,
+                                                "field3Desc": null,
+                                                "hasNegativeValues": "1"
+                                             }
+                                          }
+                                       }
+                                    ]
+                                };
+
+                                var fatherNode = null;
+                                if(geoJsonServiceData.hasOwnProperty("BusStop"))
+                                {
+                                    fatherNode = geoJsonServiceData.BusStop;
+                                }
+                                else
+                                {
+                                    if(geoJsonServiceData.hasOwnProperty("Sensor"))
+                                    {
+                                        fatherNode = geoJsonServiceData.Sensor;
+                                    }
+                                    else
+                                    {
+                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                        fatherNode = geoJsonServiceData.Service;
+                                    }
+                                }
+
+                                var serviceProperties = fatherNode.features[0].properties;
+                                var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                                var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                                var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                                serviceSubclass = serviceSubclass.replace(/_/g, " ");
+
+                                var numberPattern = /^-?\d*\.?\d+$/;
+                                var integerPattern = /^[+\-]?\d+$/;
+                                if(numberPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
+                                {
+                                    if(integerPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
+                                    {
+                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                        metricData.data[0].commit.author.metricType = "Intero"; 
+                                    }
+                                    else
+                                    {
+                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                        metricData.data[0].commit.author.metricType = "Float"; 
+                                    }
+                                }
+                                else
+                                {
+                                    metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                    metricData.data[0].commit.author.metricType = "Testuale";
+                                }
+                            },
+                            error: function(errorData)
+                            {
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                            },
+                            complete: function()
+                            {
+                                populateWidget(); 
+                            }
+                        });
+                    }
+                    else
+                    {
+                        $('#<?= $_GET['name'] ?>_infoButtonDiv i.gisDriverPin').hide();
+                        $('#<?= $_GET['name'] ?>_infoButtonDiv a.info_source').show();
+                        manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
+                        metricData = getMetricData(metricName);
+                        populateWidget(); 
+                    }
+                }
+                else
+                {
+                    console.log("Errore in caricamento proprietà widget");
+                    showWidgetContent(widgetName);
+                    if(firstLoad !== false)
+                    {
+                        $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                        $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    }
+                }
+            },
+            error: function(errorData)
+            {
+               console.log("Errore in caricamento proprietà widget");
+               console.log(JSON.stringify(errorData));
+               showWidgetContent(widgetName);
+               if(firstLoad !== false)
+               {
+                  $("#<?= $_GET['name'] ?>_chartContainer").hide();
+                  $('#<?= $_GET['name'] ?>_noDataAlert').show();
+               }
+            },
+            complete: function()
+            {
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId);
+            }
+        });
+        
+        
 });//Fine document ready 
 </script>
 
@@ -302,7 +604,8 @@
     <div class='ui-widget-content'>
         <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
             <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+               <a id="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+               <i class="material-icons gisDriverPin" data-onMap="false">navigation</i>
             </div>    
             <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
             <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
@@ -324,7 +627,14 @@
         </div>
         
         <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+                    No data available
+                </div>
+                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                    <i class="fa fa-times"></i>
+                </div>
+            </div>
             <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer">
                 <div id='<?= $_GET['name'] ?>_value' class="singleContentValue"></div>
                 <div id='<?= $_GET['name'] ?>_udm' class="singleContentUdm"></div>

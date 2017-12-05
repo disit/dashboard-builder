@@ -17,10 +17,8 @@
 include('../config.php');
 ?>
 <script type='text/javascript'>
-    $(document).ready(function iframe_ataf() {
-        
-        /*Autobus*/ //var url="<?= $serviceMapUrlPrefix ?>api/v1/?showBusPosition=true&format=html&controls=hidden&info=hidden";
-        /*Colonnine*/ //var url="http://servicemap.disit.org/WebAppGrafo/api/v1?queryId=5295ccef482480352adb90ff5a22d35e&format=html";
+    $(document).ready(function iframe_ataf() 
+    {
         var url="<?= $serviceMapUrlPrefix ?>api/v1?queryId=5295ccef482480352adb90ff5a22d35e&format=html";
         
          $('#<?= $_GET['name'] ?>_desc').width('87%');

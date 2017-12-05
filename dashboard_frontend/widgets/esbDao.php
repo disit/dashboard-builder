@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -17,16 +17,12 @@
    include '../config.php';
    
    session_start(); 
+   error_reporting(E_ERROR | E_NOTICE);
    $esbLink = mysqli_connect($esbHost, $esbDbUsr, $esbDbPwd) or die("Failed to connect to server");
    mysqli_select_db($esbLink, $esbDbName);
-   error_reporting(E_ERROR | E_NOTICE);
    
    if(!$esbLink->set_charset("utf8")) 
    {
-        echo '<script type="text/javascript">';
-        echo 'alert("KO");';
-        echo '</script>';
-        printf("Error loading character set utf8: %s\n", $link->error);
         exit();
    }
    
@@ -44,11 +40,11 @@
             
             if($choosenOption == "time")
             {
-               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL " . $time . " " . $timeUdm . ") ORDER BY event_time DESC"; 
+               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL " . $time . " " . $timeUdm . ") ORDER BY STR_TO_DATE(event_time,'%Y-%m-%d %H:%i:%s') DESC"; 
             }
             else
             {
-               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' ORDER BY event_time DESC LIMIT " . $eventsBound; 
+               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' ORDER BY STR_TO_DATE(event_time,'%Y-%m-%d %H:%i:%s') DESC LIMIT " . $eventsBound; 
             }
             
             $result = mysqli_query($esbLink, $query);
@@ -63,20 +59,6 @@
                   $eventRow['data_id'] = $row['data_id'];
                   $eventRow['data_type'] = $row['data_type'];
                   $eventRow['event_time'] = $row['event_time'];
-                  
-                  //$payloadArray = json_decode($row['payload']);
-                  
-                  //$file = fopen("C:\dashboardLog.txt", "a");
-                  
-                  
-                  /*if(property_exists($payloadArray, "notes"))
-                  {
-                      $encodedNotes = utf8_encode($payloadArray->notes);
-                      //fwrite($file, "Note: " . $encodedNotes . "\n");
-                      $payloadArray->notes = $encodedNotes;
-                  }*/
-                  
-                  //$eventRow['payload'] = json_encode($payloadArray);
                   $eventRow['payload'] = $row['payload'];
                   $eventRow['payload_class'] = $row['payload_class'];
                   $eventRow['sender_id'] = $row['sender_id'];
@@ -88,13 +70,50 @@
             }
             else
             {
-               return "queryKo";
+               echo "queryKo";
             }
+            /*$fakeEvents = '{  
+                "1":{  
+                   "id":"1",
+                   "created":"2017-10-25 09:12:07.870",
+                   "data_id":"urn:rixf:it.swarco.resolute/trafficInformationId/1",
+                   "data_type":"org.resolute_eu.esb.model.traffic.TrafficInformation",
+                   "event_time":"2017-10-25 09:12:07.870",
+                   "payload":"{\"arc_ids\":[\"urn:rixf:it.swarco.resolute/arcId/RT04801727938ES\"],\"code\":\"1062652\",\"coords\":{\"latitude\":43.79784805,\"longitude\":11.21094064},\"id\":\"urn:rixf:it.swarco.resolute/trafficInformationId/1062652\",\"notes\":\"INCIDENTE A FIRENZE - VIA GARFAGNANA\",\"severity\":8,\"source\":\"1062652\",\"start_time\":1508923829000,\"stop_time\":1508923829000,\"sub_type_id\":\"urn:rixf:it.swarco.resolute/subTypeId/9\",\"type_id\":\"urn:rixf:it.swarco.resolute/typeId/1\",\"update_time\":1508923829000}",
+                   "payload_class":"org.resolute_eu.esb.model.traffic.TrafficInformation",
+                   "sender_id":null,
+                   "type":"DEFINITION"
+                },
+                "2":{  
+                   "id":"2",
+                   "created":"2017-10-24 17:07:40.870",
+                   "data_id":"urn:rixf:it.swarco.resolute/trafficInformationId/3",
+                   "data_type":"org.resolute_eu.esb.model.traffic.TrafficInformation",
+                   "event_time":"2017-10-24 17:07:40.870",
+                   "payload":"{\"arc_ids\":[\"urn:rixf:it.swarco.resolute/arcId/RT04801727938ES\"],\"code\":\"1062652\",\"coords\":{\"latitude\":43.779585,\"longitude\":11.272084},\"id\":\"urn:rixf:it.swarco.resolute/trafficInformationId/1062652\",\"notes\":\"INCIDENTE A FIRENZE - VIA MASACCIO\",\"severity\":5,\"source\":\"1062652\",\"start_time\":1508870669000,\"stop_time\":1508870669000,\"sub_type_id\":\"urn:rixf:it.swarco.resolute/subTypeId/9\",\"type_id\":\"urn:rixf:it.swarco.resolute/typeId/1\",\"update_time\":1508870669000}",
+                   "payload_class":"org.resolute_eu.esb.model.traffic.TrafficInformation",
+                   "sender_id":null,
+                   "type":"DEFINITION"
+                },
+                "3":{  
+                   "id":"3",
+                   "created":"2017-10-24 15:12:25.870",
+                   "data_id":"urn:rixf:it.swarco.resolute/trafficInformationId/3",
+                   "data_type":"org.resolute_eu.esb.model.traffic.TrafficInformation",
+                   "event_time":"2017-10-24 15:12:25.870",
+                   "payload":"{\"arc_ids\":[\"urn:rixf:it.swarco.resolute/arcId/RT04801727938ES\"],\"code\":\"1062652\",\"coords\":{\"latitude\":43.763904,\"longitude\":11.276618},\"id\":\"urn:rixf:it.swarco.resolute/trafficInformationId/1062652\",\"notes\":\"INCIDENTE A FIRENZE - VIA MASACCIO\",\"severity\":2,\"source\":\"1062652\",\"start_time\":1508857945000,\"stop_time\":1508857945000,\"sub_type_id\":\"urn:rixf:it.swarco.resolute/subTypeId/84\",\"type_id\":\"urn:rixf:it.swarco.resolute/typeId/25\",\"update_time\":1508857945000}",
+                   "payload_class":"org.resolute_eu.esb.model.traffic.TrafficInformation",
+                   "sender_id":null,
+                   "type":"DEFINITION"
+                }
+             }';
+             
+            echo $fakeEvents;*/
             break;
             
          case "getAlarms":
             $alarms = [];
-            $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.alarm.Alarm' AND type = 'DEFINITION'"; //AND event_time >= (NOW() - INTERVAL 2 DAY)
+            $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.alarm.Alarm' AND type = 'DEFINITION' ORDER BY STR_TO_DATE(event_time,'%Y-%m-%d %H:%i:%s') DESC"; //AND event_time >= (NOW() - INTERVAL 2 DAY)
             $result = mysqli_query($esbLink, $query);
 
             if($result) 
@@ -118,42 +137,15 @@
             }
             else
             {
-               return "queryKo";
+               echo "queryKo";
             }
+            //echo json_encode($alarms);
             break;
             
          case "getEvacuationPlans":
             $plans = [];
-            //$query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' AND type = 'DEFINITION'";
-            /*$query = "SELECT a.id AS id, a.data_id as data_id, a.event_time as originalEventTime, a.payload AS originalPayload, JSON_EXTRACT(b.payload, '$.evacuation_plan_status') AS lastStatus " .
-                      "FROM resolute.resolute_events AS a " .
-                      "LEFT JOIN (SELECT * FROM resolute.resolute_events AS c WHERE c.data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' AND c.type = 'UPDATE' ORDER BY created DESC) AS b " .
-                      "ON a.data_id = b.data_id " .
-                      "WHERE a.data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' " .
-                      "AND a.type = 'DEFINITION'";
-            $result = mysqli_query($esbLink, $query);
-
-            if($result) 
-            {
-               while($row = mysqli_fetch_assoc($result)) 
-               {
-                  $planRow = [];
-                  $planRow['id'] = $row['id'];
-                  $planRow['data_id'] = $row['data_id'];
-                  $planRow['event_time'] = $row['originalEventTime'];
-                  $planRow['originalPayload'] = $row['originalPayload'];
-                  $planRow['lastStatus'] = str_replace('"', '', $row['lastStatus']);
-                  $plans[$planRow['id']] = $planRow;
-               }
-               $result = json_encode($plans);
-               echo $result;
-            }
-            else
-            {
-               return "queryKo";
-            }*/
             
-            $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' AND type = 'DEFINITION'";
+            $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' AND type = 'DEFINITION' ORDER BY STR_TO_DATE(event_time,'%Y-%m-%d %H:%i:%s') DESC";
             $result = mysqli_query($esbLink, $query);
             if($result) 
             {
@@ -180,8 +172,6 @@
                      $planRow['lastStatus'] = "PROPOSED";
                   }
                   
-                  
-                  
                   $plans[$planRow['id']] = $planRow;
                }
                $result = json_encode($plans);
@@ -189,13 +179,13 @@
             }
             else
             {
-               return "queryKo";
+               echo "queryKo";
             }
             break;
             
          case "getResources":
             $resources = [];
-            $query = "SELECT a.*, b.payload AS payload, b.type AS type FROM (SELECT data_id as dataId, MAX(event_time) AS eventTime FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.resource.Resource' GROUP BY data_id) AS a LEFT JOIN resolute_events AS b ON a.eventTime = b.event_time";
+            $query = "SELECT a.*, b.payload AS payload, b.type AS type FROM (SELECT data_id as dataId, MAX(event_time) AS eventTime FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.resource.Resource' GROUP BY data_id) AS a LEFT JOIN resolute_events AS b ON a.eventTime = b.event_time ORDER BY STR_TO_DATE(b.event_time, '%Y-%m-%d %H:%i:%s') DESC";
             $result = mysqli_query($esbLink, $query);
 
             if($result) 
@@ -214,13 +204,13 @@
             }
             else
             {
-               return "queryKo";
+               echo "queryKo";
             }
             break;
             
          case "getNetworkAnalysis":
             $analysis = [];
-            $query = "SELECT * FROM resolute.resolute_events WHERE data_type = 'org.resolute_eu.esb.model.net.NetworkAnalysis' AND type = 'DEFINITION' ORDER BY event_time DESC LIMIT 1"; //AND event_time >= (NOW() - INTERVAL 2 DAY)
+            $query = "SELECT * FROM resolute.resolute_events WHERE data_type = 'org.resolute_eu.esb.model.net.NetworkAnalysis' AND type = 'DEFINITION' ORDER BY STR_TO_DATE(event_time,'%Y-%m-%d %H:%i:%s') DESC LIMIT 1"; //AND event_time >= (NOW() - INTERVAL 2 DAY)
             $result = mysqli_query($esbLink, $query);
 
             if($result) 
@@ -242,7 +232,7 @@
             }
             else
             {
-               return "queryKo";
+               echo "queryKo";
             }
             break;   
             

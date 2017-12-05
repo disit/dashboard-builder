@@ -340,14 +340,15 @@ public class ManagerQuery implements Runnable, Serializable
                       
                       //System.out.println("Thr1: " + rule.getThr1() + " - Thr2: " + rule.getThr2());
 
-                      if(this.checkThrViolation(lastMetricValue, rule)&&notifyEvents)
+                      if(this.checkThrViolation(lastMetricValue, rule))
                       {
-                         System.out.println("Notifica eseguita");
+                        if(notifyEvents)  {
+                         //System.out.println("checkMetricWidgetsRules: Notifica eseguita");
                          this.notifyEvent(lastMetricValue, rule);
-                      }
-                      else
-                      {
-                         System.out.println("Notifica NON eseguita");
+                        } 
+                        else {
+                          System.out.println("checkMetricWidgetsRules: Notifica NON eseguita "+widgetName);
+                        }
                       }
                   } 
                }
@@ -723,9 +724,9 @@ public class ManagerQuery implements Runnable, Serializable
          Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
       }
 
-		// Questo rende la chiamata una POST
-		con.setDoOutput(true);
-		DataOutputStream wr = null;
+    // Questo rende la chiamata una POST
+    con.setDoOutput(true);
+    DataOutputStream wr = null;
       
       try 
       {
@@ -877,14 +878,14 @@ public class ManagerQuery implements Runnable, Serializable
         } 
         else 
         {
-          if (resultNum != null) 
+          if(resultNum != null) 
           {
-            while (resultNum.hasNext()) 
+            while(resultNum.hasNext()) 
             {
               BindingSet bindingSetEvent = resultNum.next();
 
               String sum = "0";
-              if (bindingSetEvent.getValue("sum") != null) 
+              if(bindingSetEvent.getValue("sum") != null) 
               {
                 sum = bindingSetEvent.getValue("sum").stringValue();
               }
@@ -892,18 +893,19 @@ public class ManagerQuery implements Runnable, Serializable
             }
           }
         }
+        con.close();
       } 
       else if(this.queryType.equals("SQL")) 
       {
         DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
         mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
         ResultSet resultSet = mysql_access.readDataBase(this.query,this);
-        if (resultSet != null) 
+        if(resultSet != null) 
         {
-          while (resultSet.next()) 
+          while(resultSet.next()) 
           {
             String sum = resultSet.getString(1);
-            if (sum != null) 
+            if(sum != null) 
             {
               sumFixed = Double.parseDouble(sum);
             }
@@ -912,7 +914,7 @@ public class ManagerQuery implements Runnable, Serializable
         mysql_access.close();
       }
 
-      if (sumFixed != -1) 
+      if(sumFixed != -1) 
       {
         //this.almMng.updateStatusOnMeasuredValue(Utility.round(sumFixed, 2));
         System.out.println(this.idProc + " " + sumFixed);
@@ -924,7 +926,7 @@ public class ManagerQuery implements Runnable, Serializable
         //System.out.println(data_attuale_fixed);
         String query_insert = "INSERT INTO Dashboard.Data"
                 + "(IdMetric_data, computationDate, value_num, quant_perc1) VALUES"
-                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\"," + ((int)sumFixed) + ","+ sumFixed +")";
+                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\"," + sumFixed + ","+ sumFixed +")";
 
         mysql_access2.writeDataBaseData(query_insert);
         mysql_access2.close();
@@ -1096,6 +1098,7 @@ public class ManagerQuery implements Runnable, Serializable
             }                        
           }
         }
+        con.close();
       } 
       else if (this.queryType.equals("SQL")) 
       {
@@ -1179,16 +1182,19 @@ public class ManagerQuery implements Runnable, Serializable
     return percent;
   }
 
+  //Questo metodo legge una query di tipo Series dal database delle metriche, la esegue sulla sorgente dati, opera una trasformazione sul il risultato della query 
+  //per generare un oggetto JSON strutturato secondo la nostra convenzione Series. 
   private void executeQueryJVTable() 
   {
     try 
     {
-      String labels1 = "";
-      String labels2 = "";
-      String desc = "";
-      String series = "";
+      //Sono stringhe, perché preparemo il JSON come un'enorme stringa singola da scrivere su DB del Dashboard Manager  
+      String labels1 = "";//Labels descrittive del primo asse (cioé di quello orizzontale): saranno un'unica stringa con dentro virgole
+      String labels2 = "";//Labels descrittive del secondo asse (cioé di quello orizzontale): saranno un'unica stringa con dentro virgole
+      String desc = "";//Descrizione solo del secondo asse, come detto negli appunti quella del primo asse non è estrapolabile (faremo una modifica in tal senso)
+      String series = "";//Ci saranno i dati, sotto forma di vettore di vettori.
 
-      if (this.queryType.equals("SPARQL")) 
+      if(this.queryType.equals("SPARQL")) 
       {
         Repository repo = buildSparqlRepository();
         repo.initialize();
@@ -1232,20 +1238,24 @@ public class ManagerQuery implements Runnable, Serializable
             series += "]";
           }
         }
+        con.close();
       } 
-      else if (this.queryType.equals("SQL")) 
+      else if(this.queryType.equals("SQL")) 
       {
         DBAccess mysql_access = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
         mysql_access.setConnection(this.map_dbAcc.get(this.dataSourceId));
-        ResultSet resultSet = mysql_access.readDataBase(this.query,this);
+        ResultSet resultSet = mysql_access.readDataBase(this.query,this);//Esecuzione della query e memorizzazione dei risultati in un oggetto di classe ResultSet
+        
         if(resultSet != null)
-        {
-          int nCols = resultSet.getMetaData().getColumnCount();
+        { 
+          int nCols = resultSet.getMetaData().getColumnCount(); //Conteggio del numero di colonne
+          
           if(nCols > 0)
           {
-             desc = resultSet.getMetaData().getColumnLabel(1);
+             desc = resultSet.getMetaData().getColumnLabel(1); //Reperimento della label descrittiva della prima riga dei risultati
           }
             
+          //Aggiunta di tutti i nomi di colonna alla stringa delle labels del primo asse
           for(int i=2; i<=nCols; i++) 
           {
             if(!labels1.isEmpty())
@@ -1256,18 +1266,21 @@ public class ManagerQuery implements Runnable, Serializable
             labels1 += "\""+resultSet.getMetaData().getColumnLabel(i)+"\"";
           }
             
-          while (resultSet.next()) 
+          //Reperimento di tutti i dati di ciascuna riga dei risultati, iterando con next
+          while(resultSet.next()) 
           {
             if(!series.isEmpty())
             {
-               series += ", ";
+               series += ", "; //Queste virgole separano ciascun vettore del macro-vettore series, cioè ciascuna riga della tabella
             }
               
             series += "[";
+            
+            //Popolamento di ciascuna cella della riga in esame
             for(int i=1; i<=nCols; i++) 
             {
-              String v = resultSet.getString(i);
-              if(i==1)
+              String v = resultSet.getString(i);//legge il valore contenuto nella cella i-esima della riga in esame, lo converte direttamente in stringa e lo salva nella variabile v.
+              if(i==1)//Se stiamo esaminando la prima cella (attenzione: la classe ResultSet conta le celle da 1 e non da 0 come al solito, fuorviante!!!), la aggiungiamo alle labels del secondo asse
               {
                 if(!labels2.isEmpty())
                 {
@@ -1278,11 +1291,12 @@ public class ManagerQuery implements Runnable, Serializable
               } 
               else 
               {
-                if(i>2)
+                if(i>2)//Le celle dalla seconda in poi vanno a costituire il vettore Series corrispondente a questa riga
                 {
                    series += ", ";
                 }
-                  
+                
+                //Questa espressione regolare controlla se il valore contenuto nella cella ha il formato di un numero float: se sì, lo aggiunge direttamente, altrimenti lo incapsula in una coppia di doppi apici
                 if(v.matches("-?\\d+(\\.\\d+)?"))
                 {
                    series += v;
@@ -1299,8 +1313,10 @@ public class ManagerQuery implements Runnable, Serializable
         mysql_access.close();
       }
 
-      if (!labels1.isEmpty()) {
+      if(!labels1.isEmpty()) {
         //this.almMng.updateStatusOnMeasuredValue(sumFixed);
+        
+        //Costruzione della grossa stringa finale che rappresenta il nostro JSON
         String json = "{\"firstAxis\": {\"desc\": \"\",\"labels\": ["+labels1+"]},\"secondAxis\": {\"desc\": \""+desc+"\",\"labels\":["+labels2+"],\"series\":["+series+"]}}";
         System.out.println(this.idProc + " " + json);
         DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
@@ -1309,11 +1325,13 @@ public class ManagerQuery implements Runnable, Serializable
         Date data_attuale = new Date();
         String data_attuale_fixed = df2.format(data_attuale);
         //System.out.println(data_attuale_fixed);
+        
+        //Testo della query che scriverà il dato di tipo Series nella tabella Data del DB del Dashboard Manager
         String query_insert = "INSERT INTO Dashboard.Data"
                 + "(IdMetric_data, computationDate, series) VALUES"
-                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\",'" + json.replace("'", "\\'") +"')";
+                + "(\"" + this.idProc + "\",\"" + data_attuale_fixed + "\",'" + json.replace("'", "\\'") +"')";//Il replace mette gli escape agli apici singoli, di modo che il JSON non venga interrotto (come stringa) inavvertitamente
 
-        mysql_access2.writeDataBaseData(query_insert);
+        mysql_access2.writeDataBaseData(query_insert);//Metodo che esegue materialmente la query sul database
         mysql_access2.close();
       }
     } 
@@ -1365,20 +1383,10 @@ public class ManagerQuery implements Runnable, Serializable
           mysql_access.writeDataBaseData(query_insert);
           mysql_access.close();
         } else {
-          DBAccess mysql_access2 = new DBAccess(this.map_dbAcc.get("AlarmEmail"));
-          mysql_access2.setConnection(this.map_dbAcc.get("Dashboard"));
-          String LastCompDateQuery = "SELECT MAX(computationDate) as lastCompDate, value_num, value_perc1, value_perc2, value_perc3, value_text FROM Dashboard.Data WHERE IdMetric_data=\"" + this.idProc + "\" ORDER BY computationDate DESC";
-          ResultSet resultSet = mysql_access2.readDataBase(LastCompDateQuery,this);
-          Timestamp lastTimestamp = null;
-          Double[] lastValues = new Double[(resultSet.getMetaData().getColumnCount()) - 1];
-          while (resultSet.next()) {
-            lastTimestamp = resultSet.getTimestamp("lastCompDate");
-            lastValues[0] = Double.parseDouble((resultSet.getString("value_perc1").trim()));
-          }
-          mysql_access2.close();
-          //this.almMng.updateStatusOnComputingDate(lastTimestamp, lastValues);
+          notifyEvent("CarPark Capacity Zero","Capacità totale dei car park è 0!");
         }
       }
+      con.close();
     } 
     catch (Exception exp) 
     {
@@ -1458,6 +1466,7 @@ public class ManagerQuery implements Runnable, Serializable
           //this.almMng.updateStatusOnComputingDate(lastTimestamp, lastValues);
         }
       }
+      con.close();
     } 
     catch (Exception exp) 
     {

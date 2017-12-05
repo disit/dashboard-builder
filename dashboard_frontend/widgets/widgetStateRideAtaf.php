@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,6 +13,8 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
@@ -33,6 +35,23 @@
     
         var hostFile = "<?= $_GET['hostFile'] ?>";
         
+        var headerHeight = 25;
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+        {
+            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight"));
+            $('#<?= $_GET['name'] ?>_header').hide();
+        }
+        else
+        {
+            //TBD - Vanno gestiti i futuri casi di policy manuale e show/hide header a scelta utente
+            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - headerHeight);
+            $('#<?= $_GET['name'] ?>_header').show();
+        }
+        
         if(hostFile === "config")
         {
             titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 50 - 25 - 2));
@@ -51,7 +70,7 @@
         
         var loadingFontDim = 13;
         var loadingIconDim = 20;
-        var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
+        
         $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
         $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
         $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
@@ -99,6 +118,7 @@
             success: function (msg) 
             {
                 var sizeRowsWidget = parseInt(msg.param.size_rows);
+                manageInfoButtonVisibility(msg.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
                 
                 $.ajax({
                     url: "../widgets/getDataMetrics.php",
@@ -344,16 +364,9 @@
                         }, 1000);
 
                     },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        alert('An error occurred... Look at the console (F12 or Ctrl+Shift+I, Console tab) for more information!');
-
-                        $('#page-wrapper').html('<p>status code: ' + jqXHR.status + '</p><p>errorThrown: ' + errorThrown + '</p><p>jqXHR.responseText:</p><div>' + jqXHR.responseText + '</div>');
-                         console.log('jqXHR:');
-                         console.log(jqXHR);
-                         console.log('textStatus:');
-                         console.log(textStatus);
-                         console.log('errorThrown:');
-                         console.log(errorThrown);
+                    error: function (dataError) 
+                    {
+                        JSON.stringify(dataError);
                     }
                 });
             }

@@ -8,7 +8,7 @@
  *	dotdotdot.frebsite.nl
  *
  *	Licensed under the MIT license.
- *	http://en.wikipedia.org/wiki/MIT_License
+ *	https://en.wikipedia.org/wiki/MIT_License
  */
 
 (function($, undef) {

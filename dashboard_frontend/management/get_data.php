@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -48,12 +48,8 @@ function canEditDashboard()
     return $result;
 }
 
-if (!$link->set_charset("utf8")) 
+if(!$link->set_charset("utf8")) 
 {
-    echo '<script type="text/javascript">';
-    echo 'alert("KO");';
-    echo '</script>';
-    printf("Error loading character set utf8: %s\n", $link->error);
     exit();
 }
 
@@ -264,7 +260,7 @@ if(isset($_GET['action']) && !empty($_GET['action']))
             $dashboardId = $_SESSION['dashboardId'];
         }
         
-        $query4 = "SELECT * FROM Config_widget_dashboard INNER JOIN Widgets ON Config_widget_dashboard.type_w=Widgets.id_type_widget WHERE id_dashboard = '$dashboardId'";
+        $query4 = "SELECT * FROM Config_widget_dashboard INNER JOIN Widgets ON Config_widget_dashboard.type_w=Widgets.id_type_widget WHERE id_dashboard = '$dashboardId' ORDER BY n_row, n_column ASC";
         $result4 = mysqli_query($link, $query4) or die(mysqli_error($link));
         $dashboardWidgets = array();
 
@@ -409,7 +405,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                         "notificatorRegistered" => $row5['notificatorRegistered'],
                         "notificatorEnabled" => $row5['notificatorEnabled'],
                         "enableFullscreenTab" => $row5['enableFullscreenTab'],
-                        "enableFullscreenModal" => $row5['enableFullscreenModal']
+                        "enableFullscreenModal" => $row5['enableFullscreenModal'],
+                        "fontFamily" => $row5['fontFamily'],
                     );
                 }
             }

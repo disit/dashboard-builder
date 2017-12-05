@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2016 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,6 +13,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   header("location: index.php?sessionExpired=true");
 ?>
 
 <!DOCTYPE HTML>
@@ -34,28 +35,16 @@
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-    
     <!-- jQuery -->
-    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
     <script src="../js/jquery-1.10.1.min.js"></script>
-    
     
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
 
     <!-- Gridster -->
     <script src="../js/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>
-    <!--<script src="../js/new/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>-->
 
     <!-- CKEditor --> 
-    <!--<script src="http://cdn.ckeditor.com/4.5.10/standard/ckeditor.js"></script>-->
     <script src="../js/ckeditor/ckeditor.js"></script>
     <link rel="stylesheet" href="../js/ckeditor/skins/moono/editor.css">
     
@@ -63,11 +52,9 @@
     <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
     
     <!-- JQUERY UI -->
-    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
     <script src="../js/jqueryUi/jquery-ui.js"></script>
     
     <!-- Font awesome icons -->
-    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">-->
     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
 
     <!-- Bootstrap colorpicker -->
@@ -77,11 +64,6 @@
     <script src="../js/modernizr-custom.js"></script>
     
     <!-- Highcharts -->
-    <!--<script src="http://code.highcharts.com/highcharts.js"></script>-->
-    <!--<script src="http://code.highcharts.com/modules/exporting.js"></script>-->
-    <!--<script src="https://code.highcharts.com/highcharts-more.js"></script>-->
-    <!--<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>-->
-    <!--<script src="https://code.highcharts.com/highcharts-3d.js"></script>-->  
     <script src="../js/highcharts/code/highcharts.js"></script>
     <script src="../js/highcharts/code/modules/exporting.js"></script>
     <script src="../js/highcharts/code/highcharts-more.js"></script>
@@ -89,8 +71,8 @@
     <script src="../js/highcharts/code/highcharts-3d.js"></script>
     
     <!-- Bootstrap editable tables -->
-    <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
     
     <!-- TinyColors -->
     <script src="../js/tinyColor.js" type="text/javascript" charset="utf-8"></script>

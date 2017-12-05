@@ -170,7 +170,7 @@
         var dFactor = (4 * (Math.sqrt(2) - 1) / 3) / (PI / 2);
 
 
-        //Shoelace algorithm -- http://en.wikipedia.org/wiki/Shoelace_formula
+        //Shoelace algorithm -- https://en.wikipedia.org/wiki/Shoelace_formula
         function shapeArea(vertexes) {
             var area = 0,
                 i,

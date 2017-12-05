@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,7 +14,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-   include('process-form.php'); 
+   include('process-form.php');
+   session_start();
 ?>
 
 <!DOCTYPE html>
@@ -29,11 +30,9 @@
     <title>Dashboard Management System</title>
     
     <!-- jQuery -->
-    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
     <script src="../js/jquery-1.10.1.min.js"></script>
     
     <!-- JQUERY UI -->
-    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
     <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
@@ -45,23 +44,22 @@
     <!-- Bootstrap Core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
     
+    <!-- Bootstrap editable tables -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    
     <!-- Filestyle -->
     <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
-
+    
+    <!-- Font awesome -->
+    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+ 
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">   
     
     <!-- Custom scripts -->
     <script type="text/javascript" src="../js/dashboard_mng.js"></script>
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
 </head>
 
 <body>
@@ -87,32 +85,32 @@
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li class="active">
-                        <a href="../management/dashboard_mng.php" ><i class="fa fa-fw fa-dashboard"></i> Dashboards management</a>
+                        <a href="../management/dashboard_mng.php" class="internalLink"> Dashboards management</a>
                     </li>
                     <?php
                         if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
                         {     
                            if($_SESSION['loggedType'] == "local")
                            {
-                              echo '<li><a href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
+                              echo '<li><a class="internalLink" href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
                            }
                            
                            if($_SESSION['loggedRole'] == "ToolAdmin")
                            {
-                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
-                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
-                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
-                                echo '<li><a href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
                            }
                            
                            if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
                            {
-                              echo '<li><a href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
+                              echo '<li><a class="internalLink" href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
                            }
                         }
                     ?>
                     <li>
-                        <a href="<?php echo $notificatorLink?>" target="blank"> Notificator</a>
+                        <a href="<?php echo $notificatorLink?>" target="blank" class="internalLink"> Notificator</a>
                     </li>
                 </ul>
             </div>
@@ -130,7 +128,7 @@
                             <div class="container-fluid">
                                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                                     <ul class="nav navbar-nav">
-                                        <li class="active"><a id="link_add_dashboard" href="#" data-toggle="modal" data-target="#modal-create-dashboard"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Dashboard <span class="sr-only">(current)</span></a></li>                           
+                                        <li class="active"><a id="link_add_dashboard" href="#"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Dashboard <span class="sr-only">(current)</span></a></li>                           
                                         <li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>
                                     </ul>
                                 </div>
@@ -142,7 +140,7 @@
                 <div class="row">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><i class="fa fa-money fa-fw"></i>My dashboards</h3>
+                            <h3 class="panel-title">My dashboards</h3>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -250,6 +248,20 @@
                                 <div class="col-md-6">
                                     <input type="text" class="form-control" id="dashboardLogoLinkInput" name="dashboardLogoLinkInput" disabled>
                                 </div>
+                                <label for="headerVisible" class="col-md-4 control-label">Show header</label>
+                                <div class="col-md-6">
+                                    <select name="headerVisible" id="headerVisible" class="form-control" required>
+                                        <option value="1">Yes</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
+                                <!--<label for="footerLogo" class="col-md-4 control-label">Footer logo</label>
+                                <div class="col-md-6">
+                                    <select name="footerLogo" id="footerLogo" class="form-control" required>
+                                        <option value="disit">Disit</option>
+                                        <option value="km4city">Km4City</option>
+                                    </select>
+                                </div>-->
                                 <input type="hidden" name="MAX_FILE_SIZE" value="2000000">
                             </div>
                         </div>
@@ -267,6 +279,47 @@
                                 <label for="percentWidth" class="col-md-4 control-label">Percent width occupied on your monitor (fullscreen)</label>
                                 <div class="col-md-6">
                                     <input type="text" class="form-control" id="percentWidth" name="percentWidth" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="well">
+                            <legend class="legend-form-group">Iframe embeddability</legend>
+                            <div class="form-group">
+                                <div class="row">
+                                    <label for="embeddable" class="col-md-4 control-label">Allow embed</label>
+                                    <div class="col-md-6">
+                                        <select id="embeddable" name="embeddable" class="form-control">
+                                            <option value="no">No</option>
+                                            <option value="yes">Yes</option>
+                                        </select>
+                                    </div>
+                                
+                                    <!--<label for="embedPolicy" class="col-md-4 control-label">Embed mode</label>
+                                    <div class="col-md-6">
+                                        <select id="embedPolicy" name="embedPolicy" class="form-control">
+                                            <option value="auto">Automatic</option>
+                                            <option value="manual">Manual</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <label for="embedAutofit" class="col-md-4 control-label">Embed autofit</label>
+                                    <div class="col-md-6">
+                                        <select id="embedAutofit" name="embedAutofit" class="form-control">
+                                            <option value="no">No</option>
+                                            <option value="yes">Yes</option>
+                                        </select>
+                                    </div>-->
+                                    <label for="authorizedPages" class="col-md-4 control-label">Authorized pages</label>
+                                    <div class="col-md-6">
+                                        <table id="authorizedPagesTable">
+                                            <thead>
+                                                <th>Page</th>
+                                                <th><i id="addAuthorizedPageBtn" class="fa fa-plus"></i></th>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table> 
+                                    </div>
+                                    <input type="hidden" id="authorizedPagesJson" name="authorizedPagesJson" />
                                 </div>
                             </div>
                         </div>
@@ -295,7 +348,7 @@
                 </div>
                 <div class="modal-footer">
                     <button id="button_close_popup" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button id="button_creation_dashboard" name="creation_dashboard" class="btn btn-primary" type="submit">Create</button>
+                    <button id="button_creation_dashboard" name="creation_dashboard" class="btn btn-primary internalLink" type="submit">Create</button>
                 </div>
                 </form>
 
@@ -392,7 +445,7 @@
                         <input type="hidden" id="selectedDashboardAuthorName" name="selectedDashboardAuthorName">
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button id="button_modify_dashboard" name="modify_dashboard" class="btn btn-primary" type="submit">Modify</button>
+                            <button id="button_modify_dashboard" name="modify_dashboard" class="btn btn-primary internalLink" type="submit">Modify</button>
                         </div>
                     </form>
                 </div>            
@@ -435,7 +488,149 @@
             var usr = "<?= $_SESSION['loggedUsername'] ?>";
             var userVisibilitySet = null;
             var array_dahsboards = new Array();
+            var authorizedPages = null;
+            var internalDest = false;
+            
+            $('.internalLink').on('mousedown', function(){
+                internalDest = true;
+            });
+
+            /*$(window).on('beforeunload', function(){
+                $.ajax({
+                        url: "iframeProxy.php",
+                        action: "notificatorRemoteLogout",
+                        async: false,
+                        success: function()
+                        {
+                            console.log("Remote logout from Notificator OK");
+                        },
+                        error: function(errorData)
+                        {
+                            console.log("Remote logout from Notificator failed");
+                            console.log(JSON.stringify(errorData));
+                        }
+                    });
+                if(internalDest === false)
+                {
+                    console.log("Logout notificatore");
+                    $.ajax({
+                        url: "iframeProxy.php",
+                        action: "notificatorRemoteLogout",
+                        async: false,
+                        success: function()
+                        {
+                            console.log("Remote logout from Notificator OK");
+                        },
+                        error: function(errorData)
+                        {
+                            console.log("Remote logout from Notificator failed");
+                            console.log(JSON.stringify(errorData));
+                        }
+                    });
+                }
+                else
+                {
+                    console.log("Navigazione interna");
+                    return 'Are you sure you want to leave?';
+                }
+            });*/
+            
+            
+            
+            $('#authorizedPagesJson').val("");
+            $('label[for=authorizedPages]').hide();
+            $('#authorizedPagesTable').parent().hide();
+            
+            $('#link_add_dashboard').click(function(){
+                authorizedPages = [];
+                $('#modal-create-dashboard').modal('show');
+            });
+            
             $('#color_hf').css("background-color", '#ffffff');
+            /*$('label[for=embedPolicy]').hide();
+            $('#embedPolicy').parent().hide();
+            $('label[for=embedAutofit]').hide();
+            $('#embedAutofit').parent().hide();*/
+            
+            $('#embeddable').change(function(){
+                if($(this).val() === 'no') 
+                {
+                    /*$('label[for=embedPolicy]').hide();
+                    $('#embedPolicy').parent().hide();
+
+                    $('#embedPolicy').val('auto');
+
+                    $('label[for=embedAutofit]').hide();
+                    $('#embedAutofit').parent().hide();
+                    $('#embedAutofit').val('no');*/
+
+                    $('label[for=authorizedPages]').hide();
+                    $('#authorizedPagesTable').parent().hide();
+                    $('#authorizedPagesTable tbody').empty();
+                    
+                    authorizedPages = [];
+                    $('#authorizedPagesJson').val("");
+                }
+                else
+                {
+                    /*$('label[for=embedPolicy]').show();
+                    $('#embedPolicy').parent().show();*/
+
+                    $('label[for=authorizedPages]').show();
+                    $('#authorizedPagesTable').parent().show();
+                }
+            });
+            
+            /*$('#embedPolicy').change(function(){
+               if($(this).val() === 'auto') 
+               {
+                   $('label[for=embedAutofit]').hide();
+                   $('#embedAutofit').parent().hide();
+                   $('#embedAutofit').val('no');
+               }
+               else
+               {
+                   $('label[for=embedAutofit]').show();
+                   $('#embedAutofit').parent().show();
+               }
+            });*/
+            
+            $('#addAuthorizedPageBtn').click(function(){
+                 var row = $('<tr><td><a href="#" class="toBeEdited" data-type="text" data-mode="popup"></a></td><td><i class="fa fa-minus"></i></td></tr>');
+                 $('#authorizedPagesTable tbody').append(row);
+                 
+                 var rowIndex = row.index();
+                 
+                 row.find('a').editable({
+                    emptytext: "Empty",
+                    display: function(value, response){
+                        if(value.length > 35)
+                        {
+                            $(this).html(value.substring(0, 32) + "...");
+                        }
+                        else
+                        {
+                           $(this).html(value); 
+                        }
+                    }
+                });
+                
+                authorizedPages[rowIndex] = null;
+                $('#authorizedPagesJson').val(JSON.stringify(authorizedPages));
+                
+                row.find('i.fa-minus').click(function(){
+                    var rowIndex = $(this).parents('tr').index();
+                    $('#authorizedPagesTable tbody tr').eq(rowIndex).remove();
+                    authorizedPages.splice(rowIndex, 1);
+                    $('#authorizedPagesJson').val(JSON.stringify(authorizedPages));
+                });
+                
+                row.find('a.toBeEdited').on('save', function(e, params){
+                    var rowIndex = $(this).parents('tr').index();
+                    authorizedPages[rowIndex] = params.newValue;
+                    $('#authorizedPagesJson').val(JSON.stringify(authorizedPages));
+                });
+            });
             
             setGlobals(loggedRole, usr, loggedType, userVisibilitySet);
             
@@ -444,30 +639,23 @@
                event.preventDefault();
                
                $.ajax({
-                  url: "http://localhost/Notificator/restInterface.php",
-                  data: {
-                     apiUsr: "alarmManager",
-                     apiPwd: "d0c26091b8c8d4c42c02085ff33545c1", //MD5
-                     operation: "remoteLogout",
-                     app: "Dashboard",
-                     appUsr: usr
-                  },
-                  type: "POST",
-                  async: true,
-                  dataType: 'json',
-                  success: function (data) 
-                  {
-                     console.log("Correct");
-                     console.log(data);
-                     location.href = "logout.php";
-                  },
-                  error: function (data)
-                  {
-                     console.log("Error");
-                     console.log(data);
-                     location.href = "logout.php";
-                  }
-               });
+                    url: "iframeProxy.php",
+                    action: "notificatorRemoteLogout",
+                    async: true,
+                    success: function()
+                    {
+                        
+                    },
+                    error: function(errorData)
+                    {
+                        console.log("Remote logout from Notificator failed");
+                        console.log(JSON.stringify(errorData));
+                    },
+                    complete: function()
+                    {
+                        location.href = "logout.php";
+                    }
+                });
             });
             
             $('#inputDashboardVisibility').change(function(){
@@ -567,7 +755,7 @@
 
             $(function () 
             {
-                $('.color-choice').colorpicker();
+                $('.color-choice').colorpicker({format: "rgba"});
             });
 
             //Listener per pulsante di modifica dashboard

@@ -14,15 +14,13 @@ h1 {
 .widget
 {
     padding:0px;
-    background: #eeeeee url(ui-bg_highlight-soft_100_eeeeee_1x100.png) 50% top repeat-x;
+    /*background: #eeeeee url(ui-bg_highlight-soft_100_eeeeee_1x100.png) 50% top repeat-x;*/
+    background-color: transparent;
     color: #333333;
     font-size: .8em;
     overflow: hidden;
     width: 100%;
     height: 100%;
-    /*border-style: solid;
-    border-color: green;
-    border-width: 3px;*/
 }
 
 /* Gridster styles */

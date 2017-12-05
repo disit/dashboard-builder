@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2016 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,7 +13,8 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-    include('process-form.php'); // Includes Login Script
+    include('process-form.php'); 
+    session_start();
 ?>
 
 <html lang="en">
@@ -33,11 +34,9 @@
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
     
     <!-- jQuery -->
-    <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
     <script src="../js/jquery-1.10.1.min.js"></script>
     
     <!-- JQUERY UI -->
-    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
     <script src="../js/jqueryUi/jquery-ui.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
@@ -89,7 +88,7 @@
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li>
-                        <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboards management</a>
+                        <a href="../management/dashboard_mng.php" class="internalLink"><i class="fa fa-fw fa-dashboard"></i> Dashboards management</a>
                     </li>
                     <?php
                         if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
@@ -101,16 +100,16 @@
                            
                            if($_SESSION['loggedRole'] == "ToolAdmin")
                            {
-                                echo '<li><a href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
-                                echo '<li><a href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
-                                echo '<li><a href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
-                                echo '<li><a href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
+                                echo '<li><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
                                 
                            }
                            
                            if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
                            {
-                              echo '<li><a href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
+                              echo '<li><a class="internalLink" href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
                            }
                         }
                     ?>
@@ -229,7 +228,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Annulla</button>
-                            <button type="submit" id="button_datasources" name="create_dataSources" class="btn btn-primary">Conferma</button>
+                            <button type="submit" id="button_datasources" name="create_dataSources" class="btn btn-primary internalLink">Conferma</button>
                         </div>
                     </form>
                 </div>
@@ -294,7 +293,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Annulla</button>
-                            <button type="submit" id="button_datasources" name="modify_dataSources" class="btn btn-primary">Modifica</button>
+                            <button type="submit" id="button_datasources" name="modify_dataSources" class="btn btn-primary internalLink">Modifica</button>
                         </div>
                     </form>
                 </div>
@@ -305,6 +304,7 @@
     <script type='text/javascript'>
         $(document).ready(function () {
             var array_dataSources = new Array();
+            var internalDest = false;
             
             $.ajax({
             url: "get_data.php",

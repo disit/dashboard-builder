@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -13,12 +13,14 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   include('../config.php');
+   header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
      
     //Inizio JQuery document ready handler
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)   
     {
         <?php
             $titlePatterns = array();
@@ -42,7 +44,7 @@
         var fontColor = "<?= $_GET['fontColor'] ?>";
         var timeToReload = <?= $_GET['freq'] ?>;
         var widgetProperties = null;
-        var metricId = "<?= $_GET['metric'] ?>";
+        var metricName = "<?= $_GET['metric'] ?>";
         var metricData = null;
         var elToEmpty = $("#<?= $_GET['name'] ?>_table");
         var url = "<?= $_GET['link_w'] ?>"; 
@@ -50,6 +52,21 @@
         var series = null;
         var styleParameters = null;
         var legendHeight = null;
+        var metricName, widgetTitle, countdownRef = null;
+        var embedWidget = <?= $_GET['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var headerHeight = 25;
+        var showTitle = "<?= $_GET['showTitle'] ?>";
+	var showHeader = null;
+        
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+	{
+		showHeader = false;
+	}
+	else
+	{
+		showHeader = true;
+	}
         
         //Definizioni di funzione specifiche del widget
         
@@ -346,7 +363,7 @@
             var thresholdsJson = getThresholdsJson();
             var target = null;
             
-            if(thresholdsJson !== null)
+            if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 var thresholdObject = thresholdsJson.thresholdObject;
                 target = thresholdObject.target;
@@ -511,7 +528,7 @@
             var rowsLabelsFontColor = styleParameters.rowsLabelsFontColor;
             var label, id, singleInfo, infoIcon, cell, cellContent, newCellContent = null;
             
-            if(infoJson !== null)
+            if((infoJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 //Aggiunta tasti alle labels sulle colonne
                 $('#<?= $_GET['name'] ?>_table tr').first().find('td').each(function (i) 
@@ -560,7 +577,7 @@
                             id = label.replace(/\s/g, '_');
                             singleInfo = infoJson.secondAxis[id];
 
-                            if(singleInfo !== '')
+                            if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                             {
                                 var infoIcon = $('<i class="fa fa-info-circle handPointer" style="font-size: ' + rowsLabelsFontSize + 'px; color: ' + rowsLabelsFontColor + '"></i><br/>');
                                 infoIcon.insertBefore(cell.find('a.dropdown-toggle'));
@@ -573,7 +590,7 @@
                             id = label.replace(/\s/g, '_');
                             singleInfo = infoJson.secondAxis[id];
 
-                            if((singleInfo !== ''))
+                            if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                             {
                                 newCellContent = $('<i class="fa fa-info-circle handPointer" style="font-size: ' + rowsLabelsFontSize + 'px; color: ' + rowsLabelsFontColor + '"></i><br/>' +
                                     '<span>' + label + '</span>');
@@ -595,7 +612,6 @@
             
             $('#modalWidgetFieldsInfoTitle').html("Detailed info for field <b>" + label + "</b>");
             $('#modalWidgetFieldsInfoContent').html(info);
-            
             
             $('#modalWidgetFieldsInfo').css({
                 'vertical-align': 'middle',
@@ -631,7 +647,37 @@
             url = null;
         }
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor);
+        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+        {
+            metricName = "<?= $_GET['metric'] ?>";
+            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+            widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
+            widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        }
+        else
+        {
+            metricName = metricNameFromDriver;
+            widgetTitleFromDriver.replace(/_/g, " ");
+            widgetTitleFromDriver.replace(/\'/g, "&apos;");
+            widgetTitle = widgetTitleFromDriver;
+            $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+            widgetHeaderColor = widgetHeaderColorFromDriver;
+            widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+        }
+        
+        $(document).off('changeMetricFromButton_' + widgetName);
+        $(document).on('changeMetricFromButton_' + widgetName, function(event) 
+        {
+            if((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange"))
+            {
+                $("#<?= $_GET['name'] ?>_table").empty();
+                clearInterval(countdownRef); 
+                $("#<?= $_GET['name'] ?>_content").hide();
+                <?= $_GET['name'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, /*null,*/ null, null);
+            }
+        });
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -641,17 +687,17 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
         widgetProperties = getWidgetProperties(widgetName);
         if(widgetProperties !== null)
         {
             //Inizio codice ad hoc basato sulle proprietà del widget
-            
             var styleParametersString = widgetProperties.param.styleParameters;
             styleParameters = jQuery.parseJSON(styleParametersString);
-            //Fine codice ad hoc basato sulle proprietà del widget/
+            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
+            //Fine codice ad hoc basato sulle proprietà del widget
             
-            metricData = getMetricData(metricId);
+            metricData = getMetricData(metricName);
             if(metricData.data.length !== 0)
             {
                 metricType = metricData.data[0].commit.author.metricType;
@@ -659,10 +705,14 @@
                 if(firstLoad !== false)
                 {
                     showWidgetContent(widgetName);
+                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
+                    $("#<?= $_GET['name'] ?>_table").show();
                 }
                 else
                 {
                     elToEmpty.empty();
+                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
+                    $("#<?= $_GET['name'] ?>_table").show();
                 }
                 populateTable(series);
                 applyThresholdCodes(series);
@@ -674,15 +724,15 @@
             else
             {
                showWidgetContent(widgetName);
-               $("#<?= $_GET['name'] ?>_table").css("display", "none"); 
-               $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
+               $('#<?= $_GET['name'] ?>_noDataAlert').show();
+               $("#<?= $_GET['name'] ?>_table").hide();
             }        
         }
         else
         {
-            alert("Error while loading widget properties");
+            console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, elToEmpty, "widgetTable", null, null);
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
 </script>

@@ -1,7 +1,7 @@
 {
   "name": "bxslider-4",
   "version": "4.1.2",
-  "homepage": "http://bxslider.com",
+  "homepage": "https://bxslider.com",
   "license": "MIT",
   "main": [
     "jquery.bxslider.js",

@@ -136,6 +136,126 @@
     src: url(../fonts/digital/DS-DIGIB.TTF);
 }
 
+@font-face {
+    font-family: JackFrost;
+    src: url(../fonts/jackFrost/JackFrost.otf);
+}
+
+@font-face {
+    font-family: Trench;
+    src: url(../fonts/Trench/trench.otf);
+}
+
+@font-face {
+    font-family: MerrymentHelicopter;
+    src: url(../fonts/MerrimentHelicopter/MerrimentHelicopter.otf);
+}
+
+@font-face {
+    font-family: ScienceFair;
+    src: url(../fonts/ScienceFair/ScienceFair.otf);
+}
+
+@font-face {
+    font-family: ScienceFairLight;
+    src: url(../fonts/ScienceFair/ScienceFairLight.otf);
+}
+
+@font-face {
+    font-family: ScienceFairLightItalic;
+    src: url(../fonts/ScienceFair/ScienceFairLightItalic.otf);
+}
+
+@font-face {
+    font-family: ScienceFairItalic;
+    src: url(../fonts/ScienceFair/ScienceFairItalic.otf);
+}
+
+@font-face {
+    font-family: Coolwonder;
+    src: url(../fonts/CoolWonder/Coolwonder.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Black;
+    src: url(../fonts/Roboto/Roboto-Black.ttf);
+}
+
+@font-face {
+    font-family: Roboto-BlackItalic;
+    src: url(../fonts/Roboto/Roboto-BlackItalic.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Bold;
+    src: url(../fonts/Roboto/Roboto-Bold.ttf);
+}
+
+@font-face {
+    font-family: Roboto-BoldCondensed;
+    src: url(../fonts/Roboto/Roboto-BoldCondensed.ttf);
+}
+
+@font-face {
+    font-family: Roboto-BoldCondensedItalic;
+    src: url(../fonts/Roboto/Roboto-BoldCondensedItalic.ttf);
+}
+
+@font-face {
+    font-family: Roboto-BoldItalic;
+    src: url(../fonts/Roboto/Roboto-BoldItalic.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Condensed;
+    src: url(../fonts/Roboto/Roboto-Condensed.ttf);
+}
+
+@font-face {
+    font-family: Roboto-CondensedItalic;
+    src: url(../fonts/Roboto/Roboto-CondensedItalic.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Italic;
+    src: url(../fonts/Roboto/Roboto-Italic.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Light;
+    src: url(../fonts/Roboto/Roboto-Light.ttf);
+}
+
+@font-face {
+    font-family: Roboto-LightItalic;
+    src: url(../fonts/Roboto/Roboto-LightItalic.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Medium;
+    src: url(../fonts/Roboto/Roboto-Medium.ttf);
+}
+
+@font-face {
+    font-family: Roboto-MediumItalic;
+    src: url(../fonts/Roboto/Roboto-MediumItalic.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Regular;
+    src: url(../fonts/Roboto/Roboto-Regular.ttf);
+}
+
+@font-face {
+    font-family: Roboto-Thin;
+    src: url(../fonts/Roboto/Roboto-Thin.ttf);
+}
+
+@font-face {
+    font-family: Roboto-ThinItalic;
+    src: url(../fonts/Roboto/Roboto-ThinItalic.ttf);
+}
+
 body 
 {
     width: 100%;
@@ -158,6 +278,14 @@ body
     align-items: center; 
     justify-content: center;
     text-align: center;
+}
+
+.ui-autocomplete-list {
+    height: auto;
+    max-height: 100px;
+    overflow-y: auto;   /* prevent horizontal scrollbar */
+    overflow-x: hidden; /* add padding to account for vertical scrollbar */
+    z-index:1000 !important;
 }
 
 #alrLook, #alrLookM, label[for='alrLook'], label[for='alrLookM']
@@ -192,13 +320,11 @@ body
     text-align: center;
 }
 
-#modal-add-widget, #modal-modify-widget
+#modal-add-widget, #modal-modify-widget, #modal-embed-dashboard
 {
     font-family: Verdana, sans-serif;
     font-size: 12px;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.20);
-    /*font-family: SourceSansProRegular;*/
-    /*font-family: CooperHewittMedium;*/
 }
 
 #modalWidgetFieldsInfo, #dialog-information-widget
@@ -229,7 +355,6 @@ body
 
 #infoTextareaDiv .control-label
 {
-    /*text-align: left;*/
     padding-left: 0px;
     padding-right: 0px;
 }
@@ -562,16 +687,10 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
     height: 100%;
     width: 100%;
     padding-left: 10px;
-    /*border-style: solid;
-    border-color: yellow;
-    border-width: 2px;*/
 }
 
 #headerLogo
 {
-    /*border-style: solid;
-    border-color: violet;
-    border-width: 4px;*/
     float: left;
     width: 25%;
     height: 70%;
@@ -587,14 +706,10 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
     height: 100%; 
     width: 100%;
     object-fit: contain;
-    /*border-style: solid; border-color: orange; border-width: 2px;*/
 }
 
 #clock
 {
-    /*border-style: solid;
-    border-color: yellow;
-    border-width: 2px;*/
     float: left;
     width: 25%;
     height: 30%;
@@ -615,9 +730,6 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
     padding-left: 0px;
     padding-right: 0px;
     background-color: #fff;
-    /*border-style: solid;
-    border-color: blue;
-    border-width: 2px;*/
 }
 
 #pageWrapperCfg 
@@ -871,8 +983,6 @@ ul.alert-dropdown {
 #wrapper-dashboard-cfg
 {
     height: 100%;
-    /*margin: 0 auto;*/
-    /*border-style: solid; border-color: red; border-width: 2px;*/
 }
 
 #container-widgets-cfg
@@ -880,16 +990,6 @@ ul.alert-dropdown {
     background-color: #eee;
     padding: 5px;
     float: left;
-    
-    
-    /*VECCHIE REGOLE, NON CANCELLARE FINCHE' NON SICURO*/
-    /*width: inherit;
-    padding-bottom: 164px;
-    top: 70px;
-    left: 0;
-    right: 0;
-    border-top:  2px solid #ddd;
-    z-index: 1;*/
 }
 
 #container-widgets
@@ -900,9 +1000,6 @@ ul.alert-dropdown {
     right: 0;
     width: inherit;
     z-index: 1;
-    /*border-top:  2px solid #ddd;
-    border-style: solid; border-color: red; border-width: 1px;
-    padding-bottom: 50px; */
 }
 
 #container-widgets-cfg li.gs-w {
@@ -931,9 +1028,6 @@ ul.alert-dropdown {
     height: 45px;
     font-size: 40px;
     margin-right: 10px;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .footerLogo, .footerLogo:link, .footerLogo:visited, .footerLogo:active
@@ -946,9 +1040,6 @@ ul.alert-dropdown {
     display: flex;
     justify-content: center;
     align-items: center;
-    /*border-style: solid;
-    border-color: red;
-    border-width: 1px;*/
 }
 
 .footerLogo:hover
@@ -1581,7 +1672,7 @@ label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersT
     display: none;
 }
 
-#newTabLinkOpenImpossibile, #modalLinkOpen
+#newTabLinkOpenImpossibile
 {
     font-family: Verdana;
 }
@@ -1603,22 +1694,187 @@ label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersT
     font-size: 36px;
 }
 
-#modalLinkOpen div.modal-dialog
+#gisTargetCenterDiv
+{
+    
+}
+
+#gisTargetCenterMapDiv
+{
+    height: 175px;
+}
+
+#gisTargetCenterMapDivM
+{
+    height: 175px;
+}
+
+#addGisQueryTableContainer, #editGisQueryTableContainer
+{
+    overflow-x: auto;
+}
+
+#dashboardHeaderMenuTab
+{
+    width: 65px;
+    height: 20px;
+    font-family: Verdana, sans-serif;
+    font-variant: small-caps;
+    font-size: 14px;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+#dashboardHeaderMenu
+{
+    display: none;
+    width: 150px;
+    font-family: Verdana, sans-serif;
+    font-variant: small-caps;
+}
+
+#embedAutoLogoContainer
+{
+    display: none;
+}
+
+#embedAutoLogo
+{
+    width: 232px;
+    height: 30px;
+}
+
+#authorizedPagesTable
+{
+    width: 100%;
+}
+
+#authorizedPagesTable th, #authorizedPagesTable td
+{
+    text-align: center;
+    font-weight: normal;
+}
+
+#authorizedPagesTable th, #authorizedPagesTable td
+{
+    background-color: white;
+}
+
+#authorizedPagesTable i.fa-plus, #authorizedPagesTable i.fa-minus
+{
+    font-size: 24px;
+    color: #337ab7;
+}
+
+#authorizedPagesTable i.fa-plus:hover, #authorizedPagesTable i.fa-minus:hover 
+{
+    cursor: pointer;
+    color: red;
+}
+
+label[for='authorizedPages'], #authorizedPagesTable
+{
+    margin-top: 10px;
+}
+
+.editable-click, a.editable-click, a.editable-click:hover
+{
+    border-bottom: none!important;
+}
+
+#authorizedPagesTable th, #authorizedPagesTable td
+{
+    background-color: transparent;
+}
+
+#authorizedPagesTable thead tr
+{
+    background-color: white;
+}
+
+#authorizedPagesTable tbody tr:nth-child(odd)
+{
+    background-color: #f2f2f2;
+}
+
+#authorizedPagesTable tbody tr:nth-child(even)
+{
+    background-color: white;
+}
+
+#embedDashboardCode
+{
+    width: 100%;
+}
+
+#modal-embed-dashboard div.modal-dialog
 {
     width: 95vw;
 }
 
-#modalLinkOpenBodyIframe
+#modalEmbedDasboardBodyContent
 {
-    display: none;
-    width: 100%;
     height: 80vh;
 }
 
-#modalLinkOpenBodyMap
+#embedPreviewContainer
+{
+    overflow: auto;
+    position: relative;
+}
+
+#modal-embed-dashboard .modal-title
+{
+    text-align: center;
+}
+
+
+#embedPreviewIframe
+{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#autofitAlert
+{
+    display: none;
+    font-family: Verdana, sans-serif;
+    background-color: black;
+    color: white;
+    opacity: 0.7;
+    width: 400px;
+    height: 400px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999999;
+}
+
+#autofitAlertMsgContainer
+{
+    display: flex;
+    align-items: flex-end; 
+    justify-content: center;
+    text-align: center;
+}
+
+#autofitAlertIconContainer
+{
+    display: flex;
+    align-items: flex-start; 
+    justify-content: center;
+    text-align: center;
+}
+
+div.selectorMenuCustomIcon
 {
     display: none;
     width: 100%;
-    height: 80vh;
-    border: 1px solid red;
+    height: 100%;
 }

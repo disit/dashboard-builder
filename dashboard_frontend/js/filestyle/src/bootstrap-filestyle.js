@@ -1,6 +1,6 @@
 /*
  * bootstrap-filestyle
- * doc: http://markusslima.github.io/bootstrap-filestyle/
+ * doc: https://markusslima.github.io/bootstrap-filestyle/
  * github: https://github.com/markusslima/bootstrap-filestyle
  *
  * Copyright (c) 2014 Markus Vinicius da Silva Lima

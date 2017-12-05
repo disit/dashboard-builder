@@ -1,7 +1,7 @@
 <?php
     session_start();
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab http://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -42,7 +42,6 @@
         <script src="../js/jqueryUi/jquery-ui.js"></script>
         
         <!-- Font awesome icons -->
-        <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">-->
         <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
     </head>
     <body>
@@ -116,6 +115,7 @@
         <script type='text/javascript'>
             $(document).ready(function () 
             {
+                var internalDest = false;
                 $('#checkadmin').on('click', function(){
                     if ($('#checkadmin').prop('checked', true))
                     {
