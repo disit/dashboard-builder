@@ -209,6 +209,19 @@ CREATE TABLE `Descriptions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+LOCK TABLES `Descriptions` WRITE;
+/*!40000 ALTER TABLE `Descriptions` DISABLE KEYS */;
+INSERT INTO `Descriptions` (`IdMetric`,`description`,`status`,`query`,`query2`,`queryType`,`metricType`,`frequency`,`processType`,`area`,`source`,`description_short`,`dataSource`,`storingData`,`municipalityOption`,`timeRangeOption`,`field1Desc`,`field2Desc`,`field3Desc`,`oldData`,`sameDataAlarmCount`,`oldDataEvalTime`,`hasNegativeValues`,`process`) VALUES 
+  ('Button','','Non Attivo',NULL,NULL,'none','Button','60000','API',NULL,'',NULL,'none',0,0,0,NULL,NULL,NULL,0,NULL,NULL,0,NULL),
+  ('Clock','Clock','Non Attivo',NULL,NULL,'none','Testuale','60000','API','Mobilità','Disit','Clock','none',0,0,0,NULL,NULL,NULL,0,NULL,NULL,0,NULL),
+  ('ExternalContent','Visualizzazione di contenuti provenienti da siti esterni','Non Attivo',NULL,NULL,'none','Testuale','60000','API','Contenuti esterni','Disit','Visualizzazione contenuti provenienti da siti esterni','none',1,0,0,NULL,NULL,NULL,0,NULL,NULL,0,NULL),
+  ('Process','Stato di un processo','Non Attivo',NULL,NULL,'none','Testuale','60000','API','Process status','Disit','Stato di un processo','none',1,0,0,NULL,NULL,NULL,0,NULL,NULL,0,NULL),
+  ('ProtezioneCivile','Dati provenienti dalla Protezione civile','Non Attivo','','','','Testuale','600000','API','','Disit','Dati provenienti dalla Protezione Civile','API',1,0,0,NULL,NULL,NULL,0,NULL,NULL,0,NULL),
+  ('Selector','Selector query list','Non Attivo',NULL,NULL,'none','Testuale','600000','API','Mobilità','Disit','Selector query list','none',0,0,0,NULL,NULL,NULL,0,NULL,NULL,0,NULL),
+  ('Separator','GUI separator','Non Attivo',NULL,NULL,'none','Separator','600000','API',NULL,'',NULL,'none',0,0,0,NULL,NULL,NULL,0,NULL,NULL,0,NULL);
+/*!40000 ALTER TABLE `Descriptions` ENABLE KEYS */;
+UNLOCK TABLES;
+
 --
 -- Table structure for table `JobAreas`
 --
