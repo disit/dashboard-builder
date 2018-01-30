@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,17 +14,16 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
+    include('../config.php');
     include('process-form.php');
     session_start();
 ?>
 
 <html lang="en">
+<head>    
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
 
     <title>Dashboard Management System</title>
 
@@ -46,6 +45,21 @@
 
     <!-- Custom Core JavaScript -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
+    
+    <!-- Bootstrap toggle button -->
+   <link href="../bootstrapToggleButton/css/bootstrap-toggle.min.css" rel="stylesheet">
+   <script src="../bootstrapToggleButton/js/bootstrap-toggle.min.js"></script>
+   
+   <!-- Bootstrap table -->
+   <link rel="stylesheet" href="../boostrapTable/dist/bootstrap-table.css">
+   <script src="../boostrapTable/dist/bootstrap-table.js"></script>
+   <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
+   <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
+   
+   <!-- Font awesome icons -->
+    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+    
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 </head>
 
 <body>
@@ -74,7 +88,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">Metrics Management</a>
+                <a class="navbar-brand" href="index.html">Dashboard Management System</a>
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
@@ -90,7 +104,7 @@
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li>
-                        <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboards management</a>
+                        <a href="../management/dashboard_mng.php"> Dashboards management</a>
                     </li>
                     <?php
                         if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
@@ -102,7 +116,7 @@
                            
                            if($_SESSION['loggedRole'] == "ToolAdmin")
                            {
-                                echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
+                                echo '<li class="active"><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
@@ -124,739 +138,872 @@
 
         <div id="page-wrapper">
             <div class="container-fluid">
-                <!-- Page Heading -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            <br/>Metrics Overview
-                        </h1>
-                            <?php
-                                if(isset($_SESSION['loggedRole']))
-                                {
-                                    if($_SESSION['loggedRole'] == "ToolAdmin")
-                                    {
-                                        echo '<nav id="modify-bar-dashboard" class="navbar navbar-default">';
-                                        echo '<div class="container-fluid">';
-                                        echo '<div class="navbar-header">';
-                                        echo '<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">';
-                                        echo '<span class="sr-only">Toggle navigation</span>';
-                                        echo '<span class="icon-bar"></span>';
-                                        echo '<span class="icon-bar"></span>';
-                                        echo '<span class="icon-bar"></span>';
-                                        echo '</button>';
-                                        echo'</div>';
-                                        echo '<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">';
-                                        echo '<ul class="nav navbar-nav">';
-                                        echo '<li class="active"><a id="link_add_metric" href="#" data-toggle="modal" data-target="#modal-add-metric"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Metric <span class="sr-only">(current)</span></a></li>';                           
-                                        echo '<li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>';
-                                        echo '</ul>';
-                                        echo '</div>';
-                                        echo '</div>';
-                                        echo '</nav>';
-                                    }
-                                }
-                            ?>
+                <div class="row" style="margin-top: 50px">
+                    <div class="col-xs-12 centerWithFlex mainPageTitleContainer">
+                        Metrics
                     </div>
                 </div>
                 
-                
-                <!-- tabella -->
+                <!-- Tabella delle metriche-->
                 <div class="row">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title"><i class="fa fa-money fa-fw"></i> Metrics</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div class="table-responsive">
-                                <table id="list_metrics" class="table table-bordered table-hover table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Description</th>
-                                            <th>Area</th>
-                                            <th>Source</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody> 
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="col-xs-12">
+                        <table id="list_metrics"></table> 
                     </div>
                 </div>
-
-                <!--fine tabella -->
             </div>
         </div>
     </div>
+    
     <!-- Modal di creazione di una metrica-->
-    <div class="modal fade" id="modal-add-metric" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="dialog-metric">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Add new Metric</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="form-new-metric" class="form-horizontal" name="add_new_metric" role="form" method="post" action="" data-toggle="validator">
-                        <div class="tabbable"> 
-                            <ul class="nav nav-tabs">
-                                <li class="active"><a href="#tab1" data-toggle="tab">General</a></li>
-                                <li><a href="#tab2" data-toggle="tab">Data acquisition</a></li>
-                                <li><a href="#tab3" data-toggle="tab">Threshold alarm</a></li>
-                            </ul>
-                            <div class="tab-content">
-                                <div class="tab-pane active" id="tab1">
-                                    <div class="form-group">
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Name</label>
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" name="nameMetric" required>                                 
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Description</label>
-                                            <div class="col-md-6">
-                                                <textarea class="form-control textarea-metric" rows="3" name="descriptionMetric"></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Short Description</label>
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" name="descriptionShortMetric"> 
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Data Area</label>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="areaMetric" id="areaMetric">
-                                                    <option>Mobilità</option>
-                                                    <option>Intrattenimento</option>
-                                                    <option>Statistiche</option>
-                                                    <option>Social Network</option>
-                                                    <option>Meteo</option>
-                                                    <option>Network</option>
-                                                </select> 
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Source</label>
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" name="sourceMetric"> 
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Type Results</label>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="typeMetric" id="metricTypeMetric">
-                                                    <option>Intero</option>
-                                                    <option>Map</option>
-                                                    <option>Float</option>
-                                                    <option>Testuale</option>
-                                                    <option>Percentuale</option>
-                                                    <option>Percentuale/50</option>
-                                                    <option>Percentuale/285</option>
-                                                    <option>Percentuale/424</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Frequency of calculation (milliseconds)</label>
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" name="frequencyMetric"> 
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Context</label>
-                                            <div class="col-md-6">
-                                                <input type="checkbox" class="checkStato" name="contextMetric" value="1" id="contextMetric"/>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Time Range</label>
-                                            <div class="col-md-6">
-                                                <input type="checkbox" class="checkStato" name="timeRangeMetric" value="1" id="timeRangeMetric"/>
-                                            </div>
-                                        </div>     
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Storing Data</label>
-                                            <div class="col-md-6">
-                                                <input type="checkbox" class="checkStato" name="storingDataMetric" value="1" id="storingDataMetric"/>
-
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Acquisition Modality</label>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="queryTypeMetric" id="queryTypeMetric">
-                                                    <option>null</option>
-                                                    <option>SQL</option>    
-                                                    <option>SPARQL</option>
-                                                </select>                                 
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane" id="tab2">
-                                    <div class="form-group"> 
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Process Java String</label>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="processTypeMetric" id="processType">
-                                                    <option>API</option>
-                                                    <option>JVPerc</option>
-                                                    <option>JVNum1</option>
-                                                    <option>JVRidesAtaf</option>
-                                                    <option>jVPark</option>
-                                                    <option>JVSceOnNodes</option>
-                                                    <option>JVSmartDs</option>
-                                                    <option>JVTwRet</option>
-                                                    <option>JVWifiOp</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Data Source</label>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="dataSourceMetric" id="dataSourceMetric">
-                                                    <option>API</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row"  id="row-des-datasource">
-                                            <label for="#" class="col-md-4 control-label">Data Source Description</label>
-                                            <div class="col-md-6">
-                                                <textarea id="descrizioneDataSource" class="form-control textarea-metric" rows="3" readonly></textarea> 
-                                            </div>                                      
-                                        </div>       
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label" id="label-query-url">Query</label>
-                                            <div class="col-md-6">
-                                                <textarea class="form-control textarea-metric" name="queryMetric" id="queryMetric" rows="3"></textarea>
-                                                <button type="button" id="button_query_test" name="test_query" class="btn btn-primary test_button_query" value="">Test Query</button>
-                                            </div>
-                                        </div>
-                                        <!--dati visibili soolo con JVPerc settato -->
-                                        <div class="row" id="row2-datasources2" hidden>
-                                            <label for="#" class="col-md-4 control-label">Data Source 2</label>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="dataSourceMetric2" id="dataSourceMetric2"> 
-                                                    <option></option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row" id="row2-descrizioneDataSource2" hidden>
-                                            <label for="#" class="col-md-4 control-label">Data Source Description 2</label>
-                                            <div class="col-md-6">
-                                                <textarea id="descrizioneDataSource2" class="form-control textarea-metric" rows="3" readonly></textarea> 
-                                            </div>                                      
-                                        </div>
-                                        <div class="row" id="row-query2" hidden>
-                                            <label for="#" class="col-md-4 control-label">Query 2</label>
-                                            <div class="col-md-6">
-                                                <textarea class="form-control textarea-metric" name="queryMetric2" id="queryMetric2" rows="3"></textarea>
-                                                <button type="button" id="button_query_test2" name="test_query2" class="btn btn-primary test_button_query" value="">Test Query</button>
-                                            </div>
-                                        </div>
-
-
-                                    </div>
-                                </div>
-                                <div class="tab-pane" id="tab3">
-                                    <div class="form-group">
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Threshold Alarm value</label>
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" name="thresholdMetric">
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Evaluation Criterion</label>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="thresholdEvalMetric" id="thresholdEvalMetric">
-                                                    <option>null</option>
-                                                    <option>=</option>
-                                                    <option>></option>
-                                                    <option><</option>
-                                                    <option>!=</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Number Evaluation</label>
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" name="thresholdEvalCountMetric">
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Alarm Time Threshold</label>
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" name="thresholdTimeMetric"> 
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                <button type="submit" id="button_add_new_metric" name="add_new_metric" class="btn btn-primary internalLink">Add</button>
-                            </div>
-                    </form>
-                </div>
+    <div class="modal fade" id="modal-add-metric" tabindex="-1" role="dialog" aria-labelledby="addMetricModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header centerWithFlex">
+              <h5 class="modal-title" id="addMetricModalLabel">Add new metric</h5>
             </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- Modal di modifica di una metrica-->
-<div class="modal fade" id="modal-modify-metric" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document" id="dialog-metric-m">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel-m">Modify metric</h4>
-            </div>
-            <div class="modal-body">
-                <form id="modify_metric" class="form-horizontal" role="form" method="post" action="" data-toggle="validator">
-                    <div class="tabbable"> <!-- Only required for left/right tabs -->
-                        <ul class="nav nav-tabs">
-                            <li class="active"><a href="#tab1m" data-toggle="tab">General</a></li>
-                            <li><a href="#tab2m" data-toggle="tab">Data acquisition</a></li>
-                            <li><a href="#tab3m" data-toggle="tab">Threshold alarm</a></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div class="tab-pane active" id="tab1m">
-                                <div class="form-group">
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Name</label>
-                                        <div class="col-md-6">
-                                            <input type="text" class="form-control" class="modify-nameMetric" name="modify-nameMetric" id="modify-nameMetric" readonly>                                 
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Description</label>
-                                        <div class="col-md-6">
-                                            <textarea class="form-control textarea-metric" rows="3" name="modify-descriptionMetric" id="modify-descriptionMetric"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Short Description</label>
-                                        <div class="col-md-6">
-                                            <input type="text" class="form-control" name="modify-descriptionShortMetric" id="modify-descriptionShortMetric"> 
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Data Area</label>
-                                        <div class="col-md-6">
-                                            <select class="form-control" name="modify-areaMetric" id="modify-areaMetric">
-                                                <option>Mobilità</option>
-                                                <option>Intrattenimento</option>
-                                                <option>Statistiche</option>
-                                                <option>Social Network</option>
-                                                <option>Meteo</option>
-                                                <option>Network</option>
-                                            </select> 
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Source</label>
-                                        <div class="col-md-6">
-                                            <input type="text" class="form-control" name="modify-sourceMetric" id="modify-sourceMetric"> 
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Result type</label>
-                                        <div class="col-md-6">
-                                            <select class="form-control" name="modify-typeMetric" id="modify-typeMetric">
-                                                    <option>Intero</option>
-                                                    <option>Map</option>
-                                                    <option>Float</option>
-                                                    <option>Testuale</option>
-                                                    <option>Percentuale</option>
-                                                    <option>Percentuale/50</option>
-                                                    <option>Percentuale/285</option>
-                                                    <option>Percentuale/424</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Frequency of calculation (milliseconds)</label>
-                                        <div class="col-md-6">
-                                            <input type="text" class="form-control" name="modify-frequencyMetric" class="modify-frequencyMetric" id="modify-frequencyMetric"> 
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">context</label>
-                                        <div class="col-md-6">
-                                            <input type="checkbox" name="modify-contextMetric" id="modify-contextMetric" class="checkStato" value="1"/>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Time Range</label>
-                                        <div class="col-md-6">
-                                            <input type="checkbox" class="checkStato" name="modify-timeRangeMetric" id="modify-timeRangeMetric" value="1"/>
-                                        </div>
-                                    </div>    
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Storing Data</label>
-                                        <div class="col-md-6">
-                                            <input type="checkbox" class="checkStato" name="modify-storingDataMetric" id="modify-storingDataMetric" value="1"/> 
-                                        </div>
-                                    </div>                                    
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Acquisition Modality</label>
-                                        <div class="col-md-6">
-                                            <select class="form-control" name="modify-queryTypeMetric" id="modify-queryTypeMetric">
-                                                <option>null</option>
-                                                    <option>SQL</option>    
-                                                    <option>SPARQL</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tab-pane" id="tab2m">
-                                <div class="form-group">
-                                    <!-- Dati da spostare -->
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Process Java String</label>
-                                        <div class="col-md-6">
-                                            <select class="form-control" name="modify-processTypeMetric" id="modify-processType">
-                                                <option>API</option>
-                                                    <option>JVPerc</option>
-                                                    <option>JVNum1</option>
-                                                    <option>JVRidesAtaf</option>
-                                                    <option>jVPark</option>
-                                                    <option>JVSceOnNodes</option>
-                                                    <option>JVSmartDs</option>
-                                                    <option>JVTwRet</option>
-                                                    <option>JVWifiOp</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row" id="row-mod-datasource">
-                                        <label for="#" class="col-md-4 control-label">Data Source</label>
-                                        <div class="col-md-6">
-                                            <select class="form-control" name="modify-dataSourceMetric" id="modify-dataSourceMetric">
-                                                <option>API</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row" id="row-mod-des-datasource">
-                                        <label for="#" class="col-md-4 control-label">Data Source description</label>
-                                        <div class="col-md-6">
-                                            <textarea id="modify-descrizioneDataSource" class="form-control textarea-metric" rows="3" readonly></textarea> 
-                                        </div>
-                                    </div>
-                                    <!-- fine dati da spostare -->
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label" id="label-query-url-m">Query</label>
-                                        <div class="col-md-6">
-                                            <textarea class="form-control textarea-metric" name="modify-queryMetric" id="modify-queryMetric" rows="3"></textarea>
-                                            <!--
-                                            <button type="button" data-dismiss="modal"  class="btn btn-primary" id="button_query_test_M">Test Query</button>
-                                            -->
-                                            <button type="button" id="button_query_test_M" name="test_query" class="btn btn-primary test_button_query">Test Query</button>
-
-                                        </div>
-                                    </div>
-                                    <!--Righe visibili sono in caso Process JAVA sia JVPerc-->
-                                    <div class="row" id="row2-modify-datasources2" hidden>
-                                        <label for="#" class="col-md-4 control-label">Data Source 2</label>
-                                        <div class="col-md-6">
-                                            <select class="form-control" name="modify-datasourceMetric2" id="modify-datasourcesMetric2">
-                                                <option></option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row" id="row2-modify-decription-datasources2" hidden>
-                                        <label for="#" class="col-md-4 control-label">Data Source Description 2</label>
-                                        <div class="col-md-6">
-                                            <textarea id="modify-descrizioneDataSource2" class="form-control textarea-metric" rows="3" readonly></textarea> 
-                                        </div>  
-                                    </div>
-                                    <div class="row" id="row-modify-query2" hidden>
-                                        <label for="#" class="col-md-4 control-label">Query 2</label>
-                                        <div class="col-md-6">
-                                            <textarea class="form-control textarea-metric" name="modify-queryMetric2" id="modify-queryMetric2" rows="3"></textarea> 
-                                            <button type="button" id="button_query2_test_M" name="test_query2" class="btn btn-primary test_button_query">Test Query</button>
-                                        </div>
-                                    </div>
-
-
-
-                                </div>
-                            </div>
-                            <div class="tab-pane" id="tab3m">
-                                <div class="form-group">
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Threshold Alarm value</label>
-                                        <div class="col-md-6">
-                                            <input type="text" class="form-control" name="modify-thresholdMetric" id="modify-thresholdMetric" value="0"> 
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Evaluation Criterion</label>
-                                        <div class="col-md-6">
-                                            <select class="form-control" name="modify-thresholdEvalMetric" id="modify-thresholdEvalMetric">
-                                                <option>null</option>
-                                                <option>=</option>
-                                                <option>></option>
-                                                <option><</option>
-                                                <option>!=</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Number Evaluation</label>
-                                        <div class="col-md-6">
-                                            <input type="text" class="form-control" id="modify-thresholdEvalCountMetric" name="modify-thresholdEvalCountMetric" value="0"> 
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <label for="#" class="col-md-4 control-label">Alarm Time Threshold</label>
-                                        <div class="col-md-6">
-                                            <input type="text" class="form-control" id="modify-thresholdTime" name="modify-thresholdTime" value="0"> 
-                                        </div>
-                                    </div>
-
-                                </div>
+            <form id="addMetricForm" name="addMetricForm" role="form" method="post" action="process-form.php" data-toggle="validator">  
+            <div id="addMetricModalBody" class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Metric name</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" id="metricName" name="metricName" class="form-control" required>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Short description</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="shortDescription" required> 
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button type="submit" id="button_modify_metric" name="modify_metric" class="btn btn-primary internalLink">Modify</button>
+                       <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data area</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="dataArea" id="dataArea" required>
+                                    <option>Mobilità</option>
+                                    <option>Intrattenimento</option>
+                                    <option>Statistiche</option>
+                                    <option>Social Network</option>
+                                    <option>Meteo</option>
+                                    <option>Network</option>
+                                    <option>Altro</option>
+                                </select> 
+                            </div>
                         </div>
-                </form>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="addUserFormSubfieldContainer">Full description</div>
+                            <div class="addUserFormSubfieldContainer">
+                               <textarea class="form-control textarea-metric" rows="2" name="fullDescription" required></textarea> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Process computation method</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="processType" id="processType">
+                                    <option value="JVNum1">Numeric (JVNum1)</option>
+                                    <option value="JVPerc">Percent (JVPerc)</option>
+                                    <option value="JVTable">Matrix (JVTable)</option>
+                                    <option value="API">API</option>
+                                    <option value="JVRidesAtaf">JVRidesAtaf (specific)</option>
+                                    <option value="JVSceOnNodes">JVSceOnNodes (specific)</option>
+                                    <option value="jVPark">jVPark (specific)</option>
+                                    <option value="JVWifiOp">JVWifiOp (specific)</option>
+                                    <option value="JVSmartDs">JVSmartDs (specific)</option>
+                                    <option value="JVTwRet">JVTwRet (specific)</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Result type</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="resultType" id="resultType" required>
+                            </div>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Update frequency (ms)</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="updateFrequency" required> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">City context</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="cityContext" id="cityContext">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Time range</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="timeRange" id="timeRange">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Storing data</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="storingData" id="storingData">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data source type</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="dataSourceType" id="dataSourceType">
+                                    <option value="NULL">Not specified</option>
+                                    <option value="SQL">SQL</option>
+                                    <option value="SPARQL">Sparql</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data source</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="dataSource" id="dataSource">
+                                    <option value="none">None</option>
+                                    <?php 
+                                        $link = mysqli_connect($host, $username, $password);
+                                        mysqli_select_db($link, $dbname);
+                                        
+                                        $q1 = "SELECT Id FROM Dashboard.DataSource";
+                                        $r1 = mysqli_query($link, $q1);
+                                        
+                                        if($r1)
+                                        {
+                                            while($row = $r1->fetch_assoc())
+                                            {
+                                                echo '<option value="' . $row['Id'] . '">' . $row['Id'] . '</option>';
+                                            }
+                                        }
+                                    ?>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data source description</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="dataSourceDescription" required> 
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="addUserFormSubfieldContainer">Query</div>
+                            <div class="addUserFormSubfieldContainer">
+                               <textarea class="form-control" rows="2" name="query" required></textarea> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Same data alarm count</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="sameDataAlarmCount"> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Old data evaluation time (ms)</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="oldDataEvalTime"> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Negative values</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="hasNegativeValues" id="hasNegativeValues">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Process name</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="process">
+                            </div> 
+                        </div>
+                    </div>
             </div>
+            <div id="addmetricModalFooter" class="modal-footer">
+              <button type="button" id="addNewUserCancelBtn" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" id="add_new_metric" name="add_new_metric" class="btn btn-primary internalLink">Confirm</button>
+            </div>
+            </form>   
+          </div>
         </div>
     </div>
-</div>
-</div>
+    
+    <!-- Modal di modifica di una metrica-->
+    <div class="modal fade" id="modalEditMetric" tabindex="-1" role="dialog" aria-labelledby="editMetricModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header centerWithFlex">
+              <h5 class="modal-title" id="editMetricModalLabel">Edit metric</h5>
+            </div>
+            <form id="editMetricForm" name="editMetricForm" role="form" method="post" action="process-form.php" data-toggle="validator">  
+            <input type="hidden" id="metricId" name="metricId" />    
+            <div id="editMetricModalBody" class="modal-body">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Metric name</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" id="metricNameM" name="metricNameM" class="form-control" required>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Short description</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" id="shortDescriptionM" name="shortDescriptionM" required> 
+                            </div>
+                        </div>
+                       <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data area</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="dataAreaM" id="dataAreaM" required>
+                                    <option>Mobilità</option>
+                                    <option>Intrattenimento</option>
+                                    <option>Statistiche</option>
+                                    <option>Social Network</option>
+                                    <option>Meteo</option>
+                                    <option>Network</option>
+                                    <option>Altro</option>
+                                </select> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="addUserFormSubfieldContainer">Full description</div>
+                            <div class="addUserFormSubfieldContainer">
+                               <textarea class="form-control textarea-metric" rows="2" name="fullDescriptionM" id="fullDescriptionM" required></textarea> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Process computation method</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="processTypeM" id="processTypeM">
+                                    <option value="JVNum1">Numeric (JVNum1)</option>
+                                    <option value="JVPerc">Percent (JVPerc)</option>
+                                    <option value="JVTable">Matrix (JVTable)</option>
+                                    <option value="API">API</option>
+                                    <option value="JVRidesAtaf">JVRidesAtaf (specific)</option>
+                                    <option value="JVSceOnNodes">JVSceOnNodes (specific)</option>
+                                    <option value="jVPark">jVPark (specific)</option>
+                                    <option value="JVWifiOp">JVWifiOp (specific)</option>
+                                    <option value="JVSmartDs">JVSmartDs (specific)</option>
+                                    <option value="JVTwRet">JVTwRet (specific)</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Result type</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="resultTypeM" id="resultTypeM" required>
+                            </div>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Update frequency (ms)</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="updateFrequencyM" id="updateFrequencyM" required> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">City context</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="cityContextM" id="cityContextM">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Time range</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="timeRangeM" id="timeRangeM">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Storing data</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="storingDataM" id="storingDataM">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data source type</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="dataSourceTypeM" id="dataSourceTypeM">
+                                    <option value="none">Not specified</option>
+                                    <option value="SQL">SQL</option>
+                                    <option value="SPARQL">Sparql</option>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data source</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="dataSourceM" id="dataSourceM">
+                                    <option value="none">None</option>
+                                    <?php 
+                                        $link = mysqli_connect($host, $username, $password);
+                                        mysqli_select_db($link, $dbname);
+                                        
+                                        $q1 = "SELECT Id FROM Dashboard.DataSource";
+                                        $r1 = mysqli_query($link, $q1);
+                                        
+                                        if($r1)
+                                        {
+                                            while($row = $r1->fetch_assoc())
+                                            {
+                                                echo '<option value="' . $row['Id'] . '">' . $row['Id'] . '</option>';
+                                            }
+                                        }
+                                    ?>
+                                </select>
+                            </div> 
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="addUserFormSubfieldContainer">Data source description</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="dataSourceDescriptionM" id="dataSourceDescriptionM" required> 
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="addUserFormSubfieldContainer">Query</div>
+                            <div class="addUserFormSubfieldContainer">
+                               <textarea class="form-control" rows="2" name="queryM" id="queryM"></textarea> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Same data alarm count</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="sameDataAlarmCountM" id="sameDataAlarmCountM"> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Old data evaluation time (ms)</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="oldDataEvalTimeM" id="oldDataEvalTimeM"> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Negative values</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <select class="form-control" name="hasNegativeValuesM" id="hasNegativeValuesM">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-3">
+                            <div class="addUserFormSubfieldContainer">Process name</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="processM" id="processM">
+                            </div> 
+                        </div>
+                    </div>
+            </div>
+            <div id="addmetricModalFooter" class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="submit" id="modify_metric" name="modify_metric" class="btn btn-primary internalLink">Confirm</button>
+            </div>
+            </form>   
+          </div>
+        </div>
+    </div>
+    
+    <!-- Modal di conferma cancellazione di una metrica-->
+    <div class="modal fade" id="modalDelMetric" tabindex="-1" role="dialog" aria-labelledby="delMetricModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+          <div class="modal-content">
+            <div class="modal-header centerWithFlex">
+              <h5 class="modal-title" id="delMetricModalLabel">Delete metric</h5>
+            </div>
+            <form id="delMetricForm" name="delMetricForm" role="form" method="post" action="process-form.php" data-toggle="validator">  
+                <input type="hidden" id="metricIdToDel" name="metricIdToDel" />    
+                <div id="delMetricModalBody" class="modal-body">
+                    <div class="row" id="delMetricMsg">
+                        <div class="col-xs-12 centerWithFlex">
+                            Are you sure you want to delete the following metric?
+                        </div>
+                    </div>
+                    <div class="row" id="delMetricNameMsg">
+                        <div class="col-xs-12 centerWithFlex" id="metricNameToDel"></div>
+                    </div>
+                    <div class="row" id="delMetricOkMsg">
+                        <div class="col-xs-12 centerWithFlex" id="succesMsg">Metric deleted successfully</div>
+                    </div>
+                    <div class="row" id="delMetricOkIcon">
+                        <div class="col-xs-12 centerWithFlex" id="succesIcon"><i class="fa fa-smile-o" style="font-size:48px"></i></div>
+                    </div>
+                    <div class="row" id="delMetricKoMsg">
+                        <div class="col-xs-12 centerWithFlex" id="errorMsg">Error deleting metric</div>
+                    </div>
+                    <div class="row" id="delMetricKoMsg">
+                        <div class="col-xs-12 centerWithFlex" id="errorIcon"><div class="col-xs-12 centerWithFlex" id="succesIcon"><i class="fa fa-meh-o" style="font-size:48px"></i></div></div>
+                    </div>
+                </div>
+                <div id="delMetricModalFooter" class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  <button type="button" id="delMetricBtn" name="delMetricBtn" class="btn btn-primary">Confirm</button>
+                </div>
+            </form>   
+          </div>
+        </div>
+    </div>
 
-<!-- Fine del menù di modifica della metrica -->
-<!-- Menù cancellazione della metrica-->
-<div class="modal fade" id="modal-delete-metric" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Delete selected metric</h4>
-            </div>
-            <div class="modal-body">
-                <form id="form-delete-metric" class="form-horizontal" role="form" method="post" action="" data-toggle="validator">
-                    <div id="delete_message"><p>After the confirmation will not be possible to restore the deleted metric. Are you sure you want to proceed?</p></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="submit" id="button_delete_metric" name="delete_metric" class="btn btn-primary internalLink">Delete</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- FIne del menù di cancellazione della metrica -->
-<!-- Inizio Modifica dello stato -->
-<div class="modal fade" id="modal-modify-metric-status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Modify metric status</h4>
-            </div>
-            <div class="modal-body">
-                <form id="form-modify-metric-status" class="form-horizontal" role="form" method="post" action="" data-toggle="validator">
-                    <div id="status_message"><p>Are you sure you want to change this metric status?</p></div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="submit" id="button_modify_metric_status" name="modify-status" class="btn btn-primary">Confirm</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Fine modifca dello stato -->
+
 <script type='text/javascript'>
-
-    Array.prototype.contains = function (v) {
-        for (var i = 0; i < this.length; i++) {
-            if (this[i] === v)
-                return true;
-        }
-        return false;
-    };
-
-    Array.prototype.unique = function () {
-        var arr = [];
-        for (var i = 0; i < this.length; i++) {
-            if (!arr.contains(this[i])) {
-                arr.push(this[i]);
-            }
-        }
-        return arr;
-    };
-
-
     $(document).ready(function () 
     {
-        var array_metrics = new Array();
-        var array_dataSources = new Array();
-        var array_widget = new Array();
-        var internalDest = false;
-
-        //array dei menù
-        var list_area = new Array();
-        var list_processType = new Array();
-        var list_EvalMetric = new Array();
-        var list_queryType = new Array();
-        var list_metricType = new Array();
-        var list_dataSource = new Array();
-        var list_widget = new Array();
-
-        //Variabili  Datasource
-        var ds_url;
-        var ds_database;
-        var ds_username;
-        var ds_password;
-        var ds_databaseType;
-
-        //Variabili  Datasource
-        var ds_urlQ2;
-        var ds_databaseQ2;
-        var ds_usernameQ2;
-        var ds_passwordQ2;
-        var ds_databaseTypeQ2;
-
+        var tableFirstLoad = true;
         $.ajax({
             url: "get_data.php",
-            data: {action: "get_metrics"},
+            data: {action: "getMetricList"},
             type: "GET",
             async: true,
-            contentType: "charset=iso-8859-1",
             dataType: 'json',
-            success: function (data) {
-                for (var i = 0; i < data.length; i++)
-                {
-                    array_metrics[i] = {desc: data[i]['descMetric'],
-                        descShort: data[i]['descShortMetric'],
-                        id: data[i]['idMetric'],
-                        type: data[i]['typeMetric'],
-                        area: data[i]['areaMetric'],
-                        source: data[i]['sourceMetric'],
-                        status: data[i]['statusMetric'],
-                        processType: data[i]['processTypeMetric'],
-                        queryType: data[i]['queryTypeMetric'],
-                        //metricType: data[i]['metricTypeMetric'],
-                        dataSource: data[i]['dataSourceMetric'],
-                        metricType: data[i]['typeMetric'],
-                        eval: data[i]['thresholdEvalMetric']};
-
-                    //carica gli array
-                    list_area[i] = array_metrics[i]['area'];
-                    list_processType[i] = array_metrics[i]['processType'];
-                    list_EvalMetric[i] = array_metrics[i]['eval'];
-                    list_metricType[i] = array_metrics[i]['metricType'];
-                    list_queryType[i] = array_metrics[i]['queryType'];
-                    list_dataSource[i] = array_metrics[i]['dataSource'];
-                    //console.log(list_dataSource[i]);
-
-                    //Lista delle metriche
-                    if (array_metrics[i]['status'] == 'Attivo') {
-                        $('#list_metrics tbody').append('<tr><td class="name_met">' + array_metrics[i]['id'] + '</td><td>' + array_metrics[i]['desc'] + '</td><td>' + array_metrics[i]['area'] + '</td><td>' + array_metrics[i]['source'] + '</td><td><a class="icon-status-metric" href="#" data-toggle="modal" data-target="#modal-modify-metric-status"><input type="checkbox" class="checkStato" name="stato" value=1 checked /></a></td><td><div class="icons-modify-metric"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-modify-metric" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div><div class="icons-delete-metric"><a class="icon-delete-metric" href="#" data-toggle="modal" data-target="#modal-delete-metric"><span class="glyphicon glyphicon-remove glyphicon-delete-metric" aria-hidden="true" style="float:right;"></span></a></div></td></tr>');
-                    } else {
-                        $('#list_metrics tbody').append('<tr><td class="name_met">' + array_metrics[i]['id'] + '</td><td>' + array_metrics[i]['desc'] + '</td><td>' + array_metrics[i]['area'] + '</td><td>' + array_metrics[i]['source'] + '</td><td><a class="icon-status-metric" href="#" data-toggle="modal" data-target="#modal-modify-metric-status"><input type="checkbox" class="checkStato" name="stato" value=0/></a></td><td><div class="icons-modify-metric"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-modify-metric" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div><div class="icons-delete-metric"><a class="icon-delete-metric" href="#" data-toggle="modal" data-target="#modal-delete-metric"><span class="glyphicon glyphicon-remove glyphicon-delete-metric" aria-hidden="true" style="float:right;"></span></a></div></td></tr>');
-                    }
-
-                    //lista metriche da associare
-                    $('#list-Metric').append('<option>' + array_metrics[i]['id'] + '</option>');
-
-                }
-
-
-                //caricamento elenco widget
-                $.ajax({
-                    url: "get_data.php",
-                    data: {action: "get_widget"},
-                    type: "GET",
-                    async: true,
-                    //contentType: "charset=utf-8",
-                    dataType: 'json',
-                    success: function (data) {
-                        //console.log(data.length);
-                        for (var i = 0; i < data.length; i++)
+            success: function (data) 
+            {
+                $('#list_metrics').bootstrapTable({
+                    columns: [{
+                        field: 'IdMetric',
+                        title: 'Name',
+                        sortable: true,
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
                         {
-                            array_widget[i] = {
-                                type_W: data[i]['type_widget'],
-                                source_w: data[i]['source_widget']
-                            };
-                            //console.log(array_widget[i]['type']);
-                            //list_widget[i] = array_widget[i]['type_W'];
-                            list_widget[i] = array_widget[i]['source_w'];
-                            //console.log(list_widget[i]);                 
+                            if(value !== null)
+                            {
+                                if(value.length > 50)
+                                {
+                                   return value.substr(0, 50) + " ...";
+                                }
+                                else
+                                {
+                                   return value;
+                                } 
+                            }
                         }
-                        var lunghezza = list_widget.length;
-                        console.log(lunghezza);
-                        list_widget_unique = list_widget.unique();
-                        for (var i = 0; i < list_widget_unique.length; i++) {
-                            $('#list-widget-types').append('<option>' + list_widget_unique[i] + '</option>');
+                    }, {
+                        field: 'description_short',
+                        title: 'Description',
+                        sortable: true,
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
+                        {
+                            if(value !== null)
+                            {
+                                if(value.length > 50)
+                                {
+                                   return value.substr(0, 50) + " ...";
+                                }
+                                else
+                                {
+                                   return value;
+                                } 
+                            }
                         }
-                        //
+                    }, {
+                        field: 'metricType',
+                        title: 'Type',
+                        sortable: true,
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
+                        {
+                            if(value !== null)
+                            {
+                                if(value.length > 50)
+                                {
+                                   return value.substr(0, 50) + " ...";
+                                }
+                                else
+                                {
+                                   return value;
+                                } 
+                            }
+                        }
+                    },
+                    {
+                        field: 'source',
+                        title: 'Source',
+                        sortable: true,
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
+                        {
+                            if(value !== null)
+                            {
+                                if(value.length > 50)
+                                {
+                                   return value.substr(0, 50) + " ...";
+                                }
+                                else
+                                {
+                                   return value;
+                                } 
+                            }
+                        }
+                    },
+                    {
+                        field: 'dataSource',
+                        title: 'Data source',
+                        sortable: true,
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
+                        {
+                            if(value !== null)
+                            {
+                                if(value.length > 50)
+                                {
+                                   return value.substr(0, 50) + " ...";
+                                }
+                                else
+                                {
+                                   return value;
+                                } 
+                            }
+                        }
+                    },
+                    {
+                        field: 'status',
+                        title: "Status",
+                        align: "center",
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
+                        {
+                            if(value === 'Non Attivo')
+                            {
+                                return '<input type="checkbox" data-toggle="toggle" class="changeMetricStatus">';
+                            }
+                            else
+                            {
+                                return '<input type="checkbox" checked data-toggle="toggle" class="changeMetricStatus">';
+                            }
+                            
+                        }
+                    },
+                    {
+                        title: "Edit",
+                        align: "center",
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
+                        {
+                            return '<span class="glyphicon glyphicon-cog"></span>'; 
+                        }
+                    },
+                    {
+                        title: "Delete",
+                        align: "center",
+                        valign: "middle",
+                        align: "center",
+                        halign: "center",
+                        formatter: function(value, row, index)
+                        {
+                            return '<span class="glyphicon glyphicon-remove"></span>'; 
+                        }
+                 }],
+                    data: data,
+                    search: true,
+                    pagination: true,
+                    pageSize: 10,
+                    locale: 'en-US',
+                    searchAlign: 'left',
+                    uniqueId: "id",
+                    striped: true,
+                    onPostBody: function()
+                    {
+                        if(tableFirstLoad)
+                        {
+                            //Caso di primo caricamento della tabella
+                            tableFirstLoad = false;
+                            console.log("Primo caricamento");
+                            var addMetricDiv = $('<div class="pull-right"><i id="link_add_metric" data-toggle="modal" data-target="#modal-add-metric" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
+                            $('div.fixed-table-toolbar').append(addMetricDiv);
+                            addMetricDiv.css("margin-top", "10px");
+                            addMetricDiv.find('i.fa-plus-square').off('hover');
+                            addMetricDiv.find('i.fa-plus-square').hover(function(){
+                                $(this).css('color', 'red');
+                                $(this).css('cursor', 'pointer');
+                            }, 
+                            function(){
+                                $(this).css('color', '#ffcc00');
+                                $(this).css('cursor', 'normal');
+                            });
+                        }
+                        else
+                        {
+                            //Casi di cambio pagina
+                            console.log("Cambio pagina");
+                        }
+                        
+                        //Istruzioni da eseguire comunque
+                        $('#list_metrics span.glyphicon-cog').css('color', '#337ab7');
+                        $('#list_metrics span.glyphicon-cog').css('font-size', '20px');
+                        
+                        $('#list_metrics span.glyphicon-cog').off('hover');
+                        $('#list_metrics span.glyphicon-cog').hover(function(){
+                            $(this).css('color', '#ffcc00');
+                            $(this).css('cursor', 'pointer');
+                        }, 
+                        function(){
+                            $(this).css('color', '#337ab7');
+                            $(this).css('cursor', 'normal');
+                        });
+                        
+                        $('#list_metrics span.glyphicon-remove').css('color', 'red');
+                        $('#list_metrics span.glyphicon-remove').css('font-size', '20px');
+                        
+                        $('#list_metrics span.glyphicon-remove').off('hover');
+                        $('#list_metrics span.glyphicon-remove').hover(function(){
+                            $(this).css('color', '#ffcc00');
+                            $(this).css('cursor', 'pointer');
+                        }, 
+                        function(){
+                            $(this).css('color', 'red');
+                            $(this).css('cursor', 'normal');
+                        });
+                        
+                        $('#list_metrics input.changeMetricStatus').bootstrapToggle({
+                            on: "On",
+                            off: "Off",
+                            onstyle: "primary",
+                            offstyle: "default",
+                            size: "small"
+                        });
+                        
+                        $('#list_metrics tbody input.changeMetricStatus').off('change');
+                        $('#list_metrics tbody input.changeMetricStatus').change(function() {
+                            if($(this).prop('checked') === false)
+                            {
+                                var newStatus = 'Non Attivo';
+                            }
+                            else
+                            {
+                                var newStatus = 'Attivo';
+                            }
+
+                            $.ajax({
+                                url: "process-form.php",
+                                data: {
+                                    updateMetricStatus: true,
+                                    metricId: $(this).parents('tr').attr('data-uniqueid'),
+                                    newStatus: newStatus
+                                },
+                                type: "POST",
+                                async: true,
+                                success: function(data)
+                                {
+                                    if(data !== "Ok")
+                                    {
+                                        console.log("Error updating metric status");
+                                        console.log(data);
+                                        alert("Error updating metric status");
+                                        location.reload();
+                                    }
+                                },
+                                error: function(errorData)
+                                {
+                                    console.log("Error updating metric status");
+                                    console.log(errorData);
+                                    alert("Error updating metric status");
+                                    location.reload();
+                                }
+                            });
+                        });
+                        
+                        $('#list_metrics tbody span.glyphicon-cog').off('click');
+                        $('#list_metrics tbody span.glyphicon-cog').click(function() 
+                        {
+                            var metricId = $(this).parents('tr').attr('data-uniqueid');
+
+                            $.ajax({
+                                url: "get_data.php",
+                                data: {
+                                    metricId: metricId, 
+                                    action: "get_param_metrics"
+                                },
+                                type: "GET",
+                                async: true,
+                                dataType: 'json',
+                                success: function (data)
+                                {
+                                    if(data.result === 'Ok')
+                                    {
+                                        $('#metricNameM').val(data.metricData.IdMetric);
+                                        $('#shortDescriptionM').val(data.metricData.description_short);
+                                        $('#dataAreaM').val(data.metricData.area);
+                                        $('#fullDescriptionM').val(data.metricData.description);
+                                        $('#processTypeM').val(data.metricData.processType);
+                                        $('#resultTypeM').val(data.metricData.metricType);
+                                        $('#updateFrequencyM').val(data.metricData.frequency);
+                                        $('#cityContextM').val(data.metricData.municipalityOption);
+                                        $('#timeRangeM').val(data.metricData.timeRangeOption);
+                                        $('#storingDataM').val(data.metricData.storingData);
+                                        $('#dataSourceTypeM').val(data.metricData.queryType);
+                                        $('#dataSourceM').val(data.metricData.dataSource);
+                                        $('#dataSourceDescriptionM').val(data.metricData.source);
+                                        if(data.metricData.query !== null)
+                                        {
+                                            $('#queryM').val(data.metricData.query);
+                                        }
+                                        $('#sameDataAlarmCountM').val(data.metricData.sameDataAlarmCount);
+                                        $('#oldDataEvalTimeM').val(data.metricData.oldDataEvalTime);
+                                        $('#hasNegativeValuesM').val(data.metricData.hasNegativeValues);
+                                        $('#processM').val(data.metricData.process);
+                                        $('#metricId').val(metricId);
+                                        $('#modalEditMetric').modal('show');
+                                    }
+                                    else
+                                    {
+                                        console.log("Error retrieving metric data");
+                                        console.log(JSON.stringify(errorData));
+                                        alert("Error retrieving metric data");
+                                    }
+
+                                },
+                                error: function(errorData)
+                                {
+                                    console.log("Error retrieving metric data");
+                                    console.log(JSON.stringify(errorData));
+                                    alert("Error retrieving metric data");
+                                }
+                            });
+                        });
+                        
+                        $('#list_metrics tbody span.glyphicon-remove').off('click');
+                        $('#list_metrics tbody span.glyphicon-remove').on('click', function () {
+                            $('#metricIdToDel').val($(this).parents('tr').attr('data-uniqueid'));
+                            $('#metricNameToDel').html($(this).parents('tr').find('td').eq(0).text());
+                            $('#modalDelMetric').modal('show');
+                        });
                     }
                 });
+                
+                $('#delMetricBtn').click(function(){
+                    $('#delMetricModalFooter').hide();
+                    $.ajax({
+                        url: "process-form.php",
+                        data: {
+                            deleteMetric: true,
+                            metricId: $('#metricIdToDel').val()
+                        },
+                        type: "POST",
+                        async: true,
+                        success: function(data)
+                        {
+                            if(data === "Ok")
+                            {
+                                $('#delMetricMsg').hide();
+                                $('#delMetricNameMsg').hide();
+                                $('#delMetricOkMsg').show();
+                                $('#delMetricOkIcon').show();
+                                
+                                $('#list_metrics').bootstrapTable('removeByUniqueId', $('#metricIdToDel').val());
+                                
+                                setTimeout(function(){
+                                   $('#modalDelMetric').modal('hide');
+                                   setTimeout(function(){
+                                       $('#delMetricOkMsg').hide();
+                                       $('#delMetricOkIcon').hide();
+                                       $('#delMetricMsg').show();
+                                       $('#delMetricNameMsg').show();
+                                       $('#delMetricModalFooter').show();
+                                   }, 300);
+                                }, 2000);
+                            }
+                            else
+                            {
+                                console.log("Error deleting metric");
+                                console.log(data);
+                                $('#delMetricMsg').hide();
+                                $('#delMetricNameMsg').hide();
+                                $('#delMetricKoMsg').show();
+                                $('#delMetricKoIcon').show();
+                                setTimeout(function(){
+                                   $('#modalDelMetric').modal('hide');
+                                   setTimeout(function(){
+                                       $('#delMetricKoMsg').hide();
+                                       $('#delMetricKoIcon').hide();
+                                       $('#delMetricMsg').show();
+                                       $('#delMetricNameMsg').show();
+                                       $('#delMetricModalFooter').show();
+                                   }, 300);
+                                }, 2000);
+                            }
+                        },
+                        error: function(errorData)
+                        {
+                            console.log("Error updating metric status");
+                            console.log(errorData);
+                            $('#delMetricMsg').hide();
+                            $('#delMetricNameMsg').hide();
+                            $('#delMetricKoMsg').show();
+                            $('#delMetricKoIcon').show();
+                            setTimeout(function(){
+                               $('#modalDelMetric').modal('hide');
+                               setTimeout(function(){
+                                   $('#delMetricKoMsg').hide();
+                                   $('#delMetricKoIcon').hide();
+                                   $('#delMetricMsg').show();
+                                   $('#delMetricNameMsg').show();
+                                   $('#delMetricModalFooter').show();
+                               }, 300);
+                            }, 2000);
+                        }
+                    });
+                });
+            }
+        });
+                
+        
 
-
-
-                //caricamento dei dati nelle liste
-                /*
-                 list_area_unique = list_area.unique();
-                 for (var i = 0; i < list_area_unique.length; i++) {
-                 $('#modify-areaMetric').append('<option>' + list_area_unique[i] + '</option>');
-                 $('#areaMetric').append('<option>' + list_area_unique[i] + '</option>');
-                 }
-                 */
-                 /*
-                list_processType_unique = list_processType.unique();
-                for (var i = 0; i < list_processType_unique.length; i++) {
-                    $('#processType').append('<option>' + list_processType_unique[i] + '</option>');
-                    $('#modify-processType').append('<option>' + list_processType_unique[i] + '</option>');
-                }
-                */
-                /*
-                 list_EvalMetric_unique = list_EvalMetric.unique();
-                 for (var i = 0; i < list_EvalMetric_unique.length; i++) {
-                 $('#thresholdEvalMetric').append('<option>' + list_EvalMetric_unique[i] + '</option>');
-                 $('#modify-thresholdEvalMetric').append('<option>' + list_EvalMetric_unique[i] + '</option>');
-                 }
-                 */
-                 /*
-                list_queryType_unique = list_queryType.unique();
-                for (var i = 0; i < list_queryType_unique.length; i++) {
-                    $('#queryTypeMetric').append('<option>' + list_queryType_unique[i] + '</option>');
-                    $('#modify-queryTypeMetric').append('<option>' + list_queryType_unique[i] + '</option>');
-                }
-                */
-                /*
-                list_metricType_unique = list_metricType.unique();
-                for (var i = 0; i < list_metricType_unique.length; i++) {
-                    $('#metricTypeMetric').append('<option>' + list_metricType_unique[i] + '</option>');
-                    $('#modify-typeMetric').append('<option>' + list_metricType_unique[i] + '</option>');
-                }
-                */
-                //fine delle liste nei menù
-
-
-                //modifica di una metrica esistente
-                $('.icons-modify-metric').on('click', function () {
-                    var name_metric_m = $(this).parent().parent().find('.name_met').text();
+        
+                
+                    /*var name_metric_m = $(this).parent().parent().find('.name_met').text();
                     $("#modify-descrizioneDataSource2").val('');
-                    console.log('Il nome della metrica è: ' + name_metric_m);
-                    //svuola datasource ogni volta che si apre il menù
-                    //$("#modify-dataSourceMetric").empty();
 
                     $.ajax({
                         url: "get_data.php",
@@ -897,7 +1044,6 @@
                             $("#modify-queryMetric").val(array_query[0]);
                             $("#modify-queryMetric2").val(array_query[1]);
 
-                            //$("#modify-queryMetric").text(data['query_metric']);
                             if (data['processType_metric'] == "JVPerc") {
                                 $('#row2-modify-datasources2').show();
                                 $('#row-modify-query2').show();
@@ -910,13 +1056,10 @@
                             }
 
                             if (data['processType_metric'] == "API") {
-                                //Nel caso in cui l'utente non usi una query, ma un'api bisogna modificare le impostazioni in modo che inserisca una url al posto della query.
-                                //$('#row-mod-datasource').hide();
                                 $('#row-mod-des-datasource').hide();
                                 $('#label-query-url').text("Url");
                                 $('#button_query_test').hide();
                             } else {
-                                //$('#row-mod-datasource').show();
                                 $('#row-mod-des-datasource').show();
                                 $('#label-query-url').text("Query");
                                 $('#button_query_test').show();
@@ -930,12 +1073,7 @@
                             var ds_text0 = "";
                             var ds_text02 = "";
                             var stringa_ds = data['dataSource_metric'];
-                            console.log("Stringa ds:   " + stringa_ds);
-                            //var array_stringa = str0.split("|");
                             var array_stringa = stringa_ds.split("|");
-                            //$("#modify-dataSourceMetric").val(data['dataSource_metric']);
-                            //caricamento dei dati in descrizione datasources.
-                            console.log("Lunghezza stringa_ds:   " + array_stringa.length);
                             $("#modify-dataSourceMetric").val(array_stringa[0]);
                             $("#modify-datasourcesMetric2").val(array_stringa[1]);
                             //caricmaneto dati nel descrizione datasources
@@ -977,47 +1115,11 @@
                                 $("#modify-dataSourceMetric").append('<option>' + data['dataSource_metric'] + '</option>');
                                 $("#modify-dataSourceMetric").val(data['dataSource_metric']);
                             }
-                            //fine valore default
-                            $("#modify-thresholdMetric").val(data['threshold_metric']);
-                            $("#modify-thresholdEvalMetric").val(data['thresholdEval_metric']);
-                            $("#modify-thresholdEvalCountMetric").val(data['thresholdEvalCount_metric']);
-                            $("#modify-thresholdTime").val(data['thresholdTime_metric']);
-                            // $("#modify-storingDataMetric").text('');
                         }
-                    });
-
-                });
-
-                //prendere i dati della tabella datasource
-                $.ajax({
-                    url: "get_data.php",
-                    data: {action: "get_dataSource"},
-                    type: "GET",
-                    async: true,
-                    //contentType: "charset=iso-8859-1",
-                    // contentType: 'utf-8',
-                    datatype: 'json',
-                    success: function (data) {
-                        for (var i = 0; i < data.length; i++) {
-                            console.log(data.length);
-                            array_dataSources[i] = {
-                                id: data[i]['idDataS'],
-                                url: data[i]['urlDataS'],
-                                database: data[i]['databaseDS'],
-                                userName: data[i]['usernameDS'],
-                                passWord: data[i]['passwordDS'],
-                                databaseType: data[i]['databaseTypeDS']
-                            };
-                            $('#dataSourceMetric').append('<option>' + array_dataSources[i]['id'] + '</option>');
-                            $('#modify-dataSourceMetric').append('<option>' + array_dataSources[i]['id'] + '</option>');
-                            $('#modify-datasourcesMetric2').append('<option>' + array_dataSources[i]['id'] + '</option>');
-                            $('#dataSourceMetric2').append('<option>' + array_dataSources[i]['id'] + '</option>');
-                        }
-                    }
-                });
+                    });*/
 
                 //se il datasourceMetric in AGGIUNGI metrica è uguale ad API
-                $('#processType').change(function () {
+                /*$('#processType').change(function () {
                     if ($('#processType').val() == "API") {
                         $('#row-des-datasource').hide();
                         $('#label-query-url').text("Url");
@@ -1031,10 +1133,10 @@
                         $('#label-query-url').text("Query");
                         $('#row-des-datasource').show();
                     }
-                });
+                });*/
 
                 //se il datasourceMetric in MODIFICA metrica è uguale ad API
-                $('#modify-processType').change(function () {
+                /*$('#modify-processType').change(function () {
                     if ($('#modify-processType').val() == "API") {
                         $('#row-mod-des-datasource').hide();
                         $('#label-query-url-m').text("Url");
@@ -1049,11 +1151,11 @@
                         $('#label-query-url-m').text("Query");
                         $('#button_query_test_M').show()
                     }
-                });
+                });*/
 
                 //visualizzare i dati del datasource
                 //Aggiunta metrica
-                $('#dataSourceMetric').change(function () {
+                /*$('#dataSourceMetric').change(function () {
                     var str = "";
                     //str =  $('#dataSourceMetric option:selected').text();
                     str = $('#dataSourceMetric option:selected').text();
@@ -1071,13 +1173,12 @@
                             $('#descrizioneDataSource').val(ds_text);
                         }
                     }
-                    ;
-                    //$('#descrizioneDataSource').val("Informazioni: " + str);                   
-                });
+                    ;                
+                });*/
 
 
                 //visualizza dati del datasources su query2 (aggiunta metrica)
-                $('#dataSourceMetric2').change(function () {
+                /*$('#dataSourceMetric2').change(function () {
                     var strQ2 = "";
                     //str =  $('#dataSourceMetric option:selected').text();
                     strQ2 = $('#dataSourceMetric2 option:selected').text();
@@ -1096,11 +1197,10 @@
                         }
                     }
                     ;
-                });
-                //
+                });*/
 
                 //modifca metrica
-                $('#modify-dataSourceMetric').change(function () {
+                /*$('#modify-dataSourceMetric').change(function () {
                     var strM = "";
                     //str =  $('#dataSourceMetric option:selected').text();
                     strM = $('#modify-dataSourceMetric option:selected').text();
@@ -1115,16 +1215,13 @@
                             ds_textM += "url: " + array_dataSources[j]['url'] + ".\n";
                             ds_textM += "database: " + array_dataSources[j]['database'] + ".\n";
                             ds_textM += "database Type: " + array_dataSources[j]['databaseType'] + ".\n";
-                            //$('#descrizioneDataSource').val("URL: " + array_dataSources[j]['url']); 
                             $('#modify-descrizioneDataSource').val("Informazioni: " + ds_textM);
                         }
-                    }
-                    ;
-                    //$('#modify-descrizioneDataSource').val("Informazioni: " + strM);                   
-                });
+                    }                
+                });*/
 
                 //visualizza dati del datasources su query2 (modifica metrica)
-                $('#modify-datasourcesMetric2').change(function () {
+                /*$('#modify-datasourcesMetric2').change(function () {
                     var strMQ2 = "";
                     //str =  $('#dataSourceMetric option:selected').text();
                     strMQ2 = $('#modify-datasourcesMetric2 option:selected').text();
@@ -1139,33 +1236,23 @@
                             ds_textMQ2 += "url: " + array_dataSources[j]['url'] + ".\n";
                             ds_textMQ2 += "database: " + array_dataSources[j]['database'] + ".\n";
                             ds_textMQ2 += "database Type: " + array_dataSources[j]['databaseType'] + ".\n";
-                            //$('#descrizioneDataSource').val("URL: " + array_dataSources[j]['url']); 
                             $('#modify-descrizioneDataSource2').val("Informazioni: " + ds_textMQ2);
                         }
-                    }
-                    ;
-                    //$('#modify-descrizioneDataSource').val("Informazioni: " + strM);                   
-                });
-                //
+                    }                 
+                });*/
 
                 //modifca dello stato
-                $('.icon-status-metric').on('click', function () {
+                /*$('.icon-status-metric').on('click', function () {
                     var name_metric_status = $(this).parent().parent().find('.name_met').text();
                     $("#button_modify_metric_status").attr('value', name_metric_status);
 
-                });
+                });*/
 
 
-                //eliminazione di una metrica esistente
-                $('.icons-delete-metric').on('click', function () {
-                    var name_metric_delete = $(this).parent().parent().find('.name_met').text();
-                    console.log('Nome metrica da eliminare:  ' + name_metric_delete);
-                    $('#button_delete_metric').attr('value', name_metric_delete);
-
-                });
+                
 
                 //test della query su test_query.php
-                $('#button_query_test').on('click', function () {
+                /*$('#button_query_test').on('click', function () {
                     var query_selezionata = $('#queryMetric').val();
                     var mod_acquisizione = $('#queryTypeMetric').val();
                     var url_datasource = ds_url;
@@ -1173,13 +1260,6 @@
                     var user_datasource = ds_username;
                     var pass_datasource = ds_password;
                     var dataType_datasource = ds_databaseType;
-                    console.log("Query: " + query_selezionata);
-                    console.log("Mod Acquisizione: " + mod_acquisizione);
-                    console.log("URL: " + url_datasource);
-                    console.log("DataBase: " + database_datasource);
-                    console.log("username: " + user_datasource);
-                    console.log("password: " + pass_datasource);
-                    console.log("DataType: " + dataType_datasource);
                     //Dati ricavati da "ds_text"
                     $('#button_query_test').attr('value', query_selezionata);
                     $.ajax({
@@ -1199,13 +1279,11 @@
                             console.log('Test sulla query');
                             alert(data);
                         }
-
                     });
-
-                });
+                });*/
 
                 //test della query modifica su test_query.php
-                $('#button_query_test_M').on('click', function () {
+                /*$('#button_query_test_M').on('click', function () {
                     var query_selezionata = $('#modify-queryMetric').val();
                     var mod_acquisizione = $('#modify-queryTypeMetric').val();
                     var url_datasource = ds_url;
@@ -1241,10 +1319,10 @@
 
                     });
 
-                });
+                });*/
 
                 //test della della query2 sul menù di aggiunta
-                $('#button_query_test2').on('click', function () {
+                /*$('#button_query_test2').on('click', function () {
                     var query_selezionata = $('#queryMetric2').val();
                     var mod_acquisizione = $('#queryTypeMetric').val();
                     var url_datasource = ds_urlQ2;
@@ -1280,10 +1358,10 @@
 
                     });
 
-                });
+                });*/
 
                 //test della query2 nel menù di modifica
-                $('#button_query2_test_M').on('click', function () {
+                /*$('#button_query2_test_M').on('click', function () {
                     var query_selezionata = $('#modify-queryMetric2').val();
                     var mod_acquisizione = $('#modify-queryTypeMetric').val();
                     var url_datasource = ds_urlQ2;
@@ -1319,39 +1397,11 @@
 
                     });
 
-                });
-
-                //caricamento dati sul menù di Aggiunta metrica
-                $('#link_add_metric').on('click', function () {
-                    console.log('sono un evento che si avvia al click di "aggiunta metrica"');
-                    //$('#dataSourceMetric').empty();
-                    var str1 = "";
-                    //str =  $('#dataSourceMetric option:selected').text();
-                    str1 = $('#dataSourceMetric').val();
-                    //$('#dataSourceMetric2').empty();
-                    console.log('Il valore della datasource metric è ' + str1);
-                    var ds_text = "";
-                    for (var j = 0; j < array_dataSources.length; j++) {
-                        if (array_dataSources[j]['id'] == str1) {
-                            ds_url = array_dataSources[j]['url'];
-                            ds_database = array_dataSources[j]['database'];
-                            ds_username = array_dataSources[j]['userName'];
-                            ds_password = array_dataSources[j]['passWord'];
-                            ds_databaseType = array_dataSources[j]['databaseType'];
-                            ds_text += "url: " + array_dataSources[j]['url'] + ".\n";
-                            ds_text += "database: " + array_dataSources[j]['database'] + ".\n";
-                            ds_text += "database Type: " + array_dataSources[j]['databaseType'] + ".\n";
-                            //$('#descrizioneDataSource').val("URL: " + array_dataSources[j]['url']); 
-                            $('#descrizioneDataSource').val(ds_text);
-                        }
-                    }
-                    ;
-                });
-                //fine 
-
+                });*/
+ 
 
                 //rendere visibile query2
-                $('#processType').change(function () {
+                /*$('#processType').change(function () {
                     var verificaQ2 = $('#processType option:selected').text();
                     if (verificaQ2 == 'JVPerc') {
                         $('#row-query2').show();
@@ -1359,29 +1409,26 @@
                         $('#row2-descrizioneDataSource2').show();
 
                     }
-                });
+                });*/
 
-                $('#modify-processType').change(function () {
+                /*$('#modify-processType').change(function () {
                     var verificaQ2 = $('#modify-processType option:selected').text();
                     if (verificaQ2 == 'JVPerc') {
                         $('#row-modify-query2').show();
                         $('#row2-modify-datasources2').show();
                         $('#row2-modify-decription-datasources2').show();
                     }
-                });
-
-                //
+                });*/
 
                 //test query da modificare
-                $('#button_query_test_M').on('click', function () {
+                /*$('#button_query_test_M').on('click', function () {
                     var query_selezionata = $('#modify-queryMetric').val();
                     $('button_query_test_M').attr('value', query_selezionata);
-                    //inserimento chiamata ajax
-                });
+                });*/
 
 
                 //descrizione delle metrice sul menù d'associazione
-                $('#list-Metric').change(function () {
+                /*$('#list-Metric').change(function () {
                     var strMetric = "";
                     var textMetric = "";
                     //str =  $('#dataSourceMetric option:selected').text();
@@ -1398,12 +1445,7 @@
                         }
                     }
                     $('#infometrics').val(textMetric);
-                });
-
-            }
-        });
-
-
+                });*/
     });
 </script>
 </body>

@@ -48,15 +48,19 @@
     <!-- Custom Core JavaScript -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
     
-    <!-- Bootstrap editable tables -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <!-- Bootstrap table -->
+    <link rel="stylesheet" href="../boostrapTable/dist/bootstrap-table.css">
+    <script src="../boostrapTable/dist/bootstrap-table.js"></script>
+    <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
+    <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
     
     <!-- Font awesome icons -->
     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
     
     <!-- Scripts file -->
     <script src="../js/usersManagement.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 </head>
 
 <body>
@@ -85,7 +89,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">Dashboard management system</a>
+                <a class="navbar-brand" href="index.html">Dashboard Management System</a>
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
@@ -113,8 +117,7 @@
                                 echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
-                                echo '<li><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
-                                
+                                echo '<li class="active"><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
                            }
                            
                            if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
@@ -132,125 +135,15 @@
 
         <div id="page-wrapper">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            <br/>Users management
-                        </h1>
-                        <?php
-                            if(isset($_SESSION['loggedRole']))
-                            {
-                                if($_SESSION['loggedRole'] == "ToolAdmin")
-                                {       
-                                    echo '<nav class="navbar navbar-default floatLeft">' . 
-                                         '<div class="collapse navbar-collapse">' .
-                                         '<ul class="nav navbar-nav">' .
-                                         '<li>' .
-                                         '<a id="addNewUserBtn" href="#" data-toggle="modal">' . 
-                                         '<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>' .
-                                         'Add new user' .
-                                         '<span class="sr-only">(current)</span></a></li>' .  
-                                         '</ul>' .
-                                         '</div>' .
-                                         '</nav>'; 
-                                }
-                            }
-                        ?>    
-                           
+                <div class="row" style="margin-top: 50px">
+                    <div class="col-xs-12 centerWithFlex mainPageTitleContainer">
+                        Users
                     </div>
                 </div>
+                
                 <div class="row">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Registered users</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div class="table-responsive">
-                                <table id="usersTable2" class="table table-bordered table-hover table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Username</th>
-                                            <th>First name</th>
-                                            <th>Last name</th>
-                                            <th>Organization</th>
-                                            <th>User type</th>
-                                            <th>E-Mail</th>
-                                            <th>Registration date</th>
-                                            <th>Status</th>
-                                            <th>Edit account</th>
-                                            <th>Delete account</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                            if(isset($_SESSION['loggedRole']))
-                                            {
-                                                $link = mysqli_connect($host, $username, $password);
-                                                mysqli_select_db($link, $dbname);
-                                                if($_SESSION['loggedRole'] == "ToolAdmin")
-                                                {
-                                                    //Il super admin amministra tutti gli utenti e vede anche le password
-                                                    $usersQuery = "SELECT * FROM Dashboard.Users";
-                                                    $result = mysqli_query($link, $usersQuery) or die(mysqli_error($link));
-
-                                                    if($result->num_rows > 0) 
-                                                    {
-                                                        while ($row = $result->fetch_assoc()) 
-                                                        {
-                                                            $user = $row["username"];//Lascia i nomi abbreviati, sennò va in conflitto con le variabili usate in config.php
-                                                            $name = $row["name"];
-                                                            $surname = $row["surname"];
-                                                            $organization = $row["organization"];
-                                                            $userType = $row["admin"];
-                                                            $email = $row["email"];
-                                                            $regDate = $row["reg_data"];
-                                                            
-                                                            if($row["status"] == 0)
-                                                            {
-                                                                $status = "Not active";
-                                                            }
-                                                            else if($row["status"] == 1)
-                                                            {
-                                                                $status = "Active";
-                                                            }
-                                                            
-                                                            switch($userType)
-                                                            {
-                                                               case "ToolAdmin":
-                                                                  $userType = "Tool admin";
-                                                                  break;
-                                                               
-                                                               case "AreaManager":
-                                                                  $userType = "Area manager";
-                                                                  break;
-                                                               
-                                                               case "Manager":
-                                                                  $userType = "Manager";
-                                                                  break;
-                                                            }
-
-                                                            echo '<tr>';
-                                                                echo '<td>' . $user . '</td>';
-                                                                echo '<td>' . $name . '</td>';
-                                                                echo '<td>' . $surname . '</td>';
-                                                                echo '<td>' . $organization . '</td>';
-                                                                echo '<td>' . $userType . '</td>';
-                                                                echo '<td>' . $email . '</td>';
-                                                                echo '<td>' . $regDate . '</td>';
-                                                                echo '<td>' . $status . '</td>';
-                                                                echo '<td><i class="fa fa-cog" style="font-size:24px;color:#337ab7"></i></td>';
-                                                                echo '<td><i class="fa fa-remove" style="font-size:24px;color:red"></i></td>';
-                                                            echo '</tr>';
-                                                        }
-                                                    }
-                                                }
-                                                mysqli_close($link);
-                                            }
-                                        ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="col-xs-12">
+                        <table id="usersTable"></table>
                     </div>
                 </div>
             </div>
@@ -275,24 +168,6 @@
         </div>
     </div>
     
-    <!-- Modale di conferma cambio pagina senza aver salvato i cambiamenti ai dati degli utenti -->
-    <div class="modal fade" id="pageChangeModal" tabindex="-1" role="dialog" aria-labelledby="pageChangeModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="pageChangeModalLabel">Alert</h5>
-            </div>
-            <div class="modal-body">
-                <div class="modalBodyInnerDiv">There are unsaved changes to users data: if you leave the page changes will be discarded, do you want to confirm?</div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" id="pageChangeCancelBtn" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="button" id="pageChangeConfirmBtn" class="btn btn-primary">Confirm</button>
-            </div>
-          </div>
-        </div>
-    </div>
-    
     <!-- Modale di registrazione nuovo utente -->
     <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -308,7 +183,7 @@
                </div>
                <div class="row">
                    <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                       <i class="fa fa-spinner fa-spin" style="font-size:72px"></i>
+                       <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
                    </div> 
                </div>
            </div>
@@ -429,7 +304,7 @@
             </div>
             <div class="modal-body">
                 <div id="addUserOkModalInnerDiv1" class="modalBodyInnerDiv"></div>
-                <div id="addUserOkModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-check" style="font-size:42px"></i></div>
+                <div id="addUserOkModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-check" style="font-size:36px"></i></div>
             </div>
           </div>
         </div>
@@ -444,7 +319,7 @@
             </div>
             <div class="modal-body">
                 <div id="addUserKoModalInnerDiv1" class="modalBodyInnerDiv"></div>
-                <div id="addUserKoModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-frown-o" style="font-size:42px"></i></div>
+                <div id="addUserKoModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-frown-o" style="font-size:36px"></i></div>
             </div>
             <div class="modal-footer">
               <button type="button" id="addUserKoBackBtn" class="btn btn-primary">Go back to new user form</button>
@@ -469,7 +344,7 @@
                </div>
                <div class="row">
                    <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                       <i class="fa fa-spinner fa-spin" style="font-size:72px"></i>
+                       <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
                    </div> 
                </div>
            </div>
@@ -481,7 +356,7 @@
                </div>
                <div class="row">
                    <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                       <i class="fa fa-spinner fa-spin" style="font-size:72px"></i>
+                       <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
                    </div> 
                </div>
            </div>
@@ -574,7 +449,7 @@
             </div>
             <div class="modal-body">
                 <div id="editUserOkModalInnerDiv1" class="modalBodyInnerDiv"></div>
-                <div id="editUserOkModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-check" style="font-size:42px"></i></div>
+                <div id="editUserOkModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-check" style="font-size:36px"></i></div>
             </div>
           </div>
         </div>
@@ -589,7 +464,7 @@
             </div>
             <div class="modal-body">
                 <div id="editUserKoModalInnerDiv1" class="modalBodyInnerDiv"></div>
-                <div id="edituserKoModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-frown-o" style="font-size:42px"></i></div>
+                <div id="edituserKoModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-frown-o" style="font-size:36px"></i></div>
             </div>
             <div class="modal-footer">
               <button type="button" id="editUserKoBackBtn" class="btn btn-primary">Go back to edit account form</button>
@@ -605,17 +480,942 @@
         var admin = "<?= $_SESSION['loggedRole'] ?>";
         var existingPoolsJson = null;
         var internalDest = false;
+        var tableFirstLoad = true;
+        
+        buildMainTable(false);
         
         //Settaggio dei globals per il file usersManagement.js
         setGlobals(admin, existingPoolsJson);
         
-        $("#usersTable2 i.fa-remove").on('click', function(){
-            var username = $(this).parents("tr").find("td").eq(0).html();
-            $("#deleteUserModal div.modal-body").html('<div class="modalBodyInnerDiv"><span data-username = "' + username + '">Do you want to confirm deletion of user <b>' + username + '</b>?</span></div>');
-            $("#deleteUserModal").modal('show');
+        $("#addNewUserConfirmBtn").click(function(){
+            $("#addUserModalBody").hide();
+            $("#addUserModalFooter").hide();
+            $("#addUserModalCreating").show();
+
+             newUserJson = {
+                 username: $("#addUserForm #username").val(),
+                 firstName: $("#addUserForm #firstName").val(),
+                 lastName: $("#addUserForm #lastName").val(),
+                 organization: $("#addUserForm #organization").val(),
+                 userType: $("#addUserForm #userType").val(),
+                 email: $("#addUserForm #email").val(),
+                 pools: []
+             };
+
+             switch(newUserJson.userType)
+             {
+                 case 'Observer': case 'Manager':
+                     $("#addUserPoolsTable tr").each(function(i){
+                         if($(this).find(".addUserPoolsTableMakeMemberCheckbox input").prop("checked"))
+                         {
+                             var poolItem = {
+                                poolId: $(this).find(".addUserPoolsTableMakeMemberCheckbox input").attr("data-poolid"),
+                                makeAdmin: false
+                             };
+                             newUserJson.pools.push(poolItem);
+                         }
+                     });
+                     break;
+
+                 case 'AreaManager':
+                     $("#addUserPoolsTable tr").each(function(){
+                         if($(this).find(".addUserPoolsTableMakeMemberCheckbox input").prop("checked"))
+                         {
+                             var poolItem = {
+                                poolId: $(this).find(".addUserPoolsTableMakeMemberCheckbox input").attr("data-poolid"),
+                                makeAdmin: false
+                             };
+                             newUserJson.pools.push(poolItem);
+                         }
+
+                         if($(this).find(".addUserPoolsTableMakeAdminCheckbox input").prop("checked"))
+                         {
+                            var poolItem = {
+                                poolId: $(this).find(".addUserPoolsTableMakeMemberCheckbox input").attr("data-poolid"),
+                                makeAdmin: true
+                             };
+                             newUserJson.pools.push(poolItem);
+                         }
+                     });
+                     break;
+
+                 default://Se superadmin non si fa niente di specifico su GUI - I superadmin non vengono più scritti come admin dei pool su DB
+                     break;
+             }
+
+             //Chiamata API di inserimento nuovo utente
+             $.ajax({
+                 url: "addUser.php",
+                 data:{newUserJson: JSON.stringify(newUserJson)},
+                 type: "POST",
+                 async: true,
+                 success: function (data) 
+                 {
+                     switch(data)
+                     {
+                         case '0':
+                             $("#addUserModal").modal('hide');
+                             $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered because of a database failure while inserting data, please try again</h5>');
+                             $("#addUserKoModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             break;
+
+                         case '1':
+                             $("#addUserModal").modal('hide');
+                             buildMainTable(true);
+                             $("#addUserOkModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> successfully registered</h5>');
+                             $("#addUserOkModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             setTimeout(function(){
+                                 $("#addUserOkModal").modal('hide');
+                             }, 2000);
+                             break;
+
+                         case '2':
+                             $("#addUserModal").modal('hide');
+                             $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered because of a database failure while checking for existing usernames, please try again</h5>');
+                             $("#addUserKoModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             break;
+
+                         case '3':
+                             $("#addUserModal").modal('hide');
+                             $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered: this username is already in use, please change it and try again</h5>');
+                             $("#addUserKoModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             break;
+
+                         case '4':
+                             $("#addUserModal").modal('hide');
+                             $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered: password is less than 8 chars long and/or doesn\'t have at least 1 char and 1 digit, please change it and try again</h5>');
+                             $("#addUserKoModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             break;
+
+                         case '5':
+                             $("#addUserModal").modal('hide');
+                             $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered: password and password confirmation don\'t match, please correct and try again</h5>');
+                             $("#addUserKoModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             break;
+
+                         case '6':
+                             $("#addUserModal").modal('hide');
+                             $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered: one between (first name - last name) and organization must be given, please correct and try again</h5>');
+                             $("#addUserKoModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             break;
+
+                         case '7':
+                             $("#addUserModal").modal('hide');
+                             $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered: e-mail address doesn\'t respect mailbox@domain.ext pattern, please correct and try again</h5>');
+                             $("#addUserKoModal").modal('show');
+                             $("#addUserModalCreating").hide();
+                             $("#addUserModalBody").show();
+                             $("#addUserModalFooter").show();
+                             break;
+
+                         default:
+                             break;
+                     }
+                 },
+                 error: function (data) 
+                 {
+                     console.log("Ko result: " + data);
+                     $("#addUserModal").modal('hide');
+                     $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + newUserJson.username + '</b> couldn\'t be registered because of an API call failure, please try again</h5>');
+                     $("#addUserKoModal").modal('show');
+                     $("#addUserModalCreating").hide();
+                     $("#addUserModalBody").show();
+                     $("#addUserModalFooter").show();
+                 }
+             });
         });
         
-        $("#usersTable2 i.fa-cog").on('click', function()
+        $("#deleteUserConfirmBtn").click(function(){
+            var username = $("#deleteUserModal span").attr("data-username");
+    
+            $("#deleteUserModal div.modal-body").html("");
+            $("#deleteUserCancelBtn").hide();
+            $("#deleteUserConfirmBtn").hide();
+            $("#deleteUserModal div.modal-body").append('<div id="deleteUserModalInnerDiv1" class="modalBodyInnerDiv"><h5>User deletion in progress, please wait</h5></div>');
+            $("#deleteUserModal div.modal-body").append('<div id="deleteUserModalInnerDiv2" class="modalBodyInnerDiv"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>');
+
+             //Chiamata API di cancellazione utente
+            $.ajax({
+                url: "deleteUser.php",
+                data:{username: username},
+                type: "POST",
+                async: false,
+                success: function (data) 
+                {
+                    if(data === '0')
+                    {
+                        $("#deleteUserModalInnerDiv1").html('User &nbsp; <b>' + username + '</b> &nbsp; deletion failed, please try again');
+                        $("#deleteUserModalInnerDiv2").html('<i class="fa fa-frown-o" style="font-size:42px"></i>');
+                    }
+                    else if( data === '1')
+                    {
+                        $("#deleteUserModalInnerDiv1").html('User &nbsp; <b>' + username + '</b> &nbsp;deleted successfully');
+                        $("#deleteUserModalInnerDiv2").html('<i class="fa fa-check" style="font-size:42px"></i>');
+                        setTimeout(function()
+                        {
+                            buildMainTable(true);
+                            $("#deleteUserModal").modal('hide');
+                            setTimeout(function(){
+                                $("#deleteUserCancelBtn").show();
+                                $("#deleteUserConfirmBtn").show();
+                            }, 500);
+                        }, 2000);
+                    }
+                },
+                error: function (data) 
+                {
+                    $("#deleteUserModalInnerDiv1").html('User &nbsp; <b>' + username + '</b> &nbsp; deletion failed, please try again');
+                    $("#deleteUserModalInnerDiv2").html('<i class="fa fa-frown-o" style="font-size:42px"></i>');
+                }
+            });
+        });
+        
+        $("#editUserConfirmBtn").click(function(){
+            $("#editUserModalBody").hide();
+            $("#editUserModalFooter").hide();
+            $("#editUserModalUpdating").show();
+
+             accountJson = {
+                 username: $("#editUserForm #usernameM").val(),
+                 firstName: $("#editUserForm #firstNameM").val(),
+                 lastName: $("#editUserForm #lastNameM").val(),
+                 organization: $("#editUserForm #organizationM").val(),
+                 userType: $("#editUserForm #userTypeM").val(),
+                 userStatus: $("#editUserForm #userStatusM").val(),
+                 email: $("#editUserForm #emailM").val(),
+                 pools: []
+             };
+
+             switch(accountJson.userType)
+             {
+                 case 'Observer': case 'Manager':
+                     $("#editUserPoolsTable tr").each(function(i){
+                         if($(this).find(".editUserPoolsTableMakeMemberCheckbox input").prop("checked"))
+                         {
+                             var poolItem = {
+                                poolId: $(this).find(".editUserPoolsTableMakeMemberCheckbox input").attr("data-poolid"),
+                                makeAdmin: false
+                             };
+                             accountJson.pools.push(poolItem);
+                         }
+                     });
+                     break;
+
+                 case 'AreaManager':
+                     $("#editUserPoolsTable tr").each(function(){
+                         if($(this).find(".editUserPoolsTableMakeMemberCheckbox input").prop("checked"))
+                         {
+                             var poolItem = {
+                                poolId: $(this).find(".editUserPoolsTableMakeMemberCheckbox input").attr("data-poolid"),
+                                makeAdmin: false
+                             };
+                             accountJson.pools.push(poolItem);
+                         }
+
+                         if($(this).find(".editUserPoolsTableMakeAdminCheckbox input").prop("checked"))
+                         {
+                            var poolItem = {
+                                poolId: $(this).find(".editUserPoolsTableMakeMemberCheckbox input").attr("data-poolid"),
+                                makeAdmin: true
+                             };
+                             accountJson.pools.push(poolItem);
+                         }
+                     });
+                     break;
+
+                 default://Se superadmin non si fa niente di specifico su GUI - I superadmin non vengono più scritti come admin dei pool su DB
+                     break;
+             }
+
+             console.log(JSON.stringify(accountJson));
+
+             //Chiamata API di inserimento nuovo utente
+             $.ajax({
+                 url: "editUser.php",
+                 data:{operation: "updateAccount", accountJson: JSON.stringify(accountJson)},
+                 type: "POST",
+                 async: true,
+                 success: function (data) 
+                 {
+                    console.log("Ok");
+                    console.log(JSON.stringify(data));
+                     switch(data)
+                     {
+                         case '0':
+                             $("#editUserModal").modal('hide');
+                             $("#editUserKoModalInnerDiv1").html('<h5>Account <b>' + accountJson.username + '</b> couldn\'t be updated because of a database failure while inserting data, please try again</h5>');
+                             $("#editUserKoModal").modal('show');
+                             $("#editUserModalUpdating").hide();
+                             $("#editUserModalBody").show();
+                             $("#editUserModalFooter").show();
+                             break;
+
+                         case '1':
+                             $("#editUserModal").modal('hide');
+                             $("#editUserOkModalInnerDiv1").html('<h5>Account <b>' + accountJson.username + '</b> successfully updated</h5>');
+                             $("#editUserOkModal").modal('show');
+                             setTimeout(updateAccountTimeout, 2000);
+                             break;
+
+                         case '4':
+                             $("#editUserModal").modal('hide');
+                             $("#editUserKoModalInnerDiv1").html('<h5>Account <b>' + accountJson.username + '</b> couldn\'t be updated: password is less than 8 chars long and/or doesn\'t have at least 1 char and 1 digit, please change it and try again</h5>');
+                             $("#editUserKoModal").modal('show');
+                             $("#editUserModalUpdating").hide();
+                             $("#editUserModalBody").show();
+                             $("#editUserModalFooter").show();
+                             break;
+
+                         case '5':
+                             $("#editUserModal").modal('hide');
+                             $("#editUserKoModalInnerDiv1").html('<h5>Account <b>' + accountJson.username + '</b> couldn\'t be updated: password and password confirmation don\'t match, please fix and try again</h5>');
+                             $("#editUserKoModal").modal('show');
+                             $("#editUserModalUpdating").hide();
+                             $("#editUserModalBody").show();
+                             $("#editUserModalFooter").show();
+                             break;
+
+                         case '6':
+                             $("#editUserModal").modal('hide');
+                             $("#editUserKoModalInnerDiv1").html('<h5>Account <b>' + accountJson.username + '</b> couldn\'t be updated: one between (first name - last name) and organization must be given, please fix and try again</h5>');
+                             $("#editUserKoModal").modal('show');
+                             $("#editUserModalUpdating").hide();
+                             $("#editUserModalBody").show();
+                             $("#editUserModalFooter").show();
+                             break;
+
+                         case '7':
+                             $("#editUserModal").modal('hide');
+                             $("#editUserKoModalInnerDiv1").html('<h5>Account <b>' + accountJson.username + '</b> couldn\'t be updated: e-mail address doesn\'t respect mailbox@domain.ext pattern, please fix and try again</h5>');
+                             $("#editUserKoModal").modal('show');
+                             $("#editUserModalUpdating").hide();
+                             $("#editUserModalBody").show();
+                             $("#editUserModalFooter").show();
+                             break;
+
+                         default:
+                             break;
+                     }
+                 },
+                 error: function (data) 
+                 {
+                     console.log("Ko result: " + data);
+                     $("#editUserModal").modal('hide');
+                     $("#editUserKoModalInnerDiv1").html('<h5>Account <b>' + accountJson.username + '</b> couldn\'t be updated because of an API call failure, please try again</h5>');
+                     $("#editUserKoModal").modal('show');
+                     $("#editUserModalUpdating").hide();
+                     $("#editUserModalBody").show();
+                     $("#editUserModalFooter").show();
+                 }
+             });
+        });
+        
+        $("#addNewUserCancelBtn").on('click', function(){
+            $("#addUserForm").trigger("reset");
+            $("#addUserAdminRoleChoiceOuterContainer").hide();
+            $("#addUserAdminPoolsChoiceOuterContainer").hide();
+            $("#addUserNewPoolNameOuterContainer").hide();
+            $("#addUserAddUsersToNewPoolOuterContainer").hide();
+            $("#addUserPoolsOuterContainer").show();
+        });
+        
+        $("#addUserKoBackBtn").on('click', function(){
+            $("#addUserKoModal").modal('hide');
+            $("#addUserModal").modal('show');
+        });
+        
+        $("#addUserKoConfirmBtn").on('click', function(){
+            $("#addUserKoModal").modal('hide');
+            $("#addUserForm").trigger("reset");
+        });
+        
+        $("#editUserKoBackBtn").on('click', function(){
+            $("#editUserKoModal").modal('hide');
+            $("#editUserModal").modal('show');
+        });
+        
+        $("#addUserKoConfirmBtn").on('click', function(){
+            $("#editUserKoModal").modal('hide');
+            $("#editUserForm").trigger("reset");
+        });
+        
+        $("#userType").change(function()
+        {
+           $(".addUserPoolsTableMakeMemberCheckbox input").off("click");
+           $(".addUserPoolsTableMakeAdminCheckbox input").off("click");
+           
+           switch($(this).val())
+           {
+                case "Observer": case "Manager":
+                   $(".addUserPoolsTableMakeAdminHeader").hide();
+                   $(".addUserPoolsTableMakeAdminCheckbox").hide();
+                   $("#addUserPoolsRow").show();
+                   break;
+                   
+                case "AreaManager":
+                   $(".addUserPoolsTableMakeMemberCheckbox input").click(function(){
+                     $(this).parent().parent().find(".addUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
+                   });
+                   
+                   $(".addUserPoolsTableMakeAdminCheckbox input").click(function(){
+                     $(this).parent().parent().find(".addUserPoolsTableMakeMemberCheckbox input").prop("checked", false);
+                   });
+                   
+                   $(".addUserPoolsTableMakeAdminHeader").show();
+                   $(".addUserPoolsTableMakeAdminCheckbox").show();
+                   $("#addUserPoolsRow").show();
+                   break;   
+                    
+                case "ToolAdmin":
+                    $("#addUserPoolsRow").hide();
+                    break;
+           }
+        });
+        
+        $("#userTypeM").change(function()
+        {
+           $(".editUserPoolsTableMakeMemberCheckbox input").off("click");
+           $(".editUserPoolsTableMakeAdminCheckbox input").off("click");
+           
+           switch($(this).val())
+           {
+                case "Observer": case "Manager":
+                   $(".editUserPoolsTableMakeAdminHeader").hide();
+                   $(".editUserPoolsTableMakeAdminCheckbox").hide();
+                   $("#editUserPoolsRow").show();
+                   break;
+                   
+                case "AreaManager":
+                   $(".editUserPoolsTableMakeMemberCheckbox input").click(function(){
+                     $(this).parent().parent().find(".editUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
+                   });
+                   
+                   $(".editUserPoolsTableMakeAdminCheckbox input").click(function(){
+                     $(this).parent().parent().find(".editUserPoolsTableMakeMemberCheckbox input").prop("checked", false);
+                   });
+                   
+                   $(".editUserPoolsTableMakeAdminHeader").show();
+                   $(".editUserPoolsTableMakeAdminCheckbox").show();
+                   $("#editUserPoolsRow").show();
+                   break;   
+                    
+                case "ToolAdmin":
+                    $("#editUserPoolsRow").hide();
+                    break;
+           }
+        });
+        
+        function updateAccountTimeout()
+        {
+            $("#editUserOkModal").modal('hide');
+            setTimeout(function(){
+               location.reload();
+            }, 500);
+        }
+        
+        function buildMainTable(destroyOld)
+        {
+            if(destroyOld)
+            {
+                $('#usersTable').bootstrapTable('destroy');
+                tableFirstLoad = true;
+            }
+
+            $.ajax({
+                url: "get_data.php",
+                data: {action: "getLocalUsers"},
+                type: "GET",
+                async: true,
+                datatype: 'json',
+                success: function (data)
+                {
+                    $('#usersTable').bootstrapTable({
+                            columns: [{
+                                field: 'username',
+                                title: 'Username',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    if(value !== null)
+                                    {
+                                        if(value.length > 75)
+                                        {
+                                           return value.substr(0, 75) + " ...";
+                                        }
+                                        else
+                                        {
+                                           return value;
+                                        } 
+                                    }
+                                }
+                            }, {
+                                field: 'name',
+                                title: 'First name',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    if(value !== null)
+                                    {
+                                        if(value.length > 90)
+                                        {
+                                           return value.substr(0, 90) + " ...";
+                                        }
+                                        else
+                                        {
+                                           return value;
+                                        } 
+                                    }
+                                }
+                            },
+                            {
+                                field: 'surname',
+                                title: 'Last name',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    if(value !== null)
+                                    {
+                                        if(value.length > 90)
+                                        {
+                                           return value.substr(0, 90) + " ...";
+                                        }
+                                        else
+                                        {
+                                           return value;
+                                        } 
+                                    }
+                                }
+                            },
+                            {
+                                field: 'organization',
+                                title: 'Organization',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    if(value !== null)
+                                    {
+                                        if(value.length > 50)
+                                        {
+                                           return value.substr(0, 50) + " ...";
+                                        }
+                                        else
+                                        {
+                                           return value;
+                                        } 
+                                    }
+                                }
+                            },
+                            {
+                                field: 'admin',
+                                title: 'Account',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    switch(value)
+                                    {
+                                       case "ToolAdmin":
+                                          return "Tool admin";
+                                          break;
+
+                                       case "AreaManager":
+                                          return "Area manager";
+                                          break;
+
+                                       case "Manager":
+                                          return "Manager";
+                                          break;
+                                          
+                                       default:
+                                          return value;
+                                          break;   
+                                    }
+                                }
+                            },
+                            {
+                                field: 'email',
+                                title: 'E-Mail',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    return value;
+                                }
+                            },
+                            {
+                                field: 'reg_data',
+                                title: 'Registration date',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    return value;
+                                }
+                            },
+                            {
+                                field: 'status',
+                                title: 'Status',
+                                sortable: true,
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    if(value === 0)
+                                    {
+                                        return "Not active";
+                                    }
+                                    else 
+                                    {
+                                        return "Active";
+                                    }
+                                }
+                            },
+                            {
+                                title: "Edit",
+                                align: "center",
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    return '<span class="glyphicon glyphicon-cog"></span>'; 
+                                }
+                            },
+                            {
+                                title: "Delete",
+                                align: "center",
+                                valign: "middle",
+                                align: "center",
+                                halign: "center",
+                                formatter: function(value, row, index)
+                                {
+                                    return '<span class="glyphicon glyphicon-remove"></span>'; 
+                                }
+                            }],
+                            data: data,
+                            search: true,
+                            pagination: true,
+                            pageSize: 10,
+                            locale: 'en-US',
+                            searchAlign: 'left',
+                            uniqueId: "IdUser",
+                            striped: true,
+                            onPostBody: function()
+                            {
+                                if(tableFirstLoad)
+                                {
+                                    //Caso di primo caricamento della tabella
+                                    tableFirstLoad = false;
+                                    var addUserDiv = $('<div class="pull-right"><i id="addUserBtn" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
+                                    
+                                    $('div.fixed-table-toolbar').append(addUserDiv);
+                                    addUserDiv.css("margin-top", "10px");
+                                    addUserDiv.find('i.fa-plus-square').off('hover');
+                                    addUserDiv.find('i.fa-plus-square').hover(function(){
+                                        $(this).css('color', 'red');
+                                        $(this).css('cursor', 'pointer');
+                                    }, 
+                                    function(){
+                                        $(this).css('color', '#ffcc00');
+                                        $(this).css('cursor', 'normal');
+                                    });
+                                    $("#addUserBtn").click(showAddUserModal);
+                                }
+                                else
+                                {
+                                    //Casi di cambio pagina
+                                }
+
+                                //Istruzioni da eseguire comunque
+                                $('#usersTable span.glyphicon-cog').css('color', '#337ab7');
+                                $('#usersTable span.glyphicon-cog').css('font-size', '20px');
+
+                                $('#usersTable span.glyphicon-cog').off('hover');
+                                $('#usersTable span.glyphicon-cog').hover(function(){
+                                    $(this).css('color', '#ffcc00');
+                                    $(this).css('cursor', 'pointer');
+                                }, 
+                                function(){
+                                    $(this).css('color', '#337ab7');
+                                    $(this).css('cursor', 'normal');
+                                });
+
+                                $('#usersTable span.glyphicon-cog').off('click');
+                                $('#usersTable span.glyphicon-cog').click(function(){
+                                    $("#editUserModalUpdating").hide();
+                                    $("#editUserModalBody").show();
+                                    $("#editUserModalFooter").show();
+                                    $("#editUserModal").modal('show');
+                                    $("#editUserModalLabel").html("Edit account - " + $(this).parent().parent().find("td").eq(0).html());
+                                    $("#usernameM").val($(this).parent().parent().find("td").eq(0).html());
+                                    $("#firstNameM").val($(this).parent().parent().find("td").eq(1).html());
+                                    $("#lastNameM").val($(this).parent().parent().find("td").eq(2).html());
+                                    $("#organizationM").val($(this).parent().parent().find("td").eq(3).html());
+                                    if($(this).parent().parent().find("td").eq(7).html() === "Active")
+                                    {
+                                       $("#userStatusM").val(1);
+                                    }
+                                    else
+                                    {
+                                       $("#userStatusM").val(0);
+                                    }
+                                    $("#emailM").val($(this).parent().parent().find("td").eq(5).html());
+
+                                    var role = $(this).parent().parent().find("td").eq(4).html();
+
+                                    $.ajax({
+                                        url: "editUser.php",
+                                        data: {operation: "getUserPoolMemberships", username: $(this).parent().parent().find("td").eq(0).html()},
+                                        type: "GET",
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function (data) 
+                                        {
+                                          var row = null;
+
+                                          $("#editUserPoolsTable tbody").empty();
+                                          for(var i = 0; i < data.length; i++)
+                                          {
+                                             row = $('<tr><td class="checkboxCell editUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + data[i].poolId + '" type="checkbox" /></td><td class="checkboxCell editUserPoolsTableMakeAdminCheckbox"><input data-poolId="' +  data[i].poolId + '" type="checkbox" /></td><td class="poolNameCell">' + data[i].poolName + '</td>');
+
+                                             switch(role)
+                                             {
+                                                case "Observer": case "Manager":
+                                                   if(data[i].username !== null)
+                                                   {
+                                                      row.find(".editUserPoolsTableMakeMemberCheckbox input").attr("checked", true);
+                                                   }
+                                                   $(".editUserPoolsTableMakeAdminHeader").hide();
+                                                   $(".editUserPoolsTableMakeAdminCheckbox").hide();
+                                                   break;
+
+                                                case "Area manager":
+                                                   if(data[i].username !== null)
+                                                   {
+                                                      if(data[i].isAdmin === "1")
+                                                      {
+                                                         row.find(".editUserPoolsTableMakeAdminCheckbox input").attr("checked", true);
+                                                      }
+                                                      else
+                                                      {
+                                                         row.find(".editUserPoolsTableMakeMemberCheckbox input").attr("checked", true);
+                                                      }
+                                                   }
+
+                                                   $(".editUserPoolsTableMakeAdminHeader").show();
+                                                   $(".editUserPoolsTableMakeAdminCheckbox").show();
+                                                   break;
+
+                                                case "Tool admin":
+                                                   break;   
+                                             }
+
+                                             $("#editUserPoolsTable").append(row);
+                                          }
+
+                                          switch(role)
+                                          {
+                                             case "Observer": 
+                                                $("#editUserPoolsRow").show();
+                                                $(".editUserPoolsTableMakeAdminHeader").hide();
+                                                $(".editUserPoolsTableMakeAdminCheckbox").hide();
+                                                $("#userTypeM").val("Observer");
+                                                break;
+
+                                             case "Manager":   
+                                                $("#editUserPoolsRow").show();
+                                                $(".editUserPoolsTableMakeAdminHeader").hide();
+                                                $(".editUserPoolsTableMakeAdminCheckbox").hide();
+                                                $("#userTypeM").val("Manager");
+                                                break;
+
+                                             case "Area manager":
+                                                $(".editUserPoolsTableMakeMemberCheckbox input").click(function(){
+                                                   $(this).parent().parent().find(".editUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
+                                                });
+
+                                                $(".editUserPoolsTableMakeAdminCheckbox input").click(function(){
+                                                   $(this).parent().parent().find(".editUserPoolsTableMakeMemberCheckbox input").prop("checked", false);
+                                                });
+
+                                                $("#editUserPoolsRow").show();
+                                                $(".editUserPoolsTableMakeAdminHeader").show();
+                                                $(".editUserPoolsTableMakeAdminCheckbox").show();
+                                                $("#userTypeM").val("AreaManager");
+                                                break;
+
+                                             case "Tool admin":
+                                                $("#editUserPoolsRow").hide();
+                                                $("#userTypeM").val("ToolAdmin");
+                                                break;   
+                                          }
+
+                                           $("#editUserModalLoading").hide();
+
+                                           showEditUserModalBody();
+                                        },
+                                        error: function (data)
+                                        {
+                                           console.log("Get user pool memberships KO");
+                                           console.log(data);
+                                        }
+                                    });
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    /*$('#dsIdToEdit').val($(this).parents('tr').attr("data-uniqueid"));
+                                    $('div.editDsDataRow').hide();
+                                    $('#editDsConfirmBtn').hide();
+                                    $('#editDsLoadingMsg div.col-xs-12').html('Retrieving datasource details, please wait');
+                                    $('#editDsLoadingMsg').show();
+                                    $('#editDsLoadingIcon').show();
+                                    $('#modalEditDs').modal('show');
+
+                                    $.ajax({
+                                        url: "get_data.php",
+                                        data: {
+                                            action: "getSingleDataSource",
+                                            id: $(this).parents('tr').attr('data-uniqueid')
+                                        },
+                                        type: "GET",
+                                        async: true,
+                                        datatype: 'json',
+                                        success: function(data)
+                                        {
+                                            $('#editDsLoadingMsg').hide();
+                                            $('#editDsLoadingIcon').hide();
+
+                                            if(data.result !== "Ok")
+                                            {
+                                                console.log("Error getting datasource details");
+                                                console.log(data);
+                                                $('#editDsConfirmBtn').show();
+                                                $('#editDsModalFooter').hide();
+                                                $('#editDsKoMsg').show();
+                                                $('#editDsKoMsg div.col-xs-12').html('Error retrieving datasource details');
+                                                $('#editDsKoIcon').show();
+
+                                                setTimeout(function(){
+                                                    $('#modalEditDs').modal('hide');
+
+                                                    setTimeout(function(){
+                                                        $('#editDsKoMsg').hide();
+                                                        $('#editDsKoIcon').hide();
+                                                        $('div.editDsDataRow').show();
+                                                        $('#editDsModalFooter').show();
+                                                    }, 500);
+                                                }, 3000);
+                                            }
+                                            else
+                                            {
+                                                $('div.editDsDataRow').show();
+                                                $('#editDsConfirmBtn').show();
+                                                $('#editDsModalFooter').show();
+
+                                                $('#dsNameM').val(data.data.Id);
+                                                $('#dsUrlM').val(data.data.url);
+                                                $('#dsDbTypeM').val(data.data.databaseType);
+                                                $('#dsDbNameM').val(data.data.database);
+                                                $('#dsDbUsrM').val(data.data.username);
+                                                $('#dsDbPwdM').val(data.data.password);
+                                            }
+                                        },
+                                        error: function(errorData)
+                                        {
+                                            console.log("Error getting datasource details");
+                                            console.log(data);
+                                            $('#editDsConfirmBtn').show();
+                                            $('#editDsModalFooter').hide();
+                                            $('#editDsKoMsg').show();
+                                            $('#editDsKoMsg div.col-xs-12').html('Error retrieving datasource details');
+                                            $('#editDsKoIcon').show();
+
+                                            setTimeout(function(){
+                                                $('#modalEditDs').modal('hide');
+
+                                                setTimeout(function(){
+                                                    $('#editDsKoMsg').hide();
+                                                    $('#editDsKoIcon').hide();
+                                                    $('div.editDsDataRow').show();
+                                                    $('#editDsModalFooter').show();
+                                                }, 500);
+                                            }, 3000);
+                                        }
+                                    });*/
+                                });
+
+                                $('#usersTable span.glyphicon-remove').css('color', 'red');
+                                $('#usersTable span.glyphicon-remove').css('font-size', '20px');
+
+                                $('#usersTable span.glyphicon-remove').off('hover');
+                                $('#usersTable span.glyphicon-remove').hover(function(){
+                                    $(this).css('color', '#ffcc00');
+                                    $(this).css('cursor', 'pointer');
+                                }, 
+                                function(){
+                                    $(this).css('color', 'red');
+                                    $(this).css('cursor', 'normal');
+                                });
+
+                                $('#usersTable span.glyphicon-remove').off('click');
+                                $('#usersTable span.glyphicon-remove').click(function(){
+                                    var username = $(this).parents("tr").find("td").eq(0).html();
+                                    $("#deleteUserModal div.modal-body").html('<div class="modalBodyInnerDiv"><span data-username = "' + username + '">Do you want to confirm deletion of user <b>' + username + '</b>?</span></div>');
+                                    $("#deleteUserModal").modal('show');
+                                });
+                            }
+                        });
+                    }
+            });
+        }
+        
+        /*$("#usersTable i.fa-cog").on('click', function()
         {
             $("#editUserModalUpdating").hide();
             $("#editUserModalBody").show();
@@ -737,106 +1537,9 @@
             });
         });
         
-        $("#deleteUserConfirmBtn").on('click', deleteUser);
-        $("#pageChangeConfirmBtn").on('click', confirmPageChange);
-        $("#addNewUserBtn").click(showAddUserModal);
-        $("#addNewUserConfirmBtn").on('click', addNewUser);
-        $("#editUserConfirmBtn").on('click', updateAccount);
         
-        $("#addNewUserCancelBtn").on('click', function(){
-            $("#addUserForm").trigger("reset");
-            $("#addUserAdminRoleChoiceOuterContainer").hide();
-            $("#addUserAdminPoolsChoiceOuterContainer").hide();
-            $("#addUserNewPoolNameOuterContainer").hide();
-            $("#addUserAddUsersToNewPoolOuterContainer").hide();
-            $("#addUserPoolsOuterContainer").show();
-        });
-        
-        $("#addUserKoBackBtn").on('click', function(){
-            $("#addUserKoModal").modal('hide');
-            $("#addUserModal").modal('show');
-        });
-        
-        $("#addUserKoConfirmBtn").on('click', function(){
-            $("#addUserKoModal").modal('hide');
-            $("#addUserForm").trigger("reset");
-        });
-        
-        $("#editUserKoBackBtn").on('click', function(){
-            $("#editUserKoModal").modal('hide');
-            $("#editUserModal").modal('show');
-        });
-        
-        $("#addUserKoConfirmBtn").on('click', function(){
-            $("#editUserKoModal").modal('hide');
-            $("#editUserForm").trigger("reset");
-        });
-        
-        $("#userType").change(function()
-        {
-           $(".addUserPoolsTableMakeMemberCheckbox input").off("click");
-           $(".addUserPoolsTableMakeAdminCheckbox input").off("click");
-           
-           switch($(this).val())
-           {
-                case "Observer": case "Manager":
-                   $(".addUserPoolsTableMakeAdminHeader").hide();
-                   $(".addUserPoolsTableMakeAdminCheckbox").hide();
-                   $("#addUserPoolsRow").show();
-                   break;
-                   
-                case "AreaManager":
-                   $(".addUserPoolsTableMakeMemberCheckbox input").click(function(){
-                     $(this).parent().parent().find(".addUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
-                   });
-                   
-                   $(".addUserPoolsTableMakeAdminCheckbox input").click(function(){
-                     $(this).parent().parent().find(".addUserPoolsTableMakeMemberCheckbox input").prop("checked", false);
-                   });
-                   
-                   $(".addUserPoolsTableMakeAdminHeader").show();
-                   $(".addUserPoolsTableMakeAdminCheckbox").show();
-                   $("#addUserPoolsRow").show();
-                   break;   
-                    
-                case "ToolAdmin":
-                    $("#addUserPoolsRow").hide();
-                    break;
-           }
-        });
-        
-        $("#userTypeM").change(function()
-        {
-           $(".editUserPoolsTableMakeMemberCheckbox input").off("click");
-           $(".editUserPoolsTableMakeAdminCheckbox input").off("click");
-           
-           switch($(this).val())
-           {
-                case "Observer": case "Manager":
-                   $(".editUserPoolsTableMakeAdminHeader").hide();
-                   $(".editUserPoolsTableMakeAdminCheckbox").hide();
-                   $("#editUserPoolsRow").show();
-                   break;
-                   
-                case "AreaManager":
-                   $(".editUserPoolsTableMakeMemberCheckbox input").click(function(){
-                     $(this).parent().parent().find(".editUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
-                   });
-                   
-                   $(".editUserPoolsTableMakeAdminCheckbox input").click(function(){
-                     $(this).parent().parent().find(".editUserPoolsTableMakeMemberCheckbox input").prop("checked", false);
-                   });
-                   
-                   $(".editUserPoolsTableMakeAdminHeader").show();
-                   $(".editUserPoolsTableMakeAdminCheckbox").show();
-                   $("#editUserPoolsRow").show();
-                   break;   
-                    
-                case "ToolAdmin":
-                    $("#editUserPoolsRow").hide();
-                    break;
-           }
-        });
+        */
+
     });//Fine document ready
 </script>
 </body>

@@ -69,6 +69,7 @@
       $mailer->addAddress($email);
       $mailer->send();
    }
+   
    //Corpo dell'API
    $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
    mysqli_select_db($link, $dbname);
@@ -80,53 +81,58 @@
        die();
    }
    
-   if(isset($_REQUEST['username'])&&isset($_REQUEST['email'])&&isset($_REQUEST['password'])&&isset($_REQUEST['hash']))
+   if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
    {
-      $username = mysqli_real_escape_string($link, $_REQUEST['username']);
-      $email = mysqli_real_escape_string($link, $_REQUEST['email']);
-      $password = mysqli_real_escape_string($link, $_REQUEST['password']);
-      $hash = mysqli_real_escape_string($link, $_REQUEST['hash']);
-      
-      $query = "SELECT * FROM Dashboard.Users WHERE username = '$username' AND email = '$email' AND activationHash = '$hash'";
-      $result = mysqli_query($link, $query) or die(mysqli_error($link));
-
-      if($result)
-      {
-         if($result->num_rows > 0) 
-         {
-            $row = mysqli_fetch_assoc($result);
-            $userRole = $row['admin'];
-            $md5Pwd = md5($password);
-            $query2 = "UPDATE Dashboard.Users SET password = '$md5Pwd', status = 1, activationHash = NULL WHERE username = '$username' AND email = '$email' AND activationHash = '$hash'";
-            $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
-            
-            if($result2)
+       if($_SESSION['loggedRole'] == "ToolAdmin")
+       {
+            if(isset($_REQUEST['username'])&&isset($_REQUEST['email'])&&isset($_REQUEST['password'])&&isset($_REQUEST['hash']))
             {
-               sendResumeEmail($username, $password, $email, $smtpHost, $smtpAuth, $emailFromAddress, $emailFromName, $appUrl, $userRole);
-               echo 1;
-               mysqli_close($link);
+               $username = mysqli_real_escape_string($link, $_REQUEST['username']);
+               $email = mysqli_real_escape_string($link, $_REQUEST['email']);
+               $password = mysqli_real_escape_string($link, $_REQUEST['password']);
+               $hash = mysqli_real_escape_string($link, $_REQUEST['hash']);
+
+               $query = "SELECT * FROM Dashboard.Users WHERE username = '$username' AND email = '$email' AND activationHash = '$hash'";
+               $result = mysqli_query($link, $query) or die(mysqli_error($link));
+
+               if($result)
+               {
+                  if($result->num_rows > 0) 
+                  {
+                     $row = mysqli_fetch_assoc($result);
+                     $userRole = $row['admin'];
+                     $md5Pwd = md5($password);
+                     $query2 = "UPDATE Dashboard.Users SET password = '$md5Pwd', status = 1, activationHash = NULL WHERE username = '$username' AND email = '$email' AND activationHash = '$hash'";
+                     $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
+
+                     if($result2)
+                     {
+                        sendResumeEmail($username, $password, $email, $smtpHost, $smtpAuth, $emailFromAddress, $emailFromName, $appUrl, $userRole);
+                        echo 1;
+                        mysqli_close($link);
+                     }
+                     else
+                     {
+                        echo 0;
+                        mysqli_close($link);
+                     }
+                  }
+                  else
+                  {
+                     echo 0;
+                     mysqli_close($link);
+                  }
+               }
+               else
+               {
+                  echo 0;
+                  mysqli_close($link);
+               }
             }
             else
             {
                echo 0;
                mysqli_close($link);
             }
-         }
-         else
-         {
-            echo 0;
-            mysqli_close($link);
-         }
-      }
-      else
-      {
-         echo 0;
-         mysqli_close($link);
-      }
+       }
    }
-   else
-   {
-      echo 0;
-      mysqli_close($link);
-   }
-

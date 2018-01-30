@@ -24,8 +24,6 @@
    $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
    mysqli_select_db($link, $dbname);
    
-   //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
-   
    if(!$link->set_charset("utf8")) 
    {
       exit();

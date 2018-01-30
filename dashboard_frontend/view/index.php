@@ -15,7 +15,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
    include '../config.php';
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
-
+   
    //Va studiata una soluzione, per ora tolto error reporting
    error_reporting(0);
    
@@ -27,7 +27,7 @@
     mysqli_select_db($link, $dbname);
 
     $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = $dashId";
-    $queryResult = mysqli_query($link, $query) or die(mysqli_error($link));
+    $queryResult = mysqli_query($link, $query);
     
     if(isset($_REQUEST['embedPolicy']))
     {
@@ -146,6 +146,7 @@
 
     <!-- Custom CSS -->
     <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+    <!--<link href="../css/pageTemplate.css?v=<?php echo time();?>" rel="stylesheet">-->
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../css/jquery.gridster.css">
     <link rel="stylesheet" href="../css/style_widgets.css?v=<?php echo time();?>" type="text/css" />
@@ -189,7 +190,7 @@
    <!-- Leaflet marker cluster plugin -->
    <link rel="stylesheet" href="../leaflet-markercluster/MarkerCluster.css" />
    <link rel="stylesheet" href="../leaflet-markercluster/MarkerCluster.Default.css" />
-   <link rel="stylesheet" href="../leaflet-markercluster/leaflet.markercluster-src.js" />
+   <script src="../leaflet-markercluster/leaflet.markercluster-src.js" type="text/javascript" charset="utf-8"></script>
    
    <!-- Dot dot dot -->
    <script src="../dotdotdot/jquery.dotdotdot.js" type="text/javascript"></script>
@@ -217,7 +218,7 @@
 
     <script type='text/javascript'>
         var array_metrics = new Array();
-        var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardName, logoFilename, logoLink, 
+        var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardId, dashboardName, logoFilename, logoLink, 
             clockFontSizeMod, logoWidth, logoHeight, headerVisible = null;
     
         var dashboardZoomEventHandler = function(event)
@@ -234,29 +235,15 @@
             var loggedUserFirstAttempt = true;
             
             var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo $_REQUEST['embedPreview'];}else{echo 'false';} ?>";
-            /*$.ajax({
-                url: "<?php echo $googleFontsApi; ?>",
-                data: {
-                    key: "<?php echo $googleApiKey; ?>",
-                    sort: "alpha"
-                },
-                type: "GET",
-                async: true,
-                dataType: 'json',
-                success: function(googleFonts) 
-                {
-                    var family = null;
-                    for(var i = 0; i < googleFonts.items.length; i++)
-                    {
-                        family = googleFonts.items[i].family;
-                        $('head').append('<link rel="stylesheet" type="text/css" href="<?php echo $googleApiForSingleFont; ?>' + family + '">');
-                    }
-                },
-                error: function(errorData)
-                {
-                    console.log("Error downloading Google Fonts");  
-                }
-            });*/
+            
+            var loginFormCntMargin = parseInt(($('#authFormDarkBackground').height() - $('#authFormContainer').height()) / 2);
+            $('#authFormContainer').css("margin-top", loginFormCntMargin + "px");
+
+            $(window).resize(function(){
+                var loginFormCntMargin = parseInt(($('#authFormDarkBackground').height() - $('#authFormContainer').height()) / 2);
+                $('#authFormContainer').css("margin-top", loginFormCntMargin + "px");
+            });
+            
             //Questo ti dice il grado di zoom
             //console.log("window.devicePixelRatio: " + window.devicePixelRatio.toFixed(2));
             
@@ -358,6 +345,10 @@
                         }
                     }
                 }
+                
+                $('body').removeClass("dashboardViewBodyAuth");
+                
+                dashboardId = <?= base64_decode($_GET['iddasboard']) ?>;
                 
                 for(var i = 0; i < dashboardParams.length; i++)
                 {
@@ -483,22 +474,15 @@
 
                     if(logoFilename !== null)
                     {
-                        $("#headerLogoImg").prop("src", "../img/dashLogos/" + dashboardName + "/" + logoFilename);
+                        $("#headerLogoImg").prop("src", "../img/dashLogos/dashboard" + dashboardId + "/" + logoFilename);
                         $("#headerLogoImg").prop("alt", "Dashboard logo");
-                        var img = new Image();
-                        img.src = "../img/dashLogos/" + dashboardName + "/" + logoFilename;
-                        img.onload = function()
+                        $("#headerLogoImg").show();
+                        if((logoLink !== null) && (logoLink !== ''))
                         {
-                            if((logoLink !== null) && (logoLink !== ''))
-                            {
-                               var logoImage = $('#headerLogoImg');
-                               var logoLinkElement = $('<a href="' + logoLink + '" target="_blank" class="pippo">'); 
-                               logoImage.wrap(logoLinkElement); 
-                            }
-                            logoWidth = $('#headerLogoImg').width();
-                            logoHeight = $('#headerLogoImg').height();                                
-                            $("#headerLogoImg").css("display", "");
-                        };
+                           var logoImage = $('#headerLogoImg');
+                           var logoLinkElement = $('<a href="' + logoLink + '" target="_blank" class="pippo">'); 
+                           logoImage.wrap(logoLinkElement); 
+                        }
                     }
 
                     num_cols = dashboardParams[i].num_columns;
@@ -600,7 +584,7 @@
                     {
                         time = "12/HOUR";
                     }
-                    var widget = ['<li id="' + name_w + '"></li>', dashboardWidgets[i]['size_columns_widget'], dashboardWidgets[i]['size_rows_widget'], dashboardWidgets[i]['n_column_widget'], dashboardWidgets[i]['n_row_widget']];
+                    var widget = ['<li data-widgetId="' + dashboardWidgets[i]['id_widget'] + '" id="' + name_w + '"></li>', dashboardWidgets[i]['size_columns_widget'], dashboardWidgets[i]['size_rows_widget'], dashboardWidgets[i]['n_column_widget'], dashboardWidgets[i]['n_row_widget']];
 
                     gridster.add_widget.apply(gridster, widget);
 
@@ -974,12 +958,17 @@
                         switch(response.visibility)
                         {
                             case 'public':
-                                $("#authFormContainer").hide();
+                                $('body').removeClass("dashboardViewBodyAuth");
+                                $('#authFormDarkBackground').hide();
+                                $('#authFormContainer').hide();
                                 $("#wrapper-dashboard").show();
                                 loadDashboard(response.dashboardParams, response.dashboardWidgets);
                                 break;
 
                             case 'author': case 'restrict':
+                                $('body').addClass("dashboardViewBodyAuth");
+                                $('#authFormDarkBackground').show();
+                                $('#authFormContainer').show();
                                 switch(response.detail)
                                 {
                                     case "credentialsMissing":
@@ -993,7 +982,6 @@
                                             $("#authFormMessage").html("");
                                             firstLoad = false;
                                         }
-                                        $("#authFormContainer").show();
                                         $("#authBtn").click(authUser);
                                         break;
                                         
@@ -1001,7 +989,6 @@
                                         //Fallimento query controllo presenza utente
                                         $("#wrapper-dashboard").hide();
                                         $("#authFormMessage").html("Failure during DB query to check user: please try again");
-                                        $("#authFormContainer").show();
                                         $("#authBtn").click(authUser);
                                         break;
                                         
@@ -1009,7 +996,6 @@
                                         //Fallimento query controllo presenza utente
                                         $("#wrapper-dashboard").hide();
                                         $("#authFormMessage").html("Failure during DB query to check user logged to main application: please try again");
-                                        $("#authFormContainer").show();
                                         $("#authBtn").click(authUser);
                                         break;
                                         
@@ -1017,105 +1003,117 @@
                                         //Fallimento query controllo presenza utente
                                         $("#wrapper-dashboard").hide();
                                         $("#authFormMessage").html("Failure during DB query to check user logged to dashboard view: please try again");
-                                        $("#authFormContainer").show();
                                         $("#authBtn").click(authUser);
                                         break;     
                                         
                                     case "userNotRegistered":
                                         $("#wrapper-dashboard").hide();
                                         $("#authFormMessage").html("User not registered or wrong username / password");
-                                        $("#authFormContainer").show();
                                         $("#authBtn").click(authUser);
                                         break;
                                         
                                     case "Ok": 
-                                        $("#authFormContainer").hide();
+                                        $('body').removeClass("dashboardViewBodyAuth");
+                                        $('#authFormDarkBackground').hide();
+                                        $('#authFormContainer').hide();
                                         $("#wrapper-dashboard").show();
                                         loadDashboard(response.dashboardParams, response.dashboardWidgets);
-                                        if(response.context === "View")
-                                        {
-                                            $("#viewLogoutBtn").show();
-                                            $("#viewLogoutBtn").click(function(){
-                                                event.preventDefault();
-                                                $("#logoutViewModal").modal('show');
-                                            });
-                                            
-                                            $("#confirmLogoutBtn").click(function(event){
-                                                $.ajax({
-                                                    url: "../management/sessionUpdate.php",
-                                                    data: {
-                                                      sessionAction: 'closeViewSession',
-                                                      dashboardId: <?= base64_decode($_GET['iddasboard']) ?>
-                                                    },
-                                                    type: "POST",
-                                                    async: false,
-                                                    dataType: 'json',
-                                                    success: function (data) 
+                                        
+                                    if(response.context === "View")
+                                    {
+                                        $("#viewLogoutBtn").show();
+                                        $("#viewLogoutBtn").click(function(){
+                                            event.preventDefault();
+                                            $("#logoutViewModal").modal('show');
+                                        });
+
+                                        $("#confirmLogoutBtn").click(function(event){
+                                            $.ajax({
+                                                url: "../management/sessionUpdate.php",
+                                                data: {
+                                                  sessionAction: 'closeViewSession',
+                                                  dashboardId: <?= base64_decode($_GET['iddasboard']) ?>
+                                                },
+                                                type: "POST",
+                                                async: false,
+                                                dataType: 'json',
+                                                success: function (data) 
+                                                {
+                                                    //console.log(JSON.stringify(data));
+                                                    switch(data.detail)
                                                     {
-                                                        //console.log(JSON.stringify(data));
-                                                        switch(data.detail)
-                                                        {
-                                                            case "Ok":
-                                                                $("#logoutViewModalMain").hide();
-                                                                $("#logoutViewModalOk").show();
-                                                                setTimeout(function(){
-                                                                    $("#logoutViewModal").modal('hide');
-                                                                    location.reload();
-                                                                }, 2000);
-                                                                break;
-                                                                
-                                                            case "Ko":
-                                                                $("#logoutViewModalMain").hide();
-                                                                $("#logoutViewModalKo").show();
-                                                                setTimeout(function(){
-                                                                    $("#logoutViewModal").modal('hide');
-                                                                    $("#logoutViewModalKo").hide();
-                                                                    $("#logoutViewModalMain").show();
-                                                                }, 2000);
-                                                                break;
-                                                        }
-                                                    },
-                                                    error: function (data)
-                                                    {
-                                                        $("#logoutViewModalMain").hide();
-                                                        $("#logoutViewModalQueryKo").show();
-                                                        setTimeout(function(){
-                                                            $("#logoutViewModal").modal('hide');
-                                                            $("#logoutViewModalKo").hide();
-                                                            $("#logoutViewModalMain").show();
-                                                        }, 2000);
-                                                        console.log("Error");
-                                                        console.log(JSON.stringify(data));
+                                                        case "Ok":
+                                                            $("#logoutViewModalFooter").hide();
+                                                            $("#logoutViewModalMsg").hide();
+                                                            $("#logoutViewModalOk").show();
+                                                            setTimeout(function(){
+                                                                $("#logoutViewModal").modal('hide');
+                                                                location.reload();
+                                                            }, 2000);
+                                                            break;
+
+                                                        case "Ko":
+                                                            $("#logoutViewModalMsg").hide();
+                                                            $("#logoutViewModalFooter").hide();
+                                                            $("#logoutViewModalKo").show();
+                                                            setTimeout(function(){
+                                                                $("#logoutViewModal").modal('hide');
+                                                                $("#logoutViewModalKo").hide();
+                                                                $("#logoutViewModalMsg").show();
+                                                                $("#logoutViewModalFooter").show();
+                                                            }, 2000);
+                                                            break;
                                                     }
-                                                });
+                                                },
+                                                error: function (data)
+                                                {
+                                                    $("#logoutViewModalMsg").hide();
+                                                    $("#logoutViewModalFooter").hide();
+                                                    $("#logoutViewModalKo").show();
+                                                    setTimeout(function(){
+                                                        $("#logoutViewModal").modal('hide');
+                                                        $("#logoutViewModalKo").hide();
+                                                        $("#logoutViewModalMsg").show();
+                                                        $("#logoutViewModalFooter").show();
+                                                    }, 2000);
+                                                    console.log("Error");
+                                                    console.log(JSON.stringify(data));
+                                                }
                                             });
-                                        }
-                                        break;
-                                        
-                                    case "Ko": 
-                                        $("#wrapper-dashboard").hide();
-                                        $("#authFormMessage").html("User not allowed to see this dashboard");
-                                        $("#authFormContainer").show();
-                                        $("#authBtn").click(authUser);        
-                                        break;
-                                        
-                                    case "loggedUserKo": 
-                                        loggedUserFirstAttempt = false;
-                                        $("#wrapper-dashboard").hide();
-                                        $("#authFormMessage").html("Logged user not allowed to see this dashboard");
-                                        $("#authFormContainer").show();
-                                        $("#authBtn").click(authUser);        
-                                        break;
-                                        
-                                    case "loggedViewUserKo": 
-                                        loggedUserFirstAttempt = false;
-                                        $("#wrapper-dashboard").hide();
-                                        $("#authFormMessage").html("User logged to dashboard view not allowed to see this dashboard");
-                                        $("#authFormContainer").show();
-                                        $("#authBtn").click(authUser);        
-                                        break;    
-                                }
-                                break; 
+                                        });
+                                    }
+                                    break;
+
+                                case "Ko": 
+                                    $("#wrapper-dashboard").hide();
+                                    $("#authFormMessage").html("User not allowed to see this dashboard");
+                                    $('body').addClass("dashboardViewBodyAuth");
+                                    $('#authFormDarkBackground').show();
+                                    $('#authFormContainer').show();
+                                    $("#authBtn").click(authUser);        
+                                    break;
+
+                                case "loggedUserKo": 
+                                    loggedUserFirstAttempt = false;
+                                    $("#wrapper-dashboard").hide();
+                                    $("#authFormMessage").html("Logged user not allowed to see this dashboard");
+                                    $('body').addClass("dashboardViewBodyAuth");
+                                    $('#authFormDarkBackground').show();
+                                    $('#authFormContainer').show();
+                                    $("#authBtn").click(authUser);        
+                                    break;
+
+                                case "loggedViewUserKo": 
+                                    loggedUserFirstAttempt = false;
+                                    $("#wrapper-dashboard").hide();
+                                    $("#authFormMessage").html("User logged to dashboard view not allowed to see this dashboard");
+                                    $('body').addClass("dashboardViewBodyAuth");
+                                    $('#authFormDarkBackground').show();
+                                    $('#authFormContainer').show();
+                                    $("#authBtn").click(authUser);        
+                                    break;    
+                            }
+                            break; 
                         }
                     },
                     error: function (data)
@@ -1136,6 +1134,7 @@
 </head>
 
 <body>
+    <?php include "../management/sessionExpiringPopup.php" ?>
     <div id="getVisibilityError">
         <div id="wrapper">
             <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -1155,30 +1154,44 @@
         <p>Error while trying to get dashboard visibility: please try again</p>
     </div>
     
-    <div id="authFormContainer" class="container">
-        <div id="authFormPanel" class="panel panel-primary col-xs-4 col-xs-offset-4">
-            <div class="panel-heading">
-                <h3 class="panel-title">Login</h3>
-            </div>
-            <div class="panel-body">
+    <div id="authFormDarkBackground">
+        <div class="row">
+            <div class="col-xs-12 centerWithFlex" id="loginMainTitle">Dashboard Management System</div>
+        </div>
+        
+        <div class="row">
+            <div id="authFormContainer" class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-4 col-md-offset-4">
+                <div class="col-xs-12" id="loginFormTitle" class="centerWithFlex" style="margin-top: 15px">
+                   Restricted access dashboard
+                </div>
                 <form id="authForm" class="form-signin" role="form" method="post" action="">
-                    <h2 class="form-signin-heading">Dashboard management system</h2>
-                    <label for="username" class="sr-only">Username</label>
-                    <input type="username" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
-                    <label for="password" class="sr-only">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
-                    <div class="checkbox">
-                        <label id="authFormMessage"></label>
+                    <div class="col-xs-12" id="loginFormBody">
+                        <div class="col-xs-12 modalCell">
+                            <div class="modalFieldCnt">
+                                <input type="text" class="modalInputTxt" id="username" name="username" required> 
+                            </div>
+                            <div class="modalFieldLabelCnt">Username</div>
+                        </div>
+                        <div class="col-xs-12 modalCell">
+                            <div class="modalFieldCnt">
+                                <input type="password" class="modalInputTxt" id="password" name="password" required> 
+                            </div>
+                            <div class="modalFieldLabelCnt">Password</div>
+                        </div>
+                        <div class="col-xs-12 modalCell">
+                            <div id="authFormMessage"></div>
+                        </div>
+                        
                     </div>
-                    <p>
-                        <button id="authBtn" name="login" class="btn btn-primary btn-lg btn-block" type="button">Sign in</button>
-                    </p>
+                <div class="col-xs-12 centerWithFlex" id="loginFormFooter" style="margin-bottom: 15px">
+                    <button type="reset" id="loginCancelBtn" class="btn cancelBtn" data-dismiss="modal">Reset</button>
+                    <button type="button" id="authBtn" name="login" class="btn confirmBtn internalLink">Login</button>
+                </div>
                 </form>
             </div>
         </div>
-        <div class="col-xs-4"></div><!-- Celle vuote di utilità -->
-    </div> 
-    
+    </div>    
+        
     <div id="autofitAlert">
         <div class="row">
             <div id="autofitAlertMsgContainer" class="col-xs-12">
@@ -1277,7 +1290,40 @@
         </div> 
         
         <!-- Modale di conferma logout dashboard -->
-        <div class="modal fade" id="logoutViewModal" tabindex="-1" role="dialog" aria-labelledby="logoutViewModalLabel" aria-hidden="true">
+        <div class="modal fade" id="logoutViewModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modalHeader centerWithFlex">
+                  Close this dashboard
+                </div>
+                <div id="delDsModalBody" class="modal-body modalBody">
+                    <div class="row" id="logoutViewModalMsg">
+                        <div class="col-xs-12 modalCell">
+                            <div class="modalDelMsg col-xs-12 centerWithFlex">
+                                Do you want to confirm logout from this dashboard? 
+                            </div>
+                            <div class="modalDelObjName col-xs-12 centerWithFlex" id="delDsName"></div> 
+                        </div>
+                    </div>
+                    <div class="row" id="logoutViewModalOk">
+                        <div class="col-xs-12 centerWithFlex">Logout correctly executed</div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                    </div>
+                    <div class="row" id="logoutViewModalKo">
+                        <div class="col-xs-12 centerWithFlex">Logout not possibile, please try again</div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                    </div>
+                </div>
+                <div id="logoutViewModalFooter" class="modal-footer">
+                  <button type="button" id="discardLogoutBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+                  <button type="button" id="confirmLogoutBtn" class="btn confirmBtn internalLink">Confirm</button>
+                </div>
+              </div>
+            </div>
+        </div>
+        
+        
+        <!--<div class="modal fade" id="logoutViewModal" tabindex="-1" role="dialog" aria-labelledby="logoutViewModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modal-header">
@@ -1304,7 +1350,7 @@
                 </div>
               </div>
             </div>
-        </div>
+        </div>-->
         
         <!-- Modale impossibilità di apertura link in nuovo tab per widgetExternalContent -->
         <div class="modal fade" tabindex="-1" id="newTabLinkOpenImpossibile" role="dialog" aria-labelledby="myModalLabel">

@@ -27,7 +27,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Dashboard management system</title>
+    <title>Dashboard Management System</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
@@ -55,6 +55,8 @@
     
     <!-- Scripts file -->
     <script src="../js/accountManagement.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 </head>
 
 <body>
@@ -77,7 +79,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">Dashboard management system</a>
+                <a class="navbar-brand" href="index.html">Dashboard Management System</a>
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
@@ -124,16 +126,11 @@
 
         <div id="page-wrapper">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            <br/>Account management
-                        </h1>   
+                <div class="row" style="margin-top: 50px">
+                    <div class="col-xs-12 centerWithFlex mainPageTitleContainer">
+                        Account
                     </div>
                 </div>
-                <div class="row">
-                    <div class="panel panel-default">
-                        <div class="panel-body">
                            <?php
                                if(isset($_SESSION['loggedRole']))
                                {
@@ -208,9 +205,6 @@
                               <button type="button" id="editAccountConfirmBtn" class="btn btn-primary pull-right internalLink" disabled="true">Apply changes</button>
                               <button type="button" id="editAccountCancelBtn" class="btn btn-secondary pull-right" data-dismiss="modal">Undo changes</button>
                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

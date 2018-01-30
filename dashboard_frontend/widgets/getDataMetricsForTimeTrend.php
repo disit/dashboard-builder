@@ -85,7 +85,7 @@
                 $rangedaysValue = mysqli_real_escape_string($link, $rangedaysValue);
                 
                 $i++;
-                $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(description_short) as descrip, max(Descriptions.threshold) as threshold, max(Descriptions.thresholdEval) as thresholdEval from Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
+                $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(description_short) as descrip FROM Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
                 $result = $link->query($sql);
                 
                 while($r = mysqli_fetch_assoc($result)) 

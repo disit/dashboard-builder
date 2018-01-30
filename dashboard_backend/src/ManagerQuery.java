@@ -342,13 +342,13 @@ public class ManagerQuery implements Runnable, Serializable
                       }
                   } 
                }
-               conn.close();
             }
             catch(SQLException ex) 
             {
                Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
             }
          }
+         conn.close();
      } 
      catch (SQLException ex) 
      {
@@ -480,6 +480,7 @@ public class ManagerQuery implements Runnable, Serializable
                                          newDataInt = rs2.getInt(metricData);
                                          if(oldDataInt != newDataInt)
                                          {
+                                            conn.close();
                                             return false;
                                          }
                                          break;
@@ -489,6 +490,7 @@ public class ManagerQuery implements Runnable, Serializable
                                          newDataDouble = rs2.getDouble(metricData);
                                          if(oldDataDouble != newDataDouble)
                                          {
+                                            conn.close();
                                             return false;
                                          }
                                          break;
@@ -498,6 +500,7 @@ public class ManagerQuery implements Runnable, Serializable
                                          newDataString = rs2.getString(metricData);
                                          if(!oldDataString.equals(newDataString))
                                          {
+                                            conn.close();
                                             return false;
                                          }
                                          break;
@@ -507,6 +510,7 @@ public class ManagerQuery implements Runnable, Serializable
                                          newDataString = rs2.getString(metricData);
                                          if(!oldDataString.equals(newDataString))
                                          {
+                                            conn.close();
                                             return false;
                                          }
                                          break;
@@ -518,44 +522,52 @@ public class ManagerQuery implements Runnable, Serializable
                                       newDataDouble = rs2.getDouble(metricData);
                                       if(oldDataDouble != newDataDouble)
                                       {
+                                         conn.close();
                                          return false;
                                       }
                                    }
                                  }
                              }
                             //Se si esce dal ciclo senza aver mai ritornato, allora i dati sono costanti
+                            conn.close();
                             return true;
                       }
                       catch(SQLException ex) 
                       {
                           Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+                          conn.close();
                           return false;
                       }
                    }
                    else
                    {
+                      conn.close();
                       return false;
                    }
                 } 
                 else 
                 {
+                   conn.close();
                    return false;
                 }
               }
               catch(SQLException ex) 
               {
-                  Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
-                  return false;
+                 Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+                 conn.close();
+                 return false;
               }
            }
            else
            {
-              return false;
+             conn.close();
+             return false;
            }
         }
         catch(SQLException ex) 
         {
            Logger.getLogger(ManagerQuery.class.getName()).log(Level.SEVERE, null, ex);
+           conn.close();
            return false;
         }
       }

@@ -445,8 +445,6 @@
                     $("#<?= $_GET['name'] ?>_chartContainer").show();
                 }
                 
-                console.log("metricType: " + metricType);
-                
                 if(metricType === "isAlive") 
                 {
                     //Calcolo del vettore delle zones
@@ -459,19 +457,19 @@
                         
                         switch(seriesData[i-1][1]){
                             case 2:
-                                areaColor='#c80815';
+                                areaColor='#ff0000'; 
                                 break;
                                 
                              case 4:
-                                 areaColor='#f9740e';
+                                 areaColor='#f96f06';
                                  break;
                                  
                              case 6:
-                                 areaColor='#f9f90e';
+                                 areaColor='#ffcc00';
                                  break;
                             
                             case 8:
-                                areaColor='#07ff18';
+                                areaColor='#00cc00';
                                 break;
                 
                        }   
@@ -500,9 +498,7 @@
                         chart: {
                             backgroundColor: '<?= $_GET['color'] ?>',
                             type: 'area' 
-                         
                         },
-
                         exporting: {
                             enabled: false
                         },
@@ -571,7 +567,7 @@
                             }
                         },
                         tooltip: {
-                            valueSuffix: '',
+                            valueSuffix: ''
                         },
                          
                         series: [{
@@ -594,7 +590,20 @@
                         chart: {
                             backgroundColor: '<?= $_GET['color'] ?>',
                             type: 'spline'
-                       
+                            //type: 'areaspline'
+                        },
+                        plotOptions: {
+                            spline: {
+                                
+                            }
+                            /*areaspline: {
+                                color: '#FF0000',
+                                fillColor: '#ffb3b3'
+                            },
+                            
+                            series: {
+                                lineWidth: 2
+                            }*/
                         },
                         exporting: {
                             enabled: false
@@ -642,8 +651,19 @@
                         series: [{
                                 showInLegend: false,
                                 name: '<?= $_GET['metric'] ?>',
-                                data: seriesData
-
+                                data: seriesData/*,
+                                fillColor: {
+                                    linearGradient: {
+                                        x1: 0,
+                                        y1: 0,
+                                        x2: 0,
+                                        y2: 0
+                                    },
+                                    stops: [
+                                        [0, '#ffb3b3'],
+                                        [1, Highcharts.Color('#ffb3b3').setOpacity(0).get('rgba')]
+                                    ]
+                                }*/
                             }]
                     });
                 }

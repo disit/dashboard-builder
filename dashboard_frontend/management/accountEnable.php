@@ -28,9 +28,6 @@
         <!-- Bootstrap core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
 
-        <!-- Custom styles for this template -->
-        <link href="../css/signin.css" rel="stylesheet">
-
         <!-- jQuery -->
         <script src="../js/jquery-1.10.1.min.js"></script>
         
@@ -40,13 +37,15 @@
         <!-- Font awesome icons -->
         <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
         
+        <!--<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">-->
+        
         <!-- Custom CSS -->
         <link href="../css/dashboard.css" rel="stylesheet">
         
         <!-- Scripts file -->
         <script src="../js/accountManagement.js"></script>
     </head>
-    <body>
+    <body class="dashboardViewBodyAuth">
         <?php
             if((!isset($_REQUEST['user']))||(!isset($_REQUEST['email']))||(!isset($_REQUEST['hash'])))
             {
@@ -75,8 +74,58 @@
                }
             }
         ?>
+        <div class="row">
+            <div class="col-xs-12 centerWithFlex" id="loginMainTitle">Dashboard Management System</div>
+        </div>
+        
+        <div id="authFormDarkBackground">
+            <div class="row">
+                <div id="enableAccountFormContainer" class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-4 col-md-offset-4">
+                    <div class="col-xs-12" id="loginFormTitle" class="centerWithFlex" style="margin-top: 15px; margin-bottom: 15px">
+                       Account activation
+                    </div>
+                    <h5>Dear <b><?php echo $_REQUEST['user'] ?></b>, please choose a password and click the button below in order to activate your account and be able to login the system.<br/><br/>
+                        You will receive an e-mail containing your account details after activation.</h5>
+                    <form id="authForm" class="form-signin" role="form" method="post" action="">
+                        <div class="col-xs-12" id="accountActivationFormRow">
+                            <div class="col-xs-12 modalCell">
+                                <div class="modalFieldCnt">
+                                    <input type="text" class="modalInputTxt" id="accountActivationPwd" name="accountActivationPwd" required> 
+                                </div>
+                                <div class="modalFieldLabelCnt">Password</div>
+                                <div id="accountActivationPwdMsg" class="accountEditSubfieldContainer"></div> 
+                            </div>
+                            <div class="col-xs-12 modalCell">
+                                <div class="modalFieldCnt">
+                                    <input type="password" class="modalInputTxt" id="accountActivationConfirmPwd" name="accountActivationConfirmPwd" required> 
+                                </div>
+                                <div class="modalFieldLabelCnt">Password confirmation</div>
+                                <div id="accountActivationConfirmPwdMsg" class="accountEditSubfieldContainer"></div> 
+                            </div>
+                        </div>
+                        
+                        <div class="row" id="accountActivationActivatingRow" style="margin-bottom: 15px">
+                            <div class="col-xs-12 centerWithFlex">Enabling account, please wait</div>
+                            <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
+                        </div>
+                        <div class="row" id="accountActivationOkRow" style="margin-bottom: 15px">
+                            <div class="col-xs-12 centerWithFlex">Account successfully enabled: an e-mail containing your account details has been sent to your mailbox.</div>
+                            <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                        </div>
+                        <div class="row" id="accountActivationKoRow" style="margin-bottom: 15px">
+                            <div class="col-xs-12 centerWithFlex">Account enabling failed: please try again.</div>
+                            <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                        </div>
+                    <div class="col-xs-12 centerWithFlex" id="accountActivationBtnRow" style="margin-top: 15px; margin-bottom: 15px">
+                        <button type="reset" id="accountActivationCancelBtn" class="btn cancelBtn" style="margin-right: 15px">Reset</button>
+                        <button type="button" id="accountActivationBtn" name="accountActivationBtn" class="btn confirmBtn internalLink" disabled>Activate</button>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
        
-        <div id="container-form" class="container">
+        <!--<div id="container-form" class="container">
             <div id="panel-form" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title">Dashboard Management System</h3>
@@ -133,16 +182,19 @@
                         </div>
                 </div>
             </div>    
-        </div> 
-
-
-        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-        <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
-        <script src="../js/bootstrap.min.js"></script>
+        </div>--> 
         
         <script type='text/javascript'>
          $(document).ready(function () 
          {
+            var loginFormCntMargin = parseInt(($('#authFormDarkBackground').height() - $('#enableAccountFormContainer').height()) / 2);
+            $('#enableAccountFormContainer').css("margin-top", loginFormCntMargin + "px");
+
+            $(window).resize(function(){
+                var loginFormCntMargin = parseInt(($('#authFormDarkBackground').height() - $('#enableAccountFormContainer').height()) / 2);
+                $('#enableAccountFormContainer').css("margin-top", loginFormCntMargin + "px");
+            }); 
+             
             enableAccountPageSetup();
 
             $("#accountActivationBtn").click(function(){

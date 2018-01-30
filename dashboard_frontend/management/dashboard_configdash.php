@@ -18,6 +18,11 @@
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
    session_start();
    
+   if(!isset($_SESSION['loggedRole']))
+   {
+        header("location: unauthorizedUser.php");
+   }
+   
    //?openNotificator=1&dashId=" . $id_dashboard2 ."&widgetTitle=" . $title_widget_m
 ?>
 
@@ -31,7 +36,6 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
-    <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../css/jquery.gridster.css">
     <!--<link rel="stylesheet" type="text/css" href="../css/new/jquery.gridster.css">-->
@@ -39,6 +43,8 @@
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--<link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">-->
     
     <!-- jQuery -->
     <script src="../js/jquery-1.10.1.min.js"></script>
@@ -121,6 +127,9 @@
    
    <!-- Weather icons -->
     <link rel="stylesheet" href="../img/meteoIcons/singleColor/css/weather-icons.css?v=<?php echo time();?>">
+    
+    <!-- Custom CSS -->
+    <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
    
     <script src="../js/widgetsCommonFunctions.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../js/dashboard_configdash.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
@@ -128,9 +137,6 @@
     <script src="../widgets/alarmTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/fakeGeoJsons.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     
-    <script type="text/javascript">
-        
-    </script>
 </head>
 
 <body> 
@@ -142,82 +148,83 @@
             echo '</script>';
         }
     ?>
+    
+    <?php include "sessionExpiringPopup.php" ?>
    
-         <div id="editDashboardMenu" class="container-fluid centerWithFlex">
-            <div class="mainMenuItemContainer">
-               <a id="link_add_widget" href="#" data-toggle="modal"> <!-- data-target="#modal-add-widget" -->
-                  <div class="mainMenuIconContainer centerWithFlex">
-                     <img src="../img/editDashMenu/add.png" width="25" height="25">
-                  </div>
-                  <div class="mainMenuTextContainer centerWithFlex">
-                     add a<br>widget
-                  </div>
-               </a>
-            </div>
-            <div class="mainMenuItemContainer">
-               <a id ="link_modifyDash" href="#" data-toggle="modal" data-target="#modal-modify-dashboard">
-                  <div class="mainMenuIconContainer centerWithFlex">
-                     <img src="../img/editDashMenu/edit.png" width="25" height="25">
-                  </div>
-                  <div class="mainMenuTextContainer centerWithFlex">
-                     dashboard<br>properties
-                  </div>
-               </a>
-            </div>
-            <div class="mainMenuItemContainer">
-               <a id ="link_save_configuration" class="internalLink" href="#">
-                  <div class="mainMenuIconContainer centerWithFlex">
-                     <img src="../img/editDashMenu/save.png" width="25" height="25">
-                  </div>
-                  <div class="mainMenuTextContainer centerWithFlex">
-                     save widgets'<br>position
-                  </div>
-               </a>
-            </div>
-            <div class="mainMenuItemContainer">
-               <a id ="link_duplicate_dash" href="#" data-toggle="modal" data-target="#modal-duplicate-dashboard">
-                  <div class="mainMenuIconContainer centerWithFlex">
-                     <img src="../img/editDashMenu/duplicate.png" width="25" height="25">
-                  </div>
-                  <div class="mainMenuTextContainer centerWithFlex">
-                     duplicate<br>dashboard
-                  </div>
-               </a>
-            </div>
-            <div class="mainMenuItemContainer">
-               <a id="dashboardViewLink" href="#" target="blank">
-                  <div class="mainMenuIconContainer centerWithFlex">
-                     <img src="../img/editDashMenu/view.png" width="25" height="25">
-                  </div>
-                  <div class="mainMenuTextContainer centerWithFlex">
-                     dashboard<br>view
-                  </div>
-               </a>
-            </div>
-            <div class="mainMenuItemContainer">
-               <a id ="embedCodeBtn" href="#">
-                  <div class="mainMenuIconContainer centerWithFlex">
-                      <img src="../img/editDashMenu/embed.png" width="25" height="25">
-                  </div>
-                  <div class="mainMenuTextContainer centerWithFlex">
-                     html for<br>embedding
-                  </div>
-               </a>
-            </div>
-            <div class="mainMenuItemContainer">
-               <a id ="link_exit" href="#" class="internalLink">
-                  <div class="mainMenuIconContainer centerWithFlex">
-                     <img src="../img/editDashMenu/exit.png" width="25" height="25">
-                  </div>
-                  <div class="mainMenuTextContainer centerWithFlex">
-                     back to<br>main menu
-                  </div>
-               </a>
-            </div> 
-         </div> 
+    <div id="editDashboardMenu" class="container-fluid centerWithFlex">
+       <div class="mainMenuItemContainer">
+          <a id="link_add_widget" href="#" data-toggle="modal"> 
+             <div class="mainMenuIconContainer centerWithFlex">
+                <img src="../img/editDashMenu/add.png" width="25" height="25">
+             </div>
+             <div class="mainMenuTextContainer centerWithFlex">
+                add a<br>widget
+             </div>
+          </a>
+       </div>
+       <div class="mainMenuItemContainer">
+          <a id ="link_modifyDash" href="#" data-toggle="modal" data-target="#modalEditDashboard">
+             <div class="mainMenuIconContainer centerWithFlex">
+                <img src="../img/editDashMenu/edit.png" width="25" height="25">
+             </div>
+             <div class="mainMenuTextContainer centerWithFlex">
+                dashboard<br>properties
+             </div>
+          </a>
+       </div>
+       <div class="mainMenuItemContainer">
+          <a id ="link_save_configuration" class="internalLink" href="#">
+             <div class="mainMenuIconContainer centerWithFlex">
+                <img src="../img/editDashMenu/save.png" width="25" height="25">
+             </div>
+             <div class="mainMenuTextContainer centerWithFlex">
+                save widgets'<br>position
+             </div>
+          </a>
+       </div>
+       <div class="mainMenuItemContainer">
+          <a id ="link_duplicate_dash" href="#">
+             <div class="mainMenuIconContainer centerWithFlex">
+                <img src="../img/editDashMenu/duplicate.png" width="25" height="25">
+             </div>
+             <div class="mainMenuTextContainer centerWithFlex">
+                duplicate<br>dashboard
+             </div>
+          </a>
+       </div>
+       <div class="mainMenuItemContainer">
+          <a id="dashboardViewLink" href="#" target="blank">
+             <div class="mainMenuIconContainer centerWithFlex">
+                <img src="../img/editDashMenu/view.png" width="25" height="25">
+             </div>
+             <div class="mainMenuTextContainer centerWithFlex">
+                dashboard<br>view
+             </div>
+          </a>
+       </div>
+       <div class="mainMenuItemContainer"> 
+          <a id ="embedCodeBtn" href="#" data-toggle="modal">
+             <div class="mainMenuIconContainer centerWithFlex">
+                 <img src="../img/editDashMenu/embed.png" width="25" height="25">
+             </div>
+             <div class="mainMenuTextContainer centerWithFlex">
+                html for<br>embedding
+             </div>
+          </a>
+       </div>
+       <div class="mainMenuItemContainer">
+          <a id ="link_exit" href="#" class="internalLink">
+             <div class="mainMenuIconContainer centerWithFlex">
+                <img src="../img/editDashMenu/exit.png" width="25" height="25">
+             </div>
+             <div class="mainMenuTextContainer centerWithFlex">
+                back to<br>main menu
+             </div>
+          </a>
+       </div> 
+    </div> 
     
     <div id="wrapper-dashboard-cfg">
-        <!-- New header -->
         <nav id="navbarDashboard" class="navbar navbar-inverse navbar-fixed-top noBorder" role="navigation">
             <div id="navbarDashboardHeader">
                 <div class="dashboardHeaderLeft">
@@ -231,11 +238,8 @@
             <div id="clock"><?php include('../widgets/time.php'); ?></div>    
         </nav>
         
-        
-        
         <div id="pageWrapperCfg">
-            <div class="container-fluid">
-                
+            <div id="editDashboardMainContainerFluid" class="container-fluid">
                 <div id="container-widgets-cfg" class="gridster"> 
                     <ul id="containerUl"></ul>  
                 </div>
@@ -245,9 +249,12 @@
                 <div id="logos" class="footerLogos">
                     <a id="disitLogo" title="Disit" href="https://www.disit.org" target="_new" class="footerLogo"><img src="../img/disitLogo.png" /></a>
                 </div>
-        </div><!-- Fine container-fluid -->
-    </div><!-- Fine pageWrapperCfg  -->
-
+            </div><!-- Fine container-fluid -->
+        </div><!-- Fine pageWrapperCfg  -->
+    </div>
+        
+    <!-- Inizio dei modali -->
+        
     <!-- Modale aggiunta widget -->
     <div class="modal fade" id="modal-add-widget" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog modalDialogWidget" role="document" id="adding01">
@@ -262,11 +269,58 @@
                             <legend class="legend-form-group">Metric and widget choice</legend> 
                             <div id="metricAndWidgetChoiceContent" class="form-group">
                                 <div class="row">
+                                    <label for="widgetCategory" class="col-md-4 control-label">Widget category</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetCategory" name="widgetCategory">
+                                                <option value="actuator">Actuator</option>
+                                                <option value="viewer">Data viewer</option>
+                                            </select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Campi per gli widget attuatori -->
+                                <div class="row" id="widgetEntityRow">
+                                    <label for="widgetCategory" class="col-md-4 control-label">Entity</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetEntity" name="widgetEntity"></select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row" id="widgetAttributeRow">
+                                    <label for="widgetAttribute" class="col-md-4 control-label">Attribute</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetAttribute" name="widgetAttribute"></select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row" id="widgetActuatorTypeRow">
+                                    <label for="widgetActuatorType" class="col-md-4 control-label">Widget type</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetActuatorType" name="widgetActuatorType"></select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                
+                                
+                                <!-- Campi per gli widget che mostrano dati -->
+                                <div class="row" id="selectMetricRow">
                                     <label for="select-metric" class="col-md-4 control-label">Metric</label>
 
                                     <div class="col-md-6">
                                         <div class="input-group">
-                                            <select class="form-control" id="select-metric" name="select-metric" required></select> 
+                                            <select class="form-control" id="select-metric" name="select-metric"></select> 
                                             <span class="input-group-btn">
                                                 <button id="button_add_metric_widget" class="btn btn-default" name="button_add_metric_widget" type="button">Add</button>                                            
                                             </span>                                        
@@ -274,7 +328,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="row" id="metricDescRow">
                                     <label for="textarea-metric" class="col-md-4 control-label">Metric description</label>
                                     <div class="col-md-6">
                                         <textarea id ="textarea-metric-c" class="form-control textarea-metric" name="textarea-metric" rows="3"></textarea>
@@ -282,7 +336,7 @@
                                 </div>
                                 
                                 <div id ="inputComuneRow" class="row">    
-                                <label for="inputComuneWidget" class="col-md-4 control-label">Context</label>
+                                    <label for="inputComuneWidget" class="col-md-4 control-label">Context</label>
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <input type="text" class="form-control autocomplete" id="inputComuneWidget" name="inputComuneWidget" novalidate>
@@ -295,32 +349,32 @@
                                     </div>  
                                 </div>
                                 
-                                <div class="row">
+                                <div class="row" id="widgetTypeRow">
                                     <label for="select-widget" class="col-md-4 control-label">Widget type</label>
                                     <div class="col-md-6">
                                         <div class="input-group">
-                                            <select name="select-widget" class="form-control" id="select-widget" required>
+                                            <select name="select-widget" class="form-control" id="select-widget">
                                             </select>
                                             <div id="add-n-metrcis-widget" class="input-group-addon"></div>
                                         </div>    
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="row" id="selectedMetricRow">
                                     <label for="textarea-selected-metrics" class="col-md-4 control-label">Selected metrics</label>
                                     <div class="col-md-6">
-                                        <textarea id ="textarea-selected-metrics" class="form-control textarea-metric" name="textarea-selected-metrics" rows="2" readonly required></textarea>
+                                        <textarea id ="textarea-selected-metrics" class="form-control textarea-metric" name="textarea-selected-metrics" rows="2" readonly></textarea>
                                     </div>
                                 </div>
                                 
-                                <div class="row">
+                                <div class="row" id="widgetLinkRow">
                                     <label for="inputUrlWidget" class="col-md-4 control-label">Widget link</label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="inputUrlWidget" name="inputUrlWidget">
                                     </div>
                                 </div>
 
-                                <div id ="schedulerRow" class="row" style="display: none">
+                                <div id ="schedulerRow" class="row">
                                     <label for="inputSchedulerWidget" class="col-md-4 control-label" style="display: none">Scheduler</label>
                                     <div id="inputSchedulerWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputSchedulerWidgetGroupDiv"class="input-group" style="display: none">
@@ -328,7 +382,7 @@
                                         </div>
                                     </div>
                                 </div>    
-                                <div id ="jobsAreasRow" class="row" style="display: none">    
+                                <div id ="jobsAreasRow" class="row">    
                                 <label for="inputJobsAreasWidget" class="col-md-4 control-label" style="display: none">Jobs areas</label>
                                     <div id="inputJobsAreasWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputJobsAreasWidgetGroupDiv"class="input-group" style="display: none">
@@ -337,7 +391,7 @@
                                     </div>
                                 </div>
 
-                                <div id ="jobsGroupsRow" class="row" style="display: none">    
+                                <div id ="jobsGroupsRow" class="row">    
                                 <label for="inputJobsGroupsWidget" class="col-md-4 control-label" style="display: none">Jobs groups</label>
                                     <div id="inputJobsGroupsWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputJobsGroupsWidgetGroupDiv"class="input-group" style="display: none">
@@ -346,7 +400,7 @@
                                     </div>
                                 </div>
 
-                                <div id ="jobsNamesRow" class="row" style="display: none">    
+                                <div id ="jobsNamesRow" class="row">    
                                 <label for="inputJobsNamesWidget" class="col-md-4 control-label" style="display: none">Jobs names</label>
                                     <div id="inputJobsNamesWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputJobsNamesWidgetGroupDiv"class="input-group" style="display: none">
@@ -514,7 +568,6 @@
                         
                         <div class="well wellCustomFooter">
                             <button id="button_add_widget" name="add_widget" type="submit" class="btn btn-primary widgetFormButton internalLink" disabled>Confirm</button>
-                            <!--<button id="button_reset_add_widget" class="btn btn-danger widgetFormButton widgetFormButtonMargin" type="reset">Reset</button>-->
                             <button id="button_close_popup" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin internalLink" data-dismiss="modal">Cancel</button>
                         </div>
                     </form>
@@ -522,224 +575,400 @@
             </div>
         </div>
     </div> 
+    <!-- Fine modale aggiunta widget -->
     
     <!-- Modale modifica dashboard -->
-    <div class="modal fade" id="modal-modify-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <!-- Vecchio codice -->
-        <div class="modal-dialog" role="document" id="dash01">
+    <div class="modal fade" id="modalEditDashboard" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+            <form id="editDashboardForm" class="form-horizontal" name="editDashboardForm" role="form" method="post" action="" data-toggle="validator" enctype="multipart/form-data">  
             <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabelDas">Modify current dashboard</h4>
-                </div>
-                <div id="modal-modify-dashboard-body" class="modal-body">
-                    <form id="form-modify-dashboard" enctype="multipart/form-data" class="form-horizontal" name="form-setting-dashboard" role="form" action="" data-toggle="validator"> <!--  method="post" -->
-                        <div class="well">
-                            <legend class="legend-form-group">Header</legend>
-                            <div class="form-group">
-                                <label for="inputTitleDashboard" class="col-md-4 control-label">Title</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="inputTitleDashboard" name="inputTitleDashboard"  placeholder="Title">
-                                </div>
-                                <label for="inputSubTitleDashboard" class="col-md-4 control-label">Subtitle</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="inputSubTitleDashboard" name="inputSubTitleDashboard" placeholder="Subtitle">
-                                </div>                     
-                                <!-- Altre colonne -->
-                                <label for="inputDashCol" class="col-md-4 control-label">Header Color</label>
-                                <div class="col-md-6">
-                                    <div class="input-group color-choice">
-                                        <input type="text" class="form-control" id="inputDashCol" name="inputDashCol" value="#5367ce">
-                                        <span class="input-group-addon"><i id="color_h"></i></span>
-                                    </div>
-                                </div>
-                                <label for="headerFontSize" class="col-md-4 control-label">Header font size (pt)</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="headerFontSize" name="headerFontSize">
-                                </div>
-                                <label for="headerFontColor" class="col-md-4 control-label">Header font color</label>
-                                <div class="col-md-6">
-                                    <div class="input-group color-choice">
-                                        <input type="text" class="form-control" id="headerFontColor" name="headerFontColor">
-                                        <span class="input-group-addon"><i id="color_hf"></i></span>
-                                    </div>
-                                </div>
-                                <label for="inputDashBckCol" class="col-md-4 control-label">Background Color</label>
-                                <div class="col-md-6">
-                                    <div class="input-group color-choice">
-                                        <input type="text" class="form-control" id="inputDashBckCol" name="inputDashBckCol" value="#eeeeee">
-                                        <span class="input-group-addon"><i id="color_b"></i></span>
-                                    </div>
-                                </div>
-                                <label for="inputDashExtCol" class="col-md-4 control-label">External Frame Color</label>
-                                <div class="col-md-6">
-                                    <div class="input-group color-choice">
-                                        <input type="text" class="form-control" id="inputDashExtCol" name="inputDashExtCol" value="#ffffff">
-                                        <span class="input-group-addon"><i id="color_e"></i></span>
-                                    </div>
-                                </div>
-                                <label for="widgetsBorders" class="col-md-4 control-label">Widgets borders</label>
-                                <div class="col-md-6">
-                                    <select name="widgetsBorders" class="form-control" id="widgetsBorders" required>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <label for="inputWidgetsBordersColor" class="col-md-4 control-label">Widgets border color</label>
-                                <div class="col-md-6">
-                                    <div class="input-group color-choice">
-                                        <input type="text" class="form-control" id="inputWidgetsBordersColor" name="inputWidgetsBordersColor" required>
-                                        <span class="input-group-addon"><i id="inputPickerWidgetsBorderColor"></i></span>
-                                    </div>
-                                </div>
-                                <label for="dashboardLogoInput" class="col-md-4 control-label">Dashboard logo</label>
-                                <div class="col-md-6">
-                                    <input id="dashboardLogoInput" name="dashboardLogoInput" type="file" class="filestyle form-control" data-badge="false" data-input ="true" data-size="sm" data-buttonName="btn-primary" data-buttonText="Choose file">
-                                </div>
-                                <label for="dashboardLogoLinkInput" class="col-md-4 control-label">Dashboard logo link</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="dashboardLogoLinkInput" name="dashboardLogoLinkInput" disabled>
-                                </div>
-                                <label for="headerVisible" class="col-md-4 control-label">Show header</label>
-                                <div class="col-md-6">
-                                    <select name="headerVisible" id="headerVisible" class="form-control" required>
-                                        <option value="1">Yes</option>
-                                        <option value="0">No</option>
-                                    </select>
-                                </div>
-                                <input type="hidden" name="MAX_FILE_SIZE" value="2000000">
-                            </div>
-                        </div>
-                        <div class="well">
-                            <legend class="legend-form-group">Measures</legend>
-                            <div class="form-group">
-                                <label for="inputWidthDashboard" class="col-md-4 control-label">Width (columns)</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="inputWidthDashboard" name="inputWidthDashboard" placeholder="Width" >
-                                </div>
-                                <label for="pixelWidth" class="col-md-4 control-label">Resulting width (px)</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="pixelWidth" name="pixelWidth" disabled>
-                                </div>
-                                <label for="percentWidth" class="col-md-4 control-label">Percent width occupied on your monitor (fullscreen)</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="percentWidth" name="percentWidth" disabled>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="well">
-                            <legend class="legend-form-group">Iframe embeddability</legend>
-                            <div class="form-group">
-                                <div class="row">
-                                    <label for="embeddable" class="col-md-4 control-label">Allow embed</label>
-                                    <div class="col-md-6">
-                                        <select id="embeddable" name="embeddable" class="form-control">
-                                            <option value="no">No</option>
-                                            <option value="yes">Yes</option>
-                                        </select>
-                                    </div>
-                                
-                                    <!--<label for="embedPolicy" class="col-md-4 control-label">Embed mode</label>
-                                    <div class="col-md-6">
-                                        <select id="embedPolicy" name="embedPolicy" class="form-control">
-                                            <option value="auto">Automatic</option>
-                                            <option value="manual">Manual</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <label for="embedAutofit" class="col-md-4 control-label">Embed autofit</label>
-                                    <div class="col-md-6">
-                                        <select id="embedAutofit" name="embedAutofit" class="form-control">
-                                            <option value="no">No</option>
-                                            <option value="yes">Yes</option>
-                                        </select>
-                                    </div>-->
-                                    
-                                    <label for="authorizedPages" class="col-md-4 control-label">Authorized pages</label>
-                                    <div class="col-md-6">
-                                        <table id="authorizedPagesTable">
-                                            <thead>
-                                                <th>Page</th>
-                                                <th><i id="addAuthorizedPageBtn" class="fa fa-plus"></i></th>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table> 
-                                    </div>
-                                    <input type="hidden" id="authorizedPagesJson" name="authorizedPagesJson" />
-                                </div>
-                            </div>
-                        </div>
-                       <div class="well">
-                            <legend class="legend-form-group">Dashboard visibility</legend>
-                            <div class="form-group">
-                                <div class="row">
-                                    <label for="inputDashboardVisibility" class="col-md-4 control-label">People who can see this dashboard</label>
-                                    <div class="col-md-6">
-                                        <select name="inputDashboardVisibility" class="form-control" id="inputDashboardVisibility" required>
-                                            <option value="author">Dashboard author only</option>
-                                            <option value="restrict">Author and a set of selected users</option>
-                                            <option value="public">Everybody (public)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <label for="inputDashboardVisibilityUsersTable" class="col-md-4 control-label">Single users who can see this dashboard</label>
-                                    <div class="col-md-6" id="inputDashboardVisibilityUsersTableContainer">
-                                        <table id="inputDashboardVisibilityUsersTable">
-                                            <tr>
-                                                <th class="selectCell">Select</th>
-                                                <th class="usernameCell">Username</th>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                  <div class="modalHeader centerWithFlex">
+                      Edit dashboard
+                  </div>
+                  <div id="editDashboardModalBody" class="modal-body modalBody">
+                  <ul class="nav nav-tabs nav-justified">
+                      <li class="active"><a data-toggle="tab" href="#measuresTab">Measures</a></li>
+                      <li><a data-toggle="tab" href="#headerTab">Header</a></li>
+                      <li><a data-toggle="tab" href="#bodyTab">Body</a></li>
+                      <li><a data-toggle="tab" href="#visibilityTab">Visibility</a></li>
+                      <li><a data-toggle="tab" href="#embeddabilityTab">Embeddability</a></li>
+                  </ul>
 
-                        <div class="modal-footer">
-                            <button id="button_close_popup_modify_dashboard" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button id="button_modify_dashboard" name="mod_dash" class="btn btn-primary internalLink" type="button" data-dismiss="modal">Modify</button>
-                        </div>
-                    </form>
-                </div>
+                  <div class="tab-content">
+                      <!-- Measures tab -->
+                      <div id="measuresTab" class="tab-pane fade in active">
+                          <div class="row">
+                              <div class="col-xs-12 col-md-12 modalCell">
+                                  <div class="modalFieldCnt">
+                                       <input id="inputWidthDashboard" name="inputWidthDashboard" data-slider-id="inputWidthDashboardSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Width (cells)</div>
+                              </div>
+                              <div class="col-xs-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <input type="text" class="modalInputTxt" name="pixelWidth" id="pixelWidth" disabled> 
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Pixel width</div>
+                              </div>
+                              <div class="col-xs-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                       <input type="text" class="modalInputTxt" name="percentWidth" id="percentWidth" disabled> 
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Width (%) on your screen</div>
+                              </div>
+                          </div>
+                      </div>
+                      <!-- Header tab -->
+                      <div id="headerTab" class="tab-pane fade">
+                          <div class="row">
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                       <input type="text" class="modalInputTxt" name="inputTitleDashboard" id="inputTitleDashboard" required> 
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Title</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <input type="text" class="modalInputTxt" name="inputSubTitleDashboard" id="inputSubTitleDashboard"> 
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Subtitle</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <div class="input-group customColorChoice">
+                                          <input type="text" class="modalInputTxt" id="inputColorDashboard" name="inputColorDashboard" required>
+                                          <span class="input-group-addon"><i></i></span>
+                                      </div>
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Header color</div>
+                              </div>
+                              <div class="col-xs-12 col-md-2 col-md-offset-2 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <input id="headerVisible" name="headerVisible" type="checkbox">
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Show header</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <input id="headerFontSize" name="headerFontSize" data-slider-id="headerFontSizeSlider" type="text" data-slider-min="1" data-slider-max="36" data-slider-step="1"/>
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Header font size</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <div class="input-group customColorChoice">
+                                          <input type="text" class="modalInputTxt" id="headerFontColor" name="headerFontColor">
+                                          <span class="input-group-addon"><i id="color_hf"></i></span>
+                                      </div>
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Header font color</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <input id="dashboardLogoInput" name="dashboardLogoInput" type="file" class="filestyle modalInputTxt" data-badge="false" data-input ="true" data-size="nr" data-buttonName="btn-primary" data-buttonText="File">
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Header logo</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                       <input type="text" class="modalInputTxt" name="dashboardLogoLinkInput" id="dashboardLogoLinkInput"> 
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Header logo link</div>
+                              </div>
+                          </div>
+                      </div>
 
+                      <!-- Body tab -->
+                      <div id="bodyTab" class="tab-pane fade">
+                          <div class="row">
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <div class="input-group customColorChoice">
+                                          <input type="text" class="modalInputTxt" id="inputColorBackgroundDashboard" name="inputColorBackgroundDashboard" required>
+                                          <span class="input-group-addon"><i></i></span>
+                                      </div> 
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Widgets area color</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <div class="input-group customColorChoice">
+                                          <input type="text" class="modalInputTxt" id="inputExternalColorDashboard" name="inputExternalColorDashboard" required>
+                                          <span class="input-group-addon"><i></i></span>
+                                      </div>
+                                  </div>
+                                  <div class="modalFieldLabelCnt">External frame color</div>
+                              </div>
+                              <div class="col-xs-12 col-md-4 col-md-offset-1 modalCell">
+                                  <input id="widgetsBorders" name="widgetsBorders" type="checkbox">
+                                  <div class="modalFieldLabelCnt">Widgets borders</div>
+                              </div>
+                              <div class="col-xs-12 col-md-6 col-md-offset-1 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <div class="input-group customColorChoice">
+                                          <input type="text" class="modalInputTxt" id="inputWidgetsBordersColor" name="inputWidgetsBordersColor" required>
+                                          <span class="input-group-addon"><i></i></span>
+                                      </div>
+                                  </div>
+                                  <div class="modalFieldLabelCnt">Widgets borders color</div>
+                              </div>
+                          </div>    
+                      </div>
+
+                      <!-- Visibility tab -->
+                      <div id="visibilityTab" class="tab-pane fade">
+                          <div class="row">
+                              <div class="col-xs-12 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <select name="inputDashboardVisibility" class="modalInputTxt" id="inputDashboardVisibility" required>
+                                          <option value="author">Dashboard author only</option>
+                                          <option value="restrict">Author and selected users</option>
+                                          <option value="public">Everybody (public)</option>
+                                      </select>
+                                  </div>
+                                  <!--<div class="modalFieldLabelCnt">Permission type</div>-->
+                              </div>
+                              <div class="col-xs-12 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <table id="inputDashboardVisibilityUsersTable">
+                                          <th class="selectCell">Select</th>
+                                          <th class="usernameCell">Username</th>
+                                      </table>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- Embeddability tab -->
+                      <div id="embeddabilityTab" class="tab-pane fade">
+                          <div class="row">
+                              <div class="col-xs-12 modalCell">
+                                  <div class="modalFieldCnt">
+                                      <table id="authorizedPagesTable">
+                                          <thead>
+                                              <th>Authorized pages</th>
+                                              <th><i id="addAuthorizedPageBtn" class="fa fa-plus"></i></th>
+                                          </thead>
+                                          <tbody></tbody>
+                                      </table> 
+                                  </div>
+                                  <input type="hidden" id="authorizedPagesJson" name="authorizedPagesJson" />
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <div id="editDashboardModalFooter" class="modal-footer">
+                    <button type="button" id="editDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+                    <button type="submit" id="editDashboardConfirmBtn" name="editDashboard" class="btn confirmBtn internalLink">Confirm</button>
+                  </div>
             </div>
-        </div>
-    </div> 
-    <!-- Fine editor modifica Dashboard -->
-
+          </form>  
+          </div>
+      </div>
+    </div>    
+    <!-- Fine modale modifica dashboard -->    
+    
     <!-- Modale duplicazione dashboard -->
-    <div class="modal fade" id="modal-duplicate-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="duplicate01">
+    <div class="modal fade" id="cloneDashboardModal" tabindex="-1" role="dialog" aria-labelledby="modalAddWidgetTypeLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modalHeader centerWithFlex">
+              Dashboard duplication
+            </div>
+            <form id="cloneDashboardForm" class="form-horizontal" name="cloneDashboardForm" role="form" method="post" action="" data-toggle="validator">
+                <div id="cloneDashboardModalBody" class="modal-body modalBody">
+                    <div class="row" id="cloningDashboardFormRow">
+                        <div class="col-xs-12 col-md-6 modalCell">
+                            <div class="modalFieldCnt">
+                                <input type="text" id="currentDashboardTitle" name="NameDashboard" class="modalInputTxt" disabled>
+                            </div>
+                            <div class="modalFieldLabelCnt">Original dashboard title</div>
+                        </div>
+                        <div class="col-xs-12 col-md-6 modalCell">
+                            <div class="modalFieldCnt">
+                                <input type="text" class="modalInputTxt" id="newDashboardTitle" name="NameNewDashboard" required> 
+                            </div>
+                            <div class="modalFieldLabelCnt">Cloned dashboard title</div>
+                            <div id="cloneDashboardTitleMsg" class="modalFieldLabelCnt">Title can't be less than 4 characters long</div>
+                        </div>
+                    </div>
+                    <div class="row" id="duplicateDashboardLoadingTitlesRow">
+                        <div class="col-xs-12 centerWithFlex">Retrieving current dashboards titles, please wait</div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
+                    </div>
+                    <div class="row" id="duplicateDashboardLoadingTitlesKoRow">
+                        <div class="col-xs-12 centerWithFlex">Error retrieving current dashboards titles, please try again</div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                    </div>
+                    <div class="row" id="duplicateDashboardLoadingRow">
+                        <div class="col-xs-12 centerWithFlex">Cloning dashboard, please wait</div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
+                    </div>
+                    <div class="row" id="duplicateDashboardOkRow">
+                        <div class="col-xs-12 centerWithFlex">Dashboard cloned successfully</div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                    </div>
+                    <div class="row" id="duplicateDashboardWarningRow">
+                        <div class="col-xs-12 centerWithFlex"></div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle" style="font-size:36px"></i></div>
+                    </div>
+                    <div class="row" id="duplicateDashboardKoRow">
+                        <div class="col-xs-12 centerWithFlex">Error while cloning dashboard, please try again</div>
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                    </div>
+                </div>
+                <div id="cloneDashboardModalFooter" class="modal-footer">
+                  <button type="button" id="duplicateDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+                  <button type="button" id="duplicateDashboardBtn" class="btn confirmBtn internalLink" disabled>Confirm</button>
+                </div>
+            </form>    
+          </div>
+        </div>
+    </div>
+    <!-- Fine modale duplicazione dashboard -->
+    
+    <!-- Modale informazioni widget -->
+    <div class="modal fade" tabindex="-1" id="dialog-information-widget" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document" id="info01"> 
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Duplicate current Dashboard</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="titolo_info">Description:</h4>
                 </div>
                 <div class="modal-body">
-                    <form id="form-duplicate-dashboard" class="form-horizontal" name="form-saveAs-dashboard" role="form" method="post" action="" data-toggle="validator">
-                        <div class="form-group">
-                            <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Current Dashboard name</label>
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" id="nameCurrentDashboard" name="NameDashboard" placeholder="Name Current Dashboard" readonly>
-                            </div>                      
-                        </div>
-                        <div class="form-group">
-                            <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Save as...</label>
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" id="nameNewDashboard" name="NameNewDashboard" placeholder="Name new Dashboard">
-                            </div>                      
-                        </div>
+                    <form id="form-information-widget" class="form-horizontal" name="form-information-widget" role="form" method="post" action="" data-toggle="validator">
+                        <div id="contenuto_infomazioni"></div>
+                    </form>
                 </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button type="button" id="button_duplicate_dashboard" data-dismiss="modal" name="modify_dashboard" class="btn btn-primary">Duplicate</button>
-                        </div>
-                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+
             </div>
         </div>
     </div>
+    <!-- Fine modale informazioni widget -->
+    
+    <!-- Modale informazioni campi widget -->
+    <div class="modal fade" tabindex="-1" id="modalWidgetFieldsInfo" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document" id="info01"> 
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="modalWidgetFieldsInfoTitle"></h4>
+                </div>
+                <div class="modal-body">
+                    <form id="modalWidgetFieldsInfoForm" class="form-horizontal" name="modalWidgetFieldsInfoForm" role="form" method="post" action="" data-toggle="validator">
+                        <div id="modalWidgetFieldsInfoContent"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine modale informazioni campi widget -->
+    
+    <!-- Modale impossibilità di apertura link in nuovo tab per widgetExternalContent -->
+    <div class="modal fade" tabindex="-1" id="newTabLinkOpenImpossibile" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document"> 
+            <div class="modal-content">
+                <div class="modal-header centerWithFlex">
+                    <h4 class="modal-title">External content</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="newTabLinkOpenImpossibileMsg"></div>
+                    <div id="newTabLinkOpenImpossibileIcon">
+                         <i class="fa fa-frown-o"></i>           
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine modale impossibilità di apertura link in nuovo tab per widgetExternalContent -->
+    
+    <!-- Modale cambio stato evacuation plan -->
+    <div class="modal fade" tabindex="-1" id="modalChangePlanStatus" role="dialog" aria-labelledby="myModalLabel">
+        <div id="modalChangePlanStatusDialog" class="modal-dialog modal-lg" role="document"> 
+            <div class="modal-content">
+                <div id="modalChangePlanStatusModalTitle" class="modal-header centerWithFlex">
+                    evacuation plan status management
+                </div>
+                <div id="modalChangePlanStatusMain" class="modal-body container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
+                            plan identifier
+                        </div> 
+                        <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
+                            current approval status
+                        </div>
+                    </div>
+                    <div class="row">
+                       <div class="col-sm-6 centerWithFlex" id="modalChangePlanStatusTitle" ></div> 
+                       <div class="col-sm-4 col-sm-offset-1 centerWithFlex" id="modalChangePlanStatusStatus"></div>
+                    </div>
 
+                    <div class="row">
+                       <div class="col-sm-6 col-sm-offset-3 centerWithFlex modalChangePlanStatusLabel">
+                           new approval status 
+                       </div> 
+                    </div>
+                    <div class="row">
+                       <div class="col-sm-4 col-sm-offset-4 centerWithFlex">
+                           <select class="form-control" id="modalChangePlanStatusSelect" name="modalChangePlanStatusSelect" required></select> 
+                       </div> 
+                    </div>
+                </div>
+                <div id="modalChangePlanStatusWait" class="modal-body container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                            updating status, please wait
+                        </div> 
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                            <i class="fa fa-spinner fa-spin" style="font-size:84px"></i>
+                        </div> 
+                    </div>
+                </div>
+                <div id="modalChangePlanStatusOk" class="modal-body container-fluid">
+                    <div class="row">
+                        <div class="col-sm-10 col-sm-offset-1 centerWithFlex">
+                            status successfully updated
+                        </div> 
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                            <i class="fa fa-thumbs-o-up" style="font-size:84px"></i>
+                        </div> 
+                    </div>
+                </div>
+                <div id="modalChangePlanStatusKo" class="modal-body container-fluid">
+                    <div class="row">
+                        <div class="col-sm-12 centerWithFlex">
+                            error while trying to send new status to server, please try again
+                        </div> 
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
+                            <i class="fa fa-thumbs-down" style="font-size:84px"></i>
+                        </div> 
+                    </div>
+                </div>
+
+                <input type="hidden" id="modalChangePlanStatusPlanId" />
+                <input type="hidden" id="modalChangePlanStatusCurrentStatus" />
+
+                <div id="modalChangePlanStatusFooter" class="modal-footer centerWithFlex">
+                   <button type="button" class="btn btn-secondary" id="modalChangePlanStatusCancelBtn">cancel</button>
+                   <button type="button" class="btn btn-primary" id="modalChangePlanStatusConfirmBtn">confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine modale cambio stato evacuation plan -->
+    
     <!-- Modale modifica widget -->
     <div class="modal fade" id="modal-modify-widget" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog modalDialogWidget" role="document" id="modify01">
@@ -755,23 +984,67 @@
                             <legend class="legend-form-group">Metric and widget choice</legend>
                             <div class="form-group">
                                 <div class="row">
+                                    <label for="widgetCategoryM" class="col-md-4 control-label">Widget category</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetCategoryM" name="widgetCategoryM" disabled>
+                                                <option value="actuator">Actuator</option>
+                                                <option value="viewer">Data viewer</option>
+                                            </select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Campi per gli widget attuatori -->
+                                <div class="row" id="widgetEntityRowM">
+                                    <label for="widgetEntityM" class="col-md-4 control-label">Entity</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetEntityM" name="widgetEntityM"></select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row" id="widgetAttributeRowM">
+                                    <label for="widgetAttributeM" class="col-md-4 control-label">Attribute</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetAttributeM" name="widgetAttributeM"></select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row" id="widgetActuatorTypeRowM">
+                                    <label for="widgetActuatorTypeM" class="col-md-4 control-label">Widget type</label>
+
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <select class="form-control" id="widgetActuatorTypeM" name="widgetActuatorTypeM"></select>                                         
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Campi per gli widget data viewer -->
+                                <div class="row" id="metricWidgetMRow">
                                     <label for="metricWidgetM" class="col-md-4 control-label">Metric</label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="metricWidgetM" name="metricWidgetM" readonly>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row" id="inputNameWidgetMRow">
                                     <label for="inputNameWidgetM" class="col-md-4 control-label">Widget name</label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="inputNameWidgetM" name="inputNameWidgetM" placeholder="Title" readonly>                                 
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row" id="select-widget-mRow">
                                     <label for="select-widget-m" class="col-md-4 control-label">Widget type</label>
                                     <div class="col-md-6">
                                         <div class="input-group">
-                                            <select name="select-widget-m" class="form-control" id="select-widget-m" required>
-                                            </select>
+                                            <select name="select-widget-m" class="form-control" id="select-widget-m"></select>
                                             <div id="mod-n-metrcis-widget" class="input-group-addon"></div>
                                         </div>   
                                     </div>
@@ -790,19 +1063,19 @@
                                         </div>
                                     </div> 
                                 </div>
-                                <div class="row">
+                                <div id="urlWidgetMRow" class="row">
                                     <label for="urlWidgetM" class="col-md-4 control-label">Widget link</label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="urlWidgetM" name="urlWidgetM">
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div id="textarea-metric-widget-mRow" class="row">
                                     <label for="textarea-metric-widget-m" class="col-md-4 control-label">Metric description</label>
                                     <div class="col-md-6">
                                         <textarea id ="textarea-metric-widget-m" class="form-control textarea-metric" name="textarea-metric-widget-m" rows="3"></textarea>
                                     </div>
                                 </div>
-                                <div id="schedulerRowM" class="row" style="display: none">
+                                <div id="schedulerRowM" class="row">
                                     <label for="inputSchedulerWidgetM" class="col-md-4 control-label" style="display: none">Scheduler</label>
                                     <div id="inputSchedulerWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputSchedulerWidgetGroupDivM"class="input-group" style="display: none">
@@ -810,31 +1083,33 @@
                                         </div>
                                     </div>
                                 </div>    
-                                <div id="jobsAreasRowM" class="row" style="display: none">    
-                                <label for="inputJobsAreasWidgetM" class="col-md-4 control-label" style="display: none">Jobs areas</label>
+                                <div id="jobsAreasRowM" class="row">    
+                                    <label for="inputJobsAreasWidgetM" class="col-md-4 control-label">Jobs areas</label>
                                     <div id="inputJobsAreasWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputJobsAreasWidgetGroupDivM"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsAreasWidgetM" name="inputJobsAreasWidgetM" style="display: none"></select>
                                         </div>
                                     </div>
                                 </div>
-                                <div id="jobsGroupsRowM" class="row" style="display: none">    
-                                <label for="inputJobsGroupsWidgetM" class="col-md-4 control-label" style="display: none">Jobs groups</label>
+                                <div id="jobsGroupsRowM" class="row">    
+                                    <label for="inputJobsGroupsWidgetM" class="col-md-4 control-label" style="display: none">Jobs groups</label>
                                     <div id="inputJobsGroupsWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputJobsGroupsWidgetGroupDivM"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsGroupsWidgetM" name="inputJobsGroupsWidgetM" style="display: none"></select>
                                         </div>
                                     </div>
                                 </div>
-                                <div id="jobsNamesRowM" class="row" style="display: none">    
-                                <label for="inputJobsNamesWidgetM" class="col-md-4 control-label" style="display: none">Jobs names</label>
+                                <div id="jobsNamesRowM" class="row">    
+                                    <label for="inputJobsNamesWidgetM" class="col-md-4 control-label" style="display: none">Jobs names</label>
                                     <div id="inputJobsNamesWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputJobsNamesWidgetGroupDivM"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsNamesWidgetM" name="inputJobsNamesWidgetM" style="display: none"></select>
                                         </div>
                                     </div>
                                 </div>
-
+                                
+                                <input type="hidden" id="widgetIdM" name="widgetIdM">
+                                <input type="hidden" id="widgetCategoryHiddenM" name="widgetCategoryHiddenM">
                                 <input type="hidden" id="schedulerNameM" name="schedulerNameM">
                                 <input type="hidden" id="hostM" name="hostM">
                                 <input type="hidden" id="userM" name="userM">
@@ -885,7 +1160,7 @@
                                     </div>
                                     <label for="inputHeaderFontColorWidgetM" class="col-md-3 control-label addWidgetParLabel">Header text color</label>
                                     <div class="col-md-3">
-                                        <div class="input-group color-choice">
+                                        <div id="widgetFrameFontColorPickerContainer" class="input-group">
                                             <input type="text" class="form-control demo-1 demo-auto" id="inputHeaderFontColorWidgetM" name="inputHeaderFontColorWidgetM" required>
                                             <span class="input-group-addon"><i id="widgetHeaderFontColorM"></i></span>
                                         </div>
@@ -995,263 +1270,95 @@
             </div>
         </div>
     </div>
-    
-    <!-- Modal -->
-    <div id="modal-info-context" class="modal fade bs-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel_info-context">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content"> 
-                <div class="modal-header"> 
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
-                    </button> <h4 class="modal-title" id="mySmallModalLabel_info-context">Information</h4>
-                </div> 
-                <div class="modal-body">In <b> Context field </b> enter the Municipality or District.</div> 
-            </div>
-
-        </div>
-    </div>
+    <!-- Fine modale modifica widget -->
         
-    <!-- Modale informazioni widget -->
-    <div class="modal fade" tabindex="-1" id="dialog-information-widget" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="info01"> 
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title" id="titolo_info">Description:</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="form-information-widget" class="form-horizontal" name="form-information-widget" role="form" method="post" action="" data-toggle="validator">
-                        <div id="contenuto_infomazioni"></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-
+    <!-- Modale embed previewer -->
+    <div class="modal fade" id="embedDashboardModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modalHeader centerWithFlex">
+              Embed this dashboard
             </div>
-        </div>
-    </div>
-    
-    <!-- Modale informazioni campi widget -->
-    <div class="modal fade" tabindex="-1" id="modalWidgetFieldsInfo" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="info01"> 
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title" id="modalWidgetFieldsInfoTitle"></h4>
-                </div>
-                <div class="modal-body">
-                    <form id="modalWidgetFieldsInfoForm" class="form-horizontal" name="modalWidgetFieldsInfoForm" role="form" method="post" action="" data-toggle="validator">
-                        <div id="modalWidgetFieldsInfoContent"></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-        
-    <!-- Modale impossibilità di apertura link in nuovo tab per widgetExternalContent -->
-    <div class="modal fade" tabindex="-1" id="newTabLinkOpenImpossibile" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document"> 
-            <div class="modal-content">
-                <div class="modal-header centerWithFlex">
-                    <h4 class="modal-title">External content</h4>
-                </div>
-                <div class="modal-body">
-                    <div id="newTabLinkOpenImpossibileMsg"></div>
-                    <div id="newTabLinkOpenImpossibileIcon">
-                         <i class="fa fa-frown-o"></i>           
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modale cambio stato evacuation plan -->
-        <div class="modal fade" tabindex="-1" id="modalChangePlanStatus" role="dialog" aria-labelledby="myModalLabel">
-            <div id="modalChangePlanStatusDialog" class="modal-dialog modal-lg" role="document"> 
-                <div class="modal-content">
-                    <div id="modalChangePlanStatusModalTitle" class="modal-header centerWithFlex">
-                        evacuation plan status management
-                    </div>
-                    <div id="modalChangePlanStatusMain" class="modal-body container-fluid">
-                        <div class="row">
-                            <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
-                                plan identifier
-                            </div> 
-                            <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
-                                current approval status
-                            </div>
-                        </div>
-                        <div class="row">
-                           <div class="col-sm-6 centerWithFlex" id="modalChangePlanStatusTitle" ></div> 
-                           <div class="col-sm-4 col-sm-offset-1 centerWithFlex" id="modalChangePlanStatusStatus"></div>
-                        </div>
-                       
-                        <div class="row">
-                           <div class="col-sm-6 col-sm-offset-3 centerWithFlex modalChangePlanStatusLabel">
-                               new approval status 
-                           </div> 
-                        </div>
-                        <div class="row">
-                           <div class="col-sm-4 col-sm-offset-4 centerWithFlex">
-                               <select class="form-control" id="modalChangePlanStatusSelect" name="modalChangePlanStatusSelect" required></select> 
-                           </div> 
-                        </div>
-                    </div>
-                    <div id="modalChangePlanStatusWait" class="modal-body container-fluid">
-                        <div class="row">
-                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                                updating status, please wait
-                            </div> 
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                                <i class="fa fa-spinner fa-spin" style="font-size:84px"></i>
-                            </div> 
-                        </div>
-                    </div>
-                    <div id="modalChangePlanStatusOk" class="modal-body container-fluid">
-                        <div class="row">
-                            <div class="col-sm-10 col-sm-offset-1 centerWithFlex">
-                                status successfully updated
-                            </div> 
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                                <i class="fa fa-thumbs-o-up" style="font-size:84px"></i>
-                            </div> 
-                        </div>
-                    </div>
-                    <div id="modalChangePlanStatusKo" class="modal-body container-fluid">
-                        <div class="row">
-                            <div class="col-sm-12 centerWithFlex">
-                                error while trying to send new status to server, please try again
-                            </div> 
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                                <i class="fa fa-thumbs-down" style="font-size:84px"></i>
-                            </div> 
-                        </div>
-                    </div>
-                    
-                    <input type="hidden" id="modalChangePlanStatusPlanId" />
-                    <input type="hidden" id="modalChangePlanStatusCurrentStatus" />
-                   
-                    <div id="modalChangePlanStatusFooter" class="modal-footer centerWithFlex">
-                       <button type="button" class="btn btn-secondary" id="modalChangePlanStatusCancelBtn">cancel</button>
-                       <button type="button" class="btn btn-primary" id="modalChangePlanStatusConfirmBtn">confirm</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    
-        <!-- Modale generazione codice per embed dashboard -->
-        <div class="modal fade" id="modal-embed-dashboard" tabindex="-1" data-keyboard="false" data-backdrop="static" role="dialog" aria-labelledby="myModalLabel">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Embed this dashboard</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row" id="modalEmbedDasboardBodyContent">
-                            <div class="col-xs-3">
-                                <div class="well">
-                                    <legend class="centerWithFlex">Iframe markup generation</legend> 
-                                    <div class="row">
-                                        <div class="col-xs-12 centerWithFlex"><label>Embed mode</label></div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-xs-6 col-xs-offset-3 centerWithFlex">
-                                            <select id="embedPolicy" name="embedPolicy" class="form-control">
-                                                <option value="auto">Automatic</option>
-                                                <option value="manual">Manual</option>
-                                            </select>
-                                        </div>
-                                    </div>    
-
-                                    <div class="row">
-                                        <div class="col-xs-6 centerWithFlex" for="embedShowHeader"><label>Show header</label></div>
-                                        <div class="col-xs-6 centerWithFlex" for="embedAutofit"><label>Autofit</label></div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-xs-6 centerWithFlex">
-                                            <select id="embedShowHeader" name="embedShowHeader" class="form-control">
-                                                <option value="yes">Yes</option>
-                                                <option value="no">No</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-xs-6 centerWithFlex">
-                                            <select id="embedAutofit" name="embedAutofit" class="form-control">
-                                                <option value="no">No</option>
-                                                <option value="yes">Yes</option>
-                                            </select>
-                                        </div>
-                                    </div>    
-
-                                    <div class="row">
-                                        <div class="col-xs-6 centerWithFlex"><label>Iframe width (px)</label></div>
-                                        <div class="col-xs-6 centerWithFlex"><label>Iframe height (px)</label></div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-xs-6 centerWithFlex">
-                                            <input type="text" id="embedIframeW" class="form-control" value="800" />
-                                        </div>
-                                        <div class="col-xs-6 centerWithFlex">
-                                            <input type="text" id="embedIframeH" class="form-control" value="600" />
-                                        </div>
-                                    </div>    
-
-                                    <div class="row">
-                                        <div class="col-xs-12 centerWithFlex"><label>Code to embed this dashboard</label></div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-xs-12">
-                                            <textarea id="embedDashboardCode" rows="5" class="form-control"></textarea>
-                                        </div>
-                                    </div>
-                                    
-                                    <legend class="centerWithFlex" style="margin-top: 40px">Save iframe markup</legend>
-                                    <div class="row">
-                                        <div class="col-xs-6 centerWithFlex">
-                                            <a href="javascript:void(0)" id="saveTxtMarkup"><button class="btn btn-primary">Save in txt file</button></a>
-                                        </div>
-                                        <div class="col-xs-6 centerWithFlex">
-                                            <a href="javascript:void(0)" id="saveHtmlMarkup"><button class="btn btn-info">Save in html file</button></a>
-                                        </div>
-                                    </div> 
+            
+            <div id="embedDashboardModalBody" class="modal-body modalBody">
+                <div class="row" id="modalEmbedDasboardBodyContent">
+                    <div class="col-xs-12 col-md-3 embedDashboardModalColumn">
+                        <div class="col-xs-12 embedDashboardModalColumnInner"> <!-- Serve solo per separazione grafica -->
+                            <div class="col-xs-12 mainContentRowDesc centerWithFlex">Iframe markup generation</div>
+                            <div class="col-xs-12 modalCell">
+                                <div class="modalFieldCnt">
+                                    <select id="embedPolicy" name="embedPolicy" class="modalInputTxt">
+                                        <option value="auto">Automatic</option>
+                                        <option value="manual">Manual</option>
+                                    </select>
                                 </div>
-                            <!-- Fine colonna di sinistra -->    
+                                <div class="modalFieldLabelCnt">Embed mode</div>
                             </div>
-                            <div class="col-xs-9">
-                                <div class="well">
-                                    <legend class="centerWithFlex">Iframe preview</legend> 
-                                    <div class="row">
-                                        <div id="embedPreviewContainer" class="col-xs-12">
-                                            <iframe id="embedPreviewIframe"></iframe>
-                                        </div>
-                                    </div>
+                            <div class="col-xs-12 col-md-6 modalCell" for="embedShowHeader">
+                                <div class="modalFieldCnt">
+                                    <select id="embedShowHeader" name="embedShowHeader" class="modalInputTxt">
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
                                 </div>
-                                
-                            <!-- Fine colonna di destra -->
+                                <div class="modalFieldLabelCnt">Show header</div>
+                            </div>
+                            <div class="col-xs-12 col-md-6 modalCell" for="embedAutofit">
+                                <div class="modalFieldCnt">
+                                    <select id="embedAutofit" name="embedAutofit" class="modalInputTxt">
+                                        <option value="no">No</option>
+                                        <option value="yes">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="modalFieldLabelCnt">Autofit</div>
+                            </div>
+                            <div class="col-xs-12 col-md-6 modalCell" for="embedIframeW">
+                                <div class="modalFieldCnt">
+                                    <input type="text" id="embedIframeW" class="modalInputTxt" value="800" />
+                                </div>
+                                <div class="modalFieldLabelCnt">Iframe width (px)</div>
+                            </div>
+                            <div class="col-xs-12 col-md-6 modalCell" for="embedIframeH">
+                                <div class="modalFieldCnt">
+                                    <input type="text" id="embedIframeH" class="modalInputTxt" value="600" />
+                                </div>
+                                <div class="modalFieldLabelCnt">Iframe height (px)</div>
+                            </div>
+                            <div class="col-xs-12 modalCell" for="embedDashboardCode">
+                                <textarea class="modalInputTxtArea" rows="5" name="embedDashboardCode" id="embedDashboardCode"></textarea>
+                                <div class="modalFieldLabelCnt">Code to embed this dashboard</div>
+                            </div>
+                            <!--<div id="embedDashboardModalSaveMarkupRow" class="col-xs-12 mainContentRowDesc centerWithFlex">Save iframe markup</div>-->
+                            <div class="col-xs-12 col-md-6 centerWithFlex">
+                                <a href="javascript:void(0)" id="saveTxtMarkup"><button class="btn btn-primary">Save in txt file</button></a>
+                            </div>
+                            <div class="col-xs-12 col-md-6 centerWithFlex">
+                                <a href="javascript:void(0)" id="saveHtmlMarkup"><button class="btn btn-info">Save in html file</button></a>
                             </div>
                         </div>    
-                        <!-- Fine body -->
                     </div>
-                    <div class="modal-footer">
-                        <button id="embedDashboardCloseBtn" type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-                    </div>
+                    
+                    <div class="col-xs-12 col-md-9 embedDashboardModalColumn">
+                        <div class="col-xs-12 embedDashboardModalColumnInner"> <!-- Serve solo per separazione grafica -->
+                            <div class="col-xs-12 mainContentRowDesc centerWithFlex">Iframe preview</div>
+                            <div id="embedPreviewContainer" class="col-xs-12">
+                                <iframe id="embedPreviewIframe"></iframe>
+                            </div>
+                        </div>
+                    </div>    
                 </div>
             </div>
+            <div id="embedDashboardModalFooter" class="modal-footer">
+              <button type="button" id="addWidgetTypeCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+              <button type="button" id="addWidgetTypeConfirmBtn" name="addWidgetType" class="btn confirmBtn internalLink">Confirm</button>
+            </div>
+          </div>
         </div>
+    </div>
+    <!-- Fine modale embed previewer -->
     
+    <!-- Fine dei modali -->
             <script type='text/javascript'>
-                
                 var gridster, num_cols, indicatore, datoTitle, datoSubtitle, datoColor, datoWidth, datoRemains, nuovaDashboard, headerFontSize, headerModFontSize, subtitleFontSize, clockFontSizeMod, dashboardName, logoFilename, logoLink, temp, widgetsArray, nomeComune, metricType = null;
                 var array_metrics = new Array();
                 var informazioni = new Array();
@@ -1290,6 +1397,169 @@
                     var fontFamilyArray = [];
                     var queryFieldFromDb = null;
                     var internalDest = false;
+                    var dashboardTitlesList = null;
+                    
+                    var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
+                    $('#sessionExpiringPopup').css("top", parseInt($(window).height() - $('#sessionExpiringPopup').height()) + "px");
+                    $('#sessionExpiringPopup').css("left", parseInt($(window).width() - $('#sessionExpiringPopup').width()) + "px");
+                    
+                    $(window).resize(function(){
+                        $('#sessionExpiringPopup').css("top", parseInt($(window).height() - $('#sessionExpiringPopup').height()) + "px");
+                        $('#sessionExpiringPopup').css("left", parseInt($(window).width() - $('#sessionExpiringPopup').width()) + "px");
+                    });
+                    
+                    $('#widgetCategory').val(-1);
+                    
+                    $.ajax({
+                        url: "iframeProxy.php",
+                        data: {
+                            action: "getOrionEntityList",
+                        },
+                        type: "GET",
+                        async: true,
+                        dataType: 'json',
+                        success: function(data)
+                        {
+                            for(var i = 0; i < data.length; i++)
+                            {
+                                $('#widgetEntity').append('<option value="' + data[i].id + '">' + data[i].id + '</option>');
+                                $('#widgetEntityM').append('<option value="' + data[i].id + '">' + data[i].id + '</option>');
+                            }
+                            
+                            $('#widgetEntity').val(-1);
+                        },
+                        error: function(data)
+                        {
+                            console.log("Ko");
+                            console.log(data);
+                        }
+                    });
+
+                    setInterval(function(){
+                        var now = parseInt(new Date().getTime() / 1000);
+                        var difference = sessionEndTime - now;
+
+                        if(difference === 300)
+                        {
+                            $('#sessionExpiringPopupTime').html("5 minutes");
+                            $('#sessionExpiringPopup').show();
+                            $('#sessionExpiringPopup').css("opacity", "1");
+                            setTimeout(function(){
+                                $('#sessionExpiringPopup').css("opacity", "0");
+                                setTimeout(function(){
+                                    $('#sessionExpiringPopup').hide();
+                                }, 1000);
+                            }, 4000);
+                        }
+
+                        if(difference === 120)
+                        {
+                            $('#sessionExpiringPopupTime').html("2 minutes");
+                            $('#sessionExpiringPopup').show();
+                            $('#sessionExpiringPopup').css("opacity", "1");
+                            setTimeout(function(){
+                                $('#sessionExpiringPopup').css("opacity", "0");
+                                setTimeout(function(){
+                                    $('#sessionExpiringPopup').hide();
+                                }, 1000);
+                            }, 4000);
+                        }
+
+                        if((difference > 0)&&(difference <= 60))
+                        {
+                            $('#sessionExpiringPopup').show();
+                            $('#sessionExpiringPopup').css("opacity", "1");
+                            $('#sessionExpiringPopupTime').html(difference + " seconds");
+                        }
+
+                        if(difference <= 0)
+                        {
+                            //console.log("Logout");
+                            location.href = "logout.php?sessionExpired=true";
+                        }
+                        /*else
+                        {
+                            console.log("Keep in");
+                        }*/
+                    }, 1000);
+                    
+                    $('#link_duplicate_dash').click(function(){
+                        $('#cloneDashboardModal').modal('show');
+                        
+                        $.ajax({
+                            url: "process-form.php",
+                            data: {
+                                getDashboardTitlesList: true,
+                            },
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function(data)
+                            {
+                                if(data.detail !== 'Ok')
+                                {
+                                    console.log("Error getting dashboards titles list");
+                                    console.log(data);
+                                    $('#duplicateDashboardLoadingTitlesRow').hide();
+                                    $('#duplicateDashboardLoadingTitlesKoRow').show();
+                                    
+                                    setTimeout(function(){
+                                        $('#cloneDashboardModal').modal('hide');
+                                        setTimeout(function(){
+                                            $('#duplicateDashboardLoadingTitlesKoRow').hide();
+                                            $('#duplicateDashboardLoadingTitlesRow').show();
+                                        }, 300);
+                                    }, 3500);
+                                }
+                                else
+                                {
+                                    dashboardTitlesList = data.titles;
+                                    $('#duplicateDashboardLoadingTitlesRow').hide();
+                                    $('#cloningDashboardFormRow').show();
+                                    $('#cloneDashboardModalFooter').show();
+                                    $('#newDashboardTitle').on('input', function(){
+                                        if($('#newDashboardTitle').val().trim().length < 4)
+                                        {
+                                            $('#cloneDashboardTitleMsg').html("Title can't be less than 4 characters long");
+                                            $('#cloneDashboardTitleMsg').css("color", "red");
+                                            $('#duplicateDashboardBtn').attr("disabled", true);
+                                        }
+                                        else
+                                        {
+                                            if(dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0)
+                                            {
+                                                $('#cloneDashboardTitleMsg').html("Title already in use");
+                                                $('#cloneDashboardTitleMsg').css("color", "red");
+                                                $('#duplicateDashboardBtn').attr("disabled", true);
+                                            }
+                                            else
+                                            {
+                                                $('#cloneDashboardTitleMsg').html("Ok");
+                                                $('#cloneDashboardTitleMsg').css("color", "rgba(0, 162, 211, 1)");
+                                                $('#duplicateDashboardBtn').attr("disabled", false);
+                                            }
+                                        }
+                                    });
+                                }
+                            },
+                            error: function(errorData)
+                            {
+                                console.log("Error getting dashboards titles list");
+                                console.log(errorData);
+                                $('#duplicateDashboardLoadingTitlesRow').hide();
+                                $('#duplicateDashboardLoadingTitlesKoRow').show();
+
+                                setTimeout(function(){
+                                    $('#cloneDashboardModal').modal('hide');
+                                    setTimeout(function(){
+                                        $('#duplicateDashboardLoadingTitlesKoRow').hide();
+                                        $('#duplicateDashboardLoadingTitlesRow').show();
+                                    }, 300);
+                                }, 3500);
+                            }
+                        });
+                        
+                    });
                     
                     <?php
                         if(isset($_REQUEST['openNotificator'])&&isset($_REQUEST['dashId'])&&isset($_REQUEST['widgetTitle'])){
@@ -1307,39 +1577,19 @@
                     <?php
                             }
                         } 
-                    ?>
-                    
-                    /*$.ajax({
-                        url: "<?php echo $googleFontsApi; ?>",
-                        data: {
-                            key: "<?php echo $googleApiKey; ?>",
-                            sort: "alpha"
-                        },
-                        type: "GET",
-                        async: true,
-                        dataType: 'json',
-                        success: function(googleFonts) 
-                        {
-                            var family = null;
-                            fontFamilyArray.push("Auto");
-                            for(var i = 0; i < googleFonts.items.length; i++)
-                            {
-                                family = googleFonts.items[i].family;
-                                $('head').append('<link rel="stylesheet" type="text/css" href="<?php echo $googleApiForSingleFont; ?>' + family + '">');
-                                fontFamilyArray.push(family);
-                            }
-                        },
-                        error: function(errorData)
-                        {
-                            console.log("Error downloading Google Fonts");  
-                            fontFamilyArray = defaultFontFamilyArray;
-                        }
-                    });*/
+                    ?>     
     
                     fontFamilyArray = defaultFontFamilyArray;
                     
                     $.fn.editable.defaults.mode = 'inline';
                     setAddWidgetConditionsArray(addWidgetConditionsArray);
+                    
+                    $('#saveTxtMarkup').parent().css("padding-top", "15px");
+                    $('#saveTxtMarkup').parent().css("padding-bottom", "15px");
+                    $('#saveHtmlMarkup').parent().css("padding-top", "15px");
+                    $('#saveHtmlMarkup').parent().css("padding-bottom", "15px");
+                    //$('#modal-add-widget .row').css('margin-bottom', '10px');
+                    //$('#modal-modify-widget .row').css('margin-bottom', '10px');
                     
                     var dashboardId = "<?= $_SESSION['dashboardId'] ?>";
                     var dashboardIdEncoded = window.btoa(dashboardId);
@@ -1415,55 +1665,47 @@
                     
                     $('div[for=embedShowHeader]').hide();
                     $('div[for=embedAutofit]').hide();
-                    $('div[for=embedShowHeader]').parent().hide();
                     $('#embedShowHeader').hide();
                     $('#embedAutofit').hide();
                     $('#embedAutofit').val('no');
-                    $('#embedShowHeader').parent().parent().hide();
                     
                     $('#embedCodeBtn').click(function(){
                         embedViewUrl = '<?php echo $appUrl; ?>' + "/view/index.php?iddasboard=" + dashboardIdEncoded + "&embedPolicy=" + $('#embedPolicy').val() + "&embedPreview=true";
+                        
                         sampleIframe = '<iframe width="' + $('#embedIframeW').val() + '" height="' + $('#embedIframeH').val() + '" src="' + embedViewUrl + '"></iframe>';
                         $('#embedDashboardCode').val(sampleIframe.replace("&embedPreview=true", ""));
-                        $('#modal-embed-dashboard').modal('show');
+                        $('#embedDashboardModal').modal('show');
                         setTimeout(function(){
-                            $('#modal-embed-dashboard div.well').css('height', $('#modal-embed-dashboard div.modal-body').height());
+                            $('#embedDashboardModal div.well').css('height', $('#embedDashboardModal div.modal-body').height());
                             $('#embedPreviewIframe').attr('width', $('#embedIframeW').val());
                             $('#embedPreviewIframe').attr('height', $('#embedIframeH').val());
                             $('#embedPreviewIframe').attr('src', embedViewUrl);
-                            $('#embedPreviewContainer').css('height', $('#modal-embed-dashboard div.modal-body').height() - 100);
+                            $('#embedPreviewContainer').css('height', $('#embedDashboardModal div.modal-body').height() - 100);
                         }, 250);
                     });
                     
                     $(window).resize(function(){
-                        $('#modal-embed-dashboard div.well').css('height', $('#modal-embed-dashboard div.modal-body').height());
-                        $('#embedPreviewContainer').css('height', $('#modal-embed-dashboard div.modal-body').height() - 100);
+                        $('#embedDashboardModal div.well').css('height', $('#embedDashboardModal div.modal-body').height());
+                        $('#embedPreviewContainer').css('height', $('#embedDashboardModal div.modal-body').height() - 100);
                     });
                     
                     $('#embedPolicy').change(function(){
                         if($(this).val() === 'auto') 
                         {
-                            $('#embedShowHeader').parents('div.col-xs-6').hide();
-                            $('#embedAutofit').parents('div.col-xs-6').hide();
-                            $('div[for=embedShowHeader]').parent().hide();
+                            $('div[for=embedShowHeader]').hide();
                             $('div[for=embedAutofit]').hide();
                             $('#embedShowHeader').hide();
                             $('#embedAutofit').hide();
-                            $('#embedShowHeader').parent().parent().hide();
                             embedViewUrl = '<?php echo $appUrl; ?>' + "/view/index.php?iddasboard=" + dashboardIdEncoded + "&embedPolicy=" + $('#embedPolicy').val() +"&embedPreview=true";
                             sampleIframe = '<iframe width="' + $('#embedIframeW').val() + '" height="' + $('#embedIframeH').val() + '" src="' + embedViewUrl + '"></iframe>';
                             $('#embedDashboardCode').val(sampleIframe.replace("&embedPreview=true", ""));
                         }
                         else
                         {
-                            $('#embedShowHeader').parents('div.col-xs-6').show();
-                            $('#embedAutofit').parents('div.col-xs-6').show();
-                            $('div[for=embedShowHeader]').parent().show();
                             $('div[for=embedShowHeader]').show();
                             $('div[for=embedAutofit]').show();
                             $('#embedShowHeader').show();
                             $('#embedAutofit').show();
-                            $('#embedShowHeader').parent().parent().show();
                             $('#embedAutofit').val('no');
                             embedViewUrl = '<?php echo $appUrl; ?>' + "/view/index.php?iddasboard=" + dashboardIdEncoded + "&embedPolicy=" + $('#embedPolicy').val() + "&showHeader=" + $('#embedShowHeader').val() + "&autofit=" + $('#embedAutofit').val() + "&embedPreview=true";
                             sampleIframe = '<iframe width="' + $('#embedIframeW').val() + '" height="' + $('#embedIframeH').val() + '" src="' + embedViewUrl + '"></iframe>';
@@ -1558,7 +1800,7 @@
                     });
                     
                     $('#embedDashboardCloseBtn').click(function(){
-                        $('#modal-embed-dashboard').modal('hide');
+                        $('#embedDashboardModal').modal('hide');
                         setTimeout(function(){
                             $('div[for=embedShowHeader]').hide();
                             $('div[for=embedAutofit]').hide();
@@ -1573,7 +1815,7 @@
                     $("#link_add_widget").click(function()
                     {
                        $("#modal-add-widget").modal("show");
-                       addWidgetConditionsArray["selectedMetricAndWidget"] = false;
+                       //addWidgetConditionsArray["selectedMetricAndWidget"] = false;
                        $('#button_add_metric_widget').css("color", "red");
                        addWidgetConditionsArray["title"] = false;
                        $("label[for=inputTitleWidget]").css("color", "red");
@@ -1632,13 +1874,11 @@
                     $('#inputDashboardVisibility').change(function(){
                         if($(this).val() === 'restrict') 
                         {
-                            $('label[for="inputDashboardVisibilityUsersTable"]').show();
-                            $('#inputDashboardVisibilityUsersTableContainer').show();
+                            $('#inputDashboardVisibilityUsersTable').show();
                         }
                         else
                         {
-                            $('label[for="inputDashboardVisibilityUsersTable"]').hide();
-                            $('#inputDashboardVisibilityUsersTableContainer').hide();
+                            $('#inputDashboardVisibilityUsersTable').hide();
                         }
                      });
                      
@@ -1700,24 +1940,15 @@
                         }
                      });
                     
-                    $('#inputWidthDashboard').on('input',function(e)
+                    $('#inputWidthDashboard').on('slide',function(e)
                     {
-                       var cols = parseInt($('#inputWidthDashboard').val());
-                       var isNotNumber = isNaN(cols);
-                       if(isNotNumber)
-                       {
-                           $('#pixelWidth').val("");
-                           $('#percentWidth').val("");
-                       }
-                       else
-                       {
-                           var px = parseInt(cols*78 + 10);
-                           var percent = parseInt(px/screen.width*100);
-                           $('#pixelWidth').css("background-color", "white");
-                           $('#percentWidth').css("background-color", "white");
-                           $('#pixelWidth').val(px + " px");
-                           $('#percentWidth').val(percent + " %");
-                       }
+                        var cols = parseInt(e.value);
+                        var px = parseInt(cols*78 + 10);
+                        var percent = parseInt(px/screen.width*100);
+                        $('#pixelWidth').css("background-color", "white");
+                        $('#percentWidth').css("background-color", "white");
+                        $('#pixelWidth').val(px + " px");
+                        $('#percentWidth').val(percent + " %");
                     });
                     
                     $.ajax({
@@ -1749,6 +1980,7 @@
                             for(var i = 0; i < data.length; i++)
                             {
                                 $("#headerLogoImg").css("display", "none");
+                                dashboardId = data[i].Id;
                                 dashboardName = data[i].name_dashboard;
                                 logoFilename = data[i].logoFilename;
                                 logoLink = data[i].logoLink;
@@ -1756,7 +1988,7 @@
                                 widgetsBordersColor = data[i].widgetsBordersColor;
                                 headerVisible = data[i].headerVisible;
                                 
-                                if((data[i].authorizedPagesJson !== '')&&(data[i].authorizedPagesJson !== null)&&(data[i].authorizedPagesJson !== 'NULL'))
+                                if((data[i].authorizedPagesJson !== '')&&(data[i].authorizedPagesJson !== null)&&(data[i].authorizedPagesJson !== 'NULL')&&(data[i].authorizedPagesJson !== '[]'))
                                 {
                                     var row = null;
                                     authorizedPages = JSON.parse(data[i].authorizedPagesJson);
@@ -1800,25 +2032,6 @@
                                 {
                                     authorizedPages = [];
                                     $('#authorizedPagesJson').val(JSON.stringify(authorizedPages));
-                                }
-                                
-                                if(data[i].embeddable === 'yes')
-                                {
-                                    $('label[for=authorizedPages]').show();
-                                    $('#authorizedPagesTable').parent().show();
-                                    
-                                    $('label[for=embedAutofit]').show();
-                                    $('#embedAutofit').parent().show();
-                                    $("#embedAutofit").val(data[i].embedAutofit);
-                                }
-                                else
-                                {
-                                    $('label[for=authorizedPages]').hide();
-                                    $('#authorizedPagesTable').parent().hide();
-                                    
-                                    $('label[for=embedAutofit]').hide();
-                                    $('#embedAutofit').parent().hide();
-                                    $('#embedAutofit').val('no');
                                 }
                                 
                                 $('#addAuthorizedPageBtn').click(function(){
@@ -1967,24 +2180,18 @@
                                 
                                 if(logoFilename !== null)
                                 {
-                                    $("#headerLogoImg").prop("src", "../img/dashLogos/" + dashboardName + "/" + logoFilename);
+                                    $("#headerLogoImg").prop("src", "../img/dashLogos/dashboard" + dashboardId + "/" + logoFilename);
                                     $("#headerLogoImg").prop("alt", "Dashboard logo");
-                                    var img = new Image();
-                                    img.src = "../img/dashLogos/" + dashboardName + "/" + logoFilename;
-                                    img.onload = function()
+                                    $("#headerLogoImg").show();
+                                    
+                                    if((logoLink !== null) && (logoLink !== ''))
                                     {
-                                        if((logoLink !== null) && (logoLink !== ''))
-                                        {
-                                           var logoImage = $('#headerLogoImg');
-                                           var logoLinkElement = $('<a href="' + logoLink + '" target="_blank" class="pippo">'); 
-                                           logoImage.wrap(logoLinkElement);
-                                           $('#dashboardLogoLinkInput').val(logoLink);
-                                        }
-                                        logoWidth = $('#headerLogoImg').width();
-                                        logoHeight = $('#headerLogoImg').height();                                
-                                        $("#headerLogoImg").css("display", "");
-                                        $('#dashboardLogoLinkInput').removeAttr('disabled');
-                                    };
+                                       var logoImage = $('#headerLogoImg');
+                                       var logoLinkElement = $('<a href="' + logoLink + '" target="_blank" class="pippo">'); 
+                                       logoImage.wrap(logoLinkElement);
+                                       $('#dashboardLogoLinkInput').val(logoLink);
+                                       $('#dashboardLogoLinkInput').removeAttr('disabled');
+                                    }
                                 }
                                 
                                 if(headerVisible === '1')
@@ -2006,90 +2213,103 @@
                                 }
                                 
                                 //Aggiunta delle impostazioni della Dashboard nel Menu Modify
-                                $("#inputTitleDashboard").attr("placeholder", data[i].title_header);
                                 $("#inputTitleDashboard").val(data[i].title_header);
-                                $("#headerFontColor").val(data[i].headerFontColor);
-                                $('#color_hf').css("background-color", data[i].headerFontColor);
-                                $("#headerFontSize").val(data[i].headerFontSize);
+                                $('#headerFontColor').parent().colorpicker({
+                                    format: "rgba",
+                                    color: data[i].headerFontColor
+                                });
+                                
+                                if(data[i].headerVisible === "1")
+                                {
+                                    $('#headerVisible').attr("checked", true);
+                                }
+                                
+                                $('#headerVisible').bootstrapToggle({
+                                    on: 'Yes',
+                                    off: 'No',
+                                    onstyle: 'info',
+                                    offstyle: 'default',
+                                    size: 'normal'
+                                });
+                                
+
+                                $('#headerFontSize').bootstrapSlider({
+                                    tooltip_position: 'top',
+                                    value: data[i].headerFontSize
+                                });
+                                
+                                if(widgetsBorders === "yes")
+                                {
+                                    $("#widgetsBorders").attr("checked", true);
+                                }
+
+                                $('#widgetsBorders').bootstrapToggle({
+                                    on: 'Yes',
+                                    off: 'No',
+                                    onstyle: 'info',
+                                    offstyle: 'default',
+                                    size: 'normal'
+                                });
+                                
                                 $("#inputSubTitleDashboard").attr("placeholder", data[i].subtitle_header);
                                 $("#inputSubTitleDashboard").val(data[i].subtitle_header);
-                                $("#inputDashCol").attr("value", data[i].color_header);
-                                $("#inputWidthDashboard").val(data[i].num_columns);
-                                $("#widgetsBorders").val(widgetsBorders);
-                                $("#inputWidgetsBordersColor").val(widgetsBordersColor);
-                                $("#inputPickerWidgetsBorderColor").css("background-color", widgetsBordersColor);
-                                $("#headerVisible").val(data[i].headerVisible);
                                 
+                                $('#inputColorDashboard').parent().colorpicker({
+                                    format: "rgba",
+                                    color: data[i].color_header
+                                });
+                                
+                                $("#inputWidthDashboard").val(data[i].num_columns);
+                                $('#inputWidthDashboard').bootstrapSlider({
+                                    tooltip_position: 'top',
+                                    tooltip: 'always',
+                                    value: data[i].num_columns
+                                });
+
                                 var cols = parseInt($('#inputWidthDashboard').val());
-                                var isNotNumber = isNaN(cols);
-                                if(isNotNumber)
-                                {
-                                   $('#pixelWidth').val("");
-                                   $('#percentWidth').val("");
-                                }
-                                else
-                                {
-                                   var px = parseInt(cols*78 + 10);
-                                   var percent = parseInt(px/screen.width*100);
-                                   $('#pixelWidth').css("background-color", "white");
-                                   $('#percentWidth').css("background-color", "white");
-                                   $('#pixelWidth').val(px + " px");
-                                   $('#percentWidth').val(percent + " %");
-                                }
+                                var px = parseInt(cols*78 + 10);
+                                var percent = parseInt(px/screen.width*100);
+                                $('#pixelWidth').val(px + " px");
+                                $('#percentWidth').val(percent + " %");
+                                
+                                $("#inputWidgetsBordersColor").val(widgetsBordersColor);
+                                $('#inputWidgetsBordersColor').parent().colorpicker({
+                                    format: "rgba",
+                                    color: widgetsBordersColor
+                                });
+                                $("#inputPickerWidgetsBorderColor").css("background-color", widgetsBordersColor);
                                 $("#myModalLabelDas").text("Modify current Dashboard: " + data[i].name_dashboard);
                                 $("#inputDashCol").val(data[i].color_header);
                                 $("#remainsWidthDashboard").val(data[i].remains_width);
                                 //Attribuisci nome dell'attuale Dashboard al menu di duplicazione
-                                $('#nameCurrentDashboard').val(data[i].name_dashboard);
+                                $('#currentDashboardTitle').val(data[i].title_header);
                                 //fine duplicazione
-                                indicatore = data[i].name_dashboard;
+                                
                                 datoTitle = data[i].title_header;
                                 datoSubtitle = data[i].subtitle_header;
                                 datoColor = data[i].color_header;
                                 num_cols = data[i].num_columns;
+                                dato_back = data[i].color_background;
+                                external_color = data[i].external_frame_color;
                                 
-                                if (data[i].color_background === '' || !data[i].color_background) {
-                                    dato_back = '#eeeeee';
-                                } else {
-                                    dato_back = data[i].color_background;
-                                }
-
-                                if (data[i].external_frame_color === '' || !data[i].external_frame_color) {
-                                    external_color = '#ffffff';
-                                } else {
-                                    external_color = data[i].external_frame_color;
-                                }
                                 $('body').css("background-color", external_color);
                                 $('#pageWrapperCfg').css("background-color", external_color);
                                 $('#inputDashExtCol').val(external_color);
+                                $('#inputExternalColorDashboard').parent().colorpicker({
+                                    format: "rgba",
+                                    color: external_color
+                                });
                                 $('.logos-bar').css("background-color", external_color);
                                 $('#color_e').css("background-color", external_color);
                                 $('#container-widgets-cfg').css("background-color", dato_back);
-                                $('#inputDashBckCol').attr("value", dato_back);
-                                $('#inputDashBckCol').val(dato_back);
+                                $('#inputColorBackgroundDashboard').parent().colorpicker({
+                                    format: "rgba",
+                                    color: dato_back
+                                });
                                 $('#container-widgets-cfg').css("border-top-color", dato_back);
                                 $('#container-widgets-cfg').css("border-color", dato_back);
                                 $('#color_b').css("background-color", dato_back);
                                 $('#color_h').css("background-color", datoColor);
-                                
-                                $('#embeddable').val(data[i].embeddable);
-                                
-                                $('#embeddable').change(function(){
-                                    if($(this).val() === 'no') 
-                                    {
-                                        $('label[for=authorizedPages]').hide();
-                                        $('#authorizedPagesTable').parent().hide();
-                                        $('#authorizedPagesTable tbody').empty();
-                                        
-                                        authorizedPages = [];
-                                        $('#authorizedPagesJson').val("");
-                                    }
-                                    else
-                                    {
-                                        $('label[for=authorizedPages]').show();
-                                        $('#authorizedPagesTable').parent().show();
-                                    }
-                                });
                             }
 
                             $.ajax({
@@ -2181,7 +2401,7 @@
                                                 firstFreeRow = temp;
                                             }
                                             
-                                            gridster.add_widget('<li id="' + name_w + '" class="gridsterCell"></li>', widgetsArray[i]['size_columns_widget'], widgetsArray[i]['size_rows_widget'], widgetsArray[i]['n_column_widget'], widgetsArray[i]['n_row_widget']);
+                                            gridster.add_widget('<li data-widgetId="' + widgetsArray[i]['id_widget'] + '" id="' + name_w + '" class="gridsterCell"></li>', widgetsArray[i]['size_columns_widget'], widgetsArray[i]['size_rows_widget'], widgetsArray[i]['n_column_widget'], widgetsArray[i]['n_row_widget']);
                                            
                                             var type_metric = new Array();
                                             var source_metric = new Array();
@@ -2323,40 +2543,19 @@
                     });
                     
                     //Listener modifica dashboard attuale
-                    $('#button_modify_dashboard').click(function() 
+                    /*$('#editDashboardConfirmBtn').click(function() 
                     {
                         var subtitleSize = null;
-                        var form = $('form').get(1);
+                        var form = $('#form-modify-dashboard');
                         var formData = new FormData(form);
+                        
+                        console.log("Form data");
+                        console.log(form);
                         
                         if(formData.get('inputTitleDashboard') === '') 
                         {
                             formData.set('inputTitleDashboard', datoTitle);
                         } 
-                        
-                        if(formData.get('headerFontSize') === '')
-                        {
-                            formData.set('headerFontSize', 45);
-                            subtitleSize = 24;
-                        }
-                        else
-                        {
-                            if(formData.get('headerFontSize') > 45)
-                            {
-                               headerFontSize = 45; 
-                               subtitleSize = 24;
-                               $("#headerFontSize").val(45);
-                               formData.set('headerFontSize', headerFontSize); 
-                            }
-                            else
-                            {
-                                subtitleSize = parseInt(parseInt(formData.get('headerFontSize'))*0.25);
-                                if(subtitleSize < 24)
-                                {
-                                    subtitleSize = 24;
-                                }
-                            }
-                        }
                         
                         if(formData.get('headerFontColor') === '')
                         {
@@ -2388,18 +2587,7 @@
                             formData.set('inputDashExtCol', external_color);
                         } 
                         
-                        //NON RIAGGIUNGERLO, INDUCE BUG LOGOLINK NULLO
-                        /*if(formData.get('dashboardLogoLinkInput') === '')
-                        {
-                            formData.set('dashboardLogoLinkInput', logoLink);
-                        }*/
-                        
-                        if(formData.get('inputWidgetsBordersColor') === '') 
-                        {
-                            formData.set('inputWidgetsBordersColor', '#dddddd');
-                        }
-                        
-                        formData.set('ident', indicatore);
+                        formData.set('dashboardIdFromRequest', indicatore);
                         
                         jQuery.ajax({
                             url: 'save_config_dash.php',
@@ -2409,7 +2597,9 @@
                             type: 'POST',
                             success: function(data)
                             {
-                                location.reload(true);
+                                console.log("Success");
+                                console.log(data);
+                                //location.reload(true);
                             },
                             error:function (error) 
                             {
@@ -2417,7 +2607,7 @@
                                console.log(error);
                             }
                         });
-                    });
+                    });*/
 
                     $.ajax({
                         url: "get_data.php",
@@ -2493,11 +2683,203 @@
                     });
 
                     $('#modal-add-widget').on('shown.bs.modal', function () {
-                        udpate_select_metric();
+                        updateSelectedMetric();
+                    });
+
+                    //Listener cambio categoria widget (attuatore o data viewer) in aggiunta widget
+                    $('#widgetCategory').change(function(){
+                        if($(this).val() === 'actuator')
+                        {
+                            $('#widgetEntityRow').show();
+                            $('#widgetAttributeRow').show();   
+                            $('#widgetActuatorTypeRow').show();
+                                    
+                            
+                            $('#selectMetricRow').hide();
+                            $('#metricDescRow').hide();
+                            $('#widgetTypeRow').hide();
+                            $('#widgetTypeRow').hide();
+                            $('#selectedMetricRow').hide();
+                            $('#widgetLinkRow').hide();
+                        }
+                        else
+                        {
+                            $('#widgetEntityRow').hide();
+                            $('#widgetAttributeRow').hide();
+                            $('#widgetActuatorTypeRow').hide();
+                            
+                            $('#selectMetricRow').show();
+                            $('#metricDescRow').show();
+                            $('#widgetTypeRow').show();
+                            $('#widgetTypeRow').show();
+                            $('#selectedMetricRow').show();
+                            $('#widgetLinkRow').show();
+                        }
+                    });
+                    
+                    //Listener cambio entità (per widget attuatori)
+                    $('#widgetEntity').change(function(){
+                        $.ajax({
+                                url: "iframeProxy.php",
+                                data: {
+                                    action: "getOrionEntityAttributes", 
+                                    entity: $('#widgetEntity').val()
+                                },
+                                type: "GET",
+                                async: true,
+                                dataType: 'json',
+                                success: function (data) 
+                                {
+                                    $('#widgetAttribute').empty();
+                                    
+                                    for(var key in data)
+                                    {
+                                        $('#widgetAttribute').append('<option value="' + key + '" data-type="' + data[key].type + '">' + key + '</option>');
+                                    }
+                                    
+                                    $('#widgetAttribute').val(-1);
+                                },
+                                error: function(data)
+                                {
+                                    console.log("Ko");
+                                    console.log(data);
+                                }
+                            });
+                    });
+                    
+                    $('#widgetEntityM').change(function(){
+                        $.ajax({
+                                url: "iframeProxy.php",
+                                data: {
+                                    action: "getOrionEntityAttributes", 
+                                    entity: $('#widgetEntityM').val()
+                                },
+                                type: "GET",
+                                async: true,
+                                dataType: 'json',
+                                success: function (data) 
+                                {
+                                    $('#widgetAttributeM').empty();
+                                    
+                                    for(var key in data)
+                                    {
+                                        $('#widgetAttributeM').append('<option value="' + key + '" data-type="' + data[key].type + '">' + key + '</option>');
+                                    }
+                                    
+                                    $('#widgetAttributeM').val(-1);
+                                },
+                                error: function(data)
+                                {
+                                    console.log("Ko");
+                                    console.log(data);
+                                }
+                            });
+                    });
+                    
+                    $('#widgetAttribute').change(function(){
+                        $.ajax({
+                            url: "iframeProxy.php",
+                            data: {
+                                action: "getActuatorWidgetTypes", 
+                                type: $('#widgetAttribute option:selected').attr('data-type')
+                            },
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) 
+                            {
+                                $('#widgetActuatorType').empty();
+                                
+                                for(var key in data.list)
+                                {
+                                    $('#widgetActuatorType').append('<option value="' + data.list[key].id_type_widget + '" data-min_row="' + data.list[key].min_row + '" + data-max_row="' + data.list[key].max_row + '" data-min_col="' + data.list[key].min_col + '" data-max_col="' + data.list[key].max_col + '">' + data.list[key].id_type_widget + '</option>')
+                                }
+                                
+                                $('#widgetActuatorType').val(-1);
+                            },
+                            error: function(data)
+                            {
+                                console.log("Ko");
+                                console.log(data);
+                            }
+                        });    
+                    });
+                    
+                    $('#widgetAttributeM').change(function(){
+                        $.ajax({
+                            url: "iframeProxy.php",
+                            data: {
+                                action: "getActuatorWidgetTypes", 
+                                type: $('#widgetAttributeM option:selected').attr('data-type')
+                            },
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) 
+                            {
+                                $('#widgetActuatorTypeM').empty();
+                                
+                                for(var key in data.list)
+                                {
+                                    $('#widgetActuatorTypeM').append('<option value="' + data.list[key].id_type_widget + '" data-min_row="' + data.list[key].min_row + '" + data-max_row="' + data.list[key].max_row + '" data-min_col="' + data.list[key].min_col + '" data-max_col="' + data.list[key].max_col + '">' + data.list[key].id_type_widget + '</option>')
+                                }
+                                
+                                $('#widgetActuatorTypeM').val(-1);
+                            },
+                            error: function(data)
+                            {
+                                console.log("Ko");
+                                console.log(data);
+                            }
+                        });    
+                    });
+                    
+                    $('#widgetActuatorType').change(function(){
+                        var minRow, maxRow, minCol, maxCol = null;
+                        minRow = parseInt($('#widgetActuatorType option:selected').attr("data-min_row"));
+                        maxRow = parseInt($('#widgetActuatorType option:selected').attr("data-max_row"));
+                        minCol = parseInt($('#widgetActuatorType option:selected').attr("data-min_col"));
+                        maxCol = parseInt($('#widgetActuatorType option:selected').attr("data-max_col"));
+                        
+                        $('#inputSizeRowsWidget').empty();
+                        
+                        for(var i = minRow; i <= maxRow; i++)
+                        {
+                            $('#inputSizeRowsWidget').append('<option value="' + i + '">' + i + '</option>');
+                        }
+                        
+                        $('#inputSizeColumnsWidget').empty();
+                        
+                        for(var i = minCol; i <= maxCol; i++)
+                        {
+                            $('#inputSizeColumnsWidget').append('<option value="' + i + '">' + i + '</option>');
+                        }
+                    });
+                    
+                    $('#widgetActuatorTypeM').change(function(){
+                        var minRow, maxRow, minCol, maxCol = null;
+                        minRow = parseInt($('#widgetActuatorTypeM option:selected').attr("data-min_row"));
+                        maxRow = parseInt($('#widgetActuatorTypeM option:selected').attr("data-max_row"));
+                        minCol = parseInt($('#widgetActuatorTypeM option:selected').attr("data-min_col"));
+                        maxCol = parseInt($('#widgetActuatorTypeM option:selected').attr("data-max_col"));
+                        
+                        $('#inputRows-m').empty();
+                        
+                        for(var i = minRow; i <= maxRow; i++)
+                        {
+                            $('#inputRows-m').append('<option value="' + i + '">' + i + '</option>');
+                        }
+                        
+                        $('#inputColumn-m').empty();
+                        
+                        for(var i = minCol; i <= maxCol; i++)
+                        {
+                            $('#inputColumn-m').append('<option value="' + i + '">' + i + '</option>');
+                        }
                     });
 
                     //Listener cambio metrica in aggiunta widget
-                    $('#select-metric').change(udpate_select_metric = function () 
+                    $('#select-metric').change(updateSelectedMetric = function () 
                     {
                         var str = "";
                         $("#select-metric option:selected").each(function () {
@@ -2758,7 +3140,7 @@
                     }).change();
                     
                    
-                   $('#inputJobsNamesWidget').change(update_select_scheduler = function () 
+                    $('#inputJobsNamesWidget').change(update_select_scheduler = function () 
                     {
                         if($('#inputJobsNamesWidget').css("display") !== "none")
                         {
@@ -2766,7 +3148,116 @@
                         }
                     }).change();
                     
-                    //Listener aggiunta widget per cambio widget selezionato
+                    //Listener aggiunta widget per cambio widget selezionato per widgets actuator
+                    $('#widgetActuatorType').change(function(){
+                        $("#inputUdmPosition").val(-1);
+                        //Titolo obbligatorio per tutti
+                        $('#inputTitleWidget').prop('required', true);
+                        
+                        
+                        switch($('#widgetActuatorType').val())
+                        {
+                            case "widgetKnob":
+                                $('#inputUrlWidget').val('none');
+                                $('#inputFontSize').val("12");
+                                $('#inputFontSize').attr("disabled", true);
+                                $('#inputFontColor').val("#000000");
+                                $('#widgetFontColor').css("background-color", "#eeeeee");
+                                $("#titleLabel").html("Title");
+                                $("#bckColorLabel").html("Background color");
+                                $('#link_help_modal-add-widget').css("display", "");
+                                $('#inputFrameColorWidget').attr('disabled', false);
+                                $('#inputFrameColorWidget').val('#eeeeee');
+                                $('#inputFrameColorWidget').prop('required', false);
+                                $('#select-IntTemp-Widget').attr('disabled', true);
+                                $('#select-IntTemp-Widget').prop('required', false);
+                                $('#inputFreqWidget').attr('disabled', false);
+                                $('#inputFreqWidget').val(60);
+                                $('#inputFreqWidget').prop('required', true);
+                                $('#inputHeaderFontColorWidget').attr('disabled', false);
+                                $('#inputHeaderFontColorWidget').prop('required', true);
+                                $('#inputHeaderFontColorWidget').val("#000000");
+                                $('#widgetHeaderFontColor').css("background-color", "#000000");
+                                $('#inputUdmWidget').prop("required", false);
+                                $('#inputUdmWidget').attr("disabled", true);
+                                $('#inputUdmPosition').prop("required", false);
+                                $('#inputUdmPosition').attr("disabled", true);
+                                $('#addWidgetFirstAidHospital').attr("disabled", true);
+                                $('#addWidgetFirstAidHospital').prop("required", false);
+                                $('#addWidgetFirstAidHospital').val(-1);
+                                $('#inputFirstAidRow').hide();
+
+                                showInfoWCkeditors($('#select-widget').val(), editorsArray, null);
+
+                                //Parametri specifici del widget
+                                $('#specificWidgetPropertiesDiv .row').remove();
+
+                                $('#inputComuneWidget').attr('disabled', false);
+
+                                //Rimozione eventuali campi del subform general per widget process
+                                removeWidgetProcessGeneralFields("addWidget");
+                                
+                                newFormRow = $('<div class="row"></div>');
+                                newLabel = $('<label for="addKnobStartAngle" class="col-md-2 control-label">Start angle</label>');
+                                newInnerDiv = $('<div class="col-md-4"></div>');
+                                newInput = $('<input type="text" name="addKnobStartAngle" class="form-control" id="addKnobStartAngle" value="230"/>');
+                                newInnerDiv.append(newInput);
+                                newFormRow.append(newLabel);
+                                newFormRow.append(newInnerDiv);
+                                
+                                newLabel = $('<label for="addKnobEndAngle" class="col-md-2 control-label">End angle</label>');
+                                newInnerDiv = $('<div class="col-md-4"></div>');
+                                newInput = $('<input type="text" name="addKnobEndAngle" class="form-control" id="addKnobEndAngle" value="130"/>');
+                                newInnerDiv.append(newInput);
+                                newFormRow.append(newLabel);
+                                newFormRow.append(newInnerDiv);
+                                
+                                $('#specificWidgetPropertiesDiv').append(newFormRow);
+                                
+                                newFormRow = $('<div class="row"></div>');
+                                newLabel = $('<label for="addKnobDomainType" class="col-md-2 control-label">Domain type</label>');
+                                newInnerDiv = $('<div class="col-md-4"></div>');
+                                newInput = $('<select name="addKnobDomainType" id="addKnobDomainType" class="form-control"/>');
+                                newInput.append('<option value="continuous">Continuous</option>');
+                                newInput.append('<option value="discreet">Discreet</option>');
+                                newInnerDiv.append(newInput);
+                                newFormRow.append(newLabel);
+                                newFormRow.append(newInnerDiv);
+                                $('#specificWidgetPropertiesDiv').append(newFormRow);
+                                
+                                newFormRow = $('<div class="row"></div>');
+                                newLabel = $('<label for="addKnobMinValue" class="col-md-2 control-label">Min value</label>');
+                                newInnerDiv = $('<div class="col-md-4"></div>');
+                                newInput = $('<input type="text" name="addKnobMinValue" class="form-control" id="addKnobMinValue" value="0"/>');
+                                newInnerDiv.append(newInput);
+                                newFormRow.append(newLabel);
+                                newFormRow.append(newInnerDiv);
+                                
+                                newLabel = $('<label for="addKnobMaxValue" class="col-md-2 control-label">Max value</label>');
+                                newInnerDiv = $('<div class="col-md-4"></div>');
+                                newInput = $('<input type="text" name="addKnobMaxValue" class="form-control" id="addKnobMaxValue" value="100"/>');
+                                newInnerDiv.append(newInput);
+                                newFormRow.append(newLabel);
+                                newFormRow.append(newInnerDiv);
+                                
+                                $('#specificWidgetPropertiesDiv').append(newFormRow);
+                                
+                                //Contenitore per tabella delle soglie
+                                var addKnobColorsTableContainer = $('<div id="addKnobColorsTableContainer" class="row rowCenterContent"></div>');
+                                var addKnobColorsTable = $("<table id='addKnobColorsTable' class='table table-bordered table-condensed thrRangeTable'><col style='width:25%'><col style='width:25%'><col style='width:40%'><col style='width:10%'><tr><td>Min</td><td>Max</td><td>Range color</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                addKnobColorsTableContainer.append(addKnobColorsTable);
+                                $("#specificWidgetPropertiesDiv").append(addKnobColorsTableContainer);
+
+                                //$("#addKnobColorsTable i.fa-plus").click(addThrRangeSingleValueWidget);
+                                break;
+                                
+                            default: 
+
+                                break;
+                        }
+                    });
+                    
+                    //Listener aggiunta widget per cambio widget selezionato per widgets data viewer
                     $('#select-widget').change(update_select_widget = function () 
                     {
                         var dimMapRaw, dimMap = null;
@@ -2863,19 +3354,6 @@
 
                                             $("#add-n-metrcis-widget").text("max " + array_metrics[i]['widgets'][k]['number_metrics_widget'] + " metrics");
 
-                                            if (array_metrics[i]['widgets'][k]['color_widgetOption'] === 0) 
-                                            {
-                                                $('#inputColorWidget').attr('readonly', true);
-                                                if ((array_metrics[i]['colorDefault'] !== null) && (array_metrics[i]['colorDefault'].length !== 0)) 
-                                                {
-                                                    $('.color-choice').colorpicker('setValue', array_metrics[i]['colorDefault']);
-                                                }
-                                            } 
-                                            else 
-                                            {
-                                                $('#inputColorWidget').attr('readonly', false);
-                                            }
-
                                             if ((str2 === "widgetTimeTrend") || (str2 === "widgetTimeTrendCompare")) 
                                             {
                                                 $('#select-IntTemp-Widget').empty();
@@ -2904,79 +3382,6 @@
                             //Opzioni menu aggiunta widget
                             switch($('#select-widget').val())
                             {
-                                case "widgetKnob":
-                                    $('#inputUrlWidget').val('none');
-                                    $('#inputFontSize').prop('required', true);
-                                    $('#inputFontSize').attr('disabled', false);
-                                    $('#inputFontSize').val(14);
-                                    $('#inputFontColor').val("#000000");
-                                    $('#widgetFontColor').css("background-color", "#000000");
-                                    $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    $('#link_help_modal-add-widget').css("display", "");
-                                    $('#inputUdmWidget').attr('disabled', true);
-                                    $('#inputFrameColorWidget').attr('disabled', true);
-                                    $('#inputFrameColorWidget').val('');
-                                    $('#inputFrameColorWidget').prop('required', false);
-                                    $('#select-IntTemp-Widget').attr('disabled', true);
-                                    $('#select-IntTemp-Widget').prop('required', false);
-                                    $('#inputFreqWidget').attr('disabled', true);
-                                    $('#inputFreqWidget').val('');
-                                    $('#inputFreqWidget').prop('required', false);
-                                    $('#inputHeaderFontColorWidget').attr('disabled', true);
-                                    $('#inputHeaderFontColorWidget').prop('required', false);
-                                    $('#inputHeaderFontColorWidget').val("");
-                                    $('#widgetHeaderFontColor').css("background-color", "#eeeeee");
-                                    $('#inputUdmWidget').prop("required", false);
-                                    $('#inputUdmWidget').attr("disabled", true);
-                                    $('#inputUdmPosition').prop("required", false);
-                                    $('#inputUdmPosition').attr("disabled", true);
-                                    $('#addWidgetFirstAidHospital').attr("disabled", true);
-                                    $('#addWidgetFirstAidHospital').prop("required", false);
-                                    $('#addWidgetFirstAidHospital').val(-1);
-                                    $('#inputFirstAidRow').hide();
-                                    $('#inputComuneWidget').attr('disabled', true);
-
-                                    showInfoWCkeditors($('#select-widget').val(), editorsArray, null);
-                                    
-                                    //Rimozione eventuali campi del subform general per widget process
-                                    removeWidgetProcessGeneralFields("addWidget");
-
-                                    //Parametri specifici del widget
-                                    $('#specificWidgetPropertiesDiv .row').remove();
-                                    
-                                    //Metteremo i controlli per le opzioni specifiche di questo tipo di widget nel div specificWidgetPropertiesDiv
-                                    
-                                    //1) Crei un oggetto Javascript di nome parameters in cui metti i valori delle opzioni specifiche per questo 
-                                    // widget, questo oggetto viene parallelamente serializzato in una stringa memorizzata nel campo HTML nascosto
-                                    //<input type="hidden" name="parameters" id="parameters" />
-                                    
-                                    var knobParameters = {
-                                        domainType : null
-                                    };
-                                    
-                                    //Nuova riga
-                                    //Target widgets per cambio metrica
-                                    newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addWidgetDomainType" class="col-md-2 control-label">Domain type</label>');
-                                    newInnerDiv = $('<div class="col-md-3"></div>');
-                                    newSelect = $('<select name="addWidgetDomainType" class="form-control" id="addWidgetDomainType"></select>');
-                                    newSelect.append('<option value="discrete">Discrete</option>');
-                                    newSelect.append('<option value="continuos">Continuos</option>');
-                                    
-                                    //Ogni volta che uno dei campi delle opzioni specifiche del widget cambia devi aggiornare 
-                                    //il corrispondente campo dell'oggetto Javascript e serializzarlo subito nel campo nascosto del form
-                                    newSelect.change(function(){
-                                        knobParameters.domainType = $('#addWidgetDomainType').val();
-                                        $("#parameters").val(JSON.stringify(knobParameters));
-                                    });
-                                    
-                                    newInnerDiv.append(newSelect);
-                                    newFormRow.append(newLabel);
-                                    newFormRow.append(newInnerDiv);
-                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
-                                    break;
-                                
                                case "widgetServerStatus":
                                     $("label[for='inputComuneWidget']").css("display", "");
                                     $("#bckColorLabel").html("Background color");
@@ -8353,64 +8758,67 @@
 
                     $('#button_add_metric_widget').click(function () 
                     {
-                        if($('#select-metric').val()) 
+                        if($('#widgetCategory').val() === "viewer")
                         {
-                            var value_selected = $('#select-metric').val();
-                            for (var i = 0; i < array_metrics.length; i++) 
+                            if($('#select-metric').val()) 
                             {
-                                if (array_metrics[i]['id'] == ($("#select-metric option:selected").val())) 
+                                var value_selected = $('#select-metric').val();
+                                for (var i = 0; i < array_metrics.length; i++) 
                                 {
-                                    for (var k = 0; k < array_metrics[i]['widgets'].length; k++) 
+                                    if (array_metrics[i]['id'] == ($("#select-metric option:selected").val())) 
                                     {
-                                        if (array_metrics[i]['widgets'][k]['id_type_widget'] == ($("#select-widget option:selected").val())) 
+                                        for (var k = 0; k < array_metrics[i]['widgets'].length; k++) 
                                         {
-                                            if ($('#textarea-selected-metrics').val()) 
+                                            if (array_metrics[i]['widgets'][k]['id_type_widget'] == ($("#select-widget option:selected").val())) 
                                             {
-                                                var content = $('#textarea-selected-metrics').val();
-                                                if ((content.split("+")).length == array_metrics[i]['widgets'][k]['number_metrics_widget']) 
+                                                if ($('#textarea-selected-metrics').val()) 
                                                 {
-                                                    alert("Maximum number of metric for widget reached!!!");
+                                                    var content = $('#textarea-selected-metrics').val();
+                                                    if ((content.split("+")).length == array_metrics[i]['widgets'][k]['number_metrics_widget']) 
+                                                    {
+                                                        alert("Maximum number of metric for widget reached!!!");
+                                                    } 
+                                                    else 
+                                                    {
+                                                        content += "+" + value_selected;
+                                                        $('#textarea-selected-metrics').val(content);
+                                                    }
                                                 } 
                                                 else 
                                                 {
-                                                    content += "+" + value_selected;
-                                                    $('#textarea-selected-metrics').val(content);
+                                                    $('#textarea-selected-metrics').val(value_selected);
                                                 }
-                                            } 
-                                            else 
-                                            {
-                                                $('#textarea-selected-metrics').val(value_selected);
-                                            }
 
-                                            if (array_metrics[i]['widgets'][k]['number_metrics_widget'] > 1) 
-                                            {
-                                                $('#select-metric').empty();
-                                                for (var j = 0; j < array_metrics.length; j++) 
+                                                if (array_metrics[i]['widgets'][k]['number_metrics_widget'] > 1) 
                                                 {
-                                                    for (var l = 0; l < array_metrics[j]['widgets'].length; l++) 
+                                                    $('#select-metric').empty();
+                                                    for (var j = 0; j < array_metrics.length; j++) 
                                                     {
-                                                        if (array_metrics[j]['widgets'][l]['id_type_widget'] == ($("#select-widget option:selected").val())) 
+                                                        for (var l = 0; l < array_metrics[j]['widgets'].length; l++) 
                                                         {
-                                                            $('#select-metric').append('<option>' + array_metrics[j]['id'] + '</option>');
+                                                            if (array_metrics[j]['widgets'][l]['id_type_widget'] == ($("#select-widget option:selected").val())) 
+                                                            {
+                                                                $('#select-metric').append('<option>' + array_metrics[j]['id'] + '</option>');
+                                                            }
                                                         }
                                                     }
+                                                    $('#select-widget').prop('disabled', true);
                                                 }
-                                                $('#select-widget').prop('disabled', true);
                                             }
                                         }
                                     }
                                 }
+                                addWidgetConditionsArray["selectedMetricAndWidget"] = true;
+                                $('#button_add_metric_widget').css("color", "black");
                             }
-                            addWidgetConditionsArray["selectedMetricAndWidget"] = true;
-                            $('#button_add_metric_widget').css("color", "black");
+                            else
+                            {
+                               addWidgetConditionsArray["selectedMetricAndWidget"] = false;
+                               $('#button_add_metric_widget').css("color", "red");
+                            }
+
+                            checkAddWidgetConditions();
                         }
-                        else
-                        {
-                           addWidgetConditionsArray["selectedMetricAndWidget"] = false;
-                           $('#button_add_metric_widget').css("color", "red");
-                        }
-                        
-                        checkAddWidgetConditions();
                     });
 
                     $('.link_help_modal-add-widget').click(function () {
@@ -8449,21 +8857,73 @@
 
 
                     //Duplicazione della dashboard
-                    $('#button_duplicate_dashboard').click(function () {
+                    $('#duplicateDashboardBtn').click(function () {
+                        $('#cloningDashboardFormRow').hide();
+                        $('#cloneDashboardModalFooter').hide();
+                        $('#duplicateDashboardLoadingRow').show();
+                        
                         var dashboardParams = {};
                         dashboardParams['sourceDashboardId'] = "<?= $_SESSION['dashboardId'] ?>";
-                        dashboardParams['sourceDashboardName'] = $('#nameCurrentDashboard').val();
+                        dashboardParams['sourceDashboardTitle'] = $('#currentDashboardTitle').val();
                         dashboardParams['sourceDashboardAuthorName'] = "<?= $_SESSION['dashboardAuthorName'] ?>";
-                        dashboardParams['newDashboardName'] = $('#nameNewDashboard').val();
+                        dashboardParams['newDashboardTitle'] = $('#newDashboardTitle').val();
                         
                         $.ajax({
                             url: "duplicate_dash.php",
                             data: {dashboardDuplication: dashboardParams},
                             type: "POST",
                             async: true,
-                            success: function (data) 
+                            success: function(data) 
                             {
-                                alert(data);
+                                $('#duplicateDashboardLoadingRow').hide();
+                                switch(data)
+                                {
+                                    case "Ok":
+                                        $('#duplicateDashboardOkRow').show();
+                                        setTimeout(function(){
+                                            $('#cloneDashboardModal').modal('hide');
+                                            setTimeout(function(){
+                                                $('#duplicateDashboardOkRow').hide();
+                                                $('#cloningDashboardFormRow').show();
+                                                $('#cloneDashboardModalFooter').show(); 
+                                                $('#newDashboardTitle').val("");
+                                                $('#cloneDashboardTitleMsg').val("Title can't be less than 4 characters long");
+                                                $('#duplicateDashboardBtn').attr("disabled", true);
+                                            }, 300);
+                                        }, 3000);
+                                        break;
+                                        
+                                    case "logoDirCreationKo": case "logoFileCopyKo":
+                                        $('#duplicateDashboardWarningRow').show();
+                                        setTimeout(function(){
+                                            $('#duplicateDashboardWarningRow').hide();
+                                            $('#cloningDashboardFormRow').show();
+                                            $('#cloneDashboardModalFooter').show(); 
+                                        }, 3000);
+                                        console.log(data);
+                                        break;
+
+                                    case "Ko":
+                                        $('#duplicateDashboardKoRow').show();
+                                        setTimeout(function(){
+                                            $('#duplicateDashboardKoRow').hide();
+                                            $('#cloningDashboardFormRow').show();
+                                            $('#cloneDashboardModalFooter').show(); 
+                                        }, 3000);
+                                        console.log(data);
+                                        break;
+                                }					
+                            },
+                            error: function(data)
+                            {
+                                $('#duplicateDashboardLoadingRow').hide();
+                                $('#duplicateDashboardKoRow').show();
+                                setTimeout(function(){
+                                    $('#duplicateDashboardKoRow').hide();
+                                    $('#cloningDashboardFormRow').show();
+                                    $('#cloneDashboardModalFooter').show(); 
+                                }, 3000);
+                                console.log(data);
                             }
                         });
                     });
@@ -8471,10 +8931,11 @@
 
 
                     $('#link_exit').click(function () {
-                        var result_exit = window.confirm("Are you sure you want to exit without saving the dashboard configuration?");
+                        /*var result_exit = window.confirm("Are you sure you want to exit without saving the dashboard configuration?");
                         if (result_exit) {
-                            window.location.href = "dashboard_mng.php";
-                        }
+                            window.location.href = "dashboards.php";
+                        }*/
+                        window.location.href = "dashboards.php";
                     });
 
                     //Pulsante di reset eliminato
@@ -8486,7 +8947,7 @@
                         for (var i = 0; i < array_metrics.length; i++) {
                             $('#select-metric').append('<option>' + array_metrics[i]['id'] + '</option>');
                         }
-                        udpate_select_metric();
+                        updateSelectedMetric();
                     });*/
 
                     //Listener cancellazione widget
@@ -8505,6 +8966,9 @@
                     $(document).on('click', '.icon-cfg-widget', function () 
                     {
                         var name_widget_m = $(this).parents('li').attr('id');
+                        var widgetId = $(this).parents('li').attr('data-widgetId');
+                        $('#widgetIdM').val(widgetId);
+                        
                         var dimMapRaw = null;
                         var dimMap = null;
                         $("#inputColumn-m").empty();
@@ -8556,27 +9020,9 @@
                             dataType: 'json',
                             success: function (data) 
                             {
-                                $("#metricWidgetM").val(data['id_metric_widget'].replace(/\+/g, ", "));
-                                $("#select-widget-m").find('option').remove().end().append('<option>' + data['widgets_metric'] + '</option>');
-                                $('#select-widget-m').val(data['type_widget']);
-                                $("#inputTitleWidgetM").val(data['title_widget']);
-                                $("#inputFontSizeM").val(data['fontSize']);
-                                $("#inputFontColorM").val(data['fontColor']);
-                                $("#widgetFontColorM").css("background-color", data['fontColor']);
-                                $("#widgetFontColorPickerContainerM").colorpicker('setValue', data['fontColor']);
-                                $("#inputHeaderFontColorWidgetM").val(data['headerFontColor']);
-                                $("#widgetHeaderFontColorM").css("background-color", data['headerFontColor']);
-                                $("#inputFreqWidgetM").val(data['frequency_widget']);
-                                $("#inputNameWidgetM").val(data['name_widget']);
-                                $("#inputComuneWidgetM").val(data['municipality_metric_widget']);
-                                $('#select-IntTemp-Widget-m').val(data['temporal_range_widget']);
-                                $("#mod-n-metrcis-widget").text("max " + data['number_metrics_widget'] + " metrics");
-                                $("#textarea-metric-widget-m").val('');
-                                $("#inputUdmWidgetM").val(data['udm']);
-                                $("#urlWidgetM").val(data['url']);
-                                $("#inputShowTitleM").val(data['showTitle']);
-                                $("#inputFontFamilyWidgetM").val(data['fontFamily']);
-                                
+                                var actuatorEntity = data.actuatorEntity;
+                                var actuatorAttribute = data.actuatorAttribute;
+                                var widgetTypeM = data.type_widget;
                                 var paramsRaw = data['param_w'];
                                 var styleParamsRaw = data['styleParameters'];
                                 var serviceUri = data['serviceUri'];
@@ -8586,6 +9032,171 @@
                                 
                                 var infoJsonRaw = data['infoJson'];
                                 var info_mess = data['info_mess'];
+                                
+                                if((data.actuatorEntity !== null)&&(data.actuatorAttribute !== null))
+                                {
+                                    //Caso widget attuatori
+                                    $('#widgetCategoryM').val("actuator");
+                                    $('#widgetCategoryHiddenM').val("actuator");
+                                    $('#widgetEntityRowM').show();
+                                    $('#widgetAttributeRowM').show();
+                                    $('#widgetActuatorTypeRowM').show();
+                                    $('#widgetEntityM').val(data.actuatorEntity);
+                                    
+                                    $.ajax({
+                                        url: "iframeProxy.php",
+                                        data: {
+                                            action: "getOrionEntityAttributes", 
+                                            entity: actuatorEntity
+                                        },
+                                        type: "GET",
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function (data2) 
+                                        {
+                                            $('#widgetAttributeM').empty();
+
+                                            for(var key in data2)
+                                            {
+                                                $('#widgetAttributeM').append('<option value="' + key + '" data-type="' + data2[key].type + '">' + key + '</option>');
+                                            }
+
+                                            $('#widgetAttributeM').val(actuatorAttribute);
+                                            
+                                            $.ajax({
+                                                url: "iframeProxy.php",
+                                                data: {
+                                                    action: "getActuatorWidgetTypes", 
+                                                    type: $('#widgetAttributeM option:selected').attr('data-type')
+                                                },
+                                                type: "GET",
+                                                async: true,
+                                                dataType: 'json',
+                                                success: function (data3) 
+                                                {
+                                                    $('#widgetActuatorTypeM').empty();
+
+                                                    for(var key in data3.list)
+                                                    {
+                                                        $('#widgetActuatorTypeM').append('<option value="' + data3.list[key].id_type_widget + '" data-min_row="' + data3.list[key].min_row + '" + data-max_row="' + data3.list[key].max_row + '" data-min_col="' + data3.list[key].min_col + '" data-max_col="' + data3.list[key].max_col + '">' + data3.list[key].id_type_widget + '</option>')
+                                                    }
+
+                                                    $('#widgetActuatorTypeM').val(widgetTypeM);
+                                                    
+                                                    switch($('#widgetActuatorTypeM').val())
+                                                    {
+                                                        case "widgetKnob":
+                                                            if(styleParamsRaw !== null) 
+                                                            {
+                                                                styleParameters = JSON.parse(styleParamsRaw);
+                                                            }
+                                                            $('#link_help_modal-add-widget-m').css("display", "");
+                                                            $('#inputTitleWidgetM').attr('disabled', false);
+                                                            $("label[for='inputTitleWidgetM']").html("Title");
+                                                            $("label[for='inputColorWidgetM']").html("Background color");
+                                                            $('#inputColorWidgetM').attr('disabled', false);
+                                                            $('#inputColorWidgetM').prop('required', true);
+                                                            $('#inputFontSizeM').attr('disabled', false);
+                                                            $('#inputFontSizeM').prop('required', true);
+                                                            $('#inputFontColorM').attr('disabled', false);
+                                                            $('#inputFontColorM').prop('required', true);
+                                                            $('#select-frameColor-Widget-m').attr('disabled', false);
+                                                            $('#select-frameColor-Widget-m').prop('required', true);
+                                                            $('#select-IntTemp-Widget-m').val(-1);
+                                                            $('#select-IntTemp-Widget-m').prop('disabled', true);
+                                                            $('#select-IntTemp-Widget-m').prop('required', false);
+                                                            $('#inputFreqWidgetM').val('');
+                                                            $('#inputFreqWidgetM').prop('disabled', true);
+                                                            $('#inputFreqWidgetM').prop('required', false);
+                                                            $('#inputComuneWidgetM').attr('disabled', true);
+                                                            $('#urlWidgetM').attr('disabled', false);
+                                                            $('#inputHeaderFontColorWidgetM').attr('disabled', false);
+                                                            $('#inputHeaderFontColorWidgetM').prop('required', true);
+                                                            $('#inputUdmWidgetM').prop("required", false);
+                                                            $('#inputUdmWidgetM').attr("disabled", true);
+                                                            $('#inputUdmWidgetM').val("");
+                                                            $('#inputUdmPositionM').prop("required", false);
+                                                            $('#inputUdmPositionM').attr("disabled", true);
+                                                            $('#inputUdmPositionM').val(-1);
+
+                                                            //Rimozione eventuali campi del subform general per widget process
+                                                            removeWidgetProcessGeneralFields("editWidget");
+
+                                                            showInfoWCkeditorsM($('#widgetActuatorTypeM').val(), editorsArrayM, null, null, info_mess);
+
+                                                            //Parametri specifici del widget
+                                                            $('#specificParamsM .row').remove();  
+                                                            
+                                                            newFormRow = $('<div class="row"></div>');
+                                                            newLabel = $('<label for="editKnobStartAngle" class="col-md-2 control-label">Start angle</label>');
+                                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                                            newInput = $('<input type="text" name="editKnobStartAngle" class="form-control" value="' + styleParameters.startAngle + '" id="editKnobStartAngle"/>');
+                                                            newInnerDiv.append(newInput);
+                                                            newFormRow.append(newLabel);
+                                                            newFormRow.append(newInnerDiv);
+
+                                                            newLabel = $('<label for="editKnobEndAngle" class="col-md-2 control-label">End angle</label>');
+                                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                                            newInput = $('<input type="text" name="editKnobEndAngle" class="form-control" value="' + styleParameters.endAngle + '" id="editKnobEndAngle"/>');
+                                                            newInnerDiv.append(newInput);
+                                                            newFormRow.append(newLabel);
+                                                            newFormRow.append(newInnerDiv);
+
+                                                            $('#specificParamsM').append(newFormRow);
+                                                            break;
+                                                        }
+                                                    
+                                                },
+                                                error: function(data)
+                                                {
+                                                    console.log("Ko");
+                                                    console.log(data);
+                                                }
+                                            });
+                                        },
+                                        error: function(data)
+                                        {
+                                            console.log("Ko");
+                                            console.log(data);
+                                        }
+                                    });
+                                }
+                                else
+                                {
+                                    //Caso widget data viewer
+                                    $('#widgetCategoryM').val("viewer");
+                                    $('#widgetCategoryHiddenM').val("viewer");
+                                    $('#metricWidgetMRow').show();
+                                    $('#inputNameWidgetMRow').show();
+                                    $('#select-widget-mRow').show();
+                                    $('#inputComuneRowM').show();
+                                    $('#urlWidgetMRow').show();
+                                    $('#textarea-metric-widget-mRow').show();
+                                    
+                                    $("#metricWidgetM").val(data['id_metric_widget'].replace(/\+/g, ", "));
+                                    $("#select-widget-m").find('option').remove().end().append('<option>' + data['widgets_metric'] + '</option>');
+                                    $('#select-widget-m').val(data['type_widget']);
+                                    $("#inputComuneWidgetM").val(data['municipality_metric_widget']);
+                                    $('#select-IntTemp-Widget-m').val(data['temporal_range_widget']);
+                                    $("#mod-n-metrcis-widget").text("max " + data['number_metrics_widget'] + " metrics");
+                                    $("#textarea-metric-widget-m").val('');
+                                    $("#inputUdmWidgetM").val(data['udm']);
+                                    $("#urlWidgetM").val(data['url']);
+                                }
+                                
+                                $("#inputTitleWidgetM").val(data['title_widget']);
+                                $("#inputFontSizeM").val(data['fontSize']);
+                                $("#inputFontColorM").val(data['fontColor']);
+                                $("#widgetFontColorM").css("background-color", data['fontColor']);
+                                $("#widgetFontColorPickerContainerM").colorpicker('setValue', data['fontColor']);
+                                //$("#inputHeaderFontColorWidgetM").val(data['headerFontColor']);
+                                //$("#widgetHeaderFontColorM").css("background-color", data['headerFontColor']);
+                                $("#inputFreqWidgetM").val(data['frequency_widget']);
+                                $("#inputNameWidgetM").val(data['name_widget']);
+                                $("#inputShowTitleM").val(data['showTitle']);
+                                $("#inputFontFamilyWidgetM").val(data['fontFamily']);
+                                
+                                
                                 
                                 if(paramsRaw !== 'undefined')
                                 {
@@ -8598,106 +9209,34 @@
                                     infoJson = JSON.parse(infoJsonRaw);
                                 }
                                 
-                                for(var i = 0; i < data['metrics_prop'].length; i++) 
+                                if((data.actuatorEntity === null)&&(data.actuatorAttribute === null))
                                 {
-                                    var value_text_widget = $("#textarea-metric-widget-m").val();
-                                    value_text_widget += "Name: " + data['metrics_prop'][i]['id_metric'] + ".\n";
-                                    value_text_widget += "Description: " + data['metrics_prop'][i]['descrip_metric_widget'] + ".\n";
-                                    value_text_widget += "Metric typology: " + data['metrics_prop'][i]['type_metric_widget'] + ".\n";
-                                    metricType = data['metrics_prop'][i]['type_metric_widget'];
-                                    value_text_widget += "Data Area: " + data['metrics_prop'][i]['area_metric_widget'] + ".\n";
-                                    value_text_widget += "Data Source: " + data['metrics_prop'][i]['source_metric_widget'] + ".\n";
-                                    value_text_widget += "Status: " + data['metrics_prop'][i]['status_metric_widget'] + ".";
-                                    if (i !== ((data['metrics_prop'].length) - 1)) 
+                                    for(var i = 0; i < data['metrics_prop'].length; i++) 
                                     {
-                                        value_text_widget += "\n\n";
+                                        var value_text_widget = $("#textarea-metric-widget-m").val();
+                                        value_text_widget += "Name: " + data['metrics_prop'][i]['id_metric'] + ".\n";
+                                        value_text_widget += "Description: " + data['metrics_prop'][i]['descrip_metric_widget'] + ".\n";
+                                        value_text_widget += "Metric typology: " + data['metrics_prop'][i]['type_metric_widget'] + ".\n";
+                                        metricType = data['metrics_prop'][i]['type_metric_widget'];
+                                        value_text_widget += "Data Area: " + data['metrics_prop'][i]['area_metric_widget'] + ".\n";
+                                        value_text_widget += "Data Source: " + data['metrics_prop'][i]['source_metric_widget'] + ".\n";
+                                        value_text_widget += "Status: " + data['metrics_prop'][i]['status_metric_widget'] + ".";
+                                        if(i !== ((data['metrics_prop'].length) - 1)) 
+                                        {
+                                            value_text_widget += "\n\n";
+                                        }
+                                        $("#textarea-metric-widget-m").val(value_text_widget);
                                     }
-                                    $("#textarea-metric-widget-m").val(value_text_widget);
                                 }
                                 
                                 //Titolo obbligatorio per tutti
                                 $('#inputTitleWidgetM').prop('required', true);
                                 
+                                if((actuatorEntity === null)||(actuatorAttribute === null))
+                                {
+                                    
                                 switch($('#select-widget-m').val())
                                 {
-                                    case "widgetKnob":
-                                        if(styleParamsRaw !== null) 
-                                        {
-                                            styleParameters = JSON.parse(styleParamsRaw);
-                                        }
-                                        $('#link_help_modal-add-widget-m').css("display", "");
-                                        $('#inputTitleWidgetM').attr('disabled', false);
-                                        $("label[for='inputTitleWidgetM']").html("Button text");
-                                        $("label[for='inputColorWidgetM']").html("Button color");
-                                        $('#inputColorWidgetM').attr('disabled', false);
-                                        $('#inputColorWidgetM').prop('required', true);
-                                        $('#inputFontSizeM').attr('disabled', false);
-                                        $('#inputFontSizeM').prop('required', true);
-                                        $('#inputFontColorM').attr('disabled', false);
-                                        $('#inputFontColorM').prop('required', true);
-                                        $('#select-frameColor-Widget-m').attr('disabled', true);
-                                        $('#select-frameColor-Widget-m').prop('required', false);
-                                        $('#select-frameColor-Widget-m').val('');
-                                        $('#select-IntTemp-Widget-m').val(-1);
-                                        $('#select-IntTemp-Widget-m').prop('disabled', true);
-                                        $('#select-IntTemp-Widget-m').prop('required', false);
-                                        $('#inputFreqWidgetM').val('');
-                                        $('#inputFreqWidgetM').prop('disabled', true);
-                                        $('#inputFreqWidgetM').prop('required', false);
-                                        $('#inputComuneWidgetM').attr('disabled', true);
-                                        $('#urlWidgetM').attr('disabled', false);
-                                        $('#inputHeaderFontColorWidgetM').attr('disabled', true);
-                                        $('#inputHeaderFontColorWidgetM').prop('required', false);
-                                        $('#inputHeaderFontColorWidgetM').val("");
-                                        $('#widgetHeaderFontColorM').css("background-color", "#eeeeee");
-                                        $('#inputUdmWidgetM').prop("required", false);
-                                        $('#inputUdmWidgetM').attr("disabled", true);
-                                        $('#inputUdmWidgetM').val("");
-                                        $('#inputUdmPositionM').prop("required", false);
-                                        $('#inputUdmPositionM').attr("disabled", true);
-                                        $('#inputUdmPositionM').val(-1);
-                                        
-                                        //Rimozione eventuali campi del subform general per widget process
-                                        removeWidgetProcessGeneralFields("editWidget");
-                                        
-                                        showInfoWCkeditorsM($('#select-widget-m').val(), editorsArrayM, null, null, info_mess);
-                                        
-                                        //Parametri specifici del widget
-                                        $('#specificParamsM .row').remove();    
-                                        
-                                        //Metteremo i controlli per le opzioni specifiche di questo tipo di widget nel div specificWidgetPropertiesDiv
-                                    
-                                        //1) Crei un oggetto Javascript di nome parameters in cui metti i valori delle opzioni specifiche per questo 
-                                        // widget, questo oggetto viene parallelamente serializzato in una stringa memorizzata nel campo HTML nascosto
-                                        //<input type="hidden" name="parameters" id="parameters" />
-
-                                        var knobParametersM = parameters;
-
-                                        //Nuova riga
-                                        //Target widgets per cambio metrica
-                                        newFormRow = $('<div class="row"></div>');
-                                        newLabel = $('<label for="editWidgetDomainType" class="col-md-2 control-label">Domain type</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
-                                        newSelect = $('<select name="editWidgetDomainType" class="form-control" id="editWidgetDomainType"></select>');
-                                        newSelect.append('<option value="discrete">Discrete</option>');
-                                        newSelect.append('<option value="continuos">Continuos</option>');
-                                        
-                                        //Visto che siamo in edit, quando creo le opzioni specifiche vanno inizializzate con i loro valori pregressi
-                                        newSelect.val(knobParametersM.domainType);
-
-                                        //Ogni volta che uno dei campi delle opzioni specifiche del widget cambia devi aggiornare 
-                                        //il corrispondente campo dell'oggetto Javascript e serializzarlo subito nel campo nascosto del form
-                                        newSelect.change(function(){
-                                            knobParametersM.domainType = $('#editWidgetDomainType').val();
-                                            $("#parametersM").val(JSON.stringify(knobParametersM));
-                                        });
-
-                                        newInnerDiv.append(newSelect);
-                                        newFormRow.append(newLabel);
-                                        newFormRow.append(newInnerDiv);
-                                        $("#specificParamsM").append(newFormRow);
-                                        break;
-                                    
                                     case "widgetServerStatus":
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputComuneWidgetM').attr('disabled', true);
@@ -15145,6 +15684,7 @@
                                         removeWidgetProcessGeneralFields("editWidget");
                                         break;
                                 }
+                                }
                                 
                                 
                                 dimMapRaw = data['dimMap'];
@@ -15229,35 +15769,52 @@
                                 } 
                                 else 
                                 {
-                                    //$("#inputColorWidgetM").val(data['color_widget']);
-                                    //$("#color_widget_M").css("background-color", data['color_widget']);
                                     $("#widgetColorPickerContainer").colorpicker('setValue', data['color_widget']);
                                 }
                                 
                                 //Impostazion colore del frame del widget
                                 if((!data['frame_color']) || (data['frame_color'] == ""))
                                 {
-                                    $("#select-frameColor-Widget-m").val("#eeeeee");
-                                    $("#color_fm").css("background-color", "#eeeeee");
-                                    $("#widgetFrameColorPickerContainer").colorpicker('setValue', '#eeeeee');
+                                    $("#widgetFrameColorPickerContainer").colorpicker({
+                                        format: "rgba",
+                                        color: "#EEEEEE"
+                                    });
                                 } 
                                 else 
                                 {
-                                    $("#select-frameColor-Widget-m").val(data['frame_color']);
-                                    $("#color_fm").css("background-color", data['frame_color']);
-                                    $("#widgetFrameColorPickerContainer").colorpicker('setValue', data['frame_color']);
+                                    $("#widgetFrameColorPickerContainer").colorpicker({
+                                        format: "rgba",
+                                        color: data['frame_color']
+                                    });
                                 }
                                 
+                                if((!data['headerFontColor']) || (data['headerFontColor'] == ""))
+                                {
+                                    $("#widgetFrameFontColorPickerContainer").colorpicker({
+                                        format: "rgba",
+                                        color: "#000000"
+                                    });
+                                } 
+                                else 
+                                {
+                                    $("#widgetFrameFontColorPickerContainer").colorpicker({
+                                        format: "rgba",
+                                        color: data['headerFontColor']
+                                    });
+                                }
+                                
+                                
+                                
                                 //dimensioni range
-                                if (data['metrics_prop'][0]['timeRangeOption_metric_widget'] == 0) 
+                                /*if(data['metrics_prop'][0]['timeRangeOption_metric_widget'] == 0) 
                                 {
                                     //Div parametri: vecchio codice commentato in attesa di introdurre il nuovo form
-                                    //$("#value_range_m").hide();
+                                    $("#value_range_m").hide();
                                 } 
                                 else if (data['metrics_prop'][0]['timeRangeOption_metric_widget'] == 1) 
                                 {
                                     //Div parametri: vecchio codice commentato in attesa di introdurre il nuovo form
-                                    /*$("#value_range_m").show();
+                                    $("#value_range_m").show();
                                     $("#textarea-range-value_m").val(data['param_w']);
                                     var dividi_json = data['param_w'];
                                     if (dividi_json) 
@@ -15271,18 +15828,8 @@
                                         $("#textarea-range-value_m").empty();
                                         $('#input-min_range_m').val('');
                                         $('#input-max_range_m').val('');
-                                    }*/
-                                }
-
-
-                                if (data['color_widgetOption_widget'] == 0) 
-                                {
-                                    $('#inputColorWidgetM').attr('readonly', true);
-                                } 
-                                else 
-                                {
-                                    $('#inputColorWidgetM').attr('readonly', false);
-                                }
+                                    }
+                                }*/
                                 
                                 $('#modal-modify-widget').modal('show');
                             },
@@ -15530,43 +16077,17 @@
                     });
                     //fine handler
 
-                    $(function() 
-                    {
-                        $('.color-choice').colorpicker({
-                            format: "rgba"
-                        });
-                        $("#widgetColorPickerContainer").colorpicker({
-                            format: "rgba"
-                        });
-                        $("#widgetFrameColorPickerContainer").colorpicker({
-                            format: "rgba"
-                        });
+                    $('.color-choice').colorpicker({
+                        format: "rgba"
+                    });
+                    
+                    $("#widgetColorPickerContainer").colorpicker({
+                        format: "rgba"
                     });
 
                     $('#form-setting-widget').submit(function () {
                         $('#select-widget').removeAttr('disabled');
                     });
-
-
-                    //aggiunta draggable
-                    /*$(function () {
-                        $('#adding01').draggable();
-                    });
-                    $(function () {
-                        $('#modify01').draggable();
-                    });
-                    $(function () {
-                        $('#dash01').draggable();
-                    });
-                    $(function () {
-                        $('#duplicate01').draggable();
-                    });
-                    $(function () {
-                        $('#info01').draggable();
-                    });*/
-                    
-                   //}//Fine else
-
                 });
         </script>	
     </body>

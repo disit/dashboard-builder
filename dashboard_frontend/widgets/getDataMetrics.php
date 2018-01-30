@@ -35,7 +35,7 @@
         foreach($id as $idValue)
         {   
             $idValue = mysqli_real_escape_string($link, $idValue); 
-            $sql = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.threshold, Descriptions.thresholdEval, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$idValue' ORDER BY computationDate desc LIMIT 1"; 
+            $sql = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$idValue' ORDER BY computationDate desc LIMIT 1"; 
             $result = $link->query($sql);
 
             while($r = mysqli_fetch_assoc($result)) 

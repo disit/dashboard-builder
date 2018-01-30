@@ -44,6 +44,583 @@
 
     <!-- Custom Core JavaScript -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
+    
+    <!-- Bootstrap table -->
+   <link rel="stylesheet" href="../boostrapTable/dist/bootstrap-table.css">
+   <script src="../boostrapTable/dist/bootstrap-table.js"></script>
+   <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
+   <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
+   
+   <!-- Bootstrap slider -->
+   <script src="../bootstrapSlider/bootstrap-slider.js"></script>
+   <link href="../bootstrapSlider/css/bootstrap-slider.css" rel="stylesheet"/>
+   
+   <!-- Font awesome icons -->
+    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+    
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
+    
+    <script type='text/javascript'>
+        var array_widget = new Array();
+        var array_metrics = new Array();
+        var array_types = new Array();
+        var tipi_compatibili;
+
+        $(document).ready(function () 
+        {
+            var internalDest = false;
+            var tableFirstLoad = true;
+            
+            buildMainTable(false);
+            
+            $('#minWidth').bootstrapSlider({
+                tooltip_position:'left'
+            });
+            
+            $('#maxWidth').bootstrapSlider({
+                tooltip_position: 'left'
+            });
+            
+            $('#minHeight').bootstrapSlider({
+                tooltip_position:'left'
+            });
+            
+            $('#maxHeight').bootstrapSlider({
+                tooltip_position: 'left'
+            });
+            
+            $('#minWidthM').bootstrapSlider({
+                tooltip_position:'left'
+            });
+            
+            $('#maxWidthM').bootstrapSlider({
+                tooltip_position: 'left'
+            });
+            
+            $('#minHeightM').bootstrapSlider({
+                tooltip_position:'left'
+            });
+            
+            $('#maxHeightM').bootstrapSlider({
+                tooltip_position: 'left'
+            });
+            
+            $('#addWidgetTypeConfirmBtn').click(function(){
+                $('div.addWidgetTypeDataRow').hide();
+                $('#addWidgetTypeModalFooter').hide();
+                $('#addWidgetTypeLoadingMsg').show();
+                $('#addWidgetTypeLoadingIcon').show();
+                
+                $.ajax({
+                    url: "process-form.php",
+                    data: {
+                        addWidgetType: true,
+                        widgetName: $('#widgetName').val(),
+                        phpFilename: $('#phpFilename').val(),
+                        metricsNumber: $('#metricsNumber').val(),
+                        metricType: $('#metricType').val(),
+                        uniqueMetric: $('#uniqueMetric').val(),
+                        minWidth: $('#minWidth').bootstrapSlider('getValue'),
+                        maxWidth: $('#maxWidth').bootstrapSlider('getValue'),
+                        minHeight: $('#minHeight').bootstrapSlider('getValue'),
+                        maxHeight: $('#maxHeight').bootstrapSlider('getValue')
+                    },
+                    type: "POST",
+                    async: true,
+                    success: function(data)
+                    {
+                        if(data !== 'Ok')
+                        {
+                            console.log("Error adding widget type");
+                            console.log(data);
+                            $('#addWidgetTypeLoadingMsg').hide();
+                            $('#addWidgetTypeLoadingIcon').hide();
+                            $('#addWidgetTypeKoMsg').show();
+                            $('#addWidgetTypeKoIcon').show();
+                            setTimeout(function(){
+                                $('#addWidgetTypeKoMsg').hide();
+                                $('#addWidgetTypeKoIcon').hide();
+                                $('div.addWidgetTypeDataRow').show();
+                                $('#addWidgetTypeModalFooter').show();
+                            }, 3000);
+                        }
+                        else
+                        {
+                            $('#addWidgetTypeLoadingMsg').hide();
+                            $('#addWidgetTypeLoadingIcon').hide();
+                            $('#addWidgetTypeOkMsg').show();
+                            $('#addWidgetTypeOkIcon').show();
+                            
+                            setTimeout(function(){
+                                $('#modalAddWidgetType').modal('hide');
+                                buildMainTable(true);
+                                
+                                setTimeout(function(){
+                                    $('#addWidgetTypeOkMsg').hide();
+                                    $('#addWidgetTypeOkIcon').hide();
+                                    $('#widgetName').val("");
+                                    $('#phpFilename').val("");
+                                    $('#metricsNumber').val("");
+                                    $('#metricType').val("");
+                                    $('#uniqueMetric').val("");
+                                    $('#minWidth').bootstrapSlider('setValue', 1);
+                                    $('#maxWidth').bootstrapSlider('setValue', 50);
+                                    $('#minHeight').bootstrapSlider('setValue', 2);
+                                    $('#maxHeight').bootstrapSlider('setValue', 50);
+                                    $('div.addWidgetTypeDataRow').show();
+                                    $('#addWidgetTypeModalFooter').show();
+                                }, 500);
+                            }, 3000);
+                        }
+                    },
+                    error: function(errorData)
+                    {
+                        $('#addWidgetTypeLoadingMsg').hide();
+                        $('#addWidgetTypeLoadingIcon').hide();
+                        $('#addWidgetTypeKoMsg').show();
+                        $('#addWidgetTypeKoIcon').show();
+                        setTimeout(function(){
+                            $('#addWidgetTypeKoMsg').hide();
+                            $('#addWidgetTypeKoIcon').hide();
+                            $('div.addWidgetTypeDataRow').show();
+                            $('#addWidgetTypeModalFooter').show();
+                        }, 3000);
+                        console.log("Error adding widget type");
+                        console.log(errorData);
+                    }
+                });  
+            });
+            
+            $('#editWidgetTypeConfirmBtn').click(function(){
+                $('div.editWidgetTypeDataRow').hide();
+                $('#editWidgetTypeModalFooter').hide();
+                $('#editWidgetTypeLoadingMsg div.col-xs-12').html("Saving data, please wait");
+                $('#editWidgetTypeLoadingMsg').show();
+                $('#editWidgetTypeLoadingIcon').show();
+                
+                $.ajax({
+                    url: "process-form.php",
+                    data: {
+                        editWidgetType: true,
+                        id: $('#widgetIdToEdit').val(),
+                        widgetName: $('#widgetNameM').val(),
+                        phpFilename: $('#phpFilenameM').val(),
+                        metricsNumber: $('#metricsNumberM').val(),
+                        metricType: $('#metricTypeM').val(),
+                        uniqueMetric: $('#uniqueMetricM').val(),
+                        minWidth: $('#minWidthM').bootstrapSlider('getValue'),
+                        maxWidth: $('#maxWidthM').bootstrapSlider('getValue'),
+                        minHeight: $('#minHeightM').bootstrapSlider('getValue'),
+                        maxHeight: $('#maxHeightM').bootstrapSlider('getValue')
+                    },
+                    type: "POST",
+                    datatype: 'json',
+                    async: true,
+                    success: function(data)
+                    {
+                        if(data !== 'Ok')
+                        {
+                            console.log("Error updating widget type");
+                            console.log(data);
+                            $('#editWidgetTypeLoadingMsg').hide();
+                            $('#editWidgetTypeLoadingIcon').hide();
+                            $('#editWidgetTypeKoMsg div.col-xs-12').html("Error updating widget type");
+                            $('#editWidgetTypeKoMsg').show();
+                            $('#editWidgetTypeKoIcon').show();
+                            setTimeout(function(){
+                                $('#editWidgetTypeKoMsg').hide();
+                                $('#editWidgetTypeKoIcon').hide();
+                                $('div.editWidgetTypeDataRow').show();
+                                $('#editWidgetTypeModalFooter').show();
+                            }, 3000);
+                        }
+                        else
+                        {
+                            $('#editWidgetTypeLoadingMsg').hide();
+                            $('#editWidgetTypeLoadingIcon').hide();
+                            $('#editWidgetTypeOkMsg').show();
+                            $('#editWidgetTypeOkIcon').show();
+                            
+                            setTimeout(function(){
+                                $('#modalEditWidgetType').modal('hide');
+                                buildMainTable(true);
+                                
+                                setTimeout(function(){
+                                    $('#editWidgetTypeOkMsg').hide();
+                                    $('#editWidgetTypeOkIcon').hide();
+                                    $('#widgetNameM').val("");
+                                    $('#phpFilenameM').val("");
+                                    $('#metricsNumberM').val("");
+                                    $('#metricTypeM').val("");
+                                    $('#uniqueMetricM').val("");
+                                    $('#minWidthM').bootstrapSlider('setValue', 1);
+                                    $('#maxWidthM').bootstrapSlider('setValue', 50);
+                                    $('#minHeightM').bootstrapSlider('setValue', 2);
+                                    $('#maxHeightM').bootstrapSlider('setValue', 50);
+                                    $('div.editWidgetTypeDataRow').show();
+                                    $('#editWidgetTypeModalFooter').show();
+                                }, 500);
+                            }, 3000);
+                        }
+                    },
+                    error: function(errorData)
+                    {
+                        console.log("Error updating widget type");
+                        console.log(errorData);
+                        $('#editWidgetTypeLoadingMsg').hide();
+                        $('#editWidgetTypeLoadingIcon').hide();
+                        $('#editWidgetTypeKoMsg div.col-xs-12').html("Error updating widget type");
+                        $('#editWidgetTypeKoMsg').show();
+                        $('#editWidgetTypeKoIcon').show();
+                        setTimeout(function(){
+                            $('#editWidgetTypeKoMsg').hide();
+                            $('#editWidgetTypeKoIcon').hide();
+                            $('div.editWidgetTypeDataRow').show();
+                            $('#editWidgetTypeModalFooter').show();
+                        }, 3000);
+                    }
+                });  
+            });
+            
+            $('#delWidgetTypeConfirmBtn').click(function(){
+                $('div.delWidgetTypeDataRow').hide();
+                $('#delWidgetTypeModalFooter').hide();
+                $('#delWidgetTypeLoadingMsg').show();
+                $('#delWidgetTypeLoadingIcon').show();
+                
+                $.ajax({
+                    url: "process-form.php",
+                    data: {
+                        delWidgetType: true,
+                        id: $('#widgetIdToDelete').val()
+                    },
+                    type: "POST",
+                    async: true,
+                    success: function(data)
+                    {
+                        if(data !== 'Ok')
+                        {
+                            console.log("Error deleting widget type");
+                            console.log(data);
+                            $('#delWidgetTypeLoadingMsg').hide();
+                            $('#delWidgetTypeLoadingIcon').hide();
+                            $('#delWidgetTypeKoMsg').show();
+                            $('#delWidgetTypeKoIcon').show();
+                            
+                            setTimeout(function(){
+                                $('#modalDelWidgetType').modal('hide');
+                                setTimeout(function(){
+                                    $('#delWidgetTypeKoMsg').hide();
+                                    $('#delWidgetTypeKoIcon').hide();
+                                    $('div.delWidgetTypeDataRow').show();
+                                    $('#delWidgetTypeModalFooter').show();
+                                }, 500);
+                            }, 3000);
+                        }
+                        else
+                        {
+                            $('#delWidgetTypeLoadingMsg').hide();
+                            $('#delWidgetTypeLoadingIcon').hide();
+                            $('#delWidgetTypeOkMsg').show();
+                            $('#delWidgetTypeOkIcon').show();
+                            
+                            setTimeout(function(){
+                                $('#modalDelWidgetType').modal('hide');
+                                buildMainTable(true);
+                                
+                                setTimeout(function(){
+                                    $('#delWidgetTypeOkMsg').hide();
+                                    $('#delWidgetTypeOkIcon').hide();
+                                    $('div.delWidgetTypeDataRow').show();
+                                    $('#delWidgetTypeModalFooter').show();
+                                }, 500);
+                            }, 3000);
+                        }
+                    },
+                    error: function(errorData)
+                    {
+                        console.log("Error deleting widget type");
+                        console.log(errorData);
+                        $('#delWidgetTypeLoadingMsg').hide();
+                        $('#delWidgetTypeLoadingIcon').hide();
+                        $('#delWidgetTypeKoMsg').show();
+                        $('#delWidgetTypeKoIcon').show();
+
+                        setTimeout(function(){
+                            $('#modalDelWidgetType').modal('hide');
+                            setTimeout(function(){
+                                $('#delWidgetTypeKoMsg').hide();
+                                $('#delWidgetTypeKoIcon').hide();
+                                $('div.delWidgetTypeDataRow').show();
+                                $('#delWidgetTypeModalFooter').show();
+                            }, 500);
+                        }, 3000);
+                    }
+                });  
+            });
+            
+            function buildMainTable(destroyOld)
+            {
+                if(destroyOld)
+                {
+                    $('#list_widgets').bootstrapTable('destroy');
+                    tableFirstLoad = true;
+                }
+                
+                $.ajax({
+                    url: "get_data.php",
+                    data: {action: "get_widget_types"},
+                    type: "GET",
+                    async: true,
+                    datatype: 'json',
+                    success: function (data)
+                    {
+                        $('#list_widgets').bootstrapTable({
+                                columns: [{
+                                    field: 'id_type_widget',
+                                    title: 'Name',
+                                    sortable: true,
+                                    valign: "middle",
+                                    align: "center",
+                                    halign: "center",
+                                    formatter: function(value, row, index)
+                                    {
+                                        if(value !== null)
+                                        {
+                                            if(value.length > 75)
+                                            {
+                                               return value.substr(0, 75) + " ...";
+                                            }
+                                            else
+                                            {
+                                               return value;
+                                            } 
+                                        }
+                                    }
+                                }, {
+                                    field: 'min_row',
+                                    title: 'Min height',
+                                    sortable: true,
+                                    align: "center",
+                                    halign: "center",
+                                    valign: "middle"
+                                },
+                                {
+                                    field: 'max_row',
+                                    title: 'Max height',
+                                    sortable: true,
+                                    align: "center",
+                                    halign: "center",
+                                    valign: "middle"
+                                },
+                                {
+                                    field: 'min_col',
+                                    title: 'Min width',
+                                    sortable: true,
+                                    align: "center",
+                                    halign: "center",
+                                    valign: "middle"
+                                },
+                                {
+                                    field: 'max_col',
+                                    title: 'Max width',
+                                    sortable: true,
+                                    align: "center",
+                                    halign: "center",
+                                    valign: "middle"
+                                },
+                                {
+                                    field: 'widgetType',
+                                    title: "Data type(s)",
+                                    align: "center",
+                                    sortable: true,
+                                    align: "center",
+                                    halign: "center",
+                                    valign: "middle"
+                                },
+                                {
+                                    title: "Edit",
+                                    align: "center",
+                                    valign: "middle",
+                                    align: "center",
+                                    halign: "center",
+                                    formatter: function(value, row, index)
+                                    {
+                                        return '<span class="glyphicon glyphicon-cog"></span>'; 
+                                    }
+                                },
+                                {
+                                    title: "Delete",
+                                    align: "center",
+                                    valign: "middle",
+                                    align: "center",
+                                    halign: "center",
+                                    formatter: function(value, row, index)
+                                    {
+                                        return '<span class="glyphicon glyphicon-remove"></span>'; 
+                                    }
+                                }],
+                                data: data,
+                                search: true,
+                                pagination: true,
+                                pageSize: 10,
+                                locale: 'en-US',
+                                searchAlign: 'left',
+                                uniqueId: "id",
+                                striped: true,
+                                onPostBody: function()
+                                {
+                                    if(tableFirstLoad)
+                                    {
+                                        //Caso di primo caricamento della tabella
+                                        tableFirstLoad = false;
+                                        var addWidgetDiv = $('<div class="pull-right"><i id="addWidgetTypeBtn" data-toggle="modal" data-target="#modalAddWidgetType" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
+                                        $('div.fixed-table-toolbar').append(addWidgetDiv);
+                                        addWidgetDiv.css("margin-top", "10px");
+                                        addWidgetDiv.find('i.fa-plus-square').off('hover');
+                                        addWidgetDiv.find('i.fa-plus-square').hover(function(){
+                                            $(this).css('color', 'red');
+                                            $(this).css('cursor', 'pointer');
+                                        }, 
+                                        function(){
+                                            $(this).css('color', '#ffcc00');
+                                            $(this).css('cursor', 'normal');
+                                        });
+                                    }
+                                    else
+                                    {
+                                        //Casi di cambio pagina
+                                    }
+
+                                    //Istruzioni da eseguire comunque
+                                    $('#list_widgets span.glyphicon-cog').css('color', '#337ab7');
+                                    $('#list_widgets span.glyphicon-cog').css('font-size', '20px');
+
+                                    $('#list_widgets span.glyphicon-cog').off('hover');
+                                    $('#list_widgets span.glyphicon-cog').hover(function(){
+                                        $(this).css('color', '#ffcc00');
+                                        $(this).css('cursor', 'pointer');
+                                    }, 
+                                    function(){
+                                        $(this).css('color', '#337ab7');
+                                        $(this).css('cursor', 'normal');
+                                    });
+                                    
+                                    $('#list_widgets span.glyphicon-cog').off('click');
+                                    $('#list_widgets span.glyphicon-cog').click(function(){
+                                        $('#widgetIdToEdit').val($(this).parents('tr').attr("data-uniqueid"));
+                                        $('div.editWidgetTypeDataRow').hide();
+                                        $('#editWidgetTypeConfirmBtn').hide();
+                                        $('#editWidgetTypeLoadingMsg div.col-xs-12').html('Retrieving widget type data, please wait');
+                                        $('#editWidgetTypeLoadingMsg').show();
+                                        $('#editWidgetTypeLoadingIcon').show();
+                                        $('#modalEditWidgetType').modal('show');
+                                        
+                                        $.ajax({
+                                            url: "get_data.php",
+                                            data: {
+                                                action: "get_single_widget_type",
+                                                id: $(this).parents('tr').attr('data-uniqueid')
+                                            },
+                                            type: "GET",
+                                            async: true,
+                                            datatype: 'json',
+                                            success: function(data)
+                                            {
+                                                $('#editWidgetTypeLoadingMsg').hide();
+                                                $('#editWidgetTypeLoadingIcon').hide();
+                                                
+                                                if(data.result !== "Ok")
+                                                {
+                                                    console.log("Error getting widget type data");
+                                                    console.log(data);
+                                                    $('#editWidgetTypeConfirmBtn').show();
+                                                    $('#editWidgetTypeModalFooter').hide();
+                                                    $('#editWidgetTypeKoMsg').show();
+                                                    $('#editWidgetTypeKoMsg div.col-xs-12').html('Error retrieving widget type data');
+                                                    $('#editWidgetTypeKoIcon').show();
+                                                    
+                                                    setTimeout(function(){
+                                                        $('#modalEditWidgetType').modal('hide');
+                                                        
+                                                        setTimeout(function(){
+                                                            $('#editWidgetTypeKoMsg').hide();
+                                                            $('#editWidgetTypeKoIcon').hide();
+                                                            $('div.editWidgetTypeDataRow').show();
+                                                            $('#editWidgetTypeModalFooter').show();
+                                                        }, 500);
+                                                    }, 3000);
+                                                }
+                                                else
+                                                {
+                                                    $('div.editWidgetTypeDataRow').show();
+                                                    $('#editWidgetTypeConfirmBtn').show();
+                                                    $('#editWidgetTypeModalFooter').show();
+                                                    
+                                                    $('#widgetNameM').val(data.data.id_type_widget);
+                                                    $('#phpFilenameM').val(data.data.source_php_widget);
+                                                    $('#metricsNumberM').val(data.data.number_metrics_widget);
+                                                    $('#metricTypeM').val(data.data.widgetType);
+                                                    $('#uniqueMetricM').val(data.data.unique_metric);
+                                                    $('#minWidthM').bootstrapSlider('setValue', data.data.min_col);
+                                                    $('#maxWidthM').bootstrapSlider('setValue', data.data.max_col);
+                                                    $('#minHeightM').bootstrapSlider('setValue', data.data.min_row);
+                                                    $('#maxHeightM').bootstrapSlider('setValue', data.data.max_row);
+                                                }
+                                            },
+                                            error: function(errorData)
+                                            {
+                                                console.log("Error getting widget type data");
+                                                console.log(data);
+                                                $('#editWidgetTypeLoadingMsg').hide();
+                                                $('#editWidgetTypeLoadingIcon').hide();
+                                                $('#editWidgetTypeConfirmBtn').show();
+                                                $('#editWidgetTypeModalFooter').hide();
+                                                $('#editWidgetTypeKoMsg').show();
+                                                $('#editWidgetTypeKoMsg div.col-xs-12').html('Error retrieving widget type data');
+                                                $('#editWidgetTypeKoIcon').show();
+
+                                                setTimeout(function(){
+                                                    $('#modalEditWidgetType').modal('hide');
+
+                                                    setTimeout(function(){
+                                                        $('#editWidgetTypeKoMsg').hide();
+                                                        $('#editWidgetTypeKoIcon').hide();
+                                                        $('div.editWidgetTypeDataRow').show();
+                                                        $('#editWidgetTypeModalFooter').show();
+                                                    }, 500);
+                                                }, 3000);
+                                            }
+                                        });
+                                        
+                                    });
+
+                                    $('#list_widgets span.glyphicon-remove').css('color', 'red');
+                                    $('#list_widgets span.glyphicon-remove').css('font-size', '20px');
+
+                                    $('#list_widgets span.glyphicon-remove').off('hover');
+                                    $('#list_widgets span.glyphicon-remove').hover(function(){
+                                        $(this).css('color', '#ffcc00');
+                                        $(this).css('cursor', 'pointer');
+                                    }, 
+                                    function(){
+                                        $(this).css('color', 'red');
+                                        $(this).css('cursor', 'normal');
+                                    });
+                                    
+                                    $('#list_widgets span.glyphicon-remove').off('click');
+                                    $('#list_widgets span.glyphicon-remove').click(function(){
+                                        $('#widgetIdToDelete').val($(this).parents('tr').attr("data-uniqueid"));
+                                        $('#delWidgetName').html($(this).parents('tr').find('td').eq(0).text());
+                                        $('#modalDelWidgetType').modal('show');
+                                    });
+                                }
+                            });
+                        }
+                });
+            }
+    });
+    </script>
 </head>
 
 <body>
@@ -62,10 +639,7 @@
         }
     ?>
     <div id="wrapper">
-
-        <!-- Navigation -->
         <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-            <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
                     <span class="sr-only">Toggle navigation</span>
@@ -73,9 +647,8 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">Widgets Management</a>
+                <a class="navbar-brand" href="index.html">Dashboard Management System</a>
             </div>
-            <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
                 <?php
                     if(isset($_SESSION['loggedUsername']))
@@ -85,11 +658,10 @@
                     }
                 ?>
             </ul>
-            <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li>
-                        <a href="../management/dashboard_mng.php"><i class="fa fa-fw fa-dashboard"></i> Dashboards management</a>
+                        <a href="../management/dashboard_mng.php"> Dashboards management</a>
                     </li>
                     <?php
                         if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
@@ -102,10 +674,9 @@
                            if($_SESSION['loggedRole'] == "ToolAdmin")
                            {
                                 echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
-                                echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
+                                echo '<li class="active"><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/dataSources_mng.php" id="link_sources_mng">Data sources management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
-                                
                            }
                            
                            if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
@@ -119,558 +690,272 @@
                     </li>
                 </ul>
             </div>
-            <!-- /.navbar-collapse -->
         </nav>
 
         <div id="page-wrapper">
             <div class="container-fluid">
-
-                <!-- Page Heading -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            <br/>Widgets Overview
-                        </h1>
-                        <nav id="modify-bar-dashboard" class="navbar navbar-default">
-                            <div class="container-fluid">
-                                <!-- Brand and toggle get grouped for better mobile display -->
-
-
-                                <!-- Collect the nav links, forms, and other content for toggling -->
-                                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                                    <ul class="nav navbar-nav">
-                                        <li class="active"><a id="link_add_widget" href="#" data-toggle="modal" data-target="#modal-add_widget"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Widgets <span class="sr-only">(current)</span></a></li>                           
-                                        <li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>
-                                    </ul>
-                                </div><!-- /.navbar-collapse -->
-                            </div><!-- /.container-fluid -->
-                        </nav>
-                    </div>
-                </div>
-
-
-                <div class="row">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title"><i class="fa fa-money fa-fw"></i> Widgets</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div class="table-responsive">
-                                <table id="list_widgets" class="table table-bordered table-hover table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Id widget</th>
-                                            <th>file php</th>    
-                                            <th>min columns</th>
-                                            <th>max columns</th>
-                                            <th>min rows</th>
-                                            <th>max rows</th>
-                                            <th>Type</th>
-                                            <th>Unique_metric</th>
-                                            <th>num. metrics</th>
-                                            <th>Numeric Range</th>
-                                            <th hidden>color</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                <div class="row" style="margin-top: 50px">
+                    <div class="col-xs-12 centerWithFlex mainPageTitleContainer">
+                        Widgets
                     </div>
                 </div>
                 
-                <!-- modifica crea widget type -->
-                <div class="modal fade" id="modal-add_widget" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title">Add new Widget</h4>
-                            </div>
-                            <div class="modal-body">
-                                <form id="form-add-widget" class="form-horizontal" role="form" method="post" action="" data-toggle="validator">
-                                    <div class="tab-content">
-                                        <div class="row" hidden>
-                                            <label for="#" class="col-md-4 control-label">Id Widget</label> 
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" id="id_w" name="id_w">
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Php File</label> 
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" id="php_w" name="php_w">
-                                            </div>
-                                        </div>
-                                        <div class="row" hidden>
-                                            <label for="#" class="col-md-4 control-label">Type</label> 
-                                            <div class="col-md-6">
-                                                <!--<input type="text" class="form-control" id="type_w" name="type_w">-->
-                                                <select class="form-control" name="type_w" id="type_w">      
-                                                    <option>Intero</option>
-                                                    <option>Testuale</option>
-                                                    <option>Percentuale</option>
-                                                    <option>Float</option>
-                                                    <option>Unico</option>
-                                                    <option>SCE</option>
-                                                </select>
-                                                </div>
-                                            </div>
-                                        <!--
-                                        <div class="row" id="unique_row" hidden>
-                                            <label for="#" class="col-md-4 control-label">Unique Metric</label> 
-                                            <div class="col-md-6">
-                                                <select class="form-control" id="metric_w" name="metric_w">
-                                                    <option></option>  
-                                                </select>
-                                            </div>
-                                        </div>
-                                        -->
-                                        <!-- inserimento checkbox dei tipi-->
-                                        <div class="well">
-                                            <legend class="legend-form-group">Types</legend>
-                                         <div class="row">
-                                            <label for="#" class="col-md-3 control-label">Integer</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_c" name="integer_w" id="integer_w" value="Intero"/>
-                                            </div>
-                                            <label for="#" class="col-md-3 control-label">Percentage</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_c" name="percentage_w" id="percentage_w" value="Percentuale"/>
-                                            </div>
-                                        </div>
-                                            <div class="row">
-                                            <label for="#" class="col-md-3 control-label">Float</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_c" name="float_w" id="float_w" value="Float"/>
-                                            </div>
-                                            <label for="#" class="col-md-3 control-label">Textual</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_c" name="textual_w" id="textual_w" value="Testuale"/>
-                                            </div>
-                                        </div>
-                                            <div class="row">
-                                            <label for="#" class="col-md-3 control-label">SCE</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_c" name="sce_w" id="sce_w" value="SCE"/>
-                                            </div>
-                                            <label for="#" class="col-md-3 control-label">Map</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_c" name="map_w" id="map_w" value="Map"/>
-                                            </div>                                            
-                                        </div>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label">Button</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_c" name="button_w" id="button_w" value="Button"/>
-                                            </div>
-                                              <label for="#" class="col-md-3 control-label">Unique</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="checkstato" name="unique_w" id="unique_w" value="Unico"/>
-                                            </div>
-                                            </div>
-                                            <div class="row" id="unique_row" hidden>
-                                            <label for="#" class="col-md-4 control-label">Unique Metric</label> 
-                                            <div class="col-md-6">
-                                                <select class="form-control" id="metric_w" name="metric_w">
-                                                    <option></option>  
-                                                </select>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <!-- fine checkbox dei tipi -->                                        
-                                        <div class="well">
-                                            <legend class="legend-form-group">Parameters</legend>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label"><!--min. Columns number-->Min. Rows number</label> 
-                                                <div class="col-md-3">
-                                                    <input type="text" class="form-control" id="mnC_w" name="mnC_w">
-                                                </div>                          
-                                                <label for="#" class="col-md-3 control-label"><!--max. Columns number-->Max. Rows number</label> 
-                                                <div class="col-md-3">
-                                                    <input type="text" class="form-control" id="mxC_w" name="mxC_w">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label"><!--min. Rows number-->Min Column number</label> 
-                                                <div class="col-md-3">
-                                                    <input type="text" class="form-control" id="mnR_w" name="mnR_w">
-                                                </div>
-                                                <label for="#" class="col-md-3 control-label"><!--max. Rows number-->Max Column number</label> 
-                                                <div class="col-md-3"> 
-                                                    <input type="text" class="form-control" id="mxR_w" name="mxR_w">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label">n. metric</label> 
-                                                <div class="col-md-3">  
-                                                    <input type="text" class="form-control" id="met_w" name="met_w">
-                                                </div>
-                                                <label for="#" class="col-md-3 control-label">Color</label> 
-                                                <div class="col-md-3"> 
-                                                    <input type="text" class="form-control" id="col_w" name="col_w" value="0">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Numeric Range</label>
-                                            <div class="col-md-6">
-                                                <input type="checkbox" class="checkStato" name="numeric_range_w" id="numeric_range_w"/>
-                                            </div>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                        <button type="submit" id="button_widgets" name="add_widget_type" class="btn btn-primary internalLink">Add</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <table id="list_widgets"></table>
                     </div>
                 </div>
-                <!-- modifca widget -->
-                <div class="modal fade" id="modal-modify_widget" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title">Modify Widget</h4>
+            </div>
+        </div>    
+    </div>
+    
+    <!-- Modale aggiunta tipo di widget -->
+    <div class="modal fade" id="modalAddWidgetType" tabindex="-1" role="dialog" aria-labelledby="modalAddWidgetTypeLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header centerWithFlex">
+              <h5 class="modal-title" id="modalAddWidgetTypeLabel">Add new widget type</h5>
+            </div>
+            
+            <div id="addWidgetTypeModalBody" class="modal-body">
+                    <div class="row addWidgetTypeDataRow">
+                        <div class="col-xs-6 col-xs-offset-3">
+                            <div class="addUserFormSubfieldContainer">Widget name</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" id="widgetName" name="widgetName" class="form-control" required>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row addWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">PHP filename</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="phpFilename" id="phpFilename" required> 
                             </div>
-                            <div class="modal-body">
-                                <form id="form-datasources" class="form-horizontal" role="form" method="post" action="" data-toggle="validator">
-                                    <div class="tab-content">                                        
-                                        <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Id Widget</label> 
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" id="id_m" name="id_m" readonly>
-                                            </div>
-                                        </div>
-                                        <div class="row" hidden>
-                                            <label for="#" class="col-md-4 control-label">Php File</label> 
-                                            <div class="col-md-6">
-                                                <input type="text" class="form-control" id="php_m" name="php_m">
-                                            </div>
-                                        </div>
-                                        <!--Elenco checkbox tipi modifica -->
-                                        <input type="text" id="type_m" hidden></input>
-                                        <div class="well">
-                                            <legend class="legend-form-group">Types</legend>
-                                         <div class="row">
-                                            <label for="#" class="col-md-3 control-label">Integer</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_m" name="integer_m" id="integer_m" value="Intero"/>
-                                            </div>
-                                            <label for="#" class="col-md-3 control-label">Percentage</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_m" name="percentage_m" id="percentage_m" value="Percentuale"/>
-                                            </div>
-                                        </div>
-                                            <div class="row">
-                                            <label for="#" class="col-md-3 control-label">Float</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_m" name="float_m" id="float_m" value="Float"/>
-                                            </div>
-                                            <label for="#" class="col-md-3 control-label">Textual</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_m" name="textual_m" id="textual_m" value="Testuale"/>
-                                            </div>
-                                        </div>
-                                            <div class="row">
-                                            <label for="#" class="col-md-3 control-label">SCE</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_m" name="sce_m" id="sce_m" value="SCE"/>
-                                            </div>
-                                            <label for="#" class="col-md-3 control-label">Map</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_m" name="map_m" id="map_m" value="Map"/>
-                                            </div>                                            
-                                        </div>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label">Button</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="tipo_m" name="button_m" id="button_m" value="Button"/>
-                                            </div>
-                                              <label for="#" class="col-md-3 control-label">Unique</label>
-                                            <div class="col-md-3">
-                                                <input type="checkbox" class="checkstato" name="unique_m" id="unique_m" value="Unico"/>
-                                            </div>
-                                            </div>
-                                            <div class="row" id="unique_m_row" hidden>
-                                            <label for="#" class="col-md-4 control-label">Unique Metric</label> 
-                                            <div class="col-md-6">
-                                                <select class="form-control" id="metric_m" name="metric_m">
-                                                    <option></option>  
-                                                </select>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <!-- fine elenco-->
-                                        <div class="well">
-                                            <legend class="legend-form-group">Parameters</legend>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label"><!--Min. Columns number-->Min. Rows number</label> 
-                                                <div class="col-md-3">
-                                                    <input type="text" class="form-control" id ="mnC_m" name="mnC_m">
-                                                </div>                          
-                                                <label for="#" class="col-md-3 control-label"><!--Max. Columns number-->Max. Rows number</label> 
-                                                <div class="col-md-3">
-                                                    <input type="text" class="form-control" id="mxC_m" name="mxC_m">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label"><!--Min. Rows number-->Min. Columns number</label> 
-                                                <div class="col-md-3">
-                                                    <input type="text" class="form-control" id="mnR_m" name="mnR_m">
-                                                </div>
-                                                <label for="#" class="col-md-3 control-label"><!--Max. Rows number-->Max. Columns number</label> 
-                                                <div class="col-md-3"> 
-                                                    <input type="text" class="form-control" id="mxR_m" name="mxR_m">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <label for="#" class="col-md-3 control-label">n. metrics</label> 
-                                                <div class="col-md-3">  
-                                                    <input type="text" class="form-control" id="met_m" name="met_m">
-                                                </div>
-                                                <label for="#" class="col-md-3 control-label">Color</label> 
-                                                <div class="col-md-3"> 
-                                                    <input type="text" class="form-control" id="col_m" name="col_m" value="0">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                            <label for="#" class="col-md-4 control-label">Numeric Range</label>
-                                            <div class="col-md-6">
-                                                <input type="checkbox" class="checkStato" name="numeric_range_m" id="numeric_range_m"/>
-                                            </div>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                        <button type="submit" id="button_widgets" name="modify_widget_type" class="btn btn-primary">Modify</button>
-                                    </div>
-                                </form>
+                        </div>
+                       <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Number of managed metrics</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="metricsNumber" id="metricsNumber" value="1" required> 
                             </div>
                         </div>
                     </div>
-                </div>               
-
-<script type='text/javascript'>
-    var array_widget = new Array();
-    var array_metrics = new Array();
-    var array_types = new Array();
-    var tipi_compatibili;
+                    <div class="row addWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Metric type(s)</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="metricType" id="metricType" required> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Unique metric managed</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="uniqueMetric" id="uniqueMetric">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row addWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Min width</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="minWidth" name="minWidth" data-slider-id="minWidthSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="1"/>
+                            </div> 
+                        </div>
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Max width</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="maxWidth" name="maxWidth" data-slider-id="maxWidthSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="50"/>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row addWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Min height</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="minHeight" name="minHeight" data-slider-id="minHeightSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="2"/>
+                            </div> 
+                        </div>
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Max height</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="maxHeight" name="maxHeight" data-slider-id="maxHeightSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="50"/>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row" id="addWidgetTypeLoadingMsg">
+                        <div class="col-xs-12 centerWithFlex">Adding widget type, please wait</div>
+                    </div>
+                    <div class="row" id="addWidgetTypeLoadingIcon">
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
+                    </div>
+                    <div class="row" id="addWidgetTypeOkMsg">
+                        <div class="col-xs-12 centerWithFlex">Widget type added successfully</div>
+                    </div>
+                    <div class="row" id="addWidgetTypeOkIcon">
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                    </div>
+                    <div class="row" id="addWidgetTypeKoMsg">
+                        <div class="col-xs-12 centerWithFlex">Error adding widget type</div>
+                    </div>
+                    <div class="row" id="addWidgetTypeKoIcon">
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                    </div>
+            </div>
+            <div id="addWidgetTypeModalFooter" class="modal-footer">
+              <button type="button" id="addWidgetTypeCancelBtn" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" id="addWidgetTypeConfirmBtn" name="addWidgetType" class="btn btn-primary internalLink">Confirm</button>
+            </div>
+          </div>
+        </div>
+    </div>
     
-    $(document).ready(function () 
-    {
-        var internalDest = false;
-        $.ajax({
-        url: "get_data.php",
-        data: {action: "get_widget_types"},
-        type: "GET",
-        async: true,
-        datatype: 'json',
-        success: function (data) {
-            for (var i = 0; i < data.length; i++) {
-                array_widget[i] = {
-                    id: data[i]['type_widget'],
-                    source: data[i]['source_widget'],
-                    min_r: data[i]['min_row'],
-                    max_r: data[i]['max_row'],
-                    min_c: data[i]['min_col'],
-                    max_c: data[i]['max_col'],
-                    met: data[i]['n_met'],
-                    color: data[i]['color'],
-                    type: data[i]['type'],
-                    unique: data[i]['unique'],
-                    range: data[i]['range']
-                };
-                var tipo_elenco;
-                array_types[i]=data[i]['type'];
-                var list_tipi=data[i]['type'];
-                var tipi = list_tipi.split("|");
-                var num_tipi = tipi.length;
-                if (num_tipi == 1){
-                    tipo_elenco = tipi[0];
-                } else {
-                    tipo_elenco = 'Multipli';
-                }
-
-                $('#list_widgets tbody').append('<tr><td class="id_wid">' + array_widget[i]['id'] + '</td><td class="php_wid">' + array_widget[i]['source'] + '</td><td class="minr_wid">' + array_widget[i]['min_r'] + '</td><td class="maxr_wid">' + array_widget[i]['max_r'] + '</td><td class="minc_wid">' + array_widget[i]['min_c'] + '</td><td class="maxc_wid">' + array_widget[i]['max_c'] + '</td><td class="type_wid">' + tipo_elenco + '</td><td class="unic_wid">' + array_widget[i]['unique'] + '</td><td class="invisible_type" hidden>'+array_widget[i]['type']+'</td><td class="unique_wid" hidden>'+array_widget[i]['unique']+'</td><td class="met_wid">' + array_widget[i]['met'] + '</td><td class="range_wid">' + array_widget[i]['range'] + '</td><td class="col_wid" hidden>' + array_widget[i]['color'] + '</td><td><div class="icons-modify-ds"><a class="icon-cfg-widget" href="#" data-toggle="modal" data-target="#modal-modify_widget" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-wid" tabindex="-1" aria-hidden="true"></span></a></div></td></tr>');
-            }
-
-            //elenco metriche
-            $.ajax({
-                url: "get_data.php",
-                data: {action: "get_metrics"},
-                type: "GET",
-                async: true,
-                datatype: 'json',
-                success: function (data) {
-                    for (var j = 0; j < data.length; j++) 
-                    {
-                        array_metrics[j] = {
-                            id: data[j]['idMetric']
-                        };
-                        $('#metric_w').append('<option>' + array_metrics[j]['id'] + '</option>');
-                        $('#metric_m').append('<option>' + array_metrics[j]['id'] + '</option>');
-                    }
-                }
-            });
-
-
-            $('#unique_w').on('click',function(){
-                if ($('#unique_w').prop('checked', true))
-                {
-                    $('#unique_row').show();
-                }
-                else if ($('#unique_w').prop('checked', false)){
-                    $('#unique_row').hide();
-                    $('#metric_w').val("");
-                } 
-            });
-
-            $('#unique_m').on('click',function(){
-                if ($('#unique_m').prop('checked', true))
-                {
-                    $('#unique_m_row').show();
-                }
-                else if ($('#unique_m').prop('checked', false))
-                {
-                    $('#unique_m_row').hide();
-                    $('#metric_m').val("");
-                } 
-            });
-
-             //mostra il campo della metrica unica
-             $('#type_w').change(function () {
-                if ($('#type_w').val() === "Unico") 
-                {
-                   $('#unique_row').show();
-                } 
-                else 
-                {
-                   $('#unique_row').hide();
-                   $('#metric_w').val("");
-                }
-             });
-            //fine
-            $('#type_m').change(function () {
-                if ($('#type_m').val() === "Unico") 
-                {
-                    $('#unique_m_row').show();
-                } 
-                else 
-                {
-                    $('#unique_m_row').hide();
-                    $('#metric_m').val("");
-                }
-            });
-
-
-
-            //carica dati nel modifica dei widgets
-            $('.icon-cfg-widget').on('click', function () {
-                var idW = $(this).parent().parent().parent().find('.id_wid').text();
-                var phpW = $(this).parent().parent().parent().find('.php_wid').text();
-                var mnRW = $(this).parent().parent().parent().find('.minr_wid').text();
-                var mxRW = $(this).parent().parent().parent().find('.maxr_wid').text();
-                var mnCW = $(this).parent().parent().parent().find('.minc_wid').text();
-                var mxCW = $(this).parent().parent().parent().find('.maxc_wid').text();
-                var metW = $(this).parent().parent().parent().find('.met_wid').text();
-                var colW = $(this).parent().parent().parent().find('.col_wid').text();    
-                var typeW = $(this).parent().parent().parent().find('.invisible_type').text();
-                var unicW = $(this).parent().parent().parent().find('.unic_wid').text();
-                var rangeW = $(this).parent().parent().parent().find('.range_wid').text();
-
-                if (unicW != ''){
-                  $('#unique_m_row').show();
-                  $('#unique_m').prop('checked', true);
-                }else {
-                    $('#unique_m_row').hide();
-                    $('#metric_m').val('');
-                    $('#unique_m').prop('checked', false);
-                }
-                //su typeW si fa tutta una serie di if e pregmatch per attivare i checkbox
-                var int_match = typeW.match('Intero');
-                if (int_match){
-                    $('#integer_m').prop('checked', true);
-                } else {
-                    $('#integer_m').prop('checked', false);
-                }
-
-                var map_match = typeW.match('Map');
-                if (map_match){
-                    $('#map_m').prop('checked', true);
-                } else {
-                    $('#map_m').prop('checked', false);
-                }
-
-                var perc_match = typeW.match('Percentuale');
-                if (perc_match){
-                    $('#percentage_m').prop('checked', true);
-                } else {
-                    $('#percentage_m').prop('checked', false);
-                }
-
-                var text_match = typeW.match('Testuale');
-                if (text_match){
-                    $('#textual_m').prop('checked', true);
-                } else {
-                    $('#textual_m').prop('checked', false);
-                }
-
-                var float_match = typeW.match('Float');
-                if (float_match){
-                    $('#float_m').prop('checked', true);
-                } else {
-                    $('#float_m').prop('checked', false);
-                }
-
-                var button_match = typeW.match('Button');
-                if (button_match){
-                    $('#button_m').prop('checked', true);
-                } else {
-                    $('#button_m').prop('checked', false);
-                }
-
-                var sce_match = typeW.match('SCE');
-                if (sce_match){
-                    $('#sce_m').prop('checked', true);
-                } else {
-                    $('#sce_m').prop('checked', false);
-                }
-                //fine attivazione
-
-                $("#id_m").val(idW);
-                $("#php_m").val(phpW);
-                $("#mnR_m").val(mnRW);
-                $("#mxR_m").val(mxRW);
-                $("#mnC_m").val(mnCW);
-                $("#mxC_m").val(mxCW);
-                $("#met_m").val(metW);
-                $("#type_m").val(typeW);
-                $("#col_m").val(colW);
-                $("#metric_m").val(unicW);
-
-                if(rangeW === 0)
-                {
-                    $("#numeric_range_m").prop('checked', false);
-                    $("#numeric_range_m").prop('value', 0);
-                }
-                else
-                {
-                    $("#numeric_range_m").prop('checked', true);
-                    $("#numeric_range_m").prop('value', 1);
-                }
-            });
-            //fine caricamento dei dati
-        }
-    });
-});
-</script>
+    <!-- Modale modifica tipo di widget -->
+    <div class="modal fade" id="modalEditWidgetType" tabindex="-1" role="dialog" aria-labelledby="modalEditWidgetTypeLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header centerWithFlex">
+              <h5 class="modal-title" id="modalEditWidgetTypeLabel">Edit widget type</h5>
+            </div>
+            
+            <div id="editWidgetTypeModalBody" class="modal-body">
+                <input type="hidden" id="widgetIdToEdit" />
+                    <div class="row editWidgetTypeDataRow">
+                        <div class="col-xs-6 col-xs-offset-3">
+                            <div class="addUserFormSubfieldContainer">Widget name</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" id="widgetNameM" name="widgetNameM" class="form-control" required>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row editWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">PHP filename</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="phpFilenameM" id="phpFilenameM" required> 
+                            </div>
+                        </div>
+                       <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Number of managed metrics</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="metricsNumberM" id="metricsNumberM" required> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row editWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Metric type(s)</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="metricTypeM" id="metricTypeM" required> 
+                            </div> 
+                        </div>
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Unique metric managed</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input type="text" class="form-control" name="uniqueMetricM" id="uniqueMetricM">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row editWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Min width</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="minWidthM" name="minWidthM" data-slider-id="minWidthSliderM" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>
+                            </div> 
+                        </div>
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Max width</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="maxWidthM" name="maxWidthM" data-slider-id="maxWidthSliderM" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row editWidgetTypeDataRow">
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Min height</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="minHeightM" name="minHeightM" data-slider-id="minHeightSliderM" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>
+                            </div> 
+                        </div>
+                        <div class="col-xs-6">
+                            <div class="addUserFormSubfieldContainer">Max height</div>
+                            <div class="addUserFormSubfieldContainer">
+                                <input id="maxHeightM" name="maxHeightM" data-slider-id="maxHeightSliderM" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row" id="editWidgetTypeLoadingMsg">
+                        <div class="col-xs-12 centerWithFlex">t</div>
+                    </div>
+                    <div class="row" id="editWidgetTypeLoadingIcon">
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
+                    </div>
+                    <div class="row" id="editWidgetTypeOkMsg">
+                        <div class="col-xs-12 centerWithFlex">Widget type updated successfully</div>
+                    </div>
+                    <div class="row" id="editWidgetTypeOkIcon">
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                    </div>
+                    <div class="row" id="editWidgetTypeKoMsg">
+                        <div class="col-xs-12 centerWithFlex"></div>
+                    </div>
+                    <div class="row" id="editWidgetTypeKoIcon">
+                        <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                    </div>
+            </div>
+            <div id="editWidgetTypeModalFooter" class="modal-footer">
+              <button type="button" id="editWidgetTypeCancelBtn" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" id="editWidgetTypeConfirmBtn" name="editWidgetType" class="btn btn-primary internalLink">Confirm</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    
+    <!-- Modale cancellazione tipo di widget -->
+    <div class="modal fade" id="modalDelWidgetType" tabindex="-1" role="dialog" aria-labelledby="modalDelWidgetTypeLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header centerWithFlex">
+              <h5 class="modal-title" id="modalAddWidgetTypeLabel">Delete widget type</h5>
+            </div>
+            
+            <div id="delWidgetTypeModalBody" class="modal-body">
+                <input type="hidden" id="widgetIdToDelete" />
+                <div class="row delWidgetTypeDataRow">
+                    <div class="col-xs-12">
+                        <div class="addUserFormSubfieldContainer">Do you want to confirm cancellation of the following widget type?</div>
+                        <div class="addUserFormSubfieldContainer" id="delWidgetName"></div> 
+                    </div>
+                </div>
+                <div class="row" id="delWidgetTypeLoadingMsg">
+                    <div class="col-xs-12 centerWithFlex">Deleting widget type, please wait</div>
+                </div>
+                <div class="row" id="delWidgetTypeLoadingIcon">
+                    <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
+                </div>
+                <div class="row" id="delWidgetTypeOkMsg">
+                    <div class="col-xs-12 centerWithFlex">Widget type deleted successfully</div>
+                </div>
+                <div class="row" id="delWidgetTypeOkIcon">
+                    <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                </div>
+                <div class="row" id="delWidgetTypeKoMsg">
+                    <div class="col-xs-12 centerWithFlex">Error deleting widget type</div>
+                </div>
+                <div class="row" id="delWidgetTypeKoIcon">
+                    <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                </div>
+            </div>
+            <div id="delWidgetTypeModalFooter" class="modal-footer">
+              <button type="button" id="delWidgetTypeCancelBtn" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" id="delWidgetTypeConfirmBtn" name="delWidgetType" class="btn btn-primary internalLink">Confirm</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    
+    
 </body>
-</html>
+</html>   
+
+
 

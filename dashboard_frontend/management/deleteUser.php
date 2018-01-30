@@ -21,15 +21,13 @@
    error_reporting(E_ERROR | E_NOTICE);
    
    session_start(); 
-   $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
+   $link = mysqli_connect($host, $username, $password);
    mysqli_select_db($link, $dbname);
    
    if(!$link->set_charset("utf8")) 
    {
        die();
    }
-   
-   //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
 
    if(isset($_SESSION['loggedRole']))
    {

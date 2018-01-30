@@ -1,0 +1,67 @@
+/*.marker 
+{
+    background: #ED1C24;
+    width: 7px;
+    height: 2px;
+    right: 0;
+    position: absolute;
+    top:35px;
+}
+
+.testMarker
+{
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    border: 1px solid red;
+}*/
+
+.knobIndicator 
+{
+    display: block;
+    position: absolute;
+    left: 50%;
+    margin-left: -5px; 	
+    z-index: 500;
+    width: 5px; /*Valore fisso OK*/
+    background: rgba(0, 0, 0, .8);
+    -moz-box-shadow: 1px 1px 0 rgba(255, 255, 255, .4);
+    -webkit-box-shadow: 1px 1px 0 rgba(255, 255, 255, .4);
+    box-shadow: 1px 1px 0 rgba(255, 255, 255, .4);
+    /*-moz-transform-origin: 50% 100%;
+    -webkit-transform-origin: 50% 100%;
+    transform-origin: 50% 100%;
+    -moz-transform: rotate(-35deg);
+    -webkit-transform: rotate(-35deg);
+    transform: rotate(-35deg);*/
+}
+
+.knob 
+{    
+    position: absolute;
+    z-index: 4;
+    background: #ccc;
+    background: -moz-linear-gradient(5deg,  #ccc, #aaa, #999);
+    background: -webkit-gradient(linear, 10% top, 90% top, from(#ddd), color-stop(.5, #888), to(#ddd));
+    -moz-perspective: 100px;
+    -webkit-perspective: 100px;
+    perspective: 100px;
+}
+
+/*Aureola luminosa attorno alla manopola*/
+.knobHalo 
+{
+    z-index: 2;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    
+    background: #009ddc;
+    -moz-box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 50px rgba(0, 157, 220, .6);
+    -webkit-box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 50px rgba(0, 157, 220, .6);
+    box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 50px rgba(0, 157, 220, .6);
+}

@@ -406,7 +406,7 @@ function addNewPool()
 function addNewPoolOkTimeout()
 {
    $("#addPoolOkModal").modal('hide');
-   location.href = "poolsManagement.php?showManagementTab=true&selectedPoolId=-1";
+   location.href = "pools.php?showManagementTab=true&selectedPoolId=-1";
 }
 
 function addNewPoolKoTimeout()

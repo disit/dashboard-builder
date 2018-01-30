@@ -256,9 +256,16 @@
     src: url(../fonts/Roboto/Roboto-ThinItalic.ttf);
 }
 
+@font-face {
+    font-family: Montserrat;
+    src: url(../fonts/montserrat/Montserrat-Regular.ttf);
+}
+
 body 
 {
-    width: 100%;
+   width: 100%;
+   font-family: 'Montserrat', 'Verdana', sans-serif;
+   font-weight: 400;
 }
 
 .noLink
@@ -320,7 +327,7 @@ body
     text-align: center;
 }
 
-#modal-add-widget, #modal-modify-widget, #modal-embed-dashboard
+#modal-add-widget, #modal-modify-widget
 {
     font-family: Verdana, sans-serif;
     font-size: 12px;
@@ -882,11 +889,6 @@ ul.alert-dropdown {
     padding-top: 0px;
 }
 
-.row{
-    margin-top: 5px;
-    margin-bottom: 10px !important;
-}
-
 @media(min-width:768px) 
 {
     .side-nav 
@@ -978,6 +980,7 @@ ul.alert-dropdown {
 #authFormContainer
 {
    display: none;
+   background: white;
 }
 
 #wrapper-dashboard-cfg
@@ -1256,18 +1259,59 @@ div.mainMenuItemContainer:hover
     width: 100%;
     border: none;
 }
-
-#addPoolNewPoolUsersTable th.smallCell, td.smallCell
+#addPoolNewPoolUsersTable th
 {
-    width: 20%;
+    background: rgba(0, 162, 211, 1);
+    color: white;
+}
+
+#addPoolNewPoolUsersTable th.smallCell, td.smallCell, #addPoolNewPoolUsersTable th.bigCell, td.bigCell
+{
     text-align: center;
 }
 
-#addPoolNewPoolUsersTable th.bigCell, td.bigCell
+#addPoolNewPoolUsersTable th, #addPoolNewPoolUsersTable td
 {
-    width: 40%;
-    text-align: center;
+    font-size: 0.65em;
 }
+
+.addUserToPoolUsername
+{
+    font-weight: bold;
+}
+
+.addPoolNewUserHideMobile
+{
+    display: none;
+}
+
+@media(min-width: 992px) 
+{
+    .addPoolNewUserHideMobile
+    {
+        display: flex;
+        align-items: center; 
+        justify-content: center;
+        text-align: center;
+    }
+    
+    #addPoolNewPoolUsersTable th, #addPoolNewPoolUsersTable td
+    {
+        font-size: 1em;
+    }
+    
+    #addPoolNewPoolUsersTable th.smallCell, td.smallCell
+    {
+        width: 20%;
+    }
+
+    #addPoolNewPoolUsersTable th.bigCell, td.bigCell
+    {
+        width: 40%;
+    }
+}
+
+
 
 #addPoolNewPoolUsersTable tr:nth-child(odd)
 {
@@ -1276,7 +1320,7 @@ div.mainMenuItemContainer:hover
 
 #addPoolNewPoolUsersTable tr:nth-child(even)
 {
-    background-color: #f2f2f2;
+    background-color: rgb(230, 249, 255);
 }
 
 #addNewPoolButtonsContainer
@@ -1327,7 +1371,22 @@ div.mainMenuItemContainer:hover
 
 #delPoolTable, #outerMembersTable, #innerMembersTable
 {
+    font-size: 0.75em;
     width: 100%;
+}
+
+@media(min-width:992px) 
+{
+    #delPoolTable, #outerMembersTable, #innerMembersTable
+    {
+        font-size: 1.2em;
+    }
+}
+
+#delPoolTable th, #outerMembersTable th, #innerMembersTable th
+{
+    background: rgba(0, 162, 211, 1);
+    color: white;
 }
 
 #delPoolTable tr:nth-child(odd)
@@ -1337,7 +1396,7 @@ div.mainMenuItemContainer:hover
 
 #delPoolTable tr:nth-child(even)
 {
-    background-color: #f2f2f2;
+    background-color: rgb(230, 249, 255);
 }
 
 #outerMembersTable tr:nth-child(odd), #innerMembersTable tr:nth-child(odd)
@@ -1347,7 +1406,7 @@ div.mainMenuItemContainer:hover
 
 #outerMembersTable tr:nth-child(even), #innerMembersTable tr:nth-child(even)
 {
-    background-color: #f2f2f2;
+    background-color: rgb(230, 249, 255);
 }
 
 #delPoolTable tr, #delPoolTable td, #delPoolTable th, #outerMembersTable tr, #outerMembersTable td, #outerMembersTable th, 
@@ -1384,7 +1443,7 @@ div.mainMenuItemContainer:hover
 
 #editPoolsDiscardBtn, #editPoolsNamesDiscardBtn
 {
-    margin-right: 10px;
+    margin-left: 15px;
 }
 
 #outerUsersTableContainer, #innerUsersTableContainer
@@ -1397,24 +1456,14 @@ div.mainMenuItemContainer:hover
 #poolManagementRow
 {
     display: none;
+    margin-top: 30px;
 }
 
-#outerUsersLabelContainer
+#innerUsersLabelContainer, #outerUsersLabelContainer
 {
     display: flex;
-    align-items: center; 
-    justify-content: center;
-    text-align: center;
-    width: 100%;
-    height: auto;
-}
-
-#innerUsersLabelContainer
-{
-    display: flex;
-    align-items: center; 
-    justify-content: center;
-    text-align: center;
+    align-items: flex-start; 
+    justify-content: flex-start;
     width: 100%;
     height: auto;
 }
@@ -1453,6 +1502,12 @@ div.mainMenuItemContainer:hover
     overflow: auto;
 }
 
+#addUserPoolsTable thead th, #editUserPoolsTable thead th
+{
+    background: rgba(0, 162, 211, 1);
+    color: white;
+}
+
 #addUserPoolsTable, #addUserPoolsTable tr, #addUserPoolsTable td, #editUserPoolsTable, #editUserPoolsTable tr, #editUserPoolsTable td /*#addUserExistingPoolsTable, #addUserExistingPoolsTable tr, 
 #addUserExistingPoolsTable td, #addUserAddUsersToNewPoolTable, #addUserAddUsersToNewPoolTable tr, #addUserAddUsersToNewPoolTable td*/
 {
@@ -1467,7 +1522,7 @@ div.mainMenuItemContainer:hover
 
 #addUserPoolsTable tr:nth-child(even), #editUserPoolsTable tr:nth-child(even)/*#addUserExistingPoolsTable tr:nth-child(even), #addUserAddUsersToNewPoolTable tr:nth-child(even)*/
 {
-    background-color: #f2f2f2;
+    background-color: rgb(230, 249, 255);
 }
 
 #addUserPoolsTable th, #editUserPoolsTable th
@@ -1529,24 +1584,6 @@ div.mainMenuItemContainer:hover
    color: #337ab7;
 }
 
-#addUserForm input, #addUserForm password, #addUserForm select, #editUserForm input, #editUserForm password, #editUserForm select
-{
-    display: block;
-    width: 100%;
-    height: 22px;
-    text-align: center;
-}
-
-#addUserForm select
-{
-    display: block;
-    width: 100%;
-    height: 22px;
-    text-align-last: center;
-    padding-left: 15px;
-    direction: ltr;
-}
-
 #usersTable2 i.fa-remove:hover, #usersTable2 i.fa-cog:hover
 {
    cursor: pointer;
@@ -1562,27 +1599,17 @@ div.mainMenuItemContainer:hover
    margin-right: 10px;
 }
 
-.accountEditSubfieldContainer
-{
-    width: 100%;
-    height: auto;
-    display: flex;
-    align-items: center; 
-    justify-content: center;
-    text-align: center;
-}
-
-.accountEditSubfieldContainer input[type=text], .accountEditSubfieldContainer input[type=email], .accountEditSubfieldContainer input[type=password]
+/*.accountEditSubfieldContainer input[type=text], .accountEditSubfieldContainer input[type=email], .accountEditSubfieldContainer input[type=password]
 {
    text-align: center;
-}
+}*/
 
 #accountActivationActivatingRow, #accountActivationOkRow, #accountActivationKoRow, #addUserModalCreating
 {
    display: none;
 }
 
-label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersTableContainer
+/*label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersTableContainer
 {
     display: none;
 }
@@ -1592,6 +1619,11 @@ label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersT
     display: none;
     max-height: 400px;
     overflow: auto;
+}*/
+
+#inputDashboardVisibilityUsersTable
+{
+    display: none;
 }
 
 #inputDashboardVisibilityUsersTable
@@ -1604,14 +1636,20 @@ label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersT
     text-align: center;
 }
 
-#inputDashboardVisibilityUsersTable tr:nth-child(odd)
+#inputDashboardVisibilityUsersTable th
+{
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+}
+
+#inputDashboardVisibilityUsersTable tr:nth-child(odd) td
 {
     background-color: white;
 }
 
-#inputDashboardVisibilityUsersTable tr:nth-child(even)
+#inputDashboardVisibilityUsersTable tr:nth-child(even) td
 {
-    background-color: #f2f2f2;
+    background-color: rgb(230, 249, 255);
 }
 
 #inputDashboardVisibilityUsersTable .selectCell
@@ -1764,7 +1802,13 @@ label[for="inputDashboardVisibilityUsersTable"], #inputDashboardVisibilityUsersT
     background-color: white;
 }
 
-#authorizedPagesTable i.fa-plus, #authorizedPagesTable i.fa-minus
+#authorizedPagesTable i.fa-plus
+{
+    font-size: 24px;
+    color: #f3cf58;
+}
+
+#authorizedPagesTable i.fa-minus
 {
     font-size: 24px;
     color: #337ab7;
@@ -1793,12 +1837,13 @@ label[for='authorizedPages'], #authorizedPagesTable
 
 #authorizedPagesTable thead tr
 {
-    background-color: white;
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
 }
 
 #authorizedPagesTable tbody tr:nth-child(odd)
 {
-    background-color: #f2f2f2;
+    background-color: rgb(230, 249, 255);
 }
 
 #authorizedPagesTable tbody tr:nth-child(even)
@@ -1811,7 +1856,7 @@ label[for='authorizedPages'], #authorizedPagesTable
     width: 100%;
 }
 
-#modal-embed-dashboard div.modal-dialog
+#embedDashboardModal div.modal-dialog
 {
     width: 95vw;
 }
@@ -1827,7 +1872,7 @@ label[for='authorizedPages'], #authorizedPagesTable
     position: relative;
 }
 
-#modal-embed-dashboard .modal-title
+#embedDashboardModal .modal-title
 {
     text-align: center;
 }
@@ -1878,3 +1923,963 @@ div.selectorMenuCustomIcon
     width: 100%;
     height: 100%;
 }
+
+#modal-add-metric div.modal-body, #modalEditMetric div.modal-body, #modalDelMetric div.modal-body, #modalAddWidgetType div.modal-body, 
+#modalEditWidgetType div.modal-body, #modalDelWidgetType div.modal-body, #modalAddDs div.modal-body, #modalEditDs div.modal-body,
+#modalDelDs div.modal-body
+{
+    height: auto;
+}
+
+#delMetricOkMsg, #delMetricOkIcon, #delMetricKoMsg, #delMetricKoIcon, #addWidgetTypeLoadingMsg, #addWidgetTypeLoadingIcon, #addWidgetTypeOkMsg, #addWidgetTypeOkIcon, #addWidgetTypeKoMsg, #addWidgetTypeKoIcon,
+#delWidgetTypeLoadingMsg, #delWidgetTypeLoadingIcon, #delWidgetTypeOkMsg, #delWidgetTypeOkIcon, #delWidgetTypeKoMsg, #delWidgetTypeKoIcon,
+#editWidgetTypeLoadingMsg, #editWidgetTypeLoadingIcon, #editWidgetTypeOkMsg, #editWidgetTypeOkIcon, #editWidgetTypeKoMsg, #editWidgetTypeKoIcon,
+#addDsLoadingMsg, #addDsLoadingIcon, #addDsOkMsg, #addDsOkIcon, #addDsKoMsg, #addDsKoIcon,
+#editDsLoadingMsg, #editDsLoadingIcon, #editDsOkMsg, #editDsOkIcon, #editDsKoMsg, #editDsKoIcon,
+#delDsLoadingMsg, #delDsLoadingIcon, #delDsOkMsg, #delDsOkIcon, #delDsKoMsg, #delDsKoIcon
+{
+    display: none;
+}
+
+div.mainPageTitleContainer
+{
+    font-size: 28px;
+}
+
+body.guiPageBody
+{
+    width: 100vw;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    font-family: 'Montserrat';
+}
+
+#loginBody, #accountEnableBody
+{
+    background: url("../img/loginPageBackground.jpg") no-repeat center center;
+    background-size: cover;
+}
+
+body.dashboardViewBodyAuth 
+{
+   width: 100vw;
+   height: 100vh;
+   overflow-x: hidden;
+   overflow-y: hidden;
+   font-family: 'Montserrat';
+   background: url("../img/loginPageBackground.jpg") no-repeat center center;
+   background-size: cover;
+}
+
+#authFormDarkBackground
+{
+    display: none;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+#logoutViewModal
+{
+    font-family: 'Montserrat';
+}
+
+/*PARTE NUOVA*/
+
+#modalEditDashboard, #modal-duplicate-dashboard, #embedDashboardModal
+{
+    font-family: 'Montserrat';
+}
+
+#embedDashboardModalBody, #embedDashboardModalFooter
+{
+    background: rgb(241, 245, 244);
+}
+
+.embedDashboardModalColumn, .embedDashboardModalColumnInner
+{
+    height: 100%;
+}
+
+.embedDashboardModalColumnInner
+{
+    background: white;
+}
+    
+.container-fluid
+{
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.row
+{
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+#modal-add-widget .row, #modal-modify-widget .row
+{
+    margin-top: 5px;
+    margin-bottom: 10px !important;
+}
+
+#loginBody .row
+{
+    margin-left: -15px;
+    margin-right: -15px;
+}
+
+.navbar
+{
+    min-height: 0px;
+    margin-bottom: 0px;
+}
+
+.col-md-2, .col-md-10
+{
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.centerWithFlex
+{
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+#headerClaimCnt
+{
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+    height: 100px;
+    width: 100%;
+    float: left;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+#mobHeaderClaimCnt
+{
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+    float: left;
+    font-size: 1em;
+    font-weight: bold;
+}
+
+#headerTitleCnt
+{
+    height: 75px;
+    font-size: 2em;
+    font-weight: bold;
+    background: rgba(51, 64, 69, 1);
+    color: white;
+}
+
+@media(min-width:992px) 
+{
+    #headerTitleCnt
+    {
+        height: 100px;
+    }
+}
+
+#headerMenuCnt
+{
+    height: 75px;
+    background: #eebb11;
+    font-size: 2em;
+    color: white;
+}
+
+#mainContainer
+{
+    margin-top: 75px;
+}
+
+@media(min-width:992px) 
+{
+    #mainContainer
+    {
+        margin-top: 100px;
+    }
+}
+
+#mainMenuCnt
+{
+    background-color: rgba(51, 64, 69, 1);
+    color: white;
+    height: 100vh;
+}
+
+#mainContentCnt
+{
+    overflow-y: auto;
+    background: rgb(241, 245, 244);
+}
+
+div.mainContentCellCnt
+{
+    background: white;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+#dashboardTotNumberCnt div.pageSingleDataCnt, #dashboardTotNumberCnt div.pageSingleDataLabel
+{
+    background: #f3cf58;
+}
+
+#dashboardTotActiveCnt div.pageSingleDataCnt, #dashboardTotActiveCnt div.pageSingleDataLabel
+{
+    background: rgb(69, 183, 175);
+}
+
+#dashboardTotPermCnt div.pageSingleDataCnt, #dashboardTotPermCnt div.pageSingleDataLabel
+{
+    background: #e37777;
+}
+
+#dashboardLastCnt div.lastDashName, #dashboardLastCnt div.pageSingleDataLabel
+{
+    background: rgba(0, 162, 211, 1);
+}
+
+div.mainContentRowDesc
+{
+    font-size: 1.6em;
+    color: rgba(51, 64, 69, 1);
+    margin-bottom: 14px;
+}
+
+div.accountEditDescContainer
+{
+    font-size: 1em;
+    color: rgba(51, 64, 69, 1);
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+div.accountEditIconContainer
+{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+div.accountEditIconContainer i
+{
+    font-size: 1.1em;
+}
+
+@media(min-width:992px) 
+{
+    div.accountEditDescContainer
+    {
+        font-size: 1.4em;
+        margin-bottom: 10px;
+    }
+    
+    div.accountEditIconContainer
+    {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    div.accountEditIconContainer i
+    {
+        font-size: 1.5em;
+    }
+}
+
+#accountFirstName, #accountLastName, #accountOrganization, #accountEmail, #accountPassword, #accountPasswordConfirmation
+{
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 162, 211, 1);
+    width: 100%;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+#accountFirstNameMsg, #accountLastNameMsg, #accountOrganizationMsg, #accountEmailMsg, #accountPasswordMsg, #accountPasswordConfirmationMsg
+{
+    font-size: 0.95em;
+}
+
+
+
+div.pageSingleDataCnt
+{
+    padding-top: 14px;
+    padding-bottom: 14px;
+    font-size: 2em;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+div.lastDashName
+{
+    padding-top: 14px;
+    padding-bottom: 14px;
+    font-size: 2em;
+    color: white;
+    font-weight: bold;
+}
+
+div.lastDashName a
+{
+    text-decoration: none;
+    color: white;
+}
+
+div.lastDashName a:hover
+{
+    text-decoration: none;
+    color: #f3cf58;
+}
+
+div.mainContentRow
+{
+    background: white;
+    margin-top: 15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+div.pageSingleDataLabel
+{
+    font-size: 1.1em;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.mainMenuItemCnt, .mainMenuItemCnt a, .mobMainMenuItemCnt, .mobMainMenuItemCnt a
+{
+    color: #eeeeee;
+}
+
+div.mainMenuItemCnt
+{
+    height: 40px;
+    font-size: 1.2em;
+    font-weight: 400;
+    display: flex;
+    align-items: center; 
+    justify-content: flex-start;
+    border: none;
+    border-top: 1px solid #595959;
+    border-bottom: 1px solid #333333;
+}
+
+div.mobMainMenuItemCnt
+{
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: 0.65em;
+    font-weight: 400;
+    display: flex;
+    align-items: center; 
+    justify-content: flex-start;
+    border: none;
+    border-top: 1px solid #595959;
+    border-bottom: 1px solid #333333;
+}
+
+div.mainMenuItemCnt:hover
+{
+    cursor: pointer;
+    background: rgba(0, 162, 211, 1);
+}
+
+div.mainMenuItemCntActive
+{
+    background: rgba(0, 162, 211, 1);
+    font-weight: bold;
+}
+
+a.moduleLink:hover
+{
+    text-decoration: none;
+}
+
+.mainMenuUsrCnt
+{
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.editDashBtn
+{
+    height: 20px;
+    background-color: rgb(69, 183, 175);/*#5cb85c;*/
+    border: none;
+    color: white;
+    font-family: 'Montserrat';
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.viewDashBtn
+{
+    height: 20px;
+    background-color: rgba(0, 162, 211, 1);
+    border: none;
+    color: white;
+    font-family: 'Montserrat';
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.delDashBtn
+{
+    height: 20px;
+    background-color: #e37777;
+    border: none;
+    color: white;
+    font-family: 'Montserrat';
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.undeletableDashBtn
+{
+    height: 20px;
+    background-color: transparent;
+    border: none;
+    color: rgba(0, 162, 211, 1);
+    font-family: 'Montserrat';
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.undeletableDashBtn:hover
+{
+    cursor: default;
+}
+
+#mainMenuIconCnt img
+{
+    width: 48px;
+    height: 48px;
+}
+
+#mobMainMenuIconCnt img
+{
+    width: 20px;
+    height: 20px;
+}
+
+#mainMenuUsrCnt
+{
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+#mainMenuUsrDetCnt
+{
+    font-size: 1em;
+    font-weight: normal;
+}
+
+#mobMainMenuUsrCnt, #mobMainMenuUsrDetCnt, #mobMainMenuUsrLogoutCnt
+{
+    font-size: 0.5em;
+    font-weight: normal;
+}
+
+@media(orientation: landscape)
+{
+    #mobMainMenuUsrCnt, #mobMainMenuUsrDetCnt, #mobMainMenuUsrLogoutCnt
+    {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    
+    #mobMainMenuUsrCnt img
+    {
+        width: 20px;
+        height: 20px;
+    }
+    
+    #mobMainMenuUsrCnt
+    {
+        font-weight: bold;
+    }
+}
+
+#mainMenuUsrLogoutCnt
+{
+    display: none;
+}
+
+#mobMainMenuUsrLogoutBtn
+{
+    background: #e37777;
+}
+
+div.accountEditFieldContainer
+{
+    background: white;
+}
+
+div.modalHeader
+{
+    width: 100%;
+    background: rgba(0, 162, 211, 1);
+    font-size: 1.8em;
+    font-weight: bold;
+    color: white;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+div.modalBody
+{
+    background: white;
+}
+
+div.modalCell
+{
+    background: white;
+    margin-top: 15px;
+}
+
+.modalFieldLabelCnt
+{
+    font-size: 1em;
+    font-weight: bold;
+}
+
+.modalInputTxt
+{
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 162, 211, 1);
+    /*border-bottom: none;
+    background: rgb(230, 249, 255);*/
+    width: 100%;
+    text-align: left;
+    padding: 6px 0px;
+}
+
+.modalInputTxt:focus
+{
+    outline-style:none;
+    box-shadow:none;
+}
+
+.modalInputTxtArea
+{
+    border: 1px solid rgba(0, 162, 211, 1);
+    width: 100%;
+    text-align: left;
+}
+
+.modalInputTxtArea:focus
+{
+    outline-style:none;
+    box-shadow:none;
+}
+
+.cancelBtn
+{
+    color: white;
+    background: #f3cf58;
+}
+
+.confirmBtn
+{
+    color: white;
+    background: rgba(0, 162, 211, 1);
+}
+
+.modalDelMsg
+{
+    font-size: 1.2em;
+}
+
+.modalDelObjName
+{
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.modalFieldMsgCnt
+{
+    font-size: 0.8em;
+}
+
+#addUserPoolsRow
+{
+    margin-top: 20px;
+}
+
+#addMetricLoadingMsg, #addMetricLoadingIcon, #addMetricOkMsg, #addMetricOkIcon, #addMetricKoMsg, #addMetricKoIcon,
+#editMetricLoadingMsg, #editMetricLoadingIcon, #editMetricOkMsg, #editMetricOkIcon, #editMetricKoMsg, #editMetricKoIcon
+{
+    display: none;
+}
+
+#editPoolsNamesButtonsContainer, #editPoolsButtonsContainer
+{
+    margin-top: 15px;
+}
+
+#addUsersToPoolBtn, #delUsersFromPoolBtn
+{
+    color: rgba(0, 162, 211, 1);
+}
+
+#addUsersToPoolBtn:hover, #delUsersFromPoolBtn:hover
+{
+    color: rgb(69, 183, 175);
+}
+
+#delUsersFromPoolBtn:hover
+{
+    color: #e37777;
+}
+
+input[type="text"]:disabled
+{
+    background-color: transparent;
+}
+
+.customColorChoice .input-group-addon
+{
+    padding: 0px;
+    background-color: white;
+    border-radius: 0;
+    border: 1px solid rgba(0, 162, 211, 1);
+}
+
+#loginBody
+{
+    background: url("../img/loginPageBackground.jpg") no-repeat center center;
+    background-size: cover;
+}
+
+#loginBody div.container-fluid
+{
+    background: rgba(0, 0, 0, 0.55);
+}
+
+#loginMainTitle
+{
+    font-size: 2.4em;
+    font-weight: bold;
+    color: white;
+    background: rgba(0, 162, 211, 1);
+}
+
+#loginFooter
+{
+    font-size: 1.3em;
+    color: white;
+    background: rgba(0, 162, 211, 1);
+    font-weight: bold;
+}
+
+#loginFooter a
+{
+    color: #f3cf58;
+}
+
+#loginFormTitle
+{
+    width: 100%;
+    background: rgba(0, 162, 211, 1);
+    font-size: 1.6em;
+    font-weight: bold;
+    color: white;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+#loginFormContainer
+{
+    background: white;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+#inputUsername:-webkit-autofill, #authFormContainer #username, #authFormContainer #password, #inputPassword:-webkit-autofill, 
+#enableAccountFormContainer #accountActivationPwd, #enableAccountFormContainer #accountActivationConfirmPwd  
+{
+    background-color: white !important;
+    -webkit-box-shadow: 0 0 0px 1000px white inset; /*Per rimuovere il giallo causato dal browser*/
+}
+
+#accountActivationConfirmPwdMsg, #accountActivationPwdMsg
+{
+    font-size: 0.9em;
+}
+
+#loginCancelBtn
+{
+    margin-right: 15px;
+}
+
+#loginRightCol
+{
+    
+}
+
+#loginBody .container-fluid
+{
+    height: 100%;
+}
+
+.loginFeaturesCell
+{
+    background: transparent;
+    margin-bottom: 30px;
+}
+
+.loginFeaturesCellTxt
+{
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+}
+
+@media(min-width: 1600px) 
+{
+    .loginFeaturesCellTxt
+    {
+        font-size: 1.4em;
+    }
+}
+
+.loginFeaturesCellContent
+{
+    
+}
+
+.loginFeaturesCellContent i.fa
+{
+    color: white;
+    font-size: 3.5em;
+}
+
+#loginFeaturesContainer
+{
+    
+}
+
+#enableAccountFormContainer
+{
+    background: white;
+}
+
+#cloneDashboardModal
+{
+    font-family: 'Montserrat';
+}
+
+#cloningDashboardFormRow, #duplicateDashboardLoadingRow, #duplicateDashboardOkRow, #duplicateDashboardKoRow, #cloneDashboardModalFooter, #duplicateDashboardLoadingTitlesKoRow, #duplicateDashboardWarningRow
+{
+    display: none;
+}
+
+#cloneDashboardTitleMsg
+{
+    font-size: 0.9em;
+    color: red;
+}
+
+#authFormMessage
+{
+    font-size: 0.9em;
+    color: red;
+}
+
+#sessionExpiringPopup
+{
+    display: none;
+    opacity: 0;
+    transition: opacity 1s linear;
+    position: fixed;
+    width: 225px;
+    height: 110px;
+    background: #ff6666;
+    font-family: 'Montserrat';
+    z-index: 999999;
+}
+
+#sessionExpiringPopupMsg
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 1.2em;
+}
+
+#sessionExpiringPopupTime
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 1.4em;
+    font-weight: bold;
+}
+
+#sessionExpiringPopupIcon
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 28px;
+}
+
+
+@media(max-width: 992px) 
+{
+    .accountEditFieldContainer 
+    {
+        margin-bottom: 15px;
+    }
+}
+
+@media(min-width: 992px) 
+{
+    .accountEditRow 
+    {
+        margin-top: 15px;
+    }
+}
+
+#mobMainMenuCnt
+{
+    display: none;
+    opacity: 0;
+    transition: opacity 0.35s linear;
+    position: fixed;
+    left: 0px;
+    width: 100vw;
+    background: rgba(51, 64, 69, 1);
+    z-index: 999999 !important;
+}
+
+#accountManagementLink i
+{
+    color: #33cc33;
+}
+
+#link_widgets_mng i
+{
+    color: #d84141;
+}
+
+#link_sources_mng i
+{
+    color: #ff66ff;
+}
+
+#link_pools_management i
+{
+    color: #59c0b9;
+}
+
+#link_metric_mng i
+{
+    color: #ff9933;
+}
+
+#dashboardsLink i
+{
+    color: #ffcc00;
+}
+
+#link_user_register i
+{
+    color: #ccffff;
+}
+
+#notificatorLink i
+{
+    color: #9999ff;
+}
+
+#editAccountBtnRow
+{
+    margin-bottom: 30px;
+}
+
+@media(min-width: 992px) 
+{
+    #editAccountBtnRow
+    {
+        margin-bottom: 0px;
+    }
+}
+
+@media(orientation: portrait)
+{
+    #mobMainMenuUsrCnt
+    {
+        font-size: 0.65em;
+        font-weight: bold;
+    } 
+}
+
+@media(orientation: landscape)
+{
+    div.mobMainMenuItemCnt
+    {
+        border-left: 1px solid #595959;
+        border-right: 1px solid #333333;
+        border-top: 1px solid #595959;
+        border-bottom: 1px solid #333333;
+    }
+}
+
+#editModuleOkMsg, #editModuleLoadingMsg, #editModuleKoMsg
+{
+    display: none;
+}
+
+#modalEditModuleStd ul.nav, #modalEditModuleStd div.tab-content, #editModuleEnvLoadingMsg, #editModuleEnvOkMsg, #editModuleEnvKoMsg,
+#delModuleLoadingMsg, #delModuleOkMsg, #delModuleKoMsg
+{
+    display: none;
+}
+
+.editModuleEnvLabel
+{
+    float: left;
+    width: 33.3333%; 
+}
+
+#widgetEntityRow, #widgetAttributeRow, #widgetActuatorTypeRow,
+#selectMetricRow, #metricDescRow, #inputComuneRow, #widgetTypeRow, 
+#selectedMetricRow, #widgetLinkRow, #schedulerRow, #jobsAreasRow, #jobsGroupsRow, #jobsNamesRow
+{
+    display: none;
+}
+
+#widgetEntityRowM, #widgetAttributeRowM, #widgetActuatorTypeRowM, #metricWidgetMRow, #inputNameWidgetMRow, #select-widget-mRow, #inputComuneRowM,
+#urlWidgetMRow, #textarea-metric-widget-mRow, #schedulerRowM, #jobsAreasRowM, #jobsGroupsRowM, #jobsNamesRowM
+{
+    display: none;
+}
+
+#editDashboardMainContainerFluid
+{
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/*.loginCarouselDiv
+{
+    display: none;
+}*/

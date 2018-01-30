@@ -19,31 +19,35 @@
     session_start(); 
     $link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
     mysqli_select_db($link, $dbname);
+    
+    if(isset($_SESSION['loggedRole']))
+    {
+        if(isset($_POST['configuration_widgets'])) 
+        { 
+            $widgetsConfigJson = $_POST['configuration_widgets'];
+            $widgetsConfigArray = json_decode($widgetsConfigJson, true);
 
-    if (isset($_POST['configuration_widgets'])) 
-    { 
-        $widgetsConfigJson = $_POST['configuration_widgets'];
-        $widgetsConfigArray = json_decode($widgetsConfigJson, true);
+            foreach ($widgetsConfigArray as $item) 
+            {
+                $widgetName = mysqli_real_escape_string($link, $item['id']);
+                $widgetCol = mysqli_real_escape_string($link, $item['col']); 
+                $widgetRow = mysqli_real_escape_string($link, $item['row']); 
 
-        foreach ($widgetsConfigArray as $item) 
-        {
-            $widgetName = mysqli_real_escape_string($link, $item['id']);
-            $widgetCol = mysqli_real_escape_string($link, $item['col']); 
-            $widgetRow = mysqli_real_escape_string($link, $item['row']); 
-            //$nRows = mysqli_real_escape_string($link, $item['size_y']); 
-            //$nCols = mysqli_real_escape_string($link, $item['size_x']); 
+                $updqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET n_row = '$widgetRow', n_column = '$widgetCol' WHERE name_w = '$widgetName'";
 
-            $updqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET n_row = '$widgetRow', n_column = '$widgetCol' WHERE name_w = '$widgetName'";
+                $result = mysqli_query($link, $updqDbtb);
 
-            $result = mysqli_query($link, $updqDbtb);
-
-            if(!$result) 
-            {      
-                mysqli_close($link);
-                echo 0;
-                exit();
+                if(!$result) 
+                {      
+                    mysqli_close($link);
+                    echo 0;
+                    exit();
+                }
             }
         }
+        echo 1;
     }
-    echo 1;
+    
     mysqli_close($link);
+    
+    

@@ -17,6 +17,8 @@ var editAccountConditionsArray, enableAccountConditionsArray;
 
 function enableAccount(username, email, password, hash, userRole)
 {
+   $('#enableAccountFormContainer h5').hide(); 
+   $('#accountActivationFormRow').hide(); 
    $("#accountActivationBtnRow").hide();
    $("#accountActivationActivatingRow").show();
    
@@ -27,6 +29,8 @@ function enableAccount(username, email, password, hash, userRole)
       async: true,
       success: function (data) 
       {
+         console.log("Esito: " + data); 
+          
          if(data === "1")
          {
             $("#accountActivationActivatingRow").hide();
@@ -36,14 +40,26 @@ function enableAccount(username, email, password, hash, userRole)
          {
             $("#accountActivationActivatingRow").hide();
             $("#accountActivationKoRow").show();
+            setTimeout(function(){
+                $("#accountActivationKoRow").hide();
+                $('#enableAccountFormContainer h5').show();
+                $('#accountActivationFormRow').show();
+                $("#accountActivationBtnRow").show();
+            }, 3500);
          }
       },
       error: function (data)
       {
-         console.log("KO");
-         console.log(data);
-         $("#accountActivationActivatingRow").hide();
-         $("#accountActivationKoRow").show();
+        console.log("KO");
+        console.log(data);
+        $("#accountActivationActivatingRow").hide();
+        $("#accountActivationKoRow").show();
+        setTimeout(function(){
+            $("#accountActivationKoRow").hide();
+            $('#enableAccountFormContainer h5').show();
+            $('#accountActivationFormRow').show();
+            $("#accountActivationBtnRow").show();
+        }, 3500);
       }
    });
 }
@@ -163,9 +179,9 @@ function checkNameSurnameCompany()
         $("#accountLastNameMsg").html(message);
         $("#accountOrganizationMsg").html(message);
         editAccountConditionsArray['nameSurnameCompany'] = true;
-        $("#accountFirstNameMsg").css("color", "#337ab7");
-        $("#accountLastNameMsg").css("color", "#337ab7");
-        $("#accountOrganizationMsg").css("color", "#337ab7");
+        $("#accountFirstNameMsg").css("color", "rgba(0, 162, 211, 1)");
+        $("#accountLastNameMsg").css("color", "rgba(0, 162, 211, 1)");
+        $("#accountOrganizationMsg").css("color", "rgba(0, 162, 211, 1)");
     }
 }
 
@@ -191,7 +207,7 @@ function checkEmail()
     {
         message = 'Ok';
         editAccountConditionsArray['email'] = true;
-        $("#accountEmailMsg").css("color", "#337ab7");
+        $("#accountEmailMsg").css("color", "rgba(0, 162, 211, 1)");
     }
     
     $("#accountEmailMsg").html(message);
@@ -218,7 +234,7 @@ function checkPassword()
     {
         if((/\d/.test($("#accountActivationPwd").val())) && (/\D/.test($("#accountActivationPwd").val())))
         {
-            $("#accountActivationPwdMsg").css("color", "#337ab7");
+            $("#accountActivationPwdMsg").css("color", "rgba(0, 162, 211, 1)");
             message = 'Ok';
             enableAccountConditionsArray['passwordContent'] = true;
         }
@@ -250,7 +266,7 @@ function checkPasswordConfirm()
         {
             message = 'Ok';
             enableAccountConditionsArray['passwordConfirm'] = true;
-            $("#accountActivationConfirmPwdMsg").css("color", "#337ab7");
+            $("#accountActivationConfirmPwdMsg").css("color", "rgba(0, 162, 211, 1)");
         }
         else
         {
@@ -284,7 +300,7 @@ function checkPasswordEditAccount()
     {
         if((/\d/.test($("#accountPassword").val())) && (/\D/.test($("#accountPassword").val())))
         {
-            $("#accountPasswordMsg").css("color", "#337ab7");
+            $("#accountPasswordMsg").css("color", "rgba(0, 162, 211, 1)");
             message = 'Ok';
             editAccountConditionsArray['passwordContent'] = true;
         }
@@ -317,7 +333,7 @@ function checkPasswordConfirmEditAccount()
         {
             message = 'Ok';
             editAccountConditionsArray['passwordConfirm'] = true;
-            $("#accountPasswordConfirmationMsg").css("color", "#337ab7");
+            $("#accountPasswordConfirmationMsg").css("color", "rgba(0, 162, 211, 1)");
         }
         else
         {

@@ -36,8 +36,6 @@
         switch($_REQUEST['sessionAction'])
         {
             case 'closeViewSession':
-                session_start();
-               
                 if(isset($_REQUEST['dashboardId']))
                 {
                   $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']); 
@@ -47,6 +45,7 @@
 
                     $response["detail"] = "Ok";
                     unset($_SESSION["dashViewUsername" . $dashboardId]);
+                    unset($_SESSION["dashViewSessionEndTime" . $dashboardId]);
                   }
                   else
                   {

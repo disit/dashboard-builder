@@ -2325,6 +2325,8 @@ function showInfoWCkeditorsM(widgetType, editorsArray, seriesObject, infoJsonObj
     editorsM = editorsArray;
     var infoJson = infoJsonObject;
 
+    console.log("Avviata");
+
     infoNamesJsonFirstAxis = new Array();
     infoNamesJsonSecondAxis = new Array();
     
@@ -2352,7 +2354,7 @@ function showInfoWCkeditorsM(widgetType, editorsArray, seriesObject, infoJsonObj
         }
     }
     
-    switch (widgetType)
+    switch(widgetType)
     {
       case "widgetFirstAid":
          var id = null;
@@ -2767,6 +2769,7 @@ function showInfoWCkeditorsM(widgetType, editorsArray, seriesObject, infoJsonObj
             break; 
         
         default:
+            console.log("Entrato nel default");
             $("#infoMainSelectM").off();
             $("#infoAxisSelectM").off();
             $("#infoFieldSelectM").off();

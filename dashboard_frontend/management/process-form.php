@@ -21,38 +21,36 @@
     function notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $notificatorToolName)
     {
         if($notificatorUrl != "")
-		{
-			$usr = md5($username);
-			$clientApplication = md5($notificatorToolName);
-			
-		    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogin&usr=' . $usr . '&clientApplication=' . $clientApplication;
-		    $notificatorUrl = $notificatorUrl.$data;
-		  
-		    $options = array(
-			  'http' => array(
-				  'header'  => "Content-type: application/json\r\n",
-				  'method'  => 'POST',
-				  'timeout' => 30
-			  )
-		    );
+        {
+            $usr = md5($username);
+            $clientApplication = md5($notificatorToolName);
 
-		    try
-		    {
-			   $context  = stream_context_create($options);
-			   $callResult = @file_get_contents($notificatorUrl, false, $context);
-		    }
-		    catch (Exception $ex) 
-		    {
-			   //Non facciamo niente di specifico in caso di mancata risposta dell'host
-		    }
-		}
+            $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogin&usr=' . $usr . '&clientApplication=' . $clientApplication;
+            $notificatorUrl = $notificatorUrl.$data;
+
+            $options = array(
+                  'http' => array(
+                          'header'  => "Content-type: application/json\r\n",
+                          'method'  => 'POST',
+                          'timeout' => 30
+                  )
+            );
+
+            try
+            {
+                   $context  = stream_context_create($options);
+                   $callResult = @file_get_contents($notificatorUrl, false, $context);
+            }
+            catch (Exception $ex) 
+            {
+                   //Non facciamo niente di specifico in caso di mancata risposta dell'host
+            }
+        }
     }
     
     function notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $notificatorToolName)
     {
-      if($notificatorUrl == "")  
-        return;
-      /*$logoutAuthObj = ['username' => $username, 'clientApplication' => $ldapTool];
+        /*$logoutAuthObj = ['username' => $username, 'clientApplication' => $ldapTool];
         $logoutAuthJson = json_encode($logoutAuthObj);
         $logoutAuthJsonMd5 = md5($logoutAuthJson);*/
         $usr = md5($username);
@@ -169,7 +167,8 @@
     }
 
     //Fine definizioni di funzione
-     
+    
+    //Corpo dell'API
     $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
     mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR | E_NOTICE);
@@ -177,9 +176,8 @@
     if(!$link->set_charset("utf8")) 
     {
         echo '<script type="text/javascript">';
-        echo 'alert("KO");';
+        echo 'alert("Error loading character set utf8: %s\n");';
         echo '</script>';
-        printf("Error loading character set utf8: %s\n", $link->error);
         exit();
     }
 
@@ -195,7 +193,7 @@
             $email = mysqli_real_escape_string($link, $_POST['inputEmail']);
 
             //24/03/2017 - Cambierà via via che implementiamo la nuova profilazione utente
-            if (isset($_POST['adminCheck'])) 
+            if(isset($_POST['adminCheck'])) 
             {
                 $valueAdmin = 1;
             } 
@@ -207,7 +205,7 @@
             $selqDbtbCheck = "SELECT * FROM `Dashboard`.`Users` WHERE username='$username'";
             $resultCheck = mysqli_query($link, $selqDbtbCheck) or die(mysqli_error($link));
 
-            if (mysqli_num_rows($resultCheck) > 0) 
+            if(mysqli_num_rows($resultCheck) > 0) 
             { 
                 mysqli_close($link);
                 echo '<script type="text/javascript">';
@@ -239,75 +237,91 @@
             }
         }
     }
-    else if(isset($_REQUEST['login']))//Escape 
+    else if(isset($_REQUEST['login']))
     {
         $username = mysqli_real_escape_string($link, $_POST['loginUsername']);
         $ldapUsername = "cn=". $_POST['loginUsername'] . ",dc=ldap,dc=disit,dc=org";
         $password = mysqli_real_escape_string($link, $_POST['loginPassword']);
         $ldapPassword = $_POST['loginPassword'];
         $ldapOk = false;
-        
+        $file = fopen("C:\dashboardLog.txt", "w");
+        fwrite($file, "LDAP server: " . $ldapServer . "\n");
+        fwrite($file, "LDAP port: " . $ldapPort . "\n");
         //Per prima cosa verifichiamo se è su LDAP, altrimenti su account list locale
         $ds = ldap_connect($ldapServer, $ldapPort);
+        fwrite($file, "LDAP connect: " . $ds . "\n");
         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
         $bind = ldap_bind($ds, $ldapUsername, $ldapPassword);
         
-        if($ds && $bind/*false*/)
+        if($ldapActive == "yes")
         {
-            if(checkLdapMembership($ds, $ldapUsername, $ldapTool))
+            if($ds && $bind)
             {
-               if(checkLdapRole($ds, $ldapUsername, "ToolAdmin"))
-               {
-                  $ldapRole = "ToolAdmin";
-                  $ldapOk = true;
-                  ini_set('session.gc_maxlifetime', $sessionDuration);
-                  session_set_cookie_params($sessionDuration);
-                  session_start();
-                  session_regenerate_id();
-                  $_SESSION['loggedUsername'] = $username;
-                  $_SESSION['loggedRole'] = "ToolAdmin";
-                  $_SESSION['loggedType'] = "ldap";
-                  notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
-                  mysqli_close($link);
-                  header("location: dashboard_mng.php");
-               }
-               else
-               {
-                   if(checkLdapRole($ds, $ldapUsername, "AreaManager"))
+                if(checkLdapMembership($ds, $ldapUsername, $ldapTool))
+                {
+                   if(checkLdapRole($ds, $ldapUsername, "ToolAdmin"))
                    {
-                      $ldapRole = "AreaManager";
+                      $ldapRole = "ToolAdmin";
                       $ldapOk = true;
                       ini_set('session.gc_maxlifetime', $sessionDuration);
                       session_set_cookie_params($sessionDuration);
                       session_start();
                       session_regenerate_id();
                       $_SESSION['loggedUsername'] = $username;
-                      $_SESSION['loggedRole'] = "AreaManager";
+                      $_SESSION['loggedRole'] = "ToolAdmin";
                       $_SESSION['loggedType'] = "ldap";
                       notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
                       mysqli_close($link);
-                      header("location: dashboard_mng.php");
+                      header("location: dashboards.php");
                    }
                    else
                    {
-                      if(checkLdapRole($ds, $ldapUsername, "Manager"))
-                      {
-                         $ldapRole = "Manager";
-                         $ldapOk = true;
-                         ini_set('session.gc_maxlifetime', $sessionDuration);
-                         session_set_cookie_params($sessionDuration);
-                         session_start();
-                         session_regenerate_id();
-                         $_SESSION['loggedUsername'] = $username;
-                         $_SESSION['loggedRole'] = "Manager";
-                         $_SESSION['loggedType'] = "ldap";
-                         notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
-                         mysqli_close($link);
-                         header("location: dashboard_mng.php");
-                      }
+                       if(checkLdapRole($ds, $ldapUsername, "AreaManager"))
+                       {
+                          $ldapRole = "AreaManager";
+                          $ldapOk = true;
+                          ini_set('session.gc_maxlifetime', $sessionDuration);
+                          session_set_cookie_params($sessionDuration);
+                          session_start();
+                          session_regenerate_id();
+                          $_SESSION['loggedUsername'] = $username;
+                          $_SESSION['loggedRole'] = "AreaManager";
+                          $_SESSION['loggedType'] = "ldap";
+                          notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
+                          mysqli_close($link);
+                          header("location: dashboards.php");
+                       }
+                       else
+                       {
+                          if(checkLdapRole($ds, $ldapUsername, "Manager"))
+                          {
+                             $ldapRole = "Manager";
+                             $ldapOk = true;
+                             ini_set('session.gc_maxlifetime', $sessionDuration);
+                             session_set_cookie_params($sessionDuration);
+                             session_start();
+                             session_regenerate_id();
+                             $_SESSION['loggedUsername'] = $username;
+                             $_SESSION['loggedRole'] = "Manager";
+                             $_SESSION['loggedType'] = "ldap";
+                             notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
+                             mysqli_close($link);
+                             header("location: dashboards.php");
+                          }
+                       }
                    }
-               }
+                }
             }
+            else
+            {
+                
+                fwrite($file, "LDAP fail\n");
+            }
+        }
+        else
+        {
+            
+            fwrite($file, "LDAP not active\n");
         }
         
         //Verifica su lista account locali se LDAP fallisce
@@ -329,12 +343,13 @@
                session_set_cookie_params($sessionDuration);
                session_start();
                session_regenerate_id();
+               $_SESSION['sessionEndTime'] = time() + $sessionDuration;
                $_SESSION['loggedUsername'] = $username;
                $_SESSION['loggedRole'] = $row["admin"];
                $_SESSION['loggedType'] = "local";
                notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
                mysqli_close($link);
-               header("location: dashboard_mng.php");
+               header("location: dashboards.php");
             } 
             else 
             {
@@ -346,10 +361,11 @@
             }
         }
     } 
-    else if(isset($_REQUEST['creation_dashboard']))//Escape 
+    else if(isset($_REQUEST['addDashboard']))//Escape 
     {
         session_start();
-        $name_dashboard = mysqli_real_escape_string($link, $_POST['inputNameDashboard']); 
+        //$name_dashboard = mysqli_real_escape_string($link, $_POST['inputNameDashboard']);
+        $name_dashboard = mysqli_real_escape_string($link, $_POST['inputTitleDashboard']); 
         $title = mysqli_real_escape_string($link, $_POST['inputTitleDashboard']);  
         $subtitle = mysqli_real_escape_string($link, $_POST['inputSubTitleDashboard']);  
         $color = mysqli_real_escape_string($link, $_POST['inputColorDashboard']);  
@@ -360,167 +376,134 @@
         $headerFontSize = mysqli_real_escape_string($link, $_POST['headerFontSize']);  
         $logoLink = null;
         $filename = null;
-        $widgetsBorders = mysqli_real_escape_string($link, $_POST['widgetsBorders']); 
+        if(isset($_POST['widgetsBorders']))
+        {
+            $widgetsBorders = "yes";
+        }
+        else
+        {
+            $widgetsBorders = "no";
+        }
+        
         $widgetsBordersColor = mysqli_real_escape_string($link, $_POST['inputWidgetsBordersColor']);
         $visibility = mysqli_real_escape_string($link, $_POST['inputDashboardVisibility']);
-        $embeddable = mysqli_real_escape_string($link, $_POST['embeddable']);
-        $headerVisible = $_POST['headerVisible'];
+        
+        if(isset($_POST['headerVisible']))
+        {
+            $headerVisible = 1;
+        }
+        else
+        {
+            $headerVisible = 0;
+        }
         
         if(isset($_POST['authorizedPagesJson']))
         {
             if(($_POST['authorizedPagesJson'] != "[]")&&($_POST['authorizedPagesJson'] != ""))
             {
-               $authorizedPagesJson = mysqli_real_escape_string($link, $_POST['authorizedPagesJson']); 
+               $embeddable = "yes";
+               $authorizedPagesJson = mysqli_real_escape_string($link, $_POST['authorizedPagesJson']);
             }
             else
             {
-                $authorizedPagesJson = NULL;
+                $embeddable = "no";
+                $authorizedPagesJson = "[]";
             }
         }
         else
         {
-            $authorizedPagesJson = NULL;
+            $embeddable = "no";
+            $authorizedPagesJson = "[]";
         }
         
         $selectedVisibilityUsers = [];
-
-        if($headerFontSize > 45)
-        {
-            $headerFontSize = 45;
-        }
-        
         $dashboardAuthorName = $_SESSION['loggedUsername'];
-
-        //Logo della dashboard
-        $uploadFolder = "../img/dashLogos/".$name_dashboard."/";
-        
         $queryFail = false;
-
-        if(isset($_POST['creation_dashboard']) && $_FILES['dashboardLogoInput']['size'] > 0)
+        if($_FILES['dashboardLogoInput']['size'] > 0)
         {
-            $oldMask = umask(0);
-            mkdir("../img/dashLogos/", 0777);
-            mkdir($uploadFolder, 0777);
-            umask($oldMask);
+            $addLogo = true;
+            $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE WHERE title_header = '$title' AND user = '$dashboardAuthorName'";
+            $resultCheck2 = mysqli_query($link, $selqDbtbCheck2);
 
-            if(!is_dir($uploadFolder))  
-            {  
+            if(mysqli_num_rows($resultCheck2) > 0) 
+            { 
+                mysqli_close($link);
                 echo '<script type="text/javascript">';
-                echo 'alert("Directory dashLogos/"' . $name_dashboard . '"/ does not exist");';
-                echo 'window.location.href = "dashboard_mng.php";';
-                echo '</script>';  
-            }   
-            else   
-            {  
-                if(!is_writable($uploadFolder))
+                echo 'alert("Chosen dashboard title is already in use: please choose another one.");';
+                echo 'window.location.href = "dashboards.php";';
+                echo '</script>';
+            }
+            else 
+            {
+                //New version: lasciamo gli addendi espliciti per agevolare la lettura
+                $width = ($nCols * 78) + 10;
+
+                if($_POST['dashboardLogoLinkInput'] != '')
                 {
-                    echo '<script type="text/javascript">';
-                    echo 'alert("Directory dashLogos is not writable");';
-                    echo 'window.location.href = "dashboard_mng.php";';
-                    echo '</script>';
+                    $logoLink = $_POST['dashboardLogoLinkInput'];
+
+                    $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
+                    (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
+                    `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `logoLink`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson) 
+                    VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson')";
                 }
                 else
                 {
-                    //$pointIndex = strrpos($_FILES['dashboardLogoInput']['name'], ".");
-                    //$extension = substr($_FILES['dashboardLogoInput']['name'], $pointIndex);
-                    //$filename = 'logo'.$extension;
-                    $filename = $_FILES['dashboardLogoInput']['name'];
+                    $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
+                    (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
+                    `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson) 
+                    VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson')";
+                }
 
-                    if(!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder.$filename))  
-                    {  
-                        echo '<script type="text/javascript">';
-                        echo 'alert("Something has gone wrong during logo upload.");';
-                        echo 'window.location.href = "dashboard_mng.php";';
-                        echo '</script>'; 
-                    }  
-                    else  
-                    {  
-                        chmod($uploadFolder.$filename, 0666);
-                        $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard' AND user='$dashboardAuthorName'";
-                        $resultCheck2 = mysqli_query($link, $selqDbtbCheck2) or die(mysqli_error($link));
+                mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
+                $result3 = mysqli_query($link, $insqDbtb2);
 
-                        if(mysqli_num_rows($resultCheck2) > 0) 
-                        { 
-                            mysqli_close($link);
-                            echo '<script type="text/javascript">';
-                            echo 'alert("Chosen dashboard name is already in use: please choose another one.");';
-                            echo 'window.location.href = "dashboard_mng.php";';
-                            echo '</script>';
-                        }
-                        else 
+                if($result3) 
+                {
+                    $_SESSION['dashboardAuthorName'] = $_SESSION['loggedUsername'];
+                    $_SESSION['dashboardId'] = mysqli_insert_id($link);
+                    $newDashId = $_SESSION['dashboardId'];
+
+                    if($visibility == "restrict")
+                    {
+                        if(isset($_POST['selectedVisibilityUsers']))
                         {
-                            //New version: lasciamo gli addendi espliciti per agevolare la lettura
-                            $width = ($nCols * 78) + 10;
-
-                            if($_POST['dashboardLogoLinkInput'] != '')
+                            foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
                             {
-                                $logoLink = $_POST['dashboardLogoLinkInput'];
-
-                                $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
-                                (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `logoLink`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson) 
-                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson')";
-                            }
-                            else
-                            {
-                                $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
-                                (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
-                                `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson) 
-                                VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson')";
-                            }
-
-                            mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
-                            $result3 = mysqli_query($link, $insqDbtb2) or die(mysqli_error($link));
-                            
-                            if ($result3) 
-                            {
-                                $_SESSION['dashboardAuthorName'] = $_SESSION['loggedUsername'];
-                                $_SESSION['dashboardId'] = mysqli_insert_id($link);
-                                $newDashId = $_SESSION['dashboardId'];
-                                
-                                if($visibility == "restrict")
+                                $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '$selectedUser')";
+                                $result4 = mysqli_query($link, $insertQuery) or die(mysqli_error($link));
+                                if(!$result4)
                                 {
-                                    if(isset($_POST['selectedVisibilityUsers']))
-                                    {
-                                        foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
-                                        {
-                                            $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '$selectedUser')";
-                                            $result4 = mysqli_query($link, $insertQuery) or die(mysqli_error($link));
-                                            if(!$result4)
-                                            {
-                                                $rollbackResult = mysqli_rollback($link);
-                                                mysqli_close($link);
-                                                $queryFail = true;
-                                                echo '<script type="text/javascript">';
-                                                echo 'alert("Error during dashboard creation: please repeat the procedure.");';
-                                                echo 'window.location.href = "dashboard_mng.php";';
-                                                echo '</script>';
-                                                die();
-                                            }
-                                        }
-                                    }
+                                    $rollbackResult = mysqli_rollback($link);
+                                    mysqli_close($link);
+                                    $queryFail = true;
+                                    echo '<script type="text/javascript">';
+                                    echo 'alert("Error during dashboard creation: please repeat the procedure.");';
+                                    echo 'window.location.href = "dashboards.php";';
+                                    echo '</script>';
+                                    die();
                                 }
-                            } 
-                            else 
-                            {
-                                $rollbackResult = mysqli_rollback($link);
-                                mysqli_close($link);
-                                $queryFail = true;
-                                echo '<script type="text/javascript">';
-                                echo 'alert("Error during dashboard creation: please repeat the procedure.");';
-                                echo 'window.location.href = "dashboard_mng.php";';
-                                echo '</script>';
-                                die();
                             }
                         }
                     }
+                } 
+                else 
+                {
+                    $rollbackResult = mysqli_rollback($link);
+                    mysqli_close($link);
+                    $queryFail = true;
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Error during dashboard creation: please repeat the procedure.");';
+                    echo 'window.location.href = "dashboards.php";';
+                    echo '</script>';
+                    die();
                 }
-            } 
+            }
         }
         else
         {
             //Nessun file caricato
-            $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE name_dashboard='$name_dashboard' AND user='$dashboardAuthorName'";
+            $selqDbtbCheck2 = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$title' AND user = '$dashboardAuthorName'";
             $resultCheck2 = mysqli_query($link, $selqDbtbCheck2) or die(mysqli_error($link));
 
             if (mysqli_num_rows($resultCheck2) > 0) 
@@ -528,7 +511,7 @@
                 mysqli_close($link);
                 echo '<script type="text/javascript">';
                 echo 'alert("Il nome dato alla nuova dashboard è già in uso: ripetere creazione dashboard");';
-                echo 'window.location.href = "dashboard_mng.php";';
+                echo 'window.location.href = "dashboards.php";';
                 echo '</script>';
             }
             else 
@@ -545,7 +528,7 @@
                 
                 $result3 = mysqli_query($link, $insqDbtb2) or die(mysqli_error($link));
                 
-                if ($result3) 
+                if($result3) 
                 {
                      $_SESSION['dashboardAuthorName'] = $_SESSION['loggedUsername'];
                      $_SESSION['dashboardId'] = mysqli_insert_id($link);
@@ -558,7 +541,7 @@
                              foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
                              {
                                  $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '$selectedUser')";
-                                 $result4 = mysqli_query($link, $insertQuery) or die(mysqli_error($link));
+                                 $result4 = mysqli_query($link, $insertQuery);
                                  if(!$result4)
                                  {
                                      $rollbackResult = mysqli_rollback($link);
@@ -566,7 +549,7 @@
                                      $queryFail = true;
                                      echo '<script type="text/javascript">';
                                      echo 'alert("Error during dashboard creation: please repeat the procedure.");';
-                                     echo 'window.location.href = "dashboard_mng.php";';
+                                     echo 'window.location.href = "dashboards.php";';
                                      echo '</script>';
                                      die();
                                  }
@@ -579,7 +562,7 @@
                     mysqli_close($link);
                     echo '<script type="text/javascript">';
                     echo 'alert("Error: Ripetere creazione dashboard");';
-                    echo 'window.location.href = "dashboard_mng.php";';
+                    echo 'window.location.href = "dashboards.php";';
                     echo '</script>';
                 }
             }
@@ -592,21 +575,257 @@
             $_SESSION['dashboardAuthorRole'] = $_SESSION['loggedRole'];
             $commit = mysqli_commit($link);
             mysqli_close($link);
-            
+            if($addLogo)
+            {
+                //Logo della dashboard
+                $uploadFolder = "../img/dashLogos/dashboard".$newDashId."/";
+                $oldMask = umask(0);
+                mkdir("../img/dashLogos/", 0777);
+                mkdir($uploadFolder, 0777);
+                umask($oldMask);
+
+                if(!is_dir($uploadFolder))  
+                {  
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Directory dashLogos/"' . $newDashId . '"/ could not be created");';
+                    //echo 'window.location.href = "dashboards.php";';
+                    echo '</script>';  
+                }   
+                else   
+                {  
+                    if(!is_writable($uploadFolder))
+                    {
+                        echo '<script type="text/javascript">';
+                        echo 'alert("Directory dashLogos is not writable");';
+                        //echo 'window.location.href = "dashboards.php";';
+                        echo '</script>';
+                    }
+                    else
+                    {
+                        $filename = $_FILES['dashboardLogoInput']['name'];
+
+                        if(!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder.$filename))  
+                        {  
+                            echo '<script type="text/javascript">';
+                            echo 'alert("Error during logo upload.");';
+                            //echo 'window.location.href = "dashboards.php";';
+                            echo '</script>'; 
+                        }  
+                        else  
+                        {  
+                            chmod($uploadFolder.$filename, 0666);
+                        }
+                    }
+                } 
+            }
             header("location: dashboard_configdash.php");
         }
     } 
-    else if(isset($_REQUEST['add_widget']))//Escape 
+    else if(isset($_REQUEST['editDashboard']))
     {
         session_start();
-        if(isset($_POST['textarea-selected-metrics']) && $_POST['textarea-selected-metrics'] != "") 
+        mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
+        $queryFail = false;
+        $response = array();
+        $dashboardId = $_SESSION['dashboardId'];
+        $dashboardName = $_SESSION['dashboardTitle']; //Si chiama title per un vecchio refuso, non cambiare
+        //$dashboardIdFromRequest = mysqli_real_escape_string($link, $_REQUEST['dashboardIdFromRequest']); 
+        //$newDashboardName = mysqli_real_escape_string($link, $_REQUEST['inputTitleDashboard']);
+        $newDashboardTitle = mysqli_real_escape_string($link, $_REQUEST['inputTitleDashboard']); 
+        $newDashboardSubtitle = mysqli_real_escape_string($link, $_REQUEST['inputSubTitleDashboard']); 
+        $newDashboardColor = mysqli_real_escape_string($link, $_REQUEST['inputColorDashboard']);
+        $nCols = mysqli_real_escape_string($link, $_POST['inputWidthDashboard']); 
+        $newDashboardBckColor =  mysqli_real_escape_string($link, $_REQUEST['inputColorBackgroundDashboard']); 
+        $newDashboardExtColor = mysqli_real_escape_string($link, $_REQUEST['inputExternalColorDashboard']); 
+        $headerFontSize = mysqli_real_escape_string($link, $_REQUEST['headerFontSize']);
+        if(isset($_POST['widgetsBorders']))
         {
+            $widgetsBorders = "yes";
+        }
+        else
+        {
+            $widgetsBorders = "no";
+        }
+        $widgetsBordersColor = mysqli_real_escape_string($link, $_REQUEST['inputWidgetsBordersColor']); 
+        $headerFontColor = mysqli_real_escape_string($link, $_REQUEST['headerFontColor']); 
+        $visibility = mysqli_real_escape_string($link, $_POST['inputDashboardVisibility']);
+        $filename = NULL;
+        $logoLink = NULL;
+        if(isset($_POST['headerVisible']))
+        {
+            $headerVisible = 1;
+        }
+        else
+        {
+            $headerVisible = 0;
+        }
+
+        if(isset($_POST['authorizedPagesJson']))
+        {
+            if(($_POST['authorizedPagesJson'] != "[]")&&($_POST['authorizedPagesJson'] != ""))
+            {
+               $embeddable = "yes";
+               $authorizedPagesJson = mysqli_real_escape_string($link, $_POST['authorizedPagesJson']);
+            }
+            else
+            {
+                $embeddable = "no";
+                $authorizedPagesJson = "[]";
+            }
+        }
+        else
+        {
+            $embeddable = "no";
+            $authorizedPagesJson = "[]";
+        }
+
+        //New version: lasciamo gli addendi espliciti per agevolare la lettura
+        $width = ($nCols * 78) + 10;
+
+        //Logo della dashboard
+        $uploadFolder = "../img/dashLogos/dashboard" . $dashboardId . "/";
+
+        if(($_REQUEST['dashboardLogoLinkInput'] != NULL) && ($_REQUEST['dashboardLogoLinkInput'] != ''))
+        {
+            $logoLink = mysqli_real_escape_string($link, $_REQUEST['dashboardLogoLinkInput']); 
+        }
+
+        //Nuovo file caricato, si cancella il vecchio e si aggiorna il nome del file su DB.
+        if($_FILES['dashboardLogoInput']['size'] > 0)
+        {
+            if(!file_exists("../img/dashLogos/"))
+            {
+                $oldMask = umask(0);
+                mkdir("../img/dashLogos/", 0777);
+                umask($oldMask);
+            }
+
+            if(!file_exists($uploadFolder))
+            {
+                $oldMask = umask(0);
+                mkdir($uploadFolder, 0777);
+                umask($oldMask);
+            }
+            else
+            {
+                $oldFiles = glob($uploadFolder . '*');
+                foreach($oldFiles as $fileToDel)
+                { 
+                    if(is_file($fileToDel))
+                    {
+                       unlink($fileToDel);
+                    }
+                }
+            }
+
+            /*$pointIndex = strrpos($_FILES['dashboardLogoInput']['name'], ".");
+            $extension = substr($_FILES['dashboardLogoInput']['name'], $pointIndex);
+            $filename = 'logo'.$extension;*/
+            $filename = $_FILES['dashboardLogoInput']['name'];
+
+            if(!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder.$filename))  
+            {  
+                echo 'Something has gone wrong during logo upload: dashboard update has been cancelled';
+                mysqli_close($link);
+                exit();
+            }
+            else 
+            {
+               chmod($uploadFolder.$filename, 0666); 
+               $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoFilename = '$filename', logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility', headerVisible = $headerVisible, embeddable = '$embeddable', authorizedPagesJson = '$authorizedPagesJson' WHERE Id = $dashboardId";
+               $result = mysqli_query($link, $query);  
+
+                if(!$result)
+                {
+                    $rollbackResult = mysqli_rollback($link);
+                    mysqli_close($link);
+                    $queryFail = true;
+                    echo '<script type="text/javascript">';
+                    echo 'alert("Error during dashboard update: please repeat the procedure.");';
+                    echo 'window.location.href = "dashboard_configdash.php";';
+                    echo '</script>';
+                    die();
+                }
+                else
+                {
+                  $response["newLogo"] = "YES";
+                  $response["fileName"] = $uploadFolder . $filename;
+                  $response["logoLink"] = $logoLink;
+                  $response["width"] = $width;
+                  $response["num_cols"] = $nCols;
+                }
+            }
+        }//Nessun nuovo file caricato
+        else
+        {
+            $query = "UPDATE Dashboard.Config_dashboard SET title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility', headerVisible = $headerVisible, embeddable = '$embeddable', authorizedPagesJson = '$authorizedPagesJson' WHERE Id = $dashboardId";
+            $result = mysqli_query($link, $query);
+
+            if(!$result)
+            {
+               $rollbackResult = mysqli_rollback($link);
+               mysqli_close($link);
+               $queryFail = true;
+               echo '<script type="text/javascript">';
+               echo 'alert("Error during dashboard update: please repeat the procedure.");';
+               echo 'window.location.href = "dashboard_configdash.php";';
+               echo '</script>';
+               die();
+            }
+            else
+            {
+               $response["newLogo"] = "NO";
+               $response["logoLink"] = $logoLink;
+               $response["width"] = $width;
+               $response["num_cols"] = $nCols;
+            }
+        }
+
+        //Cancellazione vecchi permessi di visualizzazione
+         $delOldPermissionsQuery = "DELETE FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId";
+         $delOldPermissionsResult = mysqli_query($link, $delOldPermissionsQuery);
+
+         if(!$delOldPermissionsResult)
+         {
+             $rollbackResult = mysqli_rollback($link);
+             mysqli_close($link);
+             $queryFail = true;
+             echo '<script type="text/javascript">';
+             echo 'alert("Error during dashboard update: please repeat the procedure.");';
+             echo 'window.location.href = "dashboard_configdash.php";';
+             echo '</script>';
+             die();
+         }
+         else
+         {
+            if($visibility == "restrict")
+            {
+               foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
+               {
+                  $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($dashboardId, '$selectedUser')";
+                  $result4 = mysqli_query($link, $insertQuery);
+               }
+            }
+         }
+
+        if(!$queryFail) 
+        {
+            $commit = mysqli_commit($link);
+            mysqli_close($link);
+            header("location: dashboard_configdash.php");
+        }
+    }
+    else if(isset($_REQUEST['add_widget'])) 
+    {
+        session_start();
+        /*if(isset($_POST['textarea-selected-metrics']) && $_POST['textarea-selected-metrics'] != "") 
+        {*/
             $id_dashboard = $_SESSION['dashboardId'];
             $dashboardName = $_SESSION['dashboardTitle'];
             $nextId = 1;
             $firstFreeRow = $_POST['firstFreeRowInput'];
             $selqDbtbMaxSel2 = "SELECT MAX(Id) AS MaxId FROM Dashboard.Config_widget_dashboard";
-            $resultMaxSel2 = mysqli_query($link, $selqDbtbMaxSel2) or die(mysqli_error($link));
+            $resultMaxSel2 = mysqli_query($link, $selqDbtbMaxSel2);
             if($resultMaxSel2) 
             {
                 while($rowMaxSel2 = mysqli_fetch_array($resultMaxSel2)) 
@@ -616,9 +835,12 @@
                         $nextId = $rowMaxSel2['MaxId'] + 1;
                     }
                 }
-
-                $id_metric = mysqli_real_escape_string($link, $_POST['textarea-selected-metrics']); 
-                $type_widget = mysqli_real_escape_string($link, $_POST['select-widget']); 
+                
+                $actuatorEntity = NULL;
+                $actuatorAttribute = NULL;
+                $widgetActuatorType = NULL;
+                $id_metric = NULL; 
+                $type_widget = NULL; 
                 $title_widget = NULL;
                 $color_widget = mysqli_real_escape_string($link, $_POST['inputColorWidget']); 
                 $freq_widget = NULL;
@@ -682,6 +904,25 @@
                 $enableFullscreenTab = 'no';
                 $enableFullscreenModal = 'no'; 
                 $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidget']);
+                
+                if($_REQUEST['widgetCategory'] == "actuator")
+                {
+                    $actuatorEntity = $_REQUEST['widgetEntity'];
+                    $actuatorAttribute = $_REQUEST['widgetAttribute'];
+                    $widgetActuatorType = $_REQUEST['widgetActuatorType'];
+                    $type_widget = $widgetActuatorType;
+                    
+                    if($type_widget == "widgetKnob")
+                    {
+                        $styleParametersArray = array('startAngle' => $_REQUEST['addKnobStartAngle'], 'endAngle' => $_REQUEST['addKnobEndAngle']);
+                        $styleParameters = json_encode($styleParametersArray);
+                    }
+                }
+                else
+                {
+                    $id_metric = mysqli_real_escape_string($link, $_POST['textarea-selected-metrics']); 
+                    $type_widget = mysqli_real_escape_string($link, $_POST['select-widget']); 
+                }
                 
                 if($type_widget == "widgetPrevMeteo")
                 {
@@ -1674,7 +1915,16 @@
                 {
                     $comune_widget = strtoupper($_POST['inputComuneWidget']);
                 } 
-                $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
+                
+                if($_REQUEST['widgetCategory'] == "actuator")
+                {
+                    $name_widget = preg_replace('/\+/', '', $actuatorEntity) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
+                }
+                else
+                {
+                    $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
+                }
+                
 
                 $int_temp_widget = NULL;
                 if(isset($_POST['select-IntTemp-Widget']) && $_POST['select-IntTemp-Widget'] != "") 
@@ -1908,8 +2158,8 @@
                     $insqDbtb3->bind_param('isissiiiisssssssssssissssdisddssssssssss', $nextId, $name_widget, $id_dashboard, $id_metric, $type_widget, $firstFreeRow, $nCol, $sizeRowsWidget, $sizeColumnsWidget, $title_widget, $color_widget, $freq_widget, $int_temp_widget, $comune_widget, $message_widget, $url_widget, $parameters, $frame_color, $inputUdmWidget, $inputUdmPosition, $fontSize, $fontColor, $controlsPosition, $showTitle, $controlsVisibility, $zoomFactor, $defaultTab, $zoomControlsColor, $scaleX, $scaleY, $headerFontColor, $styleParameters, $infoJson, $serviceUri, $viewMode, $hospitalList, $notificatorRegistered, $notificatorEnabled, $enableFullscreenTab, $enableFullscreenModal);
                     $result4 = $insqDbtb3->execute();*/
                 
-                    $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily) " .
-                                 "VALUES($nextId , " . returnManagedStringForDb($name_widget) . ", " . returnManagedNumberForDb($id_dashboard) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb($int_temp_widget) . ", " . returnManagedStringForDb($comune_widget) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb($parameters) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb($styleParameters) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ")";
+                    $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily, actuatorEntity, actuatorAttribute) " .
+                                 "VALUES($nextId , " . returnManagedStringForDb($name_widget) . ", " . returnManagedNumberForDb($id_dashboard) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb($int_temp_widget) . ", " . returnManagedStringForDb($comune_widget) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb($parameters) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb($styleParameters) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ", " . returnManagedStringForDb($actuatorEntity) . ", " . returnManagedStringForDb($actuatorAttribute) .")";
                     
                     $result4 = mysqli_query($link, $insqDbtb3);
                     
@@ -2077,25 +2327,26 @@
                 echo 'window.location.href = "dashboard_configdash.php";';
                 echo '</script>';
             }
-        } 
+        /*} 
         else 
         {
             echo '<script type="text/javascript">';
             echo 'alert("Error: Nessuna metrica selezionata - ripetere inserimento widget");';
             echo 'window.location.href = "dashboard_configdash.php";';
             echo '</script>';
-        }
+        }*/
     } //Fine caso add_widget
-    else if(isset($_REQUEST['modify_dashboard']))//Escape 
+    else if(isset($_REQUEST['openDashboardToEdit']))//Escape 
     {
         session_start();
         $isAdmin = $_SESSION['loggedRole'];
-        $dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardName']);
-        $dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorName']);
+        $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+        //$dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardName']);
+        //$dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorName']);
         
         //Reperimento da DB del dashboardId e dell'id dell'autore della dashboard
-        $query = "SELECT Dashboard.Config_dashboard.Id, Dashboard.Config_dashboard.name_dashboard, Dashboard.Config_dashboard.user FROM Dashboard.Config_dashboard WHERE name_dashboard = '$dashboardName' AND Dashboard.Config_dashboard.user = '$dashboardAuthorName'";
-        $result = mysqli_query($link, $query) or die(mysqli_error($link));
+        $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = $dashboardId";
+        $result = mysqli_query($link, $query);
 
         if($result) 
         {
@@ -2145,39 +2396,54 @@
     } 
     else if (isset($_REQUEST['disable_dashboard']))//Escape 
     {
-        $username = $_SESSION['loggedUsername'];
-        $dashboardName = mysqli_real_escape_string($link, $_POST['select-dashboard-disable']);
-        $new_status_dashboard = 0;
-
-        $updqDbtb2 = "UPDATE Dashboard.Config_dashboard SET status_dashboard = '$new_status_dashboard' WHERE name_dashboard = '$dashboardName' and user = '$username'";
-        $result6 = mysqli_query($link, $updqDbtb2) or die(mysqli_error($link));
-
-        if($result6) 
+        if(isset($_SESSION['loggedRole']))
         {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Disabilitazione dashboard avvenuta con successo");';
-            echo 'window.location.href = "dashboard_mng.php";';
-            echo '</script>';
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error: Ripetere disabilitazione dashboard");';
-            echo 'window.location.href = "dashboard_mng.php";';
-            echo '</script>';
+            $username = $_SESSION['loggedUsername'];
+            $dashboardName = mysqli_real_escape_string($link, $_POST['select-dashboard-disable']);
+            $new_status_dashboard = 0;
+
+            $updqDbtb2 = "UPDATE Dashboard.Config_dashboard SET status_dashboard = '$new_status_dashboard' WHERE name_dashboard = '$dashboardName' and user = '$username'";
+            $result6 = mysqli_query($link, $updqDbtb2) or die(mysqli_error($link));
+
+            if($result6) 
+            {
+                mysqli_close($link);
+                echo '<script type="text/javascript">';
+                echo 'alert("Disabilitazione dashboard avvenuta con successo");';
+                echo 'window.location.href = "dashboard_mng.php";';
+                echo '</script>';
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo '<script type="text/javascript">';
+                echo 'alert("Error: Ripetere disabilitazione dashboard");';
+                echo 'window.location.href = "dashboard_mng.php";';
+                echo '</script>';
+            }
         }
     } 
-    else if(isset($_REQUEST['modify_widget']))//Escape 
+    else if(isset($_REQUEST['modify_widget'])) 
     {
         session_start();
         $dashboardName2 = $_SESSION['dashboardTitle'];
-        $type_widget_m = mysqli_real_escape_string($link, $_POST['select-widget-m']);
+        $widgetIdM = $_REQUEST['widgetIdM'];
+        if($_REQUEST['widgetCategoryHiddenM'] == "actuator")
+        {
+            $actuatorEntity = mysqli_real_escape_string($link, $_POST['widgetEntityM']);
+            $actuatorAttribute = mysqli_real_escape_string($link, $_POST['widgetAttributeM']);
+            $type_widget_m = mysqli_real_escape_string($link, $_POST['widgetActuatorTypeM']);
+            $name_widget_m = preg_replace('/\+/', '', $actuatorEntity) . "_" . $_SESSION['dashboardId'] . "_" . $type_widget_m . $widgetIdM;
+        }
+        else
+        {
+            $type_widget_m = mysqli_real_escape_string($link, $_POST['select-widget-m']);
+            $name_widget_m = $_POST['inputNameWidgetM'];
+        }
+        
         $title_widget_m = NULL;
         $color_widget_m = mysqli_real_escape_string($link, $_POST['inputColorWidgetM']); 
         $freq_widget_m = NULL;
-        $name_widget_m = $_POST['inputNameWidgetM'];
         $info_m = mysqli_real_escape_string($link, $_POST['widgetInfoEditorM']); 
         $col_m = mysqli_real_escape_string($link, $_POST['inputColumn-m']); 
         $row_m = mysqli_real_escape_string($link, $_POST['inputRows-m']); 
@@ -3541,17 +3807,30 @@
                }
            }
            
-            /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET type_w = ?, size_columns = ?, size_rows = ?, title_w = ?, color_w = ?, frequency_w = ?, temporal_range_w = ?, municipality_w = ?, infoMessage_w = ?, link_w = ?, parameters = ?, frame_color_w = ?, udm = ?, udmPos = ?, fontSize = ?, fontColor = ?, controlsPosition = ?, showTitle = ?, controlsVisibility = ?, defaultTab = ?, zoomControlsColor = ?, headerFontColor = ?, styleParameters = ?, infoJson = ?, serviceUri = ?, viewMode = ?, hospitalList = ?, lastSeries = ?, notificatorRegistered = ?, notificatorEnabled = ?, enableFullscreenTab = ?, enableFullscreenModal = ? WHERE name_w = ? AND id_dashboard = ?");
-            $upsqDbtb->bind_param('siisssssssssssissssisssssssssssssi', $type_widget_m, $col_m, $row_m, $title_widget_m, $color_widget_m, $freq_widget_m, $int_temp_widget_m, $comune_widget_m, $info_m, $url_m, $parametersM, $color_frame_m, $inputUdmWidget, $inputUdmPosition, $fontSizeM, $fontColorM, $controlsPosition, $showTitle, $controlsVisibility, $inputDefaultTabM, $zoomControlsColorM, $headerFontColorM, $styleParametersM, $infoJsonM, $serviceUri, $viewMode, $hospitalList, $lastSeries, $notificatorRegisteredNew, $notificatorEnabledNew, $enableFullscreenTabM, $enableFullscreenModalM, $name_widget_m, $id_dashboard2);
-            $result7 = $upsqDbtb->execute();*/
-           
-           $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m) 
+           if($_REQUEST['widgetCategoryHiddenM'] == "viewer")
+           {
+               $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m) 
                        . ", title_w = " . returnManagedStringForDb($title_widget_m) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m) 
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", infoMessage_w = " . returnManagedStringForDb($info_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM) 
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) 
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility) 
                        . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM) 
-                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ", viewMode = " . returnManagedStringForDb($viewMode) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . " WHERE name_w = '$name_widget_m' AND id_dashboard = $id_dashboard2";
+                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ", viewMode = " . returnManagedStringForDb($viewMode) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . " WHERE Id = '$widgetIdM' AND id_dashboard = $id_dashboard2";
+           }
+           else
+           {
+               $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET name_w = '$name_widget_m', type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m) 
+                       . ", title_w = " . returnManagedStringForDb($title_widget_m) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m) 
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", infoMessage_w = " . returnManagedStringForDb($info_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM) 
+                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) 
+                       . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility) 
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM) 
+                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ", viewMode = " . returnManagedStringForDb($viewMode) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) 
+                       . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) 
+                       . ", actuatorEntity = " . returnManagedStringForDb($actuatorEntity) . ", actuatorAttribute = " . returnManagedStringForDb($actuatorAttribute)
+                       . " WHERE Id = '$widgetIdM' AND id_dashboard = $id_dashboard2";
+           }
+           
            $result7 = mysqli_query($link, $upsqDbtb);
            
             if($result7) 
@@ -4179,591 +4458,391 @@
            echo '</script>';
          }
     } 
-    else if(isset($_REQUEST['add_new_metric']))//Escape 
+    else if(isset($_REQUEST['addMetricType'])) 
     {
         session_start();
-        $valueThreshold = 'null';
-        $valueThresholdEvalCount = 'null';
-        $valueTresholdTime = 'null';
+        if(isset($_SESSION['loggedRole']))
+        {
+            $metricName = mysqli_real_escape_string($link, $_POST['metricName']); 
+            $shortDescription = mysqli_real_escape_string($link, $_POST['shortDescription']);
+            $dataArea = mysqli_real_escape_string($link, $_POST['dataArea']);
+            $fullDescription = mysqli_real_escape_string($link, $_POST['fullDescription']);
+            $resultType = mysqli_real_escape_string($link, $_POST['resultType']); 
+            $updateFrequency = mysqli_real_escape_string($link, $_POST['updateFrequency']);
+            $processType = mysqli_real_escape_string($link, $_POST['processType']);
+            $cityContext = mysqli_real_escape_string($link, $_POST['cityContext']);
+            $timeRange = mysqli_real_escape_string($link, $_POST['timeRange']);
+            $storingData = mysqli_real_escape_string($link, $_POST['storingData']);
+            $dataSourceType = mysqli_real_escape_string($link, $_POST['dataSourceType']);
+            $dataSourceDescription = mysqli_real_escape_string($link, $_POST['dataSourceDescription']);
+            $query1 = NULL;
+            $query2 = NULL;
 
-        $valueIdMetric = $_POST['nameMetric'];
-        $valueDescription = $_POST['descriptionMetric'];
-        if(isset($_POST['queryMetric'])) 
-        {
-            $query_composta = $_POST['queryMetric'];
-            $valueQuery = $_POST['queryMetric'];
-        }
-        
-        if(isset($_POST['queryMetric2']) && $_POST['queryMetric2'] != NULL) 
-        {
-            $valueQuery2 = $_POST['queryMetric2'];
-            $query_composta = $valueQuery . "|" . $valueQuery2;
-        }
-
-        $valueQueryType = mysqli_real_escape_string($link, $_POST['queryTypeMetric']); 
-        $valueMetricType = mysqli_real_escape_string($link, $_POST['typeMetric']); 
-        $valueFrequency = mysqli_real_escape_string($link, $_POST['frequencyMetric']);
-        $valueProcessType = mysqli_real_escape_string($link, $_POST['processTypeMetric']); 
-        $valueArea = mysqli_real_escape_string($link, $_POST['areaMetric']); 
-        $valueSource = mysqli_real_escape_string($link, $_POST['sourceMetric']); 
-        $valueDescriptionShort = mysqli_real_escape_string($link, $_POST['descriptionShortMetric']); 
-        
-        if(isset($_POST['dataSourceMetric']))
-        {
-            $dataSourceComposto = mysqli_real_escape_string($link, $_POST['dataSourceMetric']); 
-            $valueDataSource = mysqli_real_escape_string($link, $_POST['dataSourceMetric']); 
-        }
-        if(isset($_POST['dataSourceMetric2']) && $_POST['dataSourceMetric2'] != NULL) 
-        {
-            $valueDataSource2 = mysqli_real_escape_string($link, $_POST['dataSourceMetric2']); 
-            $dataSourceComposto = $valueDataSource . "|" . $valueDataSource2;
-        }
-        
-        $valueDataSource = mysqli_real_escape_string($link, $_POST['dataSourceMetric']);
-        
-        if($_POST['thresholdMetric'] != '') 
-        {
-            $valueThreshold = mysqli_real_escape_string($link, $_POST['thresholdMetric']); 
-        } 
-        else 
-        {
-            $valueThreshold = 'null';
-        }
-        
-        $valueThresholdEval = mysqli_real_escape_string($link, $_POST['thresholdEvalMetric']); 
-        
-        if($_POST['thresholdEvalCountMetric'] != '') 
-        {
-            $valueThresholdEvalCount = mysqli_real_escape_string($link, $_POST['thresholdEvalCountMetric']);
-        } 
-        else 
-        {
-            $valueThresholdEvalCount = 'null';
-        }
-        
-        if($_POST['thresholdTimeMetric'] != '') 
-        {
-            $valueTresholdTime = mysqli_real_escape_string($link, $_POST['thresholdTimeMetric']); 
-        } 
-        else 
-        {
-            $valueTresholdTime = 'null';
-        }
-        
-        if (isset($_POST['storingDataMetric'])) 
-        {
-            $valueStoringData = 1;
-        } 
-        else 
-        {
-            $valueStoringData = 0;
-        }
-        
-        if(isset($_POST['contextMetric'])) 
-        {
-            $valueMunicipalityOption = 1;
-        } 
-        else 
-        {
-            $valueMunicipalityOption = 0;
-        }
-        if(isset($_POST['timeRangeMetric'])) 
-        {
-            $valueTimeRangeOption = 1;
-        } 
-        else 
-        {
-            $valueTimeRangeOption = 0;
-        }
-
-        $insqDbtb6 = "INSERT INTO Dashboard.Descriptions(IdMetric, description, status, query, query2, queryType, metricType, frequency, processType, area, source, description_short , dataSource, threshold, thresholdEval, thresholdEvalCount, thresholdTime, storingData, municipalityOption, timeRangeOption) 
-        VALUES ('$valueIdMetric',\"" . $valueDescription . "\",'Attivo',\"" . $query_composta . "\",'','$valueQueryType','$valueMetricType','$valueFrequency','$valueProcessType','$valueArea','$valueSource','$valueDescriptionShort','$dataSourceComposto', $valueThreshold , '$valueThresholdEval', $valueThresholdEvalCount,$valueTresholdTime,'$valueStoringData','$valueMunicipalityOption','$valueTimeRangeOption')";
-        echo $insqDbtb6;
-        $result8 = mysqli_query($link, $insqDbtb6) or die(mysqli_error($link));
-
-
-        $file = "querylog.txt";
-        file_put_contents($file, $result8);
-        if ($result8)
-        {
-            mysqli_close($link);
-            header("location: metrics_mng.php");
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error during metric creation");';
-            echo 'window.location.href = "metrics_mng.php";';
-            echo '</script>';
-        } 
-    } 
-    else if (isset($_REQUEST['modify_metric']))//Escape 
-    {
-        $valueIdMetric_M = mysqli_real_escape_string($link, $_POST['modify-nameMetric']);
-        $valueDescription_M = htmlspecialchars($_POST['modify-descriptionMetric'], ENT_QUOTES);
-
-        if(isset($_POST['modify-queryMetric'])) 
-        {
-            $queryComposta_M = mysql_real_escape_string($_POST['modify-queryMetric']);
-            $valueQuery_M = mysql_real_escape_string($_POST['modify-queryMetric']);
-        }
-        if(isset($_POST['modify-queryMetric2']) && $_POST['modify-queryMetric2'] != NULL)
-        {
-            $valueQuery2_M = mysql_real_escape_string($_POST['modify-queryMetric2']);
-            $queryComposta_M = mysql_real_escape_string($valueQuery_M . "|" . $valueQuery2_M);
-        }
-        
-        $valueQueryType_M = mysqli_real_escape_string($link, $_POST['modify-queryTypeMetric']);
-        echo $valueQuery_M;
-        
-        $valueFrequency_M = mysqli_real_escape_string($link, $_POST['modify-frequencyMetric']);
-        $valueProcessType_M = mysqli_real_escape_string($link, $_POST['modify-processTypeMetric']);
-        $valueArea_M = mysqli_real_escape_string($link, $_POST['modify-areaMetric']); 
-        $valueSource_M = mysqli_real_escape_string($link, $_POST['modify-sourceMetric']);
-        $valueDescriptionShort_M = mysqli_real_escape_string($link, $_POST['modify-descriptionShortMetric']);
-        
-        if(isset($_POST['modify-dataSourceMetric'])) 
-        {
-            $valueDataSource_M = mysqli_real_escape_string($link, $_POST['modify-dataSourceMetric']); 
-            $datasourceComposto_M = mysqli_real_escape_string($link, $_POST['modify-dataSourceMetric']);
-        }
-        
-        if(isset($_POST['modify-datasourceMetric2']) && $_POST['modify-datasourceMetric2'] != NULL) 
-        {
-            $valueDataSource2_M = mysqli_real_escape_string($link, $_POST['modify-datasourceMetric2']); 
-            $datasourceComposto_M = $valueDataSource_M . "|" . $valueDataSource2_M;
-        }
-        
-        if($_POST['modify-thresholdMetric'] != '') 
-        {
-            $valueThreshold_M = mysqli_real_escape_string($link, $_POST['modify-thresholdMetric']);
-        } 
-        else 
-        {
-            $valueThreshold_M = 'null';
-        }
-        
-        $valueThresholdEval_M = mysqli_real_escape_string($link, $_POST['modify-thresholdEvalMetric']);
-        
-        if($_POST['modify-thresholdEvalCountMetric'] != '') 
-        {
-            $valueThresholdEvalCount_M = mysqli_real_escape_string($link, $_POST['modify-thresholdEvalCountMetric']);
-        } 
-        else 
-        {
-            $valueThresholdEvalCount_M = 'null';
-        }
-
-        if ($_POST['modify-thresholdTime'] != '') 
-        {
-            $valueTresholdTime_M = mysqli_real_escape_string($link, $_POST['modify-thresholdTime']);
-        } 
-        else 
-        {
-            $valueTresholdTime_M = 'null';
-        }
-        
-        if(isset($_POST['modify-storingDataMetric'])) 
-        {
-            $valueStoringData_M = 1;
-        } 
-        else 
-        {
-            $valueStoringData_M = 0;
-        }
-        
-        if(isset($_POST['modify-contextMetric'])) 
-        {
-            $valueMunicipalityOption_M = 1;
-        } 
-        else 
-        {
-            $valueMunicipalityOption_M = 0;
-        }
-        
-        if(isset($_POST['modify-timeRangeMetric'])) 
-        {
-            $valueTimeRangeOption_M = 1;
-        } 
-        else 
-        {
-            $valueTimeRangeOption_M = 0;
-        }
-        
-        $updqDbtbY = "UPDATE Dashboard.Descriptions SET description = \"" . $valueDescription_M . "\", query=\"" . $queryComposta_M . "\", query2='', queryType='$valueQueryType_M', frequency='$valueFrequency_M', processType='$valueProcessType_M', area='$valueArea_M', source='$valueSource_M', description_short='$valueDescriptionShort_M', dataSource='$datasourceComposto_M', threshold=$valueThreshold_M, thresholdEval='$valueThresholdEval_M', thresholdEvalCount=$valueThresholdEvalCount_M, thresholdTime=$valueTresholdTime_M, storingData=$valueStoringData_M, municipalityOption=$valueMunicipalityOption_M, timeRangeOption=$valueTimeRangeOption_M WHERE IdMetric='$valueIdMetric_M' ";
-        $resultY = mysqli_query($link, $updqDbtbY) or die(mysqli_error($link));
-        
-        if($resultY) 
-        {
-            mysqli_close($link);
-            header("location: metrics_mng.php");
-        }
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Errore during metric modify");';
-            echo 'window.location.href = "metrics_mng.php";';
-            echo '</script>';
-        }
-    } 
-    else if (isset($_REQUEST['delete_metric']))//Escape 
-    {
-        echo 'eliminazione della metrica avvenuta';
-        
-        $name_metric_select = mysqli_real_escape_string($link, $_POST['delete_metric']); 
-        $delqDbtbZ = "DELETE FROM Dashboard.Descriptions WHERE IdMetric='$name_metric_select'";
-        $resultZ = mysqli_query($link, $delqDbtbZ) or die(mysqli_error($link));
-        if($resultZ) 
-        {
-            mysqli_close($link);
-            header("location: metrics_mng.php");
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error during metric delete");';
-            echo 'window.location.href = "metrics_mng.php";';
-            echo '</script>';
-        }
-    } 
-    else if (isset($_REQUEST['modify-status'])) //Escape
-    {
-        echo 'modifica status della metrica';
-        $name_metric_selected = mysqli_real_escape_string($link, $_POST['modify-status']);
-        $query_select_status = "SELECT Descriptions.status FROM Dashboard.Descriptions WHERE Descriptions.IdMetric='$name_metric_selected'";
-        $valore = mysqli_query($link, $query_select_status) or die(mysqli_error($link));
-
-        if ($valore->num_rows > 0) 
-        {
-            while ($rowStatus = mysqli_fetch_array($valore)) 
+            if(isset($_POST['query']))
             {
-                echo ('Il valore è: ' + $valore);
-                if ($rowStatus[0] == 'Non Attivo') 
+                if(trim($_POST['query']) != "")
                 {
-                    $updqDbtbStatus = "UPDATE Dashboard.Descriptions SET Descriptions.status='Attivo' WHERE Descriptions.IdMetric='$name_metric_selected'";
-                } 
-                else if($rowStatus[0] == 'Attivo') 
-                {
-                    $updqDbtbStatus = "UPDATE Dashboard.Descriptions SET Descriptions.status='Non Attivo' WHERE Descriptions.IdMetric='$name_metric_selected'";
-                }
-                
-                $resultStatus = mysqli_query($link, $updqDbtbStatus) or die(mysqli_error($link));
-                
-                if ($resultStatus) 
-                {
-                    mysqli_close($link);
-                    header("location: metrics_mng.php");
-                } 
-                else 
-                {
-                    mysqli_close($link);
-                    echo '<script type="text/javascript">';
-                    echo 'alert("Error during status metric modify");';
-                    echo 'window.location.href = "metrics_mng.php";';
-                    echo '</script>';
+                    $query1 = mysqli_real_escape_string($link, $_POST['query']);
                 }
             }
-        }
-    } 
-    else if(isset($_REQUEST['modify_status_dashboard']))//Escape
-    {
-        session_start();
-        $dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardNameForStatusChange']);
-        $dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorNameForStatusChange']);
-        
-        //Reperimento da DB del nome dell'autore della dashboard, del dashboardId e dell'id dell'autore della dashboard (L'ID NON SERVE PIU')
-        $query = "SELECT Dashboard.Config_dashboard.Id as dashboardId, Dashboard.Config_dashboard.status_dashboard as dashboardStatus, Users.username as dashboardAuthorName, Users.idUser as idUser FROM Dashboard.Config_dashboard INNER JOIN Users ON Config_dashboard.user = Users.IdUser WHERE name_dashboard = '$dashboardName' AND Users.username = '$dashboardAuthorName'";
-        $result = mysqli_query($link, $query) or die(mysqli_error($link));
-        
-        if($result) 
-        {
-            if($result->num_rows > 0) 
+
+            if(isset($_POST['query2']))
             {
-                while($row = mysqli_fetch_array($result)) 
+                if(trim($_POST['query2']) != "")
                 {
-                    $_SESSION['dashboardId'] = $row['dashboardId'];
-                    $_SESSION['dashboardAuthorName'] = $dashboardAuthorName;
-                    $dashboardStatus = $row['dashboardStatus'];
+                    $query2 = mysqli_real_escape_string($link, $_POST['query2']);
                 }
-                
-                if(canEditDashboard())
+            }
+
+            if(isset($_POST['dataSource2']))
+            {
+                if($_POST['dataSource2'] != "none")
                 {
-                    if($dashboardStatus == "0") 
-                    {
-                        $dashboardNewStatus = 1;
-                    } 
-                    else if($dashboardStatus == "1") 
-                    {
-                        $dashboardNewStatus = 0;
-                    }
-                    
-                    $update = "UPDATE Dashboard.Config_dashboard SET Config_dashboard.status_dashboard = " . $dashboardNewStatus . " WHERE Config_dashboard.Id = " . $_SESSION['dashboardId'];
-
-                    $resultStatusDash = mysqli_query($link, $update) or die(mysqli_error($link));
-                    mysqli_close($link);
-
-                    if($resultStatusDash) 
-                    {
-                        header("location: dashboard_mng.php");
-                    } 
-                    else 
-                    {
-                        echo '<script type="text/javascript">';
-                        echo 'alert("Error during status metric modify");';
-                        echo 'window.location.href = "dashboard_mng.php";';
-                        echo '</script>';
-                    }
+                    $dataSource1 = mysqli_real_escape_string($link, $_POST['dataSource']);
+                    $dataSource2 = mysqli_real_escape_string($link, $_POST['dataSource2']);
+                    $dataSource = $dataSource1 . "|" . $dataSource2;
                 }
                 else
                 {
-                    header("location: unauthorizedUser.php");
+                    $dataSource = mysqli_real_escape_string($link, $_POST['dataSource']);
                 }
             }
             else
             {
-                header("location: unauthorizedUser.php");
+                $dataSource = mysqli_real_escape_string($link, $_POST['dataSource']);
+            }
+
+            $sameDataAlarmCount = mysqli_real_escape_string($link, $_POST['sameDataAlarmCount']);
+            $hasNegativeValues = mysqli_real_escape_string($link, $_POST['hasNegativeValues']);
+            $oldDataEvalTime = mysqli_real_escape_string($link, $_POST['oldDataEvalTime']);
+            $process = mysqli_real_escape_string($link, $_POST['process']);
+
+            $q = "INSERT INTO Dashboard.Descriptions(IdMetric, description, status, query, query2, queryType, metricType, frequency, processType, area, source, description_short, dataSource, storingData, municipalityOption, timeRangeOption, sameDataAlarmCount, oldDataEvalTime, hasNegativeValues, process) 
+                  VALUES('$metricName', '$fullDescription', 'Attivo', " . returnManagedStringForDb($query1) . ", " . returnManagedStringForDb($query2) . ", '$dataSourceType', '$resultType', '$updateFrequency', '$processType', '$dataArea', '$dataSourceDescription', '$shortDescription', '$dataSource', '$storingData', '$cityContext', '$timeRange', " . returnManagedNumberForDb($sameDataAlarmCount) . ", " . returnManagedNumberForDb($oldDataEvalTime) . ", '$hasNegativeValues', " . returnManagedStringForDb($process) . ")";
+
+            $r = mysqli_query($link, $q);
+
+            if($r)
+            {
+                echo "Ok";
+            } 
+            else 
+            {
+                echo "Ko";
+            }
+            mysqli_close($link);
+        }
+    } 
+    else if(isset($_REQUEST['editMetricType']))
+    {
+        session_start();
+        
+        if(isset($_SESSION['loggedRole']))
+        {
+            $metricId = mysqli_real_escape_string($link, $_POST['metricId']); 
+            $metricName = mysqli_real_escape_string($link, $_POST['metricNameM']); 
+            $shortDescription = mysqli_real_escape_string($link, $_POST['shortDescriptionM']);
+            $dataArea = mysqli_real_escape_string($link, $_POST['dataAreaM']);
+            $fullDescription = mysqli_real_escape_string($link, $_POST['fullDescriptionM']);
+            $resultType = mysqli_real_escape_string($link, $_POST['resultTypeM']); 
+            $updateFrequency = mysqli_real_escape_string($link, $_POST['updateFrequencyM']);
+            $processType = mysqli_real_escape_string($link, $_POST['processTypeM']);
+            $cityContext = mysqli_real_escape_string($link, $_POST['cityContextM']);
+            $timeRange = mysqli_real_escape_string($link, $_POST['timeRangeM']);
+            $storingData = mysqli_real_escape_string($link, $_POST['storingDataM']);
+            $dataSourceType = mysqli_real_escape_string($link, $_POST['dataSourceTypeM']);
+            $dataSourceDescription = mysqli_real_escape_string($link, $_POST['dataSourceDescriptionM']);
+            $query = mysqli_real_escape_string($link, $_POST['queryM']);
+            $sameDataAlarmCount = mysqli_real_escape_string($link, $_POST['sameDataAlarmCountM']);
+            $hasNegativeValues = mysqli_real_escape_string($link, $_POST['hasNegativeValuesM']);
+            $oldDataEvalTime = mysqli_real_escape_string($link, $_POST['oldDataEvalTimeM']);
+            $process = mysqli_real_escape_string($link, $_POST['processM']);
+
+            $query1 = NULL;
+            $query2 = NULL;
+
+            if(isset($_POST['queryM']))
+            {
+                if(trim($_POST['queryM']) != "")
+                {
+                    $query1 = mysqli_real_escape_string($link, $_POST['queryM']);
+                }
+            }
+
+            if(isset($_POST['query2M']))
+            {
+                if(trim($_POST['query2M']) != "")
+                {
+                    $query2 = mysqli_real_escape_string($link, $_POST['query2M']);
+                }
+            }
+
+            if(isset($_POST['dataSource2M']))
+            {
+                if($_POST['dataSource2M'] != "none")
+                {
+                    $dataSource1 = mysqli_real_escape_string($link, $_POST['dataSourceM']);
+                    $dataSource2 = mysqli_real_escape_string($link, $_POST['dataSource2M']);
+                    $dataSource = $dataSource1 . "|" . $dataSource2;
+                }
+                else
+                {
+                    $dataSource = mysqli_real_escape_string($link, $_POST['dataSourceM']);
+                }
+            }
+            else
+            {
+                $dataSource = mysqli_real_escape_string($link, $_POST['dataSourceM']);
+            }
+
+            $q = "UPDATE Dashboard.Descriptions SET IdMetric = '$metricName', description = '$fullDescription', query = " . returnManagedStringForDb($query1) . ", query2 = " . returnManagedStringForDb($query2) . ", queryType = '$dataSourceType', metricType = '$resultType', frequency = '$updateFrequency', processType = '$processType', area = '$dataArea', source = '$dataSourceDescription', description_short = '$shortDescription', dataSource = " . returnManagedStringForDb($dataSource) . ", storingData = '$storingData', municipalityOption = '$cityContext', timeRangeOption = '$timeRange', sameDataAlarmCount = " . returnManagedNumberForDb($sameDataAlarmCount) . ", oldDataEvalTime = " . returnManagedNumberForDb($oldDataEvalTime) . ", hasNegativeValues = '$hasNegativeValues', process = " . returnManagedStringForDb($process) . " WHERE Descriptions.id = $metricId";
+            $r = mysqli_query($link, $q);
+
+            if($r)
+            {
+                echo "Ok";
+            } 
+            else 
+            {
+                echo "Ko";
             }
         }
-        else
-        {
-            header("location: unauthorizedUser.php");
-        }
+        
         mysqli_close($link);
     } 
-    else if (isset($_REQUEST['create_dataSources']))//Escape 
+    else if(isset($_REQUEST['deleteMetric']))//Escape 
     {
-        $id_ds = mysqli_real_escape_string($link, $_POST['name_Id_dataSource']);
-        $url_ds = mysqli_real_escape_string($link, $_POST['url_dataSource']); 
-        $dataBase_ds = mysqli_real_escape_string($link, $_POST['database_dataSource']); 
-        $user_ds = mysqli_real_escape_string($link, $_POST['username_dataSource']); 
-        $pass_ds = mysqli_real_escape_string($link, $_POST['password_dataSource']); 
-        $dataType_ds = mysqli_real_escape_string($link, $_POST['databaseType_dataSource']);
-
-        echo $id_ds . '<br>';
-        echo $url_ds . '<br>';
-        echo $dataBase_ds . '<br>';
-        echo $user_ds . '<br>';
-        echo $pass_ds . '<br>';
-        echo $dataType_ds . '<br>';
-
-        $insDbDatasource = "INSERT INTO `Dashboard`.`DataSource` (`Id`, `url`, `database`, `username`, `password`, `databaseType`)VALUES ('$id_ds','$url_ds','$dataBase_ds','$user_ds','$pass_ds','$dataType_ds')";
-        $resultDataSource = mysqli_query($link, $insDbDatasource) or die(mysqli_error($link));
-        if ($resultDataSource) 
+        session_start();
+        
+        if(isset($_SESSION['loggedRole']))
         {
-            mysqli_close($link);
-            header("location: dataSources_mng.php");
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error: Repeat Data Source creation");';
-            echo 'window.location.href = "dataSources_mng.php";';
-            echo '</script>';
+            $metricId = mysqli_real_escape_string($link, $_REQUEST['metricId']);
+            $q = "DELETE FROM Dashboard.Descriptions WHERE id = $metricId";
+            $r = mysqli_query($link, $q);
+            if($r) 
+            {
+                mysqli_close($link);
+                echo "Ok";
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
         }
     } 
-    else if (isset($_REQUEST['modify_dataSources'])) //Escape
+    else if(isset($_REQUEST['updateMetricStatus']))
     {
-        $id_ds_M = mysqli_real_escape_string($link, $_POST['name_Id_dataSource_M']);
-        $url_ds_M = mysqli_real_escape_string($link, $_POST['url_dataSource_M']); 
-        $dataBase_ds_M = mysqli_real_escape_string($link, $_POST['database_dataSource_M']); 
-        $user_ds_M = mysqli_real_escape_string($link, $_POST['username_dataSource_M']); 
-        $pass_ds_M = mysqli_real_escape_string($link, $_POST['password_dataSource_M']); 
-        $dataType_ds_M = mysqli_real_escape_string($link, $_POST['databaseType_dataSource_M']);
+        session_start();
+        if(isset($_SESSION['loggedRole']))
+        {
+            $metricId = mysqli_real_escape_string($link, $_REQUEST['metricId']);
+            $newStatus = mysqli_real_escape_string($link, $_REQUEST['newStatus']);
 
-        $updateDataSource = "UPDATE `Dashboard`.`DataSource` SET `DataSource`.`url`='$url_ds_M', `DataSource`.`database`='$dataBase_ds_M', `DataSource`.`username`='$user_ds_M', `DataSource`.`password`='$pass_ds_M', `DataSource`.`databaseType`='$dataType_ds_M'  WHERE `DataSource`.`Id`='$id_ds_M'";
-        $resultUpdateDataSource = mysqli_query($link, $updateDataSource) or die(mysqli_error($link));
-        
-        if ($updateDataSource) 
-        {
-            mysqli_close($link);
-            header("location: dataSources_mng.php");
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error: Ripetere modifica del Datasources");';
-            echo 'window.location.href = "dataSources_mng.php";';
-            echo '</script>';
+            $q = "UPDATE Dashboard.Descriptions SET Descriptions.status = '$newStatus' WHERE Descriptions.id = $metricId";
+            $r = mysqli_query($link, $q);
+
+            if($r)
+            {
+                mysqli_close($link);
+                echo "Ok";
+            }
+            else
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
         }
     } 
-    else if (isset($_REQUEST['add_widget_type'])) //Escape
+    else if(isset($_REQUEST['modify_status_dashboard']))
     {
-        $php_w = mysqli_real_escape_string($link, $_POST['php_w']); $_POST[''];
-        $dividiPhp = preg_split("/.php/", $php_w);
-        $id_w = $dividiPhp[0];
-
-        $intero = mysqli_real_escape_string($link, $_POST['integer_w']); 
-        $percentuale = mysqli_real_escape_string($link, $_POST['percentage_w']); 
-        $testuale = mysqli_real_escape_string($link, $_POST['textual_w']); 
-        $mappa = mysqli_real_escape_string($link, $_POST['map_w']); 
-        $sce = mysqli_real_escape_string($link, $_POST['sce_w']); 
-        $float= mysqli_real_escape_string($link, $_POST['float_w']); 
-        $bottone= mysqli_real_escape_string($link, $_POST['button_w']); 
-
-        $elenco_tipi= $intero.'|'.$percentuale.'|'.$testuale.'|'.$mappa.'|'.$sce.'|'.$float.'|'.$bottone;
-
-        echo ($elenco_tipi);
-        $color_w = 0;
-        $type_w = NULL;
-        $met_w = NULL;  
-
-        if(isset($_POST['mnC_w'])|| $_POST['mnC_w']!=='')
-        {
-            $minC = mysqli_real_escape_string($link, $_POST['mnC_w']);   
-        }
-        else
-        {
-            $minC = NULL;  
-        }
-
-        if(isset($_POST['mxC_w'])|| $_POST['mxC_w']!=='')
-        {
-            $maxC = mysqli_real_escape_string($link, $_POST['mxC_w']); 
-        }
-        else
-        {
-            $maxC = NULL;  
-        }
-
-        if(isset($_POST['mnR_w'])|| $_POST['mnR_w']!=='')
-        {
-            $minR = mysqli_real_escape_string($link, $_POST['mnR_w']);   
-        }
-        else
-        {
-            $minR = NULL;  
-        }      
-
-        if(isset($_POST['mxR_w'])|| $_POST['mxR_w']!=='')
-        {
-            $maxR = mysqli_real_escape_string($link, $_POST['mxR_w']); 
-        }
-        else
-        {
-            $maxR = NULL;
-        }
-
-        if(isset($_POST['met_w']))
-        {
-            $met_w = mysqli_real_escape_string($link, $_POST['met_w']); 
-        }
-
-        if(isset($_POST['col_w'])|| $_POST['col_w']!='')
-        {
-            $color_w = mysqli_real_escape_string($link, $_POST['col_w']);  
-        }
-
-
-        if(isset($_POST['type_w']))
-        {
-            $type_w = mysqli_real_escape_string($link, $_POST['type_w']); 
-        } 
-
-        if(isset($_POST['metric_w']))
-        {
-            $metric_w = mysqli_real_escape_string($link, $_POST['metric_w']); 
-        }
-
-        if(isset($_POST['numeric_range_w']))
-        {
-            $range_w = 1;
-        }
-        else
-        {
-            $range_w = 0;   
-        }   
-
-        $stringa = str_replace("|||", "|", $elenco_tipi);
-        $stringa = str_replace("||", "|", $stringa); 
-        $stringa = str_replace("||", "|", $stringa);
+        session_start();
         
-        if(substr($stringa, 0, 1) == '|')
+        if(isset($_SESSION['loggedRole']))
         {
-            $stringa = substr($stringa, 1);
+            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+            $dashboardNewStatus = mysqli_real_escape_string($link, $_REQUEST['newStatus']);
+
+            $q = "UPDATE Dashboard.Config_dashboard SET Config_dashboard.status_dashboard = " . $dashboardNewStatus . " WHERE Config_dashboard.Id = " . $dashboardId;
+            $r = mysqli_query($link, $q);
+            mysqli_close($link);
+
+            if($r) 
+            {
+                echo "Ok";
+            } 
+            else 
+            {
+                echo "Ko";
+            }
+        }
+    } 
+    else if(isset($_POST['addDs'])) 
+    {
+        session_start();
+
+        if(isset($_SESSION['loggedRole']))
+        {
+            $Id = mysqli_real_escape_string($link, $_POST['name']);
+            $url = mysqli_real_escape_string($link, $_POST['url']); 
+            $database = mysqli_real_escape_string($link, $_POST['dbName']); 
+            $databaseType = mysqli_real_escape_string($link, $_POST['dbType']); 
+            $username = mysqli_real_escape_string($link, $_POST['dbUsr']); 
+            $password = mysqli_real_escape_string($link, $_POST['dbPwd']);
+
+            $q = "INSERT INTO Dashboard.DataSource(Id, url, DataSource.database, username, password, databaseType) VALUES('$Id', '$url', '$database', '$username', '$password', '$databaseType')";
+            $r = mysqli_query($link, $q);
+
+            if($r) 
+            {
+                mysqli_close($link);
+                echo "Ok";
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
+        }
+    } 
+    else if(isset($_REQUEST['updateDs'])) 
+    {
+        session_start();
+
+        if(isset($_SESSION['loggedRole']))
+        {
+            $id = mysqli_real_escape_string($link, $_POST['id']);
+            $Id = mysqli_real_escape_string($link, $_POST['name']);
+            $url = mysqli_real_escape_string($link, $_POST['url']); 
+            $database = mysqli_real_escape_string($link, $_POST['dbName']); 
+            $databaseType = mysqli_real_escape_string($link, $_POST['dbType']); 
+            $username = mysqli_real_escape_string($link, $_POST['dbUsr']); 
+            $password = mysqli_real_escape_string($link, $_POST['dbPwd']);
+
+            $q = "UPDATE Dashboard.DataSource SET Id = '$Id', url = '$url', DataSource.database = '$database', username = '$username', password = '$password', databaseType = '$databaseType' WHERE intId = $id";
+            $r = mysqli_query($link, $q);
+
+            if($r) 
+            {
+                mysqli_close($link);
+                echo "Ok";
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
         }
         
-        $type_w = $stringa;
+    }
+    else if(isset($_POST['delDs']))
+    {
+        session_start();
 
-        $insWid = "INSERT INTO `Dashboard`.`Widgets` (`id_type_widget`,`source_php_widget`,`min_row`,`max_row`,`min_col`,`max_col`,`widgetType`,`unique_metric`,`numeric_rangeOption`,`number_metrics_widget`,`color_widgetOption`) VALUES ('$id_w','$php_w','$minR','$maxR','$minC','$maxC','$type_w','$metric_w','$range_w','$met_w','$color_w')";
-        $resultWid = mysqli_query($link, $insWid) or die(mysqli_error($link));
+        if(isset($_SESSION['loggedRole']))
+        {
+            $id = mysqli_real_escape_string($link, $_POST['id']);
+        
+            $q = "DELETE FROM Dashboard.DataSource WHERE intId = $id";
+            $r = mysqli_query($link, $q);
 
-        if($insWid) 
-        {
-            mysqli_close($link);
-            header("location: widgets_mng.php");
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error: Inserimento Widgets");';
-            echo 'window.location.href = "widgets_mng.php";';
-            echo '</script>';
+            if($r) 
+            {
+                mysqli_close($link);
+                echo "Ok";
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
         }
     }
-    else if (isset($_REQUEST['modify_widget_type']))//Escape 
+    else if(isset($_POST['addWidgetType']))
     {
-        $intero_m = mysqli_real_escape_string($link, $_POST['integer_m']); 
-        $percentuale_m = mysqli_real_escape_string($link, $_POST['percentage_m']); 
-        $testuale_m = mysqli_real_escape_string($link, $_POST['textual_m']); 
-        $mappa_m = mysqli_real_escape_string($link, $_POST['map_m']); 
-        $sce_m = mysqli_real_escape_string($link, $_POST['sce_m']); 
-        $float_m= mysqli_real_escape_string($link, $_POST['float_m']); 
-        $bottone_m= mysqli_real_escape_string($link, $_POST['button_m']); 
+        session_start();
 
-        $elenco_tipi_m= $intero_m.'|'.$percentuale_m.'|'.$testuale_m.'|'.$mappa_m.'|'.$sce_m.'|'.$float_m.'|'.$bottone_m; 
-        $id_m = mysqli_real_escape_string($link, $_POST['id_m']); 
-        $php_m = mysqli_real_escape_string($link, $_POST['php_m']); 
-        $minC_m = mysqli_real_escape_string($link, $_POST['mnC_m']); 
-        $maxC_m = mysqli_real_escape_string($link, $_POST['mxC_m']); 
-        $minR_m = mysqli_real_escape_string($link, $_POST['mnR_m']); 
-        $maxR_m = mysqli_real_escape_string($link, $_POST['mxR_m']); 
-        $met_m = mysqli_real_escape_string($link, $_POST['met_m']); 
-        $color_m = mysqli_real_escape_string($link, $_POST['col_m']); 
-        $type_m = mysqli_real_escape_string($link, $_POST['type_m']); 
-
-        $stringa_m = str_replace("|||", "|", $elenco_tipi_m);
-        $stringa_m = str_replace("||", "|", $stringa_m); 
-        $stringa_m = str_replace("||", "|", $stringa_m);
-        
-        if(substr($stringa_m, 0, 1) == '|')
+        if(isset($_SESSION['loggedRole']))
         {
-            $stringa_m = substr($stringa_m, 1);
+            $id_type_widget = mysqli_real_escape_string($link, $_POST['widgetName']);
+            $source_php_widget = mysqli_real_escape_string($link, $_POST['phpFilename']);
+            $min_row = mysqli_real_escape_string($link, $_POST['minHeight']);
+            $max_row = mysqli_real_escape_string($link, $_POST['maxHeight']);
+            $min_col = mysqli_real_escape_string($link, $_POST['minWidth']);
+            $max_col = mysqli_real_escape_string($link, $_POST['maxWidth']);
+            $widgetType = mysqli_real_escape_string($link, $_POST['metricType']);
+            $unique_metric = mysqli_real_escape_string($link, $_POST['uniqueMetric']);
+            $number_metrics_widget = mysqli_real_escape_string($link, $_POST['metricsNumber']);
+
+            $q = "INSERT INTO Dashboard.Widgets(id_type_widget, source_php_widget, min_row, max_row, min_col, max_col, widgetType, unique_metric, number_metrics_widget) " .
+                 "VALUES('$id_type_widget', '$source_php_widget', $min_row, $max_row, $min_col, $max_col, " . returnManagedStringForDb($widgetType) . ", '$unique_metric', " . returnManagedNumberForDb($number_metrics_widget) . ")";
+            $r = mysqli_query($link, $q);
+
+            if($r) 
+            {
+                mysqli_close($link);
+                echo "Ok";
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
         }
+    }
+    else if(isset($_POST['delWidgetType']))
+    {
+        session_start();
+
+        if(isset($_SESSION['loggedRole']))
+        {
+            $id = mysqli_real_escape_string($link, $_POST['id']);
         
-        $lunghezza_m = $stringa_m.legth;
-        $type_m = $stringa_m;
-        $metric_m = $_POST['metric_m'];
+            $q = "DELETE FROM Dashboard.Widgets WHERE id = $id";
+            $r = mysqli_query($link, $q);
 
-        if (isset($_POST['numeric_range_m']))
-        {
-            $range_m = 1;
+            if($r) 
+            {
+                mysqli_close($link);
+                echo "Ok";
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
         }
-        else 
-        {
-            $range_m = 0;   
-        }   
+    }
+    else if(isset($_REQUEST['editWidgetType']))
+    {
+        session_start();
 
-        $modWid = "UPDATE `Dashboard`.`Widgets` SET `Widgets`.`source_php_widget`='$php_m', `Widgets`.`min_row`='$minR_m',`Widgets`.`max_row`='$maxR_m', `Widgets`.`min_col`='$minC_m', `Widgets`.`max_col`='$maxC_m', `Widgets`.`widgetType`='$type_m', `Widgets`.`unique_metric`='$metric_m', `widgets`.`numeric_rangeOption`='$range_m', `widgets`.`number_metrics_widget`='$met_m', `widgets`.`color_widgetOption`='$color_m' WHERE `Widgets`.`id_type_widget`='$id_m'";
-        $resultModWid = mysqli_query($link, $modWid) or die(mysqli_error($link));
+        if(isset($_SESSION['loggedRole']))
+        {
+            $id = mysqli_real_escape_string($link, $_POST['id']);
+            $id_type_widget = mysqli_real_escape_string($link, $_POST['widgetName']);
+            $source_php_widget = mysqli_real_escape_string($link, $_POST['phpFilename']);
+            $min_row = mysqli_real_escape_string($link, $_POST['minHeight']);
+            $max_row = mysqli_real_escape_string($link, $_POST['maxHeight']);
+            $min_col = mysqli_real_escape_string($link, $_POST['minWidth']);
+            $max_col = mysqli_real_escape_string($link, $_POST['maxWidth']);
+            $widgetType = mysqli_real_escape_string($link, $_POST['metricType']);
+            $unique_metric = mysqli_real_escape_string($link, $_POST['uniqueMetric']);
+            $number_metrics_widget = mysqli_real_escape_string($link, $_POST['metricsNumber']);
 
-        if ($modWid) 
-        {
-            mysqli_close($link);
-            header("location: widgets_mng.php");
-        } 
-        else 
-        {
-            mysqli_close($link);
-            echo '<script type="text/javascript">';
-            echo 'alert("Error: Inserimento Widgets");';
-            echo 'window.location.href = "widgets_mng.php";';
-            echo '</script>';
+            $q = "UPDATE Dashboard.Widgets SET id_type_widget = '$id_type_widget', source_php_widget = '$source_php_widget', min_row = $min_row,  max_row = $max_row, min_col = $min_col, max_col = $max_col, widgetType = " . returnManagedStringForDb($widgetType) . ", unique_metric = '$unique_metric', number_metrics_widget = " . returnManagedNumberForDb($number_metrics_widget) . " WHERE id = $id";
+            $r = mysqli_query($link, $q);
+
+            if($r) 
+            {
+                mysqli_close($link);
+                echo "Ok";
+            } 
+            else 
+            {
+                mysqli_close($link);
+                echo "Ko";
+            }
         }
     }
     elseif(isset($_REQUEST['zoomFactorUpdated'])) //Escape
@@ -4771,9 +4850,6 @@
         session_start();
         $zoomFactor = mysqli_real_escape_string($link, $_REQUEST['zoomFactorUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET zoomFactor = ? WHERE Id = ? ");
-        $upsqDbtb->bind_param('di', $zoomFactor, $idWidget);
-        $resultQuery = $upsqDbtb->execute();*/
         
         $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET zoomFactor = " . returnManagedNumberForDb($zoomFactor) . " WHERE Id = $idWidget";
         $resultQuery = mysqli_query($link, $upsqDbtb);
@@ -4795,9 +4871,6 @@
         session_start();
         $scaleX = mysqli_real_escape_string($link, $_REQUEST['scaleXUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET scaleX = ? WHERE Id = ? ");
-        $upsqDbtb->bind_param('di', $scaleX, $idWidget);
-        $resultQuery = $upsqDbtb->execute();*/
         
         $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleX = " . returnManagedNumberForDb($scaleX) . " WHERE Id = $idWidget";
         $resultQuery = mysqli_query($link, $upsqDbtb);
@@ -4819,9 +4892,6 @@
         session_start();
         $scaleY = mysqli_real_escape_string($link, $_REQUEST['scaleYUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET scaleY = ? WHERE Id = ? ");
-        $upsqDbtb->bind_param('di', $scaleY, $idWidget);
-        $resultQuery = $upsqDbtb->execute();*/
         
         $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleY = " . returnManagedNumberForDb($scaleY) . " WHERE Id = $idWidget";
         $resultQuery = mysqli_query($link, $upsqDbtb);
@@ -4843,9 +4913,6 @@
         session_start();
         $width = mysqli_real_escape_string($link, $_REQUEST['widthUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET size_columns = ? WHERE Id = ? ");
-        $upsqDbtb->bind_param('ii', $width, $idWidget);
-        $resultQuery = $upsqDbtb->execute();*/
         
         $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_columns = " . returnManagedNumberForDb($width) . " WHERE Id = $idWidget";
         $resultQuery = mysqli_query($link, $upsqDbtb);
@@ -4862,14 +4929,11 @@
             echo '</script>';
         }
     }
-    elseif(isset($_REQUEST['heightUpdated']))//Escape 
+    elseif(isset($_REQUEST['heightUpdated']))
     {
         session_start();
         $height = mysqli_real_escape_string($link, $_REQUEST['heightUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
-        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET size_rows = ? WHERE Id = ? ");
-        $upsqDbtb->bind_param('ii', $height, $idWidget);
-        $resultQuery = $upsqDbtb->execute();*/
         
         $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_rows = " . returnManagedNumberForDb($height) . " WHERE Id = $idWidget";
         $resultQuery = mysqli_query($link, $upsqDbtb);
@@ -4886,89 +4950,269 @@
             echo '</script>';
         }
     }
-    elseif(isset($_REQUEST['updatedLastSeries']))//Escape 
+    elseif(isset($_REQUEST['updatedLastSeries']))
     {
         session_start();
-        $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
-        $updatedSeries = $_REQUEST['updatedLastSeries'];
-        /*$upsqDbtb = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET lastSeries = ? WHERE name_w = ? ");
-        $upsqDbtb->bind_param('ss', $updatedSeries, $widgetName);
-        $resultQuery = $upsqDbtb->execute();*/
-        
-        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET lastSeries = " . returnManagedStringForDb($updatedSeries) . " WHERE name_w = $widgetName";
-        $resultQuery = mysqli_query($link, $upsqDbtb);
-        
+        if(isset($_SESSION['loggedRole']))
+        {
+            $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
+            $updatedSeries = $_REQUEST['updatedLastSeries'];
+
+            $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET lastSeries = " . returnManagedStringForDb($updatedSeries) . " WHERE name_w = $widgetName";
+            $resultQuery = mysqli_query($link, $upsqDbtb);
+        }
         mysqli_close($link);
     }
-    elseif(isset($_REQUEST['showHideDashboardHeader']))//Escape 
+    elseif(isset($_REQUEST['showHideDashboardHeader'])) 
     {
         session_start();
-        $newStatus = mysqli_real_escape_string($link, $_REQUEST['showHideDashboardHeader']);
-        $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-        $query = "UPDATE Dashboard.Config_dashboard SET headerVisible = $newStatus WHERE Id = $dashboardId";
-        $result = mysqli_query($link, $query);
         
-        if($result) 
+        if(isset($_SESSION['loggedRole']))
         {
-           mysqli_close($link);
-           echo "Ok";
+            $newStatus = mysqli_real_escape_string($link, $_REQUEST['showHideDashboardHeader']);
+            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+            $query = "UPDATE Dashboard.Config_dashboard SET headerVisible = $newStatus WHERE Id = $dashboardId";
+            $result = mysqli_query($link, $query);
+
+            if($result) 
+            {
+               mysqli_close($link);
+               echo "Ok";
+            }
+            else
+            {
+               mysqli_close($link);
+               echo "Ko";
+            }
         }
-        else
+        
+    }
+    elseif(isset($_REQUEST['getMetricsForWidgetType'])) 
+    {
+        session_start();
+        
+        if(isset($_SESSION['loggedRole']))
         {
-           mysqli_close($link);
-           echo "Ko";
+            $widgetId = mysqli_real_escape_string($link, $_REQUEST['widgetId']);
+            $query1 = "SELECT Widgets.widgetType " .
+                      "FROM Dashboard.Config_widget_dashboard " .
+                      "LEFT JOIN Dashboard.Widgets " . 
+                      "ON Config_widget_dashboard.type_w = Widgets.id_type_widget " .                     
+                      "WHERE Config_widget_dashboard.name_w = '$widgetId'";
+            $rs1 = mysqli_query($link, $query1);
+
+            $result = [];
+
+            if($rs1) 
+            {
+                $row1 = mysqli_fetch_array($rs1);
+                $metricMacroTypes = explode("|", $row1['widgetType']);
+                $metricMacroTypesForQuery = "(";
+
+                for($i = 0; $i < count($metricMacroTypes); $i++)
+                {
+                    if($i < (count($metricMacroTypes) - 1))
+                    {
+                        $metricMacroTypesForQuery .= "'" . $metricMacroTypes[$i] . "', ";
+                    }
+                    else
+                    {
+                        $metricMacroTypesForQuery .= "'" . $metricMacroTypes[$i] . "'";
+                    }
+                }
+
+                $metricMacroTypesForQuery .= ")";
+
+                $query2 = "SELECT IdMetric FROM Dashboard.Descriptions WHERE metricType IN " . $metricMacroTypesForQuery . " ORDER BY Descriptions.IdMetric ASC";
+
+                $rs2 = mysqli_query($link, $query2);
+
+                while($row2 = mysqli_fetch_array($rs2)) 
+                {
+                    array_push($result, $row2["IdMetric"]);
+                }
+
+                //Eliminiamo i duplicati
+                $result = array_unique($result);
+                mysqli_close($link);
+                echo json_encode($result);
+            }
+            else
+            {
+               mysqli_close($link);
+               echo "Ko";
+            }
         }
     }
-    elseif(isset($_REQUEST['getMetricsForWidgetType']))//Escape 
+    elseif(isset($_REQUEST['getDashboardTitlesList']))
     {
         session_start();
-        $widgetId = mysqli_real_escape_string($link, $_REQUEST['widgetId']);
-        $query1 = "SELECT Widgets.widgetType " .
-                  "FROM Dashboard.Config_widget_dashboard " .
-                  "LEFT JOIN Dashboard.Widgets " . 
-                  "ON Config_widget_dashboard.type_w = Widgets.id_type_widget " .                     
-                  "WHERE Config_widget_dashboard.name_w = '$widgetId'";
-        $rs1 = mysqli_query($link, $query1);
         
-        $result = [];
-        
-        if($rs1) 
+        if(isset($_SESSION['loggedRole']))
         {
-            $row1 = mysqli_fetch_array($rs1);
-            $metricMacroTypes = explode("|", $row1['widgetType']);
-            $metricMacroTypesForQuery = "(";
-            
-            for($i = 0; $i < count($metricMacroTypes); $i++)
-            {
-                if($i < (count($metricMacroTypes) - 1))
-                {
-                    $metricMacroTypesForQuery .= "'" . $metricMacroTypes[$i] . "', ";
-                }
-                else
-                {
-                    $metricMacroTypesForQuery .= "'" . $metricMacroTypes[$i] . "'";
-                }
-            }
-            
-            $metricMacroTypesForQuery .= ")";
-            
-            $query2 = "SELECT IdMetric FROM Dashboard.Descriptions WHERE metricType IN " . $metricMacroTypesForQuery . " ORDER BY Descriptions.IdMetric ASC";
-            
-            $rs2 = mysqli_query($link, $query2);
+            $q = "SELECT Config_dashboard.title_header FROM Dashboard.Config_dashboard";
+            $r = mysqli_query($link, $q);
 
-            while($row2 = mysqli_fetch_array($rs2)) 
+            $result = [];
+
+            if($r) 
             {
-                array_push($result, $row2["IdMetric"]);
+                $result['detail'] = 'Ok';
+                $result['titles'] = [];
+                while($row = mysqli_fetch_assoc($r)) 
+                {
+                    array_push($result['titles'], $row["title_header"]);
+                }
             }
-            
-            //Eliminiamo i duplicati
-            $result = array_unique($result);
+            else
+            {
+               $result['detail'] = 'Ko'; 
+            }
+
             mysqli_close($link);
             echo json_encode($result);
         }
-        else
+    }
+    elseif(isset($_REQUEST['updateConfigFile']))
+    {
+        session_start();
+        
+        if(isset($_SESSION['loggedRole']))
         {
-           mysqli_close($link);
-           echo "Ko";
+           if($_SESSION['loggedRole'] == "ToolAdmin")
+           {
+                $fileName = $_POST['fileName'];
+                $fileOriginalContent = parse_ini_file("../conf/" . $fileName);
+                try 
+                {
+                    $fileOriginalContent = parse_ini_file("../conf/" . $fileName);
+                } 
+                catch(Exception $e) 
+                {
+                    echo "parsingOriginalFileKo";
+                    exit();
+                }
+
+                try 
+                {
+                    $file = fopen("../conf/" . $fileName, "w");
+                } 
+                catch(Exception $e) 
+                {
+                    echo "openingOriginalFileKo";
+                    exit();
+                }
+
+                switch($fileName)
+                {
+                    case "environment.ini":
+                        $newActiveEnv = $_REQUEST['activeEnvironment'];
+                        $fileOriginalContent["environment"]["value"] = $newActiveEnv;
+                        break;
+
+                    default:
+                        $dataFromForm = json_decode($_REQUEST['data']);
+
+                        for($i = 0; $i < count($dataFromForm); $i++)
+                        {
+                            foreach($dataFromForm[$i] as $key => $value) 
+                            {
+                                if($key == "name")
+                                {
+                                    $updatedKey = $value;
+                                }
+                                else
+                                {
+                                    if($key == "value")
+                                    {
+                                        $updatedValue = $value;
+                                        if(strpos($updatedKey, '[dev]') !== false)
+                                        {
+                                            $shortKey = str_replace("[dev]", "", $updatedKey);
+                                            $fileOriginalContent[$shortKey]["dev"] = $updatedValue;
+                                        }
+
+                                        if(strpos($updatedKey, '[test]') !== false)
+                                        {
+                                            $shortKey = str_replace("[test]", "", $updatedKey);
+                                            $fileOriginalContent[$shortKey]["test"] = $updatedValue;
+                                        }
+
+                                        if(strpos($updatedKey, '[prod]') !== false)
+                                        {
+                                            $shortKey = str_replace("[prod]", "", $updatedKey);
+                                            $fileOriginalContent[$shortKey]["prod"] = $updatedValue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                }
+
+                foreach($fileOriginalContent as $key => $value) 
+                {
+                    if(is_array($value))
+                    {
+                        foreach($value as $subkey => $subvalue) 
+                        {
+                            try 
+                            {
+                                fwrite($file, $key . "[" . $subkey . "] = \"" . $subvalue . "\"\n");
+                            } 
+                            catch(Exception $e) 
+                            {
+                                echo "writingOriginalFileKo";
+                                exit();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        try 
+                        {
+                            fwrite($file, $key . " = \"" . $value . "\"\n");
+                        } 
+                        catch(Exception $e) 
+                        {
+                            echo "writingOriginalFileKo";
+                            exit();
+                        }
+                    }
+                }
+
+                echo "Ok";
+           }
+        }
+    }
+    elseif(isset($_REQUEST['deleteConfigFile']))
+    {
+        session_start();
+        
+        if(isset($_SESSION['loggedRole']))
+        {
+           if($_SESSION['loggedRole'] == "ToolAdmin")
+           {
+               $fileName = $_POST['fileName'];
+        
+                try 
+                {
+                    if(unlink("../conf/" . $fileName))
+                    {
+                        echo "Ok";
+                        exit();
+                    }
+                    else
+                    {
+                        echo "deleteModuleFileKo";
+                        exit();
+                    }
+                } 
+                catch(Exception $e) 
+                {
+                    echo "deleteModuleFileKo";
+                    exit();
+                }
+           }
         }
     }

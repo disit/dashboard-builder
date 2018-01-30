@@ -76,6 +76,8 @@
     
     <!-- Scripts file -->
     <script src="../js/poolsManagement.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 </head>
 
 <body>
@@ -107,7 +109,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">Dashboard management system</a>
+                <a class="navbar-brand" href="index.html">Dashboard Management System</a>
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
@@ -141,7 +143,7 @@
                            
                            if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
                            {
-                              echo '<li><a class="internalLink" href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
+                              echo '<li class="active"><a class="internalLink" href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
                            }
                         }
                     ?>
@@ -154,175 +156,163 @@
 
         <div id="page-wrapper">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            <br/>Users pools management
-                        </h1>   
+                <div class="row" style="margin-top: 50px">
+                    <div class="col-xs-12 centerWithFlex mainPageTitleContainer">
+                        Users pools
                     </div>
                 </div>
                 <div class="row">
-                    <div class="panel panel-default">
-                        <!--<div class="panel-heading">
-                            <h3 class="panel-title">Title</h3>
-                        </div>-->
-                        <div class="panel-body">
-                            <ul class="nav nav-tabs">
-                                <li role="presentation" id="addPoolTab" class="active"><a href="#">Add new pool</a></li>
-                                <li role="presentation" id="managePoolsTab"><a href="#">Manage existing pools</a></li>
-                            </ul>    
-                            <div id="addPoolMainContainer" class="container-fluid">
-                                <form id="addNewPoolForm" name="addNewPoolForm" role="form" method="post" data-toggle="validator">
-                                    <div class="col-md-4" id="addPoolNewPoolNameOuterContainer">
-                                        <div class="poolsManagementSubfieldContainer">New pool name</div>
-                                        <div class="poolsManagementSubfieldContainer">
-                                            <input type="text" id="addPoolNewPoolName" name="addPoolNewPoolName">
-                                        </div>
-                                        <div id="addPoolNewPoolNameMsg" class="poolsManagementSubfieldContainer">&nbsp;</div>
+                    <div class="col-xs-12">
+                        <ul class="nav nav-tabs">
+                            <li role="presentation" id="addPoolTab" class="active"><a href="#">Add new pool</a></li>
+                            <li role="presentation" id="managePoolsTab"><a href="#">Manage existing pools</a></li>
+                        </ul>
+                        <div id="addPoolMainContainer" class="container-fluid">
+                            <form id="addNewPoolForm" name="addNewPoolForm" role="form" method="post" data-toggle="validator">
+                                <div class="col-md-4" id="addPoolNewPoolNameOuterContainer">
+                                    <div class="poolsManagementSubfieldContainer">New pool name</div>
+                                    <div class="poolsManagementSubfieldContainer">
+                                        <input type="text" id="addPoolNewPoolName" name="addPoolNewPoolName">
                                     </div>
-                                    <div class="col-md-8" id="addPoolNewPoolUsersOuterContainer">
-                                        <div class="poolsManagementSubfieldContainer">Add users to new pool</div>
-                                        <div id="addPoolNewPoolUsersContainer">
-                                            <?php
-                                                if(isset($_SESSION['loggedRole']))
-                                                {
-                                                    if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
-                                                    {
-                                                       //Reperimento elenco utenti LDAP
-                                                       $temp = [];
-                                                       $users = [];
-                                                       
-                                                       $ds = ldap_connect($ldapServer, $ldapPort);
-                                                       ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                                       $bind = ldap_bind($ds);
-                                                       
-                                                       $result = ldap_search(
-                                                               $ds, 'dc=ldap,dc=disit,dc=org', 
-                                                               '(cn=Dashboard)'
-                                                       );
-                                                       $entries = ldap_get_entries($ds, $result);
-                                                       foreach ($entries as $key => $value) 
-                                                       {
-                                                          for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
-                                                          { 
-                                                             $usr = $value["memberuid"][$index];
-                                                             array_push($temp, $usr);
-                                                          }
-                                                       }
-                                                       
-                                                       ldap_close();
-                                                       
-                                                       $ds = ldap_connect($ldapServer, $ldapPort);
-                                                       ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                                       $bind = ldap_bind($ds);
-                                                       
-                                                       for($i = 0; $i < count($temp); $i++)
-                                                       {
-                                                          if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
-                                                          {
-                                                             $name = str_replace("cn=", "", $temp[$i]);
-                                                             $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                                                             if(ldapCheckRole($ds, $temp[$i], "Observer"))
-                                                             {
-                                                                $singleUser = [$name, "ldap", "Observer"];
-                                                             }
-                                                             else
-                                                             {
-                                                               if(ldapCheckRole($ds, $temp[$i], "Manager"))
-                                                               {
-                                                                  $singleUser = [$name, "ldap", "Manager"];
-                                                               }
-                                                               else
-                                                               {
-                                                                  if(ldapCheckRole($ds, $temp[$i], "AreaManager"))
-                                                                  {
-                                                                     $singleUser = [$name, "ldap", "AreaManager"];
-                                                                  }
-                                                               }
-                                                             }
-                                                             
-                                                             array_push($users, $singleUser);
-                                                          }
-                                                       }
-                                                       
-                                                        //Reperimento elenco utenti locali
-                                                        $link = mysqli_connect($host, $username, $password) or die();
-                                                        mysqli_select_db($link, $dbname);
-                                                        $query = "SELECT username, admin FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
-                                                        $result = mysqli_query($link, $query) or die(mysqli_error($link));
-                                                        
-                                                        if($result)
-                                                        {
-                                                           if($result->num_rows > 0) 
-                                                           {
-                                                              while ($row = $result->fetch_assoc()) 
-                                                              {
-                                                                 $singleUser = [$row["username"], "local", $row["admin"]];
-                                                                 array_push($users, $singleUser);
-                                                              }
-                                                           }
-                                                        }
-                                                        
-                                                        if(count($users) > 0)
-                                                        {
-                                                           echo '<table id="addPoolNewPoolUsersTable">';
-                                                           echo '<tr><th class="smallCell">Select user</th><th class="smallCell">Make admin</th><th class="smallCell">Username</th><th class="smallCell">User type</th><th class="bigCell">User origin</th></tr>';
-                                                           for($j = 0; $j < count($users); $j++)
-                                                           {
-                                                               echo '<tr><td class="smallCell"><input type="checkbox" data-username="' . $users[$j][0] . '" data-usersource="' . $users[$j][1] . '" data-usertype="' . $users[$j][2] . '" /></td><td class="smallCell"><input type="checkbox" disabled="disabled" /><td class="smallCell">' . $users[$j][0] . '</td><td class="smallCell">' . $users[$j][2] . '</td><td class="bigCell">' . $users[$j][1] . '</td>';
-                                                           }
-                                                           
-                                                           
-                                                           echo '</table>';
-                                                        }
-                                                        else
-                                                        {
-                                                           //Nessun utente associabile
-                                                           echo 'No users available';
-                                                        }
-                                                    }
-                                                }
-                                            ?>
-                                        </div>
-                                    </div>
-                                    <div id="addNewPoolButtonsContainer">
-                                        <button type="button" id="addNewPoolConfirmBtn" class="btn btn-primary pull-right internalLink" disabled="true">Confirm</button>
-                                        <button type="button" id="addNewPoolCancelBtn" class="btn btn-secondary pull-right">Reset form</button>
-                                    </div>
-                                </form>    
-                            </div>
-                            <div id="delPoolMainContainer" class="container-fluid">
-                                <div class="row">
-                                    <div class="col-md-8 col-md-offset-2" id="delPoolMainSubContainer">
+                                    <div id="addPoolNewPoolNameMsg" class="poolsManagementSubfieldContainer">&nbsp;</div>
+                                </div>
+                                <div class="col-md-8" id="addPoolNewPoolUsersOuterContainer">
+                                    <div class="poolsManagementSubfieldContainer">Add users to new pool</div>
+                                    <div id="addPoolNewPoolUsersContainer">
                                         <?php
                                             if(isset($_SESSION['loggedRole']))
                                             {
                                                 if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
                                                 {
-                                                    //Reperimento elenco pool
+                                                   //Reperimento elenco utenti LDAP
+                                                   $temp = [];
+                                                   $users = [];
+
+                                                   $ds = ldap_connect($ldapServer, $ldapPort);
+                                                   ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                                                   $bind = ldap_bind($ds);
+
+                                                   $result = ldap_search(
+                                                           $ds, 'dc=ldap,dc=disit,dc=org', 
+                                                           '(cn=Dashboard)'
+                                                   );
+                                                   $entries = ldap_get_entries($ds, $result);
+                                                   foreach ($entries as $key => $value) 
+                                                   {
+                                                      for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
+                                                      { 
+                                                         $usr = $value["memberuid"][$index];
+                                                         array_push($temp, $usr);
+                                                      }
+                                                   }
+
+                                                   ldap_close();
+
+                                                   $ds = ldap_connect($ldapServer, $ldapPort);
+                                                   ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                                                   $bind = ldap_bind($ds);
+
+                                                   for($i = 0; $i < count($temp); $i++)
+                                                   {
+                                                      if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                                                      {
+                                                         $name = str_replace("cn=", "", $temp[$i]);
+                                                         $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                                         if(ldapCheckRole($ds, $temp[$i], "Observer"))
+                                                         {
+                                                            $singleUser = [$name, "ldap", "Observer"];
+                                                         }
+                                                         else
+                                                         {
+                                                           if(ldapCheckRole($ds, $temp[$i], "Manager"))
+                                                           {
+                                                              $singleUser = [$name, "ldap", "Manager"];
+                                                           }
+                                                           else
+                                                           {
+                                                              if(ldapCheckRole($ds, $temp[$i], "AreaManager"))
+                                                              {
+                                                                 $singleUser = [$name, "ldap", "AreaManager"];
+                                                              }
+                                                           }
+                                                         }
+
+                                                         array_push($users, $singleUser);
+                                                      }
+                                                   }
+
+                                                    //Reperimento elenco utenti locali
                                                     $link = mysqli_connect($host, $username, $password) or die();
                                                     mysqli_select_db($link, $dbname);
-                                                    $query = "SELECT * FROM Dashboard.UsersPools";
+                                                    $query = "SELECT username, admin FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
                                                     $result = mysqli_query($link, $query) or die(mysqli_error($link));
 
                                                     if($result)
                                                     {
-                                                        if($result->num_rows > 0) 
-                                                        {
-                                                            echo '<table id="delPoolTable">';
-                                                            echo '<tr><th class="smallCell">Select</th><th class="bigCell">Pool name</th><th class="smallCell">Delete</th></tr>';
+                                                       if($result->num_rows > 0) 
+                                                       {
+                                                          while ($row = $result->fetch_assoc()) 
+                                                          {
+                                                             $singleUser = [$row["username"], "local", $row["admin"]];
+                                                             array_push($users, $singleUser);
+                                                          }
+                                                       }
+                                                    }
 
-                                                            while ($row = $result->fetch_assoc()) 
-                                                            {
-                                                                echo '<tr data-poolId="' . $row["poolId"] . '"><td class="smallCell"><input type="radio" name="pool" value="' . $row["poolId"] . '"></td><td class="bigCell">' . $row["poolName"] . '<td class="smallCell"><i data-poolId="' . $row["poolId"] . '" data-poolName="' . $row["poolName"] . '" class="fa fa-remove" style="font-size:24px;color:red"></i></td>';
-                                                            }
-                                                            echo '</table>';
-                                                        }
-                                                        else
+                                                    if(count($users) > 0)
+                                                    {
+                                                       echo '<table id="addPoolNewPoolUsersTable">';
+                                                       echo '<tr><th class="smallCell">Select user</th><th class="smallCell">Make admin</th><th class="smallCell">Username</th><th class="smallCell">User type</th><th class="bigCell">User origin</th></tr>';
+                                                       for($j = 0; $j < count($users); $j++)
+                                                       {
+                                                           echo '<tr><td class="smallCell"><input type="checkbox" data-username="' . $users[$j][0] . '" data-usersource="' . $users[$j][1] . '" data-usertype="' . $users[$j][2] . '" /></td><td class="smallCell"><input type="checkbox" disabled="disabled" /><td class="smallCell">' . $users[$j][0] . '</td><td class="smallCell">' . $users[$j][2] . '</td><td class="bigCell">' . $users[$j][1] . '</td>';
+                                                       }
+
+
+                                                       echo '</table>';
+                                                    }
+                                                    else
+                                                    {
+                                                       //Nessun utente associabile
+                                                       echo 'No users available';
+                                                    }
+                                                }
+                                            }
+                                        ?>
+                                    </div>
+                                </div>
+                                <div id="addNewPoolButtonsContainer">
+                                    <button type="button" id="addNewPoolConfirmBtn" class="btn btn-primary pull-right internalLink" disabled="true">Confirm</button>
+                                    <button type="button" id="addNewPoolCancelBtn" class="btn btn-secondary pull-right">Reset form</button>
+                                </div>
+                            </form>    
+                        </div>
+                        <div id="delPoolMainContainer" class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-8 col-md-offset-2" id="delPoolMainSubContainer">
+                                    <?php
+                                        if(isset($_SESSION['loggedRole']))
+                                        {
+                                            if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
+                                            {
+                                                //Reperimento elenco pool
+                                                $link = mysqli_connect($host, $username, $password) or die();
+                                                mysqli_select_db($link, $dbname);
+                                                $query = "SELECT * FROM Dashboard.UsersPools";
+                                                $result = mysqli_query($link, $query) or die(mysqli_error($link));
+
+                                                if($result)
+                                                {
+                                                    if($result->num_rows > 0) 
+                                                    {
+                                                        echo '<table id="delPoolTable">';
+                                                        echo '<tr><th class="smallCell">Select</th><th class="bigCell">Pool name</th><th class="smallCell">Delete</th></tr>';
+
+                                                        while ($row = $result->fetch_assoc()) 
                                                         {
-                                                            //Nessun pool disponibile
-                                                            echo 'No pools available';
+                                                            echo '<tr data-poolId="' . $row["poolId"] . '"><td class="smallCell"><input type="radio" name="pool" value="' . $row["poolId"] . '"></td><td class="bigCell">' . $row["poolName"] . '<td class="smallCell"><i data-poolId="' . $row["poolId"] . '" data-poolName="' . $row["poolName"] . '" class="fa fa-remove" style="font-size:24px;color:red"></i></td>';
                                                         }
+                                                        echo '</table>';
                                                     }
                                                     else
                                                     {
@@ -330,41 +320,46 @@
                                                         echo 'No pools available';
                                                     }
                                                 }
+                                                else
+                                                {
+                                                    //Nessun pool disponibile
+                                                    echo 'No pools available';
+                                                }
                                             }
-                                        ?>    
-                                    </div>
-                                    <div class="col-md-2"></div> <!-- Celle vuote di utilità -->
+                                        }
+                                    ?>    
                                 </div>
-                                <div id="editPoolsNamesButtonsContainer" class="row">
-                                    <button type="button" id="editPoolsNamesBtn" class="btn btn-primary pull-right internalLink">Save pool names</button>
-                                    <button type="button" id="editPoolsNamesDiscardBtn" class="btn btn-secondary pull-right">Undo changes</button>
+                                <div class="col-md-2"></div> <!-- Celle vuote di utilità -->
+                            </div>
+                            <div id="editPoolsNamesButtonsContainer" class="row">
+                                <button type="button" id="editPoolsNamesBtn" class="btn btn-primary pull-right internalLink">Save pool names</button>
+                                <button type="button" id="editPoolsNamesDiscardBtn" class="btn btn-secondary pull-right">Undo changes</button>
+                            </div>
+                            <div id ="poolManagementRow" class="row">
+                                <div class="col-md-5">
+                                    <div id="outerUsersLabelContainer">
+                                        Users not in the pool
+                                    </div>
+                                    <div id="outerUsersTableContainer"></div>
                                 </div>
-                                <div id ="poolManagementRow" class="row">
-                                    <div class="col-md-5">
-                                        <div id="outerUsersLabelContainer">
-                                            Users not in the pool
-                                        </div>
-                                        <div id="outerUsersTableContainer"></div>
+                                <div id="buttonsContainer" class="col-md-2">
+                                    <div>
+                                        <i id="addUsersToPoolBtn" class="fa fa-arrow-circle-right" style="font-size:36px"></i>
                                     </div>
-                                    <div id="buttonsContainer" class="col-md-2">
-                                        <div>
-                                            <i id="addUsersToPoolBtn" class="fa fa-arrow-circle-right" style="font-size:36px"></i>
-                                        </div>
-                                        <div>
-                                            <i id="delUsersFromPoolBtn" class="fa fa-arrow-circle-left" style="font-size:36px"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-5">
-                                        <div id="innerUsersLabelContainer">
-                                            Users in the pool
-                                        </div>
-                                        <div id="innerUsersTableContainer"></div>
+                                    <div>
+                                        <i id="delUsersFromPoolBtn" class="fa fa-arrow-circle-left" style="font-size:36px"></i>
                                     </div>
                                 </div>
-                                <div id="editPoolsButtonsContainer" class="row">
-                                    <button type="button" id="editPoolsBtn" class="btn btn-primary pull-right">Save pools compositions</button>
-                                    <button type="button" id="editPoolsDiscardBtn" class="btn btn-secondary pull-right">Undo changes</button>
+                                <div class="col-md-5">
+                                    <div id="innerUsersLabelContainer">
+                                        Users in the pool
+                                    </div>
+                                    <div id="innerUsersTableContainer"></div>
                                 </div>
+                            </div>
+                            <div id="editPoolsButtonsContainer" class="row">
+                                <button type="button" id="editPoolsBtn" class="btn btn-primary pull-right">Save pools compositions</button>
+                                <button type="button" id="editPoolsDiscardBtn" class="btn btn-secondary pull-right">Undo changes</button>
                             </div>
                         </div>
                     </div>

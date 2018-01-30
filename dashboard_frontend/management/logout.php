@@ -17,39 +17,59 @@
     include '../config.php';
     include 'process-form.php';
     
-    $username = $_SESSION['loggedUsername'];
-    
-    /*unset($_SESSION['loggedUsername']);
-    unset($_SESSION['loggedRole']);
-    unset($_SESSION['loggedType']);
-    unset($_SESSION['dashboardId']);
-    unset($_SESSION['dashboardAuthorName']);
-    unset($_SESSION['dashboardAuthorRole']);
-    unset($_SESSION['dashboardTitle']);
-    
-    foreach ($_SESSION as $key=>$val)
+    if(isset($_SESSION['loggedRole']))
     {
-       if(strpos($key, 'dashViewUsername') !== false) 
-       { 
-          unset($_SESSION[$key]);
-       }
-    }*/
+        $username = $_SESSION['loggedUsername'];
     
-    $_SESSION = array();
+        /*unset($_SESSION['loggedUsername']);
+        unset($_SESSION['loggedRole']);
+        unset($_SESSION['loggedType']);
+        unset($_SESSION['dashboardId']);
+        unset($_SESSION['dashboardAuthorName']);
+        unset($_SESSION['dashboardAuthorRole']);
+        unset($_SESSION['dashboardTitle']);
 
-    if(ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
-        );
+        foreach ($_SESSION as $key=>$val)
+        {
+           if(strpos($key, 'dashViewUsername') !== false) 
+           { 
+              unset($_SESSION[$key]);
+           }
+        }*/
+
+        if(isset($_SESSION['sessionExpired']))
+        {
+            if($_SESSION['sessionExpired'] == true)
+            {
+                $newLocation = "location: index.php?sessionExpired=true";
+            }
+            else
+            {
+               $newLocation = "location: index.php";
+            }
+        }
+        else
+        {
+            $newLocation = "location: index.php";
+        }
+
+        $_SESSION = array();
+
+        if(ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+
+        session_destroy();
+        header($newLocation); 
+
+        notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
     }
     
-    session_destroy();
     
-    header("location: index.php"); 
-    
-    notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
     
     
     

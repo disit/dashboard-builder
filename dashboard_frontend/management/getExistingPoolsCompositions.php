@@ -21,7 +21,7 @@
    error_reporting(E_ERROR | E_NOTICE);
    
    session_start(); 
-   $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
+   $link = mysqli_connect($host, $username, $password);
    mysqli_select_db($link, $dbname);
    
    //Definizioni di funzione
@@ -55,7 +55,7 @@
          $temp = [];
          $ldapUsers = [];
 
-         /*$ds = ldap_connect($ldapServer, $ldapPort);
+         $ds = ldap_connect($ldapServer, $ldapPort);
          ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
          $bind = ldap_bind($ds);
 
@@ -105,7 +105,7 @@
                }
                $ldapUsers[$name] = $role;
             }
-         }*/
+         }
 
          $query = "SELECT * FROM Dashboard.UsersPools";
          $result = mysqli_query($link, $query);

@@ -51,8 +51,18 @@
     <!-- Filestyle -->
     <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
     
-    <!-- Font awesome -->
+    <!-- Bootstrap table -->
+   <link rel="stylesheet" href="../boostrapTable/dist/bootstrap-table.css">
+   <script src="../boostrapTable/dist/bootstrap-table.js"></script>
+   <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
+   <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
+   
+   <!-- Font awesome icons -->
     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+    
+     <!-- Bootstrap toggle button -->
+   <link href="../bootstrapToggleButton/css/bootstrap-toggle.min.css" rel="stylesheet">
+   <script src="../bootstrapToggleButton/js/bootstrap-toggle.min.js"></script>
  
     <!-- Custom CSS -->
     <link href="../css/dashboard.css" rel="stylesheet">
@@ -60,6 +70,8 @@
     
     <!-- Custom scripts -->
     <script type="text/javascript" src="../js/dashboard_mng.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 </head>
 
 <body>
@@ -74,7 +86,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="index.html">Dashboard Builder</a>
+                <a class="navbar-brand" href="index.html">Dashboard Management System</a>
             </div>
             <!-- Top Menu Items -->
             <ul class="nav navbar-right top-nav">
@@ -118,49 +130,14 @@
 
         <div id="page-wrapper">
             <div class="container-fluid">
-                <!-- Page Heading -->
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">
-                            <br/>Dashboards overview
-                        </h1>
-                        <nav id="modify-bar-dashboard" class="navbar navbar-default">
-                            <div class="container-fluid">
-                                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                                    <ul class="nav navbar-nav">
-                                        <li class="active"><a id="link_add_dashboard" href="#"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Dashboard <span class="sr-only">(current)</span></a></li>                           
-                                        <li><a id ="link_help" href="#"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </nav>
+                <div class="row" style="margin-top: 50px">
+                    <div class="col-xs-12 centerWithFlex mainPageTitleContainer">
+                        Dashboards
                     </div>
                 </div>
-
                 <div class="row">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">My dashboards</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div class="table-responsive">
-                                <table id="list_dashboard" class="table table-bordered table-hover table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Title</th>
-                                            <th>Creation Date</th>
-                                            <th>Status</th>
-                                            <th>User</th>
-                                            <th>Modify</th>
-                                            <th>Preview</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="col-xs-12">
+                        <table id="list_dashboard" class="table"></table>
                     </div>
                 </div>
             </div>
@@ -255,13 +232,6 @@
                                         <option value="0">No</option>
                                     </select>
                                 </div>
-                                <!--<label for="footerLogo" class="col-md-4 control-label">Footer logo</label>
-                                <div class="col-md-6">
-                                    <select name="footerLogo" id="footerLogo" class="form-control" required>
-                                        <option value="disit">Disit</option>
-                                        <option value="km4city">Km4City</option>
-                                    </select>
-                                </div>-->
                                 <input type="hidden" name="MAX_FILE_SIZE" value="2000000">
                             </div>
                         </div>
@@ -293,22 +263,6 @@
                                             <option value="yes">Yes</option>
                                         </select>
                                     </div>
-                                
-                                    <!--<label for="embedPolicy" class="col-md-4 control-label">Embed mode</label>
-                                    <div class="col-md-6">
-                                        <select id="embedPolicy" name="embedPolicy" class="form-control">
-                                            <option value="auto">Automatic</option>
-                                            <option value="manual">Manual</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <label for="embedAutofit" class="col-md-4 control-label">Embed autofit</label>
-                                    <div class="col-md-6">
-                                        <select id="embedAutofit" name="embedAutofit" class="form-control">
-                                            <option value="no">No</option>
-                                            <option value="yes">Yes</option>
-                                        </select>
-                                    </div>-->
                                     <label for="authorizedPages" class="col-md-4 control-label">Authorized pages</label>
                                     <div class="col-md-6">
                                         <table id="authorizedPagesTable">
@@ -355,130 +309,6 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="modal-disable-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Change status dashboard</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="form-disable-dashboard" class="form-horizontal" name="form-disable-dashboard" role="form" method="post" action="" data-toggle="validator">
-                        <div class="form-group">
-                            <label for="select-dashboard-disable" class="col-md-4 col-md-offset-1 control-label">Name Dashboard</label>
-                            <div class="col-md-4">
-                                <select class="form-control" id="select-dashboard-disable" name="select-dashboard-disable" required>
-                                </select>    
-                            </div>
-                        </div>
-                        <div class="well">
-                            <legend class="legend-form-group">Information</legend>
-                            <div class="form-group">
-                                <label for="inputTitleDashboard-disable" class="col-md-4 control-label">Title</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="inputTitleDashboard-disable" name="inputTitleDashboard-disable" readonly>
-                                </div>
-                                <label for="inputUserDashboard-disable" class="col-md-4 control-label">Holder</label>
-                                <div class="col-md-6">
-                                    <input type="text" class="form-control" id="inputUserDashboard-disable" name="inputUserDashboard-disable" readonly>
-                                </div>
-                                <!--<label for="textarea-widgets-disable" class="col-md-4 control-label">Widgets</label>
-                                <div class="col-md-6">                                   
-                                    <textarea id ="textarea-widgets-disable" class="form-control" name="textarea-widgets-disable" rows="6" readonly></textarea>
-                                </div>-->
-                            </div>
-                        </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button id="button_disable_dashboard" name="disable_dashboard" class="btn btn-primary" type="submit">Change</button>
-                </div>
-                </form>
-
-            </div>
-        </div>
-    </div>  
-    <!--
-     Modal Eliminazione Dashboard - NON CANCELLARE
-    <div class="modal fade" id="modal-delete-dashboard" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Elimina Dashboard</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="form-delete-dashboard" class="form-horizontal" name="form-delete-dashboard" role="form" method="post" action="" data-toggle="validator">
-                        <div class="form-group">
-                            <label for="select-dashboard" class="col-md-4 col-md-offset-1 control-label">Nome Dashboard</label>
-                            <div class="col-md-4">
-                                <select class="form-control" id="select-dashboard-delete" name="select-dashboard-delete" required>
-                                </select>
-                            </div>                      
-                        </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button id="button_delete_dashboard" name="delete_dashboard" class="btn btn-primary" type="submit">Elimina</button>
-                </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
-    -->
-    <!-- Nuovo modal di modifica -->
-    <div class="modal fade" id="modal-dashboard-m2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="dialog-dashboard-m2">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Modify dashboard</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="form-modify-dashboard2" class="form-horizontal" name="form-modify-dashboard2" role="form" method="post" action="" data-toggle="validator">
-                        <div id="status_message"> 
-                                <p>Are you sure do you want to modify this dashboard?</p>
-                        </div>
-                        <input type="hidden" id="selectedDashboardName" name="selectedDashboardName">
-                        <input type="hidden" id="selectedDashboardAuthorName" name="selectedDashboardAuthorName">
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button id="button_modify_dashboard" name="modify_dashboard" class="btn btn-primary internalLink" type="submit">Modify</button>
-                        </div>
-                    </form>
-                </div>            
-            </div>            
-        </div> 
-    </div>
-    <!-- Fine nuovo modal di modifica -->    
-    <!-- Nuovo modal disabilita dashboard -->
-    <div class="modal fade" id="modal-dashboard-disability" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="dialog-dashboard-disability">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Modify dashboard status</h4>
-                </div>
-                <form id="form-disability-dashboard2" class="form-horizontal" name="form-disability-dashboard2" role="form" method="post" action="" data-toggle="validator">
-                    <div class="modal-body">
-                        <div id="status_message">   
-                            <p>
-                            Are you sure do you want to change the status of this dashboard?
-                            </p>
-                        </div>
-                        <input type="hidden" id="selectedDashboardNameForStatusChange" name="selectedDashboardNameForStatusChange">
-                        <input type="hidden" id="selectedDashboardAuthorNameForStatusChange" name="selectedDashboardAuthorNameForStatusChange">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button id="button_status_dashboard" name="modify_status_dashboard" class="btn btn-primary" type="submit">Confirm</button>
-                    </div>
-                </form>
-            </div>
-        </div>            
-    </div> 
 
     <script type='text/javascript'>
         $(document).ready(function () 
@@ -487,9 +317,9 @@
             var loggedType = "<?= $_SESSION['loggedType'] ?>";
             var usr = "<?= $_SESSION['loggedUsername'] ?>";
             var userVisibilitySet = null;
-            var array_dahsboards = new Array();
             var authorizedPages = null;
             var internalDest = false;
+            var tableFirstLoad = true;
             
             $('.internalLink').on('mousedown', function(){
                 internalDest = true;
@@ -540,30 +370,11 @@
             $('#authorizedPagesJson').val("");
             $('label[for=authorizedPages]').hide();
             $('#authorizedPagesTable').parent().hide();
-            
-            $('#link_add_dashboard').click(function(){
-                authorizedPages = [];
-                $('#modal-create-dashboard').modal('show');
-            });
-            
             $('#color_hf').css("background-color", '#ffffff');
-            /*$('label[for=embedPolicy]').hide();
-            $('#embedPolicy').parent().hide();
-            $('label[for=embedAutofit]').hide();
-            $('#embedAutofit').parent().hide();*/
             
             $('#embeddable').change(function(){
                 if($(this).val() === 'no') 
                 {
-                    /*$('label[for=embedPolicy]').hide();
-                    $('#embedPolicy').parent().hide();
-
-                    $('#embedPolicy').val('auto');
-
-                    $('label[for=embedAutofit]').hide();
-                    $('#embedAutofit').parent().hide();
-                    $('#embedAutofit').val('no');*/
-
                     $('label[for=authorizedPages]').hide();
                     $('#authorizedPagesTable').parent().hide();
                     $('#authorizedPagesTable tbody').empty();
@@ -573,27 +384,10 @@
                 }
                 else
                 {
-                    /*$('label[for=embedPolicy]').show();
-                    $('#embedPolicy').parent().show();*/
-
                     $('label[for=authorizedPages]').show();
                     $('#authorizedPagesTable').parent().show();
                 }
             });
-            
-            /*$('#embedPolicy').change(function(){
-               if($(this).val() === 'auto') 
-               {
-                   $('label[for=embedAutofit]').hide();
-                   $('#embedAutofit').parent().hide();
-                   $('#embedAutofit').val('no');
-               }
-               else
-               {
-                   $('label[for=embedAutofit]').show();
-                   $('#embedAutofit').parent().show();
-               }
-            });*/
             
             $('#addAuthorizedPageBtn').click(function(){
                  var row = $('<tr><td><a href="#" class="toBeEdited" data-type="text" data-mode="popup"></a></td><td><i class="fa fa-minus"></i></td></tr>');
@@ -637,8 +431,8 @@
             $("#logoutBtn").click(function(event)
             {
                event.preventDefault();
-               
-               $.ajax({
+               location.href = "logout.php";
+               /*$.ajax({
                     url: "iframeProxy.php",
                     action: "notificatorRemoteLogout",
                     async: true,
@@ -655,7 +449,7 @@
                     {
                         location.href = "logout.php";
                     }
-                });
+                });*/
             });
             
             $('#inputDashboardVisibility').change(function(){
@@ -693,50 +487,265 @@
             
             $.ajax({
                 url: "get_data.php",
-                data: {action: "get_dashboards"},
+                data: {
+                    action: "get_dashboards"
+                },
                 type: "GET",
                 async: true,
                 dataType: 'json',
-                success: function (data) 
+                success: function(data) 
                 {
-                    for (var i = 0; i < data.length; i++)
-                    {
-                        array_dahsboards[i] = {id: data[i].dashboard['id'],
-                            name: data[i].dashboard['name'],
-                            title: data[i].dashboard['title_header'],
-                            date: data[i].dashboard['creation_date'],
-                            status: data[i].dashboard['status'],
-                            username: data[i].dashboard['username'],
-                            reference: data[i].dashboard['reference']
-                        };
-                        
-                        var trCode = null;
-                        
-                        if(array_dahsboards[i]['reference'] === '1')
+                    $('#list_dashboard').bootstrapTable({
+                        columns: [{
+                            field: 'title_header',
+                            title: 'Title',
+                            sortable: true,
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                            formatter: function(value, row, index)
+                            {
+                                if(value !== null)
+                                {
+                                    if(value.length > 75)
+                                    {
+                                       return value.substr(0, 75) + " ...";
+                                    }
+                                    else
+                                    {
+                                       return value;
+                                    } 
+                                }
+                            }
+                        }, {
+                            field: 'user',
+                            title: 'Creator',
+                            sortable: true,
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                            formatter: function(value, row, index)
+                            {
+                                if(value !== null)
+                                {
+                                    if(value.length > 50)
+                                    {
+                                       return value.substr(0, 50) + " ...";
+                                    }
+                                    else
+                                    {
+                                       return value;
+                                    } 
+                                }
+                            }
+                        },
                         {
-                            trCode = '<tr style="font-style: italic">'; 
-                        }
-                        else
+                            field: 'creation_date',
+                            title: 'Creation date',
+                            sortable: true,
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                        },
                         {
-                            trCode = '<tr>';    
-                        }
+                            field: 'visibility',
+                            title: 'Visibility',
+                            sortable: true,
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                            formatter: function(value, row, index)
+                            {
+                                return value;
+                            }
+                        },
+                        {
+                            field: 'embeddable',
+                            title: 'Embeddable',
+                            sortable: true,
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                            formatter: function(value, row, index)
+                            {
+                                return value;
+                            }
+                        },
+                        {
+                            field: 'status_dashboard',
+                            title: "Status",
+                            align: "center",
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                            formatter: function(value, row, index)
+                            {
+                                if((value === '0')||(value === 0))
+                                {
+                                    return '<input type="checkbox" data-toggle="toggle" class="changeDashboardStatus">';
+                                }
+                                else
+                                {
+                                    return '<input type="checkbox" checked data-toggle="toggle" class="changeDashboardStatus">';
+                                }
+                            }
+                        },
+                        {
+                            title: "Edit",
+                            align: "center",
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                            formatter: function(value, row, index)
+                            {
+                                return '<span class="glyphicon glyphicon-cog"></span>'; 
+                            }
+                        },
+                        {
+                            title: "View",
+                            align: "center",
+                            valign: "middle",
+                            align: "center",
+                            halign: "center",
+                            formatter: function(value, row, index)
+                            {
+                                return '<i class="fa fa-eye"></i>'; 
+                            }
+                        }],
+                        data: data,
+                        search: true,
+                        pagination: true,
+                        pageSize: 10,
+                        locale: 'en-US',
+                        searchAlign: 'left',
+                        uniqueId: "Id",
+                        striped: true,
+                        onPostBody: function()
+                        {
+                            if(tableFirstLoad)
+                            {
+                                //Caso di primo caricamento della tabella
+                                tableFirstLoad = false;
+                                var addDasboardDiv = $('<div class="pull-right"><i id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
+                                $('div.fixed-table-toolbar').append(addDasboardDiv);
+                                addDasboardDiv.css("margin-top", "10px");
+                                addDasboardDiv.find('i.fa-plus-square').off('hover');
+                                addDasboardDiv.find('i.fa-plus-square').hover(function(){
+                                    $(this).css('color', 'red');
+                                    $(this).css('cursor', 'pointer');
+                                }, 
+                                function(){
+                                    $(this).css('color', '#ffcc00');
+                                    $(this).css('cursor', 'normal');
+                                });
+                                
+                                $('#link_add_dashboard').off('click');
+                                $('#link_add_dashboard').click(function(){
+                                    authorizedPages = [];
+                                    $('#modal-create-dashboard').modal('show');
+                                });
+                            }
+                            else
+                            {
+                                //Casi di cambio pagina
+                            }
 
-                        var status;//Ma è usata?
-                        
-                        //Lasciare i valori di controllo come stringa, visto che la query a monte lato PHP non è fatta con i prepared statements
-                        if(data[i].dashboard['status'] === "1") 
-                        {
-                            status = "Attiva";//Ma è usata?
-                            //Popolamento lista delle dashboard
-                            $('#list_dashboard tbody').append(trCode + '<td class="name_dash">' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td><a class="icon-status-dash" href="#" data-toggle="modal" data-target="#modal-dashboard-disability"><input type="checkbox" class="checkStato" name="stato" value="1" checked></a></td><td class="name_user">' + array_dahsboards[i]['username'] + '</td><td><div class="icons-modify-dash"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-dashboard-m2" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div></td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></button></td></tr>');
-                        } 
-                        else if(data[i].dashboard['status'] === "0")
-                        {
-                            status = "Non attiva";//Ma è usata?
-                            //Popolamento lista delle dashboard
-                            $('#list_dashboard tbody').append(trCode + '<td class="name_dash">' + array_dahsboards[i]['name'] + '</td><td>' + array_dahsboards[i]['title'] + '</td><td>' + array_dahsboards[i]['date'] + '</td><td><a class="icon-status-dash" href="#" data-toggle="modal" data-target="#modal-dashboard-disability"><input type="checkbox" class="checkStato" name="stato" value="0"></a></td><td class="name_user">' + array_dahsboards[i]['username'] + '</td><td><div class="icons-modify-dash"><a class="icon-cfg-metric" href="#" data-toggle="modal" data-target="#modal-dashboard-m2" style="float:left;"><span class="glyphicon glyphicon-cog glyphicon-modify-metric" tabindex="-1" aria-hidden="true"></span></a></div></td><td><button type="button" class="btn btn-default button-preview"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></button></td></tr>');
+                            //Istruzioni da eseguire comunque
+                            $('#list_dashboard span.glyphicon-cog').css('color', '#337ab7');
+                            $('#list_dashboard span.glyphicon-cog').css('font-size', '20px');
+
+                            $('#list_dashboard span.glyphicon-cog').off('hover');
+                            $('#list_dashboard span.glyphicon-cog').hover(function(){
+                                $(this).css('color', '#ffcc00');
+                                $(this).css('cursor', 'pointer');
+                            }, 
+                            function(){
+                                $(this).css('color', '#337ab7');
+                                $(this).css('cursor', 'normal');
+                            });
+                            
+                            $('#list_dashboard i.fa-eye').css('color', '#337ab7');
+                            $('#list_dashboard i.fa-eye').css('font-size', '24px');
+                            
+                            $('#list_dashboard i.fa-eye').off('hover');
+                            $('#list_dashboard i.fa-eye').hover(function(){
+                                $(this).css('color', '#ffcc00');
+                                $(this).css('cursor', 'pointer');
+                            }, 
+                            function(){
+                                $(this).css('color', '#337ab7');
+                                $(this).css('cursor', 'normal');
+                            });
+                            
+                            $('#list_dashboard i.fa-eye').off('click');
+                            $('#list_dashboard i.fa-eye').click(function () 
+                            {
+                                var dashboardId = $(this).parents('tr').attr("data-uniqueid");
+                                window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                            });
+                            
+                            $('#list_dashboard input.changeDashboardStatus').bootstrapToggle({
+                                on: "On",
+                                off: "Off",
+                                onstyle: "primary",
+                                offstyle: "default",
+                                size: "small"
+                            });
+
+                            $('#list_dashboard tbody input.changeDashboardStatus').off('change');
+                            $('#list_dashboard tbody input.changeDashboardStatus').change(function() {
+                                if($(this).prop('checked') === false)
+                                {
+                                    var newStatus = 0;
+                                }
+                                else
+                                {
+                                    var newStatus = 1;
+                                }
+
+                                $.ajax({
+                                    url: "process-form.php",
+                                    data: {
+                                        modify_status_dashboard: true,
+                                        dashboardId: $(this).parents('tr').attr('data-uniqueid'),
+                                        newStatus: newStatus
+                                    },
+                                    type: "POST",
+                                    async: true,
+                                    success: function(data)
+                                    {
+                                        console.log("Success");
+                                        if(data !== "Ok")
+                                        {
+                                            console.log("Error updating dashboard status");
+                                            console.log(data);
+                                            alert("Error updating dashboard status");
+                                            location.reload();
+                                        }
+                                    },
+                                    error: function(errorData)
+                                    {
+                                        console.log("Error updating dashboard status");
+                                        console.log(errorData);
+                                        alert("Error updating dashboard status");
+                                        location.reload();
+                                    }
+                                });
+                            });
+
+                            $('#list_dashboard tbody span.glyphicon-cog').off('click');
+                            $('#list_dashboard tbody span.glyphicon-cog').click(function() 
+                            {
+                                var dashboardId = $(this).parents('tr').attr('data-uniqueid');
+                                location.href = "process-form.php?openDashboardToEdit=true&dashboardId=" + dashboardId;
+                            });
                         }
-                    }
+                    });
+                },
+                error: function(errorData)
+                {
+                    console.log("KO");
+                    console.log(errorData);
                 }
             });
 
@@ -745,32 +754,12 @@
                 $('#dashboardLogoLinkInput').removeAttr('disabled');
             });
 
-            //Listener apertura view di una dashboard
-            $(document).on('click', '.button-preview', function () 
-            {
-                var dashboardName = $(this).parent().parent().find('td:first').text();
-                var dashboardAuthor = $(this).parent().parent().find('.name_user').text();
-                window.open("../view/preview.php?dashboardName=" + dashboardName + "&dashboardAuthor=" + dashboardAuthor);
-            });
-
-            $(function () 
+            $(function() 
             {
                 $('.color-choice').colorpicker({format: "rgba"});
             });
 
-            //Listener per pulsante di modifica dashboard
-            $(document).on('click', '.icons-modify-dash', function () 
-            {
-                $("#selectedDashboardName").val($(this).parent().parent().find('.name_dash').text());
-                $("#selectedDashboardAuthorName").val($(this).parent().parent().find('.name_user').text());
-            });
             
-            //Listener per pulsante di modifica stato dashboard
-            $(document).on('click','.icon-status-dash', function ()
-            {
-                $('#selectedDashboardNameForStatusChange').val($(this).parent().parent().find('.name_dash').text());
-                $("#selectedDashboardAuthorNameForStatusChange").val($(this).parent().parent().find('.name_user').text());
-            });
             
             //Caricamento dell'insieme di visibilità per l'utente collegato
             $.ajax({
