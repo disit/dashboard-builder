@@ -244,6 +244,51 @@ div.widgetSeparator
     vertical-align: middle;
 }
 
+.psPopupTable
+{
+    width: 100%;
+    height: 85%;
+    float: left;
+    border: 1px solid #dddddd;
+    border-collapse: collapse;
+    /*Per avere colonne tutte della stessa larghezza*/
+    table-layout: fixed;
+    /*font-family: Verdana, sans-serif;*/
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+    margin-top: 10px;
+}
+
+.psPopupTable tr
+{
+    border: 1px solid #eeeeee;
+    border-collapse: collapse;
+    height: 15px;
+}
+
+.psPopupTable th
+{
+    border: 1px solid #eeeeee;
+    font-weight: bold;
+    border-collapse: collapse;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.psPopupTable td
+{
+    border: 1px solid #eeeeee;
+    border-collapse: collapse;
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.popupLastUpdateContainer
+{
+    width: 100%;
+}
+
 .psTable
 {
     width: 100%;
@@ -350,7 +395,7 @@ div.singleBtnContainer
     line-height: 25px;
     text-align: center;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.20);
-    font-family: Verdana;
+    font-family: inherit;
     /*Effetto fade in caso di allarme*/
     -webkit-transition: background 1.8s ease-in-out;
     -ms-transition:     background 1.8s ease-in-out;
@@ -365,8 +410,26 @@ div.singleBtnContainer
 
 .widgetHeader
 {
-    width: 100%;
+    /*width: 100%;*/
     height: 25px;
+}
+
+div.buttonTxtContainer
+{
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    float: left;
+    border-radius: inherit;
+    line-height: 1.25;
+    font-weight: bold;
+    width: 100%;
+    -o-transition: color 300ms, text-shadow 300ms, background-color 300ms;
+    -moz-transition: color 300ms, text-shadow 300ms, background-color 300ms;
+    -webkit-transition: color 300ms, text-shadow 300ms, background-color 300ms;
+    -ms-transition: color 300ms, text-shadow 300ms, background-color 300ms;
+    transition: color 300ms, text-shadow 300ms, background-color 300ms;
 }
 
 .previsione-giorno
@@ -738,8 +801,8 @@ div.mapDiv, div.gisMapDiv
 
 .iframeWrapper
 {
+    position: absolute;
     width: 100%;
-    height: 100%;
 }
 
 .iframeZoomControls
@@ -827,6 +890,9 @@ div.mapDiv, div.gisMapDiv
 
 .iFrame
 {
+    position: absolute;
+    top:0;
+    left: 0;
     width: 100%;
     height: 100%;
     z-index: 0;
@@ -1309,6 +1375,8 @@ p.recreativeEventTitlePar
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     /*font-family: "Coolwonder";*/
     font-size: 12px;
+    height: 175px;
+    overflow-y: auto;
 }
 
 .recreativeEventMapDescContainer, .recreativeEventMapTimingContainer, .recreativeEventMapContactsContainer
@@ -1449,7 +1517,7 @@ div.tooltip-inner
 {
     float: left; 
     width: 100%;
-    height: 75px;
+    height: 25px;
 }
 
 .pcInfoContainer
@@ -1465,6 +1533,7 @@ div.tooltip-inner
 
 .logoPc
 {
+    position: relative;
     height: 100%;
     width: 58%;
     float: left;
@@ -1475,8 +1544,10 @@ div.tooltip-inner
 
 .logoPc img
 {
-    width: 238px;
-    height: 60px;
+    display: block;
+    position: absolute;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
 }
 
@@ -1897,7 +1968,7 @@ atafLastUpdateWrapper
 
 .value
 {
-    font-size:25px; 
+    font-size: 25px; 
     font-weight: bold; 
     margin-top: 15px;
     line-height: 100px;
@@ -1925,7 +1996,6 @@ atafLastUpdateWrapper
     text-align: center;
     overflow: hidden ;
     text-overflow: ellipsis;
-    /*border: 1px solid red;*/
 }
 
 .singleContentUdm
@@ -1937,7 +2007,6 @@ atafLastUpdateWrapper
     display: flex;
     align-items: flex-start; 
     justify-content: center;
-    /*border: 1px solid greenyellow;*/
 }
 
 .nomeJob
@@ -2014,9 +2083,6 @@ atafLastUpdateWrapper
     justify-content: center;
     text-align: center;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
-    /*border-style: solid;
-    border-color: green;
-    border-width: 3px;*/
 }
 
 .statoJob
@@ -2127,6 +2193,7 @@ atafLastUpdateWrapper
    float: left;
    margin-left: 0px;
    margin-right: 2px;
+   font-size: 22px !important;
 }
 
 .countdown
@@ -2852,7 +2919,7 @@ atafLastUpdateWrapper
 .trafficEventsButtonsContainer
 {
    width: 100%;
-   height: 50px;
+   height: 12%;
 }
 
 .trafficEventsButtonContainer
@@ -2866,7 +2933,6 @@ atafLastUpdateWrapper
     background: -o-linear-gradient(right, #33ccff, #ccf2ff); 
     background: -moz-linear-gradient(right, #33ccff, #ccf2ff);
     background: linear-gradient(to right, #33ccff, #ccf2ff); 
-    /*border: 1px solid black;*/
 }
 
 .trafficEventsButtonIcon
@@ -2874,7 +2940,6 @@ atafLastUpdateWrapper
     width: 100%;
     height: 75%;
     float: left;
-    /*border: 1px solid red;*/
 }
 
 .trafficEventsButtonIcon img
@@ -2890,57 +2955,21 @@ atafLastUpdateWrapper
     height: 25%;
     float: left;
     font-variant: small-caps;
-    /*border: 1px solid red;*/
 }
-
-/*.trafficEventsButton
-{
-   width: 100px;
-   height: 45px;
-   float: left;
-   margin-right: 5px;
-}
-
-.trafficEventsButton:hover
-{
-   color: white;
-   cursor: pointer;
-}
-
-.trafficEventsButtonIcon
-{
-    width: 100%;
-    height: 75%;
-}
-
-.incidentsButtonMsgContainer
-{
-   width: 100%;
-   height: 25%;
-   font-family: Verdana;
-   font-variant: small-caps;
-   font-weight: bold;
-}
-
-.trafficEventsButtonIcon img
-{
-   object-fit: contain;
-    width: 92%;
-    height: 92%;
-}*/
 
 .trafficEventsSearchFilterContainer
 {
    display: none; 
    width: 100%;
-   border: 1px solid red;
 }
 
 .trafficEventsRollerContainer
 {
    display: none; 
    width: 100%;
+   height: 88%;
    overflow-y: auto;
+   overflow-x: hidden;
 }
 
 .trafficEventIcon
@@ -3064,23 +3093,98 @@ atafLastUpdateWrapper
    background: linear-gradient(to right, #ffdb4d, #fff5cc);  
 }
 
-/*.lowSeverityTitle
+.operatorEventWhiteTitle
 {
-   background: #33ccff;
-   background: -webkit-linear-gradient(#33ccff, #ccf2ff); 
-   background: -o-linear-gradient(#33ccff, #ccf2ff); 
-   background: -moz-linear-gradient(#33ccff, #ccf2ff);
-   background: linear-gradient(#33ccff, #ccf2ff); 
+   background: #ffffff;
+   background: -webkit-linear-gradient(#f2f2f2, #ffffff); 
+   background: -o-linear-gradient(#f2f2f2, #ffffff); 
+   background: -moz-linear-gradient(#f2f2f2, #ffffff);
+   background: linear-gradient(#f2f2f2, #ffffff); 
 }
 
-.lowSeverity
+.operatorEventWhite
 {
-   background: #33ccff;
-   background: -webkit-linear-gradient(right, #33ccff, #ccf2ff); 
-   background: -o-linear-gradient(right, #33ccff, #ccf2ff); 
-   background: -moz-linear-gradient(right, #33ccff, #ccf2ff);
-   background: linear-gradient(to right, #33ccff, #ccf2ff);  
-}*/
+   background: #ffdb4d;
+   background: -webkit-linear-gradient(right, #f2f2f2, #ffffff); 
+   background: -o-linear-gradient(right, #f2f2f2, #ffffff); 
+   background: -moz-linear-gradient(right, #f2f2f2, #ffffff);
+   background: linear-gradient(to right, #f2f2f2, #ffffff);  
+}
+
+.operatorEventBlueTitle
+{
+   background: #66ccff;
+   background: -webkit-linear-gradient(#66ccff, #b3e6ff); 
+   background: -o-linear-gradient(#66ccff, #b3e6ff); 
+   background: -moz-linear-gradient(#66ccff, #b3e6ff);
+   background: linear-gradient(#66ccff, #b3e6ff); 
+}
+
+.operatorEventBlue
+{
+   background: #66ccff;
+   background: -webkit-linear-gradient(right, #66ccff, #b3e6ff); 
+   background: -o-linear-gradient(right, #66ccff, #b3e6ff); 
+   background: -moz-linear-gradient(right, #66ccff, #b3e6ff);
+   background: linear-gradient(to right, #66ccff, #b3e6ff);  
+}
+
+.operatorEventGreenTitle
+{
+   background: #66ff33;
+   background: -webkit-linear-gradient(#66ff33, #9fff80); 
+   background: -o-linear-gradient(#66ff33, #9fff80); 
+   background: -moz-linear-gradient(#66ff33, #9fff80);
+   background: linear-gradient(#66ff33, #9fff80); 
+}
+
+.operatorEventGreen
+{
+   background: #66ff33;
+   background: -webkit-linear-gradient(right, #66ff33, #9fff80); 
+   background: -o-linear-gradient(right, #66ff33, #9fff80); 
+   background: -moz-linear-gradient(right, #66ff33, #9fff80);
+   background: linear-gradient(to right, #66ff33, #9fff80);  
+}
+
+.operatorEventYellowTitle
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(#ffcc00, #ffe066); 
+   background: -o-linear-gradient(#ffcc00, #ffe066); 
+   background: -moz-linear-gradient(#ffcc00, #ffe066);
+   background: linear-gradient(#ffcc00, #ffe066); 
+}
+
+.operatorEventYellow
+{
+   background: #ffcc00;
+   background: -webkit-linear-gradient(right, #ffcc00, #ffe066); 
+   background: -o-linear-gradient(right, #ffcc00, #ffe066); 
+   background: -moz-linear-gradient(right, #ffcc00, #ffe066);
+   background: linear-gradient(to right, #ffcc00, #ffe066);  
+}
+
+.operatorEventRedTitle
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(#ff6666, #ffcccc); 
+   background: -o-linear-gradient(#ff6666, #ffcccc); 
+   background: -moz-linear-gradient(#ff6666, #ffcccc);
+   background: linear-gradient(#ff6666, #ffcccc); 
+}
+
+.operatorEventRed
+{
+   background: #ff6666;
+   background: -webkit-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -o-linear-gradient(right, #ff6666, #ffcccc); 
+   background: -moz-linear-gradient(right, #ff6666, #ffcccc);
+   background: linear-gradient(to right, #ff6666, #ffcccc);  
+}
+
+
+
 
 .roadWorksTitle
 {
@@ -3245,10 +3349,16 @@ atafLastUpdateWrapper
    animation: onMapSignalAnimation 1.5s ease infinite;
 }
 
+/*.leafletPin
+{
+   width: 36px; height: 36px; 
+   transform: translate(-50%, -100%);
+}*/
+
 .leafletPin
 {
-   width: 35px; height: 35px; /*border: 1px solid red;*/
-   transform: translate(-50%, -100%);
+   width: 36px; 
+   height: 36px; 
 }
 
 .mapPopupTitle
@@ -3269,6 +3379,44 @@ atafLastUpdateWrapper
    text-shadow: 1px 1px 1px rgba(0,0,0,0.15);
    text-align: center;
 }
+
+.operatorEventLabelContainer
+{
+    float: left;
+    width: 100%;
+    height: 35%;
+    font-weight: bold;
+}
+
+.operatorEventDataContainer
+{
+    float: left;
+    width: 100%;
+    height: 65%;
+    font-variant: normal;
+    text-transform: uppercase;
+}
+
+.operatorEventPeopleContainer
+{
+   float: left;
+   width: 43.75%;
+   height: 100%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
+.operatorEventOperatorContainer
+{
+   float: left;
+   width: 43.75%;
+   height: 100%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
 
 .alarmSeverityContainer
 {
@@ -3297,10 +3445,20 @@ atafLastUpdateWrapper
    height: 100%;
 }
 
+.planPathNumberContainer
+{
+   float: left;
+   width: 35%;
+   height: 50%;
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+   font-variant: small-caps;
+}
+
 .planDateContainer
 {
    float: left;
-   width: 50%;
+   width: 65%;
    height: 50%;
    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
@@ -3508,6 +3666,17 @@ atafLastUpdateWrapper
    display: none;
 }
 
+.defaultMapPic
+{
+   width: 100%;
+   height: 100%;
+   display: none;
+   background-image: url("../img/mapPic.PNG");
+   background-size: 100% 100%;
+   background-repeat: no-repeat;
+   background-position: center center;
+}
+
 .clockDate, .clockTime
 {
    width: 100%;
@@ -3534,13 +3703,12 @@ div.gisRollerContainer
 {
    width: 100%;
    height: 100%;
-   overflow-y: auto;
+   overflow-y: hidden;
 }
 
 div.gisMapPtrContainer
 {
     float: left;
-    /*width: 17.5%;*/
     height: 100%;
     margin-top: 0px;
     margin-bottom: 0px;
@@ -3549,7 +3717,6 @@ div.gisMapPtrContainer
 div.gisQueryDescContainer
 {
     float: left;
-    /*width: 82.5%;*/
     height: 100%;
     margin-top: 0px;
     margin-bottom: 0px;
@@ -3557,12 +3724,8 @@ div.gisQueryDescContainer
     overflow: hidden;
 }
 
-p.gisQueryDescPar
+span.gisQueryDescPar
 {
-   display: block;
-   width: 100%;
-   height: auto;
-   max-height: 100%;
    text-align: center;
    word-wrap: break-word;
    overflow: hidden;
@@ -3588,7 +3751,7 @@ div.gisPinContainer
 span.gisPinShowMsg, span.gisPinHideMsg, span.gisPinNoQueryMsg, span.gisPinNoMapsMsg
 {
    display: none;
-   font-size: 14px;
+   /*font-size: 14px;*/
    font-variant: small-caps;
    font-weight: bold;
    text-shadow: 2px 2px 4px black;
@@ -3664,10 +3827,46 @@ p.gisMapLoadingDivTextPar
     font-weight: bold;
  }
  
- table.gisPopupTable th, table.gisPopupTable td
+ table.gisPopupGeneralDataTable
+ {
+     border: none;
+     width: 70%;
+     margin-left: auto;
+     margin-right: auto;
+ }
+ 
+ table.gisPopupGeneralDataTable th, table.gisPopupGeneralDataTable td
  {
     padding-left: 5px;
     padding-right: 5px;
+    text-align: center;
+ }
+ 
+ table.gisPopupGeneralDataTable td
+ {
+    font-weight: normal;
+ }
+ 
+ table.gisPopupGeneralDataTable button.btn-sm
+ {
+    line-height: 1.0;
+ }
+ 
+ table.gisPopupTable
+ {
+     border: none;
+     width: 100%;
+     margin-left: auto;
+     margin-right: auto;
+     margin-top: 10px;
+ }
+ 
+ table.gisPopupTable th, table.gisPopupTable td
+ {
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 3px;
+    padding-bottom: 3px;
     text-align: center;
  }
  
@@ -3678,7 +3877,9 @@ p.gisMapLoadingDivTextPar
  
  table.gisPopupTable button.btn-sm
  {
+    width: 50px; 
     line-height: 1.0;
+    padding: 2px 2px;
  }
  
  i.gisDriverPin
@@ -3702,7 +3903,6 @@ p.gisMapLoadingDivTextPar
  div.meteoCityContainer, div.meteoDateContainer, div.meteoDescContainer, div.meteoLammaContainer, div.meteoIconContainer, div.meteoTempContainer
  {
      background-color: transparent;
-     /*border: 1px solid red;*/
  }
  
  div.meteoDateContainer
@@ -3773,7 +3973,6 @@ p.gisMapLoadingDivTextPar
      align-items: center; 
      justify-content: center;
      text-align: center;
-     /*border: 1px solid red;*/
  }
  
  div.meteoTempContainer
@@ -3876,7 +4075,6 @@ p.gisMapLoadingDivTextPar
      display: none;
      width: 100%;
      height: 100%;
-     /*border: 1px solid red;*/
  }
  
  div.gisPinCustomIconUp
@@ -3902,13 +4100,12 @@ p.gisMapLoadingDivTextPar
      color: #00cc00;
      margin: 0;
      padding: 0;
-     /*border: 1px solid red;*/
  }
- 
-  .serverStatus
+
+.serverName
 {
     width: 100%;
-    height: 20%;
+    height: 25%;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.35);
     font-weight: bold;
@@ -3916,14 +4113,54 @@ p.gisMapLoadingDivTextPar
     align-items: center;
     justify-content: center;
     text-align: center;
-    color:#000000;
+    color: #000000;
+    font-variant: small-caps;
+}
+
+.serverTestResultIcon
+{
+    width: 100%;
+    height: 35%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
+}
+
+.serverTestResponseMsg
+{
+    width: 100%;
+    height: 22.5%;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.35);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #000000;
+    font-variant: small-caps;
+}
+
+.serverTestDate
+{
+    width: 100%;
+    height: 17.5%;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #000000;
+    font-variant: small-caps;
 }
 
  .serverStatusContainerOk
 {
     width: 95%;
     height: 95%;
-    font-variant: small-caps;
     border-radius: 15px; 
    -moz-border-radius: 15px; /* firefox */
    -webkit-border-radius: 10px;
@@ -3937,7 +4174,6 @@ p.gisMapLoadingDivTextPar
 {
     width: 95%;
     height: 95%;
-    font-variant: small-caps;
     border-radius: 15px; 
    -moz-border-radius: 15px; /* firefox */
    -webkit-border-radius: 10px;
@@ -3953,7 +4189,6 @@ p.gisMapLoadingDivTextPar
 {
     width: 95%;
     height: 95%;
-    font-variant: small-caps;
     border-radius: 15px; 
    -moz-border-radius: 15px; /* firefox */
    -webkit-border-radius: 10px;
@@ -3962,5 +4197,4 @@ p.gisMapLoadingDivTextPar
     background: -o-linear-gradient(#ff0000, #ff6666); 
     background: -moz-linear-gradient(#ff0000, #ff6666); 
     background: linear-gradient(to top, #ff0000, #ff6666);
-   
 }

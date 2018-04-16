@@ -1,0 +1,193 @@
+#dashboardEditHeaderMenu
+{
+   font-weight: normal !important;
+}
+
+.fullCtxMenuRow:hover
+{
+    cursor: pointer;
+}
+
+.dashHeaderColorSubmenu
+{
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+}
+
+.dashHeaderColorSubmenu:hover
+{
+    background-color: transparent;
+    color: black;
+}
+
+div.ctxMenuPaletteColor
+{
+    height: 15px;
+    padding-right: 5px;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    border: 1px solid #eeeeee;
+}
+
+div.ctxMenuPaletteColor:hover
+{
+    cursor: pointer;
+    /*box-shadow: 5px 10px #888888;*/
+}
+
+div.contextMenuMsgRow
+{
+    display: none;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+div.contextMenuBtnsRow
+{
+    margin-top: 15px;
+}
+
+#dashHeaderColorPicker, #dashHeaderFontColorPicker
+{
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+.contextMenuCancelBtn
+{
+    height: 20px;
+    width: 60px;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 2px;
+    background-color: #f3cf58;
+    color: white;
+}
+
+.contextMenuConfirmBtn
+{
+    height: 20px;
+    width: 60px;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 2px;
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+}
+
+.fullCtxMenu
+{
+    min-width: 150px;
+    display: none;
+    position: absolute;
+    background-color: white;
+    color: rgba(51, 64, 69, 1);
+    padding: 5px 5px 5px 5px;
+    border-radius: 2px;
+    border: 1px solid #bebebe;
+    -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+}
+
+.fullCtxMenuIcon, .fullCtxMenuTxt
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+.fullCtxMenuIcon
+{
+    font-size: 14px;
+    padding-top: 5px;
+    padding-left: 1px !important;
+}
+
+.fullCtxMenuTxt
+{
+    font-size: 15px;
+	text-align: left !important;
+}
+
+#dashboardCtxMenuBtn:hover
+{
+    cursor: pointer;
+}
+
+.editTxtMenu
+{
+    display: none;
+    position: absolute;
+    background-color: white;
+    width: 136px;
+    padding: 5px 5px 5px 5px;
+    border-radius: 2px;
+    border: 1px solid #bebebe;
+    -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+}
+
+#dashboardTitleMenu, #dashboardSubtitleMenu
+{
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+}
+
+.editTxtMenuBtns, .editTxtMenuMsg
+{
+    width: 100%;
+    float: left;
+}
+
+.editTxtMenuMsg
+{
+    display: none;
+    color: black;
+    margin-top: 10px;
+}
+
+.pcPhoto
+{
+	margin-left: auto;
+	margin-right: auto;
+	display: none;
+    max-width: 99px;
+    max-height: 25px;
+	width: 99px;
+	height: 25px;
+    object-fit: contain;
+}
+
+#addWidgetWizardMapCnt
+{
+    height: 250px;
+}
+
+.addWidgetWizardIconsCntLabel
+{
+    margin-bottom: 10px;
+}
+
+.addWidgetWizardIconsCntLabel
+{
+    font-size: 1em;
+    font-weight: bold;
+    color: white;
+}
+
+#addWidgetWizard .modalHeader 
+{
+    background-color: rgba(51, 64, 69, 1) !important;
+}
+
+#addWidgetWizard .modal-body
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+.dataTables_length, .dataTables_filter
+{
+    color: white !important;
+}

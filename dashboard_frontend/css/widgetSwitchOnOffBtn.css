@@ -1,0 +1,122 @@
+/*Meglio senza*/
+/*a:before 
+{
+    content: "";
+    width: 80px;
+    height: 80px;
+    display: block;
+    z-index: -2;
+    position: absolute;
+    background-color: rgb(26,27,29);
+    left: -5px;
+    top: -2px;
+    border-radius: 40px;
+    box-shadow: 0px 1px 0px 0px rgba(250,250,250,0.1), 
+                inset 0px 1px 2px rgba(0, 0, 0, 0.5);
+}*/
+
+div.onOffButton 
+{
+    /*color: rgb(37,37,37);*/
+    text-shadow: 0px 1px 1px rgba(250,250,250,0.1);
+    display: block;
+    position: absolute;
+    text-decoration: none;
+    box-shadow: /*0px 3px 0px 0px rgb(34,34,34),*/ /* MEGLIO SENZA prima ombra */
+                0px 7px 10px 0px rgb(17,17,17), /* seconda ombra */
+                inset 0px 1px 1px 0px rgba(250, 250, 250, .2), /* terza ombra */ 
+                inset 0px -12px 35px 0px rgba(0, 0, 0, .5); /* quarta ombra */
+    border: 0;
+    text-align: center;
+    -o-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    -moz-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    -webkit-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    -ms-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    transition: color 500ms, text-shadow 500ms, background-color 500ms;
+}
+
+div.onOffButtonBefore
+{
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    top: -6px;
+    bottom: -6px;
+    z-index: 9;
+    border-radius: inherit;
+    box-shadow: inset 0 6px 6px rgba(0,0,0,0.13);
+    -webkit-filter: blur(1px);
+    -moz-filter: blur(1px);
+    -ms-filter: blur(1px);
+    -o-filter: blur(1px);
+    filter: blur(1px);
+}
+
+div.onOffButtonAfter
+{
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    top: -6px;
+    bottom: -6px;
+    z-index: 9;
+    border-radius: inherit;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.3), 0 0 10px rgba(0,0,0,0.15);
+}
+
+div.onOffButton:hover
+{
+    cursor: pointer;
+}
+
+div.onOffButton i.fa-refresh, div.onOffButton i.fa-times-circle-o
+{
+    display: none;
+    position: absolute;
+}
+
+div.onOffButtonActive 
+{
+    box-shadow: 0px 0px 0px 0px rgb(34,34,34), /* MEGLIO SENZA prima ombra */
+                0px 3px 7px 0px rgb(17,17,17), /* seconda ombra */
+                inset 0px 1px 1px 0px rgba(250, 250, 250, .2), /* terza ombra */
+                inset 0px -10px 35px 5px rgba(0, 0, 0, .5); /* quarta ombra */
+    top: 3px;
+    color: #fff;
+    text-shadow: 0px 0px 3px rgb(250,250,250);
+}
+
+/*a:active:before, */div.onOffButtonActive:before 
+{
+    top: -5px;
+    background-color: rgb(26,27,29);
+    box-shadow: 0px 1px 0px 0px rgba(250,250,250,0.1), 
+                inset 0px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+div.onOffButtonTxtContainer
+{
+    display: none;
+    float: left;
+    border-radius: inherit;
+    line-height: 1.25;
+    font-weight: bold;
+    -o-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    -moz-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    -webkit-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    -ms-transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    transition: color 500ms, text-shadow 500ms, background-color 500ms;
+    /*border: 1px solid greenyellow;*/
+}
+
+div.onOffButtonDisplay
+{
+    display: none;
+    float: left;
+    font-family: 'Digital';
+    -ms-transition: color 500ms, background-color 500ms, box-shadow 500ms;
+    -o-transition: color 500ms, background-color 500ms, box-shadow 500ms;
+    -moz-transition: color 500ms, background-color 500ms, box-shadow 500ms;
+    -webkit-transition: color 500ms background-color 500ms, box-shadow 500ms;
+    transition: color 500ms, background-color 500ms, box-shadow 500ms;
+}

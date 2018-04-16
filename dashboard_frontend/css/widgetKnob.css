@@ -1,24 +1,3 @@
-/*.marker 
-{
-    background: #ED1C24;
-    width: 7px;
-    height: 2px;
-    right: 0;
-    position: absolute;
-    top:35px;
-}
-
-.testMarker
-{
-    position: absolute;
-    top: 10%;
-    left: 50%;
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
-    border: 1px solid red;
-}*/
-
 .knobIndicator 
 {
     display: block;
@@ -31,12 +10,24 @@
     -moz-box-shadow: 1px 1px 0 rgba(255, 255, 255, .4);
     -webkit-box-shadow: 1px 1px 0 rgba(255, 255, 255, .4);
     box-shadow: 1px 1px 0 rgba(255, 255, 255, .4);
-    /*-moz-transform-origin: 50% 100%;
-    -webkit-transform-origin: 50% 100%;
-    transform-origin: 50% 100%;
-    -moz-transform: rotate(-35deg);
-    -webkit-transform: rotate(-35deg);
-    transform: rotate(-35deg);*/
+}
+
+.knobIndicator:hover
+{
+    cursor: move; 
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    cursor: -ms-grab;
+}
+
+.knobIndicator:active 
+{ 
+    /*cursor: move; 
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor: -ms-grabbing;*/
 }
 
 .knob 
@@ -45,23 +36,128 @@
     z-index: 4;
     background: #ccc;
     background: -moz-linear-gradient(5deg,  #ccc, #aaa, #999);
-    background: -webkit-gradient(linear, 10% top, 90% top, from(#ddd), color-stop(.5, #888), to(#ddd));
-    -moz-perspective: 100px;
-    -webkit-perspective: 100px;
-    perspective: 100px;
+    background: -webkit-gradient(linear, 5% top, 95% top, from(#f2f2f2), color-stop(.5, #b3b3b3), to(#f2f2f2));
+    box-shadow: 0px 0px 2px 2px #737373, inset 0px 0px 1px 1px #FFFFFF;
+    transform-style: preserve-3d;
+    transform: translateZ(0);
+    will-change: transform; 
 }
 
 /*Aureola luminosa attorno alla manopola*/
 .knobHalo 
 {
-    z-index: 2;
+    /*z-index: 2;
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); 
+    transform: translate(-50%, -50%); */
+    /*background: rgba(0, 157, 220, 1);
+    -moz-box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 25px rgba(0, 157, 220, .6);
+    -webkit-box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 25px rgba(0, 157, 220, .6);
+    box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 25px rgba(0, 157, 220, .6);*/
+}
+
+/*Contenitore interno del valore*/
+.knobInnerCircle
+{
+    position: absolute;
+    z-index: 6;
+    top: 50%;
+    left: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    transform-style: preserve-3d;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+    font-family: "Digital";
+    -webkit-transition: all 50ms ease-out;
+    -moz-transition: all 50ms ease-out;
+    -o-transition: all 50ms ease-out;
+    transition: all 50ms ease-out;
+}
+
+.knobInnerCircle span
+{
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+    -webkit-transition: opacity 180ms ease-out;
+    -moz-transition: opacity 180ms ease-out;
+    -o-transition: opacity 180ms ease-out;
+    -ms-transition: opacity 180ms ease-out;
+    transition: opacity 180ms ease-out;
+}
+
+/*Contenitore tacche scala*/
+.ticks
+{
     
-    background: #009ddc;
-    -moz-box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 50px rgba(0, 157, 220, .6);
-    -webkit-box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 50px rgba(0, 157, 220, .6);
-    box-shadow: 3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px #009ddc, 0 0 50px rgba(0, 157, 220, .6);
+}
+
+/*Singola tacca scala*/
+.tick 
+{
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  overflow: visible;
+}
+
+.tickInner
+{
+    width: 1px;
+    position: absolute;
+    left: 50%;
+    background-color: transparent;
+    -webkit-transition: all 75ms ease-out;
+    -moz-transition: all 75ms ease-out;
+    -o-transition: all 75ms ease-out;
+    transition: all 75ms ease-out;
+}
+
+.tickValue
+{
+    position: absolute;
+    background-color: transparent;
+    line-height: 1;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+}
+
+.incrementControlInner
+{
+    position: absolute;
+    left: 50%;
+    z-index: 9;
+    background: #ccc;
+    background: -moz-linear-gradient(5deg,  #ccc, #aaa, #999);
+    background: -webkit-gradient(linear, 5% top, 95% top, from(#f2f2f2), color-stop(.5, #b3b3b3), to(#f2f2f2));
+    box-shadow: 0px 0px 2px 2px #737373, inset 0px 0px 1px 1px #FFFFFF;
+    color: black;
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none;
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none;
+}
+
+.incrementControlInner:hover
+{
+    cursor: pointer;
+}
+
+.gradCanvas
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }

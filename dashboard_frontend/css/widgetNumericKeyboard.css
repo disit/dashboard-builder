@@ -1,0 +1,49 @@
+div.numericKeyboardContainer
+{
+    width: 100%;
+    height: 100%;
+    font-family: 'Montserrat', 'Verdana', sans-serif;
+}
+
+div.numericKeyboardValueContainer
+{
+    width: 50%;
+    height: 100%;
+    float: left;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+span.displayLabel
+{
+    display: block;
+    float: left;
+    width: 100%;
+    height: 32.5%;
+}
+
+span.displayVal
+{
+    display: block;
+    float: left;
+    width: 100%;
+    height: 67.5%;
+}
+
+div.numericKeyboardDisplayRow, div.numericKeyboardRow
+{
+    height: 16.66667%;
+}
+
+div.numericKeyboardBtnContainer, div.numericKeyboardEnterBtnContainer
+{
+    height: 100%;
+    padding: 1px;
+}
+
+button.numericKeyboardBtn, button.numericKeyboardEnterBtn
+{
+    width: 100%;
+    height: 100%;
+    border: none;
+}

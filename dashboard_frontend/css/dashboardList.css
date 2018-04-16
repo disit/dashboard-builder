@@ -1,0 +1,237 @@
+.mainTableHeader, .mainTableHeader thead tr, .mainTableHeader thead th
+{
+    background-color: rgba(0, 162, 211, 1);
+}
+
+.dashboardsTableHeader, .dashboardsTableHeader thead tr, .dashboardsTableHeader thead th
+{
+    background-color: rgba(108, 135, 147, 1);
+}
+
+#list_dashboard
+{
+    display: none;
+    margin-top: 10px;
+}
+
+#list_dashboard.table > thead > tr > th, #list_dashboard.table > tbody > tr > td
+{
+    border: none !important;
+    text-align: center !important;
+}
+
+.mainTableHeader th a , .dashboardsTableHeader th a
+{
+    color: white;
+}
+
+.whiteRow
+{
+    background-color: rgb(255, 255, 255);
+    border: none !important;
+}
+
+.blueRow
+{
+    background-color: rgb(230, 249, 255);
+    border: none !important;
+}
+
+#dashboardsListTableRow
+{
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+#dashboardsListTableRow > div.col-xs-12
+{
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+#dashboardsListMenu
+{
+    background-color: rgba(138, 159, 168, 1);/*rgba(51, 64, 69, 1);*/
+    /*margin-bottom: 30px;*/
+}
+
+div.dashboardsListMenuItem
+{
+    height: 50px;
+    background-color: transparent;
+    /*border-bottom: 1px solid #333333;
+    border-top: 1px solid #595959;
+    border-right: 1px solid #333333;
+    border-left: 1px solid #595959;*/
+}
+
+div.dashboardsListCardOverlayDiv
+{
+    position: absolute;
+    top: 55px;
+    left: 0;
+    width: 90%;
+    margin-left: 5%;
+    background-color: black;
+    opacity: 0.05;
+    -webkit-transition: opacity 0.15s ease-in-out;
+    -ms-transition:     opacity 0.15s ease-in-out;
+    transition:         opacity 0.15s ease-in-out;
+}
+
+div.dashboardsListCardOverlayTxt
+{
+    position: absolute;
+    top: 55px;
+    left: 0;
+    width: 90%;
+    margin-left: 5%;
+    color: white;
+    background-color: transparent;
+    font-size: 3em;
+    opacity: 0;
+    -webkit-transition: opacity 0.15s ease-in-out;
+    -ms-transition:     opacity 0.15s ease-in-out;
+    transition:         opacity 0.15s ease-in-out;
+}
+
+div.dashboardsListMenuItemTitle
+{
+    color: white;
+    font-weight: bold;
+    height: 100%;
+}
+
+#list_dashboard_cards
+{
+    
+}
+
+div.dashboardsListCardDiv
+{
+    /*background-color: white;*/
+    position: relative;
+    padding: 10px 25px 25px 25px;
+}
+
+/*div.dashboardsListCardDiv:hover
+{
+    cursor: pointer;
+}*/
+
+div.dashboardsListCardBtnDiv
+{
+    
+}
+
+div.dashboardsListCardInnerDiv
+{
+    position: relative;
+    background-color: rgba(108, 135, 147, 1);
+}
+
+div.dashboardsListCardTitleDiv
+{
+    float: left;
+    height: 45px;
+    font-size: 1.1em;
+    font-weight: bold;
+    background-color: transparent;
+    color: white;
+}
+
+div.dashboardsListCardImgDiv
+{
+    float: left;
+    width: 90%;
+    margin-left: 5%;
+    height: 160px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+div.dashboardsListCardClick2EditDiv
+{
+    float: left;
+    font-size: 1em;
+    font-weight: bold;
+    /*font-style: italic;
+    -webkit-transition: opacity 0.35s ease-in-out;
+    -ms-transition:     opacity 0.35s ease-in-out;
+    transition:         opacity 0.35s ease-in-out;*/
+}
+
+div.dashboardsListMenuItemContent
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    height: 100%;
+}
+
+div.dashboardsListMenuItemHint
+{
+    font-size: 0.8em;
+    color: rgba(51, 64, 69, 1);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#link_add_dashboard
+{
+    background-color: rgba(0, 162, 211, 1);
+    border: none !important;
+    font-family: 'Montserrat';
+    font-weight: bold;
+}
+
+#link_add_dashboard:hover
+{
+    cursor: pointer;
+    background-color: rgba(255, 204, 0, 1);
+}
+
+#searchDashboardBtn, #resetSearchDashboardBtn
+{
+    
+    color: white;
+}
+
+#searchDashboardBtn
+{
+    background-color: rgba(0, 162, 211, 1);
+}
+
+#resetSearchDashboardBtn
+{
+    background-color: rgba(255, 204, 0, 1);
+}
+
+#dashboardListsItemsPerPage
+{
+    display: none;
+}
+
+#dashboardListsCardsSort, #dashboardListsCardsSort div.dashboardsListMenuItemContent 
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+div.dashboardsListSortBtnCnt
+{
+    background-color: rgba(0, 162, 211, 1);
+    padding: 4px 4px 4px 4px;
+    border-radius: 4px;
+}
+
+div.dashboardsListSortBtnCnt:hover
+{
+    background-color: rgba(255, 204, 0, 1);
+    cursor: pointer;
+}
+
+i.dashboardsListSort
+{
+    font-size: 1.65em;
+    color: white;
+}

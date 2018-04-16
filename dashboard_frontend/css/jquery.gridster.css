@@ -20,7 +20,8 @@
     position: absolute;
 }
 
-.ready .gs_w:not(.preview-holder) {
+/*13/02/2018 - Commentato da me per evitare lentezze nei window resize*/
+/*.ready .gs_w:not(.preview-holder) {
     -webkit-transition: opacity .3s, left .3s, top .3s;
     -moz-transition: opacity .3s, left .3s, top .3s;
     -o-transition: opacity .3s, left .3s, top .3s;
@@ -28,11 +29,11 @@
 }
 
 .ready .gs_w:not(.preview-holder) {
-    -webkit-transition: opacity .3s, left .3s, top .3s, width .3s, height .3s;
-    -moz-transition: opacity .3s, left .3s, top .3s, width .3s, height .3s;
-    -o-transition: opacity .3s, left .3s, top .3s, width .3s, height .3s;
-    transition: opacity .3s, left .3s, top .3s, width .3s, height .3s;
-}
+    -webkit-transition: opacity .3s, left .3s, top .3s, width .1s, height .1s;
+    -moz-transition: opacity .3s, left .3s, top .3s, width .1s, height .1s;
+    -o-transition: opacity .3s, left .3s, top .3s, width .1s, height .1s;
+    transition: opacity .3s, left .3s, top .3s, width .1s, height .1s;
+}*/
 
 .gridster .preview-holder {
     z-index: 1;
@@ -43,7 +44,7 @@
 }
 
 .gridster .player-revert {
-    z-index: 10!important;
+    z-index: 1!important;
     -webkit-transition: left .3s, top .3s!important;
     -moz-transition: left .3s, top .3s!important;
     -o-transition: left .3s, top .3s!important;

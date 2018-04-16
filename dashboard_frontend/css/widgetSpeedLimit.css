@@ -1,0 +1,31 @@
+/*html{
+  background: linear-gradient(#08f, #fff);
+  padding: 40px;
+  width: 170px;
+  height: 100%;
+  margin: 0 auto;
+}*/
+
+.speedLimitContainer
+{
+  background: red;
+  border-radius: 100%;
+  position: relative;
+}
+
+.speedLimitInnerContainer
+{
+  background: white;
+  width: 75%;
+  height: 75%;
+  border-radius: 100%;
+  position: relative;
+  top: 12.5%;
+  left: 12.5%;
+}
+
+.speedLimitValueSpan
+{
+    font-weight: bold;
+}
+

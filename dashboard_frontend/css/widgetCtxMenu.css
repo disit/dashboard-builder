@@ -1,0 +1,37 @@
+div.widgetCtxMenuBtnCnt
+{
+	width: 25px;
+	height: 25px;
+	position: absolute;
+	top: 0px;
+	color: white;	
+	background-color: rgba(51, 64, 69, 0.7);
+	z-index: 999;
+	font-size: 22px;	
+}
+
+.widgetCtxMenuBtn
+{
+	z-index: inherit;
+}
+
+div.widgetCtxMenuBtnCnt:hover
+{
+    cursor: pointer;
+}
+
+div.widgetCtxMenu
+{
+	position: absolute;
+	z-index: 999 !important;
+}
+
+div.fullCtxMenuRow, div.fullCtxMenuIcon, div.fullCtxMenuTxt
+{
+	z-index: inherit;
+}
+
+div.widgetSubmenu
+{
+	position: absolute !important;
+}

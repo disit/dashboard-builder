@@ -133,7 +133,22 @@
 
 @font-face {
     font-family: Digital;
-    src: url(../fonts/digital/DS-DIGIB.TTF);
+    src: url(../fonts/digital/digital-7.ttf);
+}
+
+@font-face {
+    font-family: DigitalMono;
+    src: url(../fonts/digital/digital-7-mono.ttf);
+}
+
+@font-face {
+    font-family: DigitalMonoItalic;
+    src: url(../fonts/digital/digital-7-mono-italic.ttf);
+}
+
+@font-face {
+    font-family: DigitalItalic;
+    src: url(../fonts/digital/digital-7-italic.ttf);
 }
 
 @font-face {
@@ -261,9 +276,25 @@
     src: url(../fonts/montserrat/Montserrat-Regular.ttf);
 }
 
+@font-face {
+    font-family: VerdanaDownloaded;
+    src: url(../fonts/VERDANAB.TTF);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html
+{
+    height: 100%;
+}
+
 body 
 {
    width: 100%;
+   min-height: 100%;
    font-family: 'Montserrat', 'Verdana', sans-serif;
    font-weight: 400;
 }
@@ -379,9 +410,9 @@ body
 
 .rowCenterContent
 {
-    display: flex; 
+    /*display: flex; 
     align-items: center; 
-    justify-content: center;
+    justify-content: center;*/
 }
 
 #showTableFirstCell, #tableFirstCellFontSize, #tableFirstCellFontColor, #rowsLabelsFontSize, #rowsLabelsFontColor, #colsLabelsFontSize,
@@ -479,7 +510,7 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
 {
     /*Per avere colonne tutte della stessa larghezza*/
     table-layout: fixed;
-    width: 90%;
+    width: 95%;
 }
 
 .thrRangeTable tr
@@ -642,88 +673,9 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
     text-align: center;
 }
 
-#navbarDashboard
-{
-    width: 100%;
-    height: 100px;
-    margin-bottom: 100px;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
-    font-family: Verdana, sans-serif;
-}
-
 .noBorder
 {
     border: none;
-}
-
-#navbarDashboardHeader
-{
-    /*border-style: solid;
-    border-color: red;
-    border-width: 2px;*/
-    float: left;
-    height: 100%;
-    width: 75%;
-}
-
-#dashboardTitle
-{
-    /*border-style: solid;
-    border-color: pink;
-    border-width: 2px;*/
-    width: 100%;
-    display: flex;
-    justify-content: left;
-    align-items: center;
-}
-
-#dashboardSubtitle
-{
-    /*border-style: solid;
-    border-color: red;
-    border-width: 2px;*/
-    width: 100%;
-    display: flex;
-    justify-content: left;
-    align-items: center;
-}
-
-.dashboardHeaderLeft
-{
-    float: left;
-    height: 100%;
-    width: 100%;
-    padding-left: 10px;
-}
-
-#headerLogo
-{
-    float: left;
-    width: 25%;
-    height: 70%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-#headerLogoImg
-{
-    height: 100%; 
-    width: 100%;
-    object-fit: contain;
-}
-
-#clock
-{
-    float: left;
-    width: 25%;
-    height: 30%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
 }
 
 #wrapper 
@@ -981,6 +933,10 @@ ul.alert-dropdown {
 {
    display: none;
    background: white;
+   position: absolute;
+   top: 50%;
+   left: 0%;
+   transform: translate(0%, -50%);
 }
 
 #wrapper-dashboard-cfg
@@ -1071,41 +1027,6 @@ ul.alert-dropdown {
   font-family: 'Times New Roman', Times, serif;
 }
 
-@media only screen and (max-width: 960px) {
-  body 
-  {
-    /*margin-top: 50px !important;*/
-  }
-  .dashboard-header-left{
-      height: 50px;
-      line-height: 35px;
-      font-size: 10px;
-  }  
-  .dashboard-title{
-      font-size: 30px;
-      padding:  5px;
-      line-height: 20px;
-      font-weight: bold;
-  }
-  .dashboard-subtitle{
-      font-size: 10px;
-  }
-  #dashboard-header-links{
-    height: 30px;
-    font-size: 15px;
-    font-weight: bold;
-  }
-  .clock {
-    font-size:10px;
-  }
-  .top-nav>li>a {
-      padding-top: 5px;
-      padding-bottom: 5px;
-      line-height: 15px;
-      color: #fff;
-  }
-}
-
 #inputFirstAidRowM, #inputFirstAidRow
 {
    display: none;
@@ -1115,24 +1036,13 @@ ul.alert-dropdown {
 {
    padding-left: 0px;
    padding-right: 0px;
-   margin-top: 110px;
+   margin-bottom: 15px;
    width: 100%;
-   /*border: 1px solid red;*/
 }
 
 #editDashboardMenu a
 {
    color: black;
-   font-family: Verdana;
-   font-size: 13px;
-   font-variant: small-caps;
-   font-weight: bold;
-}
-
-#editDashboardMenu a:hover
-{
-   color: #FFFFFF;
-   text-decoration: none;
 }
 
 div.mainMenuIconContainer
@@ -1749,7 +1659,9 @@ div.mainMenuItemContainer:hover
 
 #addGisQueryTableContainer, #editGisQueryTableContainer
 {
-    overflow-x: auto;
+    overflow-x: scroll;
+    margin-left: -15px;
+    margin-right: -15px;
 }
 
 #dashboardHeaderMenuTab
@@ -1775,7 +1687,7 @@ div.mainMenuItemContainer:hover
     font-variant: small-caps;
 }
 
-#embedAutoLogoContainer
+/*#embedAutoLogoContainer
 {
     display: none;
 }
@@ -1784,7 +1696,7 @@ div.mainMenuItemContainer:hover
 {
     width: 232px;
     height: 30px;
-}
+}*/
 
 #authorizedPagesTable
 {
@@ -1926,7 +1838,7 @@ div.selectorMenuCustomIcon
 
 #modal-add-metric div.modal-body, #modalEditMetric div.modal-body, #modalDelMetric div.modal-body, #modalAddWidgetType div.modal-body, 
 #modalEditWidgetType div.modal-body, #modalDelWidgetType div.modal-body, #modalAddDs div.modal-body, #modalEditDs div.modal-body,
-#modalDelDs div.modal-body
+#modalDelDs div.modal-body, #saveDashboardModal div.modal-body, #modalDelWidget div.modal-body
 {
     height: auto;
 }
@@ -1978,6 +1890,7 @@ body.dashboardViewBodyAuth
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.55);
+    position: relative;
 }
 
 #logoutViewModal
@@ -2053,11 +1966,18 @@ body.dashboardViewBodyAuth
     text-align: center;
 }
 
+.leftWithFlex
+{
+    display: flex;
+    align-items: flex-start; 
+    justify-content: flex-start;
+}
+
 #headerClaimCnt
 {
     background-color: rgba(0, 162, 211, 1);
     color: white;
-    height: 100px;
+    height: 50px;
     width: 100%;
     float: left;
     font-size: 1.5em;
@@ -2086,7 +2006,7 @@ body.dashboardViewBodyAuth
 {
     #headerTitleCnt
     {
-        height: 100px;
+        height: 50px;
     }
 }
 
@@ -2262,15 +2182,54 @@ div.pageSingleDataLabel
     text-transform: uppercase;
 }
 
-.mainMenuItemCnt, .mainMenuItemCnt a, .mobMainMenuItemCnt, .mobMainMenuItemCnt a
+div.dashEditMenuItemCnt
+{
+    font-family: 'Montserrat';
+    color: #eeeeee;
+    font-size: 1em;
+    font-weight: 400;
+    border: none;
+    background-color: rgba(51, 64, 69, 1);
+    border-left: 1px solid #595959;
+    border-top: 1px solid #595959;
+	border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+}
+
+div.dashEditMenuItemCnt:hover
+{
+	background: rgba(0, 162, 211, 1);
+	font-weight: bold;
+}
+
+div.dashEditMenuIconCnt, div.dashEditMenuTxtCnt
+{
+    width: 100%;
+    float: left;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+}
+
+div.dashEditMenuTxtCnt
+{
+    font-size: 0.9em;
+}
+
+div.dashEditMenuIconCnt
+{
+   font-size: 1.45em;
+}
+
+.mainMenuItemCnt, .mainMenuItemCnt a, .mobMainMenuItemCnt, .mobMainMenuItemCnt a, .mainMenuSubItemLink
 {
     color: #eeeeee;
 }
 
 div.mainMenuItemCnt
 {
-    height: 40px;
-    font-size: 1.2em;
+    height: 35px;
+    font-size: 0.95em;
     font-weight: 400;
     display: flex;
     align-items: center; 
@@ -2279,6 +2238,29 @@ div.mainMenuItemCnt
     border-top: 1px solid #595959;
     border-bottom: 1px solid #333333;
 }
+
+div.mainMenuSubItemCnt
+{
+    height: 25px;
+    font-size: 0.85em;
+    font-weight: 400;
+    display: flex;
+    align-items: center; 
+    justify-content: flex-start;
+    border: none;
+    border-top: 1px solid #364449;
+    /*border-bottom: 1px solid #7b939d;*/
+    background-color: rgba(76, 95, 103, 1);
+}
+
+div.mainMenuSubItemCnt:hover
+{
+    cursor: pointer;
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+}
+
+ 
 
 div.mobMainMenuItemCnt
 {
@@ -2328,6 +2310,22 @@ a.moduleLink:hover
     text-transform: uppercase;
 }
 
+.editDashBtnCard
+{
+    border: none;
+    font-weight: bold;
+    background-color: rgba(51, 64, 69, 1);
+    color: white;
+    border-radius: 5px;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.editDashBtnCard:hover
+{
+    background-color: rgba(0, 162, 211, 1);
+}
+
 .viewDashBtn
 {
     height: 20px;
@@ -2337,6 +2335,14 @@ a.moduleLink:hover
     font-family: 'Montserrat';
     font-weight: bold;
     text-transform: uppercase;
+}
+
+.viewDashBtnCard
+{
+    height: 100%;
+    border: none;
+    font-weight: bold;
+    /*text-transform: uppercase;*/
 }
 
 .delDashBtn
@@ -2350,7 +2356,7 @@ a.moduleLink:hover
     text-transform: uppercase;
 }
 
-.undeletableDashBtn
+.undeletableDashBtn, .undeletableMetricBtn
 {
     height: 20px;
     background-color: transparent;
@@ -2359,6 +2365,11 @@ a.moduleLink:hover
     font-family: 'Montserrat';
     font-weight: bold;
     text-transform: uppercase;
+}
+
+.undeletableMetricBtn
+{
+    font-size: 10px;
 }
 
 .undeletableDashBtn:hover
@@ -2706,6 +2717,12 @@ input[type="text"]:disabled
     color: red;
 }
 
+#loginFormMessage
+{
+    font-size: 0.9em;
+    color: red;
+}
+
 #sessionExpiringPopup
 {
     display: none;
@@ -2770,11 +2787,6 @@ input[type="text"]:disabled
     z-index: 999999 !important;
 }
 
-#accountManagementLink i
-{
-    color: #33cc33;
-}
-
 #link_widgets_mng i
 {
     color: #d84141;
@@ -2793,11 +2805,6 @@ input[type="text"]:disabled
 #link_metric_mng i
 {
     color: #ff9933;
-}
-
-#dashboardsLink i
-{
-    color: #ffcc00;
 }
 
 #link_user_register i
@@ -2862,7 +2869,8 @@ input[type="text"]:disabled
 
 #widgetEntityRow, #widgetAttributeRow, #widgetActuatorTypeRow,
 #selectMetricRow, #metricDescRow, #inputComuneRow, #widgetTypeRow, 
-#selectedMetricRow, #widgetLinkRow, #schedulerRow, #jobsAreasRow, #jobsGroupsRow, #jobsNamesRow
+#selectedMetricRow, #widgetLinkRow, #schedulerRow, #jobsAreasRow, #jobsGroupsRow, #jobsNamesRow,
+#selectMetricRowNR, #metricDescRowNR, #inputComuneRowNR, #widgetTypeRowNR, #selectedMetricRowNR, #widgetLinkRowNR
 {
     display: none;
 }
@@ -2873,13 +2881,128 @@ input[type="text"]:disabled
     display: none;
 }
 
+#entityTypeRow, #entityDescRow, #entityAttrNameRow, #entityAttrDescRow, #entityAttrTypeRow, #entityAttrStartValueRow,
+#entityIdRowM, #entityTypeRowM, #entityDescRowM, #entityAttrNameRowM, #entityAttrDescRowM, #entityAttrTypeRowM, #widgetActuatorTypeRowM
+{
+    display: none;
+}
+
 #editDashboardMainContainerFluid
 {
     padding-left: 15px;
     padding-right: 15px;
 }
 
-/*.loginCarouselDiv
+/*Direttive per lo spinner input*/
+.spinner 
+{
+  border-radius: 0px;
+  border: none;
+}
+
+#updateFrequencyHourContainer, #updateFrequencyMinContainer, #updateFrequencySecContainer,
+#oldDataEvalTimeHourContainer, #oldDataEvalTimeMinContainer, #oldDataEvalTimeSecContainer
+{
+    width: 33%;
+    float: left;
+}
+
+.spinner input 
+{
+    text-align: center;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 162, 211, 1);
+    border-radius: 0px;
+    box-shadow: none;
+}
+
+.spinner .input-group-btn-vertical 
+{
+  position: relative;
+  white-space: nowrap;
+  width: 1%;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+.spinner .input-group-btn-vertical > .btn 
+{
+  display: block;
+  float: none;
+  width: 100%;
+  max-width: 100%;
+  padding: 8px;
+  margin-left: -1px;
+  position: relative;
+  border-radius: 0;
+  background-color: white;
+  border: none;
+}
+
+.spinner .input-group-btn-vertical > .btn:first-child 
+{
+  /*border-top-right-radius: 4px;*/
+}
+
+.spinner .input-group-btn-vertical > .btn:last-child 
+{
+  margin-top: 1px;
+  border-bottom: 1px solid rgba(0, 162, 211, 1);
+}
+
+.spinner .input-group-btn-vertical i
+{
+  position: absolute;
+  top: 0;
+  left: 4px;
+}
+
+#sameDataAlarmCount[readonly="true"], #sameDataAlarmCountM[readonly="true"], #updateFrequencyHour[readonly="true"], #updateFrequencyMin[readonly="true"], #updateFrequencySec[readonly="true"],
+#updateFrequencyHourM[readonly="true"], #updateFrequencyMinM[readonly="true"], #updateFrequencySecM[readonly="true"],
+#oldDataEvalTimeHour[readonly="true"], #oldDataEvalTimeMin[readonly="true"], #oldDataEvalTimeSec[readonly="true"],
+#oldDataEvalTimeHourM[readonly="true"], #oldDataEvalTimeMinM[readonly="true"], #oldDataEvalTimeSecM[readonly="true"]
+{
+    background-color: white;
+}
+
+#addMetricQueryTabServerRow, #editMetricQueryTabServerRow
 {
     display: none;
-}*/
+}
+
+#saveDashboardModalMsg
+{
+    font-size: 1.4em;
+}
+
+#saveDashboardModalIcon
+{
+    font-size: 2em;
+}
+
+#saveDashboardModalOkIcon, #saveDashboardModalKoIcon
+{
+    display: none;
+}
+
+#delWidgetOkMsg, #delWidgetKoMsg, #delWidgetRunningMsg
+{
+    display: none;
+}
+
+#iframePagemainContentCnt
+{
+    overflow-y: hidden;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    /*height: 100%;*/
+}
+
+#iframeApp
+{
+    width: 100%;
+    height: 100%;
+    border: none;
+}

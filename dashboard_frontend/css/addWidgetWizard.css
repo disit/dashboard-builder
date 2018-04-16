@@ -1,0 +1,328 @@
+#addWidgetWizardLabelBody
+{
+    overflow-y: auto;
+    min-height: 75vh;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+#addWidgetWizardLoadingMsg, #addWidgetWizardOkMsg, #addWidgetWizardKoMsg
+{
+    display: none;
+}
+
+#addWidgetWizard div.modal-dialog
+{
+    width: 90vw;
+    height: 60vw;
+}
+
+#widgetWizardTableContainer, #highLevelTypeMainContainer, #natureMainContainer, #subnatureMainContainer, #lowLevelTypeMainContainer, #instanceMainContainer, #linkMainContainer, #unitMainContainer, #lastDateMainContainer, #lastValueMainContainer
+{
+  /*  height: 20vw; */
+  /*  border: 1px solid red;       */
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+  /*  overflow: auto;   */
+    overflow-x:scroll;
+    min-height: 40vh;
+}
+
+#widgetWizardTableContainer
+{
+    overflow-x:auto !important;
+}
+
+div.addWidgetWizardColTitle
+{
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+    font-size: 1em;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    /*float: left;*/
+}
+
+div.addWidgetWizardColContent
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+table.addWidgetWizardTable
+{
+    width: 100% !important;
+    border-collapse: collapse;
+    font-size: 0.7em;
+    overflow-y: auto;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    border-bottom: none !important;
+    
+}
+
+table.addWidgetWizardTable > tbody > tr
+{
+   /* background-color: #e2e7e9 !important;*/
+   font-size: 11px;
+}
+
+table.addWidgetWizardTable > tbody .widgetWizardTableBoldCell
+{
+    font-weight: bold;
+    color: #576c75;
+    font-size: 12px;
+}
+
+table.addWidgetWizardTable > tbody > tr:nth-of-type(even)
+{
+   /* background-color: #f0f3f4 !important;*/
+}
+
+table.addWidgetWizardTable tbody td
+{
+    line-height: 1 !important;
+    padding: 10px 0px 10px 0px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    border: none !important;
+}
+
+thead.widgetWizardColTitle
+{
+    background-color: #576c75;
+    color: white;
+    font-size: 1.2em;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    /*float: left;*/
+}
+
+#modalStartWizardFooter
+{
+    background-color: rgba(108, 135, 147, 1);
+}
+
+tr.widgetWizardRow
+{
+    border-collapse: collapse;
+}
+
+tr.widgetWizardRow:hover
+{
+    background-color: lavender;
+}
+
+th.widgetWizardTitleCell
+{
+    border-collapse: collapse;
+    /*border: 1px solid #eeeeee;*/
+    text-align: center;
+}
+
+#widgetWizardTable th, #widgetWizardTable thead td
+{
+    border: none !important;
+    font-size: 14px;
+}
+
+#widgetWizardTable tbody tr:hover
+{
+    cursor: pointer;
+}
+
+#widgetWizardTable.dataTable tbody tr.selected
+{
+    background-color: #c3ffc1 !important;
+    font-weight: bold !important;
+}
+
+#widgetWizardTable button.multiselect 
+{
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    border-radius: 0px;
+}
+
+#widgetWIzardTableSearch
+{
+    height: 23px !important;
+    font-size: 10px;
+    font-weight: normal;
+}
+
+#widgetWizardTableCommandsContainer
+{
+    margin-top: 40px;
+    margin-bottom: 10px;
+    background-color: rgba(108, 135, 147, 1);
+}
+
+#widgetWizardTable_filter label, #widgetWizardTable_filter input
+{
+    width: 100%;
+}
+
+/*.widgetWizardLbl
+{
+    
+}*/
+
+td.widgetWizardCell
+{
+    border-collapse: collapse;
+    border: 1px solid #eeeeee;
+    text-align: center;
+}
+
+tr.highLevelTypeRow, tr.natureRow, tr.subnatureRow, tr.lowLevelTypeRow, tr.instanceRow, tr.linkRow, tr.unitRow, tr.lastDateRow, tr.lastValueRow
+{
+    border-collapse: collapse;
+}
+
+td.highLevelTypeCell, td.natureCell, td.subnatureCell, td.lowLevelTypeCell, td.instanceCell, td.linkCell, td.unitCell, td.lastDateCell, td.lastValueCell
+{
+    border-collapse: collapse;
+    border: 1px solid #eeeeee;
+}
+
+td.highLevelTypeCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+td.natureCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.subnatureCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lowLevelTypeCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.instanceCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.linkCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.unitCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lastDateCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lastValueCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+input.testCheckInput{
+    display:none;
+}
+
+.widgetTableActive { 
+    background-color: lavender
+}
+
+.widgetTableInactive {
+    background-color: white;
+}
+
+.multiselect-selected-text {
+    font-size: 10px;
+}
+
+#widgetWIzardTableSearch {
+    color:#333 !important;
+    font-size: 10;
+}
+
+.icons-mono-container {
+    float: left;
+    clear: none; 
+    width: 48%;
+    background-color: lavender;
+    overflow: auto;
+}
+
+.icons-multi-container {
+    float: right;
+    clear: none; 
+    width: 48%;
+    background-color: lavender;
+    overflow: auto;
+}
+
+.iconsMonoSingleIcon, .iconsMonoMultiIcon
+{
+    width: 50px;
+    height: 36px;
+    float: left;
+    background-size: 100% 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.addWidgetWizardIconClickClass:hover
+{
+    cursor: pointer;
+    border: 1px solid rgba(0, 162, 211, 1);
+}
+
+/*.iconTooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.iconTooltip .iconTooltipText {
+    visibility: hidden;
+    width: 120px;
+    background-color: whitesmoke;
+    color: black;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    
+    position: absolute;
+    z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}*/
+
+.addWidgetWizardIconTooltip
+{
+    font-family: 'Montserrat'; font-size: 0.9em;
+}
+
+#widgetWizardTable_paginate .pagination
+{
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
