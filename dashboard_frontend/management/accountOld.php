@@ -47,8 +47,10 @@
     <script src="../js/bootstrap-colorpicker.min.js"></script>
     
     <!-- Bootstrap editable tables -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>-->
+    <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+    <script src="../bootstrap3-editable/js/bootstrap-editable.js"></script>
     
     <!-- Font awesome icons -->
     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">

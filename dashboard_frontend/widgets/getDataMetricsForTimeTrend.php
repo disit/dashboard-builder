@@ -16,10 +16,9 @@
     include '../config.php';
     
     $link = new mysqli($host, $username, $password, $dbname);
-    
     $id = $_GET['IdMisura'];
     
-    if ($link->connect_error) 
+    if($link->connect_error) 
     {
         die("Connection failed: " . $link->connect_error);
     }
@@ -27,9 +26,37 @@
     {
         ini_set('max_execution_time', 1200);
 
-        if (!$link->set_charset("utf8")) 
+        if(!$link->set_charset("utf8")) 
         {
             exit();
+        }
+        
+        $metricName = mysqli_real_escape_string($link, $_GET['IdMisura'][0]); 
+        
+        $q1 = "SELECT * FROM Dashboard.Descriptions WHERE IdMetric = '$metricName'";
+        $r1 = mysqli_query($link, $q1);
+        
+        if($r1)
+        {
+            if(mysqli_num_rows($r1) > 0)
+            {
+                //$sql = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$metricName' ORDER BY computationDate desc LIMIT 1"; 
+                $metricType = "shared";
+            }
+            else
+            {
+                $q2 = "SELECT * FROM Dashboard.NodeRedMetrics WHERE name = '$metricName'";
+                $r2 = mysqli_query($link, $q2);
+                
+                if($r2)
+                {
+                    if(mysqli_num_rows($r2) > 0)
+                    {
+                        $metricType = "personal";
+                        //$sql = "SELECT Data.*, NodeRedMetrics.shortDesc as descrip, NodeRedMetrics.metricType, '', '', '', 1 from Data INNER JOIN NodeRedMetrics ON Data.IdMetric_data=NodeRedMetrics.name where Data.IdMetric_data = '$metricName' ORDER BY computationDate desc LIMIT 1"; 
+                    }
+                }
+            }
         }
 
         $rangedays = array();
@@ -85,7 +112,19 @@
                 $rangedaysValue = mysqli_real_escape_string($link, $rangedaysValue);
                 
                 $i++;
-                $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(description_short) as descrip FROM Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
+                
+                if($metricType == "shared")
+                {
+                    $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(description_short) as descrip FROM Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
+                }
+                else
+                {
+                    if($metricType == "personal")
+                    {
+                        $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(shortDesc) as descrip FROM Dashboard.Data INNER JOIN NodeRedMetrics ON Data.IdMetric_data=NodeRedMetrics.name where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
+                    }
+                }
+                
                 $result = $link->query($sql);
                 
                 while($r = mysqli_fetch_assoc($result)) 

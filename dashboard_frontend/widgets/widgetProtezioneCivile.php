@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -25,38 +25,42 @@
       RED: "linear-gradient(to right, #FF7878, #FF0000)"
     };
     
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad)  
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad)  
     {
         var content, permalink, idWidget, idDash, idraulicoSrc, idraulicoLoc, temporaliSrc, temporaliLoc, idrogeologicoSrc,
         idrogeologicoLoc, neveSrc, neveLoc, ghiaccioSrc, ghiaccioLoc, ventoSrc, ventoLoc, mareSrc, mareLoc, maxAlarmDeg, descW, 
-        sizeRowsWidget, styleParameters, genTabFontSize, genTabFontColor, meteoTabFontSize, descWPerc, iconDim, rowHeightPerc = null;
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var headerHeight = 75;
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+        sizeRowsWidget, styleParameters, genTabFontSize, genTabFontColor, meteoTabFontSize, descWPerc, iconDim, rowHeightPerc,
+        height, genTabFontSizeFactor, meteoLegendaFontSizeFactor, showHeader = null;
+		headerHeight = 25;
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+		var widgetName = "<?= $_REQUEST['name_w'] ?>";
+		var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+		var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+		var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight"));
-            $('#<?= $_GET['name'] ?>_logo').hide();
+            height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
+            $('#<?= $_REQUEST['name_w'] ?>_logo').hide();
+			showHeader = false;
         }
         else
         {
-            //TBD - Vanno gestiti i futuri casi di policy manuale e show/hide header a scelta utente
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - headerHeight);
-            $('#<?= $_GET['name'] ?>_logo').show();
+            $('#<?= $_REQUEST['name_w'] ?>_logo').show();
+            height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").height() - $("#<?= $_REQUEST['name_w'] ?>_logo").height());
+			showHeader = true;
         }
-        
-        var percHeight = Math.floor(height / $("#<?= $_GET['name'] ?>_div").prop("offsetHeight") * 100);
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var percHeight = Math.floor(height / $("#<?= $_REQUEST['name_w'] ?>_div").height() * 100);
         var carouselHeight = parseInt(height - 20);
         var carouselPercHeight = Math.floor(carouselHeight / height * 100);
         var loadingFontDim = 13; 
         var loadingIconDim = 20;
         var alarmDegs = new Array();
-        var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
-        var name = "<?= $_REQUEST['name'] ?>";
-        var divLinkContainer = $('#<?= $_GET['name'] ?>_logoPc');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var defaultTab = parseInt("<?= $_REQUEST['defaultTab'] ?>");
+        var name = "<?= $_REQUEST['name_w'] ?>";
         
         var widgetProperties = getWidgetProperties(name);
         if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
@@ -67,20 +71,26 @@
             genTabFontColor = styleParameters.genTabFontColor;
         }
         
-        $("#<?= $_GET['name'] ?>_logo").css("background-color", '<?= $_GET['frame_color'] ?>');
-        $('#<?= $_GET['name'] ?>_loading').css("height", percHeight + "%");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim + "px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim + "px");
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        $("#<?= $_GET['name'] ?>_content").css("background-color", '<?= $_GET['color'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_logo").css("background-color", '<?= $_REQUEST['frame_color_w'] ?>');
+        $('#<?= $_REQUEST['name_w'] ?>_loading').css("height", percHeight + "%");
+        $('#<?= $_REQUEST['name_w'] ?>_loading p').css("font-size", loadingFontDim + "px");
+        $('#<?= $_REQUEST['name_w'] ?>_loading i').css("font-size", loadingIconDim + "px");
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_content").css("background-color", '<?= $_REQUEST['color_w'] ?>');
         
         if(firstLoad !== false)
         {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
+            $('#<?= $_REQUEST['name_w'] ?>_loading').css("display", "block");
         }
         
-        $("#<?= $_GET['name'] ?>_content").css("height", percHeight + "%");
-        $("#<?= $_GET['name'] ?>_carousel").css("height", carouselPercHeight + "%");
+        $("#<?= $_REQUEST['name_w'] ?>_content").css("height", percHeight + "%");
+        $("#<?= $_REQUEST['name_w'] ?>_carousel").css("height", carouselPercHeight + "%");
+		
+		$('#<?= $_REQUEST['name_w'] ?>_titleDiv .pcPhoto').css("display", "block");
+        
+        //Legge empirica di applicazione responsive del font size del tab general
+        genTabFontSizeFactor = genTabFontSize / $("#<?= $_REQUEST['name_w'] ?>_div").width();
+        genTabFontSize = genTabFontSizeFactor * $("#<?= $_REQUEST['name_w'] ?>_div").width();
         
         //Definizioni di funzione specifiche del widget
         function getNumPriority(color)
@@ -170,67 +180,155 @@
                 return gradients.RED;
             }
         }
+        
+        function resizeWidget()
+		{
+				if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+				{
+					height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
+				}
+				else
+				{
+					height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").height() - $("#<?= $_REQUEST['name_w'] ?>_logo").height());
+				}
+				percHeight = Math.floor(height / $("#<?= $_REQUEST['name_w'] ?>_div").height() * 100);
+				carouselHeight = parseInt(height - 20);
+				carouselPercHeight = Math.floor(carouselHeight / height * 100);
+				$('#<?= $_REQUEST['name_w'] ?>_loading').css("height", percHeight + "%");
+				$("#<?= $_REQUEST['name_w'] ?>_content").css("height", percHeight + "%");
+				$("#<?= $_REQUEST['name_w'] ?>_carousel").css("height", carouselPercHeight + "%");
+				
+				//Scalatura font size tab general
+				genTabFontSize = genTabFontSizeFactor * $("#<?= $_REQUEST['name_w'] ?>_div").width();
+				$("#<?= $_REQUEST['name_w'] ?>_general").css("font-size", genTabFontSize + "px");
+				
+				//Font size legenda meteo
+				$('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').textfill({
+					maxFontPixels: -20
+				});
+
+				var minLegendaFontSize = 40;
+				var meteoLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(0).find('span').css('font-size').replace('px', ''));
+
+				for(var k = 0; k < $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').length; k++)
+				{
+					if(parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', '')) < minLegendaFontSize)
+					{
+						minLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', ''));
+					}
+				}
+
+				if(minLegendaFontSize > meteoLegendaFontSize)
+				{
+					minLegendaFontSize = meteoLegendaFontSize;
+				}
+
+				$('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement span').css("font-size", minLegendaFontSize*0.9 + "px");
+				
+				//Font size righe meteo
+				$('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').textfill({
+					maxFontPixels: meteoTabFontSize
+				});
+
+				var minMeteoFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').eq(2).find('span').css('font-size').replace('px', ''));
+				$("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc span").css("font-size", minMeteoFontSize + "px");
+				
+		}
         //Fine definizioni di funzione
         
+		setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         
-        $('#<?= $_GET['name'] ?>_content').on('slid.bs.carousel', function (ev) 
+        $('#<?= $_REQUEST['name_w'] ?>_content').on('slid.bs.carousel', function (ev) 
         {
             var id = ev.relatedTarget.id;
             switch(id)
             {
-                case "<?= $_GET['name'] ?>_general":
-                    $("#<?= $_GET['name'] ?>_generalLi").attr("class", "active");
-                    $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "");       
+                case "<?= $_REQUEST['name_w'] ?>_general":
+                    $("#<?= $_REQUEST['name_w'] ?>_generalLi").attr("class", "active");
+                    $("#<?= $_REQUEST['name_w'] ?>_meteoLi").attr("class", "");       
                     break;
 
-                case "<?= $_GET['name'] ?>_meteo":
-                    $("#<?= $_GET['name'] ?>_generalLi").attr("class", "");
-                    $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "active");       
+                case "<?= $_REQUEST['name_w'] ?>_meteo":
+                    $("#<?= $_REQUEST['name_w'] ?>_generalLi").attr("class", "");
+                    $("#<?= $_REQUEST['name_w'] ?>_meteoLi").attr("class", "active"); 
+                    
+                    $('#<?= $_REQUEST['name_w'] ?>_meteo div.pcLegendaNessuno span').html("nullo");
+                    $('#<?= $_REQUEST['name_w'] ?>_meteo div.pcLegendaBasso span').html("basso");
+                    $('#<?= $_REQUEST['name_w'] ?>_meteo div.pcLegendaMedio span').html("medio");
+                    $('#<?= $_REQUEST['name_w'] ?>_meteo div.pcLegendaAlto span').html("alto");
+
+                    $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').textfill({
+                        maxFontPixels: -20
+                    });
+
+                    var minLegendaFontSize = 40;
+                    var meteoLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(0).find('span').css('font-size').replace('px', ''));
+
+                    for(var k = 0; k < $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').length; k++)
+                    {
+                        if(parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', '')) < minLegendaFontSize)
+                        {
+                            minLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', ''));
+                        }
+                    }
+
+                    if(minLegendaFontSize > meteoLegendaFontSize)
+                    {
+                        minLegendaFontSize = meteoLegendaFontSize;
+                    }
+
+                    $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement span').css("font-size", minLegendaFontSize*0.9 + "px");
+                    
+                    $('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').textfill({
+                        maxFontPixels: meteoTabFontSize
+                    });
+
+                    var minMeteoFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').eq(2).find('span').css('font-size').replace('px', ''));
+                    $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc span").css("font-size", minMeteoFontSize + "px");
                     break;    
             }
         });
 
-        $("#<?= $_GET['name'] ?>_generalLi").click(function() 
+        $("#<?= $_REQUEST['name_w'] ?>_generalLi").click(function() 
         {
-            $("#<?= $_GET['name'] ?>_generalLi").attr("class", "active");
-            $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "");
-            $("#<?= $_GET['name'] ?>_content").carousel(0);
+            $("#<?= $_REQUEST['name_w'] ?>_generalLi").attr("class", "active");
+            $("#<?= $_REQUEST['name_w'] ?>_meteoLi").attr("class", "");
+            $("#<?= $_REQUEST['name_w'] ?>_content").carousel(0);
         });
 
-        $("#<?= $_GET['name'] ?>_meteoLi").click(function() 
+        $("#<?= $_REQUEST['name_w'] ?>_meteoLi").click(function() 
         {
-            $("#<?= $_GET['name'] ?>_generalLi").attr("class", "");
-            $("#<?= $_GET['name'] ?>_meteoLi").attr("class", "active");
-            $("#<?= $_GET['name'] ?>_content").carousel(1);
+            $("#<?= $_REQUEST['name_w'] ?>_generalLi").attr("class", "");
+            $("#<?= $_REQUEST['name_w'] ?>_meteoLi").attr("class", "active");
+            $("#<?= $_REQUEST['name_w'] ?>_content").carousel(1);
         });
         
         rowHeightPerc = 12.5;
-        descW = parseInt($('#<?= $_GET['name'] ?>_div').width() - Math.floor(parseInt(carouselHeight) / 8));
-        descWPerc = Math.floor(descW * 100 / $('#<?= $_GET['name'] ?>_div').width());
+        descW = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').width() - Math.floor(parseInt(carouselHeight) / 8));
+        descWPerc = Math.floor(descW * 100 / $('#<?= $_REQUEST['name_w'] ?>_div').width());
         iconDim = 100 - descWPerc;
         
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcRow").css("height", rowHeightPerc + "%");
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("width", descWPerc + "%");
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcDesc").css("font-size", meteoTabFontSize + "px");
-        $("#<?= $_GET['name'] ?>_meteo .pcLegendaElement").css("font-size", meteoTabFontSize + "px");
-        $("#<?= $_GET['name'] ?>_meteo .meteoPcIcon").css("width", iconDim + "%");
+        $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcRow").css("height", rowHeightPerc + "%");
+        $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc").css("width", descWPerc + "%");
         
-        addLink("<?= $_GET['name'] ?>", permalink, linkElement, divLinkContainer);
-
-        $('#source_<?= $_GET['name'] ?>').on('click', function () 
+        $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcIcon").css("width", iconDim + "%");
+        
+        $('#source_<?= $_REQUEST['name_w'] ?>').on('click', function () 
         {
-            $('#dialog_<?= $_GET['name'] ?>').show();
+            $('#dialog_<?= $_REQUEST['name_w'] ?>').show();
         });
 
-        $('#close_popup_<?= $_GET['name'] ?>').on('click', function () 
+        $('#close_popup_<?= $_REQUEST['name_w'] ?>').on('click', function () 
         {
-            $('#dialog_<?= $_GET['name'] ?>').hide();
+            $('#dialog_<?= $_REQUEST['name_w'] ?>').hide();
         });
         
-        var counter = <?= $_GET['freq'] ?>;
+        var counter = <?= $_REQUEST['frequency_w'] ?>;
         var countdown = setInterval(function () 
-        {
-            var ref = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_div .pcCountdown"; 
+        { 
+			var ref = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_countdownDiv"; 
             $(ref).text(counter);
             counter--;
             if (counter > 60) 
@@ -244,39 +342,39 @@
             if(counter === 0) 
             {
                 $(ref).text(counter + "s");
-                $("#<?= $_GET['name'] ?>_content").off();
-                $("#<?= $_GET['name'] ?>_meteo .meteoPcIcon").html("");
+                $("#<?= $_REQUEST['name_w'] ?>_content").off();
+                $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcIcon").html("");
                 switch(maxAlarmDeg)
                 {
                     case gradients.YELLOW:
-                        $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPcActiveYellow");
-                        $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPc");
+                        $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPcActiveYellow");
+                        $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPc");
                         break;
 
                     case gradients.ORANGE:
-                        $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPcActiveOrange");
-                        $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPc");
+                        $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPcActiveOrange");
+                        $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPc");
                         break;
 
                     case gradients.RED:
-                        $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPcActiveRed");
-                        $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPc");
+                        $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPcActiveRed");
+                        $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPc");
                         break;
 
                     default:
                         break;
                 }
-                $("#<?= $_GET['name'] ?>_general").html("");
+                $("#<?= $_REQUEST['name_w'] ?>_general").html("");
                 
                 clearInterval(countdown);
-                setTimeout(<?= $_GET['name'] ?>(false), 1000);
+                setTimeout(<?= $_REQUEST['name_w'] ?>(false), 1000);
             }
         }, 1000);
         
          $.ajax({//Inizio AJAX getParametersWidgets.php
             url: "../widgets/getParametersWidgets.php",
             type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
+            data: {"nomeWidget": ["<?= $_REQUEST['name_w'] ?>"]},
             async: true,
             dataType: 'json',
             success: function (msg) 
@@ -285,7 +383,7 @@
                 idDash = null;
                 name = null;
                 
-                var counter = <?= $_GET['freq'] ?>;
+                var counter = <?= $_REQUEST['frequency_w'] ?>;
                 
                 if(msg !== null)
                 {
@@ -293,7 +391,6 @@
                     sizeRowsWidget = parseInt(msg.param.size_rows);
                     idWidget = msg.param.Id;
                     idDash = msg.param.id_dashboard;
-                    manageInfoButtonVisibility(msg.param.infoMessage_w, $('#<?= $_GET['name'] ?>_alarmDivPc'));
                 }
                 
                 $.ajax({
@@ -320,8 +417,8 @@
                         var grad = getGradient(idraulicoLoc);
                         alarmDegs.push(grad);
                         newImg.attr("src", idraulicoLoc);
-                        $("#<?= $_GET['name'] ?>_idraulico .meteoPcDesc").css("background", grad);
-                        $("#<?= $_GET['name'] ?>_idraulico .meteoPcIcon").append(newImg);
+                        $("#<?= $_REQUEST['name_w'] ?>_idraulico .meteoPcDesc").css("background", grad);
+                        $("#<?= $_REQUEST['name_w'] ?>_idraulico .meteoPcIcon").append(newImg);
                         
                         index = temporaliSrc.indexOf("temporali");
                         temporaliLoc = "../img/meteoPc/" + temporaliSrc.substring(index);
@@ -329,8 +426,8 @@
                         grad = getGradient(temporaliLoc);
                         alarmDegs.push(grad);
                         newImg.attr("src", temporaliLoc);
-                        $("#<?= $_GET['name'] ?>_temporali .meteoPcDesc").css("background", grad);
-                        $("#<?= $_GET['name'] ?>_temporali .meteoPcIcon").append(newImg);
+                        $("#<?= $_REQUEST['name_w'] ?>_temporali .meteoPcDesc").css("background", grad);
+                        $("#<?= $_REQUEST['name_w'] ?>_temporali .meteoPcIcon").append(newImg);
                         
                         index = idrogeologicoSrc.indexOf("idrogeologico");
                         idrogeologicoLoc = "../img/meteoPc/" + idrogeologicoSrc.substring(index);
@@ -338,8 +435,8 @@
                         grad = getGradient(idrogeologicoLoc);
                         alarmDegs.push(grad);
                         newImg.attr("src", idrogeologicoLoc);
-                        $("#<?= $_GET['name'] ?>_idrogeologico .meteoPcDesc").css("background", grad);
-                        $("#<?= $_GET['name'] ?>_idrogeologico .meteoPcIcon").append(newImg);
+                        $("#<?= $_REQUEST['name_w'] ?>_idrogeologico .meteoPcDesc").css("background", grad);
+                        $("#<?= $_REQUEST['name_w'] ?>_idrogeologico .meteoPcIcon").append(newImg);
                         
                         index = neveSrc.indexOf("neve");
                         neveLoc = "../img/meteoPc/" + neveSrc.substring(index);
@@ -347,8 +444,8 @@
                         grad = getGradient(neveLoc);
                         alarmDegs.push(grad);
                         newImg.attr("src", neveLoc);
-                        $("#<?= $_GET['name'] ?>_neve .meteoPcDesc").css("background", grad);
-                        $("#<?= $_GET['name'] ?>_neve .meteoPcIcon").append(newImg);
+                        $("#<?= $_REQUEST['name_w'] ?>_neve .meteoPcDesc").css("background", grad);
+                        $("#<?= $_REQUEST['name_w'] ?>_neve .meteoPcIcon").append(newImg);
                         
                         index = ghiaccioSrc.indexOf("ghiaccio");
                         ghiaccioLoc = "../img/meteoPc/" + ghiaccioSrc.substring(index);
@@ -356,8 +453,8 @@
                         grad = getGradient(ghiaccioLoc);
                         alarmDegs.push(grad);
                         newImg.attr("src", ghiaccioLoc);
-                        $("#<?= $_GET['name'] ?>_ghiaccio .meteoPcDesc").css("background", grad);
-                        $("#<?= $_GET['name'] ?>_ghiaccio .meteoPcIcon").append(newImg);
+                        $("#<?= $_REQUEST['name_w'] ?>_ghiaccio .meteoPcDesc").css("background", grad);
+                        $("#<?= $_REQUEST['name_w'] ?>_ghiaccio .meteoPcIcon").append(newImg);
                         
                         index = ventoSrc.indexOf("vento");
                         ventoLoc = "../img/meteoPc/" + ventoSrc.substring(index);
@@ -365,8 +462,8 @@
                         grad = getGradient(ventoLoc);
                         alarmDegs.push(grad);
                         newImg.attr("src", ventoLoc);
-                        $("#<?= $_GET['name'] ?>_vento .meteoPcDesc").css("background", grad);
-                        $("#<?= $_GET['name'] ?>_vento .meteoPcIcon").append(newImg);
+                        $("#<?= $_REQUEST['name_w'] ?>_vento .meteoPcDesc").css("background", grad);
+                        $("#<?= $_REQUEST['name_w'] ?>_vento .meteoPcIcon").append(newImg);
                         
                         index = mareSrc.indexOf("mare");
                         mareLoc = "../img/meteoPc/" + mareSrc.substring(index);
@@ -374,22 +471,22 @@
                         grad = getGradient(mareLoc);
                         alarmDegs.push(grad);
                         newImg.attr("src", mareLoc);
-                        $("#<?= $_GET['name'] ?>_mare .meteoPcDesc").css("background", grad);
-                        $("#<?= $_GET['name'] ?>_mare .meteoPcIcon").append(newImg);
+                        $("#<?= $_REQUEST['name_w'] ?>_mare .meteoPcDesc").css("background", grad);
+                        $("#<?= $_REQUEST['name_w'] ?>_mare .meteoPcIcon").append(newImg);
                         
-                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + idraulicoSrc + "'/>");
-                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + temporaliSrc + "'/>");
-                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + idrogeologicoSrc + "'/>");
-                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + neveSrc + "'/>");
-                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + ghiaccioSrc + "'/>");
-                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + ventoSrc + "'/>");
-                        $("<?= $_GET['name'] ?>_meteo").add("<img src='" + mareSrc + "'/>");
+                        $("<?= $_REQUEST['name_w'] ?>_meteo").add("<img src='" + idraulicoSrc + "'/>");
+                        $("<?= $_REQUEST['name_w'] ?>_meteo").add("<img src='" + temporaliSrc + "'/>");
+                        $("<?= $_REQUEST['name_w'] ?>_meteo").add("<img src='" + idrogeologicoSrc + "'/>");
+                        $("<?= $_REQUEST['name_w'] ?>_meteo").add("<img src='" + neveSrc + "'/>");
+                        $("<?= $_REQUEST['name_w'] ?>_meteo").add("<img src='" + ghiaccioSrc + "'/>");
+                        $("<?= $_REQUEST['name_w'] ?>_meteo").add("<img src='" + ventoSrc + "'/>");
+                        $("<?= $_REQUEST['name_w'] ?>_meteo").add("<img src='" + mareSrc + "'/>");
                         
                         maxAlarmDeg = getMaxAlarmGrade();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log("Errore in caricamento proprietà widget");
-                        $("#<?= $_GET['name'] ?>_general").html("No data available");
+                        $("#<?= $_REQUEST['name_w'] ?>_general").html("No data available");
                     }
                 });
                 
@@ -403,15 +500,14 @@
                     dataType: 'json',
                     success: function (msg) 
                     {
-                        //console.log(msg);
                         if(msg === null)
                         {
                             if(firstLoad !== false)
                             {
-                                $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                                $('#<?= $_GET['name'] ?>_content').css("display", "block");
+                                $('#<?= $_REQUEST['name_w'] ?>_loading').css("display", "none");
+                                $('#<?= $_REQUEST['name_w'] ?>_content').css("display", "block");
                             }
-                            $('#<?= $_GET['name'] ?>_content').html("<p style='text-align: center;'>No data available</p>");
+                            $('#<?= $_REQUEST['name_w'] ?>_content').html("<p style='text-align: center;'>No data available</p>");
                         }
                         else
                         {
@@ -422,38 +518,36 @@
                             }
 
                             content = $(msg[0].content);
-
-                            $("#<?= $_GET['name'] ?>_permalink").attr("href", permalink);
-
-                            $("#<?= $_GET['name'] ?>_general").html(content);
-                            $("#<?= $_GET['name'] ?>_general").css("color", genTabFontColor);
-                            $("#<?= $_GET['name'] ?>_general").css("font-size", genTabFontSize + "px");
-                            $("#<?= $_GET['name'] ?>_general *").css("color", genTabFontColor);
-                            $("#<?= $_GET['name'] ?>_general *").css("font-size", genTabFontSize + "px");
-
-                            $("#<?= $_GET['name'] ?>_general").find("img").eq(0).remove();
-                            $("#<?= $_GET['name'] ?>_general").find("iframe").remove();
                             
-                            if($("#<?= $_GET['name'] ?>_general").html().toUpperCase().includes("Niente da Segnalare".toUpperCase()))
+                            $("#<?= $_REQUEST['name_w'] ?>_general").html(content);
+                            $("#<?= $_REQUEST['name_w'] ?>_general").css("color", genTabFontColor);
+                            $("#<?= $_REQUEST['name_w'] ?>_general").css("font-size", genTabFontSize + "px");
+                            $("#<?= $_REQUEST['name_w'] ?>_general *").css("color", genTabFontColor);
+                            $("#<?= $_REQUEST['name_w'] ?>_general *").css("font-size", genTabFontSize + "px");
+
+                            $("#<?= $_REQUEST['name_w'] ?>_general").find("img").eq(0).remove();
+                            $("#<?= $_REQUEST['name_w'] ?>_general").find("iframe").remove();
+                            
+                            if($("#<?= $_REQUEST['name_w'] ?>_general").html().toUpperCase().includes("Niente da Segnalare".toUpperCase()))
                             {
-                                $("#<?= $_GET['name'] ?>_general").html("Niente da segnalare");
+                                $("#<?= $_REQUEST['name_w'] ?>_general").html("Niente da segnalare");
                             }
 
                             switch(maxAlarmDeg)
                             {
                                 case gradients.YELLOW:
-                                    $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPc");
-                                    $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPcActiveYellow");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPc");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPcActiveYellow");
                                     break;
 
                                 case gradients.ORANGE:
-                                    $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPc");
-                                    $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPcActiveOrange");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPc");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPcActiveOrange");
                                     break;
 
                                 case gradients.RED:
-                                    $("#<?= $_GET['name'] ?>_alarmDivPc").removeClass("alarmDivPc");
-                                    $("#<?= $_GET['name'] ?>_alarmDivPc").addClass("alarmDivPcActiveRed");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPc");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPcActiveRed");
                                     break;
 
                                 default:
@@ -465,55 +559,56 @@
                     {
                         console.log("Error getting bullettin from Civil Protection");
                         console.log(JSON.stringify(dataError));
-                        $("#<?= $_GET['name'] ?>_general").html("No data available");
+                        $("#<?= $_REQUEST['name_w'] ?>_general").html("No data available");
                     }
                 });
                 
-                
                 if(firstLoad !== false)
                 {
-                    $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                    $("#<?= $_GET['name'] ?>_content").css("display", "block");
+                    $('#<?= $_REQUEST['name_w'] ?>_loading').css("display", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_content").css("display", "block");
                 }
                 
                 if(defaultTab !== -1)
                 {
-                    $("#<?= $_GET['name'] ?>_content").carousel(defaultTab);
-                    $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                    $("#<?= $_REQUEST['name_w'] ?>_content").carousel(defaultTab);
+                    $('#<?= $_REQUEST['name_w'] ?>_content').addClass('slide');
                 }
                 else
                 {
-                    $('#<?= $_GET['name'] ?>_content').addClass('slide');
-                    $('#<?= $_GET['name'] ?>_content').attr('data-interval', 4000);
-                    $('#<?= $_GET['name'] ?>_content').carousel('cycle');
+                    $('#<?= $_REQUEST['name_w'] ?>_content').addClass('slide');
+                    $('#<?= $_REQUEST['name_w'] ?>_content').attr('data-interval', 4000);
+                    $('#<?= $_REQUEST['name_w'] ?>_content').carousel('cycle');
                 }
             }
         });   
 });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_logo' class="pcLogosContainer">
-            <div id='<?= $_GET['name'] ?>_alarmDivPc' class="alarmDivPc">
-                <div id="<?= $_GET['name'] ?>_info" class="pcInfoContainer">
-                  <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_logo' class="pcLogosContainer">
+            <div id='<?= $_REQUEST['name_w'] ?>_alarmDivPc' class="alarmDivPc">
+                <div id="<?= $_REQUEST['name_w'] ?>_info" class="pcInfoContainer">
+                  <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
                 </div>
-                <div id="<?= $_GET['name'] ?>_logoPc" class="logoPc">
-                    <a id="<?= $_GET['name'] ?>_permalink" href="about:blank" target="_blank"><img src="../img/protezioneCivile.png"></a>
+                <div id="<?= $_REQUEST['name_w'] ?>_logoPc" class="logoPc">
+                    <img src="../img/protezioneCivile.png">
                 </div>
 
-                <div id="<?= $_GET['name'] ?>_iconsModifyWidget" class="iconsModifyPcWidget">
+                <div id="<?= $_REQUEST['name_w'] ?>_iconsModifyWidget" class="iconsModifyPcWidget">
                     <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                     <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 </div>
-                <div id="<?= $_GET['name'] ?>_pcCountdownContainer" class="pcCountdownContainer">
-                    <div id="countdown_<?= $_GET['name'] ?>" class="pcCountdown"></div>
+                <div id="<?= $_REQUEST['name_w'] ?>_pcCountdownContainer" class="pcCountdownContainer">
+                    <div id="countdown_<?= $_REQUEST['name_w'] ?>" class="pcCountdown"></div>
                 </div>
             </div>
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -522,69 +617,69 @@
             </div>
         </div>
         
-        <div id='<?= $_GET['name'] ?>_content' class="content pcContainer carousel" data-interval="false" data-pause="hover">
-            <ul id="<?= $_GET['name'] ?>_nav_ul" class="nav nav-tabs nav_ul">
-                <li role="navigation" id="<?= $_GET['name'] ?>_generalLi" class="active"><a disabled="true" class="atafTab">general</a></li>
-                <li role="navigation" id="<?= $_GET['name'] ?>_meteoLi"><a disabled="true" class="atafTab">meteo</a></li>
+        <div id='<?= $_REQUEST['name_w'] ?>_content' class="content pcContainer carousel" data-interval="false" data-pause="hover">
+            <ul id="<?= $_REQUEST['name_w'] ?>_nav_ul" class="nav nav-tabs nav_ul">
+                <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_generalLi" class="active"><a disabled="true" class="atafTab">general</a></li>
+                <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_meteoLi"><a disabled="true" class="atafTab">meteo</a></li>
             </ul>
-            <div id="<?= $_GET['name'] ?>_carousel" class="carousel-inner" role="listbox">
-                <div id="<?= $_GET['name'] ?>_general" class="item active pcGeneralDiv"></div>
-                <div id="<?= $_GET['name'] ?>_meteo" class="item pcMeteoDiv">
-                    <div id="<?= $_GET['name'] ?>_legendaRow" class="meteoPcLegendaRow">
-                        <div id="<?= $_GET['name'] ?>_legendaContainer" class="pcLegendaContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_carousel" class="carousel-inner" role="listbox">
+                <div id="<?= $_REQUEST['name_w'] ?>_general" class="item active pcGeneralDiv"></div>
+                <div id="<?= $_REQUEST['name_w'] ?>_meteo" class="item pcMeteoDiv">
+                    <div id="<?= $_REQUEST['name_w'] ?>_legendaRow" class="meteoPcLegendaRow">
+                        <div id="<?= $_REQUEST['name_w'] ?>_legendaContainer" class="pcLegendaContainer">
                             <div class="pcLegendaElement pcLegendaElementMarginRight">
-                                <div class="pcLegendaNessuno">nullo</div>    
+                                <div class="pcLegendaNessuno"><span></span></div>    
                             </div>
                             <div class="pcLegendaElement pcLegendaElementMarginRight">
-                                <div class="pcLegendaBasso">basso</div>    
+                                <div class="pcLegendaBasso"><span></span></div>    
                             </div>
                             <div class="pcLegendaElement pcLegendaElementMarginRight">
-                                <div class="pcLegendaMedio">medio</div>     
+                                <div class="pcLegendaMedio"><span></span></div>     
                             </div>
                             <div class="pcLegendaElement">
-                                <div class="pcLegendaAlto">alto</div>     
+                                <div class="pcLegendaAlto"><span></span></div>     
                             </div>      
                         </div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_idraulico" class="meteoPcRow">
+                    <div id="<?= $_REQUEST['name_w'] ?>_idraulico" class="meteoPcRow">
                         <a href="http://www.regione.toscana.it/allerta-meteo-rischio-idraulico" class="eventLink" target="_blank">
-                            <div class="meteoPcDesc">rischio idraulico</div>
+                            <div class="meteoPcDesc"><span>rischio idraulico</span></div>
                         </a>
                         <div class="meteoPcIcon"></div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_temporali" class="meteoPcRow">
+                    <div id="<?= $_REQUEST['name_w'] ?>_temporali" class="meteoPcRow">
                         <a href="http://www.regione.toscana.it/allerta-meteo-rischio-temporali" class="eventLink" target="_blank">
-                            <div class="meteoPcDesc">rischio temporali</div>
+                            <div class="meteoPcDesc"><span>rischio temporali</span></div>
                         </a>    
                         <div class="meteoPcIcon"></div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_idrogeologico" class="meteoPcRow">
+                    <div id="<?= $_REQUEST['name_w'] ?>_idrogeologico" class="meteoPcRow">
                         <a href="http://www.regione.toscana.it/allerta-meteo-rischio-idrogeologico" class="eventLink" target="_blank">
-                            <div class="meteoPcDesc">rischio idrogeologico</div>
+                            <div class="meteoPcDesc"><span>rischio idrogeologico</span></div>
                         </a>
                         <div class="meteoPcIcon"></div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_neve" class="meteoPcRow">
+                    <div id="<?= $_REQUEST['name_w'] ?>_neve" class="meteoPcRow">
                         <a href="http://www.regione.toscana.it/allerta-meteo-rischio-neve" class="eventLink" target="_blank">
-                            <div class="meteoPcDesc">rischio neve</div>
+                            <div class="meteoPcDesc"><span>rischio neve</span></div>
                         </a>    
                         <div class="meteoPcIcon"></div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_ghiaccio" class="meteoPcRow">
+                    <div id="<?= $_REQUEST['name_w'] ?>_ghiaccio" class="meteoPcRow">
                         <a href="http://www.regione.toscana.it/allerta-meteo-rischio-ghiaccio" class="eventLink" target="_blank">
-                            <div class="meteoPcDesc">rischio ghiaccio</div>
+                            <div class="meteoPcDesc"><span>rischio ghiaccio</span></div>
                         </a>
                         <div class="meteoPcIcon"></div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_vento" class="meteoPcRow">
+                    <div id="<?= $_REQUEST['name_w'] ?>_vento" class="meteoPcRow">
                         <a href="http://www.regione.toscana.it/allerta-meteo-rischio-vento" class="eventLink" target="_blank">
-                            <div class="meteoPcDesc">rischio vento</div>
+                            <div class="meteoPcDesc"><span>rischio vento</span></div>
                         </a>
                         <div class="meteoPcIcon"></div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_mare" class="meteoPcRow">
+                    <div id="<?= $_REQUEST['name_w'] ?>_mare" class="meteoPcRow">
                         <a href="http://www.regione.toscana.it/allerta-meteo-rischio-mareggiate" class="eventLink" target="_blank">
-                            <div class="meteoPcDesc">rischio mareggiate</div>
+                            <div class="meteoPcDesc"><span>rischio mareggiate</span></div>
                         </a>
                         <div class="meteoPcIcon"></div>
                     </div>

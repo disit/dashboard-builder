@@ -1,4 +1,4 @@
-<span id="tick2"></span>
+<!--<span id="tick2"></span>-->
 
 <script>
     function updateTime() 

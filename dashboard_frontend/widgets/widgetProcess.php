@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
             $titlePatterns = array();
@@ -27,41 +27,41 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?> 
         
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_content");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var color = '<?= $_GET['color'] ?>';
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var color = '<?= $_REQUEST['color_w'] ?>';
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
             descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
             rangeMin, rangeMax, widgetParameters, height, sizeRowsWidget, fontRatio, fontRatioSmall, host, user, pass, jobName, status, date = null;
-        var metricId = "<?= $_GET['metric'] ?>";
-        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var metricId = "<?= $_REQUEST['id_metric'] ?>";
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
+        var url = "<?= $_REQUEST['link_w'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
-        
-         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-		showHeader = false;
-	}
-	else
-	{
-		showHeader = true;
-	}
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var showHeader = null;
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+			showHeader = false;
+		}
+		else
+		{
+			showHeader = true;
+		}
         
         //Definizioni di funzione specifiche del widget
         /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
@@ -99,8 +99,31 @@
             
             return styleParameters;
         }
+        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        }
+		
+		$(document).off('resizeHighchart_' + widgetName);
+		$(document).on('resizeHighchart_' + widgetName, function(event) 
+		{
+			var newHeight = null;
+			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+			}
+			else
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+			}
+			
+			$('#<?= $_REQUEST['name_w'] ?>_content').css('height', newHeight + 'px');
+		});
         //Fine definizioni di funzione 
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -110,7 +133,7 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         if((widgetProperties !== null) && (widgetProperties !== ''))
@@ -123,7 +146,7 @@
             $.ajax({//Inizio AJAX getParametersWidgets.php
                 url: "../widgets/getParametersWidgets.php",
                 type: "GET",
-                data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
+                data: {"nomeWidget": ["<?= $_REQUEST['name_w'] ?>"]},
                 async: true,
                 dataType: 'json',
                 success: function (msg) 
@@ -135,7 +158,6 @@
                     pass = contenuto.pass;
                     jobName = contenuto.jobName;
                     sizeRowsWidget = parseInt(msg.param.size_rows);
-                    manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
 
                     $.ajax({
                         url: "../widgets/getProcessStatus.php",
@@ -148,7 +170,7 @@
                             if(msg === null)
                             {
                                 showWidgetContent(widgetName);
-                                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                             }
                             else
                             {
@@ -166,9 +188,9 @@
                                     $("#" + widgetName + "_jobDate").empty();
                                 }
 
-                                contentHeight = parseInt($("#<?= $_GET['name'] ?>_content").prop("offsetHeight") - $("#<?= $_GET['name'] ?>_jobName").prop("offsetHeight")) - 8;
-                                $("#<?= $_GET['name'] ?>_content a").css("height", contentHeight + "px");
-                                $("#<?= $_GET['name'] ?>_chartContainer").css("height", contentHeight + "px");
+                                contentHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight") - $("#<?= $_REQUEST['name_w'] ?>_jobName").prop("offsetHeight")) - 8;
+                                $("#<?= $_REQUEST['name_w'] ?>_content a").css("height", contentHeight + "px");
+                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").css("height", contentHeight + "px");
 
                                 //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
                                 fontRatio = parseInt((sizeRowsWidget / 4)*100);
@@ -180,36 +202,36 @@
                                 fontRatioDate = fontRatioDate.toString() + "%";
                                 fontRatioIcon = fontRatioIcon.toString() + "px";
 
-                                $("#<?= $_GET['name'] ?>_jobName").css("font-size", fontRatio);
-                                $("#<?= $_GET['name'] ?>_jobName").html(contenuto.jobName);
+                                $("#<?= $_REQUEST['name_w'] ?>_jobName").css("font-size", fontRatio);
+                                $("#<?= $_REQUEST['name_w'] ?>_jobName").html(contenuto.jobName);
 
                                 switch(status)
                                 {
                                     case "SUCCESS":
-                                        $("#<?= $_GET['name'] ?>_chartContainer").attr("class", "statoJobContainerOk");
-                                        $("#<?= $_GET['name'] ?>_jobStateIcon").html("<i class='fa fa-check' style='font-size:" + fontRatioIcon + "'></i>");
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").attr("class", "statoJobContainerOk");
+                                        $("#<?= $_REQUEST['name_w'] ?>_jobStateIcon").html("<i class='fa fa-check' style='font-size:" + fontRatioIcon + "'></i>");
                                         break;
 
                                     case "RUNNING":
-                                        $("#<?= $_GET['name'] ?>_chartContainer").attr("class", "statoJobContainerRunning");
-                                        $("#<?= $_GET['name'] ?>_jobStateIcon").html("<i class='fa fa-circle-o-notch fa-spin' style='font-size:" + fontRatioIcon + "'></i>");
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").attr("class", "statoJobContainerRunning");
+                                        $("#<?= $_REQUEST['name_w'] ?>_jobStateIcon").html("<i class='fa fa-circle-o-notch fa-spin' style='font-size:" + fontRatioIcon + "'></i>");
                                         break;
 
                                     case "MISFIRED":
-                                        $("#<?= $_GET['name'] ?>_chartContainer").attr("class", "statoJobContainerKo");
-                                        $("#<?= $_GET['name'] ?>_jobStateIcon").html("<i class='fa fa-close' style='font-size:" + fontRatioIcon + "'></i>");
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").attr("class", "statoJobContainerKo");
+                                        $("#<?= $_REQUEST['name_w'] ?>_jobStateIcon").html("<i class='fa fa-close' style='font-size:" + fontRatioIcon + "'></i>");
                                         break;
 
                                     case "FAILED":
-                                        $("#<?= $_GET['name'] ?>_chartContainer").attr("class", "statoJobContainerKo");
-                                        $("#<?= $_GET['name'] ?>_jobStateIcon").html("<i class='fa fa-close' style='font-size:" + fontRatioIcon + "'></i>");
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").attr("class", "statoJobContainerKo");
+                                        $("#<?= $_REQUEST['name_w'] ?>_jobStateIcon").html("<i class='fa fa-close' style='font-size:" + fontRatioIcon + "'></i>");
                                         break; 
                                 }
 
-                                $("#<?= $_GET['name'] ?>_jobState").css("font-size", fontRatioState);
-                                $("#<?= $_GET['name'] ?>_jobState").html(status);
-                                $("#<?= $_GET['name'] ?>_jobDate").css("font-size", fontRatioDate);
-                                $("#<?= $_GET['name'] ?>_jobDate").html(date);
+                                $("#<?= $_REQUEST['name_w'] ?>_jobState").css("font-size", fontRatioState);
+                                $("#<?= $_REQUEST['name_w'] ?>_jobState").html(status);
+                                $("#<?= $_REQUEST['name_w'] ?>_jobDate").css("font-size", fontRatioDate);
+                                $("#<?= $_REQUEST['name_w'] ?>_jobDate").html(date);
                             }
                         },
                         error: function()
@@ -224,27 +246,29 @@
         {
             console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
 });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+		<?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -253,13 +277,13 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
-            <div id='<?= $_GET['name'] ?>_jobName'  class="nomeJob"></div>
-            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer" style="margin-left: auto; margin-right: auto">
-                <div id='<?= $_GET['name'] ?>_jobStateIcon' class="statoJobIcona"></div>
-                <div id='<?= $_GET['name'] ?>_jobState' class="statoJob"></div>
-                <div id='<?= $_GET['name'] ?>_jobDate' class="dataJob"></div>
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id='<?= $_REQUEST['name_w'] ?>_jobName'  class="nomeJob"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer" style="margin-left: auto; margin-right: auto">
+                <div id='<?= $_REQUEST['name_w'] ?>_jobStateIcon' class="statoJobIcona"></div>
+                <div id='<?= $_REQUEST['name_w'] ?>_jobState' class="statoJob"></div>
+                <div id='<?= $_REQUEST['name_w'] ?>_jobDate' class="dataJob"></div>
             </div> 
         </div>
     </div>	

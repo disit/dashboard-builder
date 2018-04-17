@@ -171,7 +171,7 @@
                         $queryFail = true;
                         echo '<script type="text/javascript">';
                         echo 'alert("Error during dashboard update: please repeat the procedure.");';
-                        echo 'window.location.href = "dashboard_configdash.php";';
+                        echo 'window.location.href = "dashboard_configdash.php?dashboardId=' . $dashboardId . '";';
                         echo '</script>';
                         die();
                     }
@@ -197,7 +197,7 @@
                    $queryFail = true;
                    echo '<script type="text/javascript">';
                    echo 'alert("Error during dashboard update: please repeat the procedure.");';
-                   echo 'window.location.href = "dashboard_configdash.php";';
+                   echo 'window.location.href = "dashboard_configdash.php?dashboardId="' . $dashboardId;
                    echo '</script>';
                    die();
                 }
@@ -221,7 +221,7 @@
                  $queryFail = true;
                  echo '<script type="text/javascript">';
                  echo 'alert("Error during dashboard update: please repeat the procedure.");';
-                 echo 'window.location.href = "dashboard_configdash.php";';
+                 echo 'window.location.href = "dashboard_configdash.php?dashboardId="' . $dashboardId;
                  echo '</script>';
                  die();
              }
@@ -249,7 +249,7 @@
            mysqli_close($link);
            echo '<script type="text/javascript">';
            echo 'alert("Error during dashboard update: please repeat the procedure.");';
-           echo 'window.location.href = "dashboard_configdash.php";';
+           echo 'window.location.href = "dashboard_configdash.php?dashboardId="' . $dashboardId;
            echo '</script>';
         }
     }

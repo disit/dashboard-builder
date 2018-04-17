@@ -55,7 +55,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Dashboard management system</title>
+    <title>Snap4City</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
@@ -96,7 +96,7 @@
             <div class="col-xs-12 col-md-10" id="mainCnt">
                 <div class="row hidden-md hidden-lg">
                     <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                        Dashboard Management System
+                        Snap4City
                     </div>
                 </div>
                 <div class="row">
@@ -210,60 +210,62 @@
                                                            //Reperimento elenco utenti LDAP
                                                            $temp = [];
                                                            $users = [];
-
-                                                           $ds = ldap_connect($ldapServer, $ldapPort);
-                                                           ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                                           $bind = ldap_bind($ds);
-
-                                                           $result = ldap_search(
-                                                                   $ds, 'dc=ldap,dc=disit,dc=org', 
-                                                                   '(cn=Dashboard)'
-                                                           );
-                                                           $entries = ldap_get_entries($ds, $result);
-                                                           foreach ($entries as $key => $value) 
+                                                           if($ldapActive == "yes")
                                                            {
-                                                              for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
-                                                              { 
-                                                                 $usr = $value["memberuid"][$index];
-                                                                 array_push($temp, $usr);
-                                                              }
-                                                           }
+                                                                $ds = ldap_connect($ldapServer, $ldapPort);
+                                                                ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                                                                $bind = ldap_bind($ds);
 
-                                                           ldap_close();
-
-                                                           $ds = ldap_connect($ldapServer, $ldapPort);
-                                                           ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                                           $bind = ldap_bind($ds);
-
-                                                           for($i = 0; $i < count($temp); $i++)
-                                                           {
-                                                              if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
-                                                              {
-                                                                 $name = str_replace("cn=", "", $temp[$i]);
-                                                                 $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                                                                 if(ldapCheckRole($ds, $temp[$i], "Observer"))
-                                                                 {
-                                                                    $singleUser = [$name, "ldap", "Observer"];
-                                                                 }
-                                                                 else
-                                                                 {
-                                                                   if(ldapCheckRole($ds, $temp[$i], "Manager"))
-                                                                   {
-                                                                      $singleUser = [$name, "ldap", "Manager"];
+                                                                $result = ldap_search(
+                                                                        $ds, 'dc=ldap,dc=disit,dc=org', 
+                                                                        '(cn=Dashboard)'
+                                                                );
+                                                                $entries = ldap_get_entries($ds, $result);
+                                                                foreach ($entries as $key => $value) 
+                                                                {
+                                                                   for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
+                                                                   { 
+                                                                      $usr = $value["memberuid"][$index];
+                                                                      array_push($temp, $usr);
                                                                    }
-                                                                   else
+                                                                }
+
+                                                                ldap_close();
+
+                                                                $ds = ldap_connect($ldapServer, $ldapPort);
+                                                                ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                                                                $bind = ldap_bind($ds);
+
+                                                                for($i = 0; $i < count($temp); $i++)
+                                                                {
+                                                                   if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
                                                                    {
-                                                                      if(ldapCheckRole($ds, $temp[$i], "AreaManager"))
+                                                                      $name = str_replace("cn=", "", $temp[$i]);
+                                                                      $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                                                      if(ldapCheckRole($ds, $temp[$i], "Observer"))
                                                                       {
-                                                                         $singleUser = [$name, "ldap", "AreaManager"];
+                                                                         $singleUser = [$name, "ldap", "Observer"];
                                                                       }
+                                                                      else
+                                                                      {
+                                                                        if(ldapCheckRole($ds, $temp[$i], "Manager"))
+                                                                        {
+                                                                           $singleUser = [$name, "ldap", "Manager"];
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                           if(ldapCheckRole($ds, $temp[$i], "AreaManager"))
+                                                                           {
+                                                                              $singleUser = [$name, "ldap", "AreaManager"];
+                                                                           }
+                                                                        }
+                                                                      }
+
+                                                                      array_push($users, $singleUser);
                                                                    }
-                                                                 }
-
-                                                                 array_push($users, $singleUser);
-                                                              }
+                                                                } 
                                                            }
-
+                                                           
                                                             //Reperimento elenco utenti locali
                                                             $link = mysqli_connect($host, $username, $password) or die();
                                                             mysqli_select_db($link, $dbname);
@@ -583,6 +585,7 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
+        $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=mainSetupLink]').show();
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
@@ -666,7 +669,7 @@
             }    
         });
         
-        $('#link_pools_management .mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#link_pools_management .mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuPortraitCnt #link_pools_management .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuLandCnt #link_pools_management .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         

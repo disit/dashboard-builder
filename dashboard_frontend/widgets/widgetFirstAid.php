@@ -20,7 +20,7 @@
 <script type='text/javascript'>
      
     //Inizio JQuery document ready handler
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
             $titlePatterns = array();
@@ -29,38 +29,39 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?>  
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_content");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var color = '<?= $_GET['color'] ?>';
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var color = '<?= $_REQUEST['color_w'] ?>';
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var widgetProperties = null;
-        var elToEmpty = $("#<?= $_GET['name'] ?>_table");
-        var url = "<?= $_GET['link_w'] ?>"; 
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_table");
+        var url = "<?= $_REQUEST['link_w'] ?>"; 
         var styleParameters, legendHeight, serviceUri, viewMode = null;
         var tableRows = [];
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+		var showHeader = null;
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-            showHeader = false;
-	}
-	else
-	{
-            showHeader = true;
-	}
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+				showHeader = false;
+		}
+		else
+		{
+				showHeader = true;
+		}
         
         //Definizioni di funzione specifiche del widget
         
@@ -70,15 +71,15 @@
             var height = null;
             if((embedWidget === true) && (embedWidgetPolicy === 'auto'))
             {
-                height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight"));
+                height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
             }
             else
             {
                 //TBD - Vanno gestiti i futuri casi di policy manuale e show/hide header a scelta utente
-                height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - headerHeight);
+                height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - headerHeight);
             }
             
-            $("#<?= $_GET['name'] ?>_table").css("height", height);
+            $("#<?= $_REQUEST['name_w'] ?>_table").css("height", height);
         }
         
         //Salvataggio del JSON dei dati più recente su DB
@@ -328,58 +329,58 @@
                         {
                             if(firstLoad === false)
                             {
-                                $("#<?= $_GET['name'] ?>_table").empty();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").empty();
                             }
                             
                            for(var z = 0; z < tableRows.length; z++)
                            {
-                              $("#<?= $_GET['name'] ?>_table").append(tableRows[z]);
+                              $("#<?= $_REQUEST['name_w'] ?>_table").append(tableRows[z]);
                            }
                            
                            switch(tableBorders)
                            {
                                case "no":
-                                   $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                                    break;
 
                                case "horizontal":
-                                   $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-color", tableBordersColor);
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
                                    break;
 
                                case "all":
-                                   $("#<?= $_GET['name'] ?>_table").css("border-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table").css("border-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table").css("border-color", tableBordersColor);
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-color", tableBordersColor);
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-color", tableBordersColor);
                                    break;
 
                                default:
-                                   $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                                    break;    
                            }
-                           $("#<?= $_GET['name'] ?>_table tr:last").css("border-bottom", "none");
-                           $("#<?= $_GET['name'] ?>_table tr:last td").css("border-bottom", "none");
+                           $("#<?= $_REQUEST['name_w'] ?>_table tr:last").css("border-bottom", "none");
+                           $("#<?= $_REQUEST['name_w'] ?>_table tr:last td").css("border-bottom", "none");
 
                            applyThresholdCodes(series);
                            setTableHeight();
-                           var widgetHeight = parseInt($("#<?= $_GET['name'] ?>_table").height() + 25);
+                           var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
                            createLegends(series, widgetHeight);
                            updateLastSeries(series);
                            showWidgetContent(widgetName);
@@ -406,58 +407,58 @@
                         {
                             if(firstLoad === false)
                             {
-                                $("#<?= $_GET['name'] ?>_table").empty();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").empty();
                             }
                             
                            for(var z = 0; z < tableRows.length; z++)
                            {
-                              $("#<?= $_GET['name'] ?>_table").append(tableRows[z]);
+                              $("#<?= $_REQUEST['name_w'] ?>_table").append(tableRows[z]);
                            }
                            
                            switch(tableBorders)
                            {
                                case "no":
-                                   $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                                    break;
 
                                case "horizontal":
-                                   $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-color", tableBordersColor);
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
                                    break;
 
                                case "all":
-                                   $("#<?= $_GET['name'] ?>_table").css("border-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table").css("border-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table").css("border-color", tableBordersColor);
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border-color", tableBordersColor);
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-width", "1px");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-style", "solid");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-color", tableBordersColor);
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-width", "1px");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-style", "solid");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-color", tableBordersColor);
                                    break;
 
                                default:
-                                   $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                                   $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                                   $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                                    break;    
                            }
-                           $("#<?= $_GET['name'] ?>_table tr:last").css("border-bottom", "none");
-                           $("#<?= $_GET['name'] ?>_table tr:last td").css("border-bottom", "none");
+                           $("#<?= $_REQUEST['name_w'] ?>_table tr:last").css("border-bottom", "none");
+                           $("#<?= $_REQUEST['name_w'] ?>_table tr:last td").css("border-bottom", "none");
 
                            applyThresholdCodes(series);
                            setTableHeight();
-                           var widgetHeight = parseInt($("#<?= $_GET['name'] ?>_table").height() + 25);
+                           var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
                            createLegends(series, widgetHeight);
                            updateLastSeries(series);
                            showWidgetContent(widgetName);
@@ -539,8 +540,8 @@
                         }
          
                        showWidgetContent(widgetName);
-                       $("#<?= $_GET['name'] ?>_table").css("display", "none"); 
-                       $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
+                       $("#<?= $_REQUEST['name_w'] ?>_table").css("display", "none"); 
+                       $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").css("display", "block");
                     }
                     else
                     {
@@ -623,11 +624,11 @@
                              
                             if(firstLoad === false)
                             {
-                                $("#<?= $_GET['name'] ?>_table").empty();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").empty();
                             }
 
-                             $("#<?= $_GET['name'] ?>_table").append(headerRow);
-                             $("#<?= $_GET['name'] ?>_table").append(dataRow);  
+                             $("#<?= $_REQUEST['name_w'] ?>_table").append(headerRow);
+                             $("#<?= $_REQUEST['name_w'] ?>_table").append(dataRow);  
                              break;
 
                           case "singleDetails":
@@ -693,7 +694,7 @@
                              
                             if(firstLoad === false)
                             {
-                                $("#<?= $_GET['name'] ?>_table").empty();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").empty();
                             }
                              
                              for(var i = 0; i < rowsQt; i++)
@@ -810,7 +811,7 @@
                                          newRow.append(newCell);
                                      }
                                  }
-                                 $("#<?= $_GET['name'] ?>_table").append(newRow);      
+                                 $("#<?= $_REQUEST['name_w'] ?>_table").append(newRow);      
                              }
                              break;
                        }
@@ -820,47 +821,47 @@
                        switch(tableBorders)
                        {
                            case "no":
-                               $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                                break;
 
                            case "horizontal":
-                               $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-width", "1px");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-style", "solid");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-color", tableBordersColor);
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-width", "1px");
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-style", "solid");
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
+                               $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-width", "1px");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-style", "solid");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-color", tableBordersColor);
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-width", "1px");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-style", "solid");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
                                break;
 
                            case "all":
-                               $("#<?= $_GET['name'] ?>_table").css("border-width", "1px");
-                               $("#<?= $_GET['name'] ?>_table").css("border-style", "solid");
-                               $("#<?= $_GET['name'] ?>_table").css("border-color", tableBordersColor);
-                               $("#<?= $_GET['name'] ?>_table tr").css("border-width", "1px");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border-style", "solid");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border-color", tableBordersColor);
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border-width", "1px");
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border-style", "solid");
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border-color", tableBordersColor);
+                               $("#<?= $_REQUEST['name_w'] ?>_table").css("border-width", "1px");
+                               $("#<?= $_REQUEST['name_w'] ?>_table").css("border-style", "solid");
+                               $("#<?= $_REQUEST['name_w'] ?>_table").css("border-color", tableBordersColor);
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-width", "1px");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-style", "solid");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-color", tableBordersColor);
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-width", "1px");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-style", "solid");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-color", tableBordersColor);
                                break;
 
                            default:
-                               $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                               $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                               $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                               $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                                break;    
                        }
-                       $("#<?= $_GET['name'] ?>_table tr:last").css("border-bottom", "none");
-                       $("#<?= $_GET['name'] ?>_table tr:last td").css("border-bottom", "none");
+                       $("#<?= $_REQUEST['name_w'] ?>_table tr:last").css("border-bottom", "none");
+                       $("#<?= $_REQUEST['name_w'] ?>_table tr:last td").css("border-bottom", "none");
 
                        applyThresholdCodes(series);
                        setTableHeight();
-                       var widgetHeight = parseInt($("#<?= $_GET['name'] ?>_table").height() + 25);
+                       var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
                        createLegends(series, widgetHeight);
                        createInfoButtons();
                     }
@@ -926,8 +927,8 @@
                         }
       
                     showWidgetContent(widgetName);
-                    $("#<?= $_GET['name'] ?>_table").css("display", "none"); 
-                    $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
+                    $("#<?= $_REQUEST['name_w'] ?>_table").css("display", "none"); 
+                    $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").css("display", "block");
                     
                     updateLastSeries(series);
                     
@@ -966,7 +967,7 @@
                 {
                    case "singleSummary":
                         var tableLabels = new Array();
-                        $('#<?= $_GET['name'] ?>_table tr').each(function (i, row) 
+                        $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i, row) 
                         {
                             var row = $(row);
                             var cells = $(this).find('td');
@@ -1003,27 +1004,27 @@
                                                 switch(j)
                                                 {
                                                    case 0:
-                                                      $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(0).addClass("alarmFirstAidLblActiveRed");
+                                                      $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(0).addClass("alarmFirstAidLblActiveRed");
                                                       cells.eq(j).addClass("alarmFirstAidCellActiveRed");
                                                       break;
                                                       
                                                    case 1:
-                                                      $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(1).addClass("alarmFirstAidLblActiveYellow");
+                                                      $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(1).addClass("alarmFirstAidLblActiveYellow");
                                                       cells.eq(j).addClass("alarmFirstAidCellActiveYellow");
                                                       break;   
                                                       
                                                    case 2:
-                                                      $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(2).addClass("alarmFirstAidLblActiveGreen");
+                                                      $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(2).addClass("alarmFirstAidLblActiveGreen");
                                                       cells.eq(j).addClass("alarmFirstAidCellActiveGreen");
                                                       break;
                                                       
                                                    case 3:
-                                                      $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(3).addClass("alarmFirstAidLblActiveBlue");
+                                                      $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(3).addClass("alarmFirstAidLblActiveBlue");
                                                       cells.eq(j).addClass("alarmFirstAidCellActiveBlue");
                                                       break;
                                                       
                                                    case 4:
-                                                      $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(4).addClass("alarmFirstAidLblActiveWhite");
+                                                      $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(4).addClass("alarmFirstAidLblActiveWhite");
                                                       cells.eq(j).addClass("alarmFirstAidCellActiveWhite");
                                                       break;   
                                                 }
@@ -1038,10 +1039,10 @@
                       
                    case "singleDetails":
                       var tableLabels = new Array();
-                      var rowsNumber = $('#<?= $_GET['name'] ?>_table tr').length;
+                      var rowsNumber = $('#<?= $_REQUEST['name_w'] ?>_table tr').length;
                       var z = null;
                       
-                        $('#<?= $_GET['name'] ?>_table tr').each(function (i, row) 
+                        $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i, row) 
                         {
                             var row = $(row);
                             var cells = $(this).find('td');
@@ -1086,27 +1087,27 @@
                                                       switch(z)
                                                       {
                                                          case 0:
-                                                            $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(1).addClass("alarmFirstAidLblActiveRed");
+                                                            $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(1).addClass("alarmFirstAidLblActiveRed");
                                                             cells.eq(j).addClass("alarmFirstAidCellActiveRed");
                                                             break;
 
                                                          case 1:
-                                                            $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(2).addClass("alarmFirstAidLblActiveYellow");
+                                                            $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(2).addClass("alarmFirstAidLblActiveYellow");
                                                             cells.eq(j).addClass("alarmFirstAidCellActiveYellow");
                                                             break;   
 
                                                          case 2:
-                                                            $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(3).addClass("alarmFirstAidLblActiveGreen");
+                                                            $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(3).addClass("alarmFirstAidLblActiveGreen");
                                                             cells.eq(j).addClass("alarmFirstAidCellActiveGreen");
                                                             break;
 
                                                          case 3:
-                                                            $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(4).addClass("alarmFirstAidLblActiveBlue");
+                                                            $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(4).addClass("alarmFirstAidLblActiveBlue");
                                                             cells.eq(j).addClass("alarmFirstAidCellActiveBlue");
                                                             break;
 
                                                          case 4:
-                                                            $('#<?= $_GET['name'] ?>_table tr').eq(0).find("td").eq(5).addClass("alarmFirstAidLblActiveWhite");
+                                                            $('#<?= $_REQUEST['name_w'] ?>_table tr').eq(0).find("td").eq(5).addClass("alarmFirstAidLblActiveWhite");
                                                             cells.eq(j).addClass("alarmFirstAidCellActiveWhite");
                                                             break;   
                                                       }
@@ -1139,7 +1140,7 @@
                 {
                     //Caso in cui le soglie sono definite sulle colonne
                     var tableLabels = new Array();
-                    $('#<?= $_GET['name'] ?>_table tr').each(function (i, row) {
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i, row) {
                         var row = $(row);
                         var cells = $(this).find('td');
                         var cellValue = null;
@@ -1236,7 +1237,7 @@
                     var tableLabels = new Array();
                     var index = null;
                     
-                    $('#<?= $_GET['name'] ?>_table tr').each(function (i, row) {
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i, row) {
                         var row = $(row);
                         index = i;
                         
@@ -1312,7 +1313,7 @@
                     switch(viewMode)
                     {
                        case "singleSummary":
-                          $('#<?= $_GET['name'] ?>_table tr').first().find('td').each(function (i) 
+                          $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i) 
                            {
                                    tableCell = $(this);
                                    labelCellWidth = tableCell.width();
@@ -1352,7 +1353,7 @@
                           break;
                           
                        case "singleDetails":
-                          $('#<?= $_GET['name'] ?>_table tr').first().find('td').each(function (i) 
+                          $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i) 
                            {
                                if(i !== 0)
                                {
@@ -1401,7 +1402,7 @@
                     //LEGENDA SOGLIE SUL SECONDO ASSE
                     var firstRowH, firstRowTopBorder, firstRowBottomBorder, rowH, rowTopBorder, rowBottomBorder, labelHeight = null;
                     
-                    $('#<?= $_GET['name'] ?>_table tr').each(function (i) 
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i) 
                     {
                         if(i > 0)
                         {
@@ -1491,7 +1492,7 @@
             if(infoJson !== null)
             {
                 //Aggiunta tasti alle labels sulle colonne
-                $('#<?= $_GET['name'] ?>_table tr').first().find('td').each(function (i) 
+                $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i) 
                 {
                     if((viewMode === 'singleSummary')||((viewMode !== 'singleSummary')&&(i > 0)))
                     {
@@ -1525,7 +1526,7 @@
                 //Aggiunta tasti alle labels sulle righe
                 if(viewMode !== 'singleSummary')
                 {
-                  $('#<?= $_GET['name'] ?>_table tr').each(function (i) 
+                  $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i) 
                   {
                       if(i > 0)//Si salta la prima riga
                       {
@@ -1602,7 +1603,26 @@
             });
             $('#modalWidgetFieldsInfo').modal('show');
         }
-        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        }
+		
+		$(document).off('resizeHighchart_' + widgetName);
+		$(document).on('resizeHighchart_' + widgetName, function(event) 
+		{
+			var newHeight = null;
+			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+			}
+			else
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+			}
+			
+			$('#<?= $_REQUEST['name_w'] ?>_table').css('height', newHeight + 'px');
+		});
         //Fine definizioni di funzione  
         
         //Codice core del widget
@@ -1611,7 +1631,9 @@
             url = null;
         }
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         
         if(firstLoad !== false)
         {
@@ -1623,13 +1645,12 @@
         }
         
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         if(widgetProperties !== null)
         {
             //Inizio codice ad hoc basato sulle proprietà del widget
-            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
             var parametersObj = JSON.parse(widgetProperties.param.parameters);
             serviceUri = widgetProperties.param.serviceUri;
             viewMode = widgetProperties.param.viewMode;
@@ -1643,31 +1664,33 @@
         {
             console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+		<?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>
-            <div id="<?= $_GET['name'] ?>_mapButtonDiv" class="mapButtonContainer">
-               <i id="<?= $_GET['name'] ?>_mapButton" class="fa fa-map-marker mapButton" style="font-size: 22px"></i>
+            <div id="<?= $_REQUEST['name_w'] ?>_mapButtonDiv" class="mapButtonContainer">
+               <i id="<?= $_REQUEST['name_w'] ?>_mapButton" class="fa fa-map-marker mapButton" style="font-size: 22px"></i>
             </div>
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -1676,17 +1699,17 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <!--<p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>-->
-            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
-                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <!--<p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>-->
+            <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available
                 </div>
-                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>
                 </div>
            </div>
-            <table id="<?= $_GET['name'] ?>_table" class="psTable">
+            <table id="<?= $_REQUEST['name_w'] ?>_table" class="psTable">
             </table>
         </div>
     </div>	

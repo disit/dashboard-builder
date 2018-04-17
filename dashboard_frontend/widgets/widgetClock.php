@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad) 
     {
         <?php
             $titlePatterns = array();
@@ -27,33 +27,34 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?>
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
         var widgetProperties, styleParameters, clockData, clockFont = null;
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+		var showHeader = null;
         elToEmpty.css("font-family", "Verdana");
         var firstShowClock = true;
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-            showHeader = false;
-	}
-	else
-	{
-            showHeader = true;
-	}  
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+				showHeader = false;
+		}
+		else
+		{
+				showHeader = true;
+		}  
         
         //Specifiche per questo widget
         
@@ -120,16 +121,16 @@
             
             var date = day + "/" + month + "/" + now.getFullYear();
             var time = hours + ":" + minutes + ":" + seconds;
-            $("#<?= $_GET['name'] ?>_chartContainer").css("font-size", fontSize + "px");
-            $("#<?= $_GET['name'] ?>_chartContainer").css("color", fontColor);
+            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").css("font-size", fontSize + "px");
+            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").css("color", fontColor);
             
             if(clockFont === 'lcd')
             {
-               $("#<?= $_GET['name'] ?>_chartContainer").css("font-family", "Digital");
+               $("#<?= $_REQUEST['name_w'] ?>_chartContainer").css("font-family", "Digital");
             }
             else
             {
-               $("#<?= $_GET['name'] ?>_chartContainer").css("font-family", "Verdana");
+               $("#<?= $_REQUEST['name_w'] ?>_chartContainer").css("font-family", "Verdana");
             }
             
             switch(clockData)
@@ -137,44 +138,44 @@
                case "date":
                   if(firstShowClock)
                   {
-                     $("#<?= $_GET['name'] ?>_chartContainer").empty();
-                     $("#<?= $_GET['name'] ?>_chartContainer").html(date);
-                     $("#<?= $_GET['name'] ?>_chartContainer").addClass("centerWithFlex");
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").empty();
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").html(date);
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").addClass("centerWithFlex");
                      firstShowClock = false;
                   }
                   else
                   {
-                     $("#<?= $_GET['name'] ?>_chartContainer").html(date);
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").html(date);
                   }
                   break;
                   
                case "time":
                   if(firstShowClock)
                   {
-                     $("#<?= $_GET['name'] ?>_chartContainer").empty();
-                     $("#<?= $_GET['name'] ?>_chartContainer").html(time);
-                     $("#<?= $_GET['name'] ?>_chartContainer").addClass("centerWithFlex");
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").empty();
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").html(time);
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").addClass("centerWithFlex");
                      firstShowClock = false;
                   }
                   else
                   {
-                     $("#<?= $_GET['name'] ?>_chartContainer").html(time);
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").html(time);
                   }
                   break;
                   
                case "dateTime":
                   if(firstShowClock)
                   {
-                     $("#<?= $_GET['name'] ?>_chartContainer").removeClass("centerWithFlex");
-                     $("#<?= $_GET['name'] ?>_chartContainer").empty();
-                     $("#<?= $_GET['name'] ?>_chartContainer").append('<div class="clockDate">' + date + '</div>');
-                     $("#<?= $_GET['name'] ?>_chartContainer").append('<div class="clockTime">' + time + '</div>');
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").removeClass("centerWithFlex");
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").empty();
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").append('<div class="clockDate">' + date + '</div>');
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").append('<div class="clockTime">' + time + '</div>');
                      firstShowClock = false;
                   }
                   else
                   {
-                     $("#<?= $_GET['name'] ?>_chartContainer div.clockDate").html(date);
-                     $("#<?= $_GET['name'] ?>_chartContainer div.clockTime").html(time);
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.clockDate").html(date);
+                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.clockTime").html(time);
                   }
                   break;   
             }
@@ -191,20 +192,25 @@
             
             return styleParameters;
         }
+        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        }
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         
-        
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         if((widgetProperties !== null) && (widgetProperties !== ''))
         {
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
-            $("#<?= $_GET['name'] ?>_chartContainer").css("font-weight", "bold");
+            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").css("font-weight", "bold");
             styleParameters = getStyleParameters();
             clockData = styleParameters.clockData;
             clockFont = styleParameters.clockFont;
@@ -215,23 +221,27 @@
         {
             console.log("Errore in caricamento proprietà widget");
         }
+		
+		$('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').remove();
 });//Fine document ready 
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -240,9 +250,9 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
-            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer">
             </div>
         </div>
     </div>	

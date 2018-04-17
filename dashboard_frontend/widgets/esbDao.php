@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -72,43 +72,6 @@
             {
                echo "queryKo";
             }
-            /*$fakeEvents = '{  
-                "1":{  
-                   "id":"1",
-                   "created":"2017-10-25 09:12:07.870",
-                   "data_id":"urn:rixf:it.swarco.resolute/trafficInformationId/1",
-                   "data_type":"org.resolute_eu.esb.model.traffic.TrafficInformation",
-                   "event_time":"2017-10-25 09:12:07.870",
-                   "payload":"{\"arc_ids\":[\"urn:rixf:it.swarco.resolute/arcId/RT04801727938ES\"],\"code\":\"1062652\",\"coords\":{\"latitude\":43.79784805,\"longitude\":11.21094064},\"id\":\"urn:rixf:it.swarco.resolute/trafficInformationId/1062652\",\"notes\":\"INCIDENTE A FIRENZE - VIA GARFAGNANA\",\"severity\":8,\"source\":\"1062652\",\"start_time\":1508923829000,\"stop_time\":1508923829000,\"sub_type_id\":\"urn:rixf:it.swarco.resolute/subTypeId/9\",\"type_id\":\"urn:rixf:it.swarco.resolute/typeId/1\",\"update_time\":1508923829000}",
-                   "payload_class":"org.resolute_eu.esb.model.traffic.TrafficInformation",
-                   "sender_id":null,
-                   "type":"DEFINITION"
-                },
-                "2":{  
-                   "id":"2",
-                   "created":"2017-10-24 17:07:40.870",
-                   "data_id":"urn:rixf:it.swarco.resolute/trafficInformationId/3",
-                   "data_type":"org.resolute_eu.esb.model.traffic.TrafficInformation",
-                   "event_time":"2017-10-24 17:07:40.870",
-                   "payload":"{\"arc_ids\":[\"urn:rixf:it.swarco.resolute/arcId/RT04801727938ES\"],\"code\":\"1062652\",\"coords\":{\"latitude\":43.779585,\"longitude\":11.272084},\"id\":\"urn:rixf:it.swarco.resolute/trafficInformationId/1062652\",\"notes\":\"INCIDENTE A FIRENZE - VIA MASACCIO\",\"severity\":5,\"source\":\"1062652\",\"start_time\":1508870669000,\"stop_time\":1508870669000,\"sub_type_id\":\"urn:rixf:it.swarco.resolute/subTypeId/9\",\"type_id\":\"urn:rixf:it.swarco.resolute/typeId/1\",\"update_time\":1508870669000}",
-                   "payload_class":"org.resolute_eu.esb.model.traffic.TrafficInformation",
-                   "sender_id":null,
-                   "type":"DEFINITION"
-                },
-                "3":{  
-                   "id":"3",
-                   "created":"2017-10-24 15:12:25.870",
-                   "data_id":"urn:rixf:it.swarco.resolute/trafficInformationId/3",
-                   "data_type":"org.resolute_eu.esb.model.traffic.TrafficInformation",
-                   "event_time":"2017-10-24 15:12:25.870",
-                   "payload":"{\"arc_ids\":[\"urn:rixf:it.swarco.resolute/arcId/RT04801727938ES\"],\"code\":\"1062652\",\"coords\":{\"latitude\":43.763904,\"longitude\":11.276618},\"id\":\"urn:rixf:it.swarco.resolute/trafficInformationId/1062652\",\"notes\":\"INCIDENTE A FIRENZE - VIA MASACCIO\",\"severity\":2,\"source\":\"1062652\",\"start_time\":1508857945000,\"stop_time\":1508857945000,\"sub_type_id\":\"urn:rixf:it.swarco.resolute/subTypeId/84\",\"type_id\":\"urn:rixf:it.swarco.resolute/typeId/25\",\"update_time\":1508857945000}",
-                   "payload_class":"org.resolute_eu.esb.model.traffic.TrafficInformation",
-                   "sender_id":null,
-                   "type":"DEFINITION"
-                }
-             }';
-             
-            echo $fakeEvents;*/
             break;
             
          case "getAlarms":

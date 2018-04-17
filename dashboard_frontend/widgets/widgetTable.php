@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 <script type='text/javascript'>
      
     //Inizio JQuery document ready handler
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)   
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)   
     {
         <?php
             $titlePatterns = array();
@@ -29,52 +29,52 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?>  
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_content");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var color = '<?= $_GET['color'] ?>';
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var color = '<?= $_REQUEST['color_w'] ?>';
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var widgetProperties = null;
-        var metricName = "<?= $_GET['metric'] ?>";
+        var metricName = "<?= $_REQUEST['id_metric'] ?>";
         var metricData = null;
-        var elToEmpty = $("#<?= $_GET['name'] ?>_table");
-        var url = "<?= $_GET['link_w'] ?>"; 
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_table");
+        var url = "<?= $_REQUEST['link_w'] ?>"; 
         var metricType = null;
         var series = null;
         var styleParameters = null;
         var legendHeight = null;
         var metricName, widgetTitle, countdownRef = null;
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
-        
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-		showHeader = false;
-	}
-	else
-	{
-		showHeader = true;
-	}
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var showHeader, widgetParameters, thresholdsJson, infoJson = null;
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+			showHeader = false;
+		}
+		else
+		{
+			showHeader = true;
+		}
         
         //Definizioni di funzione specifiche del widget
         
         //Funzione di calcolo ed applicazione dell'altezza della tabella
         function setTableHeight()
         {
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 25);
-            $("#<?= $_GET['name'] ?>_table").css("height", height);
+            var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 25);
+            $("#<?= $_REQUEST['name_w'] ?>_table").css("height", height);
         }
         
         //Funzione di popolamento della tabella
@@ -173,72 +173,71 @@
                         newRow.append(newCell);
                     }
                 }
-                $("#<?= $_GET['name'] ?>_table").append(newRow);      
+                $("#<?= $_REQUEST['name_w'] ?>_table").append(newRow);      
             }
             
             switch(tableBorders)
             {
                 case "no":
-                    $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                     break;
                     
                 case "horizontal":
-                    $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-width", "1px");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-style", "solid");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border-bottom-color", tableBordersColor);
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-width", "1px");
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-style", "solid");
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
+                    $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-width", "1px");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-style", "solid");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-bottom-color", tableBordersColor);
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-width", "1px");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-style", "solid");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-bottom-color", tableBordersColor);
                     break;
                     
                 case "all":
-                    $("#<?= $_GET['name'] ?>_table").css("border-width", "1px");
-                    $("#<?= $_GET['name'] ?>_table").css("border-style", "solid");
-                    $("#<?= $_GET['name'] ?>_table").css("border-color", tableBordersColor);
-                    $("#<?= $_GET['name'] ?>_table tr").css("border-width", "1px");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border-style", "solid");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border-color", tableBordersColor);
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border-width", "1px");
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border-style", "solid");
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border-color", tableBordersColor);
+                    $("#<?= $_REQUEST['name_w'] ?>_table").css("border-width", "1px");
+                    $("#<?= $_REQUEST['name_w'] ?>_table").css("border-style", "solid");
+                    $("#<?= $_REQUEST['name_w'] ?>_table").css("border-color", tableBordersColor);
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-width", "1px");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-style", "solid");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border-color", tableBordersColor);
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-width", "1px");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-style", "solid");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border-color", tableBordersColor);
                     break;
                     
                 default:
-                    $("#<?= $_GET['name'] ?>_table").css("border", "none");
-                    $("#<?= $_GET['name'] ?>_table tr").css("border", "none");
-                    $("#<?= $_GET['name'] ?>_table tr td").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr").css("border", "none");
+                    $("#<?= $_REQUEST['name_w'] ?>_table tr td").css("border", "none");
                     break;    
             }
-            $("#<?= $_GET['name'] ?>_table tr:last").css("border-bottom", "none");
-            $("#<?= $_GET['name'] ?>_table tr:last td").css("border-bottom", "none");
+            $("#<?= $_REQUEST['name_w'] ?>_table tr:last").css("border-bottom", "none");
+            $("#<?= $_REQUEST['name_w'] ?>_table tr:last td").css("border-bottom", "none");
         }
         
         /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
-        function getThresholdsJson()
+        /*function getThresholdsJson()
         {
             var thresholdsJson = jQuery.parseJSON(widgetProperties.param.parameters);
             return thresholdsJson;
-        }
+        }*/
         
         /*Restituisce il JSON delle info se presente, altrimenti NULL*/
-        function getInfoJson()
+        /*function getInfoJson()
         {
             var infoJson = jQuery.parseJSON(widgetProperties.param.infoJson);
             return infoJson;
-        }
+        }*/
         
         //Funzione di colorazione delle celle in base alle eventuali soglie stabilite
         function applyThresholdCodes(seriesString2)
         {
-            var thresholdsJson = getThresholdsJson();
             var target = null;
             
-            if(thresholdsJson !== null)
+            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
             {
                 target = thresholdsJson.thresholdObject.target;
                 var series2 = jQuery.parseJSON(seriesString2);
@@ -249,7 +248,7 @@
                 {
                     //Caso in cui le soglie sono definite sulle colonne
                     var tableLabels = new Array();
-                    $('#<?= $_GET['name'] ?>_table tr').each(function (i, row) {
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i, row) {
                         var row = $(row);
                         var cells = $(this).find('td');
                         var cellValue = null;
@@ -307,7 +306,7 @@
                     var tableLabels = new Array();
                     var index = null;
                     
-                    $('#<?= $_GET['name'] ?>_table tr').each(function (i, row) {
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i, row) {
                         var row = $(row);
                         index = i;
                         
@@ -360,10 +359,9 @@
         
         function createLegends(seriesString2, widgetHeight)
         {
-            var thresholdsJson = getThresholdsJson();
             var target = null;
             
-            if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 var thresholdObject = thresholdsJson.thresholdObject;
                 target = thresholdObject.target;
@@ -379,7 +377,7 @@
                 if(target === series2.firstAxis.desc)
                 {
                     colsLabels = thresholdObject.firstAxis.fields.length;
-                    $('#<?= $_GET['name'] ?>_table tr').first().find('td').each(function (i) 
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i) 
                     {
                         if(i !== 0)
                         {
@@ -434,7 +432,7 @@
                     //LEGENDA SOGLIE SUL SECONDO ASSE
                     var firstRowH, firstRowTopBorder, firstRowBottomBorder, rowH, rowTopBorder, rowBottomBorder, labelHeight = null;
                     
-                    $('#<?= $_GET['name'] ?>_table tr').each(function (i) 
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i) 
                     {
                         if(i > 0)
                         {
@@ -521,7 +519,6 @@
         
         function createInfoButtons()
         {
-            var infoJson = getInfoJson();
             var colsLabelsFontSize = styleParameters.colsLabelsFontSize;
             var colsLabelsFontColor = styleParameters.colsLabelsFontColor;
             var rowsLabelsFontSize = styleParameters.rowsLabelsFontSize;
@@ -531,7 +528,7 @@
             if((infoJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 //Aggiunta tasti alle labels sulle colonne
-                $('#<?= $_GET['name'] ?>_table tr').first().find('td').each(function (i) 
+                $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i) 
                 {
                     if(i > 0)
                     {
@@ -563,7 +560,7 @@
                 });
                 
                 //Aggiunta tasti alle labels sulle righe
-                $('#<?= $_GET['name'] ?>_table tr').each(function (i) 
+                $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i) 
                 {
                     if(i > 0)//Si salta la prima riga
                     {
@@ -605,7 +602,6 @@
         
         function showModalFieldsInfoFirstAxis()
         {
-            var infoJson = getInfoJson();
             var label = $(this).parent().find('span').html();
             var id = label.replace(/\s/g, '_');
             var info = infoJson.firstAxis[id];
@@ -623,7 +619,6 @@
         
         function showModalFieldsInfoSecondAxis()
         {
-            var infoJson = getInfoJson();
             var label = $(this).parent().find('span').html();
             var id = label.replace(/\s/g, '_');
             var info = infoJson.secondAxis[id];
@@ -649,10 +644,10 @@
         
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
-            metricName = "<?= $_GET['metric'] ?>";
+            metricName = "<?= $_REQUEST['id_metric'] ?>";
             widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
-            widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-            widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+            widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+            widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
         }
         else
         {
@@ -670,14 +665,29 @@
         {
             if((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange"))
             {
-                $("#<?= $_GET['name'] ?>_table").empty();
+                $("#<?= $_REQUEST['name_w'] ?>_table").empty();
                 clearInterval(countdownRef); 
-                $("#<?= $_GET['name'] ?>_content").hide();
-                <?= $_GET['name'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, /*null,*/ null, null);
+                $("#<?= $_REQUEST['name_w'] ?>_content").hide();
+                <?= $_REQUEST['name_w'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, /*null,*/ null, null);
             }
         });
+		
+		$(document).off('resizeHighchart_' + widgetName);
+		$(document).on('resizeHighchart_' + widgetName, function(event) 
+		{
+			$('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
+		});
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        }    
+        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+        
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -687,14 +697,83 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
-        widgetProperties = getWidgetProperties(widgetName);
-        if(widgetProperties !== null)
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+        //widgetProperties = getWidgetProperties(widgetName);
+        
+        //Nuova versione
+        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+        {
+            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+        }
+        
+        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        {
+            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+            thresholdsJson = widgetParameters;
+        }
+        
+        if(('<?= $_REQUEST['infoJson'] ?>' !== 'null')&&('<?= $_REQUEST['infoJson'] ?>' !== ''))
+        {
+            infoJson = <?= $_REQUEST['infoJson'] ?>;
+        }
+        
+        $.ajax({
+            url: getMetricDataUrl,
+            type: "GET",
+            data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+            async: true,
+            dataType: 'json',
+            success: function (data) 
+            {
+                metricData = data;
+                if(metricData.data.length !== 0)
+                {
+                    metricType = metricData.data[0].commit.author.metricType;
+                    series = metricData.data[0].commit.author.series;
+                    if(firstLoad !== false)
+                    {
+                        showWidgetContent(widgetName);
+                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                    }
+                    else
+                    {
+                        elToEmpty.empty();
+                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                    }
+                    populateTable(series);
+                    applyThresholdCodes(series);
+                    setTableHeight();
+                    var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
+                    createLegends(series, widgetHeight);
+                    createInfoButtons();
+                }
+                else
+                {
+                   showWidgetContent(widgetName);
+                   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                   $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                } 
+            },
+            error: function(errorData)
+            {
+                metricData = null;
+                console.log("Error in data retrieval");
+                console.log(JSON.stringify(errorData));
+                showWidgetContent(widgetName);
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+            }
+        });
+        
+        /*if(widgetProperties !== null)
         {
             //Inizio codice ad hoc basato sulle proprietà del widget
             var styleParametersString = widgetProperties.param.styleParameters;
             styleParameters = jQuery.parseJSON(styleParametersString);
-            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
+            manageInfoButtonVisibility("<?= $_REQUEST['infoMessage_w'] ?>", $('#<?= $_REQUEST['name_w'] ?>_header'));
             //Fine codice ad hoc basato sulle proprietà del widget
             
             metricData = getMetricData(metricName);
@@ -705,55 +784,57 @@
                 if(firstLoad !== false)
                 {
                     showWidgetContent(widgetName);
-                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
-                    $("#<?= $_GET['name'] ?>_table").show();
+                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
                 }
                 else
                 {
                     elToEmpty.empty();
-                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
-                    $("#<?= $_GET['name'] ?>_table").show();
+                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
                 }
                 populateTable(series);
                 applyThresholdCodes(series);
                 setTableHeight();
-                var widgetHeight = parseInt($("#<?= $_GET['name'] ?>_table").height() + 25);
+                var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
                 createLegends(series, widgetHeight);
                 createInfoButtons();
             }
             else
             {
                showWidgetContent(widgetName);
-               $('#<?= $_GET['name'] ?>_noDataAlert').show();
-               $("#<?= $_GET['name'] ?>_table").hide();
+               $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+               $("#<?= $_REQUEST['name_w'] ?>_table").hide();
             }        
         }
         else
         {
             console.log("Errore in caricamento proprietà widget");
-        }
-        countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        }*/
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -762,9 +843,9 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
-            <table id="<?= $_GET['name'] ?>_table" class="tableStyle tableBorder">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <table id="<?= $_REQUEST['name_w'] ?>_table" class="tableStyle tableBorder">
             </table>
         </div>
     </div>	

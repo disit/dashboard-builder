@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -18,53 +18,61 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad)
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad)
     {
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var widgetMainDivName = "<?= $_GET['name'] ?>_div";
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var widgetMainDivName = "<?= $_REQUEST['name_w'] ?>_div";
         var widgetProperties, separatorHeight, styleParameters= null;
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
-        
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var showHeader = null;
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         //Rimozione bordo per questo widget
         $("#" + widgetName).css("border", "none");
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-		showHeader = false;
-	}
-	else
-	{
-		showHeader = true;
-	} 
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+				showHeader = false;
+		}
+		else
+		{
+				showHeader = true;
+		} 
+        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        }
         
         //Definizioni di funzione specifiche del widget
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);	
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         
         if(hostFile === 'index')
         {
-            $('#<?= $_GET['name'] ?>_header').hide();
+            $('#<?= $_REQUEST['name_w'] ?>_header').hide();
             separatorHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight"));
         }
         else
         {
-            $('#<?= $_GET['name'] ?>_header').show();
+            $('#<?= $_REQUEST['name_w'] ?>_header').show();
             separatorHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
             $("#" + widgetName + "_buttonsDiv").css("width", "50px");
             $("#" + widgetName + "_buttonsDiv").show();
-            var titleDivWidth = $('#<?= $_GET['name'] ?>_div').width() - 50;
-            $('#<?= $_GET['name'] ?>_titleDiv').css("width", titleDivWidth + "px");
-            $('#<?= $_GET['name'] ?>_titleDiv').show();
+            var titleDivWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width() - 50;
+            $('#<?= $_REQUEST['name_w'] ?>_titleDiv').css("width", titleDivWidth + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_titleDiv').show();
         }
         
         $("#" + widgetName + "_separator").css("width", "100%");
@@ -89,19 +97,23 @@
         {
            styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
         }
+		
+		$('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').remove();
     });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+		<?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div> 
-        </div>
+        </div>-->
         
-       <div id='<?= $_GET['name'] ?>_separator' class='widgetSeparator'></div>
+       <div id='<?= $_REQUEST['name_w'] ?>_separator' class='widgetSeparator'></div>
     </div>	
 </div> 

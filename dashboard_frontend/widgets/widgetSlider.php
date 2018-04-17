@@ -350,6 +350,11 @@
         //Fine definizioni di funzione 
         
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        
+        $(window).resize(function(){
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        });
+        
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);

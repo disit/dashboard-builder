@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
     {
         <?php
             $titlePatterns = array();
@@ -28,36 +28,36 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?> 
         var timeFontSize, scroller, widgetProperties, styleParameters, icon, serviceUri, 
             eventName, newRow, newIcon, eventContentW, test, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
             background, originalHeaderColor, originalBorderColor, eventTitle,
-            eventName, serviceUri, eventTooltip,
+            eventName, serviceUri, eventTooltip, widgetParameters,
             eventsNumber, widgetWidth, shownHeight, rowPercHeight, contentHeightPx, eventContentWPerc, dataContainer, middleContainer,
              mapPtrContainer, pinContainer, pinMsgContainer, 
             fontSizePin, dateFontSize, globalPayload, nameContainer, valueContainer = null;    
     
         var eventNames = new Array();
-        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var speed = 50;
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
-        var elToEmpty = $("#<?= $_GET['name'] ?>_rollerContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
+        var url = "<?= $_REQUEST['link_w'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
-        
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var showHeader = null;
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var eventsOnMaps = {};
         var widgetTargetListFlags = [];
         var targetsArrayForNotify = [];
@@ -67,32 +67,32 @@
             url = null;
         }
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-	   showHeader = false;
-	}
-	else
-	{
-            showHeader = true;
-	} 
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+		   showHeader = false;
+		}
+		else
+		{
+				showHeader = true;
+		} 
    
         timeFontSize = parseInt(fontSize*1.6);
         dateFontSize = parseInt(fontSize*0.95);
         fontSizePin = parseInt(fontSize*0.95);
         
         $(document).on("esbEventAdded", function(event){
-           if(event.generator !== "<?= $_GET['name'] ?>")
+           if(event.generator !== "<?= $_REQUEST['name_w'] ?>")
            {
-              $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").each(function(i){
-                 if($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap") === "true")
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").each(function(i){
+                 if($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap") === "true")
                  {
                     for(widgetName in widgetTargetList)
                     {
-                        $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap", "false");
+                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap", "false");
 
-                        $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").html("");
-                        $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).removeClass("onMapTrafficEventPinAnimated");
-                        $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
+                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").html("");
+                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).removeClass("onMapTrafficEventPinAnimated");
+                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
 
                         eventsOnMaps[widgetName].eventsNumber = 0; 
                         eventsOnMaps[widgetName].eventsPoints.splice(0);
@@ -128,25 +128,7 @@
         function populateWidget(fromSort)
         {
            var name, value = null;
-           
-           //Mappa vuota sui target - Commentata il 21/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map" 
-            /*if(fromSort !== true)
-            {
-               for(var index in widgetTargetList) 
-               {
-                  if($("#" + widgetTargetList[index] + "_div").attr("data-emptymapshown") === "false")
-                  {
-                     $("#" + widgetTargetList[index] + "_wrapper").hide();
-                     $("#" + widgetTargetList[index] + "_defaultMapDiv").show();
-                     //Mappa vuota sui target - Commentata il 11/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map"
-                     //loadDefaultMap(widgetTargetList[index]);
-                     $("#" + widgetTargetList[index] + "_div").attr("data-emptymapshown", "true");
-                  }
-               }
-            }*/
-           
-           
-           $('#<?= $_GET['name'] ?>_rollerContainer').empty();
+           $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
            
            var edgeMeasureName = globalPayload.edge_measures[0].name;
            var edgeMeasureDesc = globalPayload.edge_measures[0].description;
@@ -164,7 +146,7 @@
                name = criticalNodes2[index].element_id;
                value = criticalNodes2[index].value;
                
-               newRow = $("<div></div>");
+               newRow = $('<div class="trafficEventRow"></div>');
                
                if(parseFloat(value) < 0.333)
                {
@@ -191,12 +173,11 @@
              icon = $('<img src="../img/networkIcons/node.png "/>');
              
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle centerWithFlex">' + name + '</div>');
+             eventTitle = $('<div class="eventTitle centerWithFlex"><span>' + name + '</span></div>');
              eventTitle.addClass(backgroundTitleClass);
-             eventTitle.css("font-size", fontSize + "px");
              eventTitle.css("font-weight", "bold");
              eventTitle.css("height", "30%");
-             $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
+             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
 
              newRow.append(eventTitle);
 
@@ -210,13 +191,11 @@
 
              middleContainer = $("<div class='trafficEventMiddleContainer'></div>");
              
-             nameContainer = $("<div class='networkNameContainer centerWithFlex' data-toggle='tooltip' data-placement='top' title='" + nodeMeasureDesc2 + "'>" + nodeMeasureName2.toLowerCase() + "</div>"); 
-             nameContainer.css("font-size", fontSize + "px");
+             nameContainer = $("<div class='networkNameContainer centerWithFlex' data-toggle='tooltip' data-placement='top' title='" + nodeMeasureDesc2 + "'>" + nodeMeasureName2.toLowerCase().replace("(normalized)", "") + "</div>"); 
              nameContainer.addClass(backgroundTitleClass);
              middleContainer.append(nameContainer);
              
              valueContainer = $("<div class='networkValueContainer centerWithFlex'>" + value + "</div>"); 
-             valueContainer.css("font-size", fontSize + "px");
              valueContainer.addClass(backgroundTitleClass);
              middleContainer.append(valueContainer);
 
@@ -225,10 +204,9 @@
              mapPtrContainer = $("<div class='trafficEventMapPtr'></div>"); 
              mapPtrContainer.addClass(backgroundFieldsClass);
 
-             pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-infotype='node2' data-background='" + background + "' data-serviceid='" + name + "' data-onMap='false'><i class='material-icons' style='font-size:32px'>place</i></a></div>");
+             pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-infotype='node2' data-background='" + background + "' data-serviceid='" + name + "' data-onMap='false'><i class='material-icons'>place</i></a></div>");
              mapPtrContainer.append(pinContainer);
              pinMsgContainer = $("<div class='trafficEventPinMsgContainer'></div>");
-             pinMsgContainer.css("font-size", fontSizePin + "px");
              mapPtrContainer.append(pinMsgContainer);
 
              dataContainer.append(mapPtrContainer);
@@ -242,7 +220,7 @@
                 newRow.css("margin-bottom", "0px");
              }
 
-             $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
              
              //Interazione cross-widget
              pinContainer.find("a.trafficEventLink[data-infotype=node2]").hover(
@@ -305,16 +283,16 @@
 
                 if($(this).attr("data-onMap") === 'false')
                 {
-                  $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                      $(this).html("");
                   });
 
-                  $("#<?= $_GET['name'] ?>_div a.trafficEventLink").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div a.trafficEventLink").each(function(){
                      $(this).removeClass("onMapTrafficEventPinAnimated");
                      $(this).attr("data-onMap", 'false');
                   });
 
-                  $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                      $(this).removeClass("onMapTrafficEventPinAnimated");
                   });
                    
@@ -351,7 +329,7 @@
                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
                $.event.trigger({
                    type: "esbEventAdded",
-                   generator: "<?= $_GET['name'] ?>",
+                   generator: "<?= $_REQUEST['name_w'] ?>",
                    targetsArray: targetsArrayForNotify
                });
                 
@@ -365,7 +343,7 @@
                name = criticalNodes1[index].element_id;
                value = criticalNodes1[index].value;
                
-               newRow = $("<div></div>");
+               newRow = $('<div class="trafficEventRow"></div>');
                
                backgroundTitleClass = "unclassifiedNodeTitle";
                backgroundFieldsClass = "unclassifiedNode";//Grigio
@@ -376,12 +354,11 @@
              eventTooltip = nodeMeasureDesc1;  
              
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle centerWithFlex">' + name + '</div>');
+             eventTitle = $('<div class="eventTitle centerWithFlex"><span>' + name + '</span></div>');
              eventTitle.addClass(backgroundTitleClass);
-             eventTitle.css("font-size", fontSize + "px");
              eventTitle.css("font-weight", "bold");
              eventTitle.css("height", "30%");
-             $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
+             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
 
              newRow.append(eventTitle);
 
@@ -395,13 +372,11 @@
 
              middleContainer = $("<div class='trafficEventMiddleContainer'></div>");
              
-             nameContainer = $("<div class='networkNameContainer centerWithFlex' data-toggle='tooltip' data-placement='top' title='" + nodeMeasureDesc1 + "'>" + nodeMeasureName1.toLowerCase() + "</div>"); 
-             nameContainer.css("font-size", fontSize + "px");
+             nameContainer = $("<div class='networkNameContainer centerWithFlex' data-toggle='tooltip' data-placement='top' title='" + nodeMeasureDesc1 + "'>" + nodeMeasureName1.toLowerCase().replace("(normalized)", "") + "</div>"); 
              nameContainer.addClass(backgroundTitleClass);
              middleContainer.append(nameContainer);
              
              valueContainer = $("<div class='networkValueContainer centerWithFlex'>" + value + "</div>"); 
-             valueContainer.css("font-size", fontSize + "px");
              valueContainer.addClass(backgroundTitleClass);
              middleContainer.append(valueContainer);
 
@@ -410,10 +385,9 @@
              mapPtrContainer = $("<div class='trafficEventMapPtr'></div>"); 
              mapPtrContainer.addClass(backgroundFieldsClass);
 
-             pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-infotype='node1' data-background='" + background + "' data-serviceid='" + name + "' data-onMap='false'><i class='material-icons' style='font-size:32px'>place</i></a></div>");
+             pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-infotype='node1' data-background='" + background + "' data-serviceid='" + name + "' data-onMap='false'><i class='material-icons'>place</i></a></div>");
              mapPtrContainer.append(pinContainer);
              pinMsgContainer = $("<div class='trafficEventPinMsgContainer'></div>");
-             pinMsgContainer.css("font-size", fontSizePin + "px");
              mapPtrContainer.append(pinMsgContainer);
 
              dataContainer.append(mapPtrContainer);
@@ -427,7 +401,7 @@
                 newRow.css("margin-bottom", "0px");
              }
 
-             $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
              
              //Interazione cross-widget
              pinContainer.find("a.trafficEventLink[data-infotype=node1]").hover(
@@ -490,16 +464,16 @@
 
                 if($(this).attr("data-onMap") === 'false')
                 {
-                  $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                      $(this).html("");
                   });
 
-                  $("#<?= $_GET['name'] ?>_div a.trafficEventLink").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div a.trafficEventLink").each(function(){
                      $(this).removeClass("onMapTrafficEventPinAnimated");
                      $(this).attr("data-onMap", 'false');
                   });
 
-                  $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                      $(this).removeClass("onMapTrafficEventPinAnimated");
                   });
                    
@@ -536,7 +510,7 @@
                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
                $.event.trigger({
                    type: "esbEventAdded",
-                   generator: "<?= $_GET['name'] ?>",
+                   generator: "<?= $_REQUEST['name_w'] ?>",
                    targetsArray: targetsArrayForNotify
                });
                
@@ -550,7 +524,7 @@
                name = criticalEdges[index].element_id;
                value = criticalEdges[index].value;
                
-               newRow = $("<div></div>");
+               newRow = $('<div class="trafficEventRow"></div>');
                
                if(parseFloat(value) < 0.333)
                {
@@ -578,12 +552,11 @@
              eventTooltip = edgeMeasureDesc;  
              
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle centerWithFlex">' + name + '</div>');
+             eventTitle = $('<div class="eventTitle centerWithFlex"><span>' + name + '</span></div>');
              eventTitle.addClass(backgroundTitleClass);
-             eventTitle.css("font-size", fontSize + "px");
              eventTitle.css("font-weight", "bold");
              eventTitle.css("height", "30%");
-             $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
+             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
 
              newRow.append(eventTitle);
 
@@ -597,13 +570,11 @@
 
              middleContainer = $("<div class='trafficEventMiddleContainer'></div>");
              
-             nameContainer = $("<div class='networkNameContainer centerWithFlex' data-toggle='tooltip' data-placement='top' title='" + edgeMeasureDesc + "'>" + edgeMeasureName.toLowerCase() + "</div>"); 
-             nameContainer.css("font-size", fontSize + "px");
+             nameContainer = $("<div class='networkNameContainer centerWithFlex' data-toggle='tooltip' data-placement='top' title='" + edgeMeasureDesc + "'>" + edgeMeasureName.toLowerCase().replace("(normalized)", "") + "</div>"); 
              nameContainer.addClass(backgroundTitleClass);
              middleContainer.append(nameContainer);
              
              valueContainer = $("<div class='networkValueContainer centerWithFlex'>" + value + "</div>"); 
-             valueContainer.css("font-size", fontSize + "px");
              valueContainer.addClass(backgroundTitleClass);
              middleContainer.append(valueContainer);
 
@@ -612,10 +583,9 @@
              mapPtrContainer = $("<div class='trafficEventMapPtr'></div>"); 
              mapPtrContainer.addClass(backgroundFieldsClass);
 
-             pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-infotype='edge' data-background='" + background + "' data-serviceid='" + name + "' data-onMap='false'><i class='material-icons' style='font-size:32px'>place</i></a></div>");
+             pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-infotype='edge' data-background='" + background + "' data-serviceid='" + name + "' data-onMap='false'><i class='material-icons'>place</i></a></div>");
              mapPtrContainer.append(pinContainer);
              pinMsgContainer = $("<div class='trafficEventPinMsgContainer'></div>");
-             pinMsgContainer.css("font-size", fontSizePin + "px");
              mapPtrContainer.append(pinMsgContainer);
 
              dataContainer.append(mapPtrContainer);
@@ -629,7 +599,7 @@
                 newRow.css("margin-bottom", "0px");
              }
 
-             $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
              
              //Interazione cross-widget
              pinContainer.find("a.trafficEventLink[data-infotype=edge]").hover(
@@ -692,16 +662,16 @@
 
                 if($(this).attr("data-onMap") === 'false')
                 {
-                  $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                      $(this).html("");
                   });
 
-                  $("#<?= $_GET['name'] ?>_div a.trafficEventLink").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div a.trafficEventLink").each(function(){
                      $(this).removeClass("onMapTrafficEventPinAnimated");
                      $(this).attr("data-onMap", 'false');
                   });
 
-                  $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                  $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                      $(this).removeClass("onMapTrafficEventPinAnimated");
                   });
                    
@@ -738,14 +708,32 @@
                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
                $.event.trigger({
                    type: "esbEventAdded",
-                   generator: "<?= $_GET['name'] ?>",
+                   generator: "<?= $_REQUEST['name_w'] ?>",
                    targetsArray: targetsArrayForNotify
                });
              });
 
             }//Fine del for per gli archi
             
-            $('#<?= $_GET['name'] ?>_rollerContainer [data-toggle="tooltip"]').tooltip({
+            var maxTitleFontSize = $('div.eventTitle').height()*0.75;
+
+            if(maxTitleFontSize > fontSize)
+            {
+                maxTitleFontSize = fontSize;
+            }
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer p.eventTitlePar span').css("font-size", maxTitleFontSize + "px");
+            var subdataFontSize = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .networkNameContainer').eq(0).width()*0.07;
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .networkNameContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .networkValueContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventLink i').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/1.5) + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinMsgContainer').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/2.846) + "px");
+            
+            var btnIndicatorFontSize = $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").eq(0).width()/48.4375;
+            $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").css("font-size", btnIndicatorFontSize + "em");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer [data-toggle="tooltip"]').tooltip({
                html: true
             });
         }
@@ -777,60 +765,75 @@
            $("#" + widgetName + "_netAnalysisServiceMapUrl").val("");
         }
         
-        //Restituisce il JSON delle soglie se presente, altrimenti NULL
-        function getThresholdsJson()
-        {
-            var thresholdsJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
-            {
-                thresholdsJson = widgetProperties.param.parameters; 
-            }
-            
-            return thresholdsJson;
-        }
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getInfoJson()
-        {
-            var infoJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
-            {
-                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
-            }
-            
-            return infoJson;
-        }
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getStyleParameters()
-        {
-            var styleParameters = null;
-            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
-            {
-                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
-            }
-            
-            return styleParameters;
-        }
-        
         function stepDownInterval()
         {
-            var oldPos = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldPos = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             var newPos = oldPos + 1;
             
-            var oldScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
-            $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(newPos);
-            var newScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(newPos);
+            var newScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             
             if(oldScrollTop === newScrollTop)
             {
-               $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
             }
         }
+        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+            
+            var btnIndicatorFontSize = $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").eq(0).width()/48.4375;
+            $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").css("font-size", btnIndicatorFontSize + "em");
+            
+            shownHeight = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").prop("offsetHeight");
+            rowPercHeight =  75 * 100 / shownHeight;
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer div.trafficEventRow').css("height", rowPercHeight + "%");
+            var maxTitleFontSize = $('div.eventTitle').height()*0.75;
+            
+            if(maxTitleFontSize > fontSize)
+            {
+                maxTitleFontSize = fontSize;
+            }
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer p.eventTitlePar span').css("font-size", maxTitleFontSize + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer p.eventTitlePar span').css("font-size", maxTitleFontSize + "px");
+            var subdataFontSize = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .networkNameContainer').eq(0).width()*0.07;
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .networkNameContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .networkValueContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventLink i').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/1.5) + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinMsgContainer').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/2.846) + "px");
+            
+            clearInterval(scroller);    
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
+            scroller = setInterval(stepDownInterval, speed);
+        }
+		
+		$(document).off('resizeHighchart_' + widgetName);
+		$(document).on('resizeHighchart_' + widgetName, function(event) 
+		{
+			var newHeight = null;
+			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+			}
+			else
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+			}
+			
+			$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').css('height', newHeight + 'px');
+		});
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
-        $("#<?= $_GET['name'] ?>_buttonsContainer").css("background-color", $("#<?= $_GET['name'] ?>_header").css("background-color"));
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+        $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer").css("background-color", $("#<?= $_REQUEST['name_w'] ?>_header").css("background-color"));
         
         if(firstLoad === false)
         {
@@ -842,169 +845,173 @@
         }
         
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        widgetProperties = getWidgetProperties(widgetName);
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         
-        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
+        //Fine eventuale codice ad hoc basato sulle proprietà del widget
+        
+        //Nuova versione
+        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
         {
-            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
-            //Fine eventuale codice ad hoc basato sulle proprietà del widget
-            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
-            widgetTargetList = JSON.parse(widgetProperties.param.parameters);
-            if(widgetTargetList !== null)
-            {
-               for(var i = 0; i < widgetTargetList.length; i++)
-               {
-                  widgetTargetListFlags[i] = false;   
-               }
-            }
-            
-            var targetName = null;
-            
-            for(var name in widgetTargetList) 
-            {
-               targetName = name + "_div";
-               eventsOnMaps[name] = {
-                  noPointsUrl: null,
-                  eventsNumber: 0,
-                  eventsPoints: [],//Array indicizzato con le coordinate dei punti mostrati
-                  mapRef: null
-               };
-            }
-            
-            $.ajax({
-               url: "../widgets/esbDao.php",
-               type: "POST",
-               data: {
-                  operation: "getNetworkAnalysis"
-               },
-               async: true,
-               dataType: 'json',
-               success: function (data) 
-               {
-                  if(firstLoad !== false)
-                  {
-                      showWidgetContent(widgetName);
-                  }
-                  else
-                  {
-                      elToEmpty.empty();
-                  }
-                  
-                  //Inserimento una tantum degli eventi nell'apposito array (per ordinamenti)
-                  if(data.length === 0)
-                  {
-                      $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                      $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                      $("#<?= $_GET['name'] ?>_noDataAlert").show();
-                  }
-                  else
-                  {
-                    globalPayload = JSON.parse(data.payload); 
-                    eventsNumber = globalPayload.edge_measures[0].critical_edges.length + globalPayload.node_measures[0].critical_nodes.length + globalPayload.node_measures[1].critical_nodes.length;
-                    $('#<?= $_GET['name'] ?>_rollerContainer').show();
-                    $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height());
-                    widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
-                    shownHeight = $("#<?= $_GET['name'] ?>_rollerContainer").prop("offsetHeight");
-                    rowPercHeight =  75 * 100 / shownHeight;
-                    contentHeightPx = eventsNumber * 100;
-                    eventContentWPerc = null;
-
-                    if(contentHeightPx > shownHeight)
-                    {
-                        eventContentW = parseInt(widgetWidth - 45 - 22);
-                    }
-                    else
-                    {
-                        eventContentW = parseInt(widgetWidth - 45 - 5);
-                    }
-
-                    eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
-
-                    populateWidget();
-
-                    scroller = setInterval(stepDownInterval, speed);
-                    var timeToClearScroll = (timeToReload - 0.5) * 1000;
-
-                    setTimeout(function()
-                    {
-                          clearInterval(scroller);
-                          $("#<?= $_GET['name'] ?>_rollerContainer").off();
-
-                          //$(document).off("esbEventAdded");
-
-                          //Ripristino delle mappe native per gli widget targets al reload
-                          var wName = null;
-                          for(var i in widgetTargetList) 
-                          {
-                             /*wName = widgetTargetList[i];
-                             if(widgetTargetListFlags[i] === true)
-                             {
-                                $("#" + wName + "_iFrame").attr("src", $("#" + wName + "_iFrame").attr("data-oldsrc"));
-                             }*/
+            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+        }
         
-                            if($("#" + widgetTargetList[i] + "_driverWidgetType").val() === 'newtworkAnalysis')
-                            {
-                                loadDefaultMap(widgetTargetList[i]);
-                            }
-                            else
-                            {
-                                //console.log("Attualmente non pilotato da newtworkAnalysis");
-                            }
-                          }
+        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        {
+            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+        }
 
-                    }, timeToClearScroll);
+        widgetTargetList = widgetParameters;
+        if((widgetTargetList !== null)&&(widgetTargetList !== undefined))
+        {
+           for(var i = 0; i < widgetTargetList.length; i++)
+           {
+              widgetTargetListFlags[i] = false;   
+           }
+        }
 
+        var targetName = null;
 
-                   $("#<?= $_GET['name'] ?>_rollerContainer").mouseenter(function() 
-                   {
-                       clearInterval(scroller);
-                   });
+        for(var name in widgetTargetList) 
+        {
+           targetName = name + "_div";
+           eventsOnMaps[name] = {
+              noPointsUrl: null,
+              eventsNumber: 0,
+              eventsPoints: [],//Array indicizzato con le coordinate dei punti mostrati
+              mapRef: null
+           };
+        }
 
-                   $("#<?= $_GET['name'] ?>_rollerContainer").mouseleave(function()
-                   {    
-                      scroller = setInterval(stepDownInterval, speed);
-                   });
-                  }
-               },
-               error: function (data)
-               {
-                  console.log("Ko");
-                  console.log(JSON.stringify(data));
-                  
+        $.ajax({
+           url: "../widgets/esbDao.php",
+           type: "POST",
+           data: {
+              operation: "getNetworkAnalysis"
+           },
+           async: true,
+           dataType: 'json',
+           success: function (data) 
+           {
+              if(firstLoad !== false)
+              {
                   showWidgetContent(widgetName);
-                  $("#<?= $_GET['name'] ?>_table").css("display", "none"); 
-                  $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
-               }
-            });
-        }
-        else
-        {
-            console.log("Errore in caricamento proprietà widget");
-        }
+              }
+              else
+              {
+                  elToEmpty.empty();
+              }
+
+              //Inserimento una tantum degli eventi nell'apposito array (per ordinamenti)
+              if(data.length === 0)
+              {
+                  $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+                  $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+                  $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
+              }
+              else
+              {
+                globalPayload = JSON.parse(data.payload); 
+                eventsNumber = globalPayload.edge_measures[0].critical_edges.length + globalPayload.node_measures[0].critical_nodes.length + globalPayload.node_measures[1].critical_nodes.length;
+                $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').show();
+                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").css("height", "100%");
+                widgetWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width();
+                shownHeight = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").prop("offsetHeight");
+                rowPercHeight =  75 * 100 / shownHeight;
+                contentHeightPx = eventsNumber * 100;
+                eventContentWPerc = null;
+
+                if(contentHeightPx > shownHeight)
+                {
+                    eventContentW = parseInt(widgetWidth - 45 - 22);
+                }
+                else
+                {
+                    eventContentW = parseInt(widgetWidth - 45 - 5);
+                }
+
+                eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
+
+                populateWidget();
+
+                scroller = setInterval(stepDownInterval, speed);
+                var timeToClearScroll = (timeToReload - 0.5) * 1000;
+
+                setTimeout(function()
+                {
+                      clearInterval(scroller);
+                      $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
+
+                      //$(document).off("esbEventAdded");
+
+                      //Ripristino delle mappe native per gli widget targets al reload
+                      var wName = null;
+                      for(var i in widgetTargetList) 
+                      {
+                         /*wName = widgetTargetList[i];
+                         if(widgetTargetListFlags[i] === true)
+                         {
+                            $("#" + wName + "_iFrame").attr("src", $("#" + wName + "_iFrame").attr("data-oldsrc"));
+                         }*/
+
+                        if($("#" + widgetTargetList[i] + "_driverWidgetType").val() === 'newtworkAnalysis')
+                        {
+                            loadDefaultMap(widgetTargetList[i]);
+                        }
+                        else
+                        {
+                            //console.log("Attualmente non pilotato da newtworkAnalysis");
+                        }
+                      }
+
+                }, timeToClearScroll);
+
+
+               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseenter(function() 
+               {
+                   clearInterval(scroller);
+               });
+
+               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseleave(function()
+               {    
+                  scroller = setInterval(stepDownInterval, speed);
+               });
+              }
+           },
+           error: function (data)
+           {
+              console.log("Ko");
+              console.log(JSON.stringify(data));
+
+              showWidgetContent(widgetName);
+              $("#<?= $_REQUEST['name_w'] ?>_table").css("display", "none"); 
+              $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").css("display", "block");
+           }
+        });
         
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        
+        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
     });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -1013,17 +1020,17 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
-                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available
                 </div>
-                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>
                 </div>
            </div>
-            <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
-               <div id="<?= $_GET['name'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
+               <div id="<?= $_REQUEST['name_w'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
             </div>
         </div>
     </div>	

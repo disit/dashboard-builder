@@ -71,8 +71,10 @@
     <script src="../js/highcharts/code/highcharts-3d.js"></script>
     
     <!-- Bootstrap editable tables -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>-->
+    <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+    <script src="../bootstrap3-editable/js/bootstrap-editable.js"></script>
     
     <!-- TinyColors -->
     <script src="../js/tinyColor.js" type="text/javascript" charset="utf-8"></script>

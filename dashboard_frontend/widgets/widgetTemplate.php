@@ -60,7 +60,7 @@
         var embedWidget = <?= $_GET['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         if(url === "null")
         {
             url = null;
@@ -77,10 +77,16 @@
         }
         
         //Definizioni di funzione specifiche del widget
-        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        }
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_GET['name'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_GET['name'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+        
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);

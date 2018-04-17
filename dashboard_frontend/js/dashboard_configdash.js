@@ -73,17 +73,48 @@ function addGisQuery()
    }
    
    newQueryObj = {
+       defaultOption: false,
        desc: "",
        query: "",
        color1: gisDefaultColors[($("#addGisQueryTable tr").length - 1)%7].color1,
        color2: gisDefaultColors[($("#addGisQueryTable tr").length - 1)%7].color2,
-       targets: []
+       targets: [],
+       display: "pins"
    };
    
    addGisParametersLocal.queries.push(newQueryObj);
 
    //Aggiunta record alla tabella GUI delle query
    newTableRow = $('<tr></tr>');
+   
+   newTableCell = $('<td><input data-param="queryDefaultOption" type="checkbox" /></td>');
+   newTableCell.find('input').bootstrapToggle({
+      on: 'Yes',
+      off: 'No',
+      size: 'small',
+      onstyle: 'warning', 
+      offstyle: 'primary'
+   });
+   
+   newTableRow.append(newTableCell);
+   
+   newTableCell.find('div.toggle').click(function(){
+       var rowIndex = $(this).parents("tr").index() - 1;
+        //Mutua esclusività per widgetSelectorWeb
+        if($('#addGisQueryTable').attr('data-widgetType') === 'selectorWeb')
+        {
+            $('#addGisQueryTable tr').each(function(i){
+                i = i - 1;
+                
+                if((i !== rowIndex)&&(i !== -1))
+                {
+                    $(this).find('td').eq(0).find('input[data-param=queryDefaultOption]').bootstrapToggle('off');
+                }
+            });
+        }
+   });
+   
+   newTableCell.find('input').change(addGisUpdateParams);
    
    newTableCell = $('<td><input data-param="queryIconOption" checked type="checkbox" /></td>');
    newTableCell.find('input').bootstrapToggle({
@@ -120,12 +151,10 @@ function addGisQuery()
         var match= ["image/jpeg","image/png","image/jpg", "image/svg+xml"];
         if(!((imagefile === match[0]) || (imagefile === match[1]) || (imagefile === match[2])|| (imagefile === match[3])))
         {
-            console.log("Return false");
             return false;
         }
         else
         {
-            console.log("Return true");
             var reader = new FileReader();
             reader.onload = function(event){
                 newControl.parents('tr').find('div.selectorMenuCustomIcon').html("");
@@ -133,7 +162,6 @@ function addGisQuery()
                 newControl.parents('tr').find('div.selectorMenuCustomIcon').css("background-size", "contain");
                 newControl.parents('tr').find('div.selectorMenuCustomIcon').css("background-repeat", "no-repeat");
                 newControl.parents('tr').find('div.selectorMenuCustomIcon').css("background-position", "center center");
-                console.log("immagine caricata");
             };
             reader.readAsDataURL(this.files[0]);
         }
@@ -205,30 +233,40 @@ function addGisQuery()
    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#addGisQueryTable tr").length - 1)%7].color2, format: "rgba"});
    newTableRow.find('div.colorPicker').on('hidePicker', addGisUpdateParams);
    
-   newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
-   newTableRow.append(newTableCell);
-   
-    $("li.gs_w").each(function(){
-        if(($(this).attr("id").includes("BarContent"))||($(this).attr("id").includes("ColumnContent"))||($(this).attr("id").includes("GaugeChart"))||($(this).attr("id").includes("PieChart"))||($(this).attr("id").includes("SingleContent"))||($(this).attr("id").includes("Speedometer"))||($(this).attr("id").includes("TimeTrend")))
-        {
-          widgetId = $(this).attr("id");
-          widgetTitle = $(this).find("div.titleDiv").html();
-          newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-        }
-    });                               
+   if($('#addGisQueryTable').attr('data-widgetType') === 'selector')
+   {
+        newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
+        newTableRow.append(newTableCell);
 
-   
-   newTableRow.find('select').selectpicker({
-                                       actionsBox: true, 
-                                       width: 110
-                                    });
-   newTableRow.find('select').on('changed.bs.select', addGisUpdateParams);
+         $("li.gs_w").each(function(){
+             if(($(this).attr("id").includes("BarContent"))||($(this).attr("id").includes("ColumnContent"))||($(this).attr("id").includes("GaugeChart"))||($(this).attr("id").includes("PieChart"))||($(this).attr("id").includes("SingleContent"))||($(this).attr("id").includes("Speedometer"))||($(this).attr("id").includes("TimeTrend")))
+             {
+               widgetId = $(this).attr("id");
+               widgetTitle = $(this).find("div.titleDiv").html();
+               newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+             }
+         });                               
 
+
+        newTableRow.find('select').selectpicker({
+                                            actionsBox: true, 
+                                            width: 110
+                                         });
+        newTableRow.find('select').on('changed.bs.select', addGisUpdateParams);
+        
+        newTableCell = $('<td><select data-param="display" class="form-control"></select></td>');
+        newTableCell.find('select').append('<option value="pins">Pins</option>');
+        newTableCell.find('select').append('<option value="geometries">Geometries</option>');
+        newTableCell.find('select').append('<option value="all">Pins and geometries</option>');
+        newTableRow.append(newTableCell);
+        newTableCell.find('select').on('change', addGisUpdateParams);
+   }
+   
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
    newTableCell.find('i').click(delGisQuery);
    newTableRow.append(newTableCell);
    newTableRow.find('a.toBeEdited').on('save', addGisUpdateParams);
-  
+   
    $("#addGisQueryTable").append(newTableRow);    
    $('#parameters').val(JSON.stringify(addGisParametersLocal));
    
@@ -250,6 +288,7 @@ function addGisQueryM()
    }
    
    newQueryObj = {
+       defaultOption: false,
        desc: "",
        query: "",
        added : true,
@@ -263,6 +302,35 @@ function addGisQueryM()
 
    //Aggiunta record alla tabella GUI delle query
    newTableRow = $('<tr></tr>');
+   
+   newTableCell = $('<td><input data-param="queryDefaultOption" type="checkbox" /></td>');
+   newTableCell.find('input').bootstrapToggle({
+      on: 'Yes',
+      off: 'No',
+      size: 'small',
+      onstyle: 'warning', 
+      offstyle: 'primary'
+   });
+   
+   newTableRow.append(newTableCell);
+   
+   newTableCell.find('div.toggle').click(function(){
+       var rowIndex = $(this).parents("tr").index() - 1;
+        //Mutua esclusività per widgetSelectorWeb
+        if($('#editGisQueryTable').attr('data-widgetType') === 'selectorWeb')
+        {
+            $('#editGisQueryTable tr').each(function(i){
+                i = i - 1;
+                
+                if((i !== rowIndex)&&(i !== -1))
+                {
+                    $(this).find('td').eq(0).find('input[data-param=queryDefaultOption]').bootstrapToggle('off');
+                }
+            });
+        }
+   });
+   
+   newTableCell.find('input').change(editGisUpdateParams);
    
    newTableCell = $('<td><input data-param="queryIconOption" checked type="checkbox" /></td>');
    newTableCell.find('input').bootstrapToggle({
@@ -381,24 +449,33 @@ function addGisQueryM()
    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color2, format: "rgba"});
    newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
    
-   newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
-   newTableRow.append(newTableCell);
-   
-    $("li.gs_w").each(function(){
-        if(($(this).attr("id").includes("BarContent"))||($(this).attr("id").includes("ColumnContent"))||($(this).attr("id").includes("GaugeChart"))||($(this).attr("id").includes("PieChart"))||($(this).attr("id").includes("SingleContent"))||($(this).attr("id").includes("Speedometer"))||($(this).attr("id").includes("TimeTrend")))
-        {
-          widgetId = $(this).attr("id");
-          widgetTitle = $(this).find("div.titleDiv").html();
-          newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-        }
-    });                               
+   if($('#editGisQueryTable').attr('data-widgetType') === 'selector')
+   {
+        newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
+        newTableRow.append(newTableCell);
 
-   newTableRow.find('select').selectpicker({
-                                       actionsBox: true, 
-                                       width: 110
-                                    });
-   newTableRow.find('select').on('changed.bs.select', editGisUpdateParams);
+         $("li.gs_w").each(function(){
+             if(($(this).attr("id").includes("BarContent"))||($(this).attr("id").includes("ColumnContent"))||($(this).attr("id").includes("GaugeChart"))||($(this).attr("id").includes("PieChart"))||($(this).attr("id").includes("SingleContent"))||($(this).attr("id").includes("Speedometer"))||($(this).attr("id").includes("TimeTrend")))
+             {
+               widgetId = $(this).attr("id");
+               widgetTitle = $(this).find("div.titleDiv").html();
+               newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+             }
+         });                               
 
+        newTableRow.find('select').selectpicker({
+                                            actionsBox: true, 
+                                            width: 110
+                                         });
+        newTableRow.find('select').on('changed.bs.select', editGisUpdateParams);  
+        
+        newTableCell = $('<td><select data-param="display" class="form-control"></select></td>');
+        newTableCell.find('select').append('<option value="pins">Pins</option>');
+        newTableCell.find('select').append('<option value="geometries">Geometries</option>');
+        newTableCell.find('select').append('<option value="all">Pins and geometries</option>');
+        newTableRow.append(newTableCell);
+        newTableCell.find('select').on('change', editGisUpdateParams);
+   }
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
    newTableCell.find('i').click(delGisQueryM);
    newTableRow.append(newTableCell);
@@ -407,7 +484,7 @@ function addGisQueryM()
    $("#editGisQueryTable").append(newTableRow);    
    $('#parametersM').val(JSON.stringify(editGisParametersLocal));
    
-   console.log($('#parametersM').val());
+   //console.log($('#parametersM').val());
    
    checkEditWidgetConditions();
 }
@@ -422,6 +499,17 @@ function addGisUpdateParams(e, params)
    //Aggiornamento dei parametri
    switch(param)
    {
+       case 'queryDefaultOption':
+          if($(this).prop('checked'))
+          {
+             addGisParametersLocal.queries[rowIndex].defaultOption = true;   
+          }
+          else
+          {
+             addGisParametersLocal.queries[rowIndex].defaultOption = false; 
+          }
+          break;
+       
       case 'queryDesc':
          newValue = params.newValue;
          addGisParametersLocal.queries[rowIndex].desc = newValue;
@@ -445,7 +533,12 @@ function addGisUpdateParams(e, params)
       case 'targets':
           newValue = $(this).val();
           addGisParametersLocal.queries[rowIndex].targets = newValue;
-          break;    
+          break;
+      
+      case 'display':
+          newValue = $(this).val();
+          addGisParametersLocal.queries[rowIndex].display = newValue;
+          break; 
 
        default:
            break;
@@ -465,6 +558,17 @@ function editGisUpdateParams(e, params)
    //Aggiornamento dei parametri
    switch(param)
    {
+      case 'queryDefaultOption':
+          if($(this).prop('checked'))
+          {
+             editGisParametersLocal.queries[rowIndex].defaultOption = true;   
+          }
+          else
+          {
+             editGisParametersLocal.queries[rowIndex].defaultOption = false; 
+          }
+          break;
+      
       case 'queryDesc':
          newValue = params.newValue;
          editGisParametersLocal.queries[rowIndex].desc = newValue;
@@ -488,7 +592,12 @@ function editGisUpdateParams(e, params)
       case 'targets':
           newValue = $(this).val();
           editGisParametersLocal.queries[rowIndex].targets = newValue;
-          break;    
+          break;
+      
+      case 'display':
+          newValue = $(this).val();
+          editGisParametersLocal.queries[rowIndex].display = newValue;
+          break; 
 
        default:
            break;
@@ -643,7 +752,7 @@ function addStatusRangeSingleValueWidget()
    newTableCell.find('a').editable();
    newTableRow.append(newTableCell);
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-   newTableCell.find('i').click(delThrRangeingleValueWidget);
+   newTableCell.find('i').click(delThrRangeSingleValueWidget);
    newTableRow.append(newTableCell);
    newTableRow.find('a.toBeEdited').on('save', updateParamsSingleValueWidget);
    
@@ -812,7 +921,7 @@ function editWidgetServerStatusGeneratorRegisterField(notificatorRegistered, not
           newTableRow.append(newTableCell);
 
           newTableCell = $('<td><a href="#"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-          newTableCell.find('i').click(delThrRangeingleValueWidgetM);
+          newTableCell.find('i').click(delThrRangeSingleValueWidgetM);
           newTableRow.append(newTableCell);
           
           newTableRow.find("a.toBeEdited").editable();
@@ -927,7 +1036,7 @@ function addStatusRangeSingleValueWidgetM()
    newTableCell.find('a').editable();
    newTableRow.append(newTableCell);
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-   newTableCell.find('i').click(delThrRangeingleValueWidgetM);
+   newTableCell.find('i').click(delThrRangeSingleValueWidgetM);
    newTableRow.append(newTableCell);
    newTableRow.find('a.toBeEdited').on('save', updateParamsSingleValueWidgetM);
    newTableRow.find('select.thrOpSelect').change(updateParamsSingleValueWidgetM);
@@ -1171,7 +1280,8 @@ function addThrRangeSingleValueWidget()
    
    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="thr2"></td>');
    newTableCell.find('a').editable({
-      disabled: true
+      selector: 'span', 
+      disabled: false
    });
    newTableRow.append(newTableCell);
 
@@ -1184,7 +1294,7 @@ function addThrRangeSingleValueWidget()
    newTableCell.find('a').editable();
    newTableRow.append(newTableCell);
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-   newTableCell.find('i').click(delThrRangeingleValueWidget);
+   newTableCell.find('i').click(delThrRangeSingleValueWidget);
    newTableRow.append(newTableCell);
    newTableRow.find('a.toBeEdited').on('save', updateParamsSingleValueWidget);
    
@@ -1395,7 +1505,7 @@ function updateParamsSingleValueWidget(e, params)
    checkAddWidgetConditions();
 }
 
-function delThrRangeingleValueWidget(e)
+function delThrRangeSingleValueWidget(e)
 {
    var delIndex = parseInt($(this).parents('tr').index() - 1);
    var oldIndex = null;
@@ -1637,7 +1747,7 @@ function editWidgetGeneratorRegisterField(notificatorRegistered, notificatorEnab
           newTableRow.append(newTableCell);
 
           newTableCell = $('<td><a href="#"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-          newTableCell.find('i').click(delThrRangeingleValueWidgetM);
+          newTableCell.find('i').click(delThrRangeSingleValueWidgetM);
           newTableRow.append(newTableCell);
           
           newTableRow.find("a.toBeEdited").editable();
@@ -1999,7 +2109,7 @@ function addThrRangeSingleValueWidgetM()
    newTableCell.find('a').editable();
    newTableRow.append(newTableCell);
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-   newTableCell.find('i').click(delThrRangeingleValueWidgetM);
+   newTableCell.find('i').click(delThrRangeSingleValueWidgetM);
    newTableRow.append(newTableCell);
    newTableRow.find('a.toBeEdited').on('save', updateParamsSingleValueWidgetM);
    newTableRow.find('select.thrOpSelect').change(updateParamsSingleValueWidgetM);
@@ -2039,7 +2149,7 @@ function addThrRangeSingleValueWidgetM()
    console.log(JSON.stringify($('#parametersDiff').val()));*/
 }
 
-function delThrRangeingleValueWidgetM(e)
+function delThrRangeSingleValueWidgetM(e)
 {
    var delIndex = parseInt($(this).parents('tr').index() - 1);
    var oldIndex = null;
@@ -2324,8 +2434,6 @@ function showInfoWCkeditorsM(widgetType, editorsArray, seriesObject, infoJsonObj
     series = seriesObject;
     editorsM = editorsArray;
     var infoJson = infoJsonObject;
-
-    console.log("Avviata");
 
     infoNamesJsonFirstAxis = new Array();
     infoNamesJsonSecondAxis = new Array();
@@ -2769,7 +2877,6 @@ function showInfoWCkeditorsM(widgetType, editorsArray, seriesObject, infoJsonObj
             break; 
         
         default:
-            console.log("Entrato nel default");
             $("#infoMainSelectM").off();
             $("#infoAxisSelectM").off();
             $("#infoFieldSelectM").off();

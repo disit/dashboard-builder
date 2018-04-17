@@ -187,59 +187,64 @@
                                                    //Reperimento elenco utenti LDAP
                                                    $temp = [];
                                                    $users = [];
-
-                                                   $ds = ldap_connect($ldapServer, $ldapPort);
-                                                   ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                                   $bind = ldap_bind($ds);
-
-                                                   $result = ldap_search(
-                                                           $ds, 'dc=ldap,dc=disit,dc=org', 
-                                                           '(cn=Dashboard)'
-                                                   );
-                                                   $entries = ldap_get_entries($ds, $result);
-                                                   foreach ($entries as $key => $value) 
+                                                   
+                                                   if($ldapActive == "yes")
                                                    {
-                                                      for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
-                                                      { 
-                                                         $usr = $value["memberuid"][$index];
-                                                         array_push($temp, $usr);
-                                                      }
-                                                   }
+                                                        $ds = ldap_connect($ldapServer, $ldapPort);
+                                                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                                                        $bind = ldap_bind($ds);
 
-                                                   ldap_close();
-
-                                                   $ds = ldap_connect($ldapServer, $ldapPort);
-                                                   ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                                   $bind = ldap_bind($ds);
-
-                                                   for($i = 0; $i < count($temp); $i++)
-                                                   {
-                                                      if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
-                                                      {
-                                                         $name = str_replace("cn=", "", $temp[$i]);
-                                                         $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                                                         if(ldapCheckRole($ds, $temp[$i], "Observer"))
-                                                         {
-                                                            $singleUser = [$name, "ldap", "Observer"];
-                                                         }
-                                                         else
-                                                         {
-                                                           if(ldapCheckRole($ds, $temp[$i], "Manager"))
-                                                           {
-                                                              $singleUser = [$name, "ldap", "Manager"];
+                                                        $result = ldap_search(
+                                                                $ds, 'dc=ldap,dc=disit,dc=org', 
+                                                                '(cn=Dashboard)'
+                                                        );
+                                                        $entries = ldap_get_entries($ds, $result);
+                                                        foreach ($entries as $key => $value) 
+                                                        {
+                                                           for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
+                                                           { 
+                                                              $usr = $value["memberuid"][$index];
+                                                              array_push($temp, $usr);
                                                            }
-                                                           else
+                                                        }
+
+                                                        ldap_close();
+
+                                                        $ds = ldap_connect($ldapServer, $ldapPort);
+                                                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                                                        $bind = ldap_bind($ds);
+
+                                                        for($i = 0; $i < count($temp); $i++)
+                                                        {
+                                                           if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
                                                            {
-                                                              if(ldapCheckRole($ds, $temp[$i], "AreaManager"))
+                                                              $name = str_replace("cn=", "", $temp[$i]);
+                                                              $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                                              if(ldapCheckRole($ds, $temp[$i], "Observer"))
                                                               {
-                                                                 $singleUser = [$name, "ldap", "AreaManager"];
+                                                                 $singleUser = [$name, "ldap", "Observer"];
                                                               }
-                                                           }
-                                                         }
+                                                              else
+                                                              {
+                                                                if(ldapCheckRole($ds, $temp[$i], "Manager"))
+                                                                {
+                                                                   $singleUser = [$name, "ldap", "Manager"];
+                                                                }
+                                                                else
+                                                                {
+                                                                   if(ldapCheckRole($ds, $temp[$i], "AreaManager"))
+                                                                   {
+                                                                      $singleUser = [$name, "ldap", "AreaManager"];
+                                                                   }
+                                                                }
+                                                              }
 
-                                                         array_push($users, $singleUser);
-                                                      }
+                                                              array_push($users, $singleUser);
+                                                           }
+                                                        }
                                                    }
+                                                   
+                                                   
 
                                                     //Reperimento elenco utenti locali
                                                     $link = mysqli_connect($host, $username, $password) or die();

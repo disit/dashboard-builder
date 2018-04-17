@@ -66,7 +66,7 @@
         session_destroy();
         header($newLocation); 
 
-        notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapTool);
+        notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapToolName);
     }
     
     

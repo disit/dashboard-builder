@@ -20,8 +20,6 @@ session_start();
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
-if(isset($_SESSION['loggedRole']))
-{
     if(isset($_REQUEST['dashboardDuplication'])) 
     {
         $copiaDash = $_REQUEST['dashboardDuplication'];
@@ -530,7 +528,6 @@ if(isset($_SESSION['loggedRole']))
     {
        echo "Ko";
     }
-}
 
 
 

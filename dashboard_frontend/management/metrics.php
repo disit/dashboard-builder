@@ -35,7 +35,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Dashboard Management System</title>
+        <title>Snap4City</title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -88,7 +88,7 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Dashboard Management System
+                            Snap4City
                         </div>
                     </div>
                     <div class="row">
@@ -158,7 +158,7 @@
             </div>
         </div>
         
-        <!-- Modal di creazione di una metrica-->
+        <!-- Modale di creazione di una metrica-->
         <div class="modal fade" id="modalAddMetric" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
@@ -168,8 +168,8 @@
                 <form id="addMetricForm" name="addMetricForm" role="form" method="post" action="process-form.php" data-toggle="validator">  
                 <div id="addMetricModalBody" class="modal-body modalBody">
                     <ul id="addMetricModalTabs" class="nav nav-tabs nav-justified">
-                        <li class="active"><a data-toggle="tab" href="#addMetricGeneralTab">General</a></li>
-                        <li><a data-toggle="tab" href="#addMetricQueryTab">Datasources & queries</a></li>
+                        <li id="addMetricGeneralTabBtn" class="active"><a data-toggle="tab" href="#addMetricGeneralTab">General</a></li>
+                        <li id="addMetricQueryTabBtn"><a data-toggle="tab" href="#addMetricQueryTab">Datasources & queries</a></li>
                     </ul>
 
                     <div class="tab-content">
@@ -196,23 +196,54 @@
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="updateFrequency" id="updateFrequency" value="60000" required> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Update frequency (ms)</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="resultType" id="resultType" required> 
+                                        <select class="modalInputTxt" name="resultType" id="resultType">
+                                            <option value="Testuale">Text</option>
+                                            <option value="Percentuale">Percent</option>
+                                            <option value="Series">Table</option>
+                                            <option value="Intero">Integer</option>
+                                            <option value="Float">Float</option>
+                                            <option value="Percentuale/285">Percent/285</option>
+                                            <option value="Percentuale/83">Percent/83</option>
+                                            <option value="Percentuale/757">Percent/757</option>
+                                            <option value="isAlive">Web server status</option>
+                                        </select>
                                     </div>
                                     <div class="modalFieldLabelCnt">Result type</div>
                                 </div>
-                                
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <input type="hidden" name="updateFrequency" id="updateFrequency" value="60000" /> <!-- class="modalInputTxt" -->
+                                        <div id="updateFrequencyHourContainer" class="input-group spinner">
+                                            <input name="updateFrequencyHour" id="updateFrequencyHour" value="0 h" type="text" class="form-control" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="updateFrequencyHourUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="updateFrequencyHourDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
+                                        <div id="updateFrequencyMinContainer" class="input-group spinner">
+                                            <input name="updateFrequencyMin" id="updateFrequencyMin" value="1 m" type="text" class="form-control" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="updateFrequencyMinUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="updateFrequencyMinDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
+                                        <div id="updateFrequencySecContainer" class="input-group spinner">
+                                            <input name="updateFrequencySec" id="updateFrequencySec" value="0 s" type="text" class="form-control" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="updateFrequencySecUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="updateFrequencySecDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modalFieldLabelCnt">Update frequency</div>
+                                </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
                                         <select class="modalInputTxt" name="dataSourceType" id="dataSourceType">
                                             <option value="none">Not specified</option>
-                                            <option value="SQL">SQL</option>
                                             <option value="SPARQL">Sparql</option>
+                                            <option value="SQL">SQL</option>
+                                            <option value="isAlive">Web server (status)</option>
                                         </select>
                                     </div>
                                     <div class="modalFieldLabelCnt">Data source type</div>
@@ -228,21 +259,26 @@
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="process" id="process" required> 
+                                        <!--<input type="text" class="modalInputTxt" name="process" id="process" required> -->
+                                        <select class="modalInputTxt" name="process" id="process">
+                                            <option value="DashboardProcess">Main process</option>
+                                            <option value="HttpProcess">Web servers tester</option>
+                                        </select>
                                     </div>
-                                    <div class="modalFieldLabelCnt">Process name</div>
+                                    <div class="modalFieldLabelCnt">Ingestion agent</div>
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="sameDataAlarmCount" id="sameDataAlarmCount" value="5" required> 
+                                        <!--<input type="text" class="modalInputTxt" name="sameDataAlarmCount" id="sameDataAlarmCount" value="5" required>-->
+                                        <div class="input-group spinner">
+                                            <input name="sameDataAlarmCount" id="sameDataAlarmCount" type="text" class="form-control" value="Not active" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="sameDataAlarmCountUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="sameDataAlarmCountDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="modalFieldLabelCnt">Same data alarm count</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="oldDataEvalTime" id="oldDataEvalTime" required> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Old data evaluation time (ms)</div>
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
@@ -255,27 +291,56 @@
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
+                                        <div class="modalFieldCnt">
+                                            <input type="hidden" name="oldDataEvalTime" id="oldDataEvalTime" />
+                                            <div id="oldDataEvalTimeHourContainer" class="input-group spinner">
+                                                <input name="oldDataEvalTimeHour" id="oldDataEvalTimeHour" value="0 h" type="text" class="form-control" readonly="true">
+                                                <div class="input-group-btn-vertical">
+                                                  <button id="oldDataEvalTimeHourUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                                  <button id="oldDataEvalTimeHourDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                                </div>
+                                            </div>
+                                            <div id="oldDataEvalTimeMinContainer" class="input-group spinner">
+                                                <input name="oldDataEvalTimeMin" id="oldDataEvalTimeMin" value="0 m" type="text" class="form-control" readonly="true">
+                                                <div class="input-group-btn-vertical">
+                                                  <button id="oldDataEvalTimeMinUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                                  <button id="oldDataEvalTimeMinDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                                </div>
+                                            </div>
+                                            <div id="oldDataEvalTimeSecContainer" class="input-group spinner">
+                                                <input name="oldDataEvalTimeSec" id="oldDataEvalTimeSec" value="Not active" type="text" class="form-control" readonly="true">
+                                                <div class="input-group-btn-vertical">
+                                                  <button id="oldDataEvalTimeSecUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                                  <button id="oldDataEvalTimeSecDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modalFieldLabelCnt">Old data evaluation time</div>
+                                </div>
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
                                         <select class="modalInputTxt" name="processType" id="processType">
-                                            <option value="JVNum1">Numeric (JVNum1)</option>
-                                            <option value="JVPerc">Percent (JVPerc)</option>
-                                            <option value="JVTable">Matrix (JVTable)</option>
+                                            <option value="JVNum1">Numeric</option>
+                                            <option value="JVPerc">Percent</option>
+                                            <option value="JVTable">Matrix</option>
                                             <option value="API">API</option>
-                                            <option value="JVRidesAtaf">JVRidesAtaf (specific)</option>
-                                            <option value="JVSceOnNodes">JVSceOnNodes (specific)</option>
-                                            <option value="jVPark">jVPark (specific)</option>
-                                            <option value="JVWifiOp">JVWifiOp (specific)</option>
-                                            <option value="JVSmartDs">JVSmartDs (specific)</option>
-                                            <option value="JVTwRet">JVTwRet (specific)</option>
+                                            <option value="JVRidesAtaf">Ataf rides (specific)</option>
+                                            <option value="JVSceOnNodes">Sce on nodes (specific)</option>
+                                            <option value="jVPark">Parks (specific)</option>
+                                            <option value="JVWifiOp">Wifi operative (specific)</option>
+                                            <option value="JVSmartDs">Smart Ds (specific)</option>
+                                            <option value="JVTwRet">Tweets/Retweets (specific)</option>
                                             <option value="none">Not defined</option>
                                         </select>
                                     </div>
-                                    <div class="modalFieldLabelCnt">Process computation method</div>
+                                    <div class="modalFieldLabelCnt">Ingestion agent method</div>
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
                                         <select class="modalInputTxt" name="timeRange" id="timeRange">
-                                            <option value="1">Yes</option>
                                             <option value="0">No</option>
+                                            <option value="1">Yes</option>
                                         </select>
                                     </div>
                                     <div class="modalFieldLabelCnt">Time range</div>
@@ -292,9 +357,9 @@
                             </div>
                         </div>
 
-                        <!-- Query tab -->
+                        <!-- Query tab / Server tab-->
                         <div id="addMetricQueryTab" class="tab-pane fade">
-                            <div class="row">
+                            <div id="addMetricQueryTabQueryRow" class="row">
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
                                         <select class="modalInputTxt" name="dataSource" id="dataSource">
@@ -366,8 +431,33 @@
                                     <div class="modalFieldLabelCnt">Query 2</div>
                                 </div>
                             </div>
+                            
+                            <div id="addMetricQueryTabServerRow" class="row">
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <select class="modalInputTxt" name="serverTestHttpMethod" id="serverTestHttpMethod">
+                                            <option value="GET">GET</option>
+                                            <option value="POST">POST</option>
+                                            <option value="PUT">PUT</option>
+                                        </select>
+                                    </div>
+                                    <div class="modalFieldLabelCnt">HTTP call method</div>
+                                </div>
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <input type="text" class="modalInputTxt" name="serverTestToken" id="serverTestToken" required> 
+                                    </div>
+                                    <div class="modalFieldLabelCnt">Token</div>
+                                </div>
+                                <div class="col-xs-12 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <input type="text" class="modalInputTxt" name="serverTestUrl" id="serverTestUrl" required> 
+                                    </div>
+                                    <div class="modalFieldLabelCnt">URL</div>
+                                </div>
+                            </div>   
                         </div>
-                    </div>	 
+                    </div>
                     
                     <div class="row" id="addMetricLoadingMsg">
                         <div class="col-xs-12 centerWithFlex">Adding metric, please wait</div>
@@ -408,8 +498,8 @@
                 <input type="hidden" id="metricId" name="metricId" />  
                 <div id="editMetricModalBody" class="modal-body modalBody">
                     <ul id="editMetricModalTabs" class="nav nav-tabs nav-justified">
-                        <li class="active"><a data-toggle="tab" href="#editMetricGeneralTab">General</a></li>
-                        <li><a data-toggle="tab" href="#editMetricQueryTab">Datasources & queries</a></li>
+                        <li id="editMetricGeneralTabBtn" class="active"><a data-toggle="tab" href="#editMetricGeneralTab">General</a></li>
+                        <li id="editMetricQueryTabBtn"><a data-toggle="tab" href="#editMetricQueryTab">Datasources & queries</a></li>
                     </ul>
                     
                     <div class="tab-content">
@@ -435,22 +525,54 @@
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="updateFrequencyM" id="updateFrequencyM" required> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Update frequency (ms)</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="resultTypeM" id="resultTypeM" required> 
+                                        <select class="modalInputTxt" name="resultTypeM" id="resultTypeM">
+                                            <option value="Testuale">Text</option>
+                                            <option value="Percentuale">Percent</option>
+                                            <option value="Series">Table</option>
+                                            <option value="Intero">Integer</option>
+                                            <option value="Float">Float</option>
+                                            <option value="Percentuale/285">Percent/285</option>
+                                            <option value="Percentuale/83">Percent/83</option>
+                                            <option value="Percentuale/757">Percent/757</option>
+                                            <option value="isAlive">Web server status</option>
+                                        </select>
                                     </div>
                                     <div class="modalFieldLabelCnt">Result type</div>
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
+                                        <input type="hidden" name="updateFrequencyM" id="updateFrequencyM" />
+                                        <div id="updateFrequencyHourContainer" class="input-group spinner">
+                                            <input name="updateFrequencyHourM" id="updateFrequencyHourM" type="text" class="form-control" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="updateFrequencyHourMUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="updateFrequencyHourMDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
+                                        <div id="updateFrequencyMinContainer" class="input-group spinner">
+                                            <input name="updateFrequencyMinM" id="updateFrequencyMinM" type="text" class="form-control" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="updateFrequencyMinMUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="updateFrequencyMinMDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
+                                        <div id="updateFrequencySecContainer" class="input-group spinner">
+                                            <input name="updateFrequencySecM" id="updateFrequencySecM" type="text" class="form-control" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="updateFrequencySecMUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="updateFrequencySecMDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modalFieldLabelCnt">Update frequency</div>
+                                </div>
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
                                         <select class="modalInputTxt" name="dataSourceTypeM" id="dataSourceTypeM">
                                             <option value="none">Not specified</option>
-                                            <option value="SQL">SQL</option>
                                             <option value="SPARQL">Sparql</option>
+                                            <option value="SQL">SQL</option>
+                                            <option value="isAlive">Web server (status)</option>
                                         </select>
                                     </div>
                                     <div class="modalFieldLabelCnt">Data source type</div>
@@ -466,21 +588,24 @@
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="processM" id="processM" required> 
+                                        <select class="modalInputTxt" name="processM" id="processM">
+                                            <option value="DashboardProcess">Main process</option>
+                                            <option value="HttpProcess">Web servers tester</option>
+                                        </select>
                                     </div>
-                                    <div class="modalFieldLabelCnt">Process name</div>
+                                    <div class="modalFieldLabelCnt">Ingestion agent</div>
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="sameDataAlarmCountM" id="sameDataAlarmCountM" required> 
+                                        <div class="input-group spinner">
+                                            <input name="sameDataAlarmCountM" id="sameDataAlarmCountM" type="text" class="form-control" readonly="true">
+                                            <div class="input-group-btn-vertical">
+                                              <button id="sameDataAlarmCountMUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                              <button id="sameDataAlarmCountMDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="modalFieldLabelCnt">Same data alarm count</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="oldDataEvalTimeM" id="oldDataEvalTimeM" required> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Old data evaluation time (ms)</div>
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
@@ -493,21 +618,40 @@
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
+                                        <div class="modalFieldCnt">
+                                            <input type="hidden" name="oldDataEvalTimeM" id="oldDataEvalTimeM" />
+                                            <div id="oldDataEvalTimeHourContainer" class="input-group spinner">
+                                                <input name="oldDataEvalTimeHourM" id="oldDataEvalTimeHourM" type="text" class="form-control" readonly="true">
+                                                <div class="input-group-btn-vertical">
+                                                  <button id="oldDataEvalTimeHourMUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                                  <button id="oldDataEvalTimeHourMDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                                </div>
+                                            </div>
+                                            <div id="oldDataEvalTimeMinContainer" class="input-group spinner">
+                                                <input name="oldDataEvalTimeMinM" id="oldDataEvalTimeMinM" type="text" class="form-control" readonly="true">
+                                                <div class="input-group-btn-vertical">
+                                                  <button id="oldDataEvalTimeMinMUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                                  <button id="oldDataEvalTimeMinMDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                                </div>
+                                            </div>
+                                            <div id="oldDataEvalTimeSecContainer" class="input-group spinner">
+                                                <input name="oldDataEvalTimeSecM" id="oldDataEvalTimeSecM" type="text" class="form-control" readonly="true">
+                                                <div class="input-group-btn-vertical">
+                                                  <button id="oldDataEvalTimeSecMUp" class="btn btn-default" type="button"><i class="fa fa-caret-up"></i></button>
+                                                  <button id="oldDataEvalTimeSecMDown" class="btn btn-default" type="button"><i class="fa fa-caret-down"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modalFieldLabelCnt">Old data evaluation time</div>
+                                </div>
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
                                         <select class="modalInputTxt" name="processTypeM" id="processTypeM">
-                                            <option value="JVNum1">Numeric (JVNum1)</option>
-                                            <option value="JVPerc">Percent (JVPerc)</option>
-                                            <option value="JVTable">Matrix (JVTable)</option>
-                                            <option value="API">API</option>
-                                            <option value="JVRidesAtaf">JVRidesAtaf (specific)</option>
-                                            <option value="JVSceOnNodes">JVSceOnNodes (specific)</option>
-                                            <option value="jVPark">jVPark (specific)</option>
-                                            <option value="JVWifiOp">JVWifiOp (specific)</option>
-                                            <option value="JVSmartDs">JVSmartDs (specific)</option>
-                                            <option value="JVTwRet">JVTwRet (specific)</option>
-                                            <option value="none">Not defined</option>
+                                            
                                         </select>
                                     </div>
-                                    <div class="modalFieldLabelCnt">Process computation method</div>
+                                    <div class="modalFieldLabelCnt">Ingestion agent method</div>
                                 </div>
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
@@ -530,7 +674,7 @@
                             </div>
                         </div>    
                         <div id="editMetricQueryTab" class="tab-pane fade in">
-                            <div class="row">
+                            <div class="row" id="editMetricQueryTabQueryRow">
                                 <div class="col-xs-12 col-md-6 modalCell">
                                     <div class="modalFieldCnt">
                                         <select class="modalInputTxt" name="dataSourceM" id="dataSourceM">
@@ -600,6 +744,30 @@
                                         <textarea class="modalInputTxtArea" rows="8" name="query2M" id="query2M" required></textarea> 
                                     </div>
                                     <div class="modalFieldLabelCnt">Query 2</div>
+                                </div>
+                            </div>
+                            <div id="editMetricQueryTabServerRow" class="row">
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <select class="modalInputTxt" name="serverTestHttpMethodM" id="serverTestHttpMethodM">
+                                            <option value="GET">GET</option>
+                                            <option value="POST">POST</option>
+                                            <option value="PUT">PUT</option>
+                                        </select>
+                                    </div>
+                                    <div class="modalFieldLabelCnt">HTTP call method</div>
+                                </div>
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <input type="text" class="modalInputTxt" name="serverTestTokenM" id="serverTestTokenM" required> 
+                                    </div>
+                                    <div class="modalFieldLabelCnt">Token</div>
+                                </div>
+                                <div class="col-xs-12 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <input type="text" class="modalInputTxt" name="serverTestUrlM" id="serverTestUrlM" required> 
+                                    </div>
+                                    <div class="modalFieldLabelCnt">URL</div>
                                 </div>
                             </div>
                         </div> 
@@ -680,6 +848,12 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
+        var increaseTimeout, increaseInterval = null;
+        var spinnerHoldValue = 1000;
+        var spinnerIntervalValue = 75;
+        
+        $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=mainSetupLink]').show();
+        
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
@@ -750,9 +924,1929 @@
             }
         });
         
-        $('#link_metric_mng .mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#link_metric_mng .mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuPortraitCnt #link_metric_mng .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuLandCnt #link_metric_mng .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        
+        function resetAddMetricModal()
+        {
+            $('#addMetricQueryTabBtn a').html("Datasources & queries");
+            $('#modalAddMetric #metricName').val("");
+            $('#modalAddMetric #shortDescription').val("");
+            $('#modalAddMetric #fullDescription').val("");
+            $('#modalAddMetric #resultType').val("Testuale");
+            $('#modalAddMetric #updateFrequencyHour').val("0 h");
+            $('#modalAddMetric #updateFrequencyMin').val("1 m");
+            $('#modalAddMetric #updateFrequencySec').val("0 s");
+            $('#modalAddMetric #updateFrequency').val("60000");
+            $('#modalAddMetric #updateFrequencyHourContainer').show();
+            $('#modalAddMetric #updateFrequencyMinContainer').show();
+            $('#modalAddMetric #updateFrequencySecContainer').show();
+            $('#modalAddMetric #updateFrequencySecContainer').css("width", "33%");
+            $('#modalAddMetric #dataSourceType').val("none");
+            $('#modalAddMetric #hasNegativeValues').val("1");
+            $('#modalAddMetric #process').val("DashboardProcess");
+            $('#modalAddMetric #sameDataAlarmCount').val("Not active");
+            $('#modalAddMetric #storingData').val("1");
+            $('#modalAddMetric #oldDataEvalTimeHour').val("0 h");
+            $('#modalAddMetric #oldDataEvalTimeMin').val("0 m");
+            $('#modalAddMetric #oldDataEvalTimeSec').val("Not active");
+            $('#modalAddMetric #oldDataEvalTime').val("Not active");
+            $('#modalAddMetric #oldDataEvalTimeHourContainer').hide();
+            $('#modalAddMetric #oldDataEvalTimeMinContainer').hide();
+            $('#modalAddMetric #oldDataEvalTimeSecContainer').show();
+            $('#modalAddMetric #oldDataEvalTimeSecContainer').css("width", "100%");
+            $('#modalAddMetric #processType').empty();
+            $('#modalAddMetric #processType').append('<option value="JVNum1">Numeric</option>');
+            $('#modalAddMetric #processType').append('<option value="JVPerc">Percent</option>');
+            $('#modalAddMetric #processType').append('<option value="JVTable">Table</option>');
+            $('#modalAddMetric #processType').append('<option value="API">API</option>');
+            $('#modalAddMetric #processType').append('<option value="JVRidesAtaf">ATAF rides (specific)</option>');
+            $('#modalAddMetric #processType').append('<option value="JVSceOnNodes">Sce on nodes (specific)</option>');
+            $('#modalAddMetric #processType').append('<option value="jVPark">Parkings (specific)</option>');
+            $('#modalAddMetric #processType').append('<option value="JVWifiOp">Wifi operatives (specific)</option>');
+            $('#modalAddMetric #processType').append('<option value="JVSmartDs">SmartDs (specific)</option>');
+            $('#modalAddMetric #processType').append('<option value="JVTwRet">Tweets/Retweets (specific)</option>');
+            $('#modalAddMetric #processType').append('<option value="none">Not defined</option>');
+            $('#modalAddMetric #processType').val("JVNum1");
+            $('#modalAddMetric #timeRange').val("0");
+            $('#modalAddMetric #cityContext').val("0");
+            $('#modalAddMetric #addMetricQueryTabQueryRow').show();
+            $('#modalAddMetric #addMetricQueryTabServerRow').hide();
+            $('#modalAddMetric #dataSource').val("none");
+            $('#modalAddMetric #dataSource2').val("none");
+            $('#modalAddMetric #dataSourceDescription').val("");
+            $('#modalAddMetric #dataArea').val("");
+            $('#modalAddMetric #query').val("");
+            $('#modalAddMetric #query2').val("");
+            $('#modalAddMetric #serverTestHttpMethod').val("GET");
+            $('#modalAddMetric #serverTestToken').val("");
+            $('#modalAddMetric #serverTestUrl').val("");
+            $('#addMetricGeneralTabBtn a').trigger('click');
+            $('#addMetricLoadingMsg').hide();
+            $('#addMetricLoadingIcon').hide();
+            $('#addMetricOkMsg').hide();
+            $('#addMetricOkIcon').hide();
+            $('#addMetricKoMsg').hide();
+            $('#addMetricKoIcon').hide();
+        }
+        
+        function resetEditMetricModal()
+        {
+            console.log("Form edit resettato");
+            $('#editMetricQueryTabBtn a').html("Datasources & queries");
+            $('#modalEditMetric #metricNameM').val("");
+            $('#modalEditMetric #shortDescriptionM').val("");
+            $('#modalEditMetric #fullDescriptionM').val("");
+            $('#modalEditMetric #resultTypeM').val("Testuale");
+            $('#modalEditMetric #updateFrequencyHourM').val("0 h");
+            $('#modalEditMetric #updateFrequencyMinM').val("1 m");
+            $('#modalEditMetric #updateFrequencySecM').val("0 s");
+            $('#modalEditMetric #updateFrequencyM').val("60000");
+            $('#modalEditMetric #updateFrequencyHourContainer').show();
+            $('#modalEditMetric #updateFrequencyMinContainer').show();
+            $('#modalEditMetric #updateFrequencySecContainer').show();
+            $('#modalEditMetric #updateFrequencySecContainer').css("width", "33%");
+            $('#modalEditMetric #dataSourceTypeM').val("none");
+            $('#modalEditMetric #hasNegativeValuesM').val("1");
+            $('#modalEditMetric #processM').val("DashboardProcess");
+            $('#modalEditMetric #sameDataAlarmCountM').val("Not active");
+            $('#modalEditMetric #storingDataM').val("1");
+            $('#modalEditMetric #oldDataEvalTimeHourM').val("0 h");
+            $('#modalEditMetric #oldDataEvalTimeMinM').val("0 m");
+            $('#modalEditMetric #oldDataEvalTimeSecM').val("Not active");
+            $('#modalEditMetric #oldDataEvalTimeM').val("Not active");
+            $('#modalEditMetric #oldDataEvalTimeHourContainer').hide();
+            $('#modalEditMetric #oldDataEvalTimeMinContainer').hide();
+            $('#modalEditMetric #oldDataEvalTimeSecContainer').show();
+            $('#modalEditMetric #oldDataEvalTimeSecContainer').css("width", "100%");
+            $('#modalEditMetric #processTypeM').empty();
+            $('#modalEditMetric #processTypeM').append('<option value="JVNum1">Numeric</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="JVPerc">Percent</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="JVTable">Table</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="API">API</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="JVRidesAtaf">ATAF rides (specific)</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="JVSceOnNodes">Sce on nodes (specific)</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="jVPark">Parkings (specific)</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="JVWifiOp">Wifi operatives (specific)</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="JVSmartDs">SmartDs (specific)</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="JVTwRet">Tweets/Retweets (specific)</option>');
+            $('#modalEditMetric #processTypeM').append('<option value="none">Not defined</option>');
+            $('#modalEditMetric #processTypeM').val("JVNum1");
+            $('#modalEditMetric #timeRangeM').val("0");
+            $('#modalEditMetric #cityContextM').val("0");
+            $('#modalEditMetric #editMetricQueryTabQueryRow').show();
+            $('#modalEditMetric #editMetricQueryTabServerRow').hide();
+            $('#modalEditMetric #dataSourceM').val("none");
+            $('#modalEditMetric #dataSource2M').val("none");
+            $('#modalEditMetric #dataSourceDescriptionM').val("");
+            $('#modalEditMetric #dataAreaM').val("");
+            $('#modalEditMetric #queryM').val("");
+            $('#modalEditMetric #query2M').val("");
+            $('#modalEditMetric #serverTestHttpMethodM').val("GET");
+            $('#modalEditMetric #serverTestTokenM').val("");
+            $('#modalEditMetric #serverTestUrlM').val("");
+            $('#editMetricGeneralTabBtn a').trigger('click');
+            $('#editMetricLoadingMsg').hide();
+            $('#editMetricLoadingIcon').hide();
+            $('#editMetricOkMsg').hide();
+            $('#editMetricOkIcon').hide();
+            $('#editMetricKoMsg').hide();
+            $('#editMetricKoIcon').hide();
+        }
+        
+        $('#addMetricCancelBtn').click(resetAddMetricModal);
+        $('#editMetricCancelBtn').click(resetEditMetricModal);
+        
+        $('#process').change(function()
+        {
+            $('#processType').empty();
+            
+            switch($(this).val())
+            {
+                case "DashboardProcess":
+                    $('#processType').append('<option value="JVNum1">Numeric</option>');
+                    $('#processType').append('<option value="JVPerc">Percent</option>');
+                    $('#processType').append('<option value="JVTable">Table</option>');
+                    $('#processType').append('<option value="API">API</option>');
+                    $('#processType').append('<option value="JVRidesAtaf">ATAF rides (specific)</option>');
+                    $('#processType').append('<option value="JVSceOnNodes">Sce on nodes (specific)</option>');
+                    $('#processType').append('<option value="jVPark">Parkings (specific)</option>');
+                    $('#processType').append('<option value="JVWifiOp">Wifi operatives (specific)</option>');
+                    $('#processType').append('<option value="JVSmartDs">SmartDs (specific)</option>');
+                    $('#processType').append('<option value="JVTwRet">Tweets/Retweets (specific)</option>');
+                    $('#processType').append('<option value="none">Not defined</option>');
+                    $('#addMetricQueryTabBtn a').html("Datasources & queries");
+                    $('#addMetricQueryTabServerRow').hide();
+                    $('#addMetricQueryTabQueryRow').show();
+                    break;
+                    
+                case "HttpProcess":
+                    $('#processType').append('<option value="checkStatus">Web server status</option>');
+                    //$('#processType').append('<option value="responseTime">Web server response time</option>');
+                    $('#addMetricQueryTabBtn a').html("Server");
+                    $('#addMetricQueryTabQueryRow').hide();
+                    $('#addMetricQueryTabServerRow').show();
+                    break;
+            }
+        });
+        
+        $('#processM').change(function(){
+            $('#processTypeM').empty();
+
+            switch($(this).val())
+            {
+                case "DashboardProcess":
+                    $('#processTypeM').append('<option value="JVNum1">Numeric</option>');
+                    $('#processTypeM').append('<option value="JVPerc">Percent</option>');
+                    $('#processTypeM').append('<option value="JVTable">Table</option>');
+                    $('#processTypeM').append('<option value="API">API</option>');
+                    $('#processTypeM').append('<option value="JVRidesAtaf">ATAF rides (specific)</option>');
+                    $('#processTypeM').append('<option value="JVSceOnNodes">Sce on nodes (specific)</option>');
+                    $('#processTypeM').append('<option value="jVPark">Parkings (specific)</option>');
+                    $('#processTypeM').append('<option value="JVWifiOp">Wifi operatives (specific)</option>');
+                    $('#processTypeM').append('<option value="JVSmartDs">SmartDs (specific)</option>');
+                    $('#processTypeM').append('<option value="JVTwRet">Tweets/Retweets (specific)</option>');
+                    $('#processTypeM').append('<option value="none">Not defined</option>');
+                    $('#editMetricQueryTabBtn a').html("Datasources & queries");
+                    $('#editMetricQueryTabServerRow').hide();
+                    $('#editMetricQueryTabQueryRow').show();
+                    break;
+
+                case "HttpProcess":
+                    $('#processTypeM').append('<option value="checkStatus">Web server status</option>');
+                    //$('#processTypeM').append('<option value="responseTime">Web server response time</option>');
+                    $('#editMetricQueryTabBtn a').html("Server");
+                    $('#editMetricQueryTabQueryRow').hide();
+                    $('#editMetricQueryTabServerRow').show();
+                    break;
+            }
+        });
+        
+        /*$('#sameDataAlarmCountUp').on('click', function() 
+        {
+            if(($('#sameDataAlarmCount').val() === "Not active"))
+            {
+               $('#sameDataAlarmCount').val(1);   
+            }
+            else
+            {
+                $('#sameDataAlarmCount').val(parseInt($('#sameDataAlarmCount').val()) + 1);
+            }
+        });*/
+                    
+        $('#sameDataAlarmCountUp').mousedown(function(){
+            //Singolo incremento del valore
+            sameDataAlarmCountUp();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(sameDataAlarmCountUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#sameDataAlarmCountUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function sameDataAlarmCountUp()
+        {
+            if(($('#sameDataAlarmCount').val() === "Not active"))
+            {
+               $('#sameDataAlarmCount').val(1);   
+            }
+            else
+            {
+                $('#sameDataAlarmCount').val(parseInt($('#sameDataAlarmCount').val()) + 1);
+            }
+        }                     
+        
+        /*$('#sameDataAlarmCountDown').on('click', function() 
+        {
+           if(((parseInt($('#sameDataAlarmCount').val()) - 1) <= 0)||($('#sameDataAlarmCount').val() === "Not active"))
+           {
+               $('#sameDataAlarmCount').val("Not active");
+           }
+           else
+           {
+               $('#sameDataAlarmCount').val(parseInt($('#sameDataAlarmCount').val()) - 1);
+           }
+        });*/
+                    
+        $('#sameDataAlarmCountDown').mousedown(function(){
+            //Singolo incremento del valore
+            sameDataAlarmCountDown();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(sameDataAlarmCountDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#sameDataAlarmCountDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function sameDataAlarmCountDown()
+        {
+           if(((parseInt($('#sameDataAlarmCount').val()) - 1) <= 0)||($('#sameDataAlarmCount').val() === "Not active"))
+           {
+               $('#sameDataAlarmCount').val("Not active");
+           }
+           else
+           {
+               $('#sameDataAlarmCount').val(parseInt($('#sameDataAlarmCount').val()) - 1);
+           }
+        }             
+        
+        /*$('#sameDataAlarmCountMUp').on('click', function() 
+        {
+            if(($('#sameDataAlarmCountM').val() === "Not active"))
+            {
+               $('#sameDataAlarmCountM').val(1);   
+            }
+            else
+            {
+                $('#sameDataAlarmCountM').val(parseInt($('#sameDataAlarmCountM').val()) + 1);
+            }
+        });*/
+                    
+        $('#sameDataAlarmCountMUp').mousedown(function(){
+            //Singolo incremento del valore
+            sameDataAlarmCountMUp();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(sameDataAlarmCountMUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#sameDataAlarmCountMUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function sameDataAlarmCountMUp()
+        {
+            if(($('#sameDataAlarmCountM').val() === "Not active"))
+            {
+               $('#sameDataAlarmCountM').val(1);   
+            }
+            else
+            {
+                $('#sameDataAlarmCountM').val(parseInt($('#sameDataAlarmCountM').val()) + 1);
+            }
+        }            
+              
+        /*$('#sameDataAlarmCountMDown').on('click', function() 
+        {
+           if(((parseInt($('#sameDataAlarmCountM').val()) - 1) <= 0)||($('#sameDataAlarmCountM').val() === "Not active"))
+           {
+               $('#sameDataAlarmCountM').val("Not active");
+           }
+           else
+           {
+               $('#sameDataAlarmCountM').val(parseInt($('#sameDataAlarmCountM').val()) - 1);
+           }
+        });*/
+        
+        $('#sameDataAlarmCountMDown').mousedown(function(){
+            //Singolo incremento del valore
+            sameDataAlarmCountMDown();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(sameDataAlarmCountMDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#sameDataAlarmCountMDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function sameDataAlarmCountMDown()
+        {
+           if(((parseInt($('#sameDataAlarmCountM').val()) - 1) <= 0)||($('#sameDataAlarmCountM').val() === "Not active"))
+           {
+               $('#sameDataAlarmCountM').val("Not active");
+           }
+           else
+           {
+               $('#sameDataAlarmCountM').val(parseInt($('#sameDataAlarmCountM').val()) - 1);
+           }
+        }
+        
+        /*$('#updateFrequencySecUp').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencySec').val().replace(" s", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencySec').val("0 s");   
+            }
+            else
+            {
+                $('#updateFrequencySec').val(parseInt(parseInt(currentVal) + 1) + " s");
+            }
+            updateUpdateFrequency();
+        });*/
+                    
+        $('#updateFrequencySecUp').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencySecUp();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(updateFrequencySecUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#updateFrequencySecUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function updateFrequencySecUp()
+        {
+            var currentVal = $('#updateFrequencySec').val().replace(" s", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencySec').val("0 s");   
+            }
+            else
+            {
+                $('#updateFrequencySec').val(parseInt(parseInt(currentVal) + 1) + " s");
+            }
+            updateUpdateFrequency();
+        }            
+        
+        /*$('#updateFrequencySecDown').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencySec').val().replace(" s", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencySec').val("59 s");   
+            }
+            else
+            {
+                $('#updateFrequencySec').val(parseInt(parseInt(currentVal) - 1) + " s");
+            }
+            updateUpdateFrequency();
+        });*/
+                    
+        $('#updateFrequencySecDown').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencySecDown();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(updateFrequencySecDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#updateFrequencySecDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function updateFrequencySecDown()
+        {
+            var currentVal = $('#updateFrequencySec').val().replace(" s", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencySec').val("59 s");   
+            }
+            else
+            {
+                $('#updateFrequencySec').val(parseInt(parseInt(currentVal) - 1) + " s");
+            }
+            updateUpdateFrequency();
+        }            
+        
+        /*$('#updateFrequencyMinUp').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyMin').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencyMin').val("0 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMin').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateUpdateFrequency();
+        });*/
+                    
+        $('#updateFrequencyMinUp').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyMinUp();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(updateFrequencyMinUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#updateFrequencyMinUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function updateFrequencyMinUp()
+        {
+            var currentVal = $('#updateFrequencyMin').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencyMin').val("0 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMin').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateUpdateFrequency();
+        }              
+        
+        /*$('#updateFrequencyMinDown').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyMin').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencyMin').val("59 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMin').val(parseInt(parseInt(currentVal) - 1) + " m");
+            }
+            updateUpdateFrequency();
+        });*/
+                    
+        $('#updateFrequencyMinDown').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyMinDown();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(updateFrequencyMinDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#updateFrequencyMinDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function updateFrequencyMinDown()
+        {
+            var currentVal = $('#updateFrequencyMin').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencyMin').val("59 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMin').val(parseInt(parseInt(currentVal) - 1) + " m");
+            }
+            updateUpdateFrequency();
+        }             
+        
+        /*$('#updateFrequencyHourUp').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyHour').val().replace(" h", "");
+            $('#updateFrequencyHour').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateUpdateFrequency();
+        });*/
+                    
+        $('#updateFrequencyHourUp').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyHourUp();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(updateFrequencyHourUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#updateFrequencyHourUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function updateFrequencyHourUp()
+        {
+            var currentVal = $('#updateFrequencyHour').val().replace(" h", "");
+            $('#updateFrequencyHour').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateUpdateFrequency();
+        }              
+        
+        /*$('#updateFrequencyHourDown').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyHour').val().replace(" h", "");
+            if((currentVal !== "0"))
+            {
+               $('#updateFrequencyHour').val(parseInt(parseInt(currentVal) - 1) + " h");
+            }
+            updateUpdateFrequency();
+        });*/
+                    
+        $('#updateFrequencyHourDown').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyHourDown();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(updateFrequencyHourDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#updateFrequencyHourDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function updateFrequencyHourDown()
+        {
+            var currentVal = $('#updateFrequencyHour').val().replace(" h", "");
+            if((currentVal !== "0"))
+            {
+               $('#updateFrequencyHour').val(parseInt(parseInt(currentVal) - 1) + " h");
+            }
+            updateUpdateFrequency();
+        }            
+        
+        function updateUpdateFrequency()
+        {
+            var currentSec = parseInt($('#updateFrequencySec').val().replace(" s", ""));
+            var currentMin = parseInt($('#updateFrequencyMin').val().replace(" m", ""));
+            var currentHour = parseInt($('#updateFrequencyHour').val().replace(" m", ""));
+            
+            var updateFrequency = (currentSec + currentMin*60 + currentHour*3600)*1000;
+            $('#updateFrequency').val(updateFrequency);
+        }
+        
+        /*$('#updateFrequencySecMUp').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencySecM').val().replace(" s", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencySecM').val("0 s");   
+            }
+            else
+            {
+                $('#updateFrequencySecM').val(parseInt(parseInt(currentVal) + 1) + " s");
+            }
+            updateUpdateFrequencyM();
+        });*/
+                    
+        $('#updateFrequencySecMUp').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencySecMUp();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(updateFrequencySecMUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#updateFrequencySecMUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                    clearTimeout(increaseTimeout);
+                    increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                    clearInterval(increaseInterval);
+                    increaseInterval = null;
+            }
+        });
+
+        function updateFrequencySecMUp()
+        {
+            var currentVal = $('#updateFrequencySecM').val().replace(" s", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencySecM').val("0 s");   
+            }
+            else
+            {
+                $('#updateFrequencySecM').val(parseInt(parseInt(currentVal) + 1) + " s");
+            }
+            updateUpdateFrequencyM();
+        }              
+        
+        /*$('#updateFrequencySecMDown').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencySecM').val().replace(" s", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencySecM').val("59 s");   
+            }
+            else
+            {
+                $('#updateFrequencySecM').val(parseInt(parseInt(currentVal) - 1) + " s");
+            }
+            updateUpdateFrequencyM();
+        });*/
+                    
+        $('#updateFrequencySecMDown').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencySecMDown();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(updateFrequencySecMDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#updateFrequencySecMDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function updateFrequencySecMDown()
+        {
+            var currentVal = $('#updateFrequencySecM').val().replace(" s", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencySecM').val("59 s");   
+            }
+            else
+            {
+                $('#updateFrequencySecM').val(parseInt(parseInt(currentVal) - 1) + " s");
+            }
+            updateUpdateFrequencyM();
+        }              
+        
+        /*$('#updateFrequencyMinMUp').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyMinM').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencyMinM').val("0 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMinM').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateUpdateFrequencyM();
+        });*/
+                    
+        $('#updateFrequencyMinMUp').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyMinMUp();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(updateFrequencyMinMUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#updateFrequencyMinMUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function updateFrequencyMinMUp()
+        {
+            var currentVal = $('#updateFrequencyMinM').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               $('#updateFrequencyMinM').val("0 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMinM').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateUpdateFrequencyM();
+        }              
+        
+        /*$('#updateFrequencyMinMDown').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyMinM').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencyMinM').val("59 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMinM').val(parseInt(parseInt(currentVal) - 1) + " m");
+            }
+            updateUpdateFrequencyM();
+        });*/
+                    
+        $('#updateFrequencyMinMDown').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyMinMDown();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(updateFrequencyMinMDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#updateFrequencyMinMDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function updateFrequencyMinMDown()
+        {
+            var currentVal = $('#updateFrequencyMinM').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#updateFrequencyMinM').val("59 m");   
+            }
+            else
+            {
+                $('#updateFrequencyMinM').val(parseInt(parseInt(currentVal) - 1) + " m");
+            }
+            updateUpdateFrequencyM();
+        }            
+        
+        /*$('#updateFrequencyHourMUp').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyHourM').val().replace(" h", "");
+            $('#updateFrequencyHourM').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateUpdateFrequencyM();
+        });*/
+                    
+        $('#updateFrequencyHourMUp').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyHourMUp();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(updateFrequencyHourMUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#updateFrequencyHourMUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function updateFrequencyHourMUp()
+        {
+            var currentVal = $('#updateFrequencyHourM').val().replace(" h", "");
+            $('#updateFrequencyHourM').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateUpdateFrequencyM();
+        }            
+        
+        /*$('#updateFrequencyHourMDown').on('click', function() 
+        {
+            var currentVal = $('#updateFrequencyHourM').val().replace(" h", "");
+            if((currentVal !== "0"))
+            {
+               $('#updateFrequencyHourM').val(parseInt(parseInt(currentVal) - 1) + " h");
+            }
+            updateUpdateFrequencyM();
+        });*/
+                    
+        $('#updateFrequencyHourMDown').mousedown(function(){
+            //Singolo incremento del valore
+            updateFrequencyHourMDown();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(updateFrequencyHourMDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#updateFrequencyHourMDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function updateFrequencyHourMDown()
+        {
+            var currentVal = $('#updateFrequencyHourM').val().replace(" h", "");
+            if((currentVal !== "0"))
+            {
+               $('#updateFrequencyHourM').val(parseInt(parseInt(currentVal) - 1) + " h");
+            }
+            updateUpdateFrequencyM();
+        }            
+        
+        function updateUpdateFrequencyM()
+        {
+            var currentSec = parseInt($('#updateFrequencySecM').val().replace(" s", ""));
+            var currentMin = parseInt($('#updateFrequencyMinM').val().replace(" m", ""));
+            var currentHour = parseInt($('#updateFrequencyHourM').val().replace(" m", ""));
+            
+            var updateFrequencyM = (currentSec + currentMin*60 + currentHour*3600)*1000;
+            $('#updateFrequencyM').val(updateFrequencyM);
+        }
+        
+        //Old data eval time: risponditori di evento
+        /*$('#oldDataEvalTimeSecUp').on('click', function() 
+        {
+            if(($('#oldDataEvalTimeMin').val() === "0 m")&&($('#oldDataEvalTimeHour').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSec').val() !== "59 s"))
+                {
+                   if($('#oldDataEvalTimeSec').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSec').val("1 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSec').val(parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", "")) + 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSec').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSec').val() === "59 s"))
+                {
+                   $('#oldDataEvalTimeSec').val("0 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSec').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSec').val("1 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSec').val(parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", "")) + 1) + " s");   
+                    }
+                }
+            }
+            
+            updateOldDataEvalTime();
+        });*/
+                    
+        $('#oldDataEvalTimeSecUp').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeSecUp();
+            
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(oldDataEvalTimeSecUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#oldDataEvalTimeSecUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function oldDataEvalTimeSecUp()
+        {
+            if(($('#oldDataEvalTimeMin').val() === "0 m")&&($('#oldDataEvalTimeHour').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSec').val() !== "59 s"))
+                {
+                   if($('#oldDataEvalTimeSec').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSec').val("1 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSec').val(parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", "")) + 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSec').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSec').val() === "59 s"))
+                {
+                   $('#oldDataEvalTimeSec').val("0 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSec').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSec').val("1 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSec').val(parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", "")) + 1) + " s");   
+                    }
+                }
+            }
+            
+            updateOldDataEvalTime();
+        }
+        
+        /*$('#oldDataEvalTimeSecDown').on('click', function() 
+        {
+            if(($('#oldDataEvalTimeMin').val() === "0 m")&&($('#oldDataEvalTimeHour').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSec').val() !== "1 s"))
+                {
+                   if($('#oldDataEvalTimeSec').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSec').val("59 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSec').val(parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", "")) - 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSec').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSec').val() === "0 s"))
+                {
+                   $('#oldDataEvalTimeSec').val("59 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSec').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSec').val("59 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSec').val((parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", ""))) - 1) + " s");
+                    }
+                } 
+            }
+            updateOldDataEvalTime();
+        });*/
+                    
+        $('#oldDataEvalTimeSecDown').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeSecDown();
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(oldDataEvalTimeSecDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#oldDataEvalTimeSecDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function oldDataEvalTimeSecDown()
+        {
+            if(($('#oldDataEvalTimeMin').val() === "0 m")&&($('#oldDataEvalTimeHour').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSec').val() !== "1 s"))
+                {
+                   if($('#oldDataEvalTimeSec').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSec').val("59 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSec').val(parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", "")) - 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSec').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSec').val() === "0 s"))
+                {
+                   $('#oldDataEvalTimeSec').val("59 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSec').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSec').val("59 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSec').val((parseInt(parseInt($('#oldDataEvalTimeSec').val().replace(" s", ""))) - 1) + " s");
+                    }
+                } 
+            }
+            updateOldDataEvalTime();
+        }            
+        
+        /*$('#oldDataEvalTimeMinUp').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeMin').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               if(($('#oldDataEvalTimeHour').val() === "0 h")&&($('#oldDataEvalTimeSec').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSec').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMin').val("0 m");  
+               }
+            }
+            else
+            {
+                $('#oldDataEvalTimeMin').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateOldDataEvalTime();
+        });*/
+                    
+        $('#oldDataEvalTimeMinUp').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeMinUp();
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(oldDataEvalTimeMinUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#oldDataEvalTimeMinUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function oldDataEvalTimeMinUp()
+        {
+            var currentVal = $('#oldDataEvalTimeMin').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               if(($('#oldDataEvalTimeHour').val() === "0 h")&&($('#oldDataEvalTimeSec').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSec').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMin').val("0 m");  
+               }
+            }
+            else
+            {
+                $('#oldDataEvalTimeMin').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateOldDataEvalTime();
+        }                 
+        
+        /*$('#oldDataEvalTimeMinDown').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeMin').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#oldDataEvalTimeMin').val("59 m");   
+            }
+            else
+            {
+               if(($('#oldDataEvalTimeHour').val() === "0 h")&&($('#oldDataEvalTimeMin').val() === "1 m")&&($('#oldDataEvalTimeSec').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSec').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMin').val(parseInt(parseInt(currentVal) - 1) + " m");  
+               }
+            }
+            updateOldDataEvalTime();
+        });*/
+                    
+        $('#oldDataEvalTimeMinDown').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeMinDown();
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(oldDataEvalTimeMinDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#oldDataEvalTimeMinDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function oldDataEvalTimeMinDown()
+        {
+            var currentVal = $('#oldDataEvalTimeMin').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#oldDataEvalTimeMin').val("59 m");   
+            }
+            else
+            {
+               if(($('#oldDataEvalTimeHour').val() === "0 h")&&($('#oldDataEvalTimeMin').val() === "1 m")&&($('#oldDataEvalTimeSec').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSec').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMin').val(parseInt(parseInt(currentVal) - 1) + " m");  
+               }
+            }
+            updateOldDataEvalTime();
+        }            
+        
+        /*$('#oldDataEvalTimeHourUp').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeHour').val().replace(" h", "");
+            $('#oldDataEvalTimeHour').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateOldDataEvalTime();
+        });*/
+                    
+        $('#oldDataEvalTimeHourUp').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeHourUp();
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(oldDataEvalTimeHourUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#oldDataEvalTimeHourUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function oldDataEvalTimeHourUp()
+        {
+            var currentVal = $('#oldDataEvalTimeHour').val().replace(" h", "");
+            $('#oldDataEvalTimeHour').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateOldDataEvalTime();
+        }                
+        
+        /*$('#oldDataEvalTimeHourDown').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeHour').val().replace(" h", "");
+            
+            if((currentVal !== "0"))
+            {
+               $('#oldDataEvalTimeHour').val(parseInt(parseInt(currentVal) - 1) + " h");
+               if(($('#oldDataEvalTimeHour').val() === '0 h')&&($('#oldDataEvalTimeMin').val() === "0 m")&&($('#oldDataEvalTimeSec').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSec').val("Not active"); 
+               }
+            }
+            
+            updateOldDataEvalTime();
+        });*/
+        
+        $('#oldDataEvalTimeHourDown').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeHourDown();
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(oldDataEvalTimeHourDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+        
+        $('#oldDataEvalTimeHourDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+            
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+        
+        function oldDataEvalTimeHourDown()
+        {
+            var currentVal = $('#oldDataEvalTimeHour').val().replace(" h", "");
+            
+            if((currentVal !== "0"))
+            {
+               $('#oldDataEvalTimeHour').val(parseInt(parseInt(currentVal) - 1) + " h");
+               if(($('#oldDataEvalTimeHour').val() === '0 h')&&($('#oldDataEvalTimeMin').val() === "0 m")&&($('#oldDataEvalTimeSec').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSec').val("Not active"); 
+               }
+            }
+            
+            updateOldDataEvalTime();
+        }    
+        
+        updateOldDataEvalTime();
+        
+        function updateOldDataEvalTime()
+        {
+            var currentSec, currentMin, currentHour, oldDataEvalTime = null;
+            if($('#oldDataEvalTimeSec').val() === "Not active")
+            {
+                oldDataEvalTime = "Not active";
+                $('#oldDataEvalTimeMin').val("0 m");
+                $('#oldDataEvalTimeHour').val("0 h");
+                $('#addMetricGeneralTab #oldDataEvalTimeHourContainer').hide();
+                $('#addMetricGeneralTab #oldDataEvalTimeMinContainer').hide();
+                $('#addMetricGeneralTab #oldDataEvalTimeSecContainer').css("width", "100%");
+            }
+            else
+            {
+                currentSec = parseInt($('#oldDataEvalTimeSec').val().replace(" s", ""));
+                currentMin = parseInt($('#oldDataEvalTimeMin').val().replace(" m", ""));
+                currentHour = parseInt($('#oldDataEvalTimeHour').val().replace(" m", ""));
+                oldDataEvalTime = (currentSec + currentMin*60 + currentHour*3600)*1000;
+                
+                $('#addMetricGeneralTab #oldDataEvalTimeHourContainer').show();
+                $('#addMetricGeneralTab #oldDataEvalTimeMinContainer').show();
+                $('#addMetricGeneralTab #oldDataEvalTimeSecContainer').css("width", "33%");
+            }
+            
+            $('#oldDataEvalTime').val(oldDataEvalTime);
+        }
+        
+        //Old data eval time M: risponditori di evento
+        /*$('#oldDataEvalTimeSecMUp').on('click', function() 
+        {
+            if(($('#oldDataEvalTimeMinM').val() === "0 m")&&($('#oldDataEvalTimeHourM').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSecM').val() !== "59 s"))
+                {
+                   if($('#oldDataEvalTimeSecM').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSecM').val("1 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSecM').val(parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", "")) + 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSecM').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSecM').val() === "59 s"))
+                {
+                   $('#oldDataEvalTimeSecM').val("0 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSecM').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSecM').val("1 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSecM').val(parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", "")) + 1) + " s");   
+                    }
+                }
+            }
+            
+            updateOldDataEvalTimeM();
+        });*/
+                    
+        $('#oldDataEvalTimeSecMUp').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeSecMUp();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(oldDataEvalTimeSecMUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#oldDataEvalTimeSecMUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function oldDataEvalTimeSecMUp()
+        {
+            if(($('#oldDataEvalTimeMinM').val() === "0 m")&&($('#oldDataEvalTimeHourM').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSecM').val() !== "59 s"))
+                {
+                   if($('#oldDataEvalTimeSecM').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSecM').val("1 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSecM').val(parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", "")) + 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSecM').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSecM').val() === "59 s"))
+                {
+                   $('#oldDataEvalTimeSecM').val("0 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSecM').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSecM').val("1 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSecM').val(parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", "")) + 1) + " s");   
+                    }
+                }
+            }
+            
+            updateOldDataEvalTimeM();
+        }            
+        
+        /*$('#oldDataEvalTimeSecMDown').on('click', function() 
+        {
+            if(($('#oldDataEvalTimeMinM').val() === "0 m")&&($('#oldDataEvalTimeHourM').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSecM').val() !== "1 s"))
+                {
+                   if($('#oldDataEvalTimeSecM').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSecM').val("59 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSecM').val(parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", "")) - 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSecM').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSecM').val() === "0 s"))
+                {
+                   $('#oldDataEvalTimeSecM').val("59 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSecM').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSecM').val("59 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSecM').val((parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", ""))) - 1) + " s");
+                    }
+                } 
+            }
+            updateOldDataEvalTimeM();
+        });*/
+                    
+        $('#oldDataEvalTimeSecMDown').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeSecMDown();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(oldDataEvalTimeSecMDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#oldDataEvalTimeSecMDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function oldDataEvalTimeSecMDown()
+        {
+            if(($('#oldDataEvalTimeMinM').val() === "0 m")&&($('#oldDataEvalTimeHourM').val() === "0 h"))
+            {
+                if(($('#oldDataEvalTimeSecM').val() !== "1 s"))
+                {
+                   if($('#oldDataEvalTimeSecM').val() === "Not active")
+                   {
+                       $('#oldDataEvalTimeSecM').val("59 s");      
+                   }
+                   else
+                   {
+                       $('#oldDataEvalTimeSecM').val(parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", "")) - 1) + " s");   
+                   }
+                }
+                else
+                {
+                    $('#oldDataEvalTimeSecM').val("Not active");      
+                }
+            }
+            else
+            {
+                if(($('#oldDataEvalTimeSecM').val() === "0 s"))
+                {
+                   $('#oldDataEvalTimeSecM').val("59 s");   
+                }
+                else
+                {
+                    if($('#oldDataEvalTimeSecM').val() === "Not active")
+                    {
+                        $('#oldDataEvalTimeSecM').val("59 s");      
+                    }
+                    else
+                    {
+                        $('#oldDataEvalTimeSecM').val((parseInt(parseInt($('#oldDataEvalTimeSecM').val().replace(" s", ""))) - 1) + " s");
+                    }
+                } 
+            }
+            updateOldDataEvalTimeM();
+        }            
+        
+        /*$('#oldDataEvalTimeMinMUp').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeMinM').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               if(($('#oldDataEvalTimeHourM').val() === "0 h")&&($('#oldDataEvalTimeSecM').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSecM').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMinM').val("0 m");  
+               }
+            }
+            else
+            {
+                $('#oldDataEvalTimeMinM').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateOldDataEvalTimeM();
+        });*/
+                    
+        $('#oldDataEvalTimeMinMUp').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeMinMUp();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(oldDataEvalTimeMinMUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#oldDataEvalTimeMinMUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function oldDataEvalTimeMinMUp()
+        {
+            var currentVal = $('#oldDataEvalTimeMinM').val().replace(" m", "");
+            if((currentVal === "59"))
+            {
+               if(($('#oldDataEvalTimeHourM').val() === "0 h")&&($('#oldDataEvalTimeSecM').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSecM').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMinM').val("0 m");  
+               }
+            }
+            else
+            {
+                $('#oldDataEvalTimeMinM').val(parseInt(parseInt(currentVal) + 1) + " m");
+            }
+            updateOldDataEvalTimeM();
+        }            
+        
+        /*$('#oldDataEvalTimeMinMDown').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeMinM').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#oldDataEvalTimeMinM').val("59 m");   
+            }
+            else
+            {
+               if(($('#oldDataEvalTimeHourM').val() === "0 h")&&($('#oldDataEvalTimeMinM').val() === "1 m")&&($('#oldDataEvalTimeSecM').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSecM').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMinM').val(parseInt(parseInt(currentVal) - 1) + " m");  
+               }
+            }
+            updateOldDataEvalTimeM();
+        });*/
+                    
+        $('#oldDataEvalTimeMinMDown').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeMinMDown();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(oldDataEvalTimeMinMDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#oldDataEvalTimeMinMDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function oldDataEvalTimeMinMDown()
+        {
+            var currentVal = $('#oldDataEvalTimeMinM').val().replace(" m", "");
+            if((currentVal === "0"))
+            {
+               $('#oldDataEvalTimeMinM').val("59 m");   
+            }
+            else
+            {
+               if(($('#oldDataEvalTimeHourM').val() === "0 h")&&($('#oldDataEvalTimeMinM').val() === "1 m")&&($('#oldDataEvalTimeSecM').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSecM').val("Not active");
+               }
+               else
+               {
+                  $('#oldDataEvalTimeMinM').val(parseInt(parseInt(currentVal) - 1) + " m");  
+               }
+            }
+            updateOldDataEvalTimeM();
+        }            
+        
+        /*$('#oldDataEvalTimeHourMUp').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeHourM').val().replace(" h", "");
+            $('#oldDataEvalTimeHourM').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateOldDataEvalTimeM();
+        });*/
+                    
+        $('#oldDataEvalTimeHourMUp').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeHourMUp();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                increaseInterval = setInterval(oldDataEvalTimeHourMUp, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#oldDataEvalTimeHourMUp').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function oldDataEvalTimeHourMUp()
+        {
+            var currentVal = $('#oldDataEvalTimeHourM').val().replace(" h", "");
+            $('#oldDataEvalTimeHourM').val(parseInt(parseInt(currentVal) + 1) + " h");
+            updateOldDataEvalTimeM();
+        }            
+        
+        /*$('#oldDataEvalTimeHourMDown').on('click', function() 
+        {
+            var currentVal = $('#oldDataEvalTimeHourM').val().replace(" h", "");
+            
+            if((currentVal !== "0"))
+            {
+               $('#oldDataEvalTimeHourM').val(parseInt(parseInt(currentVal) - 1) + " h");
+               if(($('#oldDataEvalTimeHourM').val() === '0 h')&&($('#oldDataEvalTimeMinM').val() === "0 m")&&($('#oldDataEvalTimeSecM').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSecM').val("Not active"); 
+               }
+            }
+            
+            updateOldDataEvalTimeM();
+        });*/
+                    
+        $('#oldDataEvalTimeHourMDown').mousedown(function(){
+            //Singolo incremento del valore
+            oldDataEvalTimeHourMDown();
+
+            //Incremento automatico al mantenimento pressione
+            increaseTimeout = setTimeout(function(){
+                    increaseInterval = setInterval(oldDataEvalTimeHourMDown, spinnerIntervalValue);
+            }, spinnerHoldValue);
+        });     
+
+        $('#oldDataEvalTimeHourMDown').mouseup(function(){
+            if(increaseTimeout !== null)
+            {
+                clearTimeout(increaseTimeout);
+                increaseTimeout = null;
+            }
+
+            if(increaseInterval !== null)
+            {
+                clearInterval(increaseInterval);
+                increaseInterval = null;
+            }
+        });
+
+        function oldDataEvalTimeHourMDown()
+        {
+            var currentVal = $('#oldDataEvalTimeHourM').val().replace(" h", "");
+            
+            if((currentVal !== "0"))
+            {
+               $('#oldDataEvalTimeHourM').val(parseInt(parseInt(currentVal) - 1) + " h");
+               if(($('#oldDataEvalTimeHourM').val() === '0 h')&&($('#oldDataEvalTimeMinM').val() === "0 m")&&($('#oldDataEvalTimeSecM').val() === "0 s"))
+               {
+                  $('#oldDataEvalTimeSecM').val("Not active"); 
+               }
+            }
+            
+            updateOldDataEvalTimeM();
+        }            
+        
+        function updateOldDataEvalTimeM()
+        {
+            var currentSec, currentMin, currentHour, oldDataEvalTime = null;
+            if($('#oldDataEvalTimeSecM').val() === "Not active")
+            {
+                oldDataEvalTime = "Not active";
+                $('#oldDataEvalTimeMinM').val("0 m");
+                $('#oldDataEvalTimeHourM').val("0 h");
+                $('#editMetricGeneralTab #oldDataEvalTimeHourContainer').hide();
+                $('#editMetricGeneralTab #oldDataEvalTimeMinContainer').hide();
+                $('#editMetricGeneralTab #oldDataEvalTimeSecContainer').css("width", "100%");
+            }
+            else
+            {
+                currentSec = parseInt($('#oldDataEvalTimeSecM').val().replace(" s", ""));
+                currentMin = parseInt($('#oldDataEvalTimeMinM').val().replace(" m", ""));
+                currentHour = parseInt($('#oldDataEvalTimeHourM').val().replace(" m", ""));
+                oldDataEvalTime = (currentSec + currentMin*60 + currentHour*3600)*1000;
+                
+                $('#editMetricGeneralTab #oldDataEvalTimeHourContainer').show();
+                $('#editMetricGeneralTab #oldDataEvalTimeMinContainer').show();
+                $('#editMetricGeneralTab #oldDataEvalTimeSecContainer').css("width", "33%");
+            }
+            
+            $('#oldDataEvalTimeM').val(oldDataEvalTime);
+        }
         
         var tableFirstLoad = true;
         buildMainTable(false);
@@ -788,7 +2882,10 @@
                     sameDataAlarmCount: $('#sameDataAlarmCount').val(),
                     hasNegativeValues: $('#hasNegativeValues').val(),
                     oldDataEvalTime: $('#oldDataEvalTime').val(),
-                    process: $('#process').val()
+                    process: $('#process').val(),
+                    serverTestHttpMethod: $('#serverTestHttpMethod').val(),
+                    serverTestToken: $('#serverTestToken').val(),
+                    serverTestUrl: $('#serverTestUrl').val()
                 },
                 type: "POST",
                 async: true,
@@ -825,7 +2922,7 @@
                             buildMainTable(true);
 
                             setTimeout(function(){
-                                $('#addMetricOkMsg').hide();
+                                /*$('#addMetricOkMsg').hide();
                                 $('#addMetricOkIcon').hide();
                                 $('#metricName').val("");
                                 $('#shortDescription').val("");
@@ -846,10 +2943,11 @@
                                 $('#sameDataAlarmCount').val("");
                                 $('#hasNegativeValues').val("0");
                                 $('#oldDataEvalTime').val("");
-                                $('#process').val("");
+                                $('#process').val("");*/
                                 $('#addMetricModalTabs').show();
                                 $('#modalAddMetric div.modalCell').show();
                                 $('#addMetricModalFooter').show();
+                                resetAddMetricModal();
                             }, 500);
                         }, 3000);
                     }
@@ -905,7 +3003,10 @@
                     sameDataAlarmCountM: $('#sameDataAlarmCountM').val(),
                     hasNegativeValuesM: $('#hasNegativeValuesM').val(),
                     oldDataEvalTimeM: $('#oldDataEvalTimeM').val(),
-                    processM: $('#processM').val()
+                    processM: $('#processM').val(),
+                    serverTestHttpMethodM: $('#serverTestHttpMethodM').val(),
+                    serverTestTokenM: $('#serverTestTokenM').val(),
+                    serverTestUrlM: $('#serverTestUrlM').val()
                 },
                 type: "POST",
                 async: true,
@@ -941,7 +3042,7 @@
                             setTimeout(function(){
                                 $('#editMetricOkMsg').hide();
                                 $('#editMetricOkIcon').hide();
-                                $('#metricNameM').val("");
+                                /*$('#metricNameM').val("");
                                 $('#shortDescriptionM').val("");
                                 $('#dataAreaM').val("");
                                 $('#fullDescriptionM').val("");
@@ -960,10 +3061,11 @@
                                 $('#sameDataAlarmCountM').val("");
                                 $('#hasNegativeValuesM').val("0");
                                 $('#oldDataEvalTimeM').val("");
-                                $('#processM').val("");
+                                $('#processM').val("");*/
                                 $('#editMetricModalTabs').show();
                                 $('#modalEditMetric div.modalCell').show();
                                 $('#editMetricModalFooter').show();
+                                resetEditMetricModal();
                             }, 500);
                         }, 3000);
                     }
@@ -1018,6 +3120,7 @@
                 dataType: 'json',
                 success: function (data) 
                 {
+                    //console.log(JSON.stringify(data));
                     $('#list_metrics').bootstrapTable({
                         columns: [{
                             field: 'IdMetric',
@@ -1310,7 +3413,14 @@
                             halign: "center",
                             formatter: function(value, row, index)
                             {
-                                return '<button type="button" class="editDashBtn">edit</button>';
+                                if((row.process === 'HttpProcess')&&(row.processType === 'responseTime'))
+                                {
+                                    return '<button type="button" class="undeletableMetricBtn">uneditable</button>';
+                                }
+                                else
+                                {
+                                    return '<button type="button" class="editDashBtn">edit</button>';
+                                }
                             },
                             cellStyle: function(value, row, index, field) {
                                 if(index%2 !== 0)
@@ -1343,7 +3453,14 @@
                             halign: "center",
                             formatter: function(value, row, index)
                             {
-                                return '<button type="button" class="delDashBtn">del</button>';
+                                if((row.process === 'HttpProcess')&&(row.processType === 'responseTime'))
+                                {
+                                    return '<button type="button" class="undeletableMetricBtn">undeletable</button>';
+                                }
+                                else
+                                {
+                                    return '<button type="button" class="delDashBtn">del</button>';
+                                }
                             },
                                     cellStyle: function(value, row, index, field) {
                                     if(index%2 !== 0)
@@ -1376,7 +3493,7 @@
                         searchAlign: 'left',
                         uniqueId: "id",
                         striped: false,
-                        searchTimeOut: 250,
+                        searchTimeOut: 60,
                         classes: "table table-hover table-no-bordered",
                         onPostBody: function()
                         {
@@ -1512,10 +3629,16 @@
                                         {
                                             $('#metricNameM').val(data.metricData.IdMetric);
                                             $('#shortDescriptionM').val(data.metricData.description_short);
-                                            $('#dataAreaM').val(data.metricData.area);
                                             $('#fullDescriptionM').val(data.metricData.description);
-                                            $('#processTypeM').val(data.metricData.processType);
                                             $('#resultTypeM').val(data.metricData.metricType);
+                                            var updateFrequencyMs = parseInt(data.metricData.frequency);
+                                            var updateFrequencyFromDb = updateFrequencyMs / 1000;
+                                            var updateFrequencyHours = Math.floor(updateFrequencyFromDb / 3600);
+                                            var updateFrequencyMinutes = Math.floor((updateFrequencyFromDb - (updateFrequencyHours*3600))/60);
+                                            var updateFrequencySeconds = updateFrequencyFromDb - (updateFrequencyHours*3600) - (updateFrequencyMinutes*60);
+                                            $('#updateFrequencyHourM').val(updateFrequencyHours + " h");
+                                            $('#updateFrequencyMinM').val(updateFrequencyMinutes + " m");
+                                            $('#updateFrequencySecM').val(updateFrequencySeconds + " s");
                                             $('#updateFrequencyM').val(data.metricData.frequency);
                                             $('#cityContextM').val(data.metricData.municipalityOption);
                                             $('#timeRangeM').val(data.metricData.timeRangeOption);
@@ -1523,33 +3646,101 @@
                                             $('#dataSourceTypeM').val(data.metricData.queryType);
                                             var dataSources = data.metricData.dataSource.split("|");
                                             
-                                            if(dataSources.length > 1)
+                                            if(data.metricData.sameDataAlarmCount === null)
                                             {
-                                                $('#dataSourceM').val(dataSources[0]);
-                                                $('#dataSource2M').val(dataSources[1]);
+                                                $('#sameDataAlarmCountM').val("Not active");
                                             }
                                             else
                                             {
-                                                $('#dataSourceM').val(dataSources[0]);
-                                                $('#dataSource2M').val("none");
+                                                $('#sameDataAlarmCountM').val(data.metricData.sameDataAlarmCount);
                                             }
-                                            $('#dataSourceDescriptionM').val(data.metricData.source);
                                             
-                                            if(data.metricData.query !== null)
+                                            if(data.metricData.oldDataEvalTime === null)
                                             {
-                                                $('#queryM').val(data.metricData.query);
+                                                $('#oldDataEvalTimeSecM').val("Not active");
                                             }
-                                            
-                                            if(data.metricData.query2 !== null)
+                                            else
                                             {
-                                                $('#query2M').val(data.metricData.query2);
+                                                var oldDataEvalTimeMs = parseInt(data.metricData.oldDataEvalTime);
+                                                var oldDataEvalTimeFromDb = oldDataEvalTimeMs / 1000;
+                                                var oldDataEvalTimeHours = Math.floor(oldDataEvalTimeFromDb / 3600);
+                                                var oldDataEvalTimeMinutes = Math.floor((oldDataEvalTimeFromDb - (oldDataEvalTimeHours*3600))/60);
+                                                var oldDataEvalTimeSeconds = oldDataEvalTimeFromDb - (oldDataEvalTimeHours*3600) - (oldDataEvalTimeMinutes*60);
+                                                $('#oldDataEvalTimeHourM').val(oldDataEvalTimeHours + " h");
+                                                $('#oldDataEvalTimeMinM').val(oldDataEvalTimeMinutes + " m");
+                                                $('#oldDataEvalTimeSecM').val(oldDataEvalTimeSeconds + " s");
                                             }
                                             
-                                            $('#sameDataAlarmCountM').val(data.metricData.sameDataAlarmCount);
-                                            $('#oldDataEvalTimeM').val(data.metricData.oldDataEvalTime);
+                                            updateOldDataEvalTimeM();
+                                            
                                             $('#hasNegativeValuesM').val(data.metricData.hasNegativeValues);
                                             $('#processM').val(data.metricData.process);
                                             $('#metricId').val(metricId);
+                                            
+                                            switch(data.metricData.process)
+                                            {
+                                                case "DashboardProcess":
+                                                    $('#processTypeM').append('<option value="JVNum1">Numeric</option>');
+                                                    $('#processTypeM').append('<option value="JVPerc">Percent</option>');
+                                                    $('#processTypeM').append('<option value="JVTable">Table</option>');
+                                                    $('#processTypeM').append('<option value="API">API</option>');
+                                                    $('#processTypeM').append('<option value="JVRidesAtaf">ATAF rides (specific)</option>');
+                                                    $('#processTypeM').append('<option value="JVSceOnNodes">Sce on nodes (specific)</option>');
+                                                    $('#processTypeM').append('<option value="jVPark">Parkings (specific)</option>');
+                                                    $('#processTypeM').append('<option value="JVWifiOp">Wifi operatives (specific)</option>');
+                                                    $('#processTypeM').append('<option value="JVSmartDs">SmartDs (specific)</option>');
+                                                    $('#processTypeM').append('<option value="JVTwRet">Tweets/Retweets (specific)</option>');
+                                                    $('#processTypeM').append('<option value="none">Not defined</option>');
+                                                    break;
+
+                                                case "HttpProcess":
+                                                    $('#processTypeM').append('<option value="checkStatus">Web server status</option>');
+                                                    //$('#processTypeM').append('<option value="responseTime">Web server response time</option>');
+                                                    break;
+                                            }
+                                            $('#processTypeM').val(data.metricData.processType);
+                                            
+                                            if((data.metricData.process === 'HttpProcess')&&(data.metricData.processType === 'checkStatus'))
+                                            {
+                                                $('#editMetricQueryTabBtn a').html("Server");
+                                                $('#editMetricQueryTabQueryRow').hide();
+                                                $('#editMetricQueryTabServerRow').show();
+                                                
+                                                var httpCallJson = JSON.parse(data.metricData.query);
+                                                $('#serverTestHttpMethodM').val(httpCallJson.method);
+                                                $('#serverTestTokenM').val(httpCallJson.token);
+                                                $('#serverTestUrlM').val(httpCallJson.url);
+                                            }
+                                            else
+                                            {
+                                                $('#editMetricQueryTabBtn a').html("Datasources & queries");
+                                                $('#editMetricQueryTabServerRow').hide();
+                                                $('#editMetricQueryTabQueryRow').show();
+                                                if(dataSources.length > 1)
+                                                {
+                                                    $('#dataSourceM').val(dataSources[0]);
+                                                    $('#dataSource2M').val(dataSources[1]);
+                                                }
+                                                else
+                                                {
+                                                    $('#dataSourceM').val(dataSources[0]);
+                                                    $('#dataSource2M').val("none");
+                                                }
+                                                
+                                                $('#dataSourceDescriptionM').val(data.metricData.source);
+                                                $('#dataAreaM').val(data.metricData.area);
+
+                                                if(data.metricData.query !== null)
+                                                {
+                                                    $('#queryM').val(data.metricData.query);
+                                                }
+
+                                                if(data.metricData.query2 !== null)
+                                                {
+                                                    $('#query2M').val(data.metricData.query2);
+                                                }
+                                            }
+                                            
                                             $('#modalEditMetric').modal('show');
                                         }
                                         else
@@ -1599,15 +3790,11 @@
                                     $('#delMetricOkMsg').show();
                                     $('#delMetricOkIcon').show();
 
-                                    $('#list_metrics').bootstrapTable('removeByUniqueId', $('#metricIdToDel').val());
+                                    //$('#list_metrics').bootstrapTable('removeByUniqueId', $('#metricIdToDel').val());
+                                    buildMainTable(true);
                                     if($('#metricToDelActive').val() === "true")
                                     {
-                                        console.log("Vero");
                                         $('#dashboardTotActiveCnt .pageSingleDataCnt').html(parseInt($('#dashboardTotActiveCnt .pageSingleDataCnt').html()) - 1);
-                                    }
-                                    else
-                                    {
-                                        console.log("Falso");
                                     }
 
                                     setTimeout(function(){

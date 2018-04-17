@@ -45,8 +45,11 @@
     <link href="../css/bootstrap.css" rel="stylesheet">
     
     <!-- Bootstrap editable tables -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>-->
+    
+    <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+    <script src="../bootstrap3-editable/js/bootstrap-editable.js"></script>
     
     <!-- Filestyle -->
     <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>

@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -18,11 +18,11 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad) 
     {
         var titleWidth = null;
         
-        $('#<?= $_GET['name'] ?>_desc').width('74%');
+        $('#<?= $_REQUEST['name_w'] ?>_desc').width('74%');
         <?php
             $titlePatterns = array();
             $titlePatterns[0] = '/_/';
@@ -30,58 +30,58 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?>
     
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var headerHeight = 25;
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var showHeader = null;
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight"));
-            $('#<?= $_GET['name'] ?>_header').hide();
+            var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
+            $('#<?= $_REQUEST['name_w'] ?>_header').hide();
         }
         else
         {
             //TBD - Vanno gestiti i futuri casi di policy manuale e show/hide header a scelta utente
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - headerHeight);
-            $('#<?= $_GET['name'] ?>_header').show();
+            var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - headerHeight);
+            $('#<?= $_REQUEST['name_w'] ?>_header').show();
         }
         
         if(hostFile === "config")
         {
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 50 - 25 - 2));
+            titleWidth = parseInt(parseInt($("#<?= $_REQUEST['name_w'] ?>_div").width() - 25 - 50 - 25 - 2));
         }
         else
         {
-            $("#<?= $_GET['name'] ?>_buttonsDiv").css("display", "none");
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 25 - 2));
+            $("#<?= $_REQUEST['name_w'] ?>_buttonsDiv").css("display", "none");
+            titleWidth = parseInt(parseInt($("#<?= $_REQUEST['name_w'] ?>_div").width() - 25 - 25 - 2));
         }
         
-        $("#<?= $_GET['name'] ?>_titleDiv").css("width", titleWidth + "px");
-        $("#<?= $_GET['name'] ?>_titleDiv").css("color", "<?= $_GET['headerFontColor'] ?>");
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
-        $("#<?= $_GET['name'] ?>_countdownDiv").css("color", "<?= $_GET['headerFontColor'] ?>");
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("width", titleWidth + "px");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
+        $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
         
         var loadingFontDim = 13;
         var loadingIconDim = 20;
         
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
-        $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
+        $('#<?= $_REQUEST['name_w'] ?>_loading').css("height", height+"px");
+        $('#<?= $_REQUEST['name_w'] ?>_loading p').css("font-size", loadingFontDim+"px");
+        $('#<?= $_REQUEST['name_w'] ?>_loading i').css("font-size", loadingIconDim+"px");
         
         if(firstLoad !== false)
         {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
+            $('#<?= $_REQUEST['name_w'] ?>_loading').css("display", "block");
         }
         
-        $("#table_<?= $_GET['name'] ?>").css("height", height);
+        $("#table_<?= $_REQUEST['name_w'] ?>").css("height", height);
         
         var circleHeight = null;
         var fontRatio = null;
@@ -95,30 +95,29 @@
         var tabIndex = 0;
         var alarmSet = false;
         
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
-        $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
+        var colore_frame = "<?= $_REQUEST['frame_color_w'] ?>";
+        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
+        var defaultTab = parseInt("<?= $_REQUEST['defaultTab'] ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_div").css({'background-color':colore_frame});
         
-        var url = "<?= $_GET['link_w'] ?>";
+        var url = "<?= $_REQUEST['link_w'] ?>";
         if(url === "null")
         {
             url = null;
         }
-        var divChartContainer = $('#table_<?= $_GET['name'] ?>');
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
+        var divChartContainer = $('#table_<?= $_REQUEST['name_w'] ?>');
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
         
         
         $.ajax({//Inizio AJAX getParametersWidgets.php
             url: "../widgets/getParametersWidgets.php",
             type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
+            data: {"nomeWidget": ["<?= $_REQUEST['name_w'] ?>"]},
             async: true,
             dataType: 'json',
             success: function (msg) 
             {
                 var sizeRowsWidget = parseInt(msg.param.size_rows);
-                manageInfoButtonVisibility(msg.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
                 
                 $.ajax({
                     url: "../widgets/getDataMetrics.php",
@@ -129,24 +128,24 @@
                     success: function (msg) 
                     {
                         carHeight = height - 23;
-                        $("#<?= $_GET['name'] ?>_carousel").css("height", carHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_carousel").css("height", carHeight);
                                 
                         circleHeight = parseInt(carHeight*0.78);
-                        $("#<?= $_GET['name'] ?>_ataf_intime").css("width", circleHeight);
-                        $("#<?= $_GET['name'] ?>_ataf_intime").css("height", circleHeight);
-                        $("#<?= $_GET['name'] ?>_ataf_early").css("width", circleHeight);
-                        $("#<?= $_GET['name'] ?>_ataf_early").css("height", circleHeight);
-                        $("#<?= $_GET['name'] ?>_ataf_late").css("width", circleHeight);
-                        $("#<?= $_GET['name'] ?>_ataf_late").css("height", circleHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_ataf_intime").css("width", circleHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_ataf_intime").css("height", circleHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_ataf_early").css("width", circleHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_ataf_early").css("height", circleHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_ataf_late").css("width", circleHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_ataf_late").css("height", circleHeight);
                         
                         valueHeight = parseInt(circleHeight*0.42);
                         descHeight = parseInt(circleHeight*0.25);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_intime_value_p").css("height", valueHeight);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_intime_desc_p").css("height", descHeight);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_early_value_p").css("height", valueHeight);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_early_desc_p").css("height", descHeight);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_late_value_p").css("height", valueHeight);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_late_desc_p").css("height", descHeight);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_value_p").css("height", valueHeight);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_desc_p").css("height", descHeight);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_early_value_p").css("height", valueHeight);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_early_desc_p").css("height", descHeight);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_late_value_p").css("height", valueHeight);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_late_desc_p").css("height", descHeight);
                         
                         var threshold = parseInt(msg.data[0].commit.author.threshold);
                         var thresholdEval = msg.data[0].commit.author.thresholdEval;
@@ -162,73 +161,73 @@
                         fontRatioTitle = fontRatioTitle.toString() + "%";
                         fontRatioUpdate = fontRatioUpdate.toString() + "%";
                         fontRatioStateIntro = fontRatioStateIntro.toString() + "%";
-                        $("#measure_<?= $_GET['name'] ?>_ataf_intime_value_p").css("font-size", fontRatio);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_early_value_p").css("font-size", fontRatio);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_late_value_p").css("font-size", fontRatio);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_intime_desc_p").css("font-size", fontRatioSmall);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_early_desc_p").css("font-size", fontRatioSmall);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_late_desc_p").css("font-size", fontRatioSmall);
-                        $("#<?= $_GET['name'] ?>_date_update").css("font-size", fontRatioUpdate);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_value_p").css("font-size", fontRatio);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_early_value_p").css("font-size", fontRatio);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_late_value_p").css("font-size", fontRatio);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_desc_p").css("font-size", fontRatioSmall);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_early_desc_p").css("font-size", fontRatioSmall);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_late_desc_p").css("font-size", fontRatioSmall);
+                        $("#<?= $_REQUEST['name_w'] ?>_date_update").css("font-size", fontRatioUpdate);
                         
                         var fontRatioNav = "55%";
-                        $("#<?= $_GET['name'] ?>_nav_ul").css("font-size", fontRatioNav);
+                        $("#<?= $_REQUEST['name_w'] ?>_nav_ul").css("font-size", fontRatioNav);
                         
-                        $("#<?= $_GET['name'] ?>_nav_ul a").on("click", function(event){
+                        $("#<?= $_REQUEST['name_w'] ?>_nav_ul a").on("click", function(event){
                             event.preventDefault();
                         });
                         
                         if(firstLoad !== false)
                         {
-                            $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                            $('#table_<?= $_GET['name'] ?>').css("display", "block");
+                            $('#<?= $_REQUEST['name_w'] ?>_loading').css("display", "none");
+                            $('#table_<?= $_REQUEST['name_w'] ?>').css("display", "block");
                         }
 
-                        var liHeight = $("#<?= $_GET['name'] ?>_nav_service_state_li").height();
+                        var liHeight = $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").height();
                         var paneHeight = height - liHeight;
                         var linesContentHeight = parseInt(paneHeight*0.8);
                         var linesFillerHeight = parseInt(paneHeight*0.1);
                         
-                        var valPaneHeight = $("#table_<?= $_GET['name'] ?>").height();
-                        var valHeight = $("#measure_<?= $_GET['name'] ?>_intime").height();
+                        var valPaneHeight = $("#table_<?= $_REQUEST['name_w'] ?>").height();
+                        var valHeight = $("#measure_<?= $_REQUEST['name_w'] ?>_intime").height();
                         var valMargin = parseInt((valPaneHeight*0.25 - 23)/2);
                         var valueMargin = parseInt((sizeRowsWidget / 4)*20);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_intime_value_div").css("margin-top", valueMargin);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_late_value_div").css("margin-top", valueMargin);
-                        $("#measure_<?= $_GET['name'] ?>_ataf_early_value_div").css("margin-top", valueMargin);
-                        var lastUpdateHeight = $("#table_<?= $_GET['name'] ?>").height() - 23;
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_value_div").css("margin-top", valueMargin);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_late_value_div").css("margin-top", valueMargin);
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_early_value_div").css("margin-top", valueMargin);
+                        var lastUpdateHeight = $("#table_<?= $_REQUEST['name_w'] ?>").height() - 23;
                         lastUpdateHeight = lastUpdateHeight + "px";
-                        $("#<?= $_GET['name'] ?>_date_update").css("height", lastUpdateHeight);
+                        $("#<?= $_REQUEST['name_w'] ?>_date_update").css("height", lastUpdateHeight);
                         
                         var date_agg = msg.data[0].commit.author.computationDate;
-                        $("#<?= $_GET['name'] ?>_date_update_content").html("ULTIMO AGGIORNAMENTO:<br/>" + date_agg);
+                        $("#<?= $_REQUEST['name_w'] ?>_date_update_content").html("ULTIMO AGGIORNAMENTO:<br/>" + date_agg);
                         
                         
-                        $("#<?= $_GET['name'] ?>_lines_container").css("height", linesContentHeight + "px");
-                        $("#<?= $_GET['name'] ?>_lines_container").css("margin-top", linesFillerHeight + "px");
+                        $("#<?= $_REQUEST['name_w'] ?>_lines_container").css("height", linesContentHeight + "px");
+                        $("#<?= $_REQUEST['name_w'] ?>_lines_container").css("margin-top", linesFillerHeight + "px");
                         
                         
-                        $("#<?= $_GET['name'] ?>_nav_service_state_li").click(function() 
+                        $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").click(function() 
                         {
-                            $("#<?= $_GET['name'] ?>_nav_service_state_li").attr("class", "active ");
-                            $("#<?= $_GET['name'] ?>_nav_lines_li").attr("class", "");
-                            $("#<?= $_GET['name'] ?>_nav_data_li").attr("class", "");
-                            $("#table_<?= $_GET['name'] ?>").carousel(0);
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").attr("class", "active ");
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_lines_li").attr("class", "");
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_data_li").attr("class", "");
+                            $("#table_<?= $_REQUEST['name_w'] ?>").carousel(0);
                         });
                         
-                        $("#<?= $_GET['name'] ?>_nav_lines_li").click(function() 
+                        $("#<?= $_REQUEST['name_w'] ?>_nav_lines_li").click(function() 
                         {
-                            $("#<?= $_GET['name'] ?>_nav_service_state_li").attr("class", "");
-                            $("#<?= $_GET['name'] ?>_nav_lines_li").attr("class", "active");
-                            $("#<?= $_GET['name'] ?>_nav_data_li").attr("class", "");
-                            $("#table_<?= $_GET['name'] ?>").carousel(1);
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").attr("class", "");
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_lines_li").attr("class", "active");
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_data_li").attr("class", "");
+                            $("#table_<?= $_REQUEST['name_w'] ?>").carousel(1);
                         });
                         
-                        $("#<?= $_GET['name'] ?>_nav_data_li").click(function() 
+                        $("#<?= $_REQUEST['name_w'] ?>_nav_data_li").click(function() 
                         {
-                            $("#<?= $_GET['name'] ?>_nav_service_state_li").attr("class", "");
-                            $("#<?= $_GET['name'] ?>_nav_lines_li").attr("class", "");
-                            $("#<?= $_GET['name'] ?>_nav_data_li").attr("class", "active");
-                            $("#table_<?= $_GET['name'] ?>").carousel(2);
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").attr("class", "");
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_lines_li").attr("class", "");
+                            $("#<?= $_REQUEST['name_w'] ?>_nav_data_li").attr("class", "active");
+                            $("#table_<?= $_REQUEST['name_w'] ?>").carousel(2);
                         });
 
                         var valueInOrario = msg.data[0].commit.author.value_perc1;
@@ -278,88 +277,88 @@
                         //NON CANCELLARE, VA ADATTATA AL NUOVO HTML DELL'HEADER 
                         if(alarmSet)
                         {
-                            $("#<?= $_GET['name'] ?>_alarmDiv").removeClass("alarmDiv");
-                            $("#<?= $_GET['name'] ?>_alarmDiv").addClass("alarmDivActive");
+                            $("#<?= $_REQUEST['name_w'] ?>_alarmDiv").removeClass("alarmDiv");
+                            $("#<?= $_REQUEST['name_w'] ?>_alarmDiv").addClass("alarmDivActive");
                         }
 
-                        $("#table_<?= $_GET['name'] ?>").css({backgroundColor: '<?= $_GET['color'] ?>'});
-                        $("#<?= $_GET['name'] ?>_date_update").css({backgroundColor: '<?= $_GET['color'] ?>'});
+                        $("#table_<?= $_REQUEST['name_w'] ?>").css({backgroundColor: '<?= $_REQUEST['color_w'] ?>'});
+                        $("#<?= $_REQUEST['name_w'] ?>_date_update").css({backgroundColor: '<?= $_REQUEST['color_w'] ?>'});
 
-                        $("#measure_<?= $_GET['name'] ?>_ataf_intime_value_p").html(valueInOrario + "%");
-                        $("#measure_<?= $_GET['name'] ?>_ataf_early_value_p").html(valueInAnticipo + "%");
-                        $("#measure_<?= $_GET['name'] ?>_ataf_late_value_p").html(valueInRitardo + "%");
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_value_p").html(valueInOrario + "%");
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_early_value_p").html(valueInAnticipo + "%");
+                        $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_late_value_p").html(valueInRitardo + "%");
                         
-                        $('#table_<?= $_GET['name'] ?>').on('slid.bs.carousel', function (ev) 
+                        $('#table_<?= $_REQUEST['name_w'] ?>').on('slid.bs.carousel', function (ev) 
                         {
                             var id = ev.relatedTarget.id;
                             switch(id)
                             {
-                                case "<?= $_GET['name'] ?>_service":
-                                    $("#<?= $_GET['name'] ?>_nav_service_state_li").attr("class", "active ");
-                                    $("#<?= $_GET['name'] ?>_nav_lines_li").attr("class", "");
-                                    $("#<?= $_GET['name'] ?>_nav_data_li").attr("class", "");        
+                                case "<?= $_REQUEST['name_w'] ?>_service":
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").attr("class", "active ");
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_lines_li").attr("class", "");
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_data_li").attr("class", "");        
                                     break;
                             
-                                case "<?= $_GET['name'] ?>_lines":
-                                    $("#<?= $_GET['name'] ?>_nav_service_state_li").attr("class", "");
-                                    $("#<?= $_GET['name'] ?>_nav_lines_li").attr("class", "active");
-                                    $("#<?= $_GET['name'] ?>_nav_data_li").attr("class", "");        
+                                case "<?= $_REQUEST['name_w'] ?>_lines":
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").attr("class", "");
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_lines_li").attr("class", "active");
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_data_li").attr("class", "");        
                                     break;    
                             
-                                case "<?= $_GET['name'] ?>_date_update" :
-                                    $("#<?= $_GET['name'] ?>_nav_service_state_li").attr("class", "");
-                                    $("#<?= $_GET['name'] ?>_nav_lines_li").attr("class", "");
-                                    $("#<?= $_GET['name'] ?>_nav_data_li").attr("class", "active");        
+                                case "<?= $_REQUEST['name_w'] ?>_date_update" :
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_service_state_li").attr("class", "");
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_lines_li").attr("class", "");
+                                    $("#<?= $_REQUEST['name_w'] ?>_nav_data_li").attr("class", "active");        
                                     break;
                             }
                         });
                        
-                       addLink("<?= $_GET['name'] ?>", url, linkElement, divChartContainer);
+                       addLink("<?= $_REQUEST['name_w'] ?>", url, linkElement, divChartContainer);
                         
-                        $('#source_<?= $_GET['name'] ?>').on('click', function () {
-                            $('#dialog_<?= $_GET['name'] ?>').show();
+                        $('#source_<?= $_REQUEST['name_w'] ?>').on('click', function () {
+                            $('#dialog_<?= $_REQUEST['name_w'] ?>').show();
                         });
                         
-                        $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-                            $('#dialog_<?= $_GET['name'] ?>').hide();
+                        $('#close_popup_<?= $_REQUEST['name_w'] ?>').on('click', function () {
+                            $('#dialog_<?= $_REQUEST['name_w'] ?>').hide();
                         });
                         
                         if(defaultTab !== -1)
                         {
-                            $("#table_<?= $_GET['name'] ?>").carousel(defaultTab);
-                            $('#table_<?= $_GET['name'] ?>').addClass('slide');
+                            $("#table_<?= $_REQUEST['name_w'] ?>").carousel(defaultTab);
+                            $('#table_<?= $_REQUEST['name_w'] ?>').addClass('slide');
                         }
                         else
                         {
-                            $('#table_<?= $_GET['name'] ?>').addClass('slide');
-                            $('#table_<?= $_GET['name'] ?>').attr('data-interval', 4000);
-                            $('#table_<?= $_GET['name'] ?>').carousel('cycle');
+                            $('#table_<?= $_REQUEST['name_w'] ?>').addClass('slide');
+                            $('#table_<?= $_REQUEST['name_w'] ?>').attr('data-interval', 4000);
+                            $('#table_<?= $_REQUEST['name_w'] ?>').carousel('cycle');
 
                         }
 
-                        var counter = <?= $_GET['freq'] ?>;
+                        var counter = <?= $_REQUEST['frequency_w'] ?>;
                         var countdown = setInterval(function () 
                         {
                             counter--;
                             if(counter > 60) 
                             {
-                                $("#<?= $_GET['name'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
+                                $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
                             } 
                             else 
                             {
-                                $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
+                                $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
                             }
                             if (counter === 0) 
                             {
-                                $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
-                                $('#table_<?= $_GET['name'] ?>').off();
+                                $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
+                                $('#table_<?= $_REQUEST['name_w'] ?>').off();
                                 if(alarmSet)
                                 {
-                                    $("#<?= $_GET['name'] ?>_alarmDiv").removeClass("alarmDivActive");
-                                    $("#<?= $_GET['name'] ?>_alarmDiv").addClass("alarmDiv");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDiv").removeClass("alarmDivActive");
+                                    $("#<?= $_REQUEST['name_w'] ?>_alarmDiv").addClass("alarmDiv");
                                 } 
                                 clearInterval(countdown);
-                                setTimeout(<?= $_GET['name'] ?>(false), 1000);
+                                setTimeout(<?= $_REQUEST['name_w'] ?>(false), 1000);
                             }
                         }, 1000);
 
@@ -374,30 +373,19 @@
 });
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
         <!-- NON CANCELLARE! VA ADATTATA AL NUOVO HTML -->
-        <!--<div id='<?= $_GET['name'] ?>_alarmDiv' class="alarmDiv">
-            <div id="<?= $_GET['name'] ?>_desc" class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_GET['name'] ?>" class="countdown"></div> 
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_alarmDiv' class="alarmDiv">
+            <div id="<?= $_REQUEST['name_w'] ?>_desc" class="desc"></div><div class="icons-modify-widget"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div><div id="countdown_<?= $_REQUEST['name_w'] ?>" class="countdown"></div> 
         </div>-->
         
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>
+        <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
         
         
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -405,11 +393,11 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id="table_<?= $_GET['name'] ?>" class="carousel ataf-table-widget" data-interval="false" data-pause="hover"> 
-            <ul id="<?= $_GET['name'] ?>_nav_ul" class="nav nav-tabs nav_ul">
-                <li role="navigation" id="<?= $_GET['name'] ?>_nav_service_state_li" class="active"><a disabled="true" class="atafTab">stato</a></li>
-                <li role="navigation" id="<?= $_GET['name'] ?>_nav_lines_li"><a disabled="true" class="atafTab">linee monitorate</a></li>
-                <li role="navigation" id="<?= $_GET['name'] ?>_nav_data_li"><a disabled="true" class="atafTab">dati</a></li>
+        <div id="table_<?= $_REQUEST['name_w'] ?>" class="carousel ataf-table-widget" data-interval="false" data-pause="hover"> 
+            <ul id="<?= $_REQUEST['name_w'] ?>_nav_ul" class="nav nav-tabs nav_ul">
+                <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_nav_service_state_li" class="active"><a disabled="true" class="atafTab">stato</a></li>
+                <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_nav_lines_li"><a disabled="true" class="atafTab">linee monitorate</a></li>
+                <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_nav_data_li"><a disabled="true" class="atafTab">dati</a></li>
             </ul>
               <!-- Indicators -->
               <!--<ol class="carousel-indicators">
@@ -420,56 +408,56 @@
               </ol>-->
 
             <!-- Wrapper for slides -->
-            <div id="<?= $_GET['name'] ?>_carousel" class="carousel-inner" role="listbox">
-                <div id="<?= $_GET['name'] ?>_service" class="item active atafService">
-                        <div id="measure_<?= $_GET['name'] ?>_intime" class="atafValueContainer">
-                            <div id="<?= $_GET['name'] ?>_ataf_intime" class="atafValueRoundContainer">
-                                <div id="measure_<?= $_GET['name'] ?>_ataf_intime_value_div" class="atafValue">
-                                    <p id="measure_<?= $_GET['name'] ?>_ataf_intime_value_p" class="atafValueP"></p> 
+            <div id="<?= $_REQUEST['name_w'] ?>_carousel" class="carousel-inner" role="listbox">
+                <div id="<?= $_REQUEST['name_w'] ?>_service" class="item active atafService">
+                        <div id="measure_<?= $_REQUEST['name_w'] ?>_intime" class="atafValueContainer">
+                            <div id="<?= $_REQUEST['name_w'] ?>_ataf_intime" class="atafValueRoundContainer">
+                                <div id="measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_value_div" class="atafValue">
+                                    <p id="measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_value_p" class="atafValueP"></p> 
                                 </div>
-                                <div id="measure_<?= $_GET['name'] ?>_ataf_intime_desc_div" class="atafDesc">
-                                    <p id="measure_<?= $_GET['name'] ?>_ataf_intime_desc_p" class="atafDescP">in orario</p> 
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div id="measure_<?= $_GET['name'] ?>_early" class="atafValueContainer">
-                            <div id="<?= $_GET['name'] ?>_ataf_early" class="atafValueRoundContainer">
-                                <div id="measure_<?= $_GET['name'] ?>_ataf_early_value_div" class="atafValue">
-                                    <p id="measure_<?= $_GET['name'] ?>_ataf_early_value_p" class="atafValueP"></p> 
-                                </div>
-                                <div id="measure_<?= $_GET['name'] ?>_ataf_early_desc_div" class="atafDesc">
-                                    <p id="measure_<?= $_GET['name'] ?>_ataf_early_desc_p" class="atafDescP">in anticipo</p>
+                                <div id="measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_desc_div" class="atafDesc">
+                                    <p id="measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_desc_p" class="atafDescP">in orario</p> 
                                 </div>
                             </div>
                         </div>
                     
-                        <div id="measure_<?= $_GET['name'] ?>_late" class="atafValueContainer">
-                            <div id="<?= $_GET['name'] ?>_ataf_late" class="atafValueRoundContainer">
-                                <div id="measure_<?= $_GET['name'] ?>_ataf_late_value_div" class="atafValue">
-                                    <p id="measure_<?= $_GET['name'] ?>_ataf_late_value_p" class="atafValueP"></p> 
+                        <div id="measure_<?= $_REQUEST['name_w'] ?>_early" class="atafValueContainer">
+                            <div id="<?= $_REQUEST['name_w'] ?>_ataf_early" class="atafValueRoundContainer">
+                                <div id="measure_<?= $_REQUEST['name_w'] ?>_ataf_early_value_div" class="atafValue">
+                                    <p id="measure_<?= $_REQUEST['name_w'] ?>_ataf_early_value_p" class="atafValueP"></p> 
                                 </div>
-                                <div id="measure_<?= $_GET['name'] ?>_ataf_late_desc_div" class="atafDesc">
-                                    <p id="measure_<?= $_GET['name'] ?>_ataf_late_desc_p" class="atafDescP">in ritardo</p>
+                                <div id="measure_<?= $_REQUEST['name_w'] ?>_ataf_early_desc_div" class="atafDesc">
+                                    <p id="measure_<?= $_REQUEST['name_w'] ?>_ataf_early_desc_p" class="atafDescP">in anticipo</p>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div id="measure_<?= $_REQUEST['name_w'] ?>_late" class="atafValueContainer">
+                            <div id="<?= $_REQUEST['name_w'] ?>_ataf_late" class="atafValueRoundContainer">
+                                <div id="measure_<?= $_REQUEST['name_w'] ?>_ataf_late_value_div" class="atafValue">
+                                    <p id="measure_<?= $_REQUEST['name_w'] ?>_ataf_late_value_p" class="atafValueP"></p> 
+                                </div>
+                                <div id="measure_<?= $_REQUEST['name_w'] ?>_ataf_late_desc_div" class="atafDesc">
+                                    <p id="measure_<?= $_REQUEST['name_w'] ?>_ataf_late_desc_p" class="atafDescP">in ritardo</p>
                                 </div>
                             </div>
                         </div> 
                 </div>
                 
-                <div id="<?= $_GET['name'] ?>_lines" class="item">
+                <div id="<?= $_REQUEST['name_w'] ?>_lines" class="item">
                     <div class="atafUtility">
-                        <div id="<?= $_GET['name'] ?>_lines_container" class="atafLinesContainer">
-                            <div id="<?= $_GET['name'] ?>_line1" class="atafLineSingleContainer">2</div>
-                            <div id="<?= $_GET['name'] ?>_line2" class="atafLineSingleContainer">12</div>
-                            <div id="<?= $_GET['name'] ?>_line3" class="atafLineSingleContainer">33</div> 
+                        <div id="<?= $_REQUEST['name_w'] ?>_lines_container" class="atafLinesContainer">
+                            <div id="<?= $_REQUEST['name_w'] ?>_line1" class="atafLineSingleContainer">2</div>
+                            <div id="<?= $_REQUEST['name_w'] ?>_line2" class="atafLineSingleContainer">12</div>
+                            <div id="<?= $_REQUEST['name_w'] ?>_line3" class="atafLineSingleContainer">33</div> 
                         </div>
                     </div>
                 </div>
                 
-                <div id="<?= $_GET['name'] ?>_date_update" class="atafLastUpdate item">
+                <div id="<?= $_REQUEST['name_w'] ?>_date_update" class="atafLastUpdate item">
                     <!-- Div utilità per far funzionare il carousel con l'allineamento flex-->
                     <div class="atafUtility">
-                        <div id="<?= $_GET['name'] ?>_date_update_content" class="atafLastUpdateContent"></div>   
+                        <div id="<?= $_REQUEST['name_w'] ?>_date_update_content" class="atafLastUpdateContent"></div>   
                     </div>   
                 </div>
             </div>

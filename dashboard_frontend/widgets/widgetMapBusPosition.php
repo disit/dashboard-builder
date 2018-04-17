@@ -21,28 +21,53 @@ include('../config.php');
     {
         var url="<?= $serviceMapUrlPrefix ?>api/v1?queryId=5295ccef482480352adb90ff5a22d35e&format=html";
         
-         $('#<?= $_GET['name'] ?>_desc').width('87%');
-         $('#<?= $_GET['name'] ?>_desc').html('<span><div id="<?= $_GET['name'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_GET['title']) ?>"><?= preg_replace('/_/', ' ', $_GET['title']) ?></div><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_GET['name'] ?>" src="../management/img/info.png" class="source_button"></a></span>');
+         $('#<?= $_REQUEST['name_w'] ?>_desc').width('87%');
+         $('#<?= $_REQUEST['name_w'] ?>_desc').html('<span><div id="<?= $_REQUEST['name_w'] ?>_desc_text" class="desc_text" title="<?= preg_replace('/_/', ' ', $_REQUEST['title_w']) ?>"><?= preg_replace('/_/', ' ', $_REQUEST['title_w']) ?></div><a id ="info_modal" href="#" class="info_source"><img id="source_<?= $_REQUEST['name_w'] ?>" src="../management/img/info.png" class="source_button"></a></span>');
+		 var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
   
         
-        $('#<?= $_GET['name'] ?>_map_content').attr('src', url);
+        $('#<?= $_REQUEST['name_w'] ?>_map_content').attr('src', url);
         
-        $('#source_<?= $_GET['name'] ?>').on('click', function () {
-            $('#dialog_<?= $_GET['name'] ?>').show();
+        $('#source_<?= $_REQUEST['name_w'] ?>').on('click', function () {
+            $('#dialog_<?= $_REQUEST['name_w'] ?>').show();
         });
-        $('#close_popup_<?= $_GET['name'] ?>').on('click', function () {
-
-            $('#dialog_<?= $_GET['name'] ?>').hide();
-        })
+        $('#close_popup_<?= $_REQUEST['name_w'] ?>').on('click', function ()
+        {
+            $('#dialog_<?= $_REQUEST['name_w'] ?>').hide();
+        });
+		
+		$('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').remove();
     });
 </script>
-<div class="widget">
+
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
+    <div class='ui-widget-content'>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
+            <div class="loadingTextDiv">
+                <p>Loading data, please wait</p>
+            </div>
+            <div class ="loadingIconDiv">
+                <i class='fa fa-spinner fa-spin'></i>
+            </div>
+        </div>
+        
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <iframe id="<?= $_REQUEST['name_w'] ?>_map_content" class="map_bus_position"></iframe>
+        </div>
+    </div>	
+</div> 
+
+<!--<div class="widget">
     <div class='ui-widget-content'>        
-        <div id="<?= $_GET['name'] ?>_desc" class="desc"></div>
+        <div id="<?= $_REQUEST['name_w'] ?>_desc" class="desc"></div>
         <div class="icons-modify-widget">
             <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
         </div>
-        <iframe id="<?= $_GET['name'] ?>_map_content" class="map_bus_position"></iframe>
+        
     </div>	
-</div> 
+</div>--> 

@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
     {
         <?php
             $titlePatterns = array();
@@ -28,37 +28,38 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?> 
          
         var intervalRef, timeFontSize, scroller, widgetProperties, styleParameters, icon, serviceUri, 
             planName, newRow, eventContentW, test, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
             background, originalHeaderColor, originalBorderColor, planTitle, temp, day, month, hour, min, sec, planStart, 
-            planName, serviceUri, planStartDate, planStartTime,
+            planName, serviceUri, planStartDate, planStartTime, widgetParameters,
             plansNumber, widgetWidth, shownHeight, rowPercHeight, contentHeightPx, eventContentWPerc, dataContainer,
             dateContainer, dateTimeFontSize, mapPtrContainer, pinContainer, pinMsgContainer, 
             fontSizePin, dateFontSize, mapPinImg, planId, pathsContainer, paths, statusContainer, status, detailsContainer, decisionContainer, 
             decisionPtrContainer, decisionMsgContainer, statusOnPin, lastPopup = null;    
     
         var planNames = new Array();
-        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var speed = 50;
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
-        var elToEmpty = $("#<?= $_GET['name'] ?>_rollerContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
+        var url = "<?= $_REQUEST['link_w'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+		var showHeader = null;
         
         var plansObj = {};
         var plansOrderedIds = [];
@@ -73,36 +74,36 @@
             url = null;
         }
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-            showHeader = false;
-	}
-	else
-	{
-            showHeader = true;
-	}
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+				showHeader = false;
+		}
+		else
+		{
+				showHeader = true;
+		}
    
         timeFontSize = parseInt(fontSize*1.6);
         dateFontSize = parseInt(fontSize*0.95);
         fontSizePin = parseInt(fontSize*0.95);
         
         $(document).on("esbEventAdded", function(event){
-           if(event.generator !== "<?= $_GET['name'] ?>")
+           if(event.generator !== "<?= $_REQUEST['name_w'] ?>")
            {
-              $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").each(function(i){
-                 if($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap") === "true")
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").each(function(i){
+                 if($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap") === "true")
                  {
                     var evtType = null;
                     for(widgetName in widgetTargetList)
                     {
-                       evtType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-eventtype");
+                       evtType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-eventtype");
                        if($.inArray(evtType, widgetTargetList[widgetName]))
                        {
-                          $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap", "false");
+                          $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap", "false");
                           
-                          $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").html("");
-                          $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).removeClass("onMapTrafficEventPinAnimated");
-                          $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
+                          $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").html("");
+                          $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).removeClass("onMapTrafficEventPinAnimated");
+                          $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
                           
                           plansOnMaps[widgetName].shownPolyGroup = null;
                           plansOnMaps[widgetName].mapRef = null;
@@ -110,10 +111,10 @@
                           decisionSortState = 0;
                           timeSortState = 0;
                           
-                          $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("img").attr("src", "../img/trafficIcons/time.png");
-                          $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
-                          $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("img").attr("src", "../img/planIcons/decision.png");
-                          $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
+                          $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("img").attr("src", "../img/trafficIcons/time.png");
+                          $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
+                          $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("img").attr("src", "../img/planIcons/decision.png");
+                          $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
                        }
                     }
                  }
@@ -147,7 +148,7 @@
         {
            var i = 0;
            
-           $('#<?= $_GET['name'] ?>_rollerContainer').empty();
+           $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
            
             for(var z = 0; z < plansOrderedIds.length; z++)
             {
@@ -200,7 +201,7 @@
              paths = plansObj[key].payload.evacuation_paths.length;
              planId = key;
              
-             newRow = $("<div></div>");
+             newRow = $('<div class="trafficEventRow"></div>');
              
              switch(status)
              {
@@ -235,14 +236,11 @@
                    break;  
              }
              
-             
-
              newRow.css("height", rowPercHeight + "%");
-             planTitle = $('<div class="eventTitle"><p class="eventTitlePar">' + planName + '</p></div>');
+             planTitle = $('<div class="eventTitle"><p class="eventTitlePar"><span>' + planName + '</span></p></div>');
              planTitle.addClass(backgroundTitleClass);
-             planTitle.css("font-size", fontSize + "px");
              planTitle.css("height", "30%");
-             $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
+             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
 
              newRow.append(planTitle);
 
@@ -252,27 +250,21 @@
              detailsContainer = $('<div class="planDetailsContainer"></div>');
              
              statusContainer = $("<div class='planStatusContainer centerWithFlex'></div>"); 
-             statusContainer.css("font-size", dateFontSize + "px");
              statusContainer.addClass(backgroundFieldsClass);
              statusContainer.html(status);
              detailsContainer.append(statusContainer);
 
              dateContainer = $("<div class='planDateContainer centerWithFlex'></div>"); 
-             dateContainer.css("font-size", dateFontSize + "px");
              dateContainer.addClass(backgroundFieldsClass);
              dateContainer.html(planStartDate + " - " + planStartTime);
              detailsContainer.append(dateContainer);
              
-             pathsContainer = $("<div class='planDateContainer centerWithFlex'></div>"); 
-             pathsContainer.css("font-size", dateFontSize + "px");
+             pathsContainer = $("<div class='planPathNumberContainer centerWithFlex'></div>"); 
              pathsContainer.addClass(backgroundFieldsClass);
              pathsContainer.html("PATHS: " + paths);
              detailsContainer.append(pathsContainer);
              
              dataContainer.append(detailsContainer);
-             
-             dateTimeFontSize = parseInt(fontSize) - 1;
-             dateContainer.css("font-size", dateTimeFontSize + "px");
 
              mapPtrContainer = $("<div class='trafficEventMapPtr'></div>"); 
              mapPtrContainer.addClass(backgroundFieldsClass);
@@ -288,10 +280,10 @@
              
 
              pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-eventType='" + statusOnPin + "' data-eventstartdate='" + planStartDate + "' data-eventstarttime='" + planStartTime + "'" + 
-                                "data-background='" + background + "' data-onMap='false' data-planid='" + planId + "'><i class='material-icons' style='font-size:32px'>place</i></a></div>");
+                                "data-background='" + background + "' data-onMap='false' data-planid='" + planId + "'><i class='material-icons'>place</i></a></div>");
              mapPtrContainer.append(pinContainer);
              pinMsgContainer = $("<div class='trafficEventPinMsgContainer'></div>");
-             pinMsgContainer.css("font-size", fontSizePin + "px");
+             //pinMsgContainer.css("font-size", fontSizePin + "px");
              mapPtrContainer.append(pinMsgContainer);
 
              dataContainer.append(mapPtrContainer);
@@ -302,7 +294,7 @@
              decisionContainer = $("<div class='planDecisionContainer'><a class='planDecisionLink' data-background='" + background + "' data-planstatus='" + status + "' data-planid='" + planId + "'><img src='../img/planIcons/decision.png'/></a></div>");
              decisionPtrContainer.append(decisionContainer);
              decisionMsgContainer = $("<div class='decisionPinMsgContainer'></div>");
-             decisionMsgContainer.css("font-size", fontSizePin + "px");
+             //decisionMsgContainer.css("font-size", fontSizePin + "px");
              decisionPtrContainer.append(decisionMsgContainer);
 
              dataContainer.append(decisionPtrContainer);
@@ -316,7 +308,7 @@
                 newRow.css("margin-bottom", "0px");
              }
 
-             $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
              
              
              decisionContainer.find("a.planDecisionLink").hover(
@@ -347,7 +339,7 @@
                      //Freeze del widget, per evitare problemi quando il refresh intercorre prima di chiudere il modale
                      clearInterval(intervalRef);
                      clearInterval(scroller);
-                     $("#<?= $_GET['name'] ?>_rollerContainer").off();
+                     $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
                      
                      $("#modalChangePlanStatusPlanId").val($(this).attr("data-planid"));
                      $("#modalChangePlanStatusCurrentStatus").val($(this).attr("data-planstatus"));
@@ -444,7 +436,7 @@
                                 }
                                 else
                                 {
-                                   $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
+                                   $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
                                 }
 
                                 if($(this).attr("data-eventType") === localEventType)
@@ -477,21 +469,21 @@
                         {
                             if($(this).attr("data-onMap") === 'false')
                             {
-                                $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                                $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                                    $(this).html("");
                                 });
                                 
-                                $("#<?= $_GET['name'] ?>_div a.trafficEventLink").each(function(){
+                                $("#<?= $_REQUEST['name_w'] ?>_div a.trafficEventLink").each(function(){
                                    $(this).removeClass("onMapTrafficEventPinAnimated");
                                    $(this).attr("data-onMap", 'false');
                                 });
                                         
-                                $("#<?= $_GET['name'] ?>_div div.trafficEventPinMsgContainer").each(function(){
+                                $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventPinMsgContainer").each(function(){
                                    $(this).removeClass("onMapTrafficEventPinAnimated");
                                 });
                                 
                                 $(this).attr("data-onMap", 'true');
-                                $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
+                                $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
                                 $(this).addClass("onMapTrafficEventPinAnimated");
                                 $(this).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
                                 
@@ -515,29 +507,36 @@
                //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
                $.event.trigger({
                    type: "esbEventAdded",
-                   generator: "<?= $_GET['name'] ?>",
+                   generator: "<?= $_REQUEST['name_w'] ?>",
                    targetsArray: targetsArrayForNotify
                });
                 
              });
              i++;
-             
-            //Mappa vuota sui target - Commentata il 21/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map" 
-            /*if(fromSort !== true)
-            {
-               for(var widgetName in widgetTargetList) 
-               {
-                  if($("#" + widgetName + "_div").attr("data-emptymapshown") === "false")
-                  {
-                     $("#" + widgetName + "_wrapper").hide();
-                     $("#" + widgetName + "_defaultMapDiv").show();
-                     loadDefaultMap(widgetName);
-                     $("#" + widgetName + "_div").attr("data-emptymapshown", "true");
-                  }
-               }
-            }*/
 
             }//Fine del for 
+            
+            var maxTitleFontSize = $('div.eventTitle').height()*0.75;
+
+            if(maxTitleFontSize > fontSize)
+            {
+                maxTitleFontSize = fontSize;
+            }
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer p.eventTitlePar span').css("font-size", maxTitleFontSize + "px");
+            var subdataFontSize = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planDateContainer').eq(0).width()*0.075;
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planStatusContainer ').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planDateContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planPathNumberContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventLink i').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/1.5) + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinMsgContainer').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/2.846) + "px");
+            
+            if(!fromSort)
+            {
+               var btnIndicatorFontSize = $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").eq(0).width()/48.4375;
+               $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").css("font-size", btnIndicatorFontSize + "em");
+            }
         }
         
         function removeAllEventsFromMaps(fromSort)
@@ -581,7 +580,7 @@
             {  
               if($('#' + widgetNameLocal + '_fullscreenEvent_' + i).length <= 0)
               {
-                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="evacuationPlan" data-pathsQt="' + pathsQt + '"data-polyColor="' + poly.options.color + '" data-polyIndex="' + polyIndex + '" id="<?= $_GET['name'] ?>_fullscreenEvent_' + i + '"/>');
+                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="evacuationPlan" data-pathsQt="' + pathsQt + '"data-polyColor="' + poly.options.color + '" data-polyIndex="' + polyIndex + '" id="<?= $_REQUEST['name_w'] ?>_fullscreenEvent_' + i + '"/>');
                 temp.val(JSON.stringify(poly._latlngs[i]));
                 $('#' + widgetNameLocal + '_modalLinkOpen div.modalLinkOpenBody').append(temp);
               }
@@ -702,23 +701,58 @@
         
         function stepDownInterval()
         {
-            var oldPos = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldPos = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             var newPos = oldPos + 1;
             
-            var oldScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
-            $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(newPos);
-            var newScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(newPos);
+            var newScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             
             if(oldScrollTop === newScrollTop)
             {
-               $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
             }
+        }
+        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+            
+            var btnIndicatorFontSize = $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").eq(0).width()/48.4375;
+            $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").css("font-size", btnIndicatorFontSize + "em");
+            
+            shownHeight = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").prop("offsetHeight");
+            rowPercHeight =  75 * 100 / shownHeight;
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer div.trafficEventRow').css("height", rowPercHeight + "%");
+            var maxTitleFontSize = $('div.eventTitle').height()*0.75;
+            
+            if(maxTitleFontSize > fontSize)
+            {
+                maxTitleFontSize = fontSize;
+            }
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer p.eventTitlePar span').css("font-size", maxTitleFontSize + "px");
+            var subdataFontSize = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planDateContainer').eq(0).width()*0.075;
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planStatusContainer ').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planDateContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .planPathNumberContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventLink i').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/1.5) + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinMsgContainer').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/2.846) + "px");
+            
+            clearInterval(scroller);    
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
+            scroller = setInterval(stepDownInterval, speed);
         }
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
-        $("#<?= $_GET['name'] ?>_buttonsContainer").css("background-color", $("#<?= $_GET['name'] ?>_header").css("background-color"));
-        
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+        $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer").css("background-color", $("#<?= $_REQUEST['name_w'] ?>_header").css("background-color"));
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -729,637 +763,636 @@
         }
         
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        widgetProperties = getWidgetProperties(widgetName);
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        //widgetProperties = getWidgetProperties(widgetName);
         
-        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
+        //Nuova versione
+        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
         {
-            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-            styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
-            //Fine eventuale codice ad hoc basato sulle proprietà del widget
+            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+        }
+        
+        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        {
+            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+        }
+
+        widgetTargetList = widgetParameters;
             
-            widgetTargetList = JSON.parse(widgetProperties.param.parameters);
-            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
+        for(var name in widgetTargetList) 
+        {
+           plansOnMaps[name] = {
+              noPointsUrl: null,
+              shownPolyGroup: null,
+              mapRef: null
+           };
+        }
             
-            for(var name in widgetTargetList) 
-            {
-               plansOnMaps[name] = {
-                  noPointsUrl: null,
-                  shownPolyGroup: null,
-                  mapRef: null
-               };
-            }
-            
-            $.ajax({
-               url: "../widgets/esbDao.php",
-               type: "POST",
-               data: {
-                  operation: "getEvacuationPlans"
-               },
-               async: true,
-               dataType: 'json',
-               success: function (data) 
-               {
-                  if(firstLoad !== false)
-                  {
-                      showWidgetContent(widgetName);
-                  }
-                  else
-                  {
-                      elToEmpty.empty();
-                  }
-                  
-                  $("#<?= $_GET['name'] ?>_noDataAlert").hide();
-                  $('#<?= $_GET['name'] ?>_buttonsContainer').show();
-                  $("#<?= $_GET['name'] ?>_rollerContainer").show();
-                  
-                  $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height() - 50); 
-                  
-                  plansNumber = Object.keys(data).length;
-                  
-                  if(plansNumber === 0)
-                  {
-                     $("#<?= $_GET['name'] ?>_table").css("display", "none"); 
-                     $("#<?= $_GET['name'] ?>_noDataAlert").css("display", "block");
-                  }
-                  else
-                  {
-                     widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
-                     shownHeight = $("#<?= $_GET['name'] ?>_rollerContainer").prop("offsetHeight");
-                     rowPercHeight =  75 * 100 / shownHeight;
-                     contentHeightPx = plansNumber * 100;
-                     eventContentWPerc = null;
+        $.ajax({
+           url: "../widgets/esbDao.php",
+           type: "POST",
+           data: {
+              operation: "getEvacuationPlans"
+           },
+           async: true,
+           dataType: 'json',
+           success: function (data) 
+           {
+              if(firstLoad !== false)
+              {
+                  showWidgetContent(widgetName);
+              }
+              else
+              {
+                  elToEmpty.empty();
+              }
 
-                     if(contentHeightPx > shownHeight)
-                     {
-                         eventContentW = parseInt(widgetWidth - 45 - 22);
-                     }
-                     else
-                     {
-                         eventContentW = parseInt(widgetWidth - 45 - 5);
-                     }
+              $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").hide();
+              $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').show();
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").show();
 
-                     eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
+              plansNumber = Object.keys(data).length;
 
-                     //Inserimento una tantum degli eventi nell'apposito oggetto
-                     var dataId = null;
-                     for(var key in data)
-                     {
-                       var localPayload = JSON.parse(data[key].originalPayload);
-                       data[key].payload = localPayload;
-                       delete data[key].originalPayload;
+              if(plansNumber === 0)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_table").css("display", "none"); 
+                 $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").css("display", "block");
+              }
+              else
+              {
+                 widgetWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width();
+                 shownHeight = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").prop("offsetHeight");
+                 rowPercHeight =  75 * 100 / shownHeight;
+                 contentHeightPx = plansNumber * 100;
+                 eventContentWPerc = null;
 
-                       dataId = data[key].data_id.replace("urn:rixf:gr.certh/evacuationplan_ID/", "");
-                       
-                       if((data[key].lastStatus === "") || (data[key].lastStatus === "null") || (data[key].lastStatus === null) || (data[key].lastStatus === undefined))
+                 if(contentHeightPx > shownHeight)
+                 {
+                     eventContentW = parseInt(widgetWidth - 45 - 22);
+                 }
+                 else
+                 {
+                     eventContentW = parseInt(widgetWidth - 45 - 5);
+                 }
+
+                 eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
+
+                 //Inserimento una tantum degli eventi nell'apposito oggetto
+                 var dataId = null;
+                 for(var key in data)
+                 {
+                   var localPayload = JSON.parse(data[key].originalPayload);
+                   data[key].payload = localPayload;
+                   delete data[key].originalPayload;
+
+                   dataId = data[key].data_id.replace("urn:rixf:gr.certh/evacuationplan_ID/", "");
+
+                   if((data[key].lastStatus === "") || (data[key].lastStatus === "null") || (data[key].lastStatus === null) || (data[key].lastStatus === undefined))
+                   {
+                      data[key].lastStatus = "PROPOSED";
+                   }
+
+                   plansObj[dataId] = data[key];
+
+                   plansOrderedIds.push(dataId);
+                 }
+
+                 plansOrderedIds.sort(function(a,b){
+                    var itemA = new Date(plansObj[a].event_time); 
+                    var itemB = new Date(plansObj[b].event_time);
+                    if (itemA > itemB)
+                    {
+                       return -1;
+                    }
+                    else
+                    {
+                       if (itemA < itemB)
                        {
-                          data[key].lastStatus = "PROPOSED";
+                          return 1;
                        }
-                       
-                       plansObj[dataId] = data[key];
-                       
-                       plansOrderedIds.push(dataId);
-                     }
-                     
-                     plansOrderedIds.sort(function(a,b){
-                        var itemA = new Date(plansObj[a].event_time); 
-                        var itemB = new Date(plansObj[b].event_time);
-                        if (itemA > itemB)
+                       else
+                       {
+                          return 0; 
+                       }
+                    }
+                });
+
+                 populateWidget(false);
+
+                 //Abort evacuation plan status update
+                 $("#modalChangePlanStatusCloseBtn").click(function(){
+                    $("#modalChangePlanStatusConfirmBtn").off("click");
+                    $("#modalChangePlanStatusCancelBtn").off("click");
+                    $("#modalChangePlanStatusCloseBtn").off("click");
+                    <?= $_REQUEST['name_w'] ?>(false);
+                    $("#modalChangePlanStatus").modal('hide');
+                 });
+
+                 $("#modalChangePlanStatusCancelBtn").click(function(){
+                    $("#modalChangePlanStatusConfirmBtn").off("click");
+                    $("#modalChangePlanStatusCancelBtn").off("click");
+                    $("#modalChangePlanStatusCloseBtn").off("click");
+                    <?= $_REQUEST['name_w'] ?>(false);
+                    $("#modalChangePlanStatus").modal('hide');
+                 });
+
+                 //Update evacuation plan status
+                 $("#modalChangePlanStatusConfirmBtn").off("click");
+                 $("#modalChangePlanStatusConfirmBtn").click(function(){
+                    $("#modalChangePlanStatusMain").hide();
+                    $("#modalChangePlanStatusFooter").hide();
+                    $("#modalChangePlanStatusWait").show();
+
+                    var newStatus = $("#modalChangePlanStatusSelect").val();
+                    var planId = $("#modalChangePlanStatusPlanId").val();
+
+                    //console.log("http://www.resolute-eu.org/cxf/resolute/commands/plan/status/?consumerId=urn:rixf:org.disit/dashboard_manager&evacuationPlanId=urn:rixf:gr.certh/evacuationplan_ID/" + planId + "&status=" + newStatus);
+
+                    $.ajax({
+                       url: "http://www.resolute-eu.org/cxf/resolute/commands/plan/status/?consumerId=urn:rixf:org.disit/dashboard_manager&evacuationPlanId=urn:rixf:gr.certh/evacuationplan_ID/" + planId + "&status=" + newStatus,
+                       type: "POST",
+                       //contentType: 'application/json', 
+                       async: true,
+                       success: function (result) 
+                       {
+                          clearInterval(intervalRef);
+                          clearInterval(scroller);
+                          $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
+                          $("#modalChangePlanStatusWait").hide();
+                          $("#modalChangePlanStatusOk").show();
+
+                          setTimeout(function(){
+                            $("#modalChangePlanStatus").modal('hide');
+                            $("#modalChangePlanStatusConfirmBtn").off("click");
+                            $("#modalChangePlanStatusCancelBtn").off("click");
+                            $("#modalChangePlanStatusCloseBtn").off("click");
+
+                           <?= $_REQUEST['name_w'] ?>(false);
+                          }, 2000);
+                       },
+                       error: function(result)
+                       {
+                          console.log("KO");
+                          console.log(JSON.stringify(result));
+
+                          $("#modalChangePlanStatusWait").hide();
+                          $("#modalChangePlanStatusKo").show();
+
+                          setTimeout(function(){
+                             $("#modalChangePlanStatus").modal('hide');
+                             <?= $_REQUEST['name_w'] ?>(false);
+                          }, 3000);
+                       }
+                    });
+
+                 });
+
+                 $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).hover(
+                    function()
+                    {
+                        $(this).css("cursor", "pointer");
+                        $(this).css("color", "white");
+                        $(this).find("img").attr("src", "../img/trafficIcons/timeWhite.png");
+
+                        switch(timeSortState)
                         {
-                           return -1;
+                            case 0://Crescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down"></i>');
+                                $(this).attr("title", "Sort by time - Ascending");
+                                break;
+
+                            case 1://Decrescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up"></i>');
+                                $(this).attr("title", "Sort by time - Descending");
+                                break;
+
+                            case 2://No sort
+                                $(this).find("div.trafficEventsButtonIndicator").html('no sort');
+                                $(this).attr("title", "Sort by time - None");
+                                break;
                         }
-                        else
+                    }, 
+                    function()
+                    {
+                        $(this).css("cursor", "auto");
+                        $(this).css("color", "black");
+                        $(this).find("img").attr("src", "../img/trafficIcons/time.png");
+
+                        switch(timeSortState)
                         {
-                           if (itemA < itemB)
+                            case 0://No sort
+                                $(this).find("div.trafficEventsButtonIndicator").html('');
+                                break;
+
+                            case 1://Crescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down"></i>');
+                                break;
+
+                            case 2://Decrescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up"></i>');
+                                break;
+                        }
+                    }
+                  );
+
+                    $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).hover(
+                       function()
+                       {
+                           $(this).css("cursor", "pointer");
+                           $(this).css("color", "white");
+                           $(this).find("img").attr("src", "../img/planIcons/decisionWhite.png");
+                           switch(decisionSortState)
                            {
-                              return 1;
+                               case 0://Crescente verso il basso
+                                   $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down"></i>');
+                                   $(this).attr("title", "Sort by status - Ascending");
+                                   break;
+
+                               case 1://Decrescente verso il basso
+                                   $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up"></i>');
+                                   $(this).attr("title", "Sort by status - Descending");
+                                   break;
+
+                               case 2://No sort
+                                   $(this).find("div.trafficEventsButtonIndicator").html('no sort');
+                                   $(this).attr("title", "Sort by status - None");
+                                   break;
+                           }
+                       }, 
+                       function()
+                       {
+                           $(this).css("cursor", "auto");
+                           $(this).css("color", "black");
+                           $(this).find("img").attr("src", "../img/planIcons/decision.png");
+
+                           switch(decisionSortState)
+                           {
+                               case 0://No sort
+                                   $(this).find("div.trafficEventsButtonIndicator").html('');
+                                   break;
+
+                               case 1://Crescente verso il basso
+                                   $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down"></i>');
+                                   break;
+
+                               case 2://Decrescente verso il basso
+                                   $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up"></i>');
+                                   break;
+                           }
+                       }
+                  );
+
+                  $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).click(function(){
+                       var localEventType = null;
+                       switch(timeSortState)
+                       {
+                           case 0:
+                               timeSortState = 1;
+                               plansOrderedIds.sort(function(a,b) {
+                                   var itemA = new Date(plansObj[a].event_time); 
+                                   var itemB = new Date(plansObj[b].event_time);
+                                   if (itemA > itemB)
+                                   {
+                                      return 1;
+                                   }
+                                   else
+                                   {
+                                      if (itemA < itemB)
+                                      {
+                                         return -1;
+                                      }
+                                      else
+                                      {
+                                         return 0; 
+                                      }
+                                   }
+                               });
+
+                                populateWidget(true);
+                                removeAllEventsFromMaps(true);
+
+                                targetsArrayForNotify = [];
+
+                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                                localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                                for(var widgetName in widgetTargetList) 
+                                 {
+                                    for(var key in widgetTargetList[widgetName]) 
+                                    {
+                                       if(widgetTargetList[widgetName][key] === localEventType)
+                                       {
+                                          targetsArrayForNotify.push(widgetName);
+                                          $("#" + widgetName + "_wrapper").hide();
+                                          $("#" + widgetName + "_mapDiv").show();
+                                          addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                       }
+                                    }
+                                 }
+
+                                //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
+                                $.event.trigger({
+                                    type: "esbEventAdded",
+                                    generator: "<?= $_REQUEST['name_w'] ?>",
+                                    targetsArray: targetsArrayForNotify
+                                }); 
+
+                               $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down"></i>');
+                               break;
+
+                           case 1:
+                               timeSortState = 2;
+                               plansOrderedIds.sort(function(a,b){
+                                   var itemA = new Date(plansObj[a].event_time); 
+                                   var itemB = new Date(plansObj[b].event_time);
+                                   if (itemA > itemB)
+                                   {
+                                      return -1;
+                                   }
+                                   else
+                                   {
+                                      if (itemA < itemB)
+                                      {
+                                         return 1;
+                                      }
+                                      else
+                                      {
+                                         return 0; 
+                                      }
+                                   }
+                               });
+
+                               populateWidget(true);
+                                removeAllEventsFromMaps(true);
+
+                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                                localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                                for(var widgetName in widgetTargetList) 
+                                 {
+                                    for(var key in widgetTargetList[widgetName]) 
+                                    {
+                                       if(widgetTargetList[widgetName][key] === localEventType)
+                                       {
+                                          $("#" + widgetName + "_wrapper").hide();
+                                          $("#" + widgetName + "_mapDiv").show();
+                                          addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                       }
+                                    }
+                                 }
+
+                               $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up"></i>');
+                               break;
+
+                           case 2:
+                               timeSortState = 0;
+                               plansOrderedIds.sort(function(a,b){
+                                   var itemA = new Date(plansObj[a].event_time); 
+                                   var itemB = new Date(plansObj[b].event_time);
+                                   if (itemA > itemB)
+                                   {
+                                      return -1;
+                                   }
+                                   else
+                                   {
+                                      if (itemA < itemB)
+                                      {
+                                         return 1;
+                                      }
+                                      else
+                                      {
+                                         return 0; 
+                                      }
+                                   }
+                               });
+
+                               populateWidget(true);
+                               removeAllEventsFromMaps(false);
+
+                               $(this).find("div.trafficEventsButtonIndicator").html('');
+                               break;
+                       }
+
+                       $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html('');
+                       decisionSortState = 0;
+                  });
+
+                  $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).click(function(){
+                       var localEventType = null;
+
+                       switch(decisionSortState)
+                       {
+                           case 0:
+                              decisionSortState = 1;
+                               plansOrderedIds.sort(function(a,b) {
+                                   var itemA = plansObj[a].lastStatus; 
+                                   var itemB = plansObj[b].lastStatus;
+                                   if (itemA > itemB)
+                                   {
+                                      return 1;
+                                   }
+                                   else
+                                   {
+                                      if (itemA < itemB)
+                                      {
+                                         return -1;
+                                      }
+                                      else
+                                      {
+                                         return 0; 
+                                      }
+                                   }
+                                   return parseInt(a.id) - parseInt(b.id);
+                               });
+
+                               populateWidget(true);
+                               removeAllEventsFromMaps(true);
+
+                               targetsArrayForNotify = [];
+
+                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                                localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                                for(var widgetName in widgetTargetList) 
+                                 {
+                                    for(var key in widgetTargetList[widgetName]) 
+                                    {
+                                       if(widgetTargetList[widgetName][key] === localEventType)
+                                       {
+                                          targetsArrayForNotify.push(widgetName);
+                                          $("#" + widgetName + "_wrapper").hide();
+                                          $("#" + widgetName + "_mapDiv").show();
+                                          addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                       }
+                                    }
+                                 }
+
+                                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
+                                $.event.trigger({
+                                    type: "esbEventAdded",
+                                    generator: "<?= $_REQUEST['name_w'] ?>",
+                                    targetsArray: targetsArrayForNotify
+                                });
+
+                               $("#<?= $_REQUEST['name_w'] ?>_decisionSortMsg").html('<i class="fa fa-caret-down"></i>');
+                               break;
+
+                           case 1:
+                               decisionSortState = 2;
+                               plansOrderedIds.sort(function(a,b){
+                                   var itemA = plansObj[a].lastStatus; 
+                                   var itemB = plansObj[b].lastStatus;
+                                   if (itemA > itemB)
+                                   {
+                                      return -1;
+                                   }
+                                   else
+                                   {
+                                      if (itemA < itemB)
+                                      {
+                                         return 1;
+                                      }
+                                      else
+                                      {
+                                         return 0; 
+                                      }
+                                   }
+                               });
+
+                               populateWidget(true);
+                                removeAllEventsFromMaps(true);
+
+                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                                localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                                for(var widgetName in widgetTargetList) 
+                                 {
+                                    for(var key in widgetTargetList[widgetName]) 
+                                    {
+                                       if(widgetTargetList[widgetName][key] === localEventType)
+                                       {
+                                          $("#" + widgetName + "_wrapper").hide();
+                                          $("#" + widgetName + "_mapDiv").show();
+                                          addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                       }
+                                    }
+                                 }
+
+                               $("#<?= $_REQUEST['name_w'] ?>_decisionSortMsg").html('<i class="fa fa-caret-up"></i>');
+                               break;
+
+                           case 2:
+                               decisionSortState = 0;
+                               plansOrderedIds.sort(function(a,b){
+                                   var itemA = parseInt(plansObj[a].id); 
+                                   var itemB = parseInt(plansObj[b].id);
+                                   return itemA - itemB;
+                               });
+
+                               populateWidget(true);
+                               removeAllEventsFromMaps(false);
+
+                               $("#<?= $_REQUEST['name_w'] ?>_decisionSortMsg").html('');
+                               break;
+                       }
+
+                       $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html('');
+                       timeSortState = 0;
+                  });
+
+                    scroller = setInterval(stepDownInterval, speed);
+                    var timeToClearScroll = (timeToReload - 0.5) * 1000;
+
+                    setTimeout(function()
+                    {
+                        clearInterval(scroller);
+                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
+
+                        //$(document).off("esbEventAdded");
+
+                        $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
+                        $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
+
+                        //Ripristino delle homepage native per gli widget targets al reload, se pilotati per ultimi da questo widget
+                        for(var widgetName in widgetTargetList) 
+                        {
+                           if($("#" + widgetName + "_driverWidgetType").val() === 'evacuationPlans')
+                           {
+                               loadDefaultMap(widgetName);
                            }
                            else
                            {
-                              return 0; 
+                               //console.log("Attualmente non pilotato da evacuationPlans");
                            }
                         }
+
+                    }, timeToClearScroll);
+
+
+                    $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseenter(function() 
+                    {
+                        clearInterval(scroller);
                     });
 
-                     populateWidget(false);
-                     
-                     //Abort evacuation plan status update
-                     $("#modalChangePlanStatusCloseBtn").click(function(){
-                        $("#modalChangePlanStatusConfirmBtn").off("click");
-                        $("#modalChangePlanStatusCancelBtn").off("click");
-                        $("#modalChangePlanStatusCloseBtn").off("click");
-                        <?= $_GET['name'] ?>(false);
-                        $("#modalChangePlanStatus").modal('hide');
-                     });
-                     
-                     $("#modalChangePlanStatusCancelBtn").click(function(){
-                        $("#modalChangePlanStatusConfirmBtn").off("click");
-                        $("#modalChangePlanStatusCancelBtn").off("click");
-                        $("#modalChangePlanStatusCloseBtn").off("click");
-                        <?= $_GET['name'] ?>(false);
-                        $("#modalChangePlanStatus").modal('hide');
-                     });
-                     
-                     //Update evacuation plan status
-                     $("#modalChangePlanStatusConfirmBtn").off("click");
-                     $("#modalChangePlanStatusConfirmBtn").click(function(){
-                        $("#modalChangePlanStatusMain").hide();
-                        $("#modalChangePlanStatusFooter").hide();
-                        $("#modalChangePlanStatusWait").show();
-                        
-                        var newStatus = $("#modalChangePlanStatusSelect").val();
-                        var planId = $("#modalChangePlanStatusPlanId").val();
-                        
-                        $.ajax({
-                           url: "https://www.resolute-eu.org/cxf/resolute/commands/plan/status/?consumerId=urn:rixf:org.disit/dashboard_manager&evacuationPlanId=urn:rixf:gr.certh/evacuationplan_ID/" + planId + "&status=" + newStatus,
-                           type: "POST",
-                           contentType: 'application/json', 
-                           async: true,
-                           success: function (result) 
-                           {
-                              clearInterval(intervalRef);
-                              clearInterval(scroller);
-                              $("#<?= $_GET['name'] ?>_rollerContainer").off();
-                              $("#modalChangePlanStatusWait").hide();
-                              $("#modalChangePlanStatusOk").show();
-                              
-                              setTimeout(function(){
-                                $("#modalChangePlanStatus").modal('hide');
-                                $("#modalChangePlanStatusConfirmBtn").off("click");
-                                $("#modalChangePlanStatusCancelBtn").off("click");
-                                $("#modalChangePlanStatusCloseBtn").off("click");
-                                 
-                               <?= $_GET['name'] ?>(false);
-                              }, 2000);
-                           },
-                           error: function(result)
-                           {
-                              console.log("KO");
-                              console.log(JSON.stringify(result));
-                              
-                              $("#modalChangePlanStatusWait").hide();
-                              $("#modalChangePlanStatusKo").show();
-                              
-                              setTimeout(function(){
-                                 $("#modalChangePlanStatus").modal('hide');
-                                 <?= $_GET['name'] ?>(false);
-                              }, 3000);
-                           }
-                        });
-                        
-                     });
-
-                     $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).hover(
-                        function()
-                        {
-                            $(this).css("cursor", "pointer");
-                            $(this).css("color", "white");
-                            $(this).find("img").attr("src", "../img/trafficIcons/timeWhite.png");
-
-                            switch(timeSortState)
-                            {
-                                case 0://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by time - Ascending");
-                                    break;
-
-                                case 1://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by time - Descending");
-                                    break;
-
-                                case 2://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('no sort');
-                                    $(this).attr("title", "Sort by time - None");
-                                    break;
-                            }
-                        }, 
-                        function()
-                        {
-                            $(this).css("cursor", "auto");
-                            $(this).css("color", "black");
-                            $(this).find("img").attr("src", "../img/trafficIcons/time.png");
-
-                            switch(timeSortState)
-                            {
-                                case 0://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('');
-                                    break;
-
-                                case 1://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    break;
-
-                                case 2://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    break;
-                            }
-                        }
-                      );
-
-                        $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).hover(
-                           function()
-                           {
-                               $(this).css("cursor", "pointer");
-                               $(this).css("color", "white");
-                               $(this).find("img").attr("src", "../img/planIcons/decisionWhite.png");
-                               switch(decisionSortState)
-                               {
-                                   case 0://Crescente verso il basso
-                                       $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                       $(this).attr("title", "Sort by status - Ascending");
-                                       break;
-
-                                   case 1://Decrescente verso il basso
-                                       $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                       $(this).attr("title", "Sort by status - Descending");
-                                       break;
-
-                                   case 2://No sort
-                                       $(this).find("div.trafficEventsButtonIndicator").html('no sort');
-                                       $(this).attr("title", "Sort by status - None");
-                                       break;
-                               }
-                           }, 
-                           function()
-                           {
-                               $(this).css("cursor", "auto");
-                               $(this).css("color", "black");
-                               $(this).find("img").attr("src", "../img/planIcons/decision.png");
-
-                               switch(decisionSortState)
-                               {
-                                   case 0://No sort
-                                       $(this).find("div.trafficEventsButtonIndicator").html('');
-                                       break;
-
-                                   case 1://Crescente verso il basso
-                                       $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                       break;
-
-                                   case 2://Decrescente verso il basso
-                                       $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                       break;
-                               }
-                           }
-                      );
-
-                      $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).click(function(){
-                           var localEventType = null;
-                           switch(timeSortState)
-                           {
-                               case 0:
-                                   timeSortState = 1;
-                                   plansOrderedIds.sort(function(a,b) {
-                                       var itemA = new Date(plansObj[a].event_time); 
-                                       var itemB = new Date(plansObj[b].event_time);
-                                       if (itemA > itemB)
-                                       {
-                                          return 1;
-                                       }
-                                       else
-                                       {
-                                          if (itemA < itemB)
-                                          {
-                                             return -1;
-                                          }
-                                          else
-                                          {
-                                             return 0; 
-                                          }
-                                       }
-                                   });
-                                   
-                                    populateWidget(true);
-                                    removeAllEventsFromMaps(true);
-                                    
-                                    targetsArrayForNotify = [];
-                                    
-                                    //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                    localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-
-                                    for(var widgetName in widgetTargetList) 
-                                     {
-                                        for(var key in widgetTargetList[widgetName]) 
-                                        {
-                                           if(widgetTargetList[widgetName][key] === localEventType)
-                                           {
-                                              targetsArrayForNotify.push(widgetName);
-                                              $("#" + widgetName + "_wrapper").hide();
-                                              $("#" + widgetName + "_mapDiv").show();
-                                              addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                           }
-                                        }
-                                     }
-                                     
-                                    //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
-                                    $.event.trigger({
-                                        type: "esbEventAdded",
-                                        generator: "<?= $_GET['name'] ?>",
-                                        targetsArray: targetsArrayForNotify
-                                    }); 
-                                   
-                                   $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                   break;
-
-                               case 1:
-                                   timeSortState = 2;
-                                   plansOrderedIds.sort(function(a,b){
-                                       var itemA = new Date(plansObj[a].event_time); 
-                                       var itemB = new Date(plansObj[b].event_time);
-                                       if (itemA > itemB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          if (itemA < itemB)
-                                          {
-                                             return 1;
-                                          }
-                                          else
-                                          {
-                                             return 0; 
-                                          }
-                                       }
-                                   });
-                                   
-                                   populateWidget(true);
-                                    removeAllEventsFromMaps(true);
-
-                                    //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                    localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-
-                                    for(var widgetName in widgetTargetList) 
-                                     {
-                                        for(var key in widgetTargetList[widgetName]) 
-                                        {
-                                           if(widgetTargetList[widgetName][key] === localEventType)
-                                           {
-                                              $("#" + widgetName + "_wrapper").hide();
-                                              $("#" + widgetName + "_mapDiv").show();
-                                              addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                           }
-                                        }
-                                     }
-                                   
-                                   $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                   break;
-
-                               case 2:
-                                   timeSortState = 0;
-                                   plansOrderedIds.sort(function(a,b){
-                                       var itemA = new Date(plansObj[a].event_time); 
-                                       var itemB = new Date(plansObj[b].event_time);
-                                       if (itemA > itemB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          if (itemA < itemB)
-                                          {
-                                             return 1;
-                                          }
-                                          else
-                                          {
-                                             return 0; 
-                                          }
-                                       }
-                                   });
-                                   
-                                   populateWidget(true);
-                                   removeAllEventsFromMaps(false);
-                                   
-                                   $(this).find("div.trafficEventsButtonIndicator").html('');
-                                   break;
-                           }
-                           
-                           $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html('');
-                           decisionSortState = 0;
-                      });
-
-                      $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).click(function(){
-                           var localEventType = null;
-                           
-                           switch(decisionSortState)
-                           {
-                               case 0:
-                                  decisionSortState = 1;
-                                   plansOrderedIds.sort(function(a,b) {
-                                       var itemA = plansObj[a].lastStatus; 
-                                       var itemB = plansObj[b].lastStatus;
-                                       if (itemA > itemB)
-                                       {
-                                          return 1;
-                                       }
-                                       else
-                                       {
-                                          if (itemA < itemB)
-                                          {
-                                             return -1;
-                                          }
-                                          else
-                                          {
-                                             return 0; 
-                                          }
-                                       }
-                                       return parseInt(a.id) - parseInt(b.id);
-                                   });
-                                   
-                                   populateWidget(true);
-                                   removeAllEventsFromMaps(true);
-                                   
-                                   targetsArrayForNotify = [];
-
-                                    //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                    localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-
-                                    for(var widgetName in widgetTargetList) 
-                                     {
-                                        for(var key in widgetTargetList[widgetName]) 
-                                        {
-                                           if(widgetTargetList[widgetName][key] === localEventType)
-                                           {
-                                              targetsArrayForNotify.push(widgetName);
-                                              $("#" + widgetName + "_wrapper").hide();
-                                              $("#" + widgetName + "_mapDiv").show();
-                                              addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                           }
-                                        }
-                                     }
-                                     
-                                     //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
-                                    $.event.trigger({
-                                        type: "esbEventAdded",
-                                        generator: "<?= $_GET['name'] ?>",
-                                        targetsArray: targetsArrayForNotify
-                                    });
-                                   
-                                   $("#<?= $_GET['name'] ?>_decisionSortMsg").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                   break;
-
-                               case 1:
-                                   decisionSortState = 2;
-                                   plansOrderedIds.sort(function(a,b){
-                                       var itemA = plansObj[a].lastStatus; 
-                                       var itemB = plansObj[b].lastStatus;
-                                       if (itemA > itemB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          if (itemA < itemB)
-                                          {
-                                             return 1;
-                                          }
-                                          else
-                                          {
-                                             return 0; 
-                                          }
-                                       }
-                                   });
-                                   
-                                   populateWidget(true);
-                                    removeAllEventsFromMaps(true);
-
-                                    //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                    localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                    $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-
-                                    for(var widgetName in widgetTargetList) 
-                                     {
-                                        for(var key in widgetTargetList[widgetName]) 
-                                        {
-                                           if(widgetTargetList[widgetName][key] === localEventType)
-                                           {
-                                              $("#" + widgetName + "_wrapper").hide();
-                                              $("#" + widgetName + "_mapDiv").show();
-                                              addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                           }
-                                        }
-                                     }
-                                   
-                                   $("#<?= $_GET['name'] ?>_decisionSortMsg").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                   break;
-
-                               case 2:
-                                   decisionSortState = 0;
-                                   plansOrderedIds.sort(function(a,b){
-                                       var itemA = parseInt(plansObj[a].id); 
-                                       var itemB = parseInt(plansObj[b].id);
-                                       return itemA - itemB;
-                                   });
-                                   
-                                   populateWidget(true);
-                                   removeAllEventsFromMaps(false);
-                                   
-                                   $("#<?= $_GET['name'] ?>_decisionSortMsg").html('');
-                                   break;
-                           }
-                           
-                           $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html('');
-                           timeSortState = 0;
-                      });
-                        
+                    $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseleave(function()
+                    {       
                         scroller = setInterval(stepDownInterval, speed);
-                        var timeToClearScroll = (timeToReload - 0.5) * 1000;
+                    });
+              }
+           },
+           error: function (data)
+           {
+              console.log("Ko");
+              console.log(JSON.stringify(data));
 
-                        setTimeout(function()
-                        {
-                            clearInterval(scroller);
-                            $("#<?= $_GET['name'] ?>_rollerContainer").off();
-                            
-                            //$(document).off("esbEventAdded");
-                            
-                            $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
-                            $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
-                            
-                            //Ripristino delle homepage native per gli widget targets al reload, se pilotati per ultimi da questo widget
-                            for(var widgetName in widgetTargetList) 
-                            {
-                               if($("#" + widgetName + "_driverWidgetType").val() === 'evacuationPlans')
-                               {
-                                   loadDefaultMap(widgetName);
-                               }
-                               else
-                               {
-                                   //console.log("Attualmente non pilotato da evacuationPlans");
-                               }
-                            }
-
-                        }, timeToClearScroll);
-
-
-                        $("#<?= $_GET['name'] ?>_rollerContainer").mouseenter(function() 
-                        {
-                            clearInterval(scroller);
-                        });
-
-                        $("#<?= $_GET['name'] ?>_rollerContainer").mouseleave(function()
-                        {       
-                            scroller = setInterval(stepDownInterval, speed);
-                        });
-                  }
-               },
-               error: function (data)
-               {
-                  console.log("Ko");
-                  console.log(JSON.stringify(data));
-                  
-                  showWidgetContent(widgetName);
-                  $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                  $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                  $("#<?= $_GET['name'] ?>_noDataAlert").show();
-               }
-            });
-        }
-        else
-        {
-            console.log("Errore in caricamento proprietà widget");
-            $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-            $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-            $("#<?= $_GET['name'] ?>_noDataAlert").show();
-        }
+              showWidgetContent(widgetName);
+              $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+              $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
+           }
+        });
         
-        intervalRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        
+        intervalRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         
     });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -1368,17 +1401,17 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
-               <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
-                    <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
+               <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
+                    <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                         No data available
                     </div>
-                    <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                    <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
                         <i class="fa fa-times"></i>
                     </div>
                </div>  
-               <div id="<?= $_GET['name'] ?>_buttonsContainer" class="trafficEventsButtonsContainer centerWithFlex">
+               <div id="<?= $_REQUEST['name_w'] ?>_buttonsContainer" class="trafficEventsButtonsContainer centerWithFlex">
                    <div class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">
                           <img src="../img/trafficIcons/time.png" />
@@ -1389,10 +1422,10 @@
                        <div class="trafficEventsButtonIcon centerWithFlex">
                            <img src="../img/planIcons/decision.png" />
                        </div>
-                      <div id="<?= $_GET['name'] ?>_decisionSortMsg" class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
+                      <div id="<?= $_REQUEST['name_w'] ?>_decisionSortMsg" class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
                </div>
-               <div id="<?= $_GET['name'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
+               <div id="<?= $_REQUEST['name_w'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
             </div>
         </div>
     </div>	

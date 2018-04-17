@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange)  
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange)  
     {
         <?php
             $titlePatterns = array();
@@ -28,52 +28,54 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?> 
         var scroller, widgetProperties, styleParameters, serviceUri, 
             eventName, newRow, symbolMode, symbolFile, widgetTargetList, originalHeaderColor, fontFamily, originalBorderColor, 
             eventName, serviceUri, queriesNumber, widgetWidth, shownHeight, rowPercHeight, contentHeightPx, eventContentWPerc, 
-            mapPtrContainer, pinContainer, queryDescContainer, activeFontColor, rowHeight, iconSize, queryDescContainerWidth, queryDescContainerWidthPerc, pinContainerWidthPerc = null;    
+            mapPtrContainer, pinContainer, queryDescContainer, activeFontColor, rowHeight, iconSize, queryDescContainerWidth,
+            queryDescContainerWidthPerc, pinContainerWidthPerc, defaultOption = null;    
     
-        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var speed = 65;
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var elToEmpty = $("#<?= $_GET['name'] ?>_rollerContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
+        var url = "<?= $_REQUEST['link_w'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var showHeader = null;
         var pinContainerWidth = 40;
+		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         
         if(url === "null")
         {
             url = null;
         }
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-            showHeader = false;
-	}
-	else
-	{
-            showHeader = true;
-	}
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+			showHeader = false;
+		}
+		else
+		{
+			showHeader = true;
+		}
         
         //Definizioni di funzione
         function populateWidget()
         {
             var queries = JSON.parse(widgetProperties.param.parameters).queries;
-            var desc, query, color1, color2, targets = null;
-            $('#<?= $_GET['name'] ?>_rollerContainer').empty();
+            var desc, query, color1, color2, targets, display = null;
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
             
             if(firstLoad !== false)
             {
@@ -91,9 +93,12 @@
                 color1 = queries[i].color1;
                 color2 = queries[i].color2;
                 targets = queries[i].targets;
-                symbolMode = queries[i].symbolMode;
                 
-                newRow = $('<div></div>');
+                symbolMode = queries[i].symbolMode;
+                defaultOption = queries[i].defaultOption;
+                display = queries[i].display;
+                
+                newRow = $('<div class="selectorRow" ></div>');
                 newRow.css("width", "100%");
                 newRow.css("height", rowPercHeight + "%");
                 
@@ -104,25 +109,11 @@
                 mapPtrContainer.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
                 mapPtrContainer.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
                 
-                rowHeight = $("#<?= $_GET['name'] ?>_content").height() * rowPercHeight / 100;
+                rowHeight = $("#<?= $_REQUEST['name_w'] ?>_content").height() * rowPercHeight / 100;
                 iconSize = parseInt(rowHeight*0.75);
-                
-                if(iconSize > 34)
-                {
-                    iconSize = 34;
-                }
-                iconSize = iconSize + "px";
-                
-                var loadingIconSize = parseInt(rowHeight*0.6);
-                
-                if(loadingIconSize > 25)
-                {
-                    loadingIconSize = 25;
-                }
-                
-                loadingIconSize = loadingIconSize + "px";
+                var pinMsgFontSize = rowHeight / 3.25;
 
-                pinContainer = $('<div class="gisPinContainer"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-onMap="false"><span class="gisPinShowMsg">show</span><span class="gisPinHideMsg">hide</span><span class="gisPinNoQueryMsg">no query</span><span class="gisPinNoMapsMsg">no maps set</span><i class="material-icons gisPinIcon" style="font-size: ' + iconSize + '">navigation</i><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon" style="font-size: ' + loadingIconSize + '"></i><i class="fa fa-close gisLoadErrorIcon" style="font-size: ' + iconSize + '"></i></div>');
+                pinContainer = $('<div class="gisPinContainer"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 
                 if(symbolMode === 'auto')
                 {
@@ -358,7 +349,7 @@
                            $(this).attr("data-onMap", "true");
                            $(this).hide();
                            $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
-                           addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets")); 
+                           addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display")); 
                         }
                         else
                         {
@@ -375,56 +366,58 @@
                                $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
                            }
                            
-                           $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "normal");
-                           $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", $(this).attr("data-fontColor"));
-                           removeLayerFromTargetMaps($(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-targets")); 
+                           $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('span.gisQueryDescPar').css("font-weight", "normal");
+                           $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('span.gisQueryDescPar').css("color", $(this).attr("data-fontColor"));
+                           removeLayerFromTargetMaps($(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display")); 
                         }  
                     }
                 });
                 
-                queryDescContainer = $('<div class="gisQueryDescContainer"></div>');
+                queryDescContainer = $('<div class="gisQueryDescContainer centerWithFlex"></div>');
                 queryDescContainer.css("background", color1);
                 queryDescContainer.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
                 queryDescContainer.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
                 queryDescContainer.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
                 queryDescContainer.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
-                queryDescContainer.html('<p class="gisQueryDescPar">' + desc + '</p>');
-                queryDescContainer.find("p.gisQueryDescPar").css("font-size", fontSize + "px");
-                queryDescContainer.find("p.gisQueryDescPar").css("color", fontColor);
+                queryDescContainer.html('<span class="gisQueryDescPar">' + desc + '</span>');
+                queryDescContainer.find("span.gisQueryDescPar").css("color", fontColor);
                 if(fontFamily !== 'Auto')
                 {
-                    queryDescContainer.find("p.gisQueryDescPar").css("font-family", fontFamily);
+                    queryDescContainer.find("span.gisQueryDescPar").css("font-family", fontFamily);
                 }
                 newRow.append(queryDescContainer);
                
-                $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
+                $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
                 
-                if(contentHeightPx > shownHeight)
-                {
-                    queryDescContainerWidth = widgetWidth - pinContainerWidth - 25;
-                    queryDescContainerWidthPerc = (queryDescContainerWidth / (widgetWidth - 25))*100;
-                    pinContainerWidthPerc = 100 - queryDescContainerWidthPerc;
-                }
-                else
-                {
-                    queryDescContainerWidth = widgetWidth - pinContainerWidth;
-                    queryDescContainerWidthPerc = (queryDescContainerWidth / widgetWidth)*100;
-                    pinContainerWidthPerc = 100 - queryDescContainerWidthPerc;
-                }
-                
-                mapPtrContainer.css("width", pinContainerWidthPerc + "%");
-                queryDescContainer.css("width", queryDescContainerWidthPerc + "%");
-                
-                var descParHeight = queryDescContainer.find("p.gisQueryDescPar").height();
-                var descParMarginTop = Math.floor((newRow.height() - descParHeight) / 2);
-                queryDescContainer.find("p.gisQueryDescPar").css("margin-top", descParMarginTop + "px");
+                mapPtrContainer.css("width", newRow.height() + "px");
+                queryDescContainer.css("width", parseInt(newRow.width() - newRow.height()) + "px");
+                pinContainer.find('i.gisPinIcon').css("font-size", newRow.height()*0.8 + "px");
+                queryDescContainer.textfill({
+                    maxFontPixels: fontSize
+                });
             }//Fine del for    
             
-            $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+            var minFontSize = fontSize;
+            
+            for(var k = 0; k < $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').length; k++)
+            {
+                if(parseInt($('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').eq(k).find('span.gisQueryDescPar').css('font-size').replace('px', '')) < minFontSize)
+                {
+                    minFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').eq(k).find('span.gisQueryDescPar').css('font-size').replace('px', ''));
+                }
+            }
+            
+            if(minFontSize > fontSize)
+            {
+                minFontSize = fontSize;
+            }
+            
+            $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer span.gisQueryDescPar').css("font-size", minFontSize + "px");
         }
         
-        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets)
+        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display)
         {
+            //Fin qui targets OK
             for(var i in widgetTargetList)
             {
                 $.event.trigger({
@@ -435,12 +428,13 @@
                     query: query,
                     color1: color1,
                     color2: color2,
-                    targets: targets
+                    targets: targets,
+                    display: display
                 }); 
             }
         }
         
-        function removeLayerFromTargetMaps(desc, query, color1, color2, targets)
+        function removeLayerFromTargetMaps(desc, query, color1, color2, targets, display)
         {
             for(var i in widgetTargetList)
             {
@@ -451,7 +445,8 @@
                      query: query,
                      color1: color1,
                      color2: color2,
-                     targets: targets
+                     targets: targets,
+                     display: display
                  }); 
             }
         }
@@ -480,22 +475,53 @@
             return styleParameters;
         }
         
-        function stepDownInterval()
-        {
-            var oldPos = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
-            var newPos = oldPos + 1;
-            var oldScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
-            $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(newPos);
-            var newScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+        function resizeWidget()
+	{
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
             
-            if(oldScrollTop === newScrollTop)
+            //Resize dei due contenitori di pin e desc, rispettivamente
+            var rowPxHeight =  $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').height() / queriesNumber;
+            var descPxWidth = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').width() - rowPxHeight;
+            $('#<?= $_REQUEST['name_w'] ?>_div div.gisMapPtrContainer').css("width", rowPxHeight + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').css("width", descPxWidth + "px");
+            
+            //Resize dei pin di default
+            $('#<?= $_REQUEST['name_w'] ?>_div i.gisPinIcon').css("font-size", rowPxHeight*0.8 + "px");
+            
+            //Resize dei messaggi no map, on map, show, hide
+            var pinMsgFontSize = rowPxHeight / 3.25;
+            $('#<?= $_REQUEST['name_w'] ?>_div span.gisPinShowMsg').css("font-size", pinMsgFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_div span.gisPinHideMsg').css("font-size", pinMsgFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_div span.gisPinNoQueryMsg').css("font-size", pinMsgFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_div span.gisPinNoMapsMsg').css("font-size", pinMsgFontSize + "px");
+            
+            //Resize delle descrizioni
+            $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').textfill({
+                maxFontPixels: fontSize
+            });
+            
+            var minFontSize = fontSize;
+            
+            for(var k = 0; k < $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').length; k++)
             {
-               $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+                if(parseInt($('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').eq(k).find('span.gisQueryDescPar').css('font-size').replace('px', '')) < minFontSize)
+                {
+                    minFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').eq(k).find('span.gisQueryDescPar').css('font-size').replace('px', ''));
+                }
             }
-        }
+            
+            if(minFontSize > fontSize)
+            {
+                minFontSize = fontSize;
+            }
+            
+            $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer span.gisQueryDescPar').css("font-size", minFontSize + "px");
+	}
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         
         if(firstLoad === false)
         {
@@ -507,8 +533,7 @@
         }
         
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        //widgetProperties = getWidgetProperties(widgetName);
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         
         $.ajax({
             url: getParametersWidgetUrl,
@@ -528,50 +553,31 @@
                     widgetTargetList = JSON.parse(widgetProperties.param.parameters).targets;
                     queriesNumber = JSON.parse(widgetProperties.param.parameters).queries.length;
                     activeFontColor = styleParameters.activeFontColor;
-                    widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
-                    shownHeight = $('#<?= $_GET['name'] ?>_div').height() - 25;
-                    manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
-
-                    switch(styleParameters.rectDim)
-                    {
-                        case "1":
-                            rowPercHeight =  25 * 100 / shownHeight;
-                            break;
-
-                        case "2":
-                            rowPercHeight =  50 * 100 / shownHeight;
-                            break;
-
-                        case "3":
-                            rowPercHeight =  75 * 100 / shownHeight;
-                            break;
-
-                        case "4":
-                            rowPercHeight =  100 / queriesNumber;
-                            break;    
-                    }
-
+                    widgetWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width();
+                    shownHeight = $('#<?= $_REQUEST['name_w'] ?>_div').height() - 25;
+                    
+                    rowPercHeight =  100 / queriesNumber;
                     contentHeightPx = queriesNumber * 100;
                     eventContentWPerc = null;
 
                     populateWidget();
-                    scroller = setInterval(stepDownInterval, speed);
-
-                    $("#<?= $_GET['name'] ?>_rollerContainer").mouseenter(function() 
-                    {
-                       clearInterval(scroller);
-                    });
-
-                    $("#<?= $_GET['name'] ?>_rollerContainer").mouseleave(function()
-                    {    
-                        scroller = setInterval(stepDownInterval, speed);
-                    });
+                    
+                    setTimeout(function(){
+                        for(var i = 0; i < JSON.parse(widgetProperties.param.parameters).queries.length; i++)
+                        {
+                            defaultOption = JSON.parse(widgetProperties.param.parameters).queries[i].defaultOption;
+                            if(defaultOption)
+                            {
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(i).trigger('click');
+                            }
+                        }
+                    }, parseInt("<?php echo $crossWidgetDefaultLoadWaitTime; ?>"));
                 }
                 else
                 {
                     console.log("Proprietà widget = null");
-                    $("#<?= $_GET['name'] ?>_mainContainer").hide();
-                    $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                    $("#<?= $_REQUEST['name_w'] ?>_mainContainer").hide();
+                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                 }
             },
             error: function(errorData)
@@ -581,8 +587,8 @@
                showWidgetContent(widgetName);
                if(firstLoad !== false)
                { 
-                  $("#<?= $_GET['name'] ?>_mainContainer").hide();
-                  $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                  $("#<?= $_REQUEST['name_w'] ?>_mainContainer").hide();
+                  $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                }
             }
         });
@@ -591,20 +597,22 @@
     });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>  
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -613,17 +621,17 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
-                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available
                 </div>
-                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>
                 </div>
             </div>
-            <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
-               <div id="<?= $_GET['name'] ?>_rollerContainer" class="gisRollerContainer"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
+               <div id="<?= $_REQUEST['name_w'] ?>_rollerContainer" class="gisRollerContainer"></div>
             </div>
         </div>
     </div>	

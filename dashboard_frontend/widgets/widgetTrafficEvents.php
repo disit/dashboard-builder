@@ -19,7 +19,7 @@
 ?>
 
 <script type='text/javascript' charset="utf-8">
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)  
     {
         <?php
             $titlePatterns = array();
@@ -28,31 +28,30 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?> 
         var timeFontSize, scroller, widgetProperties, styleParameters, icon, serviceUri, 
-            eventName, eventType, newRow, newIcon, eventContentW, test, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
+            eventName, eventType, newRow, newIcon, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
             background, originalHeaderColor, originalBorderColor, eventTitle, temp, day, month, hour, min, sec, eventStart, 
             eventName, serviceUri, eventLat, eventLng, eventTooltip, eventStartDate, eventStartTime, eventSeverityDesc,
-            eventsNumber, widgetWidth, shownHeight, rowPercHeight, contentHeightPx, eventContentWPerc, eventSubtype, dataContainer, middleContainer, subTypeContainer, subTypeFontSize,
+            eventsNumber, widgetWidth, shownHeight, rowPercHeight, contentHeightPx, eventSubtype, dataContainer, middleContainer, subTypeContainer,
             dateContainer, timeContainer, dateTimeFontSize, severityContainer, mapPtrContainer, pinContainer, pinMsgContainer, 
-            fontSizePin, dateFontSize, mapPinImg, eventNameWithCase, eventSeverity, 
-            typeId, subtypeId, lastPopup = null;    
-        var eventNames = new Array();
-        var fontSize = "<?= $_GET['fontSize'] ?>";
+            mapPinImg, eventNameWithCase, eventSeverity, typeId, subtypeId, lastPopup, defaultCategory, widgetParameters = null; 
+       
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var speed = 50;
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
-        var elToEmpty = $("#<?= $_GET['name'] ?>_rollerContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
+        var url = "<?= $_REQUEST['link_w'] ?>";
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var eventsArray = [];
         var eventsOnMaps = {};
         var allIncidentsOnMap = false;
@@ -65,19 +64,19 @@
         var timeSortState = 0;
         var typeSortState = 0;
         var headerHeight = 25;
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_GET['showTitle'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
 	var showHeader = null;
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-            showHeader = false;
-	}
-	else
-	{
-            showHeader = true;
-	} 
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+				showHeader = false;
+		}
+		else
+		{
+				showHeader = true;
+		} 
         
         var targetsArrayForNotify = [];
         
@@ -87,30 +86,30 @@
         }
    
         timeFontSize = parseInt(fontSize*1.6);
-        dateFontSize = parseInt(fontSize*0.95);
-        fontSizePin = parseInt(fontSize*0.95);
+        
+        //fontSizePin = parseInt(fontSize*0.95);
         
         $(document).on("esbEventAdded", function(event){
-           if(event.generator !== "<?= $_GET['name'] ?>")
+           if(event.generator !== "<?= $_REQUEST['name_w'] ?>")
            {
-              $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").each(function(i){
-                 if($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap") === "true")
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").each(function(i){
+                 if($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap") === "true")
                  {
                     var evtType = null;
                     
                     for(widgetName in widgetTargetList)
                     {
-                       evtType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-eventtype");
+                       evtType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-eventtype");
                        
                        for(var index in widgetTargetList[widgetName])
                        {
                           if(evtType === widgetTargetList[widgetName][index])
                           {
-                             $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap", "false");
+                             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).attr("data-onmap", "false");
 
-                             $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").html("");
-                             $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).removeClass("onMapTrafficEventPinAnimated");
-                             $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
+                             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).removeClass("onMapTrafficEventPinAnimated");
+                             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(i).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
 
                              eventsOnMaps[widgetName].eventsNumber = 0; 
                              eventsOnMaps[widgetName].eventsPoints.splice(0);
@@ -119,37 +118,37 @@
                              severitySortState = 0;
                              timeSortState = 0;
                              typeSortState = 0;
-                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("img").attr("src", "../img/trafficIcons/severity.png");
-                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
-                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("img").attr("src", "../img/trafficIcons/time.png");
-                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
-                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("img").attr("src", "../img/trafficIcons/type.png");
-                             $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("img").attr("src", "../img/trafficIcons/severity.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("img").attr("src", "../img/trafficIcons/time.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("img").attr("src", "../img/trafficIcons/type.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html("");
                              
-                             $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
-                             $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                             $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
+                             $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
                              allIncidentsOnMap = false;
 
 
-                             $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
-                             $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                             $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
+                             $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
                              allRoadWorksOnMap = false;
 
-                             $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
-                             $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                             $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
+                             $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
                              allSnowOnTheRoadsOnMap = false;
 
-                             $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
-                             $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                             $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
+                             $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
                              allWeatherDataOnMap = false;
 
-                             $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
-                             $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                             $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+                             $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
+                             $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+                             $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
                              allWindOnMap = false;
                           }
                        }
@@ -162,11 +161,42 @@
         //Definizioni di funzione
         function populateWidget(fromSort)
         {
-           var i = 0;
+            var i = 0;
            
-           $('#<?= $_GET['name'] ?>_rollerContainer').empty();
+            if(!fromSort)
+            {
+                var btnIndicatorFontSize = $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").eq(0).width()/48.4375;
+                $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").css("font-size", btnIndicatorFontSize + "em");
+                
+                eventsArray.sort(function(a,b) 
+                {
+                    var itemA = new Date(a.payload.start_time); 
+                    var itemB = new Date(b.payload.start_time);
+                    if (itemA < itemB)
+                    {
+                       return 1;
+                    }
+                    else
+                    {
+                       if (itemA > itemB)
+                       {
+                          return -1;
+                       }
+                       else
+                       {
+                          return 0; 
+                       }
+                    }
+                });
+                
+                timeSortState = 2;
+                
+                $("#<?= $_REQUEST['name_w'] ?>_content .trafficEventsButtonIndicator").eq(1).html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
+            }
            
-           for(var key in eventsArray)
+           $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
+           
+            for(var key in eventsArray)
             {
              temp = eventsArray[key].payload.start_time;
              eventStart = new Date(temp);
@@ -229,7 +259,7 @@
              typeId = eventsArray[key].payload.type_id;
              subtypeId = eventsArray[key].payload.sub_type_id;
 
-             newRow = $("<div></div>");
+             newRow = $('<div class="trafficEventRow" data-startTime="' + temp + '"></div>');
 
              switch(eventSeverity)
              {
@@ -261,11 +291,11 @@
              eventTooltip = trafficEventTypes["type" + eventType].desc; 
 
              newRow.css("height", rowPercHeight + "%");
-             eventTitle = $('<div class="eventTitle"><p class="eventTitlePar">' + eventName + '</p></div>');
+             eventTitle = $('<div class="eventTitle"><p class="eventTitlePar"><span>' + eventName + '</span></p></div>');
              eventTitle.addClass(backgroundTitleClass);
-             eventTitle.css("font-size", fontSize + "px");
+             
              eventTitle.css("height", "30%");
-             $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
+             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
 
              newRow.append(eventTitle);
 
@@ -282,19 +312,18 @@
 
              subTypeContainer.html(trafficEventSubTypes["subType" + eventSubtype]);
              subTypeContainer.addClass(backgroundFieldsClass);
-             subTypeFontSize = parseInt(fontSize) + 1;
-             subTypeContainer.css("font-size", subTypeFontSize + "px");
+             //subTypeFontSize = parseInt(fontSize) + 1;
+             //subTypeContainer.css("font-size", subTypeFontSize + "px");
 
              middleContainer.append(subTypeContainer);
 
              dateContainer = $("<div class='trafficEventDateContainer centerWithFlex'></div>"); 
-             dateContainer.css("font-size", dateFontSize + "px");
+             
              dateContainer.addClass(backgroundFieldsClass);
              dateContainer.html(eventStartDate);
              middleContainer.append(dateContainer);
 
              timeContainer = $("<div class='trafficEventTimeContainer centerWithFlex'></div>"); 
-             timeContainer.css("font-size", dateFontSize + "px");
              timeContainer.addClass(backgroundFieldsClass);
              timeContainer.html(eventStartTime);
              middleContainer.append(timeContainer);
@@ -304,7 +333,6 @@
              timeContainer.css("font-size", dateTimeFontSize + "px");
 
              severityContainer = $("<div class='trafficEventSeverityContainer centerWithFlex'></div>"); 
-             severityContainer.css("font-size", dateFontSize + "px");
              severityContainer.addClass(backgroundFieldsClass);
              severityContainer.html(eventSeverity);
              middleContainer.append(severityContainer);
@@ -315,10 +343,10 @@
              mapPtrContainer.addClass(backgroundFieldsClass);
 
              pinContainer = $("<div class='trafficEventPinContainer'><a class='trafficEventLink' data-eventstartdate='" + eventStartDate + "' data-eventstarttime='" + eventStartTime + "' data-eventseveritynum='" + eventSeverity + "'  data-eventSeverity='" + eventSeverityDesc + "' data-eventType='" + eventType + "' data-eventsubtype='" + eventSubtype + "' data-eventname='" + eventNameWithCase + 
-                                  "' data-eventlat='" + eventLat + "' data-eventlng='" + eventLng + "' data-background='" + background + "' data-onMap='false'><i class='material-icons' style='font-size:32px'>place</i></a></div>");
+                                  "' data-eventlat='" + eventLat + "' data-eventlng='" + eventLng + "' data-background='" + background + "' data-onMap='false'><span><i class='material-icons'>place</i></span></a></div>");
              mapPtrContainer.append(pinContainer);
              pinMsgContainer = $("<div class='trafficEventPinMsgContainer'></div>");
-             pinMsgContainer.css("font-size", fontSizePin + "px");
+             //pinMsgContainer.css("font-size", fontSizePin + "px");
              mapPtrContainer.append(pinMsgContainer);
 
              dataContainer.append(mapPtrContainer);
@@ -332,7 +360,7 @@
                 newRow.css("margin-bottom", "0px");
              }
 
-             $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
 
              //Interazione cross-widget
              pinContainer.find("a.trafficEventLink").hover(
@@ -395,7 +423,7 @@
                                 }
                                 else
                                 {
-                                   $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
+                                   $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
                                 }
 
                                 if($(this).attr("data-eventType") === localEventType)
@@ -423,7 +451,7 @@
                 {
                    $(this).attr("data-onMap", 'true');
                    goesOnMap = true;
-                   $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
+                   $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
                    $(this).addClass("onMapTrafficEventPinAnimated");
                    $(this).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
                 }
@@ -436,30 +464,30 @@
                    $(this).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
                 }
                 
-                 $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
-                 $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                 $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
                  allIncidentsOnMap = false;
 
 
-                 $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
-                 $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                 $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
                  allRoadWorksOnMap = false;
 
-                 $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
-                 $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                 $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
                  allSnowOnTheRoadsOnMap = false;
 
-                 $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
-                 $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                 $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
                  allWeatherDataOnMap = false;
 
-                 $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
-                 $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                 $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
                  allWindOnMap = false;
 
                 switch(localEventType)
@@ -467,9 +495,9 @@
                    case "1": case "12":
                         if(allIncidentsOnMap === true)
                         {
-                            $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                            $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
-                            $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+                            $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+                            $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
+                            $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
                             allIncidentsOnMap = false;
                         }
                         break;
@@ -477,9 +505,9 @@
                    case "25":
                         if(allRoadWorksOnMap === true)
                         {
-                           $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                           $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
-                           $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+                           $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+                           $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
+                           $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
                            allRoadWorksOnMap = false;
                         }
                         break;
@@ -487,9 +515,9 @@
                     case "30":
                         if(allSnowOnTheRoadsOnMap === true)
                         {
-                           $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                           $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
-                           $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+                           $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+                           $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
+                           $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
                            allSnowOnTheRoadsOnMap = false;
                         }
                         break;
@@ -497,9 +525,9 @@
                      case "32":
                         if(allWeatherDataOnMap === true)
                         {
-                           $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                           $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
-                           $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+                           $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+                           $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
+                           $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
                            allWeatherDataOnMap = false;
                         }
                         break; 
@@ -507,9 +535,9 @@
                      case "33":
                         if(allWindOnMap === true)
                         {
-                           $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                           $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
-                           $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+                           $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+                           $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
+                           $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
                            allWindOnMap = false;
                         }
                         break;    
@@ -539,7 +567,7 @@
                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
                $.event.trigger({
                    type: "esbEventAdded",
-                   generator: "<?= $_GET['name'] ?>",
+                   generator: "<?= $_REQUEST['name_w'] ?>",
                    targetsArray: targetsArrayForNotify
                });
                 
@@ -548,22 +576,24 @@
 
             }//Fine del for 
             
-            //Mappa vuota sui target - Commentata il 21/09/2017, la deve caricare da solo il widgetExternalContent solo se il suo link è valorizzato a "map" 
-            /*if(fromSort !== true)
+            var maxTitleFontSize = $('div.eventTitle').height()*0.75;
+
+            if(maxTitleFontSize > fontSize)
             {
-               for(var widgetName in widgetTargetList) 
-               {
-                  if($("#" + widgetName + "_div").attr("data-emptymapshown") === "false")
-                  {
-                     $("#" + widgetName + "_wrapper").hide();
-                     $("#" + widgetName + "_defaultMapDiv").show();
-                     loadDefaultMap(widgetName);
-                     $("#" + widgetName + "_div").attr("data-emptymapshown", "true");
-                  }
-               }
-            }*/
+                maxTitleFontSize = fontSize;
+            }
             
-            $('#<?= $_GET['name'] ?>_rollerContainer [data-toggle="tooltip"]').tooltip({
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer p.eventTitlePar span').css("font-size", maxTitleFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventSubTypeContainer').css("font-size", maxTitleFontSize + "px");
+            var subdataFontSize = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventDateContainer').eq(0).width()*0.15;
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventDateContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventTimeContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventSeverityContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventLink i').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/1.5) + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinMsgContainer').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/2.846) + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer [data-toggle="tooltip"]').tooltip({
                html: true
             });
         }
@@ -632,7 +662,7 @@
                 updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
             }
             
-            $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink[data-eventtype=" + eventType + "]").each(function(i){
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink[data-eventtype=" + eventType + "]").each(function(i){
                $(this).attr("data-onMap", 'false');
                $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("");
                $(this).removeClass("onMapTrafficEventPinAnimated");
@@ -681,7 +711,7 @@
                         }).addTo(eventsOnMaps[widgetName].mapRef);
                         eventsOnMaps[widgetName].mapRef.attributionControl.setPrefix('');
                         
-                        $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").each(function(i){
+                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").each(function(i){
                            $(this).attr("data-onMap", 'false');
                            $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("");
                            $(this).parent().parent().find("div.trafficEventPinMsgContainer").css("color", "black");
@@ -689,7 +719,7 @@
                            $(this).parent().parent().find("div.trafficEventPinMsgContainer").removeClass("onMapTrafficEventPinAnimated");
                         });
                         
-                        $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink[data-eventtype=" + eventType + "]").each(function(i){
+                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink[data-eventtype=" + eventType + "]").each(function(i){
                            var targetName, markerLocation, marker, popupText, pinIcon, insertIndex = null;
                            var lat = $(this).attr("data-eventlat");
                            var lng = $(this).attr("data-eventlng");
@@ -744,7 +774,8 @@
 
                             pinIcon = new L.DivIcon({
                                 className: null,
-                                html: '<img src="' + mapPinImg + '" class="leafletPin" />'
+                                html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                                iconAnchor: [18, 36]
                             });
 
                             markerLocation = new L.LatLng(lat, lng);
@@ -761,7 +792,7 @@
                             marker.bindPopup(popupText, {offset: [-5, -40], maxWidth : 600});
                             
                            $(this).attr("data-onMap", 'true');
-                           $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
+                           $(this).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
                            $(this).addClass("onMapTrafficEventPinAnimated");
                            $(this).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
                        });//Fine each
@@ -815,7 +846,7 @@
             //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
             $.event.trigger({
                 type: "esbEventAdded",
-                generator: "<?= $_GET['name'] ?>",
+                generator: "<?= $_REQUEST['name_w'] ?>",
                 targetsArray: targetsArrayForNotify
             });
         }
@@ -830,7 +861,7 @@
             { 
               if($('#' + widgetNameLocal + '_fullscreenEvent_' + i).length <= 0)
               {
-                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="trafficEvent" id="<?= $_GET['name'] ?>_fullscreenEvent_' + i + '"/>');
+                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="trafficEvent" id="<?= $_REQUEST['name_w'] ?>_fullscreenEvent_' + i + '"/>');
                 temp.val(eventsPointsLocal[i].join("||"));
                 $('#' + widgetNameLocal + '_modalLinkOpen div.modalLinkOpenBody').append(temp);
               }
@@ -932,7 +963,8 @@
 
                pinIcon = new L.DivIcon({
                    className: null,
-                   html: '<img src="' + mapPinImg + '" class="leafletPin" />'
+                   html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                   iconAnchor: [18, 36]
                });
 
                markerLocation = new L.LatLng(lat, lng);
@@ -1106,7 +1138,8 @@
 
                pinIcon = new L.DivIcon({
                    className: null,
-                   html: '<img src="' + mapPinImg + '" class="leafletPin" />'
+                   html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                   iconAnchor: [18, 36]
                });
 
                markerLocation = new L.LatLng(lat, lng);
@@ -1207,22 +1240,74 @@
         
         function stepDownInterval()
         {
-            var oldPos = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldPos = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             var newPos = oldPos + 1;
             
-            var oldScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
-            $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(newPos);
-            var newScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(newPos);
+            var newScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             
             if(oldScrollTop === newScrollTop)
             {
-               $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
             }
         }
+        
+        function resizeWidget()
+        {
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+            
+            var btnIndicatorFontSize = $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").eq(0).width()/48.4375;
+            $("#<?= $_REQUEST['name_w'] ?>_div div.trafficEventsButtonIndicator").css("font-size", btnIndicatorFontSize + "em");
+            
+            shownHeight = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").prop("offsetHeight");
+            rowPercHeight =  75 * 100 / shownHeight;
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer div.trafficEventRow').css("height", rowPercHeight + "%");
+            var maxTitleFontSize = $('div.eventTitle').height()*0.75;
+            
+            if(maxTitleFontSize > fontSize)
+            {
+                maxTitleFontSize = fontSize;
+            }
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer p.eventTitlePar span').css("font-size", maxTitleFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventSubTypeContainer').css("font-size", maxTitleFontSize + "px");
+            var subdataFontSize = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventDateContainer').eq(0).width()*0.15;
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventDateContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventTimeContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventSeverityContainer').css("font-size", subdataFontSize + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventLink i').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/1.5) + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinMsgContainer').css("font-size", parseFloat($('#<?= $_REQUEST['name_w'] ?>_rollerContainer .trafficEventPinContainer').eq(0).width()/2.846) + "px");
+            
+            clearInterval(scroller);    
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
+            scroller = setInterval(stepDownInterval, speed);
+        }
+		
+		$(document).off('resizeHighchart_' + widgetName);
+		$(document).on('resizeHighchart_' + widgetName, function(event) 
+		{
+			var newHeight = null;
+			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+			}
+			else
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+			}
+			
+			$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').css('height', newHeight + 'px');
+		});
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
-        $("#<?= $_GET['name'] ?>_buttonsContainer").css("background-color", $("#<?= $_GET['name'] ?>_header").css("background-color"));
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+        
+        $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer").css("background-color", $("#<?= $_REQUEST['name_w'] ?>_header").css("background-color"));
         
         if(firstLoad === false)
         {
@@ -1234,1260 +1319,1225 @@
         }
         
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        widgetProperties = getWidgetProperties(widgetName);
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         
-        if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
+        //Nuova versione
+        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
         {
-            //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-            styleParameters = getStyleParameters();//Usato come misura tampone per scegliere fra gli ultimi XX eventi e gli ultimi YY minuti
-            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
-            //Fine eventuale codice ad hoc basato sulle proprietà del widget
-            
-            widgetTargetList = JSON.parse(widgetProperties.param.parameters);
-            var targetName = null;
-            
-            for(var name in widgetTargetList) 
-            {
-               targetName = name + "_div";
-               eventsOnMaps[name] = {
-                  noPointsUrl: null,
-                  eventsNumber: 0,
-                  eventsPoints: [],//Array indicizzato con le coordinate dei punti mostrati
-                  mapRef: null
-               };
-            }
-            
-            $.ajax({
-               url: "../widgets/esbDao.php",
-               type: "POST",
-               data: {
-                  operation: "getTrafficEvents",
-                  choosenOption: styleParameters.choosenOption,
-                  time: styleParameters.time,
-                  timeUdm: styleParameters.timeUdm,
-                  events: styleParameters.events
-               },
-               async: true,
-               dataType: 'json',
-               success: function (data) 
-               {
-                  if(firstLoad !== false)
-                  {
-                      showWidgetContent(widgetName);
-                  }
-                  else
-                  {
-                      elToEmpty.empty();
-                  }
-                  
-                  //console.log("TRAFFIC EVENTS:");
-                  //console.log(JSON.stringify(data));
-                  
-                  $("#<?= $_GET['name'] ?>_noDataAlert").hide();
-                  $('#<?= $_GET['name'] ?>_buttonsContainer').show();
-                  $("#<?= $_GET['name'] ?>_rollerContainer").show();
-                  $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height() - 50); 
-                
-                  eventsNumber = Object.keys(data).length;
-                  widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
-                  shownHeight = $("#<?= $_GET['name'] ?>_rollerContainer").prop("offsetHeight");
-                  rowPercHeight =  75 * 100 / shownHeight;
-                  contentHeightPx = eventsNumber * 100;
-                  eventContentWPerc = null;
+            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+            defaultCategory = styleParameters.defaultCategory;
+        }
+        
+        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        {
+            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+        }
 
-                  if(contentHeightPx > shownHeight)
-                  {
-                      eventContentW = parseInt(widgetWidth - 45 - 22);
-                  }
-                  else
-                  {
-                      eventContentW = parseInt(widgetWidth - 45 - 5);
-                  }
-                  
-                  eventContentWPerc = Math.floor(eventContentW / widgetWidth * 100);
-                  
-                  //Inserimento una tantum degli eventi nell'apposito array (per ordinamenti)
-                  for(var key in data)
-                  {
-                    var localPayload = JSON.parse(data[key].payload);
-                    data[key].payload = localPayload;
-                    eventsArray.push(data[key]); 
-                  }
-                  
-                    /*eventsArray.sort(function(a,b) 
+        widgetTargetList = widgetParameters;
+            
+        var targetName = null;
+
+        for(var name in widgetTargetList) 
+        {
+           targetName = name + "_div";
+           eventsOnMaps[name] = {
+              noPointsUrl: null,
+              eventsNumber: 0,
+              eventsPoints: [],//Array indicizzato con le coordinate dei punti mostrati
+              mapRef: null
+           };
+        }
+
+        $.ajax({
+           url: "../widgets/esbDao.php",
+           type: "POST",
+           data: {
+              operation: "getTrafficEvents",
+              choosenOption: styleParameters.choosenOption,
+              time: styleParameters.time,
+              timeUdm: styleParameters.timeUdm,
+              events: styleParameters.events
+           },
+           async: true,
+           dataType: 'json',
+           success: function (data) 
+           {
+              if(firstLoad !== false)
+              {
+                  showWidgetContent(widgetName);
+              }
+              else
+              {
+                  elToEmpty.empty();
+              }
+
+              $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").hide();
+              $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').show();
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").show();
+
+              eventsNumber = Object.keys(data).length;
+              widgetWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width();
+              shownHeight = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").prop("offsetHeight");
+              rowPercHeight =  75 * 100 / shownHeight;
+              contentHeightPx = eventsNumber * 100;
+
+              //Inserimento una tantum degli eventi nell'apposito array (per ordinamenti)
+              for(var key in data)
+              {
+                var localPayload = JSON.parse(data[key].payload);
+                data[key].payload = localPayload;
+                eventsArray.push(data[key]); 
+              }
+
+              populateWidget(false);
+
+              $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).hover(
+                    function()
                     {
-                        //return b.payload.start_time - a.payload.start_time;
-                        var itemA = new Date(a.payload.start_time); 
-                        var itemB = new Date(b.payload.start_time);
-                        if (itemA < itemB)
-                        {
-                           return 1;
-                        }
-                        else
-                        {
-                           if (itemA > itemB)
-                           {
-                              return -1;
-                           }
-                           else
-                           {
-                              return 0; 
-                           }
-                        }
-                    });*/
-                  
-                  populateWidget(false);
-                  
-                  $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).hover(
-                        function()
-                        {
-                            $(this).css("cursor", "pointer");
-                            $(this).css("color", "white");
-                            $(this).find("img").attr("src", "../img/trafficIcons/severityWhite.png");
-                            
-                            switch(severitySortState)
-                            {
-                                case 0://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by severity - Ascending");
-                                    break;
-                                    
-                                case 1://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by severity - Descending");
-                                    break;
-                                    
-                                case 2://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('no sort');
-                                    $(this).attr("title", "Sort by severity - None");
-                                    break;
-                            }
-                        }, 
-                        function()
-                        {
-                            $(this).css("cursor", "auto");
-                            $(this).css("color", "black");
-                            $(this).find("img").attr("src", "../img/trafficIcons/severity.png");
-                            
-                            switch(severitySortState)
-                            {
-                                case 0://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('');
-                                    break;
-                                    
-                                case 1://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    break;
-                                    
-                                case 2://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    break;
-                            }
-                        }
-                   );
-               
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).hover(
-                        function()
-                        {
-                            $(this).css("cursor", "pointer");
-                            $(this).css("color", "white");
-                            $(this).find("img").attr("src", "../img/trafficIcons/timeWhite.png");
-                            switch(timeSortState)
-                            {
-                                case 0://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by time - Ascending");
-                                    break;
-                                    
-                                case 1://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by time - Descending");
-                                    break;
-                                    
-                                case 2://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('no sort');
-                                    $(this).attr("title", "Sort by time - None");
-                                    break;
-                            }
-                        }, 
-                        function()
-                        {
-                            $(this).css("cursor", "auto");
-                            $(this).css("color", "black");
-                            $(this).find("img").attr("src", "../img/trafficIcons/time.png");
-                            
-                            switch(timeSortState)
-                            {
-                                case 0://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('');
-                                    break;
-                                    
-                                case 1://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    break;
-                                    
-                                case 2://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    break;
-                            }
-                        }
-                   );
-               
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).hover(
-                        function()
-                        {
-                            $(this).css("cursor", "pointer");
-                            $(this).css("color", "white");
-                            $(this).find("img").attr("src", "../img/trafficIcons/typeWhite.png");
-                            switch(typeSortState)
-                            {
-                                case 0://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by type - Ascending");
-                                    break;
-                                    
-                                case 1://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    $(this).attr("title", "Sort by type - Descending");
-                                    break;
-                                    
-                                case 2://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('no sort');
-                                    $(this).attr("title", "Sort by type - None");
-                                    break;
-                            }
-                        }, 
-                        function()
-                        {
-                            $(this).css("cursor", "auto");
-                            $(this).css("color", "black");
-                            $(this).find("img").attr("src", "../img/trafficIcons/type.png");
-                            
-                            switch(typeSortState)
-                            {
-                                case 0://No sort
-                                    $(this).find("div.trafficEventsButtonIndicator").html('');
-                                    break;
-                                    
-                                case 1://Crescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
-                                    break;
-                                    
-                                case 2://Decrescente verso il basso
-                                    $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
-                                    break;
-                            }
-                        }
-                   );
-               
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).click(function(){
-                        $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                        $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                        $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                        $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                     
-                   
-                        var localEventType = null;
+                        $(this).css("cursor", "pointer");
+                        $(this).css("color", "white");
+                        $(this).find("img").attr("src", "../img/trafficIcons/severityWhite.png");
+
                         switch(severitySortState)
                         {
-                            case 0:
-                                eventsArray.sort(function(a,b) {
-                                    return a.payload.severity - b.payload.severity;
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(true);
-                                
-                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-                                
-                                targetsArrayForNotify = [];
-                                
-                                for(var widgetName in widgetTargetList) 
-                                 {
-                                    for(var key in widgetTargetList[widgetName]) 
-                                    {
-                                       if(widgetTargetList[widgetName][key] === localEventType)
-                                       {
-                                          targetsArrayForNotify.push(widgetName);
-                                          $("#" + widgetName + "_wrapper").hide();
-                                          $("#" + widgetName + "_mapDiv").show();
-                                          addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                       }
-                                    }
-                                 }
-                                 
-                                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
-                                 $.event.trigger({
-                                     type: "esbEventAdded",
-                                     generator: "<?= $_GET['name'] ?>",
-                                     targetsArray: targetsArrayForNotify
-                                 });
-                                
-                                severitySortState = 1;
+                            case 0://Crescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
+                                $(this).attr("title", "Sort by severity - Ascending");
+                                break;
+
+                            case 1://Decrescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
+                                $(this).attr("title", "Sort by severity - Descending");
+                                break;
+
+                            case 2://No sort
+                                $(this).find("div.trafficEventsButtonIndicator").html('no sort');
+                                $(this).attr("title", "Sort by severity - None");
+                                break;
+                        }
+                    }, 
+                    function()
+                    {
+                        $(this).css("cursor", "auto");
+                        $(this).css("color", "black");
+                        $(this).find("img").attr("src", "../img/trafficIcons/severity.png");
+
+                        switch(severitySortState)
+                        {
+                            case 0://No sort
+                                $(this).find("div.trafficEventsButtonIndicator").html('');
+                                break;
+
+                            case 1://Crescente verso il basso
                                 $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
                                 break;
 
-                            case 1:
-                                severitySortState = 2;
-                                eventsArray.sort(function(a,b) {
-                                    return b.payload.severity - a.payload.severity;
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(true);
-                                
-                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-                                
-                                for(var widgetName in widgetTargetList) 
-                                 {
-                                    for(var key in widgetTargetList[widgetName]) 
-                                    {
-                                       if(widgetTargetList[widgetName][key] === localEventType)
-                                       {
-                                          $("#" + widgetName + "_wrapper").hide();
-                                          $("#" + widgetName + "_mapDiv").show();
-                                          addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                       }
-                                    }
-                                 }
-                                
+                            case 2://Decrescente verso il basso
                                 $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
                                 break;
-
-                            case 2:
-                                severitySortState = 0;
-                                eventsArray.sort(function(a,b) {
-                                    return a.id - b.id;
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(false);
-                                
-                                $(this).find("div.trafficEventsButtonIndicator").html('');
-                                break;
                         }
-                        $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html('');
-                        $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html('');
-                        timeSortState = 0;
-                        typeSortState = 0;
-                   });
-                   
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).click(function(){
-                        var localEventType = null;
-                        
-                        $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                        $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                        $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                        $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                        
+                    }
+               );
+
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).hover(
+                    function()
+                    {
+                        $(this).css("cursor", "pointer");
+                        $(this).css("color", "white");
+                        $(this).find("img").attr("src", "../img/trafficIcons/timeWhite.png");
                         switch(timeSortState)
                         {
-                            case 0:
-                                eventsArray.sort(function(a,b) 
-                                {
-                                    var itemA = new Date(a.payload.start_time); 
-                                    var itemB = new Date(b.payload.start_time);
-                                    if (itemA > itemB)
-                                    {
-                                       return 1;
-                                    }
-                                    else
-                                    {
-                                       if (itemA < itemB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          return 0; 
-                                       }
-                                    }
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(true);
-                                
-                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-                                
-                                targetsArrayForNotify = [];
-                                
-                                for(var widgetName in widgetTargetList) 
-                                 {
-                                    for(var key in widgetTargetList[widgetName]) 
-                                    {
-                                       if(widgetTargetList[widgetName][key] === localEventType)
-                                       {
-                                          targetsArrayForNotify.push(widgetName);
-                                          $("#" + widgetName + "_wrapper").hide();
-                                          $("#" + widgetName + "_mapDiv").show();
-                                          addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                       }
-                                    }
-                                 }
-                                 
-                                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
-                                 $.event.trigger({
-                                     type: "esbEventAdded",
-                                     generator: "<?= $_GET['name'] ?>",
-                                     targetsArray: targetsArrayForNotify
-                                 });
-                                
-                                timeSortState = 1;
+                            case 1://Decrescente verso il basso
                                 $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
+                                $(this).attr("title", "Sort by time - Descending");
                                 break;
 
-                            case 1:
-                                eventsArray.sort(function(a,b) 
-                                {
-                                    //return b.payload.start_time - a.payload.start_time;
-                                    var itemA = new Date(a.payload.start_time); 
-                                    var itemB = new Date(b.payload.start_time);
-                                    if (itemA < itemB)
-                                    {
-                                       return 1;
-                                    }
-                                    else
-                                    {
-                                       if (itemA > itemB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          return 0; 
-                                       }
-                                    }
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(true);
-                                
-                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-                                
-                                for(var widgetName in widgetTargetList) 
-                                 {
-                                    for(var key in widgetTargetList[widgetName]) 
-                                    {
-                                       if(widgetTargetList[widgetName][key] === localEventType)
-                                       {
-                                          $("#" + widgetName + "_wrapper").hide();
-                                          $("#" + widgetName + "_mapDiv").show();
-                                          addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                       }
-                                    }
-                                 }
-                                
-                                timeSortState = 2;
+                            case 2://Crescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
+                                $(this).attr("title", "Sort by time - Ascending");
+                                break;
+                        }
+                    }, 
+                    function()
+                    {
+                        $(this).css("cursor", "auto");
+                        $(this).css("color", "black");
+                        $(this).find("img").attr("src", "../img/trafficIcons/time.png");
+
+                        switch(timeSortState)
+                        {
+                            /*case 0://No sort
+                                $(this).find("div.trafficEventsButtonIndicator").html('');
+                                break;*/
+
+                            case 1://Crescente verso il basso
                                 $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
                                 break;
 
-                            case 2:
-                                eventsArray.sort(function(a,b) 
-                                {
-                                    //return b.payload.start_time - a.payload.start_time;
-                                    var itemA = new Date(a.payload.start_time); 
-                                    var itemB = new Date(b.payload.start_time);
-                                    if (itemA < itemB)
-                                    {
-                                       return 1;
-                                    }
-                                    else
-                                    {
-                                       if (itemA > itemB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          return 0; 
-                                       }
-                                    }
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(false);
-                                
-                                timeSortState = 0;
-                                $(this).find("div.trafficEventsButtonIndicator").html('');
+                            case 2://Decrescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
                                 break;
                         }
-                        $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html('');
-                        $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html('');
-                        severitySortState = 0;
-                        typeSortState = 0;
-                   });
-                   
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).click(function(){
-                        var localEventType = null;
-                        
-                        $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                        $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                        $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                        
-                        $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                        $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                        $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                        
+                    }
+               );
+
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).hover(
+                    function()
+                    {
+                        $(this).css("cursor", "pointer");
+                        $(this).css("color", "white");
+                        $(this).find("img").attr("src", "../img/trafficIcons/typeWhite.png");
                         switch(typeSortState)
                         {
-                            case 0:
-                                eventsArray.sort(function(a,b) {
-                                    var typeIndexA = a.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
-                                    var typeIndexB = b.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
-                                    var typeA = trafficEventTypes["type" + typeIndexA].desc.toLowerCase(); 
-                                    var typeB = trafficEventTypes["type" + typeIndexB].desc.toLowerCase();
-                                    if (typeA > typeB)
-                                    {
-                                       return 1;
-                                    }
-                                    else
-                                    {
-                                       if (typeA < typeB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          return 0; 
-                                       }
-                                    }
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(true);
-                                
-                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-                                
-                                targetsArrayForNotify = [];
-                                
-                                for(var widgetName in widgetTargetList) 
-                                 {
-                                    for(var key in widgetTargetList[widgetName]) 
-                                    {
-                                       if(widgetTargetList[widgetName][key] === localEventType)
-                                       {
-                                          targetsArrayForNotify.push(widgetName);
-                                          $("#" + widgetName + "_wrapper").hide();
-                                          $("#" + widgetName + "_mapDiv").show();
-                                          addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                       }
-                                    }
-                                 }
-                                 
-                                 //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
-                                 $.event.trigger({
-                                     type: "esbEventAdded",
-                                     generator: "<?= $_GET['name'] ?>",
-                                     targetsArray: targetsArrayForNotify
-                                 });
-                                
-                                typeSortState = 1;
+                            case 0://Crescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
+                                $(this).attr("title", "Sort by type - Ascending");
+                                break;
+
+                            case 1://Decrescente verso il basso
+                                $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
+                                $(this).attr("title", "Sort by type - Descending");
+                                break;
+
+                            case 2://No sort
+                                $(this).find("div.trafficEventsButtonIndicator").html('no sort');
+                                $(this).attr("title", "Sort by type - None");
+                                break;
+                        }
+                    }, 
+                    function()
+                    {
+                        $(this).css("cursor", "auto");
+                        $(this).css("color", "black");
+                        $(this).find("img").attr("src", "../img/trafficIcons/type.png");
+
+                        switch(typeSortState)
+                        {
+                            case 0://No sort
+                                $(this).find("div.trafficEventsButtonIndicator").html('');
+                                break;
+
+                            case 1://Crescente verso il basso
                                 $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
                                 break;
 
-                            case 1:
-                                eventsArray.sort(function(a,b) {
-                                    var typeIndexA = a.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
-                                    var typeIndexB = b.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
-                                    var typeA = trafficEventTypes["type" + typeIndexA].desc.toLowerCase(); 
-                                    var typeB = trafficEventTypes["type" + typeIndexB].desc.toLowerCase();
-                                    if (typeA < typeB)
-                                    {
-                                       return 1;
-                                    }
-                                    else
-                                    {
-                                       if (typeA > typeB)
-                                       {
-                                          return -1;
-                                       }
-                                       else
-                                       {
-                                          return 0; 
-                                       }
-                                    }
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(true);
-                                
-                                //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
-                                localEventType = $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("on map");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
-                                $("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
-                                
-                                for(var widgetName in widgetTargetList) 
-                                 {
-                                    for(var key in widgetTargetList[widgetName]) 
-                                    {
-                                       if(widgetTargetList[widgetName][key] === localEventType)
-                                       {
-                                          $("#" + widgetName + "_wrapper").hide();
-                                          $("#" + widgetName + "_mapDiv").show();
-                                          addEventToMap($("#<?= $_GET['name'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
-                                       }
-                                    }
-                                 }
-                                
-                                typeSortState = 2;
+                            case 2://Decrescente verso il basso
                                 $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
                                 break;
-
-                            case 2:
-                                eventsArray.sort(function(a,b) {
-                                    return a.id - b.id;
-                                });
-                                
-                                populateWidget(true);
-                                removeAllEventsFromMaps(false);
-                                
-                                typeSortState = 0;
-                                $(this).find("div.trafficEventsButtonIndicator").html('');
-                                break;
                         }
-                        $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html('');
-                        $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html('');
-                        severitySortState = 0;
-                        timeSortState = 0;
-                   });
-                  
-                  
-               //Bottoni per categoria
-               $("#<?= $_GET['name'] ?>_incidentsButton").hover(
-               function(){
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crashWhite.png");
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").css("cursor", "pointer");
-                  
-                  originalHeaderColor = {};
-                  originalBorderColor = {};
-
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
-                     originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
-
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if((widgetTargetList[widgetName][key] === "1") || (widgetTargetList[widgetName][key] === "12"))
-                        {
-                           $("#" + widgetName + "_header").css("background", "#ff6666");
-                           $("#" + widgetName).css("border-color", "#ff6666");
-                        }
-                     }
-                  }//Fine del for
-                  
-                  if(allIncidentsOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("show");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("hide");
-                  }                  
-               },
-               function(){
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").css("cursor", "auto");
-                  
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if((widgetTargetList[widgetName][key] === "1") || (widgetTargetList[widgetName][key] === "12"))
-                        {
-                           $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
-                           $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
-                        }
-                     }
-                  }
-                  
-                  if(allIncidentsOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crashWhite.png");
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("on map");
-                  }
-               });
-               
-               $("#<?= $_GET['name'] ?>_incidentsButton").click(function(){
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                  allRoadWorksOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                  allSnowOnTheRoadsOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                  allWeatherDataOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                  allWindOnMap = false;
-                 
-                 
-                 if(allIncidentsOnMap === false)
-                 {
-                     addAllEventsToMap("1");
-                     allIncidentsOnMap = true;
-                 }
-                 else
-                 {
-                     removeAllEventsFromMap("1");
-                     allIncidentsOnMap = false;
-                 }
-               });
-               
-               $("#<?= $_GET['name'] ?>_roadOnWorksButton").hover(
-               function(){
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorksWhite.png");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").css("cursor", "pointer");
-                  
-                  originalHeaderColor = {};
-                  originalBorderColor = {};
-
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
-                     originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
-
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "25")
-                        {
-                           $("#" + widgetName + "_header").css("background", "#ff6666");
-                           $("#" + widgetName).css("border-color", "#ff6666");
-                        }
-                     }
-                  }//Fine del for
-                  
-                  if(allRoadWorksOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("show");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("hide");
-                  }                  
-               },
-               function(){
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").css("cursor", "auto");
-                  
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "25")
-                        {
-                           $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
-                           $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
-                        }
-                     }
-                  }
-                  
-                  if(allRoadWorksOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorksWhite.png");
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("on map");
-                  }
-               });
-               
-               $("#<?= $_GET['name'] ?>_roadOnWorksButton").click(function(){
-                  $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                  allIncidentsOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                  allSnowOnTheRoadsOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                  allWeatherDataOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                  allWindOnMap = false;
-      
-                 if(allRoadWorksOnMap === false)
-                 {
-                     addAllEventsToMap("25");
-                     allRoadWorksOnMap = true;
-                 }
-                 else
-                 {
-                     removeAllEventsFromMap("25");
-                     allRoadWorksOnMap = false;
-                 }
-               });
-               
-               $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton").hover(
-               function(){
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snowWhite.png");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").css("cursor", "pointer");
-                  
-                  originalHeaderColor = {};
-                  originalBorderColor = {};
-
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
-                     originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
-
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "30")
-                        {
-                           $("#" + widgetName + "_header").css("background", "#ff6666");
-                           $("#" + widgetName).css("border-color", "#ff6666");
-                        }
-                     }
-                  }//Fine del for
-                  
-                  if(allSnowOnTheRoadsOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("show");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("hide");
-                  }                  
-               },
-               function(){
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").css("cursor", "auto");
-                  
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "30")
-                        {
-                           $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
-                           $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
-                        }
-                     }
-                  }
-                  
-                  if(allSnowOnTheRoadsOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snowWhite.png");
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("on map");
-                  }
-               });
-               
-               $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton").click(function(){
-                 $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                  allIncidentsOnMap = false;
-
-
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                  allRoadWorksOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                  allWeatherDataOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                  allWindOnMap = false;
-      
-                 if(allSnowOnTheRoadsOnMap === false)
-                 {
-                     addAllEventsToMap("30");
-                     allSnowOnTheRoadsOnMap = true;
-                 }
-                 else
-                 {
-                     removeAllEventsFromMap("30");
-                     allSnowOnTheRoadsOnMap = false;
-                 }
-               });
-               
-               $("#<?= $_GET['name'] ?>_weatherDataButton").hover(
-               function(){
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherDataWhite.png");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").css("cursor", "pointer");
-                  
-                  originalHeaderColor = {};
-                  originalBorderColor = {};
-
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
-                     originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
-
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "32")
-                        {
-                           $("#" + widgetName + "_header").css("background", "#ff6666");
-                           $("#" + widgetName).css("border-color", "#ff6666");
-                        }
-                     }
-                  }//Fine del for
-                  
-                  if(allWeatherDataOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("show");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("hide");
-                  }                  
-               },
-               function(){
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").css("cursor", "auto");
-                  
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "32")
-                        {
-                           $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
-                           $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
-                        }
-                     }
-                  }
-                  
-                  if(allWeatherDataOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherDataWhite.png");
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("on map");
-                  }
-               });
-               
-               $("#<?= $_GET['name'] ?>_weatherDataButton").click(function(){
-                 $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                  allIncidentsOnMap = false;
-
-
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                  allRoadWorksOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                  allSnowOnTheRoadsOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                  allWindOnMap = false;
-      
-                 if(allWeatherDataOnMap === false)
-                 {
-                     addAllEventsToMap("32");
-                     allWeatherDataOnMap = true;
-                 }
-                 else
-                 {
-                     removeAllEventsFromMap("32");
-                     allWeatherDataOnMap = false;
-                 }
-               });
-               
-               $("#<?= $_GET['name'] ?>_windButton").hover(
-               function(){
-                  $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/windWhite.png");
-                  $("#<?= $_GET['name'] ?>_windButton img").css("cursor", "pointer");
-                  
-                  originalHeaderColor = {};
-                  originalBorderColor = {};
-
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
-                     originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
-
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "33")
-                        {
-                           $("#" + widgetName + "_header").css("background", "#ff6666");
-                           $("#" + widgetName).css("border-color", "#ff6666");
-                        }
-                     }
-                  }//Fine del for
-                  
-                  if(allWindOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("show");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("hide");
-                  }                  
-               },
-               function(){
-                  $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                  $("#<?= $_GET['name'] ?>_windButton img").css("cursor", "auto");
-                  
-                  for(var widgetName in widgetTargetList) 
-                  {
-                     for(var key in widgetTargetList[widgetName]) 
-                     {
-                        if(widgetTargetList[widgetName][key] === "32")
-                        {
-                           $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
-                           $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
-                        }
-                     }
-                  }
-                  
-                  if(allWindOnMap === false)
-                  {
-                     $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("");
-                  }
-                  else
-                  {
-                     $("#<?= $_GET['name'] ?>_windButton img").attr("src", "../img/trafficIcons/windWhite.png");
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
-                     $("#<?= $_GET['name'] ?>_windButton div.trafficEventsButtonIndicator").html("on map");
-                  }
-               });
-               
-               $("#<?= $_GET['name'] ?>_windButton").click(function(){
-                  $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
-                  allIncidentsOnMap = false;
-
-
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
-                  allRoadWorksOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
-                  allSnowOnTheRoadsOnMap = false;
-
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
-                  $("#<?= $_GET['name'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
-                  allWeatherDataOnMap = false;
-      
-                 if(allWindOnMap === false)
-                 {
-                     addAllEventsToMap("33");
-                     allWindOnMap = true;
-                 }
-                 else
-                 {
-                     removeAllEventsFromMap("33");
-                     allWindOnMap = false;
-                 }
-               });
-               
-               scroller = setInterval(stepDownInterval, speed);
-               var timeToClearScroll = (timeToReload - 0.5) * 1000;
-               
-               setTimeout(function()
-               {
-                   clearInterval(scroller);
-                   $("#<?= $_GET['name'] ?>_rollerContainer").off();
-                   
-                   //$(document).off("esbEventAdded");
-                   
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
-                   $("#<?= $_GET['name'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html("");
-
-                    //Ripristino delle homepage native per gli widget targets al reload
-                    for(var widgetName in widgetTargetList) 
-                    {
-                       if($("#" + widgetName + "_driverWidgetType").val() === 'trafficEvents')
-                       {
-                           loadDefaultMap(widgetName);
-                       }
-                       else
-                       {
-                           //console.log("Attualmente non pilotato da trafficEvents");
-                       }
                     }
-               }, timeToClearScroll);
+               );
+
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).click(function(){
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
 
 
-               $("#<?= $_GET['name'] ?>_rollerContainer").mouseenter(function() 
-               {
-                   clearInterval(scroller);
+                    var localEventType = null;
+                    switch(severitySortState)
+                    {
+                        case 0:
+                            eventsArray.sort(function(a,b) {
+                                return a.payload.severity - b.payload.severity;
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(true);
+
+                            //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                            localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                            targetsArrayForNotify = [];
+
+                            for(var widgetName in widgetTargetList) 
+                             {
+                                for(var key in widgetTargetList[widgetName]) 
+                                {
+                                   if(widgetTargetList[widgetName][key] === localEventType)
+                                   {
+                                      targetsArrayForNotify.push(widgetName);
+                                      $("#" + widgetName + "_wrapper").hide();
+                                      $("#" + widgetName + "_mapDiv").show();
+                                      addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                   }
+                                }
+                             }
+
+                             //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
+                             $.event.trigger({
+                                 type: "esbEventAdded",
+                                 generator: "<?= $_REQUEST['name_w'] ?>",
+                                 targetsArray: targetsArrayForNotify
+                             });
+
+                            severitySortState = 1;
+                            $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
+                            break;
+
+                        case 1:
+                            severitySortState = 2;
+                            eventsArray.sort(function(a,b) {
+                                return b.payload.severity - a.payload.severity;
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(true);
+
+                            //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                            localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                            for(var widgetName in widgetTargetList) 
+                             {
+                                for(var key in widgetTargetList[widgetName]) 
+                                {
+                                   if(widgetTargetList[widgetName][key] === localEventType)
+                                   {
+                                      $("#" + widgetName + "_wrapper").hide();
+                                      $("#" + widgetName + "_mapDiv").show();
+                                      addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                   }
+                                }
+                             }
+
+                            $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
+                            break;
+
+                        case 2:
+                            severitySortState = 0;
+                            eventsArray.sort(function(a,b) {
+                                return a.id - b.id;
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(false);
+
+                            $(this).find("div.trafficEventsButtonIndicator").html('');
+                            break;
+                    }
+                    $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html('');
+                    $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html('');
+                    timeSortState = 0;
+                    typeSortState = 0;
                });
 
-               $("#<?= $_GET['name'] ?>_rollerContainer").mouseleave(function()
-               {    
-                   clearInterval(scroller);    
-                   scroller = setInterval(stepDownInterval, speed);
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).click(function(){
+                    var localEventType = null;
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+
+                    switch(timeSortState)
+                    {
+                        case 1:
+                            eventsArray.sort(function(a,b) 
+                            {
+                                var itemA = new Date(a.payload.start_time); 
+                                var itemB = new Date(b.payload.start_time);
+                                if (itemA < itemB)
+                                {
+                                   return 1;
+                                }
+                                else
+                                {
+                                   if (itemA > itemB)
+                                   {
+                                      return -1;
+                                   }
+                                   else
+                                   {
+                                      return 0; 
+                                   }
+                                }
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(true);
+
+                            //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                            localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                            for(var widgetName in widgetTargetList) 
+                             {
+                                for(var key in widgetTargetList[widgetName]) 
+                                {
+                                   if(widgetTargetList[widgetName][key] === localEventType)
+                                   {
+                                      $("#" + widgetName + "_wrapper").hide();
+                                      $("#" + widgetName + "_mapDiv").show();
+                                      addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                   }
+                                }
+                             }
+
+                            //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
+                             $.event.trigger({
+                                 type: "esbEventAdded",
+                                 generator: "<?= $_REQUEST['name_w'] ?>",
+                                 targetsArray: targetsArrayForNotify
+                             });
+
+                            timeSortState = 2;
+                            $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
+                            break;
+
+                        case 2:
+                            eventsArray.sort(function(a,b) 
+                            {
+                                var itemA = new Date(a.payload.start_time); 
+                                var itemB = new Date(b.payload.start_time);
+                                if (itemA > itemB)
+                                {
+                                   return 1;
+                                }
+                                else
+                                {
+                                   if (itemA < itemB)
+                                   {
+                                      return -1;
+                                   }
+                                   else
+                                   {
+                                      return 0; 
+                                   }
+                                }
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(true);
+
+                            //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                            localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                            targetsArrayForNotify = [];
+
+                            for(var widgetName in widgetTargetList) 
+                             {
+                                for(var key in widgetTargetList[widgetName]) 
+                                {
+                                   if(widgetTargetList[widgetName][key] === localEventType)
+                                   {
+                                      targetsArrayForNotify.push(widgetName);
+                                      $("#" + widgetName + "_wrapper").hide();
+                                      $("#" + widgetName + "_mapDiv").show();
+                                      addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                   }
+                                }
+                             }
+
+                             //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
+                             $.event.trigger({
+                                 type: "esbEventAdded",
+                                 generator: "<?= $_REQUEST['name_w'] ?>",
+                                 targetsArray: targetsArrayForNotify
+                             });
+
+                            timeSortState = 1;
+                            $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
+                            break;
+                    }
+                    $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html('');
+                    $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html('');
+                    severitySortState = 0;
+                    typeSortState = 0;
                });
-                  
-               },
-               error: function (data)
-               {
-                  console.log("Ko");
-                  console.log(JSON.stringify(data));
-                  
-                  showWidgetContent(widgetName);
-                  $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                  $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                  $("#<?= $_GET['name'] ?>_noDataAlert").show();
-               }
-            });
-        }
-        else
-        {
-            console.log("Errore in caricamento proprietà widget");
-        }
+
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).click(function(){
+                    var localEventType = null;
+
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                    $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+
+                    switch(typeSortState)
+                    {
+                        case 0:
+                            eventsArray.sort(function(a,b) {
+                                var typeIndexA = a.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
+                                var typeIndexB = b.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
+                                var typeA = trafficEventTypes["type" + typeIndexA].desc.toLowerCase(); 
+                                var typeB = trafficEventTypes["type" + typeIndexB].desc.toLowerCase();
+                                if (typeA > typeB)
+                                {
+                                   return 1;
+                                }
+                                else
+                                {
+                                   if (typeA < typeB)
+                                   {
+                                      return -1;
+                                   }
+                                   else
+                                   {
+                                      return 0; 
+                                   }
+                                }
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(true);
+
+                            //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                            localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                            targetsArrayForNotify = [];
+
+                            for(var widgetName in widgetTargetList) 
+                             {
+                                for(var key in widgetTargetList[widgetName]) 
+                                {
+                                   if(widgetTargetList[widgetName][key] === localEventType)
+                                   {
+                                      targetsArrayForNotify.push(widgetName);
+                                      $("#" + widgetName + "_wrapper").hide();
+                                      $("#" + widgetName + "_mapDiv").show();
+                                      addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                   }
+                                }
+                             }
+
+                             //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
+                             $.event.trigger({
+                                 type: "esbEventAdded",
+                                 generator: "<?= $_REQUEST['name_w'] ?>",
+                                 targetsArray: targetsArrayForNotify
+                             });
+
+                            typeSortState = 1;
+                            $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-down" style="font-size: 20px"></i>');
+                            break;
+
+                        case 1:
+                            eventsArray.sort(function(a,b) {
+                                var typeIndexA = a.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
+                                var typeIndexB = b.payload.type_id.replace("urn:rixf:it.swarco.resolute/typeId/", "");
+                                var typeA = trafficEventTypes["type" + typeIndexA].desc.toLowerCase(); 
+                                var typeB = trafficEventTypes["type" + typeIndexB].desc.toLowerCase();
+                                if (typeA < typeB)
+                                {
+                                   return 1;
+                                }
+                                else
+                                {
+                                   if (typeA > typeB)
+                                   {
+                                      return -1;
+                                   }
+                                   else
+                                   {
+                                      return 0; 
+                                   }
+                                }
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(true);
+
+                            //Aggiunta su mappa dell'elemento in prima posizione post ordinamento
+                            localEventType = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-eventType");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).attr("data-onmap", "true");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").html("map");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).addClass("onMapTrafficEventPinAnimated");
+                            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0).parent().parent().find("div.trafficEventPinMsgContainer").addClass("onMapTrafficEventPinAnimated");
+
+                            for(var widgetName in widgetTargetList) 
+                             {
+                                for(var key in widgetTargetList[widgetName]) 
+                                {
+                                   if(widgetTargetList[widgetName][key] === localEventType)
+                                   {
+                                      $("#" + widgetName + "_wrapper").hide();
+                                      $("#" + widgetName + "_mapDiv").show();
+                                      addEventToMap($("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink").eq(0), widgetName);
+                                   }
+                                }
+                             }
+
+                            typeSortState = 2;
+                            $(this).find("div.trafficEventsButtonIndicator").html('<i class="fa fa-caret-up" style="font-size: 20px"></i>');
+                            break;
+
+                        case 2:
+                            eventsArray.sort(function(a,b) {
+                                return a.id - b.id;
+                            });
+
+                            populateWidget(true);
+                            removeAllEventsFromMaps(false);
+
+                            typeSortState = 0;
+                            $(this).find("div.trafficEventsButtonIndicator").html('');
+                            break;
+                    }
+                    $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html('');
+                    $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html('');
+                    severitySortState = 0;
+                    timeSortState = 0;
+               });
+
+
+           //Bottoni per categoria
+           $("#<?= $_REQUEST['name_w'] ?>_incidentsButton").hover(
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crashWhite.png");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").css("cursor", "pointer");
+
+              originalHeaderColor = {};
+              originalBorderColor = {};
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                 originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
+
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if((widgetTargetList[widgetName][key] === "1") || (widgetTargetList[widgetName][key] === "12"))
+                    {
+                       $("#" + widgetName + "_header").css("background", "#ff6666");
+                       $("#" + widgetName).css("border-color", "#ff6666");
+                    }
+                 }
+              }//Fine del for
+
+              if(allIncidentsOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("show");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("hide");
+              }                  
+           },
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").css("cursor", "auto");
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if((widgetTargetList[widgetName][key] === "1") || (widgetTargetList[widgetName][key] === "12"))
+                    {
+                       $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
+                       $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
+                    }
+                 }
+              }
+
+              if(allIncidentsOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crashWhite.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("map");
+              }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_incidentsButton").click(function(){
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+              allRoadWorksOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+              allSnowOnTheRoadsOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+              allWeatherDataOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+              allWindOnMap = false;
+
+
+             if(allIncidentsOnMap === false)
+             {
+                 addAllEventsToMap("1");
+                 allIncidentsOnMap = true;
+             }
+             else
+             {
+                 removeAllEventsFromMap("1");
+                 allIncidentsOnMap = false;
+             }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton").hover(
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorksWhite.png");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").css("cursor", "pointer");
+
+              originalHeaderColor = {};
+              originalBorderColor = {};
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                 originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
+
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "25")
+                    {
+                       $("#" + widgetName + "_header").css("background", "#ff6666");
+                       $("#" + widgetName).css("border-color", "#ff6666");
+                    }
+                 }
+              }//Fine del for
+
+              if(allRoadWorksOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("show");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("hide");
+              }                  
+           },
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").css("cursor", "auto");
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "25")
+                    {
+                       $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
+                       $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
+                    }
+                 }
+              }
+
+              if(allRoadWorksOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorksWhite.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("map");
+              }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton").click(function(){
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+              allIncidentsOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+              allSnowOnTheRoadsOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+              allWeatherDataOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+              allWindOnMap = false;
+
+             if(allRoadWorksOnMap === false)
+             {
+                 addAllEventsToMap("25");
+                 allRoadWorksOnMap = true;
+             }
+             else
+             {
+                 removeAllEventsFromMap("25");
+                 allRoadWorksOnMap = false;
+             }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton").hover(
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snowWhite.png");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").css("cursor", "pointer");
+
+              originalHeaderColor = {};
+              originalBorderColor = {};
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                 originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
+
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "30")
+                    {
+                       $("#" + widgetName + "_header").css("background", "#ff6666");
+                       $("#" + widgetName).css("border-color", "#ff6666");
+                    }
+                 }
+              }//Fine del for
+
+              if(allSnowOnTheRoadsOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("show");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("hide");
+              }                  
+           },
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").css("cursor", "auto");
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "30")
+                    {
+                       $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
+                       $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
+                    }
+                 }
+              }
+
+              if(allSnowOnTheRoadsOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snowWhite.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("map");
+              }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton").click(function(){
+             $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+              allIncidentsOnMap = false;
+
+
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+              allRoadWorksOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+              allWeatherDataOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+              allWindOnMap = false;
+
+             if(allSnowOnTheRoadsOnMap === false)
+             {
+                 addAllEventsToMap("30");
+                 allSnowOnTheRoadsOnMap = true;
+             }
+             else
+             {
+                 removeAllEventsFromMap("30");
+                 allSnowOnTheRoadsOnMap = false;
+             }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton").hover(
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherDataWhite.png");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").css("cursor", "pointer");
+
+              originalHeaderColor = {};
+              originalBorderColor = {};
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                 originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
+
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "32")
+                    {
+                       $("#" + widgetName + "_header").css("background", "#ff6666");
+                       $("#" + widgetName).css("border-color", "#ff6666");
+                    }
+                 }
+              }//Fine del for
+
+              if(allWeatherDataOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("show");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("hide");
+              }                  
+           },
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").css("cursor", "auto");
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "32")
+                    {
+                       $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
+                       $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
+                    }
+                 }
+              }
+
+              if(allWeatherDataOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherDataWhite.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("map");
+              }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton").click(function(){
+             $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+              allIncidentsOnMap = false;
+
+
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+              allRoadWorksOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+              allSnowOnTheRoadsOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+              allWindOnMap = false;
+
+             if(allWeatherDataOnMap === false)
+             {
+                 addAllEventsToMap("32");
+                 allWeatherDataOnMap = true;
+             }
+             else
+             {
+                 removeAllEventsFromMap("32");
+                 allWeatherDataOnMap = false;
+             }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_windButton").hover(
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/windWhite.png");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").css("cursor", "pointer");
+
+              originalHeaderColor = {};
+              originalBorderColor = {};
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 originalHeaderColor[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                 originalBorderColor[widgetName] = $("#" + widgetName).css("border-color");
+
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "33")
+                    {
+                       $("#" + widgetName + "_header").css("background", "#ff6666");
+                       $("#" + widgetName).css("border-color", "#ff6666");
+                    }
+                 }
+              }//Fine del for
+
+              if(allWindOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("show");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("hide");
+              }                  
+           },
+           function(){
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+              $("#<?= $_REQUEST['name_w'] ?>_windButton img").css("cursor", "auto");
+
+              for(var widgetName in widgetTargetList) 
+              {
+                 for(var key in widgetTargetList[widgetName]) 
+                 {
+                    if(widgetTargetList[widgetName][key] === "32")
+                    {
+                       $("#" + widgetName + "_header").css("background", originalHeaderColor[widgetName]);
+                       $("#" + widgetName).css("border-color", originalBorderColor[widgetName]);
+                    }
+                 }
+              }
+
+              if(allWindOnMap === false)
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/wind.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#000000");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("");
+              }
+              else
+              {
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/windWhite.png");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                 $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("map");
+              }
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_windButton").click(function(){
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crash.png");
+              allIncidentsOnMap = false;
+
+
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorks.png");
+              allRoadWorksOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snow.png");
+              allSnowOnTheRoadsOnMap = false;
+
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "black");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("");
+              $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherData.png");
+              allWeatherDataOnMap = false;
+
+             if(allWindOnMap === false)
+             {
+                 addAllEventsToMap("33");
+                 allWindOnMap = true;
+             }
+             else
+             {
+                 removeAllEventsFromMap("33");
+                 allWindOnMap = false;
+             }
+           });
+
+           setTimeout(function(){
+                switch(defaultCategory)
+                {
+                     case "incident":
+                        $("#<?= $_REQUEST['name_w'] ?>_incidentsButton img").attr("src", "../img/trafficIcons/crashWhite.png");
+                        $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                        $("#<?= $_REQUEST['name_w'] ?>_incidentsButton div.trafficEventsButtonIndicator").html("map");
+                        $("#<?= $_REQUEST['name_w'] ?>_incidentsButton").trigger("click");
+                        break;
+
+                     case "roadWorks":
+                        $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton img").attr("src", "../img/trafficIcons/roadWorksWhite.png");
+                        $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                        $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton div.trafficEventsButtonIndicator").html("map");
+                        $("#<?= $_REQUEST['name_w'] ?>_roadOnWorksButton").trigger("click");
+                        break;   
+
+                     case "snow":
+                        $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton img").attr("src", "../img/trafficIcons/snowWhite.png");
+                        $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                        $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton div.trafficEventsButtonIndicator").html("map");
+                        $("#<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton").trigger("click");
+                        break;   
+
+                     case "weatherData":
+                        $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton img").attr("src", "../img/trafficIcons/weatherDataWhite.png");
+                        $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                        $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton div.trafficEventsButtonIndicator").html("map"); 
+                        $("#<?= $_REQUEST['name_w'] ?>_weatherDataButton").trigger("click");
+                        break;
+
+                     case "wind":
+                        $("#<?= $_REQUEST['name_w'] ?>_windButton img").attr("src", "../img/trafficIcons/windWhite.png");
+                        $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").css("color", "#FFFFFF");
+                        $("#<?= $_REQUEST['name_w'] ?>_windButton div.trafficEventsButtonIndicator").html("map");  
+                        $("#<?= $_REQUEST['name_w'] ?>_windButton").trigger("click");
+                        break;   
+
+                     default:
+                         break;
+                } 
+            }, parseInt("<?php echo $crossWidgetDefaultLoadWaitTime; ?>"));
+
+           scroller = setInterval(stepDownInterval, speed);
+           var timeToClearScroll = (timeToReload - 0.5) * 1000;
+
+           setTimeout(function()
+           {
+               clearInterval(scroller);
+               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
+
+               //$(document).off("esbEventAdded");
+
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
+               $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(2).find("div.trafficEventsButtonIndicator").html("");
+
+                //Ripristino delle homepage native per gli widget targets al reload
+                for(var widgetName in widgetTargetList) 
+                {
+                   if($("#" + widgetName + "_driverWidgetType").val() === 'trafficEvents')
+                   {
+                       loadDefaultMap(widgetName);
+                   }
+                   else
+                   {
+                       //console.log("Attualmente non pilotato da trafficEvents");
+                   }
+                }
+           }, timeToClearScroll);
+
+
+           $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseenter(function() 
+           {
+               clearInterval(scroller);
+           });
+
+           $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseleave(function()
+           {    
+               clearInterval(scroller);    
+               scroller = setInterval(stepDownInterval, speed);
+           });
+
+           },
+           error: function (data)
+           {
+              console.log("Ko");
+              console.log(JSON.stringify(data));
+
+              showWidgetContent(widgetName);
+              $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+              $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
+           }
+        });
+       
         
-        startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
     });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                    <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>
+        <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -2496,17 +2546,17 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
-               <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
-                    <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
+               <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
+                    <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                         No data available
                     </div>
-                    <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                    <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
                         <i class="fa fa-times"></i>
                     </div>
                </div>  
-               <div id="<?= $_GET['name'] ?>_buttonsContainer" class="trafficEventsButtonsContainer">
+               <div id="<?= $_REQUEST['name_w'] ?>_buttonsContainer" class="trafficEventsButtonsContainer">
                    <div class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">
                            <img src="../img/trafficIcons/severity.png" />                                         
@@ -2525,38 +2575,38 @@
                        </div>
                       <div class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
-                   <div id="<?= $_GET['name'] ?>_incidentsButton" class="trafficEventsButtonContainer">
+                   <div id="<?= $_REQUEST['name_w'] ?>_incidentsButton" class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">
                            <img src="../img/trafficIcons/crash.png" />
                        </div>
                       <div class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
-                   <div id="<?= $_GET['name'] ?>_roadOnWorksButton" class="trafficEventsButtonContainer">
+                   <div id="<?= $_REQUEST['name_w'] ?>_roadOnWorksButton" class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">
                            <img src="../img/trafficIcons/roadWorks.png" />                                         
                        </div>
                       <div class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
-                   <div id="<?= $_GET['name'] ?>_snowOnTheRoadsButton" class="trafficEventsButtonContainer">
+                   <div id="<?= $_REQUEST['name_w'] ?>_snowOnTheRoadsButton" class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">
                            <img src="../img/trafficIcons/snow.png" />
                        </div>
                       <div class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
-                   <div id="<?= $_GET['name'] ?>_weatherDataButton" class="trafficEventsButtonContainer">
+                   <div id="<?= $_REQUEST['name_w'] ?>_weatherDataButton" class="trafficEventsButtonContainer">
                        <div class="trafficEventsButtonIcon centerWithFlex">
                            <img src="../img/trafficIcons/weatherData.png" />
                        </div>
                       <div class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
-                   <div id="<?= $_GET['name'] ?>_windButton" class="trafficEventsButtonContainer"> 
+                   <div id="<?= $_REQUEST['name_w'] ?>_windButton" class="trafficEventsButtonContainer"> 
                        <div class="trafficEventsButtonIcon centerWithFlex">
                            <img src="../img/trafficIcons/wind.png" />
                        </div>
                       <div class="trafficEventsButtonIndicator centerWithFlex"></div>                                           
                    </div>
                </div>
-               <div id="<?= $_GET['name'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
+               <div id="<?= $_REQUEST['name_w'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
             </div>
         </div>
     </div>	

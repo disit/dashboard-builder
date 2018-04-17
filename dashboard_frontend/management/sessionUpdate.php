@@ -36,6 +36,8 @@
         switch($_REQUEST['sessionAction'])
         {
             case 'closeViewSession':
+                
+                //TBD - DA RIFARE!!!
                 if(isset($_REQUEST['dashboardId']))
                 {
                   $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']); 

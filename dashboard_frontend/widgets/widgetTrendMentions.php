@@ -18,36 +18,38 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad) 
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad) 
     {
         var scroller1, scroller2, scrollBottom1, scrollBottom2, contentHeight, trendsNumber, quotesNumber, trendsContentHeight, quotesContentHeight, 
             rowPercHeight, rowPxHeight, fullRowPxHeight, actualTab, countdown, timeToClearScroll, titleWidth, fontRatio, fullRowPercHeight, contentPercWidth, iconWidth, contentWidth = null;
-        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var speed = 140;
-        var defaultTab = parseInt("<?= $_GET['defaultTab'] ?>");
+        var defaultTab = parseInt("<?= $_REQUEST['defaultTab'] ?>");
         actualTab = 1;
-        
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - 23);
-            $('#<?= $_GET['name'] ?>_header').hide();
+            var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 23);
+            $('#<?= $_REQUEST['name_w'] ?>_header').hide();
+			showHeader = false;
         }
         else
         {
-            var height = parseInt($("#<?= $_GET['name'] ?>_div").prop("offsetHeight") - headerHeight - 23);
-            $('#<?= $_GET['name'] ?>_header').show();
+            var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - headerHeight - 23);
+            $('#<?= $_REQUEST['name_w'] ?>_header').show();
+			showHeader = true;
         }
         
-        var counter = <?= $_GET['freq'] ?>;
+        var counter = parseInt('<?= $_REQUEST['frequency_w'] ?>');
         
         function stepDownInterval1()
         {
-            var pos = $('#<?= $_GET['name'] ?>_content').scrollTop();
+            var pos = $('#<?= $_REQUEST['name_w'] ?>_content').scrollTop();
             if(pos < (scrollBottom1 - 15))
             {
                 pos++;
@@ -56,12 +58,12 @@
             {
                 pos = 0;
             }
-            $('#<?= $_GET['name'] ?>_content').scrollTop(pos);
+            $('#<?= $_REQUEST['name_w'] ?>_content').scrollTop(pos);
         }
         
         function stepDownInterval2()
         {
-            var pos = $('#<?= $_GET['name'] ?>_content').scrollTop();
+            var pos = $('#<?= $_REQUEST['name_w'] ?>_content').scrollTop();
             
             if(pos < (scrollBottom2 - 15))
             {
@@ -71,7 +73,7 @@
             {
                 pos = 0;
             }
-            $('#<?= $_GET['name'] ?>_content').scrollTop(pos);
+            $('#<?= $_REQUEST['name_w'] ?>_content').scrollTop(pos);
         }
         
         $('[data-toggle="tooltip"]').tooltip(); 
@@ -83,87 +85,90 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?>
         
-        var hostFile = "<?= $_GET['hostFile'] ?>";
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         
         if(hostFile === "config")
         {
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 50 - 25 - 2));
+            titleWidth = parseInt(parseInt($("#<?= $_REQUEST['name_w'] ?>_div").width() - 25 - 50 - 25 - 2));
         }
         else
         {
-            $("#<?= $_GET['name'] ?>_buttonsDiv").css("display", "none");
-            titleWidth = parseInt(parseInt($("#<?= $_GET['name'] ?>_div").width() - 25 - 25 - 2));
+            $("#<?= $_REQUEST['name_w'] ?>_buttonsDiv").css("display", "none");
+            titleWidth = parseInt(parseInt($("#<?= $_REQUEST['name_w'] ?>_div").width() - 25 - 25 - 2));
         }
         
-        $("#<?= $_GET['name'] ?>_titleDiv").css("width", titleWidth + "px");
-        $("#<?= $_GET['name'] ?>_titleDiv").css("color", "<?= $_GET['headerFontColor'] ?>");
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
-        $("#<?= $_GET['name'] ?>_countdownDiv").css("color", "<?= $_GET['headerFontColor'] ?>");
-        $("#<?= $_GET['name'] ?>_loading").css("background-color", '<?= $_GET['color'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("width", titleWidth + "px");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
+        $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
         
         
         var loadingFontDim = 13;
         var loadingIconDim = 20;
         
-        $('#<?= $_GET['name'] ?>_loading').css("height", height+"px");
-        $('#<?= $_GET['name'] ?>_loading p').css("font-size", loadingFontDim+"px");
-        $('#<?= $_GET['name'] ?>_loading i').css("font-size", loadingIconDim+"px");
+        $('#<?= $_REQUEST['name_w'] ?>_loading').css("height", height+"px");
+        $('#<?= $_REQUEST['name_w'] ?>_loading p').css("font-size", loadingFontDim+"px");
+        $('#<?= $_REQUEST['name_w'] ?>_loading i').css("font-size", loadingIconDim+"px");
         
         if(firstLoad !== false)
         {
-            $('#<?= $_GET['name'] ?>_loading').css("display", "block");
+            $('#<?= $_REQUEST['name_w'] ?>_loading').css("display", "block");
         }
         
-        $("#<?= $_GET['name'] ?>_content").css("height", height);
-        $("#<?= $_GET['name'] ?>_content").css("backgroundColor", '<?= $_GET['color'] ?>');
-        $("#<?= $_GET['name'] ?>_tabsContainer").css("backgroundColor", '<?= $_GET['color'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_content").css("height", height);
+        $("#<?= $_REQUEST['name_w'] ?>_content").css("backgroundColor", '<?= $_REQUEST['color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_tabsContainer").css("backgroundColor", '<?= $_REQUEST['color_w'] ?>');
         
-        var colore_frame = "<?= $_GET['frame_color'] ?>";
+        var colore_frame = "<?= $_REQUEST['frame_color_w'] ?>";
         
-        $("#<?= $_GET['name'] ?>_div").css({'background-color':colore_frame});
-        $('#<?= $_GET['name'] ?>_content').css("overflow-y", "scroll");
-        $('#<?= $_GET['name'] ?>_content').css("overflow-x", "auto");
+        $("#<?= $_REQUEST['name_w'] ?>_div").css({'background-color':colore_frame});
+        $('#<?= $_REQUEST['name_w'] ?>_content').css("overflow-y", "scroll");
+        $('#<?= $_REQUEST['name_w'] ?>_content').css("overflow-x", "auto");
+		
+		//DA QUI
+		//setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
         
-        $("#<?= $_GET['name'] ?>_trends_li").click(function() 
+        $("#<?= $_REQUEST['name_w'] ?>_trends_li").click(function() 
         {
             actualTab = 1;
-            $("#<?= $_GET['name'] ?>_quotes_li").removeClass("active");
-            $("#<?= $_GET['name'] ?>_trends_li").addClass("active");
+            $("#<?= $_REQUEST['name_w'] ?>_quotes_li").removeClass("active");
+            $("#<?= $_REQUEST['name_w'] ?>_trends_li").addClass("active");
             clearInterval(scroller2);
-            $("#<?= $_GET['name'] ?>_content").scrollTop(0);
-            $("#<?= $_GET['name'] ?>_content").carousel(0);
+            $("#<?= $_REQUEST['name_w'] ?>_content").scrollTop(0);
+            $("#<?= $_REQUEST['name_w'] ?>_content").carousel(0);
             var calcContent = (trendsNumber * 30);
-            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+            var shownHeight = $("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight");
             scrollBottom1 = calcContent - shownHeight - 2;
             scroller1 = setInterval(stepDownInterval1, speed);
-            $("#<?= $_GET['name'] ?>_trends_li a").blur();
-            $("#<?= $_GET['name'] ?>_quotes_li a").blur();
+            $("#<?= $_REQUEST['name_w'] ?>_trends_li a").blur();
+            $("#<?= $_REQUEST['name_w'] ?>_quotes_li a").blur();
             
         });
         
-        $("#<?= $_GET['name'] ?>_quotes_li").click(function() 
+        $("#<?= $_REQUEST['name_w'] ?>_quotes_li").click(function() 
         {
             actualTab = 2;
-            $("#<?= $_GET['name'] ?>_trends_li").removeClass("active");
-            $("#<?= $_GET['name'] ?>_quotes_li").addClass("active");
+            $("#<?= $_REQUEST['name_w'] ?>_trends_li").removeClass("active");
+            $("#<?= $_REQUEST['name_w'] ?>_quotes_li").addClass("active");
             clearInterval(scroller1);
-            $("#<?= $_GET['name'] ?>_content").scrollTop(0);
-            $("#<?= $_GET['name'] ?>_content").carousel(1);
+            $("#<?= $_REQUEST['name_w'] ?>_content").scrollTop(0);
+            $("#<?= $_REQUEST['name_w'] ?>_content").carousel(1);
             var calcContent = (quotesNumber * 30);
-            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+            var shownHeight = $("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight");
             scrollBottom2 = calcContent - shownHeight - 2;
             scroller2 = setInterval(stepDownInterval2, speed);
-            $("#<?= $_GET['name'] ?>_trends_li a").blur();
-            $("#<?= $_GET['name'] ?>_quotes_li a").blur();
+            $("#<?= $_REQUEST['name_w'] ?>_trends_li a").blur();
+            $("#<?= $_REQUEST['name_w'] ?>_quotes_li a").blur();
         });
         
         $.ajax({//Inizio AJAX getParametersWidgets.php
             url: "../widgets/getParametersWidgets.php",
             type: "GET",
-            data: {"nomeWidget": ["<?= $_GET['name'] ?>"]},
+            data: {"nomeWidget": ["<?= $_REQUEST['name_w'] ?>"]},
             async: true,
             dataType: 'json',
             success: function (msg) 
@@ -173,15 +178,14 @@
                 {
                     sizeColumns = parseInt(msg.param.size_columns);
                 }
-                manageInfoButtonVisibility(msg.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
                 //Fattore di ingrandimento font calcolato sull'altezza in righe, base 4.
                 fontRatio = parseInt((sizeColumns / 4)*15);
                 fontRatio = fontRatio.toString() + "px";
                 
-                contentHeight = $('#<?= $_GET['name'] ?>_div').prop("offsetHeight") - 25 - 18;
+                contentHeight = $('#<?= $_REQUEST['name_w'] ?>_div').prop("offsetHeight") - 25 - 18;
 
-                $('#<?= $_GET['name'] ?>_trendsContainer').css("height", contentHeight + "px");
-                $('#<?= $_GET['name'] ?>_quotesContainer').css("height", contentHeight + "px");
+                $('#<?= $_REQUEST['name_w'] ?>_trendsContainer').css("height", contentHeight + "px");
+                $('#<?= $_REQUEST['name_w'] ?>_quotesContainer').css("height", contentHeight + "px");
 
                 rowPercHeight =  Math.floor(30 * 100 / contentHeight);
                 fullRowPercHeight = rowPercHeight;
@@ -189,10 +193,10 @@
                 //rowPxHeight = 30;
                 //fullRowPxHeight = rowPxHeight;
                 
-                iconWidth = Math.floor(30 * 100 / ($('#<?= $_GET['name'] ?>_div').prop("offsetWidth") - 17));
+                iconWidth = Math.floor(30 * 100 / ($('#<?= $_REQUEST['name_w'] ?>_div').prop("offsetWidth") - 17));
                 contentPercWidth = 100 - iconWidth;
                 //iconWidth = 30;
-                //contentWidth = $('#<?= $_GET['name'] ?>_div').prop("offsetWidth") - iconWidth - 17;
+                //contentWidth = $('#<?= $_REQUEST['name_w'] ?>_div').prop("offsetWidth") - iconWidth - 17;
                 
                 $.ajax({
                     url: "../widgets/curlProxyForTwitterVg.php?url=<?=$internalTwitterVigilanceHost?>/query/query.php?trends=Firenze",
@@ -202,17 +206,19 @@
                     success: function (msg) {
                         var noHashTrend = null;
                         var linkHashTrend = null;
+                        //console.log("../widgets/curlProxyForTwitterVg.php?url=<?=$internalTwitterVigilanceHost?>/query/query.php?trends=Firenze");
+                        //console.log(JSON.stringify(msg));
                         
                         if(firstLoad !== false)
                         {
-                            $('#<?= $_GET['name'] ?>_loading').css("display", "none");
-                            $("#<?= $_GET['name'] ?>_tabsContainer").css("display", "block");
-                            $('#<?= $_GET['name'] ?>_content').css("display", "block");
+                            $('#<?= $_REQUEST['name_w'] ?>_loading').css("display", "none");
+                            $("#<?= $_REQUEST['name_w'] ?>_tabsContainer").css("display", "block");
+                            $('#<?= $_REQUEST['name_w'] ?>_content').css("display", "block");
                         }
                         
                         if((msg.contents) instanceof Array) 
                         {
-                            $('#<?= $_GET['name'] ?>_trendsContainer').empty();
+                            $('#<?= $_REQUEST['name_w'] ?>_trendsContainer').empty();
                             trendsNumber = msg.contents.length;
                             for (var i = 0; i < trendsNumber; i++) 
                             {
@@ -229,7 +235,7 @@
                                 newContent.html(linkHashTrend);
                                 newRow.append(newVigIcon);
                                 newRow.append(newContent);
-                                $('#<?= $_GET['name'] ?>_trendsContainer').append(newRow);
+                                $('#<?= $_REQUEST['name_w'] ?>_trendsContainer').append(newRow);
                                 newRow.css("width", "100%");
                                 newRow.css("height", rowPercHeight + "%");
                                 newVigIcon.css("width", iconWidth + "%");
@@ -240,29 +246,29 @@
                             
                             if(sizeColumns <= 4)
                             {
-                                $('#<?= $_GET['name'] ?>_trendsContainer .azzurroGrad').css("font-size", "18px");
+                                $('#<?= $_REQUEST['name_w'] ?>_trendsContainer .azzurroGrad').css("font-size", "18px");
                             }
                             else
                             {
                                 if(sizeColumns <= 5)
                                 {
-                                    $('#<?= $_GET['name'] ?>_trendsContainer .azzurroGrad').css("font-size", "20px");
+                                    $('#<?= $_REQUEST['name_w'] ?>_trendsContainer .azzurroGrad').css("font-size", "20px");
                                 }
                                 else
                                 {
                                     if(sizeColumns <= 6)
                                     {
-                                        $('#<?= $_GET['name'] ?>_trendsContainer .azzurroGrad').css("font-size", "21px");
+                                        $('#<?= $_REQUEST['name_w'] ?>_trendsContainer .azzurroGrad').css("font-size", "21px");
                                     }
                                     else
                                     {
                                         if(sizeColumns <= 7)
                                         {
-                                            $('#<?= $_GET['name'] ?>_trendsContainer .azzurroGrad').css("font-size", "22px");
+                                            $('#<?= $_REQUEST['name_w'] ?>_trendsContainer .azzurroGrad').css("font-size", "22px");
                                         }
                                         else
                                         {
-                                            $('#<?= $_GET['name'] ?>_trendsContainer .azzurroGrad').css("font-size", "23px");
+                                            $('#<?= $_REQUEST['name_w'] ?>_trendsContainer .azzurroGrad').css("font-size", "23px");
                                         }
                                     }
                                 }
@@ -280,7 +286,7 @@
                                     quotesNumber = msg2.contents.length;
                                     quotesContentHeight = fullRowPxHeight * quotesNumber;
                                     
-                                    $('#<?= $_GET['name'] ?>_quotesContainer').empty();
+                                    $('#<?= $_REQUEST['name_w'] ?>_quotesContainer').empty();
                                     for(var i = 0; i < quotesNumber; i++) 
                                     {
                                         noAtMention = msg2.contents[i].request.substring(1).toLowerCase();
@@ -296,7 +302,7 @@
                                         newRow.append(newVigIcon);
                                         newRow.append(newContent);
                                         
-                                        $('#<?= $_GET['name'] ?>_quotesContainer').append(newRow);
+                                        $('#<?= $_REQUEST['name_w'] ?>_quotesContainer').append(newRow);
                                         
                                         newRow.css("width", "100%");
                                         newRow.css("height", rowPercHeight + "%");
@@ -308,36 +314,36 @@
                                     
                                     if(sizeColumns <= 4)
                                     {
-                                        $('#<?= $_GET['name'] ?>_quotesContainer .turcheseGrad').css("font-size", "18px");
+                                        $('#<?= $_REQUEST['name_w'] ?>_quotesContainer .turcheseGrad').css("font-size", "18px");
                                     }
                                     else
                                     {
                                         if(sizeColumns <= 5)
                                         {
-                                            $('#<?= $_GET['name'] ?>_quotesContainer .turcheseGrad').css("font-size", "20px");
+                                            $('#<?= $_REQUEST['name_w'] ?>_quotesContainer .turcheseGrad').css("font-size", "20px");
                                         }
                                         else
                                         {
                                             if(sizeColumns <= 6)
                                             {
-                                                $('#<?= $_GET['name'] ?>_quotesContainer .turcheseGrad').css("font-size", "21px");
+                                                $('#<?= $_REQUEST['name_w'] ?>_quotesContainer .turcheseGrad').css("font-size", "21px");
                                             }
                                             else
                                             {
                                                 if(sizeColumns <= 7)
                                                 {
-                                                    $('#<?= $_GET['name'] ?>_quotesContainer .turcheseGrad').css("font-size", "22px");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_quotesContainer .turcheseGrad').css("font-size", "22px");
                                                 }
                                                 else
                                                 {
-                                                    $('#<?= $_GET['name'] ?>_quotesContainer .turcheseGrad').css("font-size", "23px");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_quotesContainer .turcheseGrad').css("font-size", "23px");
                                                 }
                                             }
                                         }
                                     }
 
                                     //Listener all'evento slide del carousel
-                                    $('#<?= $_GET['name'] ?>_content').on('slid.bs.carousel', function (ev) 
+                                    $('#<?= $_REQUEST['name_w'] ?>_content').on('slid.bs.carousel', function (ev) 
                                     {
                                         var id = ev.relatedTarget.id;
                                         clearInterval(scroller1);
@@ -347,24 +353,24 @@
                                         {
                                             switch(id)
                                             {
-                                                case "<?= $_GET['name'] ?>_trendsContainer":
+                                                case "<?= $_REQUEST['name_w'] ?>_trendsContainer":
                                                     actualTab = 1;        
-                                                    $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
-                                                    $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
-                                                    $('#<?= $_GET['name'] ?>_content').scrollTop(0);
+                                                    $("#<?= $_REQUEST['name_w'] ?>_trends_li").attr("class", "active");
+                                                    $("#<?= $_REQUEST['name_w'] ?>_quotes_li").attr("class", "");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_content').scrollTop(0);
                                                     var calcContent = (trendsNumber * 30);
-                                                    var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                                    var shownHeight = $("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight");
                                                     scrollBottom1 = calcContent - shownHeight - 2;
                                                     scroller1 = setInterval(stepDownInterval1, speed);
                                                     break;
 
-                                                case "<?= $_GET['name'] ?>_quotesContainer":
+                                                case "<?= $_REQUEST['name_w'] ?>_quotesContainer":
                                                     actualTab = 2;
-                                                    $("#<?= $_GET['name'] ?>_trends_li").attr("class", "");
-                                                    $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "active"); 
-                                                    $('#<?= $_GET['name'] ?>_content').scrollTop(0);
+                                                    $("#<?= $_REQUEST['name_w'] ?>_trends_li").attr("class", "");
+                                                    $("#<?= $_REQUEST['name_w'] ?>_quotes_li").attr("class", "active"); 
+                                                    $('#<?= $_REQUEST['name_w'] ?>_content').scrollTop(0);
                                                     var calcContent = (quotesNumber * 30);
-                                                    var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                                    var shownHeight = $("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight");
                                                     scrollBottom2 = calcContent - shownHeight - 2;
                                                     scroller2 = setInterval(stepDownInterval2, speed);
                                                     break;    
@@ -372,13 +378,13 @@
                                         }
                                     });
 
-                                    $("#<?= $_GET['name'] ?>_content").mouseenter(function() 
+                                    $("#<?= $_REQUEST['name_w'] ?>_content").mouseenter(function() 
                                     {
                                         clearInterval(scroller1);
                                         clearInterval(scroller2);
                                     });
 
-                                    $("#<?= $_GET['name'] ?>_content").mouseleave(function(){
+                                    $("#<?= $_REQUEST['name_w'] ?>_content").mouseleave(function(){
                                         clearInterval(scroller1);
                                         clearInterval(scroller2);
 
@@ -398,43 +404,43 @@
                                     {
                                         case 0:
                                             actualTab = 1;
-                                            $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
-                                            $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
+                                            $("#<?= $_REQUEST['name_w'] ?>_trends_li").attr("class", "active");
+                                            $("#<?= $_REQUEST['name_w'] ?>_quotes_li").attr("class", "");
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
-                                            $('#<?= $_GET['name'] ?>_content').carousel(0);
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').carousel(0);
                                             var calcContent = (trendsNumber * 30);
-                                            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                            var shownHeight = $("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight");
                                             scrollBottom1 = calcContent - shownHeight - 2;
                                             scroller1 = setInterval(stepDownInterval1, speed);
-                                            $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').addClass('slide');
                                             break;
 
                                         case 1:
                                             actualTab = 2;
-                                            $("#<?= $_GET['name'] ?>_trends_li").attr("class", "");
-                                            $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "active");
+                                            $("#<?= $_REQUEST['name_w'] ?>_trends_li").attr("class", "");
+                                            $("#<?= $_REQUEST['name_w'] ?>_quotes_li").attr("class", "active");
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
-                                            $('#<?= $_GET['name'] ?>_content').carousel(1);
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').carousel(1);
                                             var calcContent = (quotesNumber * 30);
-                                            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                            var shownHeight = $("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight");
                                             scrollBottom2 = calcContent - shownHeight - 2;
                                             scroller2 = setInterval(stepDownInterval2, speed);
-                                            $('#<?= $_GET['name'] ?>_content').addClass('slide');
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').addClass('slide');
                                             break;
 
                                         case -1:
                                             actualTab = 1;
-                                            $("#<?= $_GET['name'] ?>_trends_li").attr("class", "active");
-                                            $("#<?= $_GET['name'] ?>_quotes_li").attr("class", "");
-                                            $('#<?= $_GET['name'] ?>_content').addClass('slide');
-                                            $('#<?= $_GET['name'] ?>_content').attr('data-interval', 4000);
-                                            $('#<?= $_GET['name'] ?>_content').carousel('cycle');
+                                            $("#<?= $_REQUEST['name_w'] ?>_trends_li").attr("class", "active");
+                                            $("#<?= $_REQUEST['name_w'] ?>_quotes_li").attr("class", "");
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').addClass('slide');
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').attr('data-interval', 4000);
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').carousel('cycle');
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
                                             var calcContent = (trendsNumber * 30);
-                                            var shownHeight = $("#<?= $_GET['name'] ?>_content").prop("offsetHeight");
+                                            var shownHeight = $("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight");
                                             scrollBottom1 = calcContent - shownHeight - 2;
                                             scroller1 = setInterval(stepDownInterval1, speed);
                                             break;
@@ -449,31 +455,31 @@
 
                                     countdown = setInterval(function () 
                                     {
-                                        $("#<?= $_GET['name'] ?>_countdownDiv").text(counter);
+                                        $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter);
                                         counter--;
 
                                         if(counter > 60)
                                         {
-                                            $("#<?= $_GET['name'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
+                                            $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
                                         } 
                                         else 
                                         {
-                                            $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
+                                            $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
                                         }
                                         if(counter === 0) 
                                         {
-                                            $("#<?= $_GET['name'] ?>_countdownDiv").text(counter + "s");
+                                            $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
                                             clearInterval(countdown);
                                             clearInterval(scroller1);
                                             clearInterval(scroller2);
-                                            $("#<?= $_GET['name'] ?>_content").off();
-                                            $("#<?= $_GET['name'] ?>_content").scrollTop(0);
-                                            $('#<?= $_GET['name'] ?>_content').removeClass('slide');
-                                            $("#<?= $_GET['name'] ?>_trends_li").off();
-                                            $("#<?= $_GET['name'] ?>_quotes_li").off();
+                                            $("#<?= $_REQUEST['name_w'] ?>_content").off();
+                                            $("#<?= $_REQUEST['name_w'] ?>_content").scrollTop(0);
+                                            $('#<?= $_REQUEST['name_w'] ?>_content').removeClass('slide');
+                                            $("#<?= $_REQUEST['name_w'] ?>_trends_li").off();
+                                            $("#<?= $_REQUEST['name_w'] ?>_quotes_li").off();
                                             quotesNumber = null;
                                             trendsNumber = null;
-                                            setTimeout(<?= $_GET['name'] ?>(false), 1000);
+                                            setTimeout(<?= $_REQUEST['name_w'] ?>(false), 1000);
                                         }
                                     }, 1000);
                                 },
@@ -486,7 +492,7 @@
                         } 
                         else 
                         {
-                            $("#<?= $_GET['name'] ?>_content").html("<p><b>Principali Twitter Trends:</b> nessun dato disponibile</p><p><b>Citazioni:</b> nessun dato disponibile</p>");
+                            $("#<?= $_REQUEST['name_w'] ?>_content").html("<p><b>Principali Twitter Trends:</b> nessun dato disponibile</p><p><b>Citazioni:</b> nessun dato disponibile</p>");
                         }
                     },
                     error: function(errorData)
@@ -505,23 +511,25 @@
  });
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -530,18 +538,18 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_tabsContainer" class="twitterTabsContainer">
-            <ul id="<?= $_GET['name'] ?>_nav_ul" class="nav nav-tabs nav_ul twitterTabs">
-                <li role="navigation" id="<?= $_GET['name'] ?>_trends_li" class="active"><a disabled="true">trends</a></li>
-                <li role="navigation" id="<?= $_GET['name'] ?>_quotes_li"><a disabled="true">quotes</a></li>
+        <div id="<?= $_REQUEST['name_w'] ?>_tabsContainer" class="twitterTabsContainer">
+            <ul id="<?= $_REQUEST['name_w'] ?>_nav_ul" class="nav nav-tabs nav_ul twitterTabs">
+                <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_trends_li" class="active"><a disabled="true">trends</a></li>
+                <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_quotes_li"><a disabled="true">quotes</a></li>
             </ul>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="twitterMainContent carousel" data-interval="false" data-pause="hover">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="twitterMainContent carousel" data-interval="false" data-pause="hover">
             <!-- Wrapper per il carousel -->
-            <div id="<?= $_GET['name'] ?>_carousel" class="carousel-inner" role="listbox">
-                <div id="<?= $_GET['name'] ?>_trendsContainer" class="item active"></div>
-                <div id="<?= $_GET['name'] ?>_quotesContainer" class="item"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_carousel" class="carousel-inner" role="listbox">
+                <div id="<?= $_REQUEST['name_w'] ?>_trendsContainer" class="item active"></div>
+                <div id="<?= $_REQUEST['name_w'] ?>_quotesContainer" class="item"></div>
             </div>
         </div> 
     </div>	

@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -17,7 +17,10 @@
 
     include('../config.php');
     include('process-form.php');
-    session_start();
+    if(!isset($_SESSION))
+    {
+       session_start();
+    }
     
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
@@ -35,7 +38,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Dashboard Management System</title>
+        <title>Snap4City</title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -59,14 +62,21 @@
        <script src="../bootstrapToggleButton/js/bootstrap-toggle.min.js"></script>
        
        <!-- Bootstrap editable tables -->
-       <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
-       <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+       <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>-->
+       
+       <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+       <script src="../bootstrap3-editable/js/bootstrap-editable.js"></script>
 
        <!-- Bootstrap table -->
        <link rel="stylesheet" href="../boostrapTable/dist/bootstrap-table.css">
        <script src="../boostrapTable/dist/bootstrap-table.js"></script>
        <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
        <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
+       
+       <!-- Dynatable -->
+       <link rel="stylesheet" href="../dynatable/jquery.dynatable.css">
+       <script src="../dynatable/jquery.dynatable.js"></script>
        
        <!-- Bootstrap slider -->
         <script src="../bootstrapSlider/bootstrap-slider.js"></script>
@@ -82,6 +92,7 @@
         
         <!-- Custom CSS -->
         <link href="../css/dashboard.css" rel="stylesheet">
+        <link href="../css/dashboardList.css" rel="stylesheet">
         
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
@@ -98,7 +109,7 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Dashboard Management System
+                            Snap4City
                         </div>
                     </div>
                     <div class="row">
@@ -106,190 +117,86 @@
                         <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-12" id="mainContentCnt">
-                            <div class="row hidden-xs hidden-sm mainContentRow">
-                                <div class="col-xs-12 mainContentRowDesc">Synthesis</div>
-                                <div id="dashboardTotNumberCnt" class="col-md-2 mainContentCellCnt">
-                                    <div class="col-md-12 centerWithFlex pageSingleDataCnt">
-                                        <?php
-                                            $loggedUsername = $_SESSION['loggedUsername'];
-                                            $loggedRole = $_SESSION['loggedRole'];    
-                                            switch($loggedRole)
-                                            {
-                                                //Gestisce solo le proprie dashboard
-                                                case "Manager":
-                                                    $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard WHERE Config_dashboard.user = '$loggedUsername'";
-                                                    break;
-
-                                                //Gestisce le proprie dashboard e di quelle dei manager dei pools di cui è admin 
-                                                case "AreaManager":
-                                                   $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard AS dashes " .
-                                                            "WHERE dashes.user = '$loggedUsername' " . //Proprie dashboard
-                                                            "OR (dashes.user IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$loggedUsername' AND isAdmin = 1))) ";
-                                                   break;
-
-                                                 //Gestisce tutte le dashboards
-                                                 case "ToolAdmin":
-                                                    $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard";
-                                                    break;
-                                            }
-                                            
-                                            $result = mysqli_query($link, $query);
-                                            
-                                            if($result)
-                                            {
-                                               $row = $result->fetch_assoc();
-                                               $dashboardsQt = $row['qt'];
-                                               echo $row['qt'];
-                                            }
-                                            else
-                                            {
-                                                $dashboardsQt = "-";
-                                                echo '-';
-                                            }
-                                        ?>
+                        <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                            <div class="row mainContentRow" id="dashboardsListTableRow">
+                                <!--<div class="col-xs-12 mainContentRowDesc">List</div>-->
+                                
+                                <div class="col-xs-12 mainContentCellCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                                    <div id="dashboardsListMenu" class="row">
+                                        <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-2 dashboardsListMenuItem">
+                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
+                                                View<br>mode
+                                            </div>-->
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                <input id="dashboardListsViewModeInput" type="checkbox">
+                                            </div>
+                                        </div>
+                                        <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-1 dashboardsListMenuItem">
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                <div class="col-xs-6 centerWithFlex">
+                                                    <div class="dashboardsListSortBtnCnt">
+                                                        <i class="fa fa-sort-alpha-asc dashboardsListSort"></i>
+                                                    </div> 
+                                                </div>
+                                                <div class="col-xs-6 centerWithFlex">
+                                                    <div class="dashboardsListSortBtnCnt">
+                                                        <i class="fa fa-sort-alpha-desc dashboardsListSort"></i>
+                                                    </div>    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="dashboardListsPages" class="col-xs-12 col-sm-6 col-md-3 dashboardsListMenuItem">
+                                           <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
+                                                List<br>pages
+                                            </div>-->
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="dashboardListsSearchFilter" class="col-xs-12 col-sm-6 col-md-4 dashboardsListMenuItem">
+                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
+                                                Search
+                                            </div>-->
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                <div class="input-group">
+                                                    <div class="input-group-btn">
+                                                      <button type="button" id="searchDashboardBtn" class="btn"><i class="fa fa-search"></i></button>
+                                                      <button type="button" id="resetSearchDashboardBtn" class="btn"><i class="fa fa-close"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-2 dashboardsListMenuItem">
+                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
+                                                New<br>dashboard
+                                            </div>-->
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                <button id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" type="button" class="btn btn-warning">New dashboard</button>
+                                                <!--<i id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" class="fa fa-plus-square"></i>-->
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-12 centerWithFlex pageSingleDataLabel">
-                                        dashboards
+                                    
+                                    
+                                    <table id="list_dashboard" class="table">
+                                        <thead class="dashboardsTableHeader">
+                                            <tr>
+                                                <th data-dynatable-column="title_header">Title</th>
+                                                <th data-dynatable-column="user">Creator</th>
+                                                <th data-dynatable-column="creation_date">Creation date</th>
+                                                <th data-dynatable-column="last_edit_date">Last edit date</th>
+                                                <th data-dynatable-column="status_dashboard">Status</th>
+                                                <th>Edit</th>
+                                                <th>View</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                    
+                                    <div id="list_dashboard_cards" class="container-fluid">
+                                        
                                     </div>
-                                </div>
-                                <div id="dashboardTotActiveCnt" class="col-md-2 mainContentCellCnt">
-                                    <div class="col-md-12 centerWithFlex pageSingleDataCnt">
-                                        <?php
-                                            switch($loggedRole)
-                                            {
-                                                //Gestisce solo le proprie dashboard
-                                                case "Manager":
-                                                    $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard WHERE Config_dashboard.user = '$loggedUsername' AND status_dashboard = 1";
-                                                    break;
-
-                                                //Gestisce le proprie dashboard e di quelle dei manager dei pools di cui è admin 
-                                                case "AreaManager":
-                                                   $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard AS dashes " .
-                                                            "WHERE (dashes.user = '$loggedUsername' AND dashes.status_dashboard = 1)" . //Proprie dashboard
-                                                            "OR (dashes.user IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$loggedUsername' AND isAdmin = 1))) ";
-                                                   break;
-
-                                                 //Gestisce tutte le dashboards
-                                                 case "ToolAdmin":
-                                                    $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard WHERE status_dashboard = 1";
-                                                    break;
-                                            }
-                                            
-                                            $result = mysqli_query($link, $query);
-                                            
-                                            if($result)
-                                            {
-                                               $row = $result->fetch_assoc();
-                                               $dashboardsActiveQt = $row['qt'];
-                                               echo $row['qt'];
-                                            }
-                                            else
-                                            {
-                                                $dashboardsActiveQt = "-";
-                                                echo '-';
-                                            }
-                                        ?>
-                                    </div>
-                                    <div class="col-md-12 centerWithFlex pageSingleDataLabel">
-                                        active
-                                    </div>
-                                </div>
-                                <div id="dashboardTotPermCnt" class="col-md-2 mainContentCellCnt">
-                                    <div class="col-md-12 centerWithFlex pageSingleDataCnt">
-                                        <?php
-                                            switch($loggedRole)
-                                            {
-                                                //Gestisce solo le proprie dashboard
-                                                case "Manager":
-                                                    $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard WHERE Config_dashboard.user = '$loggedUsername' AND visibility = 'public'";
-                                                    break;
-
-                                                //Gestisce le proprie dashboard e di quelle dei manager dei pools di cui è admin 
-                                                case "AreaManager":
-                                                   $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard AS dashes " .
-                                                            "WHERE (dashes.user = '$loggedUsername' AND dashes.visibility = 'public')" . //Proprie dashboard
-                                                            "OR (dashes.user IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$loggedUsername' AND isAdmin = 1))) ";
-                                                   break;
-
-                                                 //Gestisce tutte le dashboards
-                                                 case "ToolAdmin":
-                                                    $query = "SELECT count(*) AS qt FROM Dashboard.Config_dashboard WHERE visibility = 'public'";
-                                                    break;
-                                            }
-                                            $result = mysqli_query($link, $query);
-                                            
-                                            if($result)
-                                            {
-                                               $row = $result->fetch_assoc();
-                                               $dashboardsPublicQt = $row['qt'];
-                                               echo $row['qt'];
-                                            }
-                                            else
-                                            {
-                                                $dashboardsPublicQt = "-";
-                                                echo '-';
-                                            }
-                                        ?>
-                                    </div>
-                                    <div class="col-md-12 centerWithFlex pageSingleDataLabel">
-                                        public
-                                    </div>
-                                </div>
-                                <div id="dashboardLastCnt" class="col-md-6 mainContentCellCnt">
-                                    <div class="col-md-12 centerWithFlex lastDashName">
-                                        <?php
-                                            switch($loggedRole)
-                                            {
-                                                //Gestisce solo le proprie dashboard
-                                                case "Manager":
-                                                    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.user = '$loggedUsername' ORDER BY creation_date DESC LIMIT 1";
-                                                    break;
-
-                                                //Gestisce le proprie dashboard e di quelle dei manager dei pools di cui è admin 
-                                                case "AreaManager":
-                                                   $query = "SELECT * FROM Dashboard.Config_dashboard AS dashes " .
-                                                            "WHERE dashes.user = '$loggedUsername'" . //Proprie dashboard
-                                                            "OR (dashes.user IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$loggedUsername' AND isAdmin = 1))) " .
-                                                            "ORDER BY creation_date DESC LIMIT 1";
-                                                   break;
-
-                                                 //Gestisce tutte le dashboards
-                                                 case "ToolAdmin":
-                                                    $query = "SELECT * FROM Dashboard.Config_dashboard ORDER BY creation_date DESC LIMIT 1";
-                                                    break;
-                                            }
-                                            
-                                            $result = mysqli_query($link, $query);
-                                            
-                                            if($result)
-                                            {
-                                               $row = $result->fetch_assoc();
-                                               $lastDashId = $row['Id'];
-                                               $lastDashTitle = $row['title_header'];
-                                               $lastDashCreator = $row['user'];
-                                               $lastDashDate = $row['creation_date'];
-                                               echo '<a href="../view/index.php?iddasboard=' . base64_encode($lastDashId) . '" target="_blank">' . $lastDashTitle . '</a>';
-                                            }
-                                            else
-                                            {
-                                                echo '-';
-                                                $lastDashId = null;
-                                                $lastDashTitle = null;
-                                                $lastDashCreator = null;
-                                                $lastDashDate = null;
-                                            }
-                                        ?>
-                                    </div>
-                                    <div class="col-md-12 centerWithFlex pageSingleDataLabel">
-                                        last created
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mainContentRow">
-                                <div class="col-xs-12 mainContentRowDesc">List</div>
-                                <div class="col-xs-12 mainContentCellCnt">
-                                    <table id="list_dashboard" class="table"></table>
                                 </div>
                             </div>
                         </div>
@@ -319,6 +226,21 @@
                     <div class="tab-content">
                         <!-- Measures tab -->
                         <div id="measuresTab" class="tab-pane fade in active">
+                            <div class="row">
+                                <div class="col-xs-12 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <select name="inputDashboardViewMode" class="modalInputTxt" id="inputDashboardViewMode" required>
+                                            <option value="fixed">Fixed width dashboard</option>
+                                            <option value="smallResponsive">Responsive on small displays (width < 768px)</option>
+                                            <option value="mediumResponsive">Responsive on small and medium displays (width < 992px)</option>
+                                            <option value="largeResponsive">Responsive on small, medium and large displays (width < 1200px)</option>
+                                            <option value="alwaysResponsive">Always responsive</option>
+                                        </select>
+                                    </div>
+                                    <div class="modalFieldLabelCnt">View mode</div>
+                                </div>
+                            </div>
+                            
                             <div class="row">
                                 <div class="col-xs-12 col-md-12 modalCell">
                                     <div class="modalFieldCnt">
@@ -490,6 +412,8 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
+        var dashboardsList = null;
+        
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
@@ -543,17 +467,6 @@
             $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
             $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
             $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
-            
-            if($(window).width() < 992)
-            {
-                $('#list_dashboard').bootstrapTable('hideColumn', 'user');
-                $('#list_dashboard').bootstrapTable('hideColumn', 'status_dashboard');
-            }
-            else
-            {
-                $('#list_dashboard').bootstrapTable('showColumn', 'user');
-                $('#list_dashboard').bootstrapTable('showColumn', 'status_dashboard');
-            }
         });
         
         $('#dashboardsLink .mainMenuItemCnt').addClass("mainMenuItemCntActive");
@@ -590,16 +503,6 @@
             offstyle: 'default',
             size: 'normal'
         });
-        
-        /*$('#embeddable').bootstrapToggle({
-            on: 'Yes',
-            off: 'No',
-            onstyle: 'info',
-            offstyle: 'default',
-            size: 'normal'
-        });*/
-        
-        //$('#dashboardLastCnt').height($('#dashboardTotNumberCnt').height());
         
         var loggedRole = "<?= $_SESSION['loggedRole'] ?>";
             var loggedType = "<?= $_SESSION['loggedType'] ?>";
@@ -654,8 +557,6 @@
             });*/
             
             $('#authorizedPagesJson').val(JSON.stringify(authorizedPages));
-            //$('label[for=authorizedPages]').hide();
-            //$('#authorizedPagesTable').parent().hide();
             $('#color_hf').css("background-color", '#ffffff');
             
             /*$('#embeddable').change(function(){
@@ -744,14 +645,10 @@
             $('#inputDashboardVisibility').change(function(){
                if($(this).val() === 'restrict') 
                {
-                   /*$('label[for="inputDashboardVisibilityUsersTable"]').show();
-                   $('#inputDashboardVisibilityUsersTableContainer').show();*/
                    $('#inputDashboardVisibilityUsersTable').show();
                }
                else
                {
-                   /*$('label[for="inputDashboardVisibilityUsersTable"]').hide();
-                   $('#inputDashboardVisibilityUsersTableContainer').hide();*/
                    $('#inputDashboardVisibilityUsersTable').hide();
                }
             });
@@ -765,6 +662,77 @@
                 $('#percentWidth').val(percent + " %");
             });
             
+            function myRowWriter(rowIndex, record, columns, cellWriter)
+            {
+                var statusBtn, cssClass = null;
+                var title = record.title_header;
+                
+                if(rowIndex%2 !== 0)
+                {
+                    cssClass = 'blueRow';
+                }
+                else
+                {
+                    cssClass = 'whiteRow';
+                }
+                
+                if(title.length > 75)
+                {
+                   title = title.substr(0, 75) + " ...";
+                }
+                
+                var user = record.user;
+                if(user.length > 75)
+                {
+                   user = user.substr(0, 75) + " ...";
+                }
+                
+                if((record.status_dashboard === '0')||(record.status_dashboard === 0))
+                {
+                    statusBtn = '<input type="checkbox" data-toggle="toggle" class="changeDashboardStatus">';
+                }
+                else
+                {
+                    statusBtn = '<input type="checkbox" checked data-toggle="toggle" class="changeDashboardStatus">';
+                }
+                
+                var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + title + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="editDashBtn">edit</button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn">view</button></td></tr>';
+                
+                return newRow;
+            }
+    
+            function myCardsWriter(rowIndex, record, columns, cellWriter)
+            {
+                var title = record.title_header;
+                
+                if(title.length > 100)
+                {
+                   title = title.substr(0, 100) + " ...";
+                }
+                
+                var headerColor = record.color_header;
+                
+                if((headerColor === '#ffffff')||(headerColor === 'rgb(255, 255, 255)')||(headerColor === 'rgba(255, 255, 255, 1)')||(headerColor === 'white')||(headerColor.includes(',0)')))
+                {
+                    headerColor = '#e6f9ff';
+                }
+                
+                 var cardDiv = '<div data-uniqueid="' + record.Id + '" data-dashTitle="' + record.title_header + '" data-headerColor = "' + headerColor + '" data-headerFontColor="' + record.headerFontColor + '"   class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+                                   '<div class="dashboardsListCardInnerDiv">' +
+                                      '<div class="dashboardsListCardTitleDiv col-xs-12 centerWithFlex">' + title + '</div>' + 
+                                      '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
+                                      '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex">View</div>' +
+                                      '<div class="dashboardsListCardImgDiv"></div>' + 
+                                      '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' + 
+                                          '<button type="button" class="editDashBtnCard">Edit</button>' + 
+                                      '</div>' +  
+                                   '</div>' +
+                                '</div>';   
+                       
+                 return cardDiv;
+            }
+            
+            //Nuova tabella
             $.ajax({
                 url: "get_data.php",
                 data: {
@@ -775,399 +743,388 @@
                 dataType: 'json',
                 success: function(data) 
                 {
-                    var creatorVisibile = true;
-                    var detailView = true;
-                    var statusVisibile = true;
-                    
-                    if($(window).width() < 992)
-                    {
-                        detailView = false;
-                        creatorVisibile = false; 
-                        statusVisibile = false;
-                    }
-                    
-                    $('#list_dashboard').bootstrapTable({
-                        columns: [
-                        {
-                            field: 'title_header',
-                            title: 'Title',
-                            sortable: true,
-                            valign: "middle",
-                            align: "center",
-                            halign: "center",
-                            formatter: function(value, row, index)
+                    dashboardsList = data;
+                    //Ricordati di metterlo PRIMA dell'istanziamento della tabella
+                    $('#list_dashboard_cards').bind('dynatable:afterProcess', function(e, dynatable){
+                        $('#dashboardsListTableRow').css('padding-top', '0px');
+                        $('#dashboardsListTableRow').css('padding-bottom', '0px');
+                        
+                        $('#dashboardListsViewModeInput').bootstrapToggle({
+                            on: 'View as table',
+                            off: 'View as cards',
+                            onstyle: 'default',
+                            offstyle: 'info',
+                            size: 'normal'
+                        });
+                        
+                        $('label.toggle-off').css("background-color", "rgba(0, 162, 211, 1)");
+                        $('label.toggle-off').css("font-weight", "bold");
+                        $('label.toggle-off').css("padding-left", "18px");
+                        $('label.toggle-on').css("background-color", "rgba(255, 204, 0, 1)");
+                        $('label.toggle-on').css("color", "rgba(255, 255, 255, 1)");
+                        $('label.toggle-on').css("font-weight", "bold");
+                        $('label.toggle-on').css("padding-right", "24px");
+                        
+                        $('#dashboardListsViewModeInput').change(function() {
+                            if($(this).prop('checked'))
                             {
-                                if(value !== null)
-                                {
-                                    if(value.length > 75)
-                                    {
-                                       return value.substr(0, 75) + " ...";
-                                    }
-                                    else
-                                    {
-                                       return value;
-                                    } 
-                                }
-                            },
-                            cellStyle: function(value, row, index, field) {
-                                var fontSize = "1em"; 
-                                if($(window).width() < 992)
-                                {
-                                    fontSize = "0.9em";
-                                }
+                                //Visione a tabella
+                                $('#list_dashboard_cards').hide();
+                                $('#list_dashboard').show();
+                                $("#dynatable-pagination-links-list_dashboard_cards").hide();
+                                $("#dynatable-query-search-list_dashboard_cards").hide();
+                                $('#dashboardListsCardsSort').hide();
+                                $('#dashboardListsPages').removeClass('col-md-3');
+                                $('#dashboardListsPages').addClass('col-md-4');
+                                $("#dashboardListsItemsPerPage").show();
+                                $("#dynatable-pagination-links-list_dashboard").show();
+                                $("#dynatable-query-search-list_dashboard").show();
                                 
-                                if(index%2 !== 0)
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "color": "rgba(51, 64, 69, 1)", 
-                                            "font-size": fontSize,
-                                            "font-weight": "bold",
-                                            "background-color": "rgb(230, 249, 255)",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                                else
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "color": "rgba(51, 64, 69, 1)", 
-                                            "font-size": fontSize,
-                                            "font-weight": "bold",
-                                            "background-color": "white",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                            }
-                        },
-                        {
-                            field: 'user',
-                            title: 'Creator',
-                            sortable: true,
-                            valign: "middle",
-                            align: "center",
-                            halign: "center",
-                            visible: creatorVisibile,
-                            formatter: function(value, row, index)
-                            {
-                                if(value !== null)
-                                {
-                                    if(value.length > 50)
-                                    {
-                                       return value.substr(0, 50) + " ...";
-                                    }
-                                    else
-                                    {
-                                       return value;
-                                    } 
-                                }
-                            },
-                            cellStyle: function(value, row, index, field) {
-                                if(index%2 !== 0)
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "rgb(230, 249, 255)",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                                else
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "white",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                            }
-                        },
-                        {
-                            field: 'status_dashboard',
-                            title: "Status",
-                            align: "center",
-                            valign: "middle",
-                            align: "center",
-                            halign: "center",
-                            visible: statusVisibile,
-                            formatter: function(value, row, index)
-                            {
-                                if((value === '0')||(value === 0))
-                                {
-                                    return '<input type="checkbox" data-toggle="toggle" class="changeDashboardStatus">';
-                                }
-                                else
-                                {
-                                    return '<input type="checkbox" checked data-toggle="toggle" class="changeDashboardStatus">';
-                                }
-                            },
-                            cellStyle: function(value, row, index, field) {
-                                if(index%2 !== 0)
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "rgb(230, 249, 255)",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                                else
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "white",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                            }
-                        },
-                        {
-                            title: "",
-                            align: "center",
-                            valign: "middle",
-                            align: "center",
-                            halign: "center",
-                            formatter: function(value, row, index)
-                            {
-                                return '<button type="button" class="editDashBtn">edit</button>';
-                            },
-                            cellStyle: function(value, row, index, field) {
-                                if(index%2 !== 0)
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "rgb(230, 249, 255)",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                                else
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "white",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                            }
-                        },
-                        {
-                            title: "",
-                            align: "center",
-                            valign: "middle",
-                            align: "center",
-                            halign: "center",
-                            formatter: function(value, row, index)
-                            {
-                                return '<button type="button" class="viewDashBtn">view</button>';
-                            },
-                            cellStyle: function(value, row, index, field) {
-                                if(index%2 !== 0)
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "rgb(230, 249, 255)",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                                else
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "background-color": "white",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                            }
-                        }
-                        ],
-                        data: data,
-                        search: true,
-                        pagination: true,
-                        pageSize: 10,
-                        locale: 'en-US',
-                        searchAlign: 'left',
-                        uniqueId: "Id",
-                        striped: false,
-                        classes: "table table-hover table-no-bordered",
-                        detailView: detailView,
-                        detailFormatter: function(index, row, element) {
-                            return 'Creation date: ' + data[index].creation_date + ' | Visibility: ' + data[index].visibility + " | Embeddable: " + data[index].embeddable;
-                        },
-                        searchTimeOut: 250,
-                        onPostBody: function()
-                        {
-                            if(tableFirstLoad)
-                            {
-                                //Caso di primo caricamento della tabella
-                                tableFirstLoad = false;
-                                var addDasboardDiv = $('<div class="pull-right"><i id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
-                                $('div.fixed-table-toolbar').append(addDasboardDiv);
-                                addDasboardDiv.css("margin-top", "10px");
-                                addDasboardDiv.find('i.fa-plus-square').off('hover');
-                                addDasboardDiv.find('i.fa-plus-square').hover(function(){
-                                    $(this).css('color', '#e37777');
-                                    $(this).css('cursor', 'pointer');
-                                }, 
-                                function(){
-                                    $(this).css('color', '#ffcc00');
-                                    $(this).css('cursor', 'normal');
-                                });
-                                
-                                $('#link_add_dashboard').off('click');
-                                $('#link_add_dashboard').click(function(){
-                                    authorizedPages = [];
-                                    $('#modalCreateDashboard').modal('show');
-                                });
-                                
-                                $('#list_dashboard thead').css("background", "rgba(0, 162, 211, 1)");
-                                $('#list_dashboard thead').css("color", "white");
-                                $('#list_dashboard thead').css("font-size", "1.1em");
+                                $('#searchDashboardBtn').off('click');
+                                $('#searchDashboardBtn').click(function(){
+                                    var dynatable = $('#list_dashboard').data('dynatable');
+                                    dynatable.queries.run();
+                                }); 
+
+                                $('#resetSearchDashboardBtn').off('click');
+                                $('#resetSearchDashboardBtn').click(function(){
+                                    var dynatable = $('#list_dashboard').data('dynatable');
+                                    $("#dynatable-query-search-list_dashboard").val("");
+                                    dynatable.queries.runSearch("");
+                                }); 
                             }
                             else
                             {
-                                //Casi di cambio pagina
+                                //Visione a cards
+                                $('#list_dashboard').hide();
+                                $('#list_dashboard_cards').show();
+                                $("#dynatable-pagination-links-list_dashboard").hide();
+                                $("#dynatable-query-search-list_dashboard").hide();
+                                $("#dashboardListsItemsPerPage").hide();
+                                $('#dashboardListsCardsSort').show();
+                                $('#dashboardListsPages').removeClass('col-md-4');
+                                $('#dashboardListsPages').addClass('col-md-3');
+                                $("#dynatable-query-search-list_dashboard_cards").show();
+                                $("#dynatable-pagination-links-list_dashboard_cards").show();
+                                
+                                $('#searchDashboardBtn').off('click');
+                                $('#searchDashboardBtn').click(function(){
+                                    var dynatable = $('#list_dashboard_cards').data('dynatable');
+                                    dynatable.queries.run();
+                                }); 
+
+                                $('#resetSearchDashboardBtn').off('click');
+                                $('#resetSearchDashboardBtn').click(function(){
+                                    var dynatable = $('#list_dashboard_cards').data('dynatable');
+                                    $("#dynatable-query-search-list_dashboard_cards").val("");
+                                    dynatable.queries.runSearch("");
+                                }); 
                             }
+                        });
 
-                            //Istruzioni da eseguire comunque
-                            $('#list_dashboard tbody tr').each(function(i){
-                                if(i%2 !== 0)
-                                {
-                                    $(this).find('td').eq(0).css("background-color", "rgb(230, 249, 255)");
-                                    $(this).find('td').eq(0).css("border-top", "none");
-                                }
-                                else
-                                {
-                                    $(this).find('td').eq(0).css("background-color", "white");
-                                    $(this).find('td').eq(0).css("border-top", "none");
-                                }
+                        $('#link_add_dashboard').off('click');
+                        $('#link_add_dashboard').click(function(){
+                            authorizedPages = [];
+                            $('#modalCreateDashboard').modal('show');
+                        });
+                        
+                        $("#dynatable-pagination-links-list_dashboard_cards").appendTo("#dashboardListsPages div.dashboardsListMenuItemContent");
+                        //$("#dynatable-pagination-links-list_dashboard_cards li").eq(0).remove();
+                        $("#dynatable-pagination-links-list_dashboard_cards li").eq(0).remove();
+                        //$("#dynatable-pagination-links-list_dashboard_cards li").eq($("#dynatable-pagination-links-list_dashboard_cards li").length - 1).remove();
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("font-family", "Montserrat");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("font-weight", "bold");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("color", "white");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("font-family", "Montserrat");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("font-weight", "bold");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("color", "white");
+                        $("ul#dynatable-pagination-links-list_dashboard_cards").css("-webkit-padding-start", "0px");
+                        $("ul#dynatable-pagination-links-list_dashboard_cards").css("-webkit-margin-before", "0px");
+                        $("ul#dynatable-pagination-links-list_dashboard_cards").css("-webkit-margin-after", "0px");
+                        $("ul#dynatable-pagination-links-list_dashboard_cards").css("padding", "0px");
+                        
+                        $("#dynatable-query-search-list_dashboard_cards").prependTo("#dashboardListsSearchFilter div.dashboardsListMenuItemContent div.input-group");
+                        $('#dynatable-search-list_dashboard_cards').remove();
+                        $("#dynatable-query-search-list_dashboard_cards").css("border", "none");
+                        $("#dynatable-query-search-list_dashboard_cards").attr("placeholder", "Filter by dashboard title, author...");
+                        $("#dynatable-query-search-list_dashboard_cards").css("width", "100%");
+                        $("#dynatable-query-search-list_dashboard_cards").addClass("form-control");
+                        
+                        $('#list_dashboard_cards div.dashboardsListCardDiv').each(function(i){
+                            $(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/dashScr/dashboard" + $(this).attr('data-uniqueid') + "/lastDashboardScr.png)");
+                            $(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
+                            $(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
+                            $(this).find('div.dashboardsListCardImgDiv').css("background-position", "center top");
+                            $(this).find('div.dashboardsListCardInnerDiv').css("width", "100%");
+                            $(this).find('div.dashboardsListCardInnerDiv').css("height", $(this).height() + "px");
+                            $(this).find('div.dashboardsListCardOverlayDiv').css("height", $(this).find('div.dashboardsListCardImgDiv').height() + "px");
+                            $(this).find('div.dashboardsListCardOverlayTxt').css("height", $(this).find('div.dashboardsListCardImgDiv').height() + "px");
+                            
+                            $(this).find('.dashboardsListCardImgDiv').off('mouseenter');
+                            $(this).find('.dashboardsListCardImgDiv').off('mouseleave');
+                            
+                            $(this).find('.dashboardsListCardOverlayTxt').hover(function(){
+                                $(this).parents('.dashboardsListCardDiv').find('div.dashboardsListCardOverlayTxt').css("opacity", "1");
+                                $(this).parents('.dashboardsListCardDiv').find('div.dashboardsListCardOverlayDiv').css("opacity", "0.8");
+                                $(this).css("cursor", "pointer");
+                            }, function(){
+                                $(this).parents('.dashboardsListCardDiv').find('div.dashboardsListCardOverlayTxt').css("opacity", "0");
+                                $(this).parents('.dashboardsListCardDiv').find('div.dashboardsListCardOverlayDiv').css("opacity", "0.05");
+                                $(this).css("cursor", "normal");
                             });
                             
-                            $('#list_dashboard').css("border-bottom", "none");
-                            $('span.pagination-info').hide();
-
-                            $('#list_dashboard button.editDashBtn').off('hover');
-                            $('#list_dashboard button.editDashBtn').hover(function(){
-                                $(this).css('background', '#ffcc00');
-                                $(this).parents('tr').find('td').eq(1).css('background', '#ffcc00');
-                            }, 
-                            function(){
-                                $(this).css('background', 'rgb(69, 183, 175)');
-                                $(this).parents('tr').find('td').eq(1).css('background', $(this).parents('td').css('background'));
-                            });
-                            
-                            $('#list_dashboard button.viewDashBtn').off('hover');
-                            $('#list_dashboard button.viewDashBtn').hover(function(){
-                                $(this).css('background', '#ffcc00');
-                                $(this).parents('tr').find('td').eq(1).css('background', '#ffcc00');
-                            }, 
-                            function(){
-                                $(this).css('background', 'rgba(0, 162, 211, 1)');
-                                $(this).parents('tr').find('td').eq(1).css('background', $(this).parents('td').css('background'));
-                            });
-                            
-                            $('#list_dashboard button.viewDashBtn').off('click');
-                            $('#list_dashboard button.viewDashBtn').click(function () 
+                            $(this).find('.editDashBtnCard').off('click');
+                            $(this).find('.editDashBtnCard').click(function() 
                             {
-                                var dashboardId = $(this).parents('tr').attr("data-uniqueid");
-                                window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
-                            });
-                            
-                            $('#list_dashboard input.changeDashboardStatus').bootstrapToggle({
-                                on: "On",
-                                off: "Off",
-                                onstyle: "primary",
-                                offstyle: "default",
-                                size: "mini"
-                            });
-
-                            $('#list_dashboard tbody input.changeDashboardStatus').off('change');
-                            $('#list_dashboard tbody input.changeDashboardStatus').change(function() {
-                                if($(this).prop('checked') === false)
-                                {
-                                    var newStatus = 0;
-                                }
-                                else
-                                {
-                                    var newStatus = 1;
-                                }
-
+                                var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+                                var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-dashTitle');
+                                
                                 $.ajax({
-                                    url: "process-form.php",
+                                    url: "../controllers/getDashboardEditPermissions.php",
+                                    type: "GET",
                                     data: {
-                                        modify_status_dashboard: true,
-                                        dashboardId: $(this).parents('tr').attr('data-uniqueid'),
-                                        newStatus: newStatus
+                                        openDashboardToEdit: true,
+                                        dashboardId: dashboardId
                                     },
-                                    type: "POST",
                                     async: true,
-                                    success: function(data)
+                                    dataType: 'json',
+                                    success: function(data) 
                                     {
-                                        if(data !== "Ok")
+                                        switch(data['detail'])
                                         {
-                                            console.log("Error updating dashboard status");
-                                            console.log(data);
-                                            alert("Error updating dashboard status");
-                                            location.reload();
-                                        }
-                                        else
-                                        {
-                                            if($('#dashboardTotActiveCnt .pageSingleDataCnt').html() !== "-")
-                                            {
-                                                if(newStatus === 0)
-                                                {
-                                                    $('#dashboardTotActiveCnt .pageSingleDataCnt').html(parseInt($('#dashboardTotActiveCnt .pageSingleDataCnt').html()) - 1);
-                                                }
-                                                else
-                                                {
-                                                    $('#dashboardTotActiveCnt .pageSingleDataCnt').html(parseInt($('#dashboardTotActiveCnt .pageSingleDataCnt').html()) + 1);
-                                                }
-                                            }
+                                            case "Ok":
+                                                window.open("../management/dashboard_configdash.php?dashboardId=" + dashboardId + "&dashboardAuthorName=" + encodeURI(data.dashboardAuthorName) + "&dashboardEditorName=" + encodeURI("<?= $_SESSION['loggedUsername']?>" + "&dashboardTitle=" + encodeURI(dashboardTitle)));
+                                                break;
+                                                
+                                            case "missingParam":
+                                                //TBD modale
+                                                break;
+                                                
+                                            case "unauthorized":
+                                                //TBD modale
+                                                break;  
+                                                
+                                            default:
+                                                //TBD modale
+                                                break;      
                                         }
                                     },
                                     error: function(errorData)
                                     {
-                                        console.log("Error updating dashboard status");
+                                        console.log("Error editing dashboard");
                                         console.log(errorData);
-                                        alert("Error updating dashboard status");
-                                        location.reload();
                                     }
                                 });
                             });
-
-                            $('#list_dashboard tbody button.editDashBtn').off('click');
-                            $('#list_dashboard tbody button.editDashBtn').click(function() 
+                            
+                            $(this).find('.dashboardsListCardOverlayTxt').off('click');
+                            $(this).find('.dashboardsListCardOverlayTxt').click(function() 
                             {
-                                var dashboardId = $(this).parents('tr').attr('data-uniqueid');
-                                location.href = "process-form.php?openDashboardToEdit=true&dashboardId=" + dashboardId;
+                                var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+                                window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
                             });
+                        });
+                        
+                        $('#searchDashboardBtn').off('click');
+                        $('#searchDashboardBtn').click(function(){
+                            var dynatable = $('#list_dashboard_cards').data('dynatable');
+                            dynatable.queries.run();
+                        }); 
+                        
+                        $('#resetSearchDashboardBtn').off('click');
+                        $('#resetSearchDashboardBtn').click(function(){
+                            var dynatable = $('#list_dashboard_cards').data('dynatable');
+                            $("#dynatable-query-search-list_dashboard_cards").val("");
+                            dynatable.queries.runSearch("");
+                        }); 
+                      });
+                    
+                    
+                    $('#list_dashboard_cards').dynatable({
+                        table: {
+                            bodyRowSelector: 'div'
+                          },
+                        dataset: {
+                          records: data,
+                          perPageDefault: 12,
+                          perPageOptions: [4, 8, 12, 16, 20, 24, 28, 32]
+                        },
+                        writers: {
+                            _rowWriter: myCardsWriter
+                        },
+                        inputs: {
+                            paginationLinkPlacement: 'before'
+                        },
+                        features: {
+                            recordCount: false,
+                            perPageSelect: false,
+                            search: true
                         }
+                      });
+                      
+                      var dynatable = $('#list_dashboard_cards').data('dynatable');
+                      dynatable.sorts.clear();
+                      dynatable.sorts.add('title_header', 1); // 1=ASCENDING, -1=DESCENDING
+                      dynatable.process();
+                      
+                      $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
+                      $('#dashboardListsCardsSort i.dashboardsListSort').eq(0).click(function(){
+                          var dynatable = $('#list_dashboard_cards').data('dynatable');
+                          dynatable.sorts.clear();
+                          dynatable.sorts.add('title_header', 1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.process();
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(0, 162, 211, 1)');
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
+                      });
+                      
+                      $('#dashboardListsCardsSort i.dashboardsListSort').eq(1).click(function(){
+                          var dynatable = $('#list_dashboard_cards').data('dynatable');
+                          dynatable.sorts.clear();
+                          dynatable.sorts.add('title_header', -1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.process();
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(255, 204, 0, 1)');
+                      });
+                    
+                    $('#list_dashboard').bind('dynatable:afterProcess', function(e, dynatable){
+                        $('span.dynatable-per-page-label').remove();
+                        
+                        //$('#dynatable-per-page-list_dashboard').parents('span.dynatable-per-page').appendTo("#dashboardListsItemsPerPage div.dashboardsListMenuItemContent");
+                        //$('#dynatable-per-page-list_dashboard').addClass('form-control');
+                        
+                        $("#dynatable-pagination-links-list_dashboard").appendTo("#dashboardListsPages div.dashboardsListMenuItemContent");
+                        $("#dynatable-pagination-links-list_dashboard li").eq(0).remove();
+                        //$("#dynatable-pagination-links-list_dashboard li").eq(0).remove();
+                        //$("#dynatable-pagination-links-list_dashboard li").eq($("#dynatable-pagination-links-list_dashboard li").length - 1).remove();
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("font-family", "Montserrat");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("font-weight", "bold");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("color", "white");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("font-family", "Montserrat");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("font-weight", "bold");
+                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("color", "white");
+                        $("ul#dynatable-pagination-links-list_dashboard").css("-webkit-padding-start", "0px");
+                        $("ul#dynatable-pagination-links-list_dashboard").css("-webkit-margin-before", "0px");
+                        $("ul#dynatable-pagination-links-list_dashboard").css("-webkit-margin-after", "0px");
+                        $("ul#dynatable-pagination-links-list_dashboard").css("padding", "0px");
+                        
+                        $("#dynatable-query-search-list_dashboard").prependTo("#dashboardListsSearchFilter div.dashboardsListMenuItemContent div.input-group");
+                        $('#dynatable-search-list_dashboard').remove();
+                        $("#dynatable-query-search-list_dashboard").css("border", "none");
+                        $("#dynatable-query-search-list_dashboard").attr("placeholder", "Filter by dashboard title, author...");
+                        $("#dynatable-query-search-list_dashboard").css("width", "100%");
+                        $("#dynatable-query-search-list_dashboard").addClass("form-control");
+                        
+                        $('#list_dashboard input.changeDashboardStatus').bootstrapToggle({
+                            on: "On",
+                            off: "Off",
+                            onstyle: "primary",
+                            offstyle: "default",
+                            size: "mini"
+                        });
+                        
+                        $('#list_dashboard tbody input.changeDashboardStatus').off('change');
+                        $('#list_dashboard tbody input.changeDashboardStatus').change(function() {
+                            if($(this).prop('checked') === false)
+                            {
+                                var newStatus = 0;
+                            }
+                            else
+                            {
+                                var newStatus = 1;
+                            }
+
+                            $.ajax({
+                                url: "process-form.php",
+                                data: {
+                                    modify_status_dashboard: true,
+                                    dashboardId: $(this).parents('tr').attr('data-uniqueid'),
+                                    newStatus: newStatus
+                                },
+                                type: "POST",
+                                async: true,
+                                success: function(data)
+                                {
+                                    if(data !== "Ok")
+                                    {
+                                        console.log("Error updating dashboard status");
+                                        console.log(data);
+                                        alert("Error updating dashboard status");
+                                        location.reload();
+                                    }
+                                    else
+                                    {
+                                        if($('#dashboardTotActiveCnt .pageSingleDataCnt').html() !== "-")
+                                        {
+                                            if(newStatus === 0)
+                                            {
+                                                $('#dashboardTotActiveCnt .pageSingleDataCnt').html(parseInt($('#dashboardTotActiveCnt .pageSingleDataCnt').html()) - 1);
+                                            }
+                                            else
+                                            {
+                                                $('#dashboardTotActiveCnt .pageSingleDataCnt').html(parseInt($('#dashboardTotActiveCnt .pageSingleDataCnt').html()) + 1);
+                                            }
+                                        }
+                                    }
+                                },
+                                error: function(errorData)
+                                {
+                                    console.log("Error updating dashboard status");
+                                    console.log(errorData);
+                                    alert("Error updating dashboard status");
+                                    location.reload();
+                                }
+                            });
+                        });
+                        
+                        $('#list_dashboard button.editDashBtn').off('click');
+                        $('#list_dashboard button.editDashBtn').click(function() 
+                        {
+                            var dashboardId = $(this).parents('tr').attr('data-uniqueid');
+                            var dashboardTitle = $(this).parents('tr').attr('data-dashTitle');
+                            var dashboardAuthorName = $(this).parents('tr').attr('data-authorName');
+                            
+                            window.open("../management/dashboard_configdash.php?dashboardId=" + dashboardId + "&dashboardAuthorName=" + dashboardAuthorName + "&dashboardEditorName=" + encodeURI("<?= $_SESSION['loggedUsername']?>" + "&dashboardTitle=" + encodeURI(dashboardTitle)));
+                        });
+                        
+                        $('#list_dashboard button.viewDashBtn').off('click');
+                        $('#list_dashboard button.viewDashBtn').click(function () 
+                        {
+                            var dashboardId = $(this).parents('tr').attr("data-uniqueid");
+                            window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                        });
                     });
+                    
+                    
+                      $('#list_dashboard').dynatable({
+                        dataset: {
+                          records: data,
+                          perPageDefault: 20,
+                          perPageOptions: [5, 10, 20, 30, 40]
+                        },
+                        writers: {
+                            _rowWriter: myRowWriter
+                        },
+                        features: {
+                            recordCount: false,
+                            perPageSelect: false
+                        },
+                        inputs: {
+                            perPagePlacement: 'after'
+                        }
+                      });
+                      $("#dynatable-pagination-links-list_dashboard").hide();
+                      $("#dynatable-query-search-list_dashboard").hide();
+                      
+                      /*$('#dynatable-per-page-list_dashboard option').each(function(i){
+                            $(this).text($(this).text() + " rows");
+                        });*/
                 },
                 error: function(errorData)
                 {
-                    console.log("KO");
-                    console.log(errorData);
+                    
                 }
             });
-
+            
             $('#dashboardLogoInput').change(function ()
             {
                 $('#dashboardLogoLinkInput').removeAttr('disabled');
@@ -1215,5 +1172,15 @@
                    console.log("Error: " + JSON.stringify(data));
                }
            });
+           
+        //Apertura nuova dashboard quando appena creata
+        <?php
+            if(isset($_GET['newDashId'])&&isset($_GET['newDashAuthor'])&&isset($_GET['newDashTitle']))
+            {
+                echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . $_GET['newDashId'] . '&dashboardAuthorName=' . $_GET['newDashAuthor'] . '&dashboardEditorName=' . $_GET['newDashAuthor'] . '&dashboardTitle=' . $_GET['newDashTitle'] . '");';
+                echo 'history.replaceState(null, null, "dashboards.php");';
+            }
+        ?> 
+           
     });
 </script>  

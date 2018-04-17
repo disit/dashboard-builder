@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
             $titlePatterns = array();
@@ -26,30 +26,29 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?> 
                 
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_content");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var widgetProperties, infoJson, styleParameters, showHeader, orientation, widgetParameters, countdownRef, serviceUri, city,
             updateDateTimeInterval, language, todayDescAndIcon, otherDaysQt, otherDaysCellWidth, otherDayCell, otherDayDateContainer, 
             otherDayIconContainer, otherDayTempContainer, otherDayDate, otherDayDescAndIcon, todayDim,
             dateContainerSize, otherDaysCellHeight, otherDayDescContainer, timeToClearScroll, backgroundMode, sizeRows, iconSet, sizeColumns = null;
-        var metricId = "<?= $_GET['metric'] ?>";
-        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var url = '<?= $_REQUEST['link_w'] ?>';
+        var embedWidget = '<?= $_REQUEST['embedWidget'] ?>';
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
+        var showTitle = '<?= $_REQUEST['showTitle'] ?>';
         
         var monthsNames = [
             {
@@ -176,14 +175,14 @@
             url = null;
         }
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-	{
-            showHeader = false;
-	}
-	else
-	{
-            showHeader = true;
-	} 
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+		{
+				showHeader = false;
+		}
+		else
+		{
+				showHeader = true;
+		} 
         
         //Definizioni di funzione specifiche del widget
         function setAutoBackground(originalDesc)
@@ -799,77 +798,6 @@
             return descAndIcon;
         }
         
-         /*function getTime() 
-         {
-            var now = new Date();
-            var days = new Array();
-            var months = new Array();
-
-            days[0] = "Sun";
-            days[1] = "Mon";
-            days[2] = "Tue";
-            days[3] = "Wed";
-            days[4] = "Thu";
-            days[5] = "Fri";
-            days[6] = "Sat";
-
-            months[0] = "Jan";
-            months[1] = "Feb";
-            months[2] = "Mar";
-            months[3] = "Apr";
-            months[4] = "May";
-            months[5] = "Jun";
-            months[6] = "Jul";
-            months[7] = "Aug";
-            months[8] = "Sep";
-            months[9] = "Oct";
-            months[10] = "Nov";
-            months[11] = "Dec";
-
-            //var day = days[now.getDay()];
-            var day = now.getDate();
-            //var month = months[now.getMonth()];
-            var month = parseInt(now.getMonth() + 1);
-            var hours = now.getHours();
-            var minutes = now.getMinutes();
-            var seconds = now.getSeconds();
-            
-            if(day <= 9)
-            {
-               day = "0" + day;
-            }
-            
-            if(month <= 9)
-            {
-               month = "0" + month;
-            }
-            
-            if(hours <= 9)
-            {
-               hours = "0" + hours;
-            }
-
-            if(minutes <= 9)
-            {
-               minutes = "0" + minutes;
-            }
-
-            if(seconds <= 9)
-            {
-               seconds = "0" + seconds;
-            }
-            
-            var date = day + "/" + month + "/" + now.getFullYear();
-            var time = hours + ":" + minutes + ":" + seconds;
-            var dateTime = {
-                dayOfWeek: now.getDay(),
-                date: date,
-                time: time
-            };
-            
-            return dateTime;
-         }*/
-        
         //Restituisce il JSON delle info se presente, altrimenti NULL
         function getInfoJson()
         {
@@ -893,8 +821,16 @@
             
             return styleParameters;
         }
+        
+        function resizeWidget()
+        {
+            $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+            $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+        }
         //Fine definizioni di funzione 
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -904,8 +840,8 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        //widgetProperties = getWidgetProperties(widgetName);
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        
         
         $.ajax({
             url: getParametersWidgetUrl,
@@ -919,34 +855,19 @@
                 
                 if((widgetProperties !== null) && (widgetProperties !== undefined))
                 {
-                    //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-                    styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
+                    styleParameters = getStyleParameters();
                     widgetParameters = widgetProperties.param.parameters;
                     sizeRows = parseInt(widgetProperties.param.size_rows);
                     sizeColumns = parseInt(widgetProperties.param.size_columns);
                     city = widgetProperties.param.municipality_w;
                     
-                    manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
-                    
                     $.ajax({
-                        //url: "<?=$serviceMapUrlPrefix?>sparql?query=select+distinct+%3Fn+%3Fs+%7B%0D%0A%3Fs+a+km4c%3AMunicipality.%0D%0A%3Fs+foaf%3Aname+%3Fn%0D%0A%7D+order+by+%3Fn&format=json",
                         url: '<?=$serviceMapUrlPrefix?>sparql?query=select+distinct+%3Fs+%7B+%3Fs+a+km4c%3AMunicipality.%3Fs+foaf%3Aname+"' + city + '".%7D&format=json',
                         type: "GET",
                         async: true,
                         dataType: 'json',
-                        success: function(/*citiesList*/cityData) 
+                        success: function(cityData) 
                         {
-                            /*for(var i = 0; i < citiesList.results.bindings.length; i++)
-                            {
-                               if(citiesList.results.bindings[i].n.value === '<?= $_GET['city'] ?>')
-                               {
-                                   serviceUri = citiesList.results.bindings[i].s.value;
-                                   break;
-                               }
-                            }*/
-    
-                            //console.log(JSON.stringify(cityData));
-                            
                             if((!cityData.hasOwnProperty("ERROR"))&&(cityData.hasOwnProperty("results")))
                             {
                                 if(cityData.results.hasOwnProperty("bindings"))
@@ -964,7 +885,6 @@
                             if(serviceUri !== null)
                             {
                                 $.ajax({
-                                    //url: "../widgets/curlProxy.php?url=<?=$serviceMapUrlPrefix?>api/v1/?serviceUri=" + serviceUri,
                                     url: "../management/iframeProxy.php",
                                     data: {
                                         action: "getMeteoForecast",
@@ -972,9 +892,9 @@
                                     },
                                     type: "GET",
                                     async: true,
-                                    //dataType: 'json',
                                     success: function(meteoData) 
                                     {
+                                        console.log(meteoData);
                                         meteoData = JSON.parse(meteoData);
                                         orientation = styleParameters.orientation;
                                         language = styleParameters.language;
@@ -985,14 +905,14 @@
                                         if(meteoData.hasOwnProperty("ERROR"))
                                         {
                                             showWidgetContent(widgetName);
-                                            $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                                         }
                                         else
                                         {
                                             if(meteoData.results.bindings.length === 0)
                                             {
                                                 showWidgetContent(widgetName);
-                                                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                                             }
                                             else
                                             {   
@@ -1001,62 +921,62 @@
                                                     showWidgetContent(widgetName);
                                                 }
 
-                                                $('#<?= $_GET['name'] ?>_chartContainer').css("color", fontColor);
-                                                $('#<?= $_GET['name'] ?>_cityContainer').html('<span style="display:block;">' + '<?= $_GET['city'] ?>'.charAt(0) + '<?= $_GET['city'] ?>'.slice(1).toLowerCase() + '</span>');
+                                                $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("color", fontColor);
+                                                $('#<?= $_REQUEST['name_w'] ?>_cityContainer').html('<span style="display:block;">' + '<?= $_REQUEST['municipality_w'] ?>'.charAt(0) + '<?= $_REQUEST['municipality_w'] ?>'.slice(1).toLowerCase() + '</span>');
 
                                                 todayDescAndIcon = getDescAndIcon(meteoData.results.bindings[0].description.value);
-                                                $('#<?= $_GET['name'] ?>_descContainer').html('<span style="display:block;">' + todayDescAndIcon.desc + '</span>');
+                                                $('#<?= $_REQUEST['name_w'] ?>_descContainer').html('<span style="display:block;">' + todayDescAndIcon.desc + '</span>');
 
                                                 if(backgroundMode === 'auto')
                                                 {
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background", "-moz-linear-gradient(to bottom, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background", "-webkit-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background", "-o-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.19) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background", "-ms-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");      
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background", "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background-size", "cover");
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background-repeat", "no-repeat");
-                                                    $('#<?= $_GET['name'] ?>_chartContainer').css("background-position", "center center"); 
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background", "-moz-linear-gradient(to bottom, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background", "-webkit-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background", "-o-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.19) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background", "-ms-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");      
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background", "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.2) 100%), url(" + setAutoBackground(meteoData.results.bindings[0].description.value) + ")");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background-size", "cover");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background-repeat", "no-repeat");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("background-position", "center center"); 
                                                 }
                                                 
-                                                $('#<?= $_GET['name'] ?>_tempContainer').html('<span style="display:block;">' + meteoData.results.bindings[0].minTemp.value + "°C / " + meteoData.results.bindings[0].maxTemp.value + " °C</span>");
+                                                $('#<?= $_REQUEST['name_w'] ?>_tempContainer').html('<span style="display:block;">' + meteoData.results.bindings[0].minTemp.value + "°C / " + meteoData.results.bindings[0].maxTemp.value + " °C</span>");
 
                                                 otherDaysQt = meteoData.results.bindings.length - 1;
 
                                                 switch(orientation)
                                                 { 
                                                     case "horizontal":
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("height", todayDim + "%");
-                                                       $('#<?= $_GET['name'] ?>_todayLeftContainer').css("width", "65%");    
-                                                       $('#<?= $_GET['name'] ?>_todayLeftContainer').css("height", "100%");
-                                                       $('#<?= $_GET['name'] ?>_todayRightContainer').css("width", "35%");    
-                                                       $('#<?= $_GET['name'] ?>_todayRightContainer').css("height", "100%");
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').css("height", "25%");
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("height", "47.5%");
-                                                       $('#<?= $_GET['name'] ?>_descContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_descContainer').css("height", "27.5%");
-                                                       $('#<?= $_GET['name'] ?>_lammaContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_iconContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("height", todayDim + "%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayLeftContainer').css("width", "65%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayLeftContainer').css("height", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayRightContainer').css("width", "35%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayRightContainer').css("height", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("height", "25%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("height", "47.5%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("height", "27.5%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("width", "100%");    
                                                        
                                                        if(sizeRows > 5)
                                                        {
-                                                           $('#<?= $_GET['name'] ?>_lammaContainer').css("height", "10%");
-                                                           $('#<?= $_GET['name'] ?>_iconContainer').css("height", "60%");
-                                                           $('#<?= $_GET['name'] ?>_tempContainer').css("height", "30%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("height", "10%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("height", "60%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("height", "30%");
                                                        }
                                                        else
                                                        {
-                                                           $('#<?= $_GET['name'] ?>_lammaContainer').css("height", "25%");
-                                                           $('#<?= $_GET['name'] ?>_iconContainer').css("height", "50%");
-                                                           $('#<?= $_GET['name'] ?>_tempContainer').css("height", "25%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("height", "25%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("height", "50%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("height", "25%");
                                                        }
                                                        
-                                                       $('#<?= $_GET['name'] ?>_otherDaysContainer').css("width", "100%");
-                                                       $('#<?= $_GET['name'] ?>_otherDaysContainer').css("height", parseInt(100 - todayDim) + "%"); 
+                                                       $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').css("width", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').css("height", parseInt(100 - todayDim) + "%"); 
 
                                                        otherDaysCellWidth = 100 / otherDaysQt;
                                                        for(var i = 1; i <= otherDaysQt; i++)
@@ -1153,7 +1073,7 @@
                                                           otherDayCell.append(otherDayDescContainer);
                                                           otherDayDescContainer.html('<span style="display:block;">' + otherDayDescAndIcon.desc + '</span>');
 
-                                                          $('#<?= $_GET['name'] ?>_otherDaysContainer').append(otherDayCell);
+                                                          $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').append(otherDayCell);
                                                           setAutoFontSize(otherDayDateContainer);
                                                           if(sizeRows > 3)
                                                           {
@@ -1163,51 +1083,51 @@
                                                        break;
 
                                                     case "vertical":
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("height", todayDim + "%");
-                                                       $('#<?= $_GET['name'] ?>_todayLeftContainer').hide();
-                                                       $('#<?= $_GET['name'] ?>_todayRightContainer').hide();
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_dateContainer'));
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').removeClass("meteoDateContainer");
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').addClass("meteoDateContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_cityContainer'));
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("width", "100%"); 
-                                                       $('#<?= $_GET['name'] ?>_iconContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_descContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_lammaContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("height", todayDim + "%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayLeftContainer').hide();
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayRightContainer').hide();
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').removeClass("meteoDateContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').addClass("meteoDateContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_cityContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("width", "100%"); 
+                                                       $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("width", "100%");    
                                                        if(sizeRows > 6)
                                                        {
-                                                           $('#<?= $_GET['name'] ?>_dateContainer').css("height", "12.5%");
-                                                           $('#<?= $_GET['name'] ?>_cityContainer').css("height", "17.5%");
-                                                           $('#<?= $_GET['name'] ?>_iconContainer').css("height", "32.5%");
-                                                           $('#<?= $_GET['name'] ?>_descContainer').css("height", "20%");
-                                                           $('#<?= $_GET['name'] ?>_tempContainer').css("height", "10%");
-                                                           $('#<?= $_GET['name'] ?>_lammaContainer').css("height", "7.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("height", "12.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("height", "17.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("height", "32.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("height", "20%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("height", "10%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("height", "7.5%");
                                                        }
                                                        else
                                                        {
-                                                           $('#<?= $_GET['name'] ?>_dateContainer').css("height", "12.5%");
-                                                           $('#<?= $_GET['name'] ?>_cityContainer').css("height", "15%");
-                                                           $('#<?= $_GET['name'] ?>_iconContainer').css("height", "30%");
-                                                           $('#<?= $_GET['name'] ?>_descContainer').css("height", "17.5%");
-                                                           $('#<?= $_GET['name'] ?>_tempContainer').css("height", "15%");
-                                                           $('#<?= $_GET['name'] ?>_lammaContainer').css("height", "10%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("height", "12.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("height", "15%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("height", "30%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("height", "17.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("height", "15%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("height", "10%");
                                                        }
                                                        
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').removeClass("meteoCityContainer");
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').addClass("meteoCityContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_iconContainer'));
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_descContainer'));
-                                                       $('#<?= $_GET['name'] ?>_descContainer').removeClass("meteoDescContainer");
-                                                       $('#<?= $_GET['name'] ?>_descContainer').addClass("meteoDescContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_tempContainer'));
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').removeClass("meteoTempContainer");
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').addClass("meteoTempContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_lammaContainer'));
-                                                       $('#<?= $_GET['name'] ?>_otherDaysContainer').css("width", "100%");
-                                                       $('#<?= $_GET['name'] ?>_otherDaysContainer').css("height", parseInt(100 - todayDim) + "%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').removeClass("meteoCityContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').addClass("meteoCityContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_iconContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_descContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').removeClass("meteoDescContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').addClass("meteoDescContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_tempContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').removeClass("meteoTempContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').addClass("meteoTempContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_lammaContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').css("width", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').css("height", parseInt(100 - todayDim) + "%");
 
                                                        otherDaysCellHeight = 100 / otherDaysQt;
                                                        for(var i = 1; i <= otherDaysQt; i++)
@@ -1284,7 +1204,7 @@
                                                           otherDayCell.append(otherDayDescContainer);
                                                           otherDayDescContainer.html('<span style="display:block;">' + otherDayDescAndIcon.desc + '</span>');
 
-                                                          $('#<?= $_GET['name'] ?>_otherDaysContainer').append(otherDayCell);
+                                                          $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').append(otherDayCell);
                                                           setAutoFontSize(otherDayDateContainer);
                                                           setAutoFontSize(otherDayTempContainer);
                                                        }
@@ -1293,57 +1213,57 @@
                                                         
                                                     case "verticalCompact":
                                                        var rowHeight =  100 / (otherDaysQt + 1); 
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("height", rowHeight + "%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("height", rowHeight + "%");
                                                        
                                                        if(sizeRows < 8)
                                                        {
-                                                           $('#<?= $_GET['name'] ?>_todayContainer').css("padding-top", "0.2%");
-                                                           $('#<?= $_GET['name'] ?>_todayContainer').css("padding-bottom", "0.2%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("padding-top", "0.2%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("padding-bottom", "0.2%");
                                                        }
                                                        else
                                                        {
                                                             if((sizeRows >= 8) && (sizeRows <= 12))
                                                             {
-                                                                $('#<?= $_GET['name'] ?>_todayContainer').css("padding-top", "0.4%");
-                                                                $('#<?= $_GET['name'] ?>_todayContainer').css("padding-bottom", "0.4%");
+                                                                $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("padding-top", "0.4%");
+                                                                $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("padding-bottom", "0.4%");
                                                             }
                                                             else
                                                             {
                                                                 if(sizeRows > 12)
                                                                 {
-                                                                   $('#<?= $_GET['name'] ?>_todayContainer').css("padding-top", "0.8%");
-                                                                   $('#<?= $_GET['name'] ?>_todayContainer').css("padding-bottom", "0.8%"); 
+                                                                   $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("padding-top", "0.8%");
+                                                                   $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("padding-bottom", "0.8%"); 
                                                                 }
                                                             }
                                                        }
                                                        
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("border-bottom", "1px solid #dddddd");
-                                                       $('#<?= $_GET['name'] ?>_todayLeftContainer').css("width", "65%");    
-                                                       $('#<?= $_GET['name'] ?>_todayLeftContainer').css("height", "100%");
-                                                       $('#<?= $_GET['name'] ?>_todayRightContainer').css("width", "35%");    
-                                                       $('#<?= $_GET['name'] ?>_todayRightContainer').css("height", "100%");
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').hide();
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("height", "33.333333%");
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("font-family", "Roboto-Medium");
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("font-weight", "bold");
-                                                       $('#<?= $_GET['name'] ?>_descContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_descContainer').css("height", "33.333333%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("border-bottom", "1px solid #dddddd");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayLeftContainer').css("width", "65%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayLeftContainer').css("height", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayRightContainer').css("width", "35%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayRightContainer').css("height", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').hide();
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("height", "33.333333%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("font-family", "Roboto-Medium");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("font-weight", "bold");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("height", "33.333333%");
                                                        
-                                                       $('#<?= $_GET['name'] ?>_todayLeftContainer').append($('#<?= $_GET['name'] ?>_tempContainer'));
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').css("justify-content", "flex-start");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayLeftContainer').append($('#<?= $_REQUEST['name_w'] ?>_tempContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("justify-content", "flex-start");
                                                        
-                                                       $('#<?= $_GET['name'] ?>_lammaContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_iconContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').css("width", "100%");
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').css("height", "33.333333%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("width", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("height", "33.333333%");
                                                        
-                                                        $('#<?= $_GET['name'] ?>_lammaContainer').css("height", "22%");
-                                                        $('#<?= $_GET['name'] ?>_iconContainer').css("height", "78%");
+                                                        $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("height", "22%");
+                                                        $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("height", "78%");
                                                        
-                                                       $('#<?= $_GET['name'] ?>_otherDaysContainer').css("width", "100%");
-                                                       $('#<?= $_GET['name'] ?>_otherDaysContainer').css("height", parseInt(otherDaysQt*rowHeight) + "%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').css("width", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').css("height", parseInt(otherDaysQt*rowHeight) + "%");
 
                                                        otherDaysCellHeight = 100 / otherDaysQt;
                                                        for(var i = 1; i <= otherDaysQt; i++)
@@ -1452,7 +1372,7 @@
                                                           otherDayCell.append(otherDayIconContainer);
                                                           //otherDayIconContainer.tooltip(); 
                                                           
-                                                          $('#<?= $_GET['name'] ?>_otherDaysContainer').append(otherDayCell);
+                                                          $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').append(otherDayCell);
                                                           setAutoFontSize(otherDayDateContainer);
                                                           setAutoFontSize(otherDayDescContainer);
                                                           setAutoFontSize(otherDayTempContainer);
@@ -1475,105 +1395,105 @@
                                                         break;    
 
                                                     case "today": default:
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').css("height", "100%");
-                                                       $('#<?= $_GET['name'] ?>_todayLeftContainer').hide();
-                                                       $('#<?= $_GET['name'] ?>_todayRightContainer').hide();
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_dateContainer'));
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').css("width", "100%");   
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').removeClass("meteoDateContainer");
-                                                       $('#<?= $_GET['name'] ?>_dateContainer').addClass("meteoDateContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_cityContainer'));
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').removeClass("meteoCityContainer");
-                                                       $('#<?= $_GET['name'] ?>_cityContainer').addClass("meteoCityContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_iconContainer'));
-                                                       $('#<?= $_GET['name'] ?>_iconContainer').css("width", "100%");    
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_descContainer'));
-                                                       $('#<?= $_GET['name'] ?>_descContainer').css("width", "100%");   
-                                                       $('#<?= $_GET['name'] ?>_descContainer').removeClass("meteoDescContainer");
-                                                       $('#<?= $_GET['name'] ?>_descContainer').addClass("meteoDescContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_tempContainer'));
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').css("width", "100%");   
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').removeClass("meteoTempContainer");
-                                                       $('#<?= $_GET['name'] ?>_tempContainer').addClass("meteoTempContainerCentered");
-                                                       $('#<?= $_GET['name'] ?>_todayContainer').append($('#<?= $_GET['name'] ?>_lammaContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').css("height", "100%");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayLeftContainer').hide();
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayRightContainer').hide();
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("width", "100%");   
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').removeClass("meteoDateContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_dateContainer').addClass("meteoDateContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_cityContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').removeClass("meteoCityContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_cityContainer').addClass("meteoCityContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_iconContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("width", "100%");    
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_descContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("width", "100%");   
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').removeClass("meteoDescContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_descContainer').addClass("meteoDescContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_tempContainer'));
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("width", "100%");   
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').removeClass("meteoTempContainer");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_tempContainer').addClass("meteoTempContainerCentered");
+                                                       $('#<?= $_REQUEST['name_w'] ?>_todayContainer').append($('#<?= $_REQUEST['name_w'] ?>_lammaContainer'));
                                                        
                                                        if(sizeRows > 6)
                                                        {
-                                                           $('#<?= $_GET['name'] ?>_dateContainer').css("height", "12.5%");
-                                                           $('#<?= $_GET['name'] ?>_cityContainer').css("height", "17.5%");
-                                                           $('#<?= $_GET['name'] ?>_iconContainer').css("height", "32.5%");
-                                                           $('#<?= $_GET['name'] ?>_descContainer').css("height", "20%");
-                                                           $('#<?= $_GET['name'] ?>_tempContainer').css("height", "10%");
-                                                           $('#<?= $_GET['name'] ?>_lammaContainer').css("height", "7.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("height", "12.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("height", "17.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("height", "32.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("height", "20%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("height", "10%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("height", "7.5%");
                                                        }
                                                        else
                                                        {
-                                                           $('#<?= $_GET['name'] ?>_dateContainer').css("height", "12.5%");
-                                                           $('#<?= $_GET['name'] ?>_cityContainer').css("height", "15%");
-                                                           $('#<?= $_GET['name'] ?>_iconContainer').css("height", "30%");
-                                                           $('#<?= $_GET['name'] ?>_descContainer').css("height", "17.5%");
-                                                           $('#<?= $_GET['name'] ?>_tempContainer').css("height", "15%");
-                                                           $('#<?= $_GET['name'] ?>_lammaContainer').css("height", "10%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_dateContainer').css("height", "12.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_cityContainer').css("height", "15%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("height", "30%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_descContainer').css("height", "17.5%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_tempContainer').css("height", "15%");
+                                                           $('#<?= $_REQUEST['name_w'] ?>_lammaContainer').css("height", "10%");
                                                        }
 
-                                                       $('#<?= $_GET['name'] ?>_otherDaysContainer').hide(); 
+                                                       $('#<?= $_REQUEST['name_w'] ?>_otherDaysContainer').hide(); 
                                                         break;
                                                 }
                                                 
-                                                $('#<?= $_GET['name'] ?>_lammaContainer a.lammaLink').css("color", fontColor);
+                                                $('#<?= $_REQUEST['name_w'] ?>_lammaContainer a.lammaLink').css("color", fontColor);
                                                 
 
                                                 var dateTime = new Date();
                                                 if(language === 'english')
                                                 {
-                                                    $('#<?= $_GET['name'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].english + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].english + '</span>');
+                                                    $('#<?= $_REQUEST['name_w'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].english + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].english + '</span>');
                                                 }
                                                 else
                                                 {
                                                     if(language === 'italian')
                                                     {
-                                                        $('#<?= $_GET['name'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].italian + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].italian + '</span>');
+                                                        $('#<?= $_REQUEST['name_w'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].italian + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].italian + '</span>');
                                                     } 
                                                 }
 
-                                                dateContainerSize = setAutoFontSize($('#<?= $_GET['name'] ?>_dateContainer'));
+                                                dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
 
                                                 updateDateTimeInterval = setInterval(function(){
                                                     dateTime = new Date();
                                                     if(language === 'english')
                                                     {
-                                                        $('#<?= $_GET['name'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].english + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].english + '</span>');
+                                                        $('#<?= $_REQUEST['name_w'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].english + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].english + '</span>');
                                                     }
                                                     else
                                                     {
                                                         if(language === 'italian')
                                                         {
-                                                            $('#<?= $_GET['name'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].italian + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].italian + '</span>');
+                                                            $('#<?= $_REQUEST['name_w'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].italian + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].italian + '</span>');
                                                         } 
                                                     }
-                                                    //$('#<?= $_GET['name'] ?>_dateContainer').html('<span style="display:block;">' + dateTime.date + '</span>');
-                                                    dateContainerSize = setAutoFontSize($('#<?= $_GET['name'] ?>_dateContainer'));
+                                                    //$('#<?= $_REQUEST['name_w'] ?>_dateContainer').html('<span style="display:block;">' + dateTime.date + '</span>');
+                                                    dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
                                                 }, 600000);
 
-                                                setAutoFontSize($('#<?= $_GET['name'] ?>_cityContainer'));
-                                                setAutoFontSize($('#<?= $_GET['name'] ?>_descContainer'));
-                                                setAutoFontSize($('#<?= $_GET['name'] ?>_lammaContainer'));
-                                                setAutoFontSize($('#<?= $_GET['name'] ?>_tempContainer'));
+                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_cityContainer'));
+                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_descContainer'));
+                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_lammaContainer'));
+                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_tempContainer'));
                                                 if(iconSet === 'multiColor')
                                                 {
-                                                    $('#<?= $_GET['name'] ?>_iconContainer').css("background-image", "url(" + todayDescAndIcon.icon + ")");
-                                                    $('#<?= $_GET['name'] ?>_iconContainer').css("background-size", "contain");
-                                                    $('#<?= $_GET['name'] ?>_iconContainer').css("background-repeat", "no-repeat");
-                                                    $('#<?= $_GET['name'] ?>_iconContainer').css("background-position", "center center");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-image", "url(" + todayDescAndIcon.icon + ")");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-size", "contain");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-repeat", "no-repeat");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-position", "center center");
                                                 }
                                                 else
                                                 {
-                                                    $('#<?= $_GET['name'] ?>_iconContainer').css("background-color", "transparent");
-                                                    $('#<?= $_GET['name'] ?>_iconContainer').addClass("centerWithFlex");
-                                                    $('#<?= $_GET['name'] ?>_iconContainer').html('<span style="display:block; color:' + fontColor + '"><i class="wi ' + todayDescAndIcon.icon + '"></i></span>');
-                                                    setAutoFontSize($('#<?= $_GET['name'] ?>_iconContainer'));
+                                                    $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-color", "transparent");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_iconContainer').addClass("centerWithFlex");
+                                                    $('#<?= $_REQUEST['name_w'] ?>_iconContainer').html('<span style="display:block; color:' + fontColor + '"><i class="wi ' + todayDescAndIcon.icon + '"></i></span>');
+                                                    setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_iconContainer'));
                                                 }
 
                                                 timeToClearScroll = (timeToReload - 0.5) * 1000;
@@ -1583,7 +1503,7 @@
                                                     clearInterval(updateDateTimeInterval);
                                                 }, timeToClearScroll);
                                             }
-                                        }                                        
+                                        }                                     
                                     },
                                     error: function(errorData)
                                     {
@@ -1592,16 +1512,16 @@
                                        showWidgetContent(widgetName);
                                        if(firstLoad !== false)
                                        {
-                                          $("#<?= $_GET['name'] ?>_chartContainer").hide();
-                                          $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                          $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                          $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                                        }
                                     }
                                 });
                             }
                             else
                             {
-                                $("#<?= $_GET['name'] ?>_chartContainer").hide();
-                                $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                             }
                         },
                         error: function(errorData)
@@ -1611,8 +1531,8 @@
                            showWidgetContent(widgetName);
                            if(firstLoad !== false)
                            {
-                              $("#<?= $_GET['name'] ?>_chartContainer").hide();
-                              $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                              $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                              $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                            }
                         }  
                      });
@@ -1624,35 +1544,37 @@
                showWidgetContent(widgetName);
                if(firstLoad !== false)
                {
-                  $("#<?= $_GET['name'] ?>_chartContainer").hide();
-                  $('#<?= $_GET['name'] ?>_noDataAlert').show();
+                  $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                  $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                }
             },
             complete: function()
             {
-                countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
             }
         });
     });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -1661,29 +1583,29 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
-                <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available
                 </div>
-                <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>
                 </div>
             </div>
-            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer">
-                <div id="<?= $_GET['name'] ?>_todayContainer" class="meteoTodayContainer">
-                    <div id="<?= $_GET['name'] ?>_todayLeftContainer" class="meteoTodayLeftContainer">
-                        <div id="<?= $_GET['name'] ?>_dateContainer" class="meteoDateContainer"></div>
-                        <div id="<?= $_GET['name'] ?>_cityContainer" class="meteoCityContainer"></div>
-                        <div id="<?= $_GET['name'] ?>_descContainer" class="meteoDescContainer"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_todayContainer" class="meteoTodayContainer">
+                    <div id="<?= $_REQUEST['name_w'] ?>_todayLeftContainer" class="meteoTodayLeftContainer">
+                        <div id="<?= $_REQUEST['name_w'] ?>_dateContainer" class="meteoDateContainer"></div>
+                        <div id="<?= $_REQUEST['name_w'] ?>_cityContainer" class="meteoCityContainer"></div>
+                        <div id="<?= $_REQUEST['name_w'] ?>_descContainer" class="meteoDescContainer"></div>
                     </div>
-                    <div id="<?= $_GET['name'] ?>_todayRightContainer" class="meteoTodayRightContainer">
-                        <div id="<?= $_GET['name'] ?>_lammaContainer" class="meteoLammaContainer"><a class="lammaLink" href="http://www.lamma.rete.toscana.it" target="_blank"><span style="display:block;">Powered by LaMMA</span></a></div>
-                        <div id="<?= $_GET['name'] ?>_iconContainer" class="meteoIconContainer"></div>
-                        <div id="<?= $_GET['name'] ?>_tempContainer" class="meteoTempContainer"></div>
+                    <div id="<?= $_REQUEST['name_w'] ?>_todayRightContainer" class="meteoTodayRightContainer">
+                        <div id="<?= $_REQUEST['name_w'] ?>_lammaContainer" class="meteoLammaContainer"><a class="lammaLink" href="http://www.lamma.rete.toscana.it" target="_blank"><span style="display:block;">Powered by LaMMA</span></a></div>
+                        <div id="<?= $_REQUEST['name_w'] ?>_iconContainer" class="meteoIconContainer"></div>
+                        <div id="<?= $_REQUEST['name_w'] ?>_tempContainer" class="meteoTempContainer"></div>
                     </div>
                 </div>
-                <div id="<?= $_GET['name'] ?>_otherDaysContainer" class="meteoOtherDaysContainer"></div>
+                <div id="<?= $_REQUEST['name_w'] ?>_otherDaysContainer" class="meteoOtherDaysContainer"></div>
             </div>
         </div>
     </div>	

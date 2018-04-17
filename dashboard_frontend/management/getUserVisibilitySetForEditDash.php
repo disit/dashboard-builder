@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -54,17 +54,17 @@
        exit();
    }
    
-   if(isset($_SESSION['loggedRole']))
-   {   
-        if(isset($_GET['dashboardId']) && !empty($_GET['dashboardId']))
+     
+        /*if(isset($_GET['dashboardId']) && !empty($_GET['dashboardId']))
         {
             $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
         }
         else 
         {
             $dashboardId = $_SESSION['dashboardId'];
-        }
+        }*/
         
+        $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
         $visibilitySet = [];
         $users = [];
         
@@ -184,41 +184,44 @@
                    //OK - EDITA UNA DASHBOARD DI CUI E' AUTORE: si restituiscono tutti gli area manager, tutti i manager e tutti gli observer, anche i non facenti parte di pools
                      $temp = [];
                      $usersList = [];
-
-                     /*$ds = ldap_connect($ldapServer, $ldapPort);
-                     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                     $bind = ldap_bind($ds);
-
-                     $result = ldap_search(
-                             $ds, 'dc=ldap,dc=disit,dc=org', 
-                             '(cn=Dashboard)'
-                     );
-                     $entries = ldap_get_entries($ds, $result);
-                     foreach ($entries as $key => $value) 
+                     
+                     if($ldapActive == "yes")
                      {
-                        for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
-                        { 
-                           $usr = $value["memberuid"][$index];
-                           array_push($temp, $usr);
+                        $ds = ldap_connect($ldapServer, $ldapPort);
+                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                        $bind = ldap_bind($ds);
+
+                        $result = ldap_search(
+                                $ds, 'dc=ldap,dc=disit,dc=org', 
+                                '(cn=Dashboard)'
+                        );
+                        $entries = ldap_get_entries($ds, $result);
+                        foreach ($entries as $key => $value) 
+                        {
+                           for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
+                           { 
+                              $usr = $value["memberuid"][$index];
+                              array_push($temp, $usr);
+                           }
+                        }
+
+                        ldap_close();
+
+                        $ds = ldap_connect($ldapServer, $ldapPort);
+                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                        $bind = ldap_bind($ds);
+
+                        for($i = 0; $i < count($temp); $i++)
+                        {
+                           if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                           {
+                              $name = str_replace("cn=", "", $temp[$i]);
+                              $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                              array_push($usersList, $name);
+                           }
                         }
                      }
-
-                     ldap_close();
-
-                     $ds = ldap_connect($ldapServer, $ldapPort);
-                     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                     $bind = ldap_bind($ds);
-
-                     for($i = 0; $i < count($temp); $i++)
-                     {
-                        if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
-                        {
-                           $name = str_replace("cn=", "", $temp[$i]);
-                           $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                           array_push($usersList, $name);
-                        }
-                     }*/
-
+                     
                       //Reperimento elenco utenti locali
                       $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
                       $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
@@ -260,7 +263,7 @@
                }
                else
                {
-                  if(/*($authorRole == NULL)||($authorRole == 'NULL')*/false)
+                  if(($authorRole == NULL)||($authorRole == 'NULL')&&($ldapActive == "yes"))
                   {
                      $ldapAuthor = "cn=". $author . ",dc=ldap,dc=disit,dc=org";
                      $ds = ldap_connect($ldapServer, $ldapPort);
@@ -293,39 +296,44 @@
                      case "ToolAdmin":
                         $temp = [];
                         $usersList = [];
-                        /*$ds = ldap_connect($ldapServer, $ldapPort);
-                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($ds);
-
-                        $result = ldap_search(
-                                $ds, 'dc=ldap,dc=disit,dc=org', 
-                                '(cn=Dashboard)'
-                        );
-                        $entries = ldap_get_entries($ds, $result);
-                        foreach ($entries as $key => $value) 
+                        if($ldapActive == "yes")
                         {
-                           for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
-                           { 
-                              $usr = $value["memberuid"][$index];
-                              array_push($temp, $usr);
-                           }
+                            $ds = ldap_connect($ldapServer, $ldapPort);
+                            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                            $bind = ldap_bind($ds);
+
+                            $result = ldap_search(
+                                    $ds, 'dc=ldap,dc=disit,dc=org', 
+                                    '(cn=Dashboard)'
+                            );
+                            $entries = ldap_get_entries($ds, $result);
+                            foreach ($entries as $key => $value) 
+                            {
+                               for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
+                               { 
+                                  $usr = $value["memberuid"][$index];
+                                  array_push($temp, $usr);
+                               }
+                            }
+
+                            ldap_close();
+
+                            $ds = ldap_connect($ldapServer, $ldapPort);
+                            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                            $bind = ldap_bind($ds);
+
+                            for($i = 0; $i < count($temp); $i++)
+                            {
+                               if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                               {
+                                  $name = str_replace("cn=", "", $temp[$i]);
+                                  $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                  array_push($usersList, $name);
+                               }
+                            }
                         }
-
-                        ldap_close();
-
-                        $ds = ldap_connect($ldapServer, $ldapPort);
-                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($ds);
-
-                        for($i = 0; $i < count($temp); $i++)
-                        {
-                           if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
-                           {
-                              $name = str_replace("cn=", "", $temp[$i]);
-                              $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                              array_push($usersList, $name);
-                           }
-                        }*/
+                        
+                        
 
                          //Reperimento elenco utenti locali
                          $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
@@ -371,40 +379,45 @@
                      case "AreaManager":
                         $temp = [];
                         $usersList = [];
-
-                        /*$ds = ldap_connect($ldapServer, $ldapPort);
-                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($ds);
-
-                        $result = ldap_search(
-                                $ds, 'dc=ldap,dc=disit,dc=org', 
-                                '(cn=Dashboard)'
-                        );
-                        $entries = ldap_get_entries($ds, $result);
-                        foreach ($entries as $key => $value) 
+                        
+                        if($ldapActive == "yes")
                         {
-                           for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
-                           { 
-                              $usr = $value["memberuid"][$index];
-                              array_push($temp, $usr);
-                           }
+                            $ds = ldap_connect($ldapServer, $ldapPort);
+                            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                            $bind = ldap_bind($ds);
+
+                            $result = ldap_search(
+                                    $ds, 'dc=ldap,dc=disit,dc=org', 
+                                    '(cn=Dashboard)'
+                            );
+                            $entries = ldap_get_entries($ds, $result);
+                            foreach ($entries as $key => $value) 
+                            {
+                               for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
+                               { 
+                                  $usr = $value["memberuid"][$index];
+                                  array_push($temp, $usr);
+                               }
+                            }
+
+                            ldap_close();
+
+                            $ds = ldap_connect($ldapServer, $ldapPort);
+                            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                            $bind = ldap_bind($ds);
+
+                            for($i = 0; $i < count($temp); $i++)
+                            {
+                               if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                               {
+                                  $name = str_replace("cn=", "", $temp[$i]);
+                                  $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                  array_push($usersList, $name);
+                               }
+                            }
                         }
-
-                        ldap_close();
-
-                        $ds = ldap_connect($ldapServer, $ldapPort);
-                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($ds);
-
-                        for($i = 0; $i < count($temp); $i++)
-                        {
-                           if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
-                           {
-                              $name = str_replace("cn=", "", $temp[$i]);
-                              $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                              array_push($usersList, $name);
-                           }
-                        }*/
+                        
+                        
 
                          //Reperimento elenco utenti locali
                          $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
@@ -453,41 +466,45 @@
                      case "Manager":
                         $temp = [];
                         $usersList = [];
-
-                        //Reperimento elenco utenti LDAP (con rimozione dei tool admin)   
-                        /*$ds = ldap_connect($ldapServer, $ldapPort);
-                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($ds);
-
-                        $result = ldap_search(
-                                $ds, 'dc=ldap,dc=disit,dc=org', 
-                                '(cn=Dashboard)'
-                        );
-                        $entries = ldap_get_entries($ds, $result);
-                        foreach ($entries as $key => $value) 
+                        
+                        if($ldapActive == "yes")
                         {
-                           for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
-                           { 
-                              $usr = $value["memberuid"][$index];
-                              array_push($temp, $usr);
-                           }
+                            //Reperimento elenco utenti LDAP (con rimozione dei tool admin)   
+                            $ds = ldap_connect($ldapServer, $ldapPort);
+                            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                            $bind = ldap_bind($ds);
+
+                            $result = ldap_search(
+                                    $ds, 'dc=ldap,dc=disit,dc=org', 
+                                    '(cn=Dashboard)'
+                            );
+                            $entries = ldap_get_entries($ds, $result);
+                            foreach ($entries as $key => $value) 
+                            {
+                               for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
+                               { 
+                                  $usr = $value["memberuid"][$index];
+                                  array_push($temp, $usr);
+                               }
+                            }
+
+                            ldap_close();
+
+                            $ds = ldap_connect($ldapServer, $ldapPort);
+                            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                            $bind = ldap_bind($ds);
+
+                            for($i = 0; $i < count($temp); $i++)
+                            {
+                               if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                               {
+                                  $name = str_replace("cn=", "", $temp[$i]);
+                                  $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                  array_push($usersList, $name);
+                               }
+                            }
                         }
-
-                        ldap_close();
-
-                        $ds = ldap_connect($ldapServer, $ldapPort);
-                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($ds);
-
-                        for($i = 0; $i < count($temp); $i++)
-                        {
-                           if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
-                           {
-                              $name = str_replace("cn=", "", $temp[$i]);
-                              $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                              array_push($usersList, $name);
-                           }
-                        }*/
+                        
 
                          //Reperimento elenco utenti locali (Con rimozione degli area manager dei pool di cui fa parte l'autore della dashboard, inclusi tali area manager di orgine LDAP)
                          $query2 = "SELECT username FROM Dashboard.Users " .
@@ -545,4 +562,3 @@
                mysqli_close($link);
                break;
        }
-   }

@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
             $titlePatterns = array();
@@ -27,32 +27,33 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?>  
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_content");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var nome_wid = "<?= $_GET['name'] ?>_div";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var color = '<?= $_GET['color'] ?>';
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
-        var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var color = '<?= $_REQUEST['color_w'] ?>';
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
+        var url = "<?= $_REQUEST['link_w'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_GET['showTitle'] ?>";
-	var showHeader = null;
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+		var showHeader = null;
+		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var chart, widgetProperties, metricData, metricType, series, styleParameters, legendHeight, chartType, highchartsChartType, 
                 dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, 
-                stackingOption, widgetHeight, metricName, widgetTitle, countdownRef = null;
+                stackingOption, widgetHeight, metricName, widgetTitle, countdownRef, widgetParameters, thresholdsJson, infoJson = null;
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
 	{
 		showHeader = false;
 	}
@@ -63,24 +64,23 @@
         
         //Definizioni di funzione specifiche del widget
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
-        function getThresholdsJson()
+        /*function getThresholdsJson()
         {
             var thresholdsJson = jQuery.parseJSON(widgetProperties.param.parameters);
             return thresholdsJson;
-        }
+        }*/
         
         //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getInfoJson()
+        /*function getInfoJson()
         {
             var infoJson = jQuery.parseJSON(widgetProperties.param.infoJson);
             return infoJson;
-        }
+        }*/
         
         function showModalFieldsInfoFirstAxis()
         {
             var label = $(this).attr("data-label");
             var id = label.replace(/\s/g, '_');
-            var infoJson = getInfoJson();
             var info = infoJson.firstAxis[id];
             
             $('#modalWidgetFieldsInfoTitle').html("Detailed info for field <b>" + label + "</b>");
@@ -97,7 +97,6 @@
        
         function showModalFieldsInfoSecondAxis()
         {
-            var infoJson = getInfoJson();
             var label = $(this).attr("data-label");
             var id = label.replace(/\s/g, '_');
             var info = infoJson.secondAxis[id];
@@ -249,15 +248,14 @@
             drawThresholds(this);
             
             //Gestori della pressione del pulsante info per i campi    
-            $('#<?= $_GET['name'] ?>_chartContainer i.fa-info-circle[data-axis=x]').on("click", showModalFieldsInfoFirstAxis);
+            $('#<?= $_REQUEST['name_w'] ?>_chartContainer i.fa-info-circle[data-axis=x]').on("click", showModalFieldsInfoFirstAxis);
             
             //Append degli elementi info alle label della legenda
-            var infoJson = getInfoJson();
             
             if((infoJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 var count = 0;
-                $('#<?= $_GET['name'] ?>_chartContainer').find('div.highcharts-legend .highcharts-legend-item span').each(function() 
+                $('#<?= $_REQUEST['name_w'] ?>_chartContainer').find('div.highcharts-legend .highcharts-legend-item span').each(function() 
                 {
                     label = $(this).html();
                     id = label.replace(/\s/g, '_');
@@ -281,21 +279,20 @@
                 }
             }
             
-            $('#<?= $_GET['name'] ?>_chartContainer i.fa-info-circle[data-axis=y]').on("click", showModalFieldsInfoSecondAxis);
+            $('#<?= $_REQUEST['name_w'] ?>_chartContainer i.fa-info-circle[data-axis=y]').on("click", showModalFieldsInfoSecondAxis);
             
-            var thresholdsJson = getThresholdsJson();
             var index = 0;
             var label, elementUpperBounds, newUpperBound, dropDownElement, distanceFromTop, distanceFromBottom, legendHeight, dropClass = null;
-            var wHeight = $("#<?= $_GET['name'] ?>_div").height();
+            var wHeight = $("#<?= $_REQUEST['name_w'] ?>_div").height();
             
             //Applicazione dei menu a comparsa sulle labels che hanno già ricevuto il caret (freccia) dall'esecuzione del metodo getXAxisCategories
-            if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 if(thresholdsJson.thresholdArray.length > 0)
                 {
-                    for(var i = 0; i < $("#<?= $_GET['name'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").length; i++)
+                    for(var i = 0; i < $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").length; i++)
                     {
-                        label = $("#<?= $_GET['name'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend a span.inline").html();
+                        label = $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend a span.inline").html();
                         
                         elementUpperBounds = [];
                         
@@ -345,9 +342,9 @@
                                 }
                             }
 
-                            var parentLegendElement = $("#<?= $_GET['name'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i);
+                            var parentLegendElement = $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i);
                             var elementLeftPosition = parentLegendElement.position().left;
-                            var widgetWidth = $("#<?= $_GET['name'] ?>_div").width();
+                            var widgetWidth = $("#<?= $_REQUEST['name_w'] ?>_div").width();
                             var legendMargin = null;
                             
                             if(elementLeftPosition > (widgetWidth / 2))
@@ -361,10 +358,10 @@
 
                             dropDownElement.css("font", "bold 10px Verdana");
                             dropDownElement.find("i").css("font-size", "12px");
-                            $("#<?= $_GET['name'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend ul").append(dropDownElement);
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend ul").append(dropDownElement);
                             dropClass = 'dropup';
-                            $("#<?= $_GET['name'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend").addClass(dropClass);
-                            $("#<?= $_GET['name'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend").addClass(dropClass);
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
                         }
                     }
                 }
@@ -374,8 +371,6 @@
         function getXAxisCategories(series, widgetHeight)
         {
             var finalLabels, label, newLabel, id, singleInfo, dropClass, legendHeight = null;
-            var infoJson = getInfoJson();
-            var thresholdsJson = getThresholdsJson();
             var isSimpleLabel = true;
             
             finalLabels = [];
@@ -395,16 +390,23 @@
                         if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                         {
                             //Aggiunta legenda sulle soglie
-                            if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+                            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
                             {
-                                if(thresholdsJson.thresholdArray.length > 0)
+                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                                 {
-                                    newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
-                                    '<div style="display: inline" class="thrLegend">' + 
-                                    '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
-                                        '<ul class="dropdown-menu thrLegend">' +
-                                        '</ul>' +
-                                    '</div>';
+                                    if(thresholdsJson.thresholdArray.length > 0)
+                                    {
+                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
+                                        '<div style="display: inline" class="thrLegend">' + 
+                                        '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
+                                            '<ul class="dropdown-menu thrLegend">' +
+                                            '</ul>' +
+                                        '</div>';
+                                    }
+                                    else
+                                    {
+                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
+                                    }
                                 }
                                 else
                                 {
@@ -419,15 +421,22 @@
                         else
                         {
                             //Aggiunta legenda sulle soglie
-                            if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+                            if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                             {
-                                if(thresholdsJson.thresholdArray.length > 0)
+                                if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
                                 {
-                                    newLabel = '<div style="display: inline" class="thrLegend">' + 
-                                    '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
-                                        '<ul class="dropdown-menu">' +
-                                        '</ul>' +
-                                    '</div>';
+                                    if(thresholdsJson.thresholdArray.length > 0)
+                                    {
+                                        newLabel = '<div style="display: inline" class="thrLegend">' + 
+                                        '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
+                                            '<ul class="dropdown-menu">' +
+                                            '</ul>' +
+                                        '</div>';
+                                    }
+                                    else
+                                    {
+                                        newLabel = label;
+                                    }
                                 }
                                 else
                                 {
@@ -455,10 +464,9 @@
         function drawThresholds(chartRef)
         {
             //Testing disegno soglie su poligono
-            var thresholdsJson = getThresholdsJson();
             var i, j, color, desc, poligonVertexes = null;
             
-            if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 for(i = 0; i < thresholdsJson.thresholdArray.length; i++)
                 {
@@ -485,6 +493,12 @@
                 }
             }
         }
+        
+        function resizeWidget()
+	{
+            clearInterval(countdownRef);
+            <?= $_REQUEST['name_w'] ?>(metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+	}
         //Fine definizioni di funzione  
         
         //Codice core del widget
@@ -495,10 +509,10 @@
         
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
-            metricName = "<?= $_GET['metric'] ?>";
+            metricName = "<?= $_REQUEST['id_metric'] ?>";
             widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
-            widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-            widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+            widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+            widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
         }
         else
         {
@@ -517,12 +531,20 @@
             if((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange"))
             {
                 clearInterval(countdownRef); 
-                $("#<?= $_GET['name'] ?>_content").hide();
-                <?= $_GET['name'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, /*null,*/ null, null);
+                $("#<?= $_REQUEST['name_w'] ?>_content").hide();
+                <?= $_REQUEST['name_w'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, /*null,*/ null, null);
             }
         });
+		
+		$(document).off('resizeHighchart_' + widgetName);
+		$(document).on('resizeHighchart_' + widgetName, function(event) 
+		{
+			$('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
+		});
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);	
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);	
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         if(firstLoad === false)
         {
             showWidgetContent(widgetName);
@@ -532,254 +554,283 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html(widgetTitle);
-        widgetProperties = getWidgetProperties(widgetName);
-        if(widgetProperties !== null)
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+        //widgetProperties = getWidgetProperties(widgetName);
+        
+        //Nuova versione
+        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
         {
-            //Inizio codice ad hoc basato sulle proprietà del widget
-            var styleParametersString = widgetProperties.param.styleParameters;
-            styleParameters = jQuery.parseJSON(styleParametersString);
-            manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
-            //Fine codice ad hoc basato sulle proprietà del widget
-            
-            metricData = getMetricData(metricName);
-            if(metricData.data.length !== 0)
+            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+        }
+        
+        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        {
+            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+            thresholdsJson = widgetParameters;
+        }
+        
+        if(('<?= $_REQUEST['infoJson'] ?>' !== 'null')&&('<?= $_REQUEST['infoJson'] ?>' !== ''))
+        {
+            infoJson = JSON.parse('<?= $_REQUEST['infoJson'] ?>');
+        }
+        
+        $.ajax({
+            url: getMetricDataUrl,
+            type: "GET",
+            data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+            async: true,
+            dataType: 'json',
+            success: function (data) 
             {
-                metricType = metricData.data[0].commit.author.metricType;
-                series = JSON.parse(metricData.data[0].commit.author.series);
+                metricData = data;
+                $("#" + widgetName + "_loading").css("display", "none");
                 
-                widgetHeight = parseInt($("#<?= $_GET['name'] ?>_chartContainer").height() + 25);
-                
-                //Disegno del grafico
-                var chartSeriesObject = getChartSeriesObject(series);
-                var xAxisCategories = getXAxisCategories(series, widgetHeight);
-                
-                if(firstLoad !== false)
+                if(metricData.data.length !== 0)
                 {
-                    showWidgetContent(widgetName);
-                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
-                    $("#<?= $_GET['name'] ?>_chartContainer").show();
-                    $("#<?= $_GET['name'] ?>_table").show();
-                }
-                else
-                {
-                    elToEmpty.empty();
-                    $('#<?= $_GET['name'] ?>_noDataAlert').hide();
-                    $("#<?= $_GET['name'] ?>_chartContainer").show();
-                    $("#<?= $_GET['name'] ?>_table").show();
-                }
-                
-                chart = Highcharts.chart('<?= $_GET['name'] ?>_chartContainer', {
-                    chart: {
-                        type: 'line',
-                        polar: true,
-                        backgroundColor: widgetContentColor,
-                        //Funzione di applicazione delle soglie
-                        events: {
-                            load: onDraw
-                        }
-                    },
-                    //Per disabilitare il menu in alto a destra
-                    exporting: 
-                    { 
-                        enabled: false 
-                    },
-                    //Non cancellare sennò ci mette il titolo di default
-                    title: {
-                        text: ''
-                    },
-                    //Non cancellare sennò ci mette il sottotitolo di default
-                    subtitle: {
-                        text: ''
-                    },
-                    //Vertici del poligono
-                    xAxis: {
-                        categories: xAxisCategories,
-                        tickmarkPlacement: 'on',
-                        lineWidth: 0,
-                        gridLineColor: styleParameters.gridLinesColor,
-                        gridLineWidth: styleParameters.gridLinesWidth,
-                        title: {//Non mostriamolo, è brutto a vedersi
-                            align: 'high',
-                            offset: 0,
-                            text: null,/*series.firstAxis.desc,*/
-                            rotation: 0,
-                            y: 5,
-                            style: {
-                                fontFamily: 'Verdana',
-                                fontSize: styleParameters.rowsLabelsFontSize + "px",
-                                fontWeight: 'bold',
-                                fontStyle: 'italic',
-                                color: styleParameters.rowsLabelsFontColor,
-                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                    metricType = metricData.data[0].commit.author.metricType;
+                    series = JSON.parse(metricData.data[0].commit.author.series);
+
+                    widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+
+                    //Disegno del grafico
+                    var chartSeriesObject = getChartSeriesObject(series);
+                    var xAxisCategories = getXAxisCategories(series, widgetHeight);
+
+                    if(firstLoad !== false)
+                    {
+                        showWidgetContent(widgetName);
+                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                    }
+                    else
+                    {
+                        elToEmpty.empty();
+                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                    }
+
+                    chart = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
+                        chart: {
+                            type: 'line',
+                            polar: true,
+                            backgroundColor: widgetContentColor,
+                            //Funzione di applicazione delle soglie
+                            events: {
+                                load: onDraw
                             }
                         },
-                        labels: {
-                           enabled: true,
-                           useHTML: true,
-                           style: {
-                                fontFamily: 'Verdana',
-                                fontSize: styleParameters.rowsLabelsFontSize + "px",
-                                fontWeight: 'bold',
-                                color: styleParameters.rowsLabelsFontColor,
-                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                            }
-                        }
-                    },
-                    yAxis: {
-                        gridLineInterpolation: 'polygon',
-                        lineWidth: 0,
-                        gridZIndex: 0,
-                        gridLineColor: styleParameters.gridLinesColor,
-                        gridLineWidth: styleParameters.gridLinesWidth,
+                        //Per disabilitare il menu in alto a destra
+                        exporting: 
+                        { 
+                            enabled: false 
+                        },
+                        //Non cancellare sennò ci mette il titolo di default
                         title: {
-                            text: null
+                            text: ''
                         },
-                        labels: {
-                            overflow: 'justify',
+                        //Non cancellare sennò ci mette il sottotitolo di default
+                        subtitle: {
+                            text: ''
+                        },
+                        //Vertici del poligono
+                        xAxis: {
+                            categories: xAxisCategories,
+                            tickmarkPlacement: 'on',
+                            lineWidth: 0,
+                            gridLineColor: styleParameters.gridLinesColor,
+                            gridLineWidth: styleParameters.gridLinesWidth,
+                            title: {//Non mostriamolo, è brutto a vedersi
+                                align: 'high',
+                                offset: 0,
+                                text: null,
+                                rotation: 0,
+                                y: 5,
+                                style: {
+                                    fontFamily: 'Verdana',
+                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    color: styleParameters.rowsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            },
+                            labels: {
+                               enabled: true,
+                               useHTML: true,
+                               style: {
+                                    fontFamily: 'Verdana',
+                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    color: styleParameters.rowsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            gridLineInterpolation: 'polygon',
+                            lineWidth: 0,
+                            gridZIndex: 0,
+                            gridLineColor: styleParameters.gridLinesColor,
+                            gridLineWidth: styleParameters.gridLinesWidth,
+                            title: {
+                                text: null
+                            },
+                            labels: {
+                                overflow: 'justify',
+                                style: {
+                                    fontFamily: 'Verdana',
+                                    fontSize: styleParameters.colsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    color: styleParameters.colsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            }
+                        },
+                        tooltip: {
                             style: {
                                 fontFamily: 'Verdana',
-                                fontSize: styleParameters.colsLabelsFontSize + "px",
-                                fontWeight: 'bold',
-                                color: styleParameters.colsLabelsFontColor,
-                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                            }
-                        }
-                    },
-                    tooltip: {
-                        style: {
-                            fontFamily: 'Verdana',
-                            fontSize: 12 + "px",
-                            color: 'black',
-                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.15)",
-                            "z-index": 5
-                        },
-                        useHTML: true,
-                        backgroundColor: {
-                            linearGradient: [0, 0, 0, 60],
-                            stops: [
-                                [0, '#FFFFFF'],
-                                [1, '#E0E0E0']
-                            ]
-                        },
-                        headerFormat: null,
-                        pointFormatter: function()
-                        {
-                            var thresholdsJson = getThresholdsJson();
-                            var thresholdObject, desc, min, max, color, fieldName, index, message = null;
-                            var rangeOnThisField = false;
-                            
-                            if((this.series.name.indexOf("Threshold") >= 0)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+                                fontSize: 12 + "px",
+                                color: 'black',
+                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.15)",
+                                "z-index": 5
+                            },
+                            useHTML: true,
+                            backgroundColor: {
+                                linearGradient: [0, 0, 0, 60],
+                                stops: [
+                                    [0, '#FFFFFF'],
+                                    [1, '#E0E0E0']
+                                ]
+                            },
+                            headerFormat: null,
+                            pointFormatter: function()
                             {
-                                //Tooltip di una soglia
-                                var i1 = this.series.name.indexOf("-") + 2;
-                                var i2 = this.series.name.indexOf(":");
-                                
-                                desc = this.series.name.substring(i1, i2);
-                                
-                                return '<b>Threshold</b><br/>' + 
-                                       '<span style="color:' + this.color + '">\u25CF</span> Description: <b>' + desc  + '</b><br/>' +
-                                       '<span style="color:' + this.color + '">\u25CF</span> Upper bound: <b>' + this.y  + '</b><br/>';
-                            }
-                            else
-                            {
-                                //Tooltip di una serie di dati
-                                if(this.category.indexOf('thrLegend') > 0)
+                                var thresholdObject, desc, min, max, color, fieldName, index, message = null;
+                                var rangeOnThisField = false;
+
+                                if((this.series.name.indexOf("Threshold") >= 0)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                                 {
-                                    fieldName = this.category.substring(this.category.indexOf('<span class="inline">'));
-                                    fieldName = fieldName.replace('<span class="inline">', '');
-                                    fieldName = fieldName.replace('</span>', ''); 
-                                    fieldName = fieldName.replace('<b class="caret">', '');
-                                    fieldName = fieldName.replace('</b></a>', '');
-                                    fieldName = fieldName.replace('<ul class="dropdown-menu thrLegend">', '');//Lascialo così
-                                    fieldName = fieldName.replace('<ul class="dropdown-menu">', '');
-                                    fieldName = fieldName.replace('</ul></div>', '');
+                                    //Tooltip di una soglia
+                                    var i1 = this.series.name.indexOf("-") + 2;
+                                    var i2 = this.series.name.indexOf(":");
+
+                                    desc = this.series.name.substring(i1, i2);
+
+                                    return '<b>Threshold</b><br/>' + 
+                                           '<span style="color:' + this.color + '">\u25CF</span> Description: <b>' + desc  + '</b><br/>' +
+                                           '<span style="color:' + this.color + '">\u25CF</span> Upper bound: <b>' + this.y  + '</b><br/>';
                                 }
                                 else
                                 {
-                                    if(this.category.indexOf('<span>') > 0)
+                                    //Tooltip di una serie di dati
+                                    if(this.category.indexOf('thrLegend') > 0)
                                     {
-                                        fieldName = this.category.substring(this.category.indexOf('<span>'));
-                                        fieldName = fieldName.replace("<span>", "");
-                                        fieldName = fieldName.replace("</span>", "");
+                                        fieldName = this.category.substring(this.category.indexOf('<span class="inline">'));
+                                        fieldName = fieldName.replace('<span class="inline">', '');
+                                        fieldName = fieldName.replace('</span>', ''); 
+                                        fieldName = fieldName.replace('<b class="caret">', '');
+                                        fieldName = fieldName.replace('</b></a>', '');
+                                        fieldName = fieldName.replace('<ul class="dropdown-menu thrLegend">', '');//Lascialo così
+                                        fieldName = fieldName.replace('<ul class="dropdown-menu">', '');
+                                        fieldName = fieldName.replace('</ul></div>', '');
                                     }
                                     else
                                     {
-                                        fieldName = this.category;
+                                        if(this.category.indexOf('<span>') > 0)
+                                        {
+                                            fieldName = this.category.substring(this.category.indexOf('<span>'));
+                                            fieldName = fieldName.replace("<span>", "");
+                                            fieldName = fieldName.replace("</span>", "");
+                                        }
+                                        else
+                                        {
+                                            fieldName = this.category;
+                                        }
                                     }
-                                }
-                                
-                                if((thresholdsJson !== null)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                                {
-                                    if(thresholdsJson.thresholdArray.length > 0)
+
+                                    if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                                     {
-                                        var elementUpperBounds = [];
-                        
-                                        //Reperimento degli upper bounds per questo campo
-                                        for(var j = 0; j < thresholdsJson.thresholdArray.length; j++)
+                                        if(thresholdsJson.thresholdArray.length > 0)
                                         {
-                                            var newUpperBound = {
-                                                color: thresholdsJson.thresholdArray[j].color,
-                                                value: parseInt(thresholdsJson.thresholdArray[j][fieldName]),
-                                                desc: thresholdsJson.thresholdArray[j].desc
-                                            };
-                                            elementUpperBounds.push(newUpperBound);
-                                        }
+                                            var elementUpperBounds = [];
 
-                                        //Ordinamento crescente del vettore degli upper bounds
-                                        elementUpperBounds.sort(compareUpperBounds);
-            
-                                        for(var i = 0; i < elementUpperBounds.length; i++)
-                                        {
-                                            max = elementUpperBounds[i].value;
-                                            desc = elementUpperBounds[i].desc;
-
-                                            if(i === 0)
+                                            //Reperimento degli upper bounds per questo campo
+                                            for(var j = 0; j < thresholdsJson.thresholdArray.length; j++)
                                             {
-                                                if(parseFloat(this.y) < max)
+                                                var newUpperBound = {
+                                                    color: thresholdsJson.thresholdArray[j].color,
+                                                    value: parseInt(thresholdsJson.thresholdArray[j][fieldName]),
+                                                    desc: thresholdsJson.thresholdArray[j].desc
+                                                };
+                                                elementUpperBounds.push(newUpperBound);
+                                            }
+
+                                            //Ordinamento crescente del vettore degli upper bounds
+                                            elementUpperBounds.sort(compareUpperBounds);
+
+                                            for(var i = 0; i < elementUpperBounds.length; i++)
+                                            {
+                                                max = elementUpperBounds[i].value;
+                                                desc = elementUpperBounds[i].desc;
+
+                                                if(i === 0)
                                                 {
-                                                    if((desc !== null)&&(desc !== ''))
+                                                    if(parseFloat(this.y) < max)
                                                     {
-                                                        return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>' +
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';   
+                                                        if((desc !== null)&&(desc !== ''))
+                                                        {
+                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>' +
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';   
+                                                        }
+                                                        else
+                                                        {
+                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>';
+                                                        }
                                                     }
-                                                    else
+                                                }
+                                                else
+                                                {
+                                                    min = elementUpperBounds[i - 1].value;
+                                                    if((parseFloat(this.y) >= min)&&(parseFloat(this.y) < max))
+                                                    {
+                                                        if((desc !== null)&&(desc !== ''))
+                                                        {
+                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';   
+                                                        }
+                                                        else
+                                                        {
+                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
+                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
+                                                        }
+                                                    }
+                                                    else if((i === (elementUpperBounds.length - 1))&&(parseFloat(this.y) >= max))
                                                     {
                                                         return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
                                                                '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>';
+                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value higher than the greatest upper bound<br/>';
                                                     }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                min = elementUpperBounds[i - 1].value;
-                                                if((parseFloat(this.y) >= min)&&(parseFloat(this.y) < max))
-                                                {
-                                                    if((desc !== null)&&(desc !== ''))
-                                                    {
-                                                        return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';   
-                                                    }
-                                                    else
-                                                    {
-                                                        return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
-                                                    }
-                                                }
-                                                else if((i === (elementUpperBounds.length - 1))&&(parseFloat(this.y) >= max))
-                                                {
-                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                           '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
-                                                           '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value higher than the greatest upper bound<br/>';
                                                 }
                                             }
                                         }
+                                        else
+                                        {
+                                            //Non sono stati definiti range
+                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
+                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
+                                                   '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>';
+                                        }
+
+
                                     }
                                     else
                                     {
@@ -788,92 +839,78 @@
                                                '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
                                                '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>';
                                     }
-
-                                    
-                                }
-                                else
-                                {
-                                    //Non sono stati definiti range
-                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                           '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
-                                           '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>';
                                 }
                             }
-                        }
-                    },
-                    plotOptions: {
-                        line: {
-                            lineWidth: styleParameters.linesWidth,
-                            events: {
-                                legendItemClick: function(){ 
-                                    return false;
-                                } 
-                            }
-                        }
-                    },
-                    legend: {
-                        useHTML: true,
-                        labelFormatter: function () {
-                            return this.name;
                         },
-                        layout: 'horizontal',
-                        align: 'center',
-                        verticalAlign: 'bottom',
-                        floating: false,
-                        borderWidth: 0,
-                        itemDistance: 24,
-                        backgroundColor: widgetContentColor,
-                        shadow: false,
-                        symbolPadding: 5,
-                        symbolWidth: 5,
-                        itemStyle: {
-                            fontFamily: 'Verdana',
-                            fontSize: styleParameters.legendFontSize + "px",
-                            color: styleParameters.legendFontColor,
-                            "text-align": "center",
-                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                        }
-                    },
-                    credits: {
-                        enabled: false
-                    },
-                    series: chartSeriesObject
-                });
-            }
-            else
+                        plotOptions: {
+                            line: {
+                                lineWidth: styleParameters.linesWidth,
+                                events: {
+                                    legendItemClick: function(){ 
+                                        return false;
+                                    } 
+                                }
+                            }
+                        },
+                        legend: {
+                            useHTML: true,
+                            labelFormatter: function () {
+                                return this.name;
+                            },
+                            layout: 'horizontal',
+                            align: 'center',
+                            verticalAlign: 'bottom',
+                            floating: false,
+                            borderWidth: 0,
+                            itemDistance: 24,
+                            backgroundColor: widgetContentColor,
+                            shadow: false,
+                            symbolPadding: 5,
+                            symbolWidth: 5,
+                            itemStyle: {
+                                fontFamily: 'Verdana',
+                                fontSize: styleParameters.legendFontSize + "px",
+                                color: styleParameters.legendFontColor,
+                                "text-align": "center",
+                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                            }
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        series: chartSeriesObject
+                    });
+                }
+                else
+                {
+                   showWidgetContent(widgetName);
+                   $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                   $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                } 
+            },
+            error: function(errorData)
             {
-               showWidgetContent(widgetName);
-               $("#<?= $_GET['name'] ?>_chartContainer").hide();
-               $("#<?= $_GET['name'] ?>_table").hide(); 
-               $('#<?= $_GET['name'] ?>_noDataAlert').show();
-            }        
-        }
-        else
-        {
-            console.log("Errore in caricamento proprietà widget");
-        }
-        countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+                metricData = null;
+                console.log("Error in data retrieval");
+                console.log(JSON.stringify(errorData));
+                showWidgetContent(widgetName);
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+            }
+        });
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>
+        <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -882,9 +919,9 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <p id="<?= $_GET['name'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
-            <div id="<?= $_GET['name'] ?>_chartContainer" class="chartContainer"></div>
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
     </div>	
 </div> 

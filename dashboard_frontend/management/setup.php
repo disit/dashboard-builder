@@ -1,7 +1,7 @@
 <?php
 
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Dashboard Management System</title>
+        <title>Snap4City</title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -86,7 +86,7 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Dashboard Management System
+                            Snap4City
                         </div>
                     </div>
                     <div class="row">
@@ -327,6 +327,8 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
+        $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=mainSetupLink]').show();
+        
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
@@ -380,7 +382,7 @@
             $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
         });
         
-        $('#setupLink .mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#setupLink .mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuPortraitCnt #setupLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuLandCnt #setupLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
@@ -790,7 +792,7 @@
                             searchAlign: 'left',
                             uniqueId: "fileName",
                             striped: false,
-                            searchTimeOut: 250,
+                            searchTimeOut: 60,
                             classes: "table table-hover table-no-bordered",
                             rowAttributes: function(row, index){
                             return {

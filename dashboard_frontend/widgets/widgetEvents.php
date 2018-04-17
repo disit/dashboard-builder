@@ -21,7 +21,7 @@
 
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)    
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)    
     {
         <?php
             $titlePatterns = array();
@@ -30,7 +30,7 @@
             $replacements = array();
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $title = $_REQUEST['title_w'];
         ?> 
         var scroller, widgetProperties, styleParameters, icon, serviceUri, 
             eventName, eventType, newRow, newIcon, eventContentW, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
@@ -41,23 +41,23 @@
             eventProperties = null;    
     
         var eventNames = new Array();
-        var fontSize = "<?= $_GET['fontSize'] ?>";
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var speed = 50;
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
-        var divContainer = $("#<?= $_GET['name'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
-        var elToEmpty = $("#<?= $_GET['name'] ?>_rollerContainer");
-        var url = "<?= $_GET['link_w'] ?>";
-        
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_GET['showTitle'] ?>";
+        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
+        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
+        var url = "<?= $_REQUEST['link_w'] ?>";
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
+        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
+        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
         var showHeader = null;        
         var headerHeight = 25;
         
@@ -70,7 +70,7 @@
             url = null;
         }
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
+        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
             showHeader = false;
         }
@@ -89,9 +89,9 @@
         }
         
         $(document).on("esbEventAdded", function(event){
-           if(event.generator !== "<?= $_GET['name'] ?>")
+           if(event.generator !== "<?= $_REQUEST['name_w'] ?>")
            {
-              $("#<?= $_GET['name'] ?>_rollerContainer a.eventLink").each(function(i){
+              $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.eventLink").each(function(i){
                  if($(this).attr("data-onmap") === "true")
                  {
                     var evtType = null;
@@ -150,7 +150,7 @@
            var i = 0;
            var mapIconName = null;
            
-           $('#<?= $_GET['name'] ?>_rollerContainer').empty();
+           $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
 
             if(contentHeightPx > shownHeight)
             {
@@ -341,7 +341,7 @@
                     eventTitle.addClass(backgroundTitleClass);
                     eventTitle.css("font-size", fontSize + "px");
                     eventTitle.css("height", "60%");
-                    $('#<?= $_GET['name'] ?>_rollerContainer').append(newRow);
+                    $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
                     
                     newRow.append(eventTitle);
                     
@@ -638,7 +638,7 @@
                     //dateContainer.css("font-size", fontSizeSmall + "px");
                     //eventAddress.css("font-size", fontSizeSmall + "px");
                     
-                    $("#<?= $_GET['name'] ?>_chartContainer").scrollTop(0);
+                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").scrollTop(0);
                     
                     //Interazione cross-widget - Hover
                     eventAddress.find("a.eventLink").hover(
@@ -764,7 +764,7 @@
                       //Notifica agli altri widget esb affinché rimuovano lo stato "on map" dai propri eventi
                       $.event.trigger({
                           type: "esbEventAdded",
-                          generator: "<?= $_GET['name'] ?>",
+                          generator: "<?= $_REQUEST['name_w'] ?>",
                           targetsArray: targetsArrayForNotify
                       });
 
@@ -773,7 +773,7 @@
     
             }//Fine del for 
             
-            $('#<?= $_GET['name'] ?>_rollerContainer [data-toggle="tooltip"]').tooltip({
+            $('#<?= $_REQUEST['name_w'] ?>_rollerContainer [data-toggle="tooltip"]').tooltip({
                html: true
             });
         }
@@ -788,7 +788,7 @@
             {  
               if($('#' + widgetNameLocal + '_fullscreenEvent_' + i).length <= 0)
               {
-                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="recreativeEvents" id="<?= $_GET['name'] ?>_fullscreenEvent_' + i + '"/>');
+                temp = $('<input type="hidden" class="fullscreenEventPoint" data-eventType="recreativeEvents" id="<?= $_REQUEST['name_w'] ?>_fullscreenEvent_' + i + '"/>');
                 temp.val(eventsPointsLocal[i].join("||"));
                 $('#' + widgetNameLocal + '_modalLinkOpen div.modalLinkOpenBody').append(temp);
               }
@@ -910,7 +910,8 @@
 
                pinIcon = new L.DivIcon({
                    className: null,
-                   html: '<img src="' + mapPinImg + '" class="leafletPin" />'
+                   html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                   iconAnchor: [18, 36]
                });
 
                markerLocation = new L.LatLng(lat, lng);
@@ -1230,7 +1231,8 @@
 
                pinIcon = new L.DivIcon({
                    className: null,
-                   html: '<img src="' + mapPinImg + '" class="leafletPin" />'
+                   html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                   iconAnchor: [18, 36]
                });
 
                markerLocation = new L.LatLng(lat, lng);
@@ -1522,22 +1524,45 @@
         
         function stepDownInterval()
         {
-            var oldPos = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldPos = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             var newPos = oldPos + 1;
             
-            var oldScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
-            $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(newPos);
-            var newScrollTop = $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop();
+            var oldScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
+            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(newPos);
+            var newScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
             
             if(oldScrollTop === newScrollTop)
             {
-               $("#<?= $_GET['name'] ?>_rollerContainer").scrollTop(0);
+               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
             }
         }
+        
+        function resizeWidget()
+        {
+
+        }
+		
+		$(document).off('resizeHighchart_' + widgetName);
+		$(document).on('resizeHighchart_' + widgetName, function(event) 
+		{
+			var newHeight = null;
+			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+			}
+			else
+			{
+				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+			}
+			
+			$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').css('height', newHeight + 'px');
+		});
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight);
-        $("#<?= $_GET['name'] ?>_buttonsContainer").css("background-color", $("#<?= $_GET['name'] ?>_header").css("background-color"));
+        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);    
+        $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer").css("background-color", $("#<?= $_REQUEST['name_w'] ?>_header").css("background-color"));
         
         if(firstLoad === false)
         {
@@ -1549,7 +1574,7 @@
         }
         
         addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         //widgetProperties = getWidgetProperties(widgetName);
         
         $.ajax({
@@ -1566,7 +1591,6 @@
                     //Inizio eventuale codice ad hoc basato sulle proprietà del widget
                     styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
                     //Fine eventuale codice ad hoc basato sulle proprietà del widget
-                    manageInfoButtonVisibility(widgetProperties.param.infoMessage_w, $('#<?= $_GET['name'] ?>_header'));
 
                     widgetTargetList = JSON.parse(widgetProperties.param.parameters);
                     var targetName = null;
@@ -1602,7 +1626,7 @@
 
                           //eventsNumber = data.contents.Event.features.length;
                           eventsNumber = data.features.length;
-                          widgetWidth = $('#<?= $_GET['name'] ?>_div').width();
+                          widgetWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width();
                           var timeToClearScroll = (timeToReload - 0.5) * 1000;
                           
                           switch(widgetMode)
@@ -1610,19 +1634,19 @@
                               case "list":
                                     if(eventsNumber === 0)
                                     {
-                                        $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                                        //$("#<?= $_GET['name'] ?>_searchFilterContainer").hide();
-                                        //$("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                                        $("#<?= $_GET['name'] ?>_noDataAlert").show();
+                                        $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+                                        //$("#<?= $_REQUEST['name_w'] ?>_searchFilterContainer").hide();
+                                        //$("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+                                        $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
                                     }
                                     else
                                     {
-                                      $("#<?= $_GET['name'] ?>_noDataAlert").hide();
-                                      $('#<?= $_GET['name'] ?>_buttonsContainer').show();
-                                      $("#<?= $_GET['name'] ?>_rollerContainer").show(); 
-                                      $("#<?= $_GET['name'] ?>_rollerContainer").height($("#<?= $_GET['name'] ?>_mainContainer").height()); 
+                                      $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").hide();
+                                      $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').show();
+                                      $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").show(); 
+                                      $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").height($("#<?= $_REQUEST['name_w'] ?>_mainContainer").height()); 
 
-                                      shownHeight = $("#<?= $_GET['name'] ?>_rollerContainer").prop("offsetHeight");
+                                      shownHeight = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").prop("offsetHeight");
                                       rowPercHeight =  60 * 100 / shownHeight;
                                       contentHeightPx = eventsNumber * 100;
                                       eventContentWPerc = null;
@@ -1649,7 +1673,7 @@
                                        setTimeout(function()
                                        {
                                            clearInterval(scroller);
-                                           $("#<?= $_GET['name'] ?>_rollerContainer").off();
+                                           $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
 
                                            //$(document).off("esbEventAdded");
 
@@ -1663,12 +1687,12 @@
                                            }
                                        }, timeToClearScroll);
 
-                                       $("#<?= $_GET['name'] ?>_rollerContainer").mouseenter(function() 
+                                       $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseenter(function() 
                                        {
                                           clearInterval(scroller);
                                        });
 
-                                       $("#<?= $_GET['name'] ?>_rollerContainer").mouseleave(function()
+                                       $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").mouseleave(function()
                                        {    
                                            scroller = setInterval(stepDownInterval, speed);
                                        });
@@ -1676,9 +1700,9 @@
                                   break;
                                   
                               case "searchAndList":
-                                  $("#<?= $_GET['name'] ?>_searchFilterContainer").show();
+                                  $("#<?= $_REQUEST['name_w'] ?>_searchFilterContainer").show();
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterLang').selectpicker({ 
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterLang').selectpicker({ 
                                      actionsBox: false, 
                                      noneSelectedText: "Lang",
                                      width: "100%",
@@ -1686,8 +1710,8 @@
                                      title: "Lang"
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterLang').off('loaded.bs.select');
-                                  $('#<?= $_GET['name'] ?>_searchFilterLang').on('loaded.bs.select', function (e) 
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterLang').off('loaded.bs.select');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterLang').on('loaded.bs.select', function (e) 
                                   {
                                       $(this).parent().find('button.btn').css("border-radius", "0px");
                                       $(this).parent().find('button.btn').css("padding", "0px");
@@ -1698,8 +1722,8 @@
                                       
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterType').off('loaded.bs.select');
-                                  $('#<?= $_GET['name'] ?>_searchFilterType').selectpicker({
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterType').off('loaded.bs.select');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterType').selectpicker({
                                      actionsBox: false, 
                                      noneSelectedText: "Types",
                                      selectAllText: "All",
@@ -1709,8 +1733,8 @@
                                      title: "Type"
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterType').off('loaded.bs.select');
-                                  $('#<?= $_GET['name'] ?>_searchFilterType').on('loaded.bs.select', function (e) 
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterType').off('loaded.bs.select');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterType').on('loaded.bs.select', function (e) 
                                   {
                                       $(this).parent().find('button.btn').css("border-radius", "0px");
                                       $(this).parent().find('button.btn').css("padding", "0px");
@@ -1721,7 +1745,7 @@
                                       
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterCost').selectpicker({
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterCost').selectpicker({
                                      actionsBox: false, 
                                      noneSelectedText: "Cost",
                                      width: "100%",
@@ -1729,8 +1753,8 @@
                                      title: "Cost"
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterCost').off('loaded.bs.select');
-                                  $('#<?= $_GET['name'] ?>_searchFilterCost').on('loaded.bs.select', function (e) 
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterCost').off('loaded.bs.select');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterCost').on('loaded.bs.select', function (e) 
                                   {
                                       $(this).parent().find('button.btn').css("border-radius", "0px");
                                       $(this).parent().find('button.btn').css("padding", "0px");
@@ -1741,7 +1765,7 @@
                                       
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').datetimepicker({
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').datetimepicker({
                                      format: 'YYYY-MM-DD',
                                      widgetPositioning: {
                                         horizontal: 'auto',
@@ -1751,15 +1775,15 @@
                                      debug: true
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').find('input[type=text]').css('font-size', fontSize + "px");
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').find('input[type=text]').css('height', "auto");
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').find('input[type=text]').css('padding', "0px");
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').find('input[type=text]').css('font-size', fontSize + "px");
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').find('input[type=text]').css('height', "auto");
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').find('input[type=text]').css('padding', "0px");
                                   //input-group-addon
                                   
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').off('dp.show');
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').on('dp.show', function(){
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').off('dp.show');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').on('dp.show', function(){
                                       $(this).find('div.dropdown-menu').css('font-size', fontSize + "px");
                                       $(this).find('div.dropdown-menu').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
                                       $(this).find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
@@ -1767,8 +1791,8 @@
                                       $(this).find('input[type=text]').css('height', "auto");
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').off('dp.change');
-                                  $('#<?= $_GET['name'] ?>_searchFilterStart').on('dp.change', function(){
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').off('dp.change');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStart').on('dp.change', function(){
                                       $(this).find('div.dropdown-menu').css('font-size', fontSize + "px");
                                       $(this).find('div.dropdown-menu').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
                                       $(this).find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
@@ -1779,7 +1803,7 @@
                                   var now = new Date();
                                   now.setDate(parseInt(now.getDate() + 7));
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').datetimepicker({
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').datetimepicker({
                                      format: 'YYYY-MM-DD',
                                      widgetPositioning: {
                                         horizontal: 'right',
@@ -1789,13 +1813,13 @@
                                      debug: true
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').find('input[type=text]').css('font-size', fontSize + "px");
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').find('input[type=text]').css('height', "auto");
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').find('input[type=text]').css('padding', "0px");
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').find('input[type=text]').css('font-size', fontSize + "px");
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').find('input[type=text]').css('height', "auto");
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').find('input[type=text]').css('padding', "0px");
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').off('dp.show');
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').on('dp.show', function(){
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').off('dp.show');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').on('dp.show', function(){
                                       $(this).find('div.dropdown-menu').css('font-size', fontSize + "px");
                                       $(this).find('div.dropdown-menu').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
                                       $(this).find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
@@ -1803,8 +1827,8 @@
                                       $(this).find('input[type=text]').css('height', "auto");
                                   });
                                   
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').off('dp.change');
-                                  $('#<?= $_GET['name'] ?>_searchFilterStop').on('dp.change', function(){
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').off('dp.change');
+                                  $('#<?= $_REQUEST['name_w'] ?>_searchFilterStop').on('dp.change', function(){
                                       $(this).find('div.dropdown-menu').css('font-size', fontSize + "px");
                                       $(this).find('div.dropdown-menu').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
                                       $(this).find('input[type=text]').css("font-family", '"Helvetica Neue", Helvetica, Arial, sans-serif');
@@ -1814,10 +1838,10 @@
                                   
                                   /*if(eventsNumber === 0)
                                   {
-                                    $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                                    $("#<?= $_GET['name'] ?>_searchFilterContainer").hide();
-                                    $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                                    $("#<?= $_GET['name'] ?>_noDataAlert").show();
+                                    $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_searchFilterContainer").hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+                                    $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
                                   }
                                   else
                                   {
@@ -1826,7 +1850,7 @@
                                     /*setTimeout(function()
                                     {
                                         clearInterval(scroller);
-                                        $("#<?= $_GET['name'] ?>_rollerContainer").off();
+                                        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
 
                                         //$(document).off("esbEventAdded");
 
@@ -1846,7 +1870,7 @@
                                 /*setTimeout(function()
                                 {
                                     clearInterval(scroller);
-                                    $("#<?= $_GET['name'] ?>_rollerContainer").off();
+                                    $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
 
                                     //$(document).off("esbEventAdded");
 
@@ -1865,7 +1889,7 @@
                                   /*setTimeout(function()
                                 {
                                     clearInterval(scroller);
-                                    $("#<?= $_GET['name'] ?>_rollerContainer").off();
+                                    $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
 
                                     //$(document).off("esbEventAdded");
 
@@ -1887,53 +1911,55 @@
                           console.log(JSON.stringify(data));
 
                           showWidgetContent(widgetName);
-                          $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                          $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                          $("#<?= $_GET['name'] ?>_noDataAlert").show();
+                          $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+                          $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+                          $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
                        }
                     });
                 }
                 else
                 {
                     console.log("Errore in caricamento proprietà widget");
-                    $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                    $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                    $("#<?= $_GET['name'] ?>_noDataAlert").show();
+                    $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+                    $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+                    $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
                 }
                 
             },
             error: function()
             {
                 console.log("Errore in caricamento proprietà widget");
-                $('#<?= $_GET['name'] ?>_buttonsContainer').hide();
-                $("#<?= $_GET['name'] ?>_rollerContainer").hide(); 
-                $("#<?= $_GET['name'] ?>_noDataAlert").show();
+                $('#<?= $_REQUEST['name_w'] ?>_buttonsContainer').hide();
+                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").hide(); 
+                $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").show();
             },
             complete: function()
             {
-                countdownRef = startCountdown(widgetName, timeToReload, <?= $_GET['name'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, null);
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, null);
             }
         });
     });//Fine document ready
 </script>
 
-<div class="widget" id="<?= $_GET['name'] ?>_div">
+<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-        <div id='<?= $_GET['name'] ?>_header' class="widgetHeader">
-            <div id="<?= $_GET['name'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_GET['name'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
+	    <?php include '../widgets/widgetHeader.php'; ?>
+		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
+            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
+               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
             </div>    
-            <div id="<?= $_GET['name'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_GET['name'] ?>_buttonsDiv" class="buttonsContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
+            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
                 <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
                 <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
             </div>
-            <div id="<?= $_GET['name'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_GET['name'] ?>_countdownDiv" class="countdown"></div> 
+            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
+                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
             </div>   
-        </div>
+        </div>-->
         
-        <div id="<?= $_GET['name'] ?>_loading" class="loadingDiv">
+        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -1942,33 +1968,33 @@
             </div>
         </div>
         
-        <div id="<?= $_GET['name'] ?>_content" class="content">
-            <div id="<?= $_GET['name'] ?>_mainContainer" class="chartContainer">
-               <div id="<?= $_GET['name'] ?>_noDataAlert" class="noDataAlert">
-                    <div id="<?= $_GET['name'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
+               <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
+                    <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                         No data available
                     </div>
-                    <div id="<?= $_GET['name'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                    <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
                         <i class="fa fa-times"></i>
                     </div>
                </div>
-               <div id="<?= $_GET['name'] ?>_searchFilterContainer" class="trafficEventsSearchFilterContainer">
+               <div id="<?= $_REQUEST['name_w'] ?>_searchFilterContainer" class="trafficEventsSearchFilterContainer">
                    <div class="row">
                        <!--<div class="col-xs-6 centerWithFlex">Language</div>-->
                        <div class="col-xs-4 centerWithFlex">
-                           <select id="<?= $_GET['name'] ?>_searchFilterLang" class="form-control">
+                           <select id="<?= $_REQUEST['name_w'] ?>_searchFilterLang" class="form-control">
                                <option value="english">English</option>
                                <option value="italiano">Italiano</option>
                            </select>
                        </div>
                        <div class="col-xs-4 centerWithFlex">
-                           <select id="<?= $_GET['name'] ?>_searchFilterType" class="form-control" multiple>
+                           <select id="<?= $_REQUEST['name_w'] ?>_searchFilterType" class="form-control" multiple>
                                <option value="a">Pippo</option>
                                <option value="b">Pluto</option>
                            </select>
                        </div>
                        <div class="col-xs-4 centerWithFlex">
-                           <select id="<?= $_GET['name'] ?>_searchFilterCost" class="form-control">
+                           <select id="<?= $_REQUEST['name_w'] ?>_searchFilterCost" class="form-control">
                                <option value="all">All</option>
                                <option value="free">Free</option>
                                <option value="pay">On pay</option>
@@ -1978,7 +2004,7 @@
                    <div class="row">
                      <div class="col-xs-6 centerWithFlex"> 
                         <div class="form-group">
-                          <div class="input-group date" id="<?= $_GET['name'] ?>_searchFilterStart">
+                          <div class="input-group date" id="<?= $_REQUEST['name_w'] ?>_searchFilterStart">
                              <input data-toggle="tooltip" data-container="body" title="" type="text" class="form-control" />
                              <span class="input-group-addon">
                                 <span class="glyphicon glyphicon-calendar"></span>
@@ -1988,7 +2014,7 @@
                      </div>
                      <div class="col-xs-6 centerWithFlex"> 
                         <div class="form-group">
-                          <div class="input-group date" id="<?= $_GET['name'] ?>_searchFilterStop">
+                          <div class="input-group date" id="<?= $_REQUEST['name_w'] ?>_searchFilterStop">
                              <input data-toggle="tooltip" data-container="body" title="" type="text" class="form-control" />
                              <span class="input-group-addon">
                                 <span class="glyphicon glyphicon-calendar"></span>
@@ -1998,7 +2024,7 @@
                      </div>
                    </div>
                </div>
-               <div id="<?= $_GET['name'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
+               <div id="<?= $_REQUEST['name_w'] ?>_rollerContainer" class="trafficEventsRollerContainer"></div>
             </div>
         </div>
     </div>	

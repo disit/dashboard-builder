@@ -1,5 +1,5 @@
 <div class="hidden-xs hidden-sm col-md-2" id="mainMenuCnt">
-    <div id="headerClaimCnt" class="col-md-12 centerWithFlex">Dashboard Management System</div>
+    <div id="headerClaimCnt" class="col-md-12 centerWithFlex">Snap4City</div>
     <div class="col-md-12 mainMenuUsrCnt">
         <div class="row">
             <div class="col-md-12 centerWithFlex" id="mainMenuIconCnt">
@@ -17,95 +17,105 @@
         </div>
     </div>
     
-    
     <?php
-        if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
+        include 'config.php';
+        
+        error_reporting(E_ERROR | E_NOTICE);
+        date_default_timezone_set('Europe/Rome');
+        
+        $link = mysqli_connect($host, $username, $password);
+        mysqli_select_db($link, $dbname);
+        
+        $menuQuery = "SELECT * FROM Dashboard.MainMenu ORDER BY id ASC";
+        $r = mysqli_query($link, $menuQuery);
+
+        if($r)
         {
-            if($_SESSION['loggedRole'] == "ToolAdmin")
+            while($row = mysqli_fetch_assoc($r))
             {
-    ?>
-                <a href="../management/setup.php" id="setupLink" class="internalLink moduleLink">
-                    <div class="col-md-12 mainMenuItemCnt">
-                        <i class="fa fa-cogs"></i>&nbsp;&nbsp;&nbsp;Setup
-                    </div>
-                </a>
-    
-    <?php        
+                $menuItemId = $row['id'];
+                $linkUrl = $row['linkUrl'];
+                
+                if($linkUrl == 'submenu')
+                {
+                    $linkUrl = '#';
+                }
+                
+                $linkId = $row['linkId'];
+                $icon = $row['icon'];  
+                $text = $row['text'];
+                $privileges = $row['privileges'];      
+                $userType = $row['userType']; 
+                $externalApp = $row['externalApp'];
+                $openMode = $row['openMode'];
+                $iconColor = $row['iconColor'];
+                $pageTitle = $row['pageTitle'];
+                $externalApp = $row['externalApp'];
+                
+                if($externalApp == 'yes')
+                {
+                    if($openMode == 'newTab')
+                    {
+                        $newItem =  '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink" target="_blank">' .
+                                        '<div class="col-md-12 mainMenuItemCnt">' .
+                                            '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                        '</div>' .
+                                    '</a>';
+                    }
+                    else
+                    {
+                        //CASO IFRAME
+                        $newItem =  '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
+                                        '<div class="col-md-12 mainMenuItemCnt">' .
+                                            '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                        '</div>' .
+                                    '</a>';
+                    }
+                }
+                else
+                {
+                    $newItem =  '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink">' .
+                                    '<div class="col-md-12 mainMenuItemCnt">' .
+                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                    '</div>' .
+                                '</a>';
+                }
+                
+                if((strpos($privileges, $_SESSION['loggedRole']) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType'])))) 
+                {
+                    echo $newItem;
+                }
+                
+                $submenuQuery = "SELECT * FROM Dashboard.MainMenuSubmenus WHERE menu = '$menuItemId' ORDER BY id ASC";
+                $r2 = mysqli_query($link, $submenuQuery);
+                
+                if($r2)
+                {
+                    while($row2 = mysqli_fetch_assoc($r2))
+                    {
+                        $linkUrl2 = $row2['linkUrl'];
+                        $linkId2 = $row2['linkId'];
+                        $icon2 = $row2['icon'];        
+                        $text2 = $row2['text'];
+                        
+                        $newSubmenuItem =  '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" class="internalLink moduleLink mainMenuSubItemLink">' .
+                                                '<div class="col-md-12 mainMenuSubItemCnt">' .
+                                                    '&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                '</div>' .
+                                            '</a>';
+                        
+                        echo $newSubmenuItem;
+                    }
+                }
             }
+            
         }
-    ?> 
-    <a href="../management/dashboards.php" id="dashboardsLink" class="internalLink moduleLink">
-        <div class="col-md-12 mainMenuItemCnt">
-            <i class="fa fa-dashboard"></i>&nbsp;&nbsp;&nbsp;Dashboards
-        </div>
-    </a>
-    
-    <?php
-        if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
-        {
-            if($_SESSION['loggedType'] == "local")
-            {
-    ?>
-                <a class="internalLink moduleLink" href="../management/account.php" id="accountManagementLink">
-                    <div class="col-md-12 mainMenuItemCnt">
-                        <i class="fa fa-user"></i>&nbsp;&nbsp;&nbsp;Account
-                    </div>
-                </a>
-    <?php        
-            }
-    ?>  
-    
-    <?php
-            if($_SESSION['loggedRole'] == "ToolAdmin")
-            {
-    ?>
-                <a class="internalLink moduleLink" href="../management/metrics.php" id="link_metric_mng">    
-                    <div class="col-md-12 mainMenuItemCnt">
-                        <i class="fa fa-server"></i>&nbsp;&nbsp;&nbsp;Metrics
-                    </div>
-                </a>
-                <a class="internalLink moduleLink" href="../management/widgets.php" id="link_widgets_mng">
-                    <div class="col-md-12 mainMenuItemCnt">
-                        <i class="fa fa-area-chart"></i>&nbsp;&nbsp;&nbsp;Widgets
-                    </div>
-                </a>
-                <a class="internalLink moduleLink" href="../management/datasources.php" id="link_sources_mng">
-                    <div class="col-md-12 mainMenuItemCnt">
-                        <i class="fa fa-database"></i>&nbsp;&nbsp;&nbsp;Data sources
-                    </div>
-                </a>
-                <a class="internalLink moduleLink" href="../management/users.php" id="link_user_register">
-                    <div class="col-md-12 mainMenuItemCnt">
-                        <i class="fa fa-group"></i>&nbsp;&nbsp;&nbsp;Users
-                    </div>
-                </a> 
-    <?php        
-            }
     ?>
     
-    <?php
-            if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
-            {
-    ?>
-            <a class="internalLink moduleLink" href="../management/pools.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">
-                <div class="col-md-12 mainMenuItemCnt">
-                    <i class="fa fa-object-ungroup"></i>&nbsp;&nbsp;&nbsp;Users pools
-                </div>
-            </a>
-    <?php        
-            }
-    ?>
-     
-    <?php        
-        }
-    ?>    
     
     
-    <a href="<?php echo $notificatorLink?>" id="notificatorLink" target="blank" class="internalLink moduleLink">
-        <div class="col-md-12 mainMenuItemCnt">
-            <i class="fa fa-bell"></i>&nbsp;&nbsp;&nbsp;Notificator
-        </div>
-    </a>    
+    
+    
 </div>
 
 <script type='text/javascript'>
@@ -143,6 +153,33 @@
                     location.href = "logout.php";
                 }
             });*/
+        });
+        
+        $('#mainMenuCnt a.mainMenuSubItemLink').hide();
+        
+        $('#mainMenuCnt .mainMenuLink').click(function(event){
+            if(($(this).attr('data-openMode') === 'iframe') && ($(this).attr('data-externalApp') === 'yes'))
+            {
+                event.preventDefault();
+                var pageTitle = $(this).attr('data-pageTitle');
+                var linkId = $(this).attr('id');
+                var linkUrl = $(this).attr('data-linkUrl');
+                
+                location.href = "iframeApp.php?linkUrl=" + encodeURI(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle;
+            }
+            else
+            {
+                if($(this).attr('data-submenuVisible') === 'false')
+                {
+                    $(this).attr('data-submenuVisible', 'true');
+                    $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + $(this).attr('id') + ']').show();
+                }
+                else
+                {
+                    $(this).attr('data-submenuVisible', 'false');
+                    $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + $(this).attr('id') + ']').hide();
+                }
+            }
         });
     });
 </script>    
