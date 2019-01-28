@@ -24,7 +24,24 @@
 
     $response = [];
 
-    $q = "SELECT * FROM Dashboard.DashboardWizard WHERE high_level_type = 'External Service'";
+    if (isset($_GET['orgFilter'])) {
+        $org = mysqli_real_escape_string($link, $_GET['orgFilter']);
+        $filterOrgQuery = "AND organizations REGEXP '$org'";
+    }
+
+    if (isset($_GET['param'])) {
+        if ($_GET['param'] == "AllOrgs") {
+            $filterOrgQuery = "";
+        }
+    }
+
+    if (isset($_GET['role'])) {
+        if ($_GET['role'] == "Public") {
+            $filterOrgQuery = "AND organizations REGEXP 'Other'";
+        }
+    }
+
+    $q = "SELECT * FROM Dashboard.DashboardWizard WHERE high_level_type = 'External Service' $filterOrgQuery ORDER BY sub_nature ASC";
     $r = mysqli_query($link, $q);
 
     if($r)
@@ -38,7 +55,7 @@
     }
     else
     {
-      $response['detail'] = 'Ko';
+        $response['detail'] = 'Ko';
     }
 
     echo json_encode($response);

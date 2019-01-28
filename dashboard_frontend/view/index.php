@@ -14,6 +14,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
    include '../config.php';
+
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
    
    //Va studiata una soluzione, per ora tolto error reporting
@@ -22,10 +23,10 @@
    $dashId = base64_decode($_REQUEST['iddasboard']);
    
    session_start();
-   
-    $link = mysqli_connect($host, $username, $password) or die();
-    mysqli_select_db($link, $dbname);
 
+    $link = mysqli_connect($host, $username, $password);
+    mysqli_select_db($link, $dbname);
+    
     $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = $dashId";
     $queryResult = mysqli_query($link, $query);
     
@@ -58,22 +59,47 @@
 
     if($queryResult) 
     {
-       if($queryResult->num_rows > 0) 
-       {     
-           while($row = mysqli_fetch_array($queryResult)) 
-           {
-              $embeddable = $row['embeddable'];
-              $authorizedPages = $row['authorizedPagesJson'];
+        $row = mysqli_fetch_array($queryResult);
+        
+        if($row['deleted'] === 'yes')
+        {
+            header("Location: dashboardNotAvailable.php");
+            exit();
+        }
+        else
+        {
+            if(!isset($_SESSION['loggedUsername']))
+            {
+                //Se non è pubblica può andare avanti con codice standard, altrimenti gli viene chiesto di collegarsi
+                if($row['visibility'] != 'public')
+                {
+                    $host='main.snap4city.org';
+if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+  $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
+  if($host=='dashboard.km4city.org')
+    $host.='/dashboardSmartCity';
+}
+                    header("Location: ../management/ssoLogin.php?redirect=https://$host/view/index.php?iddasboard=" . $_REQUEST['iddasboard']);
+                    exit();
+                }
+            }
+
+           if($queryResult->num_rows > 0) 
+           {    
+                $embeddable = $row['embeddable'];
+                $authorizedPages = $row['authorizedPagesJson'];
            }
-       }
-       else
-       {
-           $embeddable = 'no';
-       }
+           else
+           {
+               $embeddable = 'no';
+           }
+        }
     }
     else
     {
-        $embeddable = 'no';
+        //$embeddable = 'no';
+        header("Location: dashboardNotAvailable.php");
+        exit();
     }
     
    mysqli_close($link);
@@ -145,10 +171,13 @@
 
     <!-- Custom CSS -->
     <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/widgetHeader.css?v=<?php echo time();?>" rel="stylesheet">
     <link href="../css/dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link href="../css/widgetCtxMenu.css?v=<?php echo time();?>" rel="stylesheet">
     <link rel="stylesheet" href="../css/style_widgets.css?v=<?php echo time();?>" type="text/css" />
+    <link href="../css/widgetDimControls.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/chat.css?v=<?php echo time();?>" rel="stylesheet">
     
     <!-- Material icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -194,6 +223,10 @@
    <!-- Leaflet Wicket: libreria per parsare i file WKT --> 
    <script src="../wicket/wicket.js"></script> 
    <script src="../wicket/wicket-leaflet.js"></script>
+
+    <!-- Leaflet Zoom Display -->
+    <script src="../js/leaflet.zoomdisplay-src.js"></script>
+    <link href="../css/leaflet.zoomdisplay.css" rel="stylesheet"/>
    
    <!-- Dot dot dot -->
    <script src="../dotdotdot/jquery.dotdotdot.js" type="text/javascript"></script>
@@ -220,9 +253,6 @@
     
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     
-    <!-- Reconnecting WS -->
-    <script src="../reconnecting-websocket/reconnecting-websocket.min.js"></script>
-    
     <script src="../js/widgetsCommonFunctions.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/trafficEventsTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/alarmTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
@@ -230,7 +260,7 @@
 
     <script type='text/javascript'>
         var array_metrics = new Array();
-        var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardId, dashboardName, logoFilename, logoLink, 
+        var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardId, dashboardName, dashboardOrg, dashboardOrgKbUrl, logoFilename, logoLink,
             clockFontSizeMod, logoWidth, logoHeight, headerVisible = null;
     
         var dashboardZoomEventHandler = function(event)
@@ -242,12 +272,176 @@
         
         $(document).ready(function () 
         {
-            var widgetsBorders, widgetsBordersColor, embedWidget, embedWidgetPolicy, headerVisible, wrapperWidth, dashboardViewMode, gridster, gridsterCellW, gridsterCellH, widgetsContainerWidth, num_cols = null;
+            var embedWidget, embedWidgetPolicy, headerVisible, wrapperWidth, dashBckImg, useBckImg, dashboardViewMode, gridster, gridsterCellW, gridsterCellH, widgetsContainerWidth, num_cols = null;
             var firstLoad = true;
             var loggedUserFirstAttempt = true;
-            var myGpsActive, myGpsPeriod, myGpsInterval, globalDashboardTitle = null;
+            var myGpsActive, myGpsPeriod, myGpsInterval, globalDashboardTitle = null, backOverlayOpacity = null;
             var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo $_REQUEST['embedPreview'];}else{echo 'false';} ?>";
+            var loggedUsername = "<?php echo $_SESSION['loggedUsername']; ?>";
+          
             
+            $("#chatContainer").css("top", $('#dashboardViewHeaderContainer').height());
+            $("#chatContainer").css("left", $(window).width() - $('#chatContainer').width());
+            //$("#chatContainer").css("left", $('#dashboardViewHeaderContainer').width() + $('#logos').width() - $('#chatContainer').width());
+            
+            $('#chatBtn').click(function(){
+                if($(this).attr("data-status") === 'closed')
+                {
+                    $(this).attr("data-status", 'open');
+                    $('#chatContainer').show();
+                    console.log("Show");
+                }
+                else
+                {
+                    $(this).attr("data-status", 'closed');
+                    $('#chatContainer').hide();
+                    console.log("Hide");
+                }
+            });
+            //Caricamento della chat asincrono a valle di tutto il loading della dashboard 
+          <?php
+                    /*include '../config.php';
+                    include "../rocket-chat-rest-client/RocketChatClient.php";
+                    include "../rocket-chat-rest-client/RocketChatUser.php";
+                    include "../rocket-chat-rest-client/RocketChatChannel.php";
+                    define('REST_API_ROOT', '/api/v1/');
+                    define('ROCKET_CHAT_INSTANCE', $chatBaseUrl);
+                    $userId='Id';
+                    $existChat='No';
+                    $link = mysqli_connect($host, $username, $password);
+                    mysqli_select_db($link, $dbname);
+                    $query = "SELECT user,name_dashboard FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id =".base64_decode($_REQUEST['iddasboard']);
+                    $queryResult = mysqli_query($link, $query);
+                    $row = mysqli_fetch_array($queryResult);
+                    $userPro=$row["user"];
+                    $idChat='id';
+                    $nameDash=$row["name_dashboard"];
+                    $nameChat=strtolower((str_replace(" ", "", $nameDash) . "-" . base64_decode($_REQUEST['iddasboard'])));
+                    $admin = new \RocketChat\User();
+                    $admin->login();
+                    $channel = new \RocketChat\Channel('N');
+                    $infoChannel = $channel->infoByName($nameChat);
+                    if($infoChannel->success){
+                    $existChat=$infoChannel->channel->name; 
+                    }
+                    if($userPro==$_SESSION['loggedUsername']){
+                        $userChat=$admin->infoByUsername($_SESSION['loggedUsername']);
+                        $userId=$userChat->user->_id;
+                        $idChat=$infoChannel->channel->_id;
+                    }*/
+                    if(isset($_SESSION['loggedUsername'])){
+                        $existChat='No';
+                        $idChat='id';
+                        $error='no';
+                        try  {
+                            include '../config.php';
+                            include "../rocket-chat-rest-client/RocketChatClient.php";
+                            include "../rocket-chat-rest-client/RocketChatUser.php";
+                            include "../rocket-chat-rest-client/RocketChatChannel.php";
+                            define('REST_API_ROOT', '/api/v1/');
+                            define('ROCKET_CHAT_INSTANCE', $chatBaseUrl);
+                            $userId='Id';
+                            $link = mysqli_connect($host, $username, $password);
+                            mysqli_select_db($link, $dbname);
+                            $query = "SELECT user,name_dashboard FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id =".base64_decode($_REQUEST['iddasboard']);
+                            $queryResult = mysqli_query($link, $query);
+                            $row = mysqli_fetch_array($queryResult);
+                            $userPro=$row["user"];
+                            $nameDash=$row["name_dashboard"];
+                            $nameChat=strtolower((str_replace(" ", "", $nameDash) . "-" . base64_decode($_REQUEST['iddasboard'])));
+                            $admin = new \RocketChat\User();
+                            if($admin->login()){
+                            $channel = new \RocketChat\Channel('N');
+                            $userChat=$admin->infoByUsername($_SESSION['loggedUsername']);
+                            $userId=$userChat->user->_id;
+                             if ($_SESSION['loggedRole'] == "RootAdmin"){
+                                $admin->setRole($userId);
+                                }
+                            
+                            $nameChat=urldecode ($nameChat);
+                            $nameChat = str_replace('à', 'a', $nameChat);
+                            $nameChat = str_replace('è', 'e', $nameChat);
+                            $nameChat = str_replace('é', 'e', $nameChat);
+                            $nameChat = str_replace('ì', 'i', $nameChat);
+                            $nameChat = str_replace('ò', 'o', $nameChat);
+                            $nameChat = str_replace('ù', 'u', $nameChat);
+                            $nameChat = str_replace('å', 'a', $nameChat);
+                            $nameChat = str_replace('ë', 'e', $nameChat);
+                            $nameChat = str_replace('ô', 'o', $nameChat);
+                            $nameChat = str_replace('á', 'a', $nameChat);
+                            $nameChat = str_replace('ç', 'c', $nameChat);
+                            $nameChat = str_replace('ÿ', 'y', $nameChat);
+                            $nameChat=preg_replace("/[^a-zA-Z0-9_-]/", "", $nameChat);
+                            $infoChannel=$channel->infoUserChannel($nameChat,$userId);
+                            if($infoChannel->joined){
+                            //var_dump($existChat);
+                            //var_dump(preg_replace("/[^a-zA-Z0-9_-]/", "", $existChat));
+                            $infoChannelName = $channel->infoByName($nameChat);
+                            $existChat=$infoChannelName->channel->name; 
+                            }elseif ($_SESSION['loggedRole'] == "RootAdmin") {
+                            $infoChannelName = $channel->infoByName($nameChat);
+                            if($infoChannel->success){
+                            $existChat=$infoChannelName->channel->name;     
+                            $existChat=$nameChat; 
+                            }
+                            }
+                            $admin->logout();
+                                if($userPro==$_SESSION['loggedUsername']){
+                                 $idChat=$infoChannelName->channel->_id;
+                                } 
+                                }
+                                $error='Error Chat User';
+                            }
+                            catch (Exception $e) {
+                            $error=$e->getMessage();
+                        }
+                    
+                    
+                    //}*/
+                    ?>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                   setTimeout(function() {
+                            /*if (<?php echo!isset($_SESSION['loggedUsername']); ?>){
+                                  $('#chatBtn').attr('style', 'display: float');
+                                  $('#chatIframeB').attr('src', 'http:\\www.google.it');
+                            } else */if('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'=='id'){
+                                $('#chatIframeB').attr('style', 'height: 0px');
+                                $('#chatIframe').attr('src', '<?php echo $chatBaseUrl; ?>/channel/<?php echo $existChat; ?>/?layout=embedded');
+                                $('#chatBtn').attr('style', 'display: float');
+                            }else if ('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'!='id'){
+                                  
+                                $('#chatIframeB').attr('style', 'height: 100px');
+                                $('#chatIframeB').attr('src', 'chatFrame.php?nameChat=<?php echo $existChat; ?>&idDash=<?php echo base64_decode($_REQUEST['iddasboard']); ?>&idChat=<?php echo $idChat; ?>&idUserChat=<?php echo $userId; ?>');
+                                $('#chatIframe').attr('src', '<?php echo $chatBaseUrl; ?>/channel/<?php echo $existChat; ?>/?layout=embedded');
+                                $('#chatBtn').attr('style', 'display: float');
+                                }else if ('<?php echo $error; ?>'!='no'){
+                                    console.log('Chat Error: <?php echo $error; ?>');
+                                    }
+                           }, 50);
+                    <?php   
+                       }
+                    //}*/
+                    ?>
+            /* setTimeout(function() {
+                $('#chatIframeC').attr('src', 'chatAdd.php?nameDash=' + $('#dashboardTitle span').text() + "-" + "<?= base64_decode($_REQUEST['iddasboard']) ?>" + "&idDash=<?= base64_decode($_REQUEST['iddasboard']) ?>");
+                $('#chatIframe').attr('src', 'chatPage.php?nameDash=' + $('#dashboardTitle span').text() + "-" + "<?= base64_decode($_REQUEST['iddasboard']) ?>")
+            }, 50);*/
+            
+           /* $('#chatIframe').on('load', function()
+            {   
+                try {
+                var iframe = document.getElementById("chatIframe");
+                $elmnt = iframe.contentWindow.document.getElementById("chatEx");
+                } catch(e) {
+                    console.log("OK");
+                    $('#chatBtn').attr('style', 'display: float');
+                }
+                if ($elmnt == null) {
+                    $('#chatBtn').attr('style', 'display: float');
+                }
+                
+                      
+            });*/
             // Fullscreen: passargli sempre il documentElement 
             $('#fullscreenButton').click(function(){
                 if(document.documentElement.requestFullscreen) 
@@ -307,6 +501,10 @@
                 $('#dashboardSubtitle').textfill({
                     maxFontPixels: -20
                 });
+                
+                //Ricalcolo del posizionamento della finestra della chat
+                $("#chatContainer").css("top", $('#dashboardViewHeaderContainer').height());
+                $("#chatContainer").css("left", $(window).width() - $('#chatContainer').width());
         
                 switch(dashboardViewMode)
                 {
@@ -384,7 +582,7 @@
                                 
                 $('li.gs_w').trigger({
                     type: "resizeWidgets"
-                });                
+                }); 
             });
             
             //Definizioni di funzione
@@ -393,7 +591,21 @@
                 var minEmbedDim, autofitAlertFontSize;
                 
                 globalDashboardTitle = dashboardParams.title_header;
+                dashBckImg = dashboardParams.bckImgFilename;
+                useBckImg = dashboardParams.useBckImg;
+                backOverlayOpacity = dashboardParams.backOverlayOpacity;
                 
+                if((dashBckImg !== null)&&(useBckImg === 'yes'))
+                {
+                    $('#dashBckCnt').css('background-image', 'url("../img/dashBackgrounds/dashboard' + "<?= base64_decode($_GET['iddasboard']) ?>" + '/' + dashBckImg + '")');
+                    $('#dashBckOverlay').show();
+                    $('#dashBckOverlay').css('background-color', 'rgba(0,0,0,' + backOverlayOpacity + ')');
+                } 
+                else
+                {
+                    $('#dashBckOverlay').hide();
+                }
+                                
                 if('<?php echo $embeddable; ?>' === 'yes')
                 {
                     if(window.self !== window.top)
@@ -449,14 +661,35 @@
                 
                 dashboardId = <?= base64_decode($_GET['iddasboard']) ?>;
                 dashboardName = dashboardParams.name_dashboard;
+                dashboardOrg = dashboardParams.organizations;
                 logoFilename = dashboardParams.logoFilename;
                 logoLink = dashboardParams.logoLink;
                 headerVisible = dashboardParams.headerVisible;
                 dashboardViewMode = dashboardParams.viewMode;
-                widgetsBorders = dashboardParams.widgetsBorders;
-                widgetsBordersColor = dashboardParams.widgetsBordersColor;
                 $("#headerLogoImg").css("display", "none");
                 $("#dashboardViewHeaderContainer").css("background-color", dashboardParams.color_header);
+
+                $.ajax({
+                    url: "../controllers/getOrganizationParameters.php",
+                    data: {
+                        action: "getSpecificOrgParameters",
+                        param: dashboardOrg
+                    },
+                    type: "GET",
+                    async: true,
+                    dataType: 'json',
+                    success: function (data) {
+                     /*   var orgLatLng = data.orgGpsCentreLatLng;
+                        microAppLat = orgLatLng.split(",")[0].trim();
+                        microAppLng = orgLatLng.split(",")[1].trim();
+                        $('#iotApplicationsIframe').attr('src', url + '&coordinates='+microAppLat+';'+microAppLng+'&lang=ita&maxDistance=0.3&maxResults=150');  */
+                        dashboardOrgKbUrl = data.orgKbUrl;
+                    },
+                    error: function (errorData) {
+                        console.log("Errore in reperimento parametri Org specifica: ");
+                        console.log(JSON.stringify(errorData));
+                    }
+                });
 
                 //Sfondo
                 $("body").css("background-color", dashboardParams.external_frame_color);
@@ -465,6 +698,7 @@
                 var headerFontSize = dashboardParams.headerFontSize;
                 
                 $("#dashboardTitle").css("color", headerFontColor);
+                //$('#chatBtn').css("color", $('#dashboardTitle').css('color'));
                 $("#dashboardTitle span").text(dashboardParams.title_header);
                 $("#clock").css("color", headerFontColor);
                 $('#fullscreenBtnContainer').css("color", headerFontColor);
@@ -687,42 +921,12 @@
                     dashboardWidgets[i].embedWidget = embedWidget;
                     dashboardWidgets[i].embedWidgetPolicy = embedWidgetPolicy;
                     dashboardWidgets[i].hostFile = 'index';
+                    $("li#" + dashboardWidgets[i]['name_w']).css('border', '1px solid ' + dashboardWidgets[i].borderColor);
                     
                     $("#gridsterUl").find("li#" + dashboardWidgets[i]['name_w']).load("../widgets/" + encodeURIComponent(dashboardWidgets[i]['type_w']) + ".php", dashboardWidgets[i]);
 
                 }//Fine del secondo for
-
-                //Applicazione bordi dei widgets
-                if(widgetsBorders === 'yes')
-                {
-                    $(".gridster .gs_w").css("border", "1px solid " + widgetsBordersColor);
-                }
-                else
-                {
-                    $(".gridster .gs_w").css("border", "none");
-                }
-
-                //Icona info
-                $(document).on('click', '.info_source', function () {
-                    var name_widget_m = $(this).parents('li').attr('id');
-                    $.ajax({
-                        url: "../management/get_data.php",
-                        data: {widget_info: name_widget_m, action: "get_info_widget"},
-                        type: "GET",
-                        async: true,
-                        dataType: 'json',
-                        success: function (data) {
-                            $('#titolo_info').text(data['title_widget']);
-                            $('#contenuto_infomazioni').html(data['info_mess']);
-                            $('#dialog-information-widget').modal('show');
-                            $('#dialog-information-widget').css({
-                                'vertical-align': 'middle',
-                                'position': 'absolute',
-                                'top': '10%'
-                            });
-                        }
-                    });
-                });
+                
                 
                 if(('<?php echo $embeddable; ?>' === 'yes')&&(window.self !== window.top))
                 {
@@ -1009,13 +1213,13 @@
                             } 
                             else 
                             { 
-                                console.log("Navigator not available");
+                                //console.log("Navigator not available");
                             }
                         }, parseInt(parseInt(myGpsPeriod)*1000))
                     }
                     else
                     {
-                        console.log("Navigator not active");
+                        //console.log("Navigator not active");
                     }
                 }
                 
@@ -1048,13 +1252,13 @@
                                 loadDashboard(response.dashboardParams, response.dashboardWidgets);
                                 break;
 
-                            case 'author': case 'restrict':
+                            case 'author': case 'restrict':    
                                 $('body').addClass("dashboardViewBodyAuth");
                                 $('#authFormDarkBackground').show();
                                 $('#authFormContainer').show();
                                 switch(response.detail)
                                 {
-                                    case "credentialsMissing":
+                                    /*case "credentialsMissing":
                                         $("#dashboardViewMainContainer").hide();
                                         if(firstLoad === false)
                                         {
@@ -1093,7 +1297,7 @@
                                         $("#dashboardViewMainContainer").hide();
                                         $("#authFormMessage").html("User not registered or wrong username / password");
                                         $("#authBtn").click(authUser);
-                                        break;
+                                        break;*/
                                         
                                     case "Ok": 
                                         $('body').removeClass("dashboardViewBodyAuth");
@@ -1110,93 +1314,48 @@
                                                 event.preventDefault();
                                                 $("#logoutViewModal").modal('show');
                                             });
-
-                                            /*$("#confirmLogoutBtn").click(function(event){
-                                                $.ajax({
-                                                    url: "../management/sessionUpdate.php",
-                                                    data: {
-                                                      sessionAction: 'closeViewSession',
-                                                      dashboardId: <?= base64_decode($_GET['iddasboard']) ?>
-                                                    },
-                                                    type: "POST",
-                                                    async: false,
-                                                    dataType: 'json',
-                                                    success: function (data) 
-                                                    {
-                                                        switch(data.detail)
-                                                        {
-                                                            case "Ok":
-                                                                $("#logoutViewModalFooter").hide();
-                                                                $("#logoutViewModalMsg").hide();
-                                                                $("#logoutViewModalOk").show();
-                                                                setTimeout(function(){
-                                                                    $("#logoutViewModal").modal('hide');
-                                                                    location.reload();
-                                                                }, 2000);
-                                                                break;
-
-                                                            case "Ko":
-                                                                $("#logoutViewModalMsg").hide();
-                                                                $("#logoutViewModalFooter").hide();
-                                                                $("#logoutViewModalKo").show();
-                                                                setTimeout(function(){
-                                                                    $("#logoutViewModal").modal('hide');
-                                                                    $("#logoutViewModalKo").hide();
-                                                                    $("#logoutViewModalMsg").show();
-                                                                    $("#logoutViewModalFooter").show();
-                                                                }, 2000);
-                                                                break;
-                                                        }
-                                                    },
-                                                    error: function (data)
-                                                    {
-                                                        $("#logoutViewModalMsg").hide();
-                                                        $("#logoutViewModalFooter").hide();
-                                                        $("#logoutViewModalKo").show();
-                                                        setTimeout(function(){
-                                                            $("#logoutViewModal").modal('hide');
-                                                            $("#logoutViewModalKo").hide();
-                                                            $("#logoutViewModalMsg").show();
-                                                            $("#logoutViewModalFooter").show();
-                                                        }, 2000);
-                                                        console.log("Error");
-                                                        console.log(JSON.stringify(data));
-                                                    }
-                                                });
-                                            });*/
                                         }
                                     break;
+                                    
+                                    default:
+                                        /*$("#dashboardViewMainContainer").hide();
+                                        $("#authFormMessage").html("User not allowed to see this dashboard");
+                                        $('body').addClass("dashboardViewBodyAuth");
+                                        $('#authFormDarkBackground').show();
+                                        $('#authFormContainer').show();
+                                        $("#authBtn").click(authUser); */
+                                        location.href = "../management/viewLogout.php?dashboardId=<?= $_REQUEST['iddasboard']?>";
+                                        break;
 
-                                case "Ko": 
-                                    $("#dashboardViewMainContainer").hide();
-                                    $("#authFormMessage").html("User not allowed to see this dashboard");
-                                    $('body').addClass("dashboardViewBodyAuth");
-                                    $('#authFormDarkBackground').show();
-                                    $('#authFormContainer').show();
-                                    $("#authBtn").click(authUser);        
-                                    break;
+                                    /*case "Ko": 
+                                        $("#dashboardViewMainContainer").hide();
+                                        $("#authFormMessage").html("User not allowed to see this dashboard");
+                                        $('body').addClass("dashboardViewBodyAuth");
+                                        $('#authFormDarkBackground').show();
+                                        $('#authFormContainer').show();
+                                        $("#authBtn").click(authUser);        
+                                        break;
 
-                                case "loggedUserKo": 
-                                    loggedUserFirstAttempt = false;
-                                    $("#dashboardViewMainContainer").hide();
-                                    $("#authFormMessage").html("Logged user not allowed to see this dashboard");
-                                    $('body').addClass("dashboardViewBodyAuth");
-                                    $('#authFormDarkBackground').show();
-                                    $('#authFormContainer').show();
-                                    $("#authBtn").click(authUser);        
-                                    break;
+                                    case "loggedUserKo": 
+                                        loggedUserFirstAttempt = false;
+                                        $("#dashboardViewMainContainer").hide();
+                                        $("#authFormMessage").html("Logged user not allowed to see this dashboard");
+                                        $('body').addClass("dashboardViewBodyAuth");
+                                        $('#authFormDarkBackground').show();
+                                        $('#authFormContainer').show();
+                                        $("#authBtn").click(authUser);        
+                                        break;
 
-                                case "loggedViewUserKo": 
-                                    loggedUserFirstAttempt = false;
-                                    $("#dashboardViewMainContainer").hide();
-                                    $("#authFormMessage").html("User logged to dashboard view not allowed to see this dashboard");
-                                    $('body').addClass("dashboardViewBodyAuth");
-                                    $('#authFormDarkBackground').show();
-                                    $('#authFormContainer').show();
-                                    $("#authBtn").click(authUser);        
-                                    break;    
-                            }
-                            break; 
+                                    case "loggedViewUserKo": 
+                                        loggedUserFirstAttempt = false;
+                                        $("#dashboardViewMainContainer").hide();
+                                        $("#authFormMessage").html("User logged to dashboard view not allowed to see this dashboard");
+                                        $('body').addClass("dashboardViewBodyAuth");
+                                        $('#authFormDarkBackground').show();
+                                        $('#authFormContainer').show();
+                                        $("#authBtn").click(authUser);        
+                                        break;  */
+                                }
                         }
                     },
                     error: function (data)
@@ -1212,13 +1371,31 @@
             
             //Main
             authUser();
+            myVar = setInterval("updateFunction()", 60*1000);    // Firing access count every 1 MINUTE
+
         });
+
+        function updateFunction(){
+
+            $.getJSON('../controllers/dashDailyAccessController.php?updateHour=true',
+                {
+                    dashId: <?= base64_decode($_GET['iddasboard']) ?>
+                },
+                function (data) {
+
+                });
+
+        }
+
     </script>
 </head>
-
 <body>
     <?php include "../management/sessionExpiringPopup.php" ?>
-    
+    <div id="dashBckCnt">
+       <div id="dashBckOverlay">
+        
+       </div>             
+    </div>
     <div id="dashboardViewMainContainer" class="container-fluid">
         <nav id="dashboardViewHeaderContainer" class="navbar navbar-fixed-top" role="navigation">
             <div id="fullscreenBtnContainer" data-status="normal">
@@ -1229,7 +1406,7 @@
             </div>
             <div id="dashboardViewTitleAndSubtitleContainer">
                 <div id="dashboardTitle">
-                    <span></span>
+                    <span contenteditable="false"></span>
                 </div>
                 <div id="dashboardSubtitle">
                     <span></span>
@@ -1237,6 +1414,8 @@
             </div>
             <div id="headerLogo">
                 <img id="headerLogoImg"/>
+                <i class="fa fa-comment-o" id="chatBtn" data-status="closed" style="display: none"></i> <!-- style="display: none !important" -->
+                
             </div>
             <div id="clock">
                 <span id="tick2"><?php include('../widgets/time.php'); ?></span>
@@ -1257,6 +1436,11 @@
         </div>
     </div>
     
+    <div id="chatContainer" data-status="closed">
+        <iframe id="chatIframeB" class="chatIframe" scrolling="no"></iframe>
+        <iframe id="chatIframe" class="chatIframe"></iframe>
+    </div>
+
     <div id="authFormDarkBackground">
         <div class="row">
             <div class="col-xs-12 centerWithFlex" id="loginMainTitle">Dashboard Management System</div>
@@ -1296,45 +1480,25 @@
     </div> 
     
     <!-- MODALI -->
-    <!-- modale informazioni generali del widget -->
-    <div class="modal fade" tabindex="-1" id="dialog-information-widget" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="info01"> 
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title" id="titolo_info">Descrizione:</h4>
+    <!-- Modale informazioni widget -->
+    <div class="modal fade" id="widgetInfoModal" tabindex="-1" role="dialog" aria-labelledby="widgetInfoModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modalContentWizardForm"> 
+                <div class="modalHeader centerWithFlex">
+                    <div class="col-xs-10 col-xs-offset-1"></div>
+                    <div class="col-xs-1">
+                        <button type="button" class="compactMenuCancelBtn" id="widgetInfoModalCancelBtnView" data-dismiss="modal"><i class="fa fa-remove"></i></button>             
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="form-information-widget" class="form-horizontal" name="form-information-widget" role="form" method="post" action="" data-toggle="validator">
-                        <div id="contenuto_infomazioni"></div>
-                    </form>
+            
+                <div id="widgetInfoModalBodyView" class="modal-body modalBody">
+                    
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
-                </div>
-            </div>
-        </div>
+            </div>    <!-- Fine modal content -->
+        </div> <!-- Fine modal dialog -->
     </div>
+    <!-- Fine modale informazioni widget -->
     
-    <!-- Modale informazioni campi widget -->
-    <div class="modal fade" tabindex="-1" id="modalWidgetFieldsInfo" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document" id="info01"> 
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title" id="modalWidgetFieldsInfoTitle"></h4>
-                </div>
-                <div class="modal-body">
-                    <form id="modalWidgetFieldsInfoForm" class="form-horizontal" name="modalWidgetFieldsInfoForm" role="form" method="post" action="" data-toggle="validator">
-                        <div id="modalWidgetFieldsInfoContent"></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div> 
     
     <!-- Modale di conferma logout dashboard -->
     <div class="modal fade" id="logoutViewModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -1499,4 +1663,37 @@
     </div>
 </body>
 </html>
+<?php
+    //Query $iddasboard=NzU2
+$link = mysqli_connect($host, $username, $password);
+mysqli_select_db($link, $dbname);
+$queryAccess = "SELECT * FROM Dashboard.IdDashDailyAccess WHERE IdDashboard = $dashId ORDER BY date DESC;";
+$resultAccess = mysqli_query($link, $queryAccess);
+$currentDate = date("Y-m-d");
+//$currentDate = '2018-07-21';
+$nameDash = $row['name_dashboard'];
 
+//if($resultAccess) {
+    if (mysqli_num_rows($resultAccess) > 0) {
+
+        $rowAcc = mysqli_fetch_array($resultAccess);
+        if ($rowAcc['date'] === $currentDate) {     // CHECK ON LAST DATE
+        // $dashboardWidgets = [];
+            $queryUpdate = "UPDATE Dashboard.IdDashDailyAccess SET nAccessPerDay = nAccessPerDay + 1 WHERE IdDashboard = $dashId;";
+            $resultUpdate = mysqli_query($link, $queryUpdate);
+
+        } else {
+            // insert in mysql
+            $queryInsert = "INSERT INTO Dashboard.IdDashDailyAccess " .
+                "(IdDashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nAccessPerDay = nAccessPerDay + 1;";
+            $resultInsert = mysqli_query($link, $queryInsert);
+        }
+    } else {
+        // insert in mysql
+        $queryInsert = "INSERT INTO Dashboard.IdDashDailyAccess " .
+            "(IdDashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nAccessPerDay = nAccessPerDay + 1;";
+        $resultInsert = mysqli_query($link, $queryInsert);
+    }
+//}
+
+?>

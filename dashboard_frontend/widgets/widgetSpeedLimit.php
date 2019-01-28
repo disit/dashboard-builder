@@ -18,7 +18,7 @@
 ?>
 <link rel="stylesheet" href="../css/widgetSpeedLimit.css">
 <script type='text/javascript'>
-    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId)  
+    $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId)  
     {
         <?php
             $titlePatterns = array();
@@ -32,11 +32,11 @@
                 
         var headerHeight = 25;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
-        var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
+        var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";
+        var divContainer = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content");
         var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
-        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
+        var nome_wid = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div";
+        var linkElement = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_link_w');
         var color = '<?= $_REQUEST['color_w'] ?>';
         var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var fontColor = "<?= $_REQUEST['fontColor'] ?>";
@@ -47,7 +47,7 @@
         var wsRetryActive, wsRetryTime = null;
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var widgetProperties, styleParameters, metricType, metricName, pattern, udm, udmPos, threshold, thresholdEval, 
-            delta, deltaPerc, sizeRowsWidget, fontSize, value, countdownRef, widgetTitle, metricData, widgetHeaderColor, 
+            delta, deltaPerc, sizeRowsWidget, sm_based, rowParameters, sm_field, fontSize, value, countdownRef, widgetTitle, metricData, widgetHeaderColor, 
             widgetHeaderFontColor, widgetOriginalBorderColor, urlToCall, geoJsonServiceData, showHeader, fontSizeRatio, 
             realFontSize, entityJson, entityId, oldStatus, currentStatus, attributeName, updateTime, signalDimension, 
             signalMarginLeft, signalMarginTop, webSocket, timeToReload, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
@@ -63,7 +63,7 @@
 			showHeader = true;
 		} 
         
-        //$('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').hide();
+        //$('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_countdownContainerDiv').hide();
             
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
@@ -101,23 +101,23 @@
 	{
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
             
-            if($('#<?= $_REQUEST['name_w'] ?>_content').width() < $('#<?= $_REQUEST['name_w'] ?>_content').height())
+            if($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').width() < $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').height())
             {
-                signalDimension = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').width()*0.9;
+                signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width()*0.9;
             }
             else
             {
-                signalDimension = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').height()*0.9;
+                signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height()*0.9;
             }
 
-            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').width(signalDimension + "px");
-            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').height(signalDimension + "px");
-            signalMarginLeft = ($('#<?= $_REQUEST['name_w'] ?>_chartContainer').width() - signalDimension)/2;
-            signalMarginTop = ($('#<?= $_REQUEST['name_w'] ?>_chartContainer').height() - signalDimension)/2;
-            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').css("margin-left", signalMarginLeft + "px");
-            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').css("margin-top", signalMarginTop + "px");
+            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').width(signalDimension + "px");
+            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').height(signalDimension + "px");
+            signalMarginLeft = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width() - signalDimension)/2;
+            signalMarginTop = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height() - signalDimension)/2;
+            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-left", signalMarginLeft + "px");
+            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-top", signalMarginTop + "px");
             
-            $('#<?= $_REQUEST['name_w'] ?>_speedLimitInnerContainer').textfill({
+            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitInnerContainer').textfill({
                 maxFontPixels: fontSize
             });
 	}
@@ -125,8 +125,8 @@
         
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
         
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
+        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         
         if(firstLoad === false)
         {
@@ -137,9 +137,9 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+        //$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
         
-        metricType = "<?= $_REQUEST['metricType'] ?>";
+        metricType = "<?= $_REQUEST['id_metric'] ?>";
         
         $.ajax({
             url: getParametersWidgetUrl,
@@ -152,89 +152,155 @@
                 widgetProperties = data;
                 if((widgetProperties !== null) && (widgetProperties !== ''))
                 {
-                    //XXX Inizio eventuale codice ad hoc basato sulle proprietà del widget
+                    //Inizio eventuale codice ad hoc basato sulle proprietà del widget
                     styleParameters = getStyleParameters();
                     fontSize = widgetProperties.param.fontSize;
                     
-                    $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
-                    $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
                     
                     if(metricType !== 'SpeedLimit')
                     {
-                        $.ajax({
-                            url: getMetricDataUrl,
-                            type: "GET",
-                            data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
-                            async: true,
-                            dataType: 'json',
-                            success: function (data) 
-                            {
-                                metricData = data;
-                                
-                                if(metricData !== null)
+                        if(/*sm_based === 'yes'*/false)
+                        {
+                            $.ajax({
+                                url: rowParameters,
+                                type: "GET",
+                                data: {},
+                                async: true,
+                                dataType: 'json',
+                                success: function (data) 
                                 {
-                                    if(metricData.data[0] !== 'undefined')
+                                    var originalMetricType = data.Service.features[0].properties.realtimeAttributes[sm_field].data_type;
+                                    udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                    
+                                    metricData = {  
+                                        data:[  
+                                           {  
+                                              commit:{  
+                                                 author:{  
+                                                    IdMetric_data: sm_field,
+                                                    computationDate: null,
+                                                    value_num:null,
+                                                    value_perc1: null,
+                                                    value_perc2: null,
+                                                    value_perc3: null,
+                                                    value_text: null,
+                                                    quant_perc1: null,
+                                                    quant_perc2: null,
+                                                    quant_perc3: null,
+                                                    tot_perc1: null,
+                                                    tot_perc2: null,
+                                                    tot_perc3: null,
+                                                    series: null,
+                                                    descrip: sm_field,
+                                                    metricType: null,
+                                                    threshold:null,
+                                                    thresholdEval:null,
+                                                    field1Desc: null,
+                                                    field2Desc: null,
+                                                    field3Desc: null,
+                                                    hasNegativeValues: "0"
+                                                 }
+                                              }
+                                           }
+                                        ]
+                                    };
+                                    
+                                    switch(originalMetricType)
                                     {
-                                        if(metricData.data.length > 0)
+                                        case "float":
+                                            metricData.data[0].commit.author.metricType = "Float";
+                                            metricData.data[0].commit.author.value_num = parseFloat(data.realtime.results.bindings[0][sm_field].value);
+                                            break;
+                                            
+                                        case "integer":
+                                            metricData.data[0].commit.author.metricType = "Intero";
+                                            metricData.data[0].commit.author.value_num = parseInt(data.realtime.results.bindings[0][sm_field].value);
+                                            break;
+                                            
+                                        default:
+                                            metricData.data[0].commit.author.metricType = "Testuale";
+                                            metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field].value;
+                                            break;    
+                                    }
+                                    
+                                    $("#" + widgetName + "_loading").css("display", "none");
+                                    $("#" + widgetName + "_content").css("display", "block");
+                                    if(metricData !== null)
+                                    {
+                                        if(metricData.data[0] !== 'undefined')
                                         {
-                                            $("#" + widgetName + "_loading").css("display", "none");
-                                            $("#" + widgetName + "_content").css("display", "block");
-
-                                            $('#<?= $_REQUEST['name_w'] ?>_loading').hide();
-                                            $('#<?= $_REQUEST['name_w'] ?>_content').show();
-
-                                            if($('#<?= $_REQUEST['name_w'] ?>_content').width() < $('#<?= $_REQUEST['name_w'] ?>_content').height())
+                                            if(metricData.data.length > 0)
                                             {
-                                                signalDimension = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').width()*0.9;
-                                            }
-                                            else
-                                            {
-                                                signalDimension = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').height()*0.9;
-                                            }
+                                                $("#" + widgetName + "_loading").css("display", "none");
+                                                $("#" + widgetName + "_content").css("display", "block");
 
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').width(signalDimension + "px");
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').height(signalDimension + "px");
-                                            signalMarginLeft = ($('#<?= $_REQUEST['name_w'] ?>_chartContainer').width() - signalDimension)/2;
-                                            signalMarginTop = ($('#<?= $_REQUEST['name_w'] ?>_chartContainer').height() - signalDimension)/2;
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').css("margin-left", signalMarginLeft + "px");
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').css("margin-top", signalMarginTop + "px");
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading').hide();
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').show();
 
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan').html(metricData.data[0].commit.author.value_num);
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan').css("font-size", fontSize + "px");
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitInnerContainer').textfill({
-                                                maxFontPixels: fontSize
-                                            });
-                                            
-                                            countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
-                                            
-                                            /*try 
-                                            {
-                                                <?php
-                                                    $genFileContent = parse_ini_file("../conf/environment.ini");
-                                                    $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
-                                                    $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
-                                                    $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
-                                                    $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
-                                                    $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
-                                                    echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
-                                                ?>
+                                                if($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').width() < $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').height())
+                                                {
+                                                    signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width()*0.9;
+                                                }
+                                                else
+                                                {
+                                                    signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height()*0.9;
+                                                }
 
-                                                webSocket.onopen = function(msg) 
-                                                { 
-                                                    var wsRegistration = {
-                                                      msgType: "ClientWidgetRegistration",
-                                                      userType: "widgetInstance",
-                                                      metricName: encodeURIComponent(metricName)
-                                                    };
-                                                    webSocket.send(JSON.stringify(wsRegistration));
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').width(signalDimension + "px");
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').height(signalDimension + "px");
+                                                signalMarginLeft = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width() - signalDimension)/2;
+                                                signalMarginTop = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height() - signalDimension)/2;
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-left", signalMarginLeft + "px");
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-top", signalMarginTop + "px");
 
-                                                    setTimeout(function(){
-                                                        webSocket.close();
-                                                    }, (timeToReload - 2)*1000);
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').html(metricData.data[0].commit.author.value_num);
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').css("font-size", fontSize + "px");
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitInnerContainer').textfill({
+                                                    maxFontPixels: fontSize
+                                                });
+
+                                                countdownRef = startCountdown(widgetName, timeToReload, <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+
+                                                //Web socket 
+                                                openWs = function(e)
+                                                {
+                                                    try
+                                                    {
+                                                        <?php
+                                                            $genFileContent = parse_ini_file("../conf/environment.ini");
+                                                            $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                                                            $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                                                            $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                                                            $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                                                            $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                                                            $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                                                            $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                                                            echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                                                            echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                                                            echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                                                        ?>
+
+                                                        webSocket.addEventListener('open', openWsConn);
+                                                        webSocket.addEventListener('close', wsClosed);
+
+                                                        setTimeout(function(){
+                                                            webSocket.removeEventListener('close', wsClosed);
+                                                            webSocket.removeEventListener('open', openWsConn);
+                                                            webSocket.removeEventListener('message', manageIncomingWsMsg);
+                                                            webSocket.close();
+                                                            webSocket = null; 
+                                                        }, (timeToReload - 2)*1000);
+                                                    }
+                                                    catch(e)
+                                                    {
+                                                        wsClosed();
+                                                    }
                                                 };
 
-                                                webSocket.onmessage = function(msg) 
-                                                { 
+                                                manageIncomingWsMsg = function(msg)
+                                                {
                                                     var msgObj = JSON.parse(msg.data);
 
                                                     switch(msgObj.msgType)
@@ -242,133 +308,70 @@
                                                         case "newNRMetricData":
                                                             if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
                                                             {     
-                                                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan').html(msgObj.newValue);
+                                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').html(msgObj.newValue);
                                                             }
                                                             break;
 
                                                         default:
-                                                            console.log("Received: " + msg.data);
                                                             break;
                                                     }
-
                                                 };
 
-                                                webSocket.onclose = function(msg) 
-                                                { 
-                                                    console.log("Disconnected - status " + msg); 
-                                                };
-                                            }
-                                            catch(ex)
-                                            { 
-                                               console.log(ex); 
-                                            }*/
-    
-                                            //Web socket 
-                                            openWs = function(e)
-                                            {
-                                                console.log("Widget " + widgetTitle + " is trying to open WebSocket");
-                                                try
+                                                openWsConn = function(e)
                                                 {
-                                                    <?php
-                                                        $genFileContent = parse_ini_file("../conf/environment.ini");
-                                                        $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
-                                                        $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
-                                                        $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
-                                                        $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
-                                                        $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
-                                                        $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
-                                                        $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
-                                                        echo 'wsRetryActive = "' . $wsRetryActive . '";';
-                                                        echo 'wsRetryTime = ' . $wsRetryTime . ';';
-                                                        echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
-                                                    ?>
+                                                    var wsRegistration = {
+                                                        msgType: "ClientWidgetRegistration",
+                                                        userType: "widgetInstance",
+                                                        metricName: encodeURIComponent(metricName),
+                                                        widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+                                                      };
+                                                      webSocket.send(JSON.stringify(wsRegistration));
 
-                                                    webSocket.addEventListener('open', openWsConn);
-                                                    webSocket.addEventListener('close', wsClosed);
+                                                      setTimeout(function(){
+                                                          webSocket.removeEventListener('close', wsClosed);
+                                                          webSocket.close();
+                                                      }, (timeToReload - 2)*1000);
+
+                                                    webSocket.addEventListener('message', manageIncomingWsMsg);
+                                                };
+
+                                                wsClosed = function(e)
+                                                {
+                                                    webSocket.removeEventListener('close', wsClosed);
+                                                    webSocket.removeEventListener('open', openWsConn);
+                                                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                                                    webSocket = null;
+                                                    if(wsRetryActive === 'yes')
+                                                    {
+                                                        setTimeout(openWs, parseInt(wsRetryTime*1000));
+                                                    }
+                                                };
+
+                                                //Per ora non usata
+                                                wsError = function(e)
+                                                {
                                                     
-                                                    setTimeout(function(){
-                                                        webSocket.removeEventListener('close', wsClosed);
-                                                        webSocket.removeEventListener('open', openWsConn);
-                                                        webSocket.removeEventListener('message', manageIncomingWsMsg);
-                                                        webSocket.close();
-                                                        webSocket = null; 
-                                                    }, (timeToReload - 2)*1000);
-                                                }
-                                                catch(e)
+                                                };
+
+                                                openWs();
+                                            }
+                                            else
+                                            {
+                                                if(firstLoad !== false)
                                                 {
-                                                    console.log("Widget " + widgetTitle + " could not connect to WebSocket");
-                                                    wsClosed();
+                                                   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                                   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                                   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                                 }
-                                            };
-
-                                            manageIncomingWsMsg = function(msg)
-                                            {
-                                                console.log("Widget " + widgetTitle + " got new data from WebSocket: \n" + msg.data);
-                                                var msgObj = JSON.parse(msg.data);
-
-                                                switch(msgObj.msgType)
-                                                {
-                                                    case "newNRMetricData":
-                                                        if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
-                                                        {     
-                                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan').html(msgObj.newValue);
-                                                        }
-                                                        break;
-
-                                                    default:
-                                                        console.log("Received: " + msg.data);
-                                                        break;
-                                                }
-                                            };
-
-                                            openWsConn = function(e)
-                                            {
-                                                console.log("Widget " + widgetTitle + " connected successfully to WebSocket");
-                                                var wsRegistration = {
-                                                    msgType: "ClientWidgetRegistration",
-                                                    userType: "widgetInstance",
-                                                    metricName: encodeURIComponent(metricName)
-                                                  };
-                                                  webSocket.send(JSON.stringify(wsRegistration));
-
-                                                  setTimeout(function(){
-                                                      webSocket.removeEventListener('close', wsClosed);
-                                                      webSocket.close();
-                                                  }, (timeToReload - 2)*1000);
-
-                                                webSocket.addEventListener('message', manageIncomingWsMsg);
-                                            };
-
-                                            wsClosed = function(e)
-                                            {
-                                                console.log("Widget " + widgetTitle + " got WebSocket closed");
-
-                                                webSocket.removeEventListener('close', wsClosed);
-                                                webSocket.removeEventListener('open', openWsConn);
-                                                webSocket.removeEventListener('message', manageIncomingWsMsg);
-                                                webSocket = null;
-                                                if(wsRetryActive === 'yes')
-                                                {
-                                                    console.log("Widget " + widgetTitle + " will retry WebSocket reconnection in " + parseInt(wsRetryTime) + "s");
-                                                    setTimeout(openWs, parseInt(wsRetryTime*1000));
-                                                }
-                                            };
-
-                                            //Per ora non usata
-                                            wsError = function(e)
-                                            {
-                                                console.log("Widget " + widgetTitle + " got WebSocket error: " + e);
-                                            };
-
-                                            openWs();
+                                            }
                                         }
                                         else
                                         {
                                             if(firstLoad !== false)
                                             {
-                                               $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                                               $("#<?= $_REQUEST['name_w'] ?>_loading").hide();
-                                               $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                               $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                             }
                                         }
                                     }
@@ -376,42 +379,218 @@
                                     {
                                         if(firstLoad !== false)
                                         {
-                                           $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                                           $("#<?= $_REQUEST['name_w'] ?>_loading").hide();
-                                           $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                           $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                         }
                                     }
-                                }
-                                else
+                                },
+                                error: function(errorData)
                                 {
+                                    metricData = null;
+                                    console.log("Error in data retrieval");
+                                    console.log(JSON.stringify(errorData));
                                     if(firstLoad !== false)
                                     {
-                                       $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                                       $("#<?= $_REQUEST['name_w'] ?>_loading").hide();
-                                       $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                       $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                       $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                       $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                     }
                                 }
-                            },
-                            error: function()
-                            {
-                                metricData = null;
-                                console.log("Error in data retrieval");
-                                console.log(JSON.stringify(errorData));
-                                if(firstLoad !== false)
+                            });//FINE NUOVA AJAX
+                        }
+                        else
+                        {
+                            $.ajax({
+                                url: getMetricDataUrl,
+                                type: "GET",
+                                data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+                                async: true,
+                                dataType: 'json',
+                                success: function (data) 
                                 {
-                                   $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                                   $("#<?= $_REQUEST['name_w'] ?>_loading").hide();
-                                   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                    metricData = data;
+
+                                    if(metricData !== null)
+                                    {
+                                        if(metricData.data[0] !== 'undefined')
+                                        {
+                                            if(metricData.data.length > 0)
+                                            {
+                                                $("#" + widgetName + "_loading").css("display", "none");
+                                                $("#" + widgetName + "_content").css("display", "block");
+
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading').hide();
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').show();
+
+                                                if($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').width() < $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').height())
+                                                {
+                                                    signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width()*0.9;
+                                                }
+                                                else
+                                                {
+                                                    signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height()*0.9;
+                                                }
+
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').width(signalDimension + "px");
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').height(signalDimension + "px");
+                                                signalMarginLeft = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width() - signalDimension)/2;
+                                                signalMarginTop = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height() - signalDimension)/2;
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-left", signalMarginLeft + "px");
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-top", signalMarginTop + "px");
+
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').html(metricData.data[0].commit.author.value_num);
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').css("font-size", fontSize + "px");
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitInnerContainer').textfill({
+                                                    maxFontPixels: fontSize
+                                                });
+
+                                                countdownRef = startCountdown(widgetName, timeToReload, <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+
+                                                //Web socket 
+                                                openWs = function(e)
+                                                {
+                                                    try
+                                                    {
+                                                        <?php
+                                                            $genFileContent = parse_ini_file("../conf/environment.ini");
+                                                            $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                                                            $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                                                            $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                                                            $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                                                            $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                                                            $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                                                            $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                                                            echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                                                            echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                                                            echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                                                        ?>
+
+                                                        webSocket.addEventListener('open', openWsConn);
+                                                        webSocket.addEventListener('close', wsClosed);
+
+                                                        setTimeout(function(){
+                                                            webSocket.removeEventListener('close', wsClosed);
+                                                            webSocket.removeEventListener('open', openWsConn);
+                                                            webSocket.removeEventListener('message', manageIncomingWsMsg);
+                                                            webSocket.close();
+                                                            webSocket = null; 
+                                                        }, (timeToReload - 2)*1000);
+                                                    }
+                                                    catch(e)
+                                                    {
+                                                        wsClosed();
+                                                    }
+                                                };
+
+                                                manageIncomingWsMsg = function(msg)
+                                                {
+                                                    var msgObj = JSON.parse(msg.data);
+
+                                                    switch(msgObj.msgType)
+                                                    {
+                                                        case "newNRMetricData":
+                                                            if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                                                            {     
+                                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').html(msgObj.newValue);
+                                                            }
+                                                            break;
+
+                                                        default:
+                                                            break;
+                                                    }
+                                                };
+
+                                                openWsConn = function(e)
+                                                {
+                                                    var wsRegistration = {
+                                                        msgType: "ClientWidgetRegistration",
+                                                        userType: "widgetInstance",
+                                                        metricName: encodeURIComponent(metricName)
+                                                      };
+                                                      webSocket.send(JSON.stringify(wsRegistration));
+
+                                                      setTimeout(function(){
+                                                          webSocket.removeEventListener('close', wsClosed);
+                                                          webSocket.close();
+                                                      }, (timeToReload - 2)*1000);
+
+                                                    webSocket.addEventListener('message', manageIncomingWsMsg);
+                                                };
+
+                                                wsClosed = function(e)
+                                                {
+                                                    webSocket.removeEventListener('close', wsClosed);
+                                                    webSocket.removeEventListener('open', openWsConn);
+                                                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                                                    webSocket = null;
+                                                    if(wsRetryActive === 'yes')
+                                                    {
+                                                        setTimeout(openWs, parseInt(wsRetryTime*1000));
+                                                    }
+                                                };
+
+                                                //Per ora non usata
+                                                wsError = function(e)
+                                                {
+                                                    
+                                                };
+
+                                                openWs();
+                                            }
+                                            else
+                                            {
+                                                if(firstLoad !== false)
+                                                {
+                                                   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                                   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                                   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if(firstLoad !== false)
+                                            {
+                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                               $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(firstLoad !== false)
+                                        {
+                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                           $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        }
+                                    }
+                                },
+                                error: function()
+                                {
+                                    metricData = null;
+                                    console.log("Error in data retrieval");
+                                    console.log(JSON.stringify(errorData));
+                                    if(firstLoad !== false)
+                                    {
+                                       $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                       $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                       $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                        
+                        
                     }
                     else
                     {
                         entityId = JSON.parse(widgetProperties.param.parameters).entityId;
                         attributeName = JSON.parse(widgetProperties.param.parameters).attributeName;
                         updateTime = JSON.parse(widgetProperties.param.parameters).updateTime;
-
+                        
                         $.ajax({
                             url: "../management/iframeProxy.php?action=getOrionEntityStatus&entityId=" + entityId,
                             type: "GET",
@@ -424,28 +603,28 @@
                                 currentStatus = entityJson[attributeName].value;
                                 oldStatus = currentStatus;
 
-                                $('#<?= $_REQUEST['name_w'] ?>_loading').hide();
-                                $('#<?= $_REQUEST['name_w'] ?>_content').show();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading').hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').show();
 
-                                if($('#<?= $_REQUEST['name_w'] ?>_content').width() < $('#<?= $_REQUEST['name_w'] ?>_content').height())
+                                if($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').width() < $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').height())
                                 {
-                                    signalDimension = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').width()*0.9;
+                                    signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width()*0.9;
                                 }
                                 else
                                 {
-                                    signalDimension = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').height()*0.9;
+                                    signalDimension = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height()*0.9;
                                 }
 
-                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').width(signalDimension + "px");
-                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').height(signalDimension + "px");
-                                signalMarginLeft = ($('#<?= $_REQUEST['name_w'] ?>_chartContainer').width() - signalDimension)/2;
-                                signalMarginTop = ($('#<?= $_REQUEST['name_w'] ?>_chartContainer').height() - signalDimension)/2;
-                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').css("margin-left", signalMarginLeft + "px");
-                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitContainer').css("margin-top", signalMarginTop + "px");
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').width(signalDimension + "px");
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').height(signalDimension + "px");
+                                signalMarginLeft = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').width() - signalDimension)/2;
+                                signalMarginTop = ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height() - signalDimension)/2;
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-left", signalMarginLeft + "px");
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer').css("margin-top", signalMarginTop + "px");
 
-                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan').html(currentStatus);
-                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan').css("font-size", fontSize + "px");
-                                $('#<?= $_REQUEST['name_w'] ?>_speedLimitInnerContainer').textfill({
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').html(currentStatus);
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').css("font-size", fontSize + "px");
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitInnerContainer').textfill({
                                     maxFontPixels: fontSize
                                 });
 
@@ -461,8 +640,8 @@
                                         {
                                             entityJson = JSON.parse(data);
                                             currentStatus = entityJson[attributeName].value;
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan').html(currentStatus);
-                                            $('#<?= $_REQUEST['name_w'] ?>_speedLimitInnerContainer').textfill({
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan').html(currentStatus);
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitInnerContainer').textfill({
                                                 maxFontPixels: fontSize
                                             });
                                         }
@@ -482,8 +661,8 @@
                     showWidgetContent(widgetName);
                     if(firstLoad !== false)
                     {
-                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                     }
                 }
             },
@@ -494,20 +673,29 @@
                showWidgetContent(widgetName);
                if(firstLoad !== false)
                {
-                  $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                  $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                }
             }
         });
-});//Fine document ready  ZZZ
+        
+        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        $(document).on('resizeHighchart_' + widgetName, function(event)
+        {
+            showHeader = event.showHeader;
+        });
+});//Fine document ready 
 </script>
 
-<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
+<div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
     <div class='ui-widget-content'>
         <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
-        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
+        <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -516,19 +704,20 @@
             </div>
         </div>
         
-        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
-            <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
-                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
+            <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText" class="noDataAlertText">
                     No data available
                 </div>
-                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>
                 </div>
             </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_speedLimitContainer" class="speedLimitContainer">
-                    <div id="<?= $_REQUEST['name_w'] ?>_speedLimitInnerContainer" class="speedLimitInnerContainer centerWithFlex">
-                        <span id="<?= $_REQUEST['name_w'] ?>_speedLimitValueSpan" class="speedLimitValueSpan"></span>
+            <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer" class="chartContainer">
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitContainer" class="speedLimitContainer">
+                    <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitInnerContainer" class="speedLimitInnerContainer centerWithFlex">
+                        <span id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_speedLimitValueSpan" class="speedLimitValueSpan"></span>
                     </div>
                 </div>
             </div>

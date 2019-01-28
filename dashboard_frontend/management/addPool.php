@@ -31,9 +31,9 @@ include '../config.php';
        die();
    }
 
-   if(isset($_SESSION['loggedRole']))
+   if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] != "Public")
    {
-      if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
+      if(($_SESSION['loggedRole'] == "RootAdmin")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
       {
          $newPoolJson = json_decode($_POST['newPoolJson']);
 

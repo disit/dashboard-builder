@@ -37,7 +37,7 @@
             $replacements[1] = '&apos;';
             $title = $_GET['title'];
         ?> 
-                
+        console.log("ENTRA IN WIDGET TEMPLATE !!!");
         var hostFile = "<?= $_GET['hostFile'] ?>";
         var widgetName = "<?= $_GET['name'] ?>";
         var divContainer = $("#<?= $_GET['name'] ?>_content");
@@ -95,7 +95,8 @@
         {
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        addLink(widgetName, url, linkElement, divContainer);
+        console.log("ARRIVA IN WIDGETTEMPLATE !!!!");
+        addLink(widgetName, url, linkElement, divContainer, null);
         $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         

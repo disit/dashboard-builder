@@ -14,10 +14,11 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+    session_start();
+    
+    checkSession('RootAdmin');
 ?>
 <!DOCTYPE html>
-
-
 <html>
     <head>
         <meta charset="utf-8">
@@ -52,7 +53,7 @@
                 echo 'window.location.href = "unauthorizedUser.php";';
                 echo '</script>';
             }
-            else if(($_SESSION['loggedRole'] != "Manager") && ($_SESSION['loggedRole'] != "AreaManager") && ($_SESSION['loggedRole'] != "ToolAdmin"))
+            else if(($_SESSION['loggedRole'] != "Manager") && ($_SESSION['loggedRole'] != "AreaManager")&&($_SESSION['loggedRole'] != "ToolAdmin")&&($_SESSION['loggedRole'] != "RootAdmin"))
             {
                 echo '<script type="text/javascript">';
                 echo 'window.location.href = "unauthorizedUser.php";';
@@ -99,7 +100,7 @@
                             <?php
                                 if(isset($_SESSION['loggedRole']))
                                 {
-                                    if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager")||($_SESSION['loggedRole'] == "Manager"))
+                                    if(($_SESSION['loggedRole'] == "RootAdmin")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager")||($_SESSION['loggedRole'] == "Manager"))
                                     {
                                         echo '<button id="button_annulla" name="register_cancel" class="btn btn-default btn-lg" type="button" onclick="location.href = \'dashboard_mng.php\'">Annulla</button>';
                                         echo '<button id="button_register_confirm" name="register_confirm" class="btn btn-primary btn-lg" type="submit">Conferma</button>';

@@ -32,7 +32,7 @@
                     $result = true;
                 }
             }
-            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
+            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "RootAdmin"))
             {
                 //Utente amministratore, edita qualsiasi dashboard
                 if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))

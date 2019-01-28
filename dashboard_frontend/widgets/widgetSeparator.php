@@ -26,25 +26,24 @@
         var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
         var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var widgetMainDivName = "<?= $_REQUEST['name_w'] ?>_div";
         var widgetProperties, separatorHeight, styleParameters= null;
         var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var showHeader = null;
+        var showHeader = null;
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         //Rimozione bordo per questo widget
         $("#" + widgetName).css("border", "none");
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-				showHeader = false;
-		}
-		else
-		{
-				showHeader = true;
-		} 
+        if(showTitle === "no")
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        }
         
         function resizeWidget()
         {
@@ -66,31 +65,36 @@
         }
         else
         {
-            $('#<?= $_REQUEST['name_w'] ?>_header').show();
+            //$('#<?= $_REQUEST['name_w'] ?>_header').show();
             separatorHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - 25);
             $("#" + widgetName + "_buttonsDiv").css("width", "50px");
-            $("#" + widgetName + "_buttonsDiv").show();
+            //$("#" + widgetName + "_buttonsDiv").show();
             var titleDivWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width() - 50;
             $('#<?= $_REQUEST['name_w'] ?>_titleDiv').css("width", titleDivWidth + "px");
-            $('#<?= $_REQUEST['name_w'] ?>_titleDiv').show();
+            //$('#<?= $_REQUEST['name_w'] ?>_titleDiv').show();
         }
         
         $("#" + widgetName + "_separator").css("width", "100%");
         $("#" + widgetName + "_separator").css("height", separatorHeight);
         $("#" + widgetName + "_separator").css("border", "none");
         
-        $("#" + widgetName + "_div").hover(function(){
+        if(hostFile === 'config')
+        {
+            $("#" + widgetName + "_div").css("background-color", "rgba(0, 0, 0, 0.1) !important"); 
+        }
+        
+        /*$("#" + widgetName + "_div").hover(function(){
             if(hostFile === 'config')
             {
-               $(this).css("background-color", "yellow"); 
+               $("#" + widgetName + "_div").css("background-color", "yellow"); 
             }
         }, 
         function(){
             if(hostFile === 'config')
             {
-               $(this).css("background-color", "transparent");
+               $("#" + widgetName + "_div").css("background-color", "rgba(0, 0, 0, 0.1) !important"); 
             }
-        });
+        });*/
         
         widgetProperties = getWidgetProperties(widgetName);
         if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
@@ -98,22 +102,29 @@
            styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
         }
 		
-		$('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').remove();
+        $('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').remove();
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        $(document).on('resizeHighchart_' + widgetName, function(event)
+        {
+            showHeader = event.showHeader;
+        });
+        
+        //$("#" + widgetName + "_header").hide();
+
     });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-		<?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div> 
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
-       <div id='<?= $_REQUEST['name_w'] ?>_separator' class='widgetSeparator'></div>
+       <div id='<?= $_REQUEST['name_w'] ?>_separator' class='widgetSeparator'>
+           <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
+       </div>
     </div>	
 </div> 

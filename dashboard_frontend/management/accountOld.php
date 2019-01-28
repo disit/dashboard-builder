@@ -18,6 +18,7 @@
     include('process-form.php');
     include('../config.php');
     session_start();
+    exit();
 ?>
 
 <html lang="en">
@@ -104,7 +105,7 @@
                               echo '<li class="active"><a class="internalLink" href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
                            }
                            
-                           if($_SESSION['loggedRole'] == "ToolAdmin")
+                           if($_SESSION['loggedRole'] == "RootAdmin")
                            {
                                 echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
@@ -113,7 +114,7 @@
                                 
                            }
                            
-                           if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
+                           if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "RootAdmin"))
                            {
                               echo '<li><a class="internalLink" href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
                            }

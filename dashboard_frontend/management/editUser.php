@@ -39,7 +39,7 @@
    
    if(isset($_SESSION['loggedRole']))
    {
-       if($_SESSION['loggedRole'] == "ToolAdmin")
+       if($_SESSION['loggedRole'] == "RootAdmin")
        {
           switch($_REQUEST['operation'])
           {
@@ -231,7 +231,7 @@
           }
        }
        
-      if((($_SESSION['loggedRole'] == "Manager")||($_SESSION['loggedRole'] == "AreaManager")||($_SESSION['loggedRole'] == "ToolAdmin"))&&($_REQUEST['operation'] == "updateAccountFromAccountPage"))
+      if((($_SESSION['loggedRole'] == "Manager")||($_SESSION['loggedRole'] == "AreaManager")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "RootAdmin"))&&($_REQUEST['operation'] == "updateAccountFromAccountPage"))
       {
          $accountJson = json_decode($_REQUEST['accountJson']);
          $username = mysqli_real_escape_string($link, $accountJson->username); 

@@ -170,7 +170,7 @@
                                     y: dataLabelsY,
                                     formatter: labelsFormat,
                                     style: {
-                                        fontFamily: 'Verdana',
+                                        fontFamily: 'Montserrat',
                                         fontSize: styleParameters.dataLabelsFontSize + "px",
                                         color: styleParameters.dataLabelsFontColor,
                                         fontWeight: 'bold',
@@ -202,7 +202,7 @@
                                     y: dataLabelsY,
                                     formatter: labelsFormat,
                                     style: {
-                                        fontFamily: 'Verdana',
+                                        fontFamily: 'Montserrat',
                                         fontSize: styleParameters.dataLabelsFontSize + "px",
                                         color: styleParameters.dataLabelsFontColor,
                                         fontWeight: 'bold',
@@ -356,7 +356,7 @@
                                 legendMargin = 0;
                             }
 
-                            dropDownElement.css("font", "bold 10px Verdana");
+                            dropDownElement.css("font", "bold 10px Montserrat");
                             dropDownElement.find("i").css("font-size", "12px");
                             $("#<?= $_REQUEST['name_w'] ?>_chartContainer div.highcharts-xaxis-labels span[opacity='1']").eq(i).find("div.thrLegend ul").append(dropDownElement);
                             dropClass = 'dropup';
@@ -496,8 +496,8 @@
         
         function resizeWidget()
 	{
-            clearInterval(countdownRef);
-            <?= $_REQUEST['name_w'] ?>(metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+            $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
 	}
         //Fine definizioni di funzione  
         
@@ -536,11 +536,12 @@
             }
         });
 		
-		$(document).off('resizeHighchart_' + widgetName);
-		$(document).on('resizeHighchart_' + widgetName, function(event) 
-		{
-			$('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
-		});
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+            $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
+        });
         
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);	
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
@@ -553,9 +554,8 @@
         {
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
-        //widgetProperties = getWidgetProperties(widgetName);
+        //addLink(widgetName, url, linkElement, divContainer, null);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
         
         //Nuova versione
         if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
@@ -615,7 +615,7 @@
                         chart: {
                             type: 'line',
                             polar: true,
-                            backgroundColor: widgetContentColor,
+                            backgroundColor: 'transparent',
                             //Funzione di applicazione delle soglie
                             events: {
                                 load: onDraw
@@ -648,7 +648,7 @@
                                 rotation: 0,
                                 y: 5,
                                 style: {
-                                    fontFamily: 'Verdana',
+                                    fontFamily: 'Montserrat',
                                     fontSize: styleParameters.rowsLabelsFontSize + "px",
                                     fontWeight: 'bold',
                                     fontStyle: 'italic',
@@ -660,7 +660,7 @@
                                enabled: true,
                                useHTML: true,
                                style: {
-                                    fontFamily: 'Verdana',
+                                    fontFamily: 'Montserrat',
                                     fontSize: styleParameters.rowsLabelsFontSize + "px",
                                     fontWeight: 'bold',
                                     color: styleParameters.rowsLabelsFontColor,
@@ -680,7 +680,7 @@
                             labels: {
                                 overflow: 'justify',
                                 style: {
-                                    fontFamily: 'Verdana',
+                                    fontFamily: 'Montserrat',
                                     fontSize: styleParameters.colsLabelsFontSize + "px",
                                     fontWeight: 'bold',
                                     color: styleParameters.colsLabelsFontColor,
@@ -690,7 +690,7 @@
                         },
                         tooltip: {
                             style: {
-                                fontFamily: 'Verdana',
+                                fontFamily: 'Montserrat',
                                 fontSize: 12 + "px",
                                 color: 'black',
                                 "text-shadow": "1px 1px 1px rgba(0,0,0,0.15)",
@@ -863,12 +863,12 @@
                             floating: false,
                             borderWidth: 0,
                             itemDistance: 24,
-                            backgroundColor: widgetContentColor,
+                            backgroundColor: 'transparent',
                             shadow: false,
                             symbolPadding: 5,
                             symbolWidth: 5,
                             itemStyle: {
-                                fontFamily: 'Verdana',
+                                fontFamily: 'Montserrat',
                                 fontSize: styleParameters.legendFontSize + "px",
                                 color: styleParameters.legendFontColor,
                                 "text-align": "center",
@@ -900,6 +900,18 @@
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
             }
         });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                clearInterval(countdownRef);
+                timeToReload = event.newTimeToReload;
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
+        
         countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
@@ -908,7 +920,7 @@
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
         <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -920,6 +932,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>

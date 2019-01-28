@@ -18,32 +18,14 @@
     include('process-form.php');
     include('../config.php');
     session_start();
-    
-    function ldapCheckRole($connection, $userDn, $role) {
-      $result = ldap_search(
-              $connection, 'dc=ldap,dc=disit,dc=org', 
-              '(&(objectClass=organizationalRole)(cn=' . $role . ')(roleOccupant=' . $userDn . '))'
-      );
-      $entries = ldap_get_entries($connection, $result);
-      //echo var_dump($entries);
-      foreach ($entries as $key => $value) {
-          if (is_numeric($key)) {
-              if ($value["cn"]["0"] == $role) 
-              {
-                  return true;
-              }
-          }
-      }
-      return false;
-  }
-    
+       
     if(!isset($_SESSION['loggedRole']))
     {
-        header("location: unauthorizedUser.php");
+        header("location: ssoLogin.php");
     }
-    else if(($_SESSION['loggedRole'] != "ToolAdmin")&&($_SESSION['loggedRole'] != "AreaManager"))
+    else if(($_SESSION['loggedRole'] != "RootAdmin")&&($_SESSION['loggedRole'] != "ToolAdmin")&&($_SESSION['loggedRole'] != "AreaManager"))
     {
-        header("location: unauthorizedUser.php");
+        header("location: ssoLogin.php");
     }
     
 ?>
@@ -205,7 +187,7 @@
                                                 <?php
                                                     if(isset($_SESSION['loggedRole']))
                                                     {
-                                                        if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
+                                                        if(($_SESSION['loggedRole'] == "RootAdmin")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
                                                         {
                                                            //Reperimento elenco utenti LDAP
                                                            $temp = [];
@@ -217,7 +199,7 @@
                                                                 $bind = ldap_bind($ds);
 
                                                                 $result = ldap_search(
-                                                                        $ds, 'dc=ldap,dc=disit,dc=org', 
+                                                                        $ds, $ldapBaseDN, 
                                                                         '(cn=Dashboard)'
                                                                 );
                                                                 $entries = ldap_get_entries($ds, $result);
@@ -238,23 +220,23 @@
 
                                                                 for($i = 0; $i < count($temp); $i++)
                                                                 {
-                                                                   if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                                                                   if((!checkLdapRole($ds, $temp[$i], "ToolAdmin", $ldapBaseDN))&&(!checkLdapRole($ds, $temp[$i], "ToolAdmin", $ldapBaseDN)))
                                                                    {
                                                                       $name = str_replace("cn=", "", $temp[$i]);
-                                                                      $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                                                                      if(ldapCheckRole($ds, $temp[$i], "Observer"))
+                                                                      $name = str_replace("," . $ldapBaseDN, "", $name);
+                                                                      if(checkLdapRole($ds, $temp[$i], "Observer", $ldapBaseDN))
                                                                       {
                                                                          $singleUser = [$name, "ldap", "Observer"];
                                                                       }
                                                                       else
                                                                       {
-                                                                        if(ldapCheckRole($ds, $temp[$i], "Manager"))
+                                                                        if(checkLdapRole($ds, $temp[$i], "Manager", $ldapBaseDN))
                                                                         {
                                                                            $singleUser = [$name, "ldap", "Manager"];
                                                                         }
                                                                         else
                                                                         {
-                                                                           if(ldapCheckRole($ds, $temp[$i], "AreaManager"))
+                                                                           if(checkLdapRole($ds, $temp[$i], "AreaManager", $ldapBaseDN))
                                                                            {
                                                                               $singleUser = [$name, "ldap", "AreaManager"];
                                                                            }
@@ -269,7 +251,7 @@
                                                             //Reperimento elenco utenti locali
                                                             $link = mysqli_connect($host, $username, $password) or die();
                                                             mysqli_select_db($link, $dbname);
-                                                            $query = "SELECT username, admin FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
+                                                            $query = "SELECT username, admin FROM Dashboard.Users WHERE admin <> 'RootAdmin'";
                                                             $result = mysqli_query($link, $query) or die(mysqli_error($link));
 
                                                             if($result)
@@ -319,7 +301,7 @@
                                             <?php
                                                 if(isset($_SESSION['loggedRole']))
                                                 {
-                                                    if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
+                                                    if(($_SESSION['loggedRole'] == "RootAdmin")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
                                                     {
                                                         //Reperimento elenco pool
                                                         $link = mysqli_connect($host, $username, $password) or die();
@@ -585,7 +567,6 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
-        $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=mainSetupLink]').show();
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
@@ -669,9 +650,19 @@
             }    
         });
         
-        $('#link_pools_management .mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt #link_pools_management .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt #link_pools_management .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        {
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
+            $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
+            $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+        }
         
         //Settaggio dei globals per il file poolsManagement.js
         setGlobals(admin);

@@ -233,7 +233,7 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
         
         $.ajax({
             url: getParametersWidgetUrl,
@@ -340,6 +340,14 @@
             },
             complete: function()
             {
+                $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+                    resizeWidget();
+                });
+                
+                $(document).on('resizeHighchart_' + widgetName, function(event)
+                {
+                    showHeader = event.showHeader;
+                });
                 //countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId);
             }
         });
@@ -351,7 +359,7 @@
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
         <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -363,6 +371,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available

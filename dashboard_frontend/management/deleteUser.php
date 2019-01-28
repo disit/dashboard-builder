@@ -21,6 +21,8 @@
    error_reporting(E_ERROR | E_NOTICE);
    
    session_start(); 
+   checkSession('RootAdmin');
+   
    $link = mysqli_connect($host, $username, $password);
    mysqli_select_db($link, $dbname);
    

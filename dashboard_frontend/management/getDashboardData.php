@@ -15,6 +15,8 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
     include '../config.php';
+    require '../sso/autoload.php';
+    use Jumbojett\OpenIDConnectClient;
    
     //Altrimenti restituisce in output le warning
     error_reporting(E_ERROR | E_NOTICE);
@@ -23,10 +25,10 @@
     session_start(); 
     
     //Definizioni di funzione
-    function isToolAdmin($localLink, $checkedUsr, $checkedPwd, $ldapServer, $ldapPort, $localLdapFlag)
+    function isToolAdmin($localLink, $checkedUsr, $checkedPwd, $ldapServer, $ldapPort, $localLdapFlag, $ldapBaseDn)
     {
         $toolAdmins = [];
-        $ldapUsername = "cn=". $checkedUsr . ",dc=ldap,dc=disit,dc=org";
+        $ldapUsername = "cn=". $checkedUsr . "," . $ldapBaseDn;
         if($localLdapFlag == "yes")
         {
             $ds1 = ldap_connect($ldapServer, $ldapPort);
@@ -36,7 +38,7 @@
             if($bind)
             {
                 $toolAdminsResult = ldap_search(
-                    $ds1, 'dc=ldap,dc=disit,dc=org', 
+                    $ds1, $ldapBaseDn, 
                     '(cn=Dashboard)'
                  );
 
@@ -47,10 +49,10 @@
                     for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
                     { 
                        $ldapusr = $value["memberuid"][$index];
-                       if(ldapCheckRole(/*$ds2*/$ds1, $ldapusr, "ToolAdmin"))
+                       if(checkLdapRole($ds1, $ldapusr, "RootAdmin", $ldapBaseDn))
                        {
                           $usr = str_replace("cn=", "", $ldapusr);
-                          $usr = str_replace(",dc=ldap,dc=disit,dc=org", "", $usr);
+                          $usr = str_replace(",$ldapBaseDn", "", $usr);
 
                           array_push($toolAdmins, $usr); 
                        }
@@ -62,7 +64,7 @@
             }
         }
         
-        $permissionQuery4 = "SELECT username FROM Dashboard.Users WHERE admin = 'ToolAdmin'";
+        $permissionQuery4 = "SELECT username FROM Dashboard.Users WHERE admin = 'RootAdmin'";
         $permissionResult4 = mysqli_query($localLink, $permissionQuery4);
         if($permissionResult4)
         {
@@ -75,7 +77,6 @@
            }
         }
         
-
         if(in_array($checkedUsr, $toolAdmins))
         {
            return true;
@@ -85,46 +86,7 @@
            return false;
         }
     }
-    
-    
-    function checkMembership($connection, $userDn, $tool) 
-    {
-         $result = ldap_search(
-                 $connection, 'dc=ldap,dc=disit,dc=org', 
-                 '(&(objectClass=posixGroup)(memberUid=' . $userDn . '))'
-         );
-         $entries = ldap_get_entries($connection, $result);
-         //echo var_dump($entries);
-         foreach ($entries as $key => $value) {
-             
-             if (is_numeric($key)) {
-                 if ($value["cn"]["0"] == $tool) {
-                     return true;
-                 }
-             }
-         }
-         return false;
-     }
-    
-    function ldapCheckRole($connection, $userDn, $role) 
-    {
-      $result = ldap_search(
-              $connection, 'dc=ldap,dc=disit,dc=org', 
-              '(&(objectClass=organizationalRole)(cn=' . $role . ')(roleOccupant=' . $userDn . '))'
-      );
-      $entries = ldap_get_entries($connection, $result);
-      
-      foreach ($entries as $key => $value) {
-          if (is_numeric($key)) {
-              if ($value["cn"]["0"] == $role) 
-              {
-                  return true;
-              }
-          }
-      }
-      return false;
-  }
-    
+
     function getDashboardParams($link) 
     {
         if(isset($_GET['dashboardId']) && !empty($_GET['dashboardId']))
@@ -154,14 +116,14 @@
         }
         
         $query = "SELECT * FROM Config_widget_dashboard AS dashboardWidgets " .
-                    "LEFT JOIN Widgets AS widgetTypes ON dashboardWidgets.type_w = widgetTypes.id_type_widget " .
-                    "LEFT JOIN Descriptions AS metrics ON dashboardWidgets.id_metric = metrics.IdMetric " .   
-                    "LEFT JOIN NodeRedMetrics AS nrMetrics ON dashboardWidgets.id_metric = nrMetrics.name " . 
-                    "LEFT JOIN NodeRedInputs AS nrInputs ON dashboardWidgets.id_metric = nrInputs.name " . 
-                    "WHERE dashboardWidgets.id_dashboard = $dashboardId " .
-                    "AND dashboardWidgets.canceller IS NULL " .
-                    "AND dashboardWidgets.cancelDate IS NULL " . 
-                    "ORDER BY dashboardWidgets.n_row, dashboardWidgets.n_column ASC";
+                 "LEFT JOIN Widgets AS widgetTypes ON dashboardWidgets.type_w = widgetTypes.id_type_widget " .
+                 "LEFT JOIN Descriptions AS metrics ON dashboardWidgets.id_metric = metrics.IdMetric " .   
+                 "LEFT JOIN NodeRedMetrics AS nrMetrics ON dashboardWidgets.id_metric = nrMetrics.name " . 
+                 "LEFT JOIN NodeRedInputs AS nrInputs ON dashboardWidgets.id_metric = nrInputs.name " . 
+                 "WHERE dashboardWidgets.id_dashboard = $dashboardId " .
+                 "AND dashboardWidgets.canceller IS NULL " .
+                 "AND dashboardWidgets.cancelDate IS NULL " . 
+                 "ORDER BY dashboardWidgets.n_row, dashboardWidgets.n_column ASC";
         
         $result = mysqli_query($link, $query);
         $dashboardWidgets = array();
@@ -187,831 +149,290 @@
        exit();
     }
     
-        $dashboardId = $_REQUEST['dashboardId'];
-        $query = "SELECT Dashboard.Config_dashboard.visibility AS visibility, Dashboard.Users.admin AS role, Dashboard.Config_dashboard.user AS username FROM Dashboard.Config_dashboard " .
-                 "LEFT JOIN Dashboard.Users " .
-                 "ON Dashboard.Config_dashboard.user = Dashboard.Users.username " .   
-                 "WHERE Dashboard.Config_dashboard.Id = '$dashboardId'";
-        
-        $result = mysqli_query($link, $query);
-        $response = [];
-        $ds = null;
+    $dashboardId = $_REQUEST['dashboardId'];
+    $query = "SELECT Dashboard.Config_dashboard.visibility AS visibility, Dashboard.Users.admin AS role, Dashboard.Config_dashboard.user AS username FROM Dashboard.Config_dashboard " .
+             "LEFT JOIN Dashboard.Users " .
+             "ON Dashboard.Config_dashboard.user = Dashboard.Users.username " .   
+             "WHERE Dashboard.Config_dashboard.Id = '$dashboardId'";
 
-        if($result)
+    $result = mysqli_query($link, $query);
+    $response = [];
+    $ds = null;
+    $authorOrigin = null;
+
+    if($result)
+    {
+        $row = mysqli_fetch_array($result);
+        $visibility = $row["visibility"];
+        $authorUsername = $row["username"];
+        $authorLdapUsername = "cn=". $row["username"] . "," . $ldapBaseDN;
+        $response["visibility"] = $visibility;
+
+        if(($row["role"] == NULL) || ($row["role"] == "NULL"))
         {
-            $row = mysqli_fetch_array($result);
-            $visibility = $row["visibility"];
-            $authorUsername = $row["username"];
-            $authorLdapUsername = "cn=". $row["username"] . ",dc=ldap,dc=disit,dc=org";
-            $response["visibility"] = $visibility;
-
-            if(($row["role"] == NULL) || ($row["role"] == "NULL"))
+            //Autore LDAP
+            if($ldapActive == "yes")
             {
-                //Autore LDAP
-                if($ldapActive == "yes")
+                $ds = ldap_connect($ldapServer, $ldapPort);
+                ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                //Lasciamo questo bind anonimo, è solo un controllo sul ruolo dell'autore, a questo punto di codice non abbiamo credenziali utente
+                $bind = ldap_bind($ds);
+
+                if(checkLdapRole($ds, $authorLdapUsername, "Manager", $ldapBaseDN))
                 {
-                    $ds = ldap_connect($ldapServer, $ldapPort);
-                    ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    //Lasciamo questo bind anonimo, è solo un controllo sul ruolo dell'autore, a questo punto di codice non abbiamo credenziali utente
-                    $bind = ldap_bind($ds);
-
-                    if(ldapCheckRole($ds, $authorLdapUsername, "Manager"))
-                    {
-                       $authorRole = "Manager";
-                    }
-                    else
-                    {
-                      if(ldapCheckRole($ds, $authorLdapUsername, "AreaManager"))
-                      {
-                          $authorRole = "AreaManager";
-                      }
-                      else
-                      {
-                         if(ldapCheckRole($ds, $authorLdapUsername, "ToolAdmin"))
-                         {
-                            $authorRole = "ToolAdmin";
-                         }
-                         else
-                         {
-                             //Caso in cui l'utente proviene da NodeRED e non è né censito su LDAP né su DB locale: come patch lo marchiamo come "Manager"
-                             $authorRole = "Manager";
-                         }
-                      }
-                    }
-
-                    ldap_unbind($ds);
+                   $authorRole = "Manager";
                 }
-            }
-            else
-            {
-               $authorRole = $row["role"];
-            }
-
-            switch($visibility)
-            {
-                //Ok
-                case "public":
-                    $response["dashboardParams"] = getDashboardParams($link);
-                    $response["dashboardWidgets"] = getDashboardWidgets($link);
-                    break;
-
-                //Ok 
-                case "author":
-                   //Utente collegato all'applicazione
-                   if((isset($_SESSION['loggedUsername']))&&($_REQUEST['loggedUserFirstAttempt'] == "true"))
-                   {
-                      $applicantUsername = $_SESSION['loggedUsername'];
-                      $applicantPassword = $_SESSION['loggedPassword'];
-
-                      //Controllo di presenza del richiedente fra l'elenco degli utenti autorizzati a vedere questa dashboard
-                      switch($authorRole)
-                      {
-                          //Autore è un Manager: possono entrare l'autore, gli utenti abilitati in Dashboard.DashboardsViewPermissions, gli area managers dei gruppi di cui l'autore fa parte e i tool admin
-                              case "Manager":
-                                 //Controlliamo se è l'autore
-                                 $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
-                                 $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                                 
-                                 if($permissionResult1)
-                                 {
-                                     $row = mysqli_fetch_array($permissionResult1);
-                                     if($row["isAuthor"] > 0)
-                                     {
-                                         $response["detail"] = "Ok";
-                                         $response["context"] = "View";
-                                         $response["dashboardParams"] = getDashboardParams($link);
-                                         $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                     }
-                                     else
-                                     {
-                                        //Controlliamo se è un area manager dei gruppi di cui l'autore fa parte
-                                        $permissionQuery3 = "SELECT count(*) AS isAreaManager FROM Dashboard.UsersPoolsRelations WHERE username = '$applicantUsername' AND isAdmin = 1 AND poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$authorUsername')";
-                                        $permissionResult3 = mysqli_query($link, $permissionQuery3);
-
-                                        if($permissionResult3)
-                                        {
-                                          $row = mysqli_fetch_array($permissionResult3);
-                                          if($row["isAreaManager"] > 0)
-                                          {
-                                            $response["detail"] = "Ok";
-                                            $response["context"] = "View";
-                                            $response["dashboardParams"] = getDashboardParams($link);
-                                            $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                          }
-                                          else
-                                          {
-                                             //Controlliamo se è un tool admin
-                                             if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive))
-                                             {
-                                                $response["detail"] = "Ok";
-                                                $response["context"] = "View";
-                                                $response["dashboardParams"] = getDashboardParams($link);
-                                                $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                             }
-                                             else
-                                             {
-                                                $response["detail"] = "loggedUserKo";
-                                             }
-                                          }
-                                        }
-                                     }
-                                 }
-                                 else
-                                 {
-                                     $response["detail"] = "checkLoggedUserQueryKo";
-                                 }
-                                 break;
-
-                              case "AreaManager":
-                                 //RESTITUIAMO L'AUTORE E I TOOL ADMIN
-                                  //Controlliamo se è l'autore
-                                  $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
-                                  $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                                  if($permissionResult1)
-                                  {
-                                      $row = mysqli_fetch_array($permissionResult1);
-                                      if($row["isAuthor"] > 0)
-                                      {
-                                        $response["detail"] = "Ok";
-                                        $response["context"] = "View";
-                                        $response["dashboardParams"] = getDashboardParams($link);
-                                        $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                      }
-                                      else
-                                      {//Controlliamo se è tool admin
-                                        if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive))
-                                        {
-                                           $response["detail"] = "Ok";
-                                           $response["context"] = "View";
-                                           $response["dashboardParams"] = getDashboardParams($link);
-                                           $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                        }
-                                        else
-                                        {
-                                           $response["detail"] = "loggedUserKo";
-                                        }
-                                      }
-                                  }
-                                  else
-                                  {
-                                     $response["detail"] = "checkLoggedUserQueryKo";
-                                  }
-                                 break;
-
-                              case "ToolAdmin":
-                                 //Controlliamo se è un tool admin
-                                  if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive))
-                                  {
-                                     $response["detail"] = "Ok";
-                                     $response["context"] = "View";
-                                     $response["dashboardParams"] = getDashboardParams($link);
-                                     $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                  }
-                                  else
-                                  {
-                                     $response["detail"] = "loggedUserKo";
-                                  }
-                                 break;
-                      }
-
-                   }
-                   //Utente NON collegato all'applicazione
-                   else
-                   {  
-                      $proceed = null;
-                      //Caso credenziali non fornite
-                      if(($_REQUEST['username'] == "") || ($_REQUEST['password'] == ""))
-                      {
-                         $response["detail"] = "credentialsMissing";
-                         $proceed = false; 
-                     }
-                     else//Credenziali fornite
+                else
+                {
+                  if(checkLdapRole($ds, $authorLdapUsername, "AreaManager", $ldapBaseDN))
+                  {
+                      $authorRole = "AreaManager";
+                  }
+                  else
+                  {
+                     if(checkLdapRole($ds, $authorLdapUsername, "ToolAdmin", $ldapBaseDN))
                      {
-                         //Controllo presenza credenziali fornite su elenco utenti LDAP e locale
-                         $applicantUsername = $_REQUEST['username'];
-                         $ldapusr = "cn=" . $applicantUsername . ",dc=ldap,dc=disit,dc=org";
-                         $applicantPassword = $_REQUEST['password'];
-                         $applicantPasswordMd5 = md5($applicantPassword);
-
-                         $query = "SELECT count(*) AS isRegistered FROM Dashboard.Users WHERE username = '$applicantUsername' AND password = '$applicantPasswordMd5'";
-                         $result = mysqli_query($link, $query);
-                         if($result)
-                         {
-                            $row = mysqli_fetch_array($result);
-                            $tool = "Dashboard";
-                            
-                            if($ldapActive == "yes")
-                            {
-                                $ds2 = ldap_connect($ldapServer, $ldapPort);
-                                ldap_set_option($ds2, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                $bind = ldap_bind($ds2, $ldapusr, $applicantPassword);//Mancano username e password
-
-                                $ldapMember = checkMembership($ds2, $ldapusr, $tool);
-                                ldap_unbind($ds2);
-
-                                 if(($row["isRegistered"] <= 0)&&($ldapMember == false))
-                                 {
-                                   $response["detail"] = "userNotRegistered";
-                                   $proceed = false;
-                                 }
-                                 else
-                                 {
-                                     //Controllo di presenza del richiedente fra l'elenco degli utenti autorizzati a vedere questa dashboard
-                                     $proceed = true;
-                                 }
-                            }
-                         }
-                         else 
-                         {
-                            $response["detail"] = "checkUserQueryKo";
-                            $proceed = false;
-                         }
+                        $authorRole = "ToolAdmin";
                      }
-
-                     //Codice a comune tra i due casi if-else precedenti se vanno a buon fine
-                     if($proceed)
+                     else
                      {
-                         switch($authorRole)
-                         {
-                            //Autore è un Manager: possono entrare l'autore, i utenti abilitati in Dashboard.DashboardsViewPermissions, gli area managers dei gruppi di cui l'autore fa parte e i tool admin
-                             case "Manager":
-                                //Controlliamo se è l'autore
-                                $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
-                                $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                                if($permissionResult1)
-                                {
-                                    $row = mysqli_fetch_array($permissionResult1);
-                                    if($row["isAuthor"] > 0)
-                                    {
-                                        $response["detail"] = "Ok";
-                                        $response["context"] = "View";
-                                        $response["dashboardParams"] = getDashboardParams($link);
-                                        $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                    }
-                                    else
-                                    {
-                                        //Controlliamo se è un area manager dei gruppi di cui l'autore fa parte
-                                        $permissionQuery3 = "SELECT count(*) AS isAreaManager FROM Dashboard.UsersPoolsRelations WHERE username = '$applicantUsername' AND isAdmin = 1 AND poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$authorUsername')";
-                                        $permissionResult3 = mysqli_query($link, $permissionQuery3);
-
-                                        if($permissionResult3)
-                                        {
-                                          $row = mysqli_fetch_array($permissionResult3);
-                                          if($row["isAreaManager"] > 0)
-                                          {
-                                            $response["detail"] = "Ok";
-                                            $response["context"] = "View";
-                                            $response["dashboardParams"] = getDashboardParams($link);
-                                            $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                          }
-                                          else
-                                          {
-                                             //Controlliamo se è un tool admin
-                                             if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive))
-                                             {
-                                                $response["detail"] = "Ok";
-                                                $response["context"] = "View";
-                                                $response["dashboardParams"] = getDashboardParams($link);
-                                                $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                             }
-                                             else
-                                             {
-                                                $response["detail"] = "Ko";
-                                             }
-                                          }
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    $response["detail"] = "checkUserQueryKo";
-                                }
-                                break;
-
-                             case "AreaManager":
-                                //RESTITUIAMO L'AUTORE E I TOOL ADMIN
-                                //Controlliamo se è l'autore
-                                $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
-                                $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                                if($permissionResult1)
-                                {
-                                    $row = mysqli_fetch_array($permissionResult1);
-                                    if($row["isAuthor"] > 0)
-                                    {
-                                        $response["detail"] = "Ok";
-                                        $response["context"] = "View";
-                                        $response["dashboardParams"] = getDashboardParams($link);
-                                        $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                    }
-                                    else
-                                    {
-                                      //Se non è l'autore, controlliamo se è un tool admin
-                                      if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive))
-                                      {
-                                         $response["detail"] = "Ok";
-                                         $response["context"] = "View";
-                                         $response["dashboardParams"] = getDashboardParams($link);
-                                         $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                      }
-                                      else
-                                      {
-                                         $response["detail"] = "Ko";
-                                      }
-                                    }
-                                }
-                                else
-                                {
-                                   $response["detail"] = "checkUserQueryKo";
-                                }
-                                break;
-
-                             case "ToolAdmin":
-                                //Controlliamo se è un tool admin
-                                if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive))
-                                {
-                                   $response["detail"] = "Ok";
-                                   $response["context"] = "View";
-                                   $response["dashboardParams"] = getDashboardParams($link);
-                                   $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                }
-                                else
-                                {
-                                   $response["detail"] = "Ko";
-                                }
-                                break;
-                         }
+                        if(checkLdapRole($ds, $authorLdapUsername, "RootAdmin", $ldapBaseDN))
+                        {
+                           $authorRole = "RootAdmin";
+                        }
+                        else
+                        {
+                            //Caso in cui l'utente proviene da NodeRED e non è né censito su LDAP né su DB locale: come patch lo marchiamo come "Manager"
+                            $authorRole = "Manager";
+                        }
                      }
-                   }
-                   break;
+                  }
+                }
 
-                case "restrict":
-                   //Utente collegato all'applicazione
-                   if((isset($_SESSION['loggedUsername']))&&($_REQUEST['loggedUserFirstAttempt'] == "true"))
-                   {
-                      $applicantUsername = $_SESSION['loggedUsername'];
-                      $applicantPassword = $_SESSION['loggedPassword'];
-                      //Controllo di presenza del richiedente fra l'elenco degli utenti autorizzati a vedere questa dashboard
-                      switch($authorRole)
-                      {
-                          //Autore è un Manager: possono entrare l'autore, gli utenti abilitati in Dashboard.DashboardsViewPermissions, gli area managers dei gruppi di cui l'autore fa parte e i tool admin
-                            case "Manager":
-                               //Controlliamo se è l'autore
-                               $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
-                               $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                               if($permissionResult1)
-                               {
-                                   $row = mysqli_fetch_array($permissionResult1);
-                                   if($row["isAuthor"] > 0)
-                                   {
-                                       $response["detail"] = "Ok";
-                                       $response["context"] = "View";
-                                       $response["dashboardParams"] = getDashboardParams($link);
-                                       $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                   }
-                                   else
-                                   {
-                                      //Controlliamo se è un utente autorizzato in DashboardsViewPermissions
-                                      $permissionQuery2 = "SELECT count(*) AS isAuthorized FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId AND username = '$applicantUsername'";
-                                      $permissionResult2 = mysqli_query($link, $permissionQuery2);
-
-                                      if($permissionResult2)
-                                      {
-                                         $row = mysqli_fetch_array($permissionResult2);
-
-                                         if($row["isAuthorized"] > 0)
-                                         {
-                                           $response["detail"] = "Ok";
-                                           $response["context"] = "View";
-                                           $response["dashboardParams"] = getDashboardParams($link);
-                                           $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                         }
-                                         else
-                                         {
-                                            //Controlliamo se è un area manager dei gruppi di cui l'autore fa parte
-                                            $permissionQuery3 = "SELECT count(*) AS isAreaManager FROM Dashboard.UsersPoolsRelations WHERE username = '$applicantUsername' AND isAdmin = 1 AND poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$authorUsername')";
-                                            $permissionResult3 = mysqli_query($link, $permissionQuery3);
-
-                                            if($permissionResult3)
-                                            {
-                                              $row = mysqli_fetch_array($permissionResult3);
-                                              if($row["isAreaManager"] > 0)
-                                              {
-                                                $response["detail"] = "Ok";
-                                                $response["context"] = "View";
-                                                $response["dashboardParams"] = getDashboardParams($link);
-                                                $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                              }
-                                              else
-                                              {
-                                                 //Controlliamo se è un tool admin
-                                                 if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive)) 
-                                                 {
-                                                    $response["detail"] = "Ok";
-                                                    $response["context"] = "View";
-                                                    $response["dashboardParams"] = getDashboardParams($link);
-                                                    $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                                 }
-                                                 else
-                                                 {
-                                                    $response["detail"] = "loggedUserKo";
-                                                 }
-                                              }
-                                            }
-                                         }
-                                      }
-                                      else
-                                      {
-                                         $response["detail"] = "checkLoggedViewUserQueryKo";
-                                      }
-                                   }
-                               }
-                               else
-                               {
-                                   $response["detail"] = "checkLoggedViewUserQueryKo";
-                               }
-                               break;
-
-                            case "AreaManager":
-                               //RESTITUIAMO L'AUTORE E I TOOL ADMIN
-                                //Controlliamo se è l'autore
-                                $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";   
-                                $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                                if($permissionResult1)
-                                {
-                                    $row = mysqli_fetch_array($permissionResult1);
-                                    if($row["isAuthor"] > 0)
-                                    {
-                                        $response["detail"] = "Ok";
-                                        $response["context"] = "View";
-                                        $response["dashboardParams"] = getDashboardParams($link);
-                                        $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                    }
-                                    else
-                                    {
-                                       //Controlliamo se è un utente autorizzato in DashboardsViewPermissions
-                                      $permissionQuery2 = "SELECT count(*) AS isAuthorized FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId AND username = '$applicantUsername'";  
-                                      $permissionResult2 = mysqli_query($link, $permissionQuery2);
-
-                                      if($permissionResult2)
-                                      {
-                                         $row = mysqli_fetch_array($permissionResult2);
-
-                                         if($row["isAuthorized"] > 0)
-                                         {
-                                           $response["detail"] = "Ok";
-                                           $response["context"] = "View";
-                                           $response["dashboardParams"] = getDashboardParams($link);
-                                           $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                         }
-                                         else
-                                         {
-                                            //Controlliamo se è un area manager dei gruppi di cui l'autore fa parte
-                                            $permissionQuery3 = "SELECT count(*) AS isAreaManager FROM Dashboard.UsersPoolsRelations WHERE username = '$applicantUsername' AND isAdmin = 1 AND poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$authorUsername')";                 
-                                            $permissionResult3 = mysqli_query($link, $permissionQuery3);
-
-                                            if($permissionResult3)
-                                            {
-                                              $row = mysqli_fetch_array($permissionResult3);
-                                              if($row["isAreaManager"] > 0)
-                                              {
-                                                $response["detail"] = "Ok";
-                                                $response["context"] = "View";
-                                                $response["dashboardParams"] = getDashboardParams($link);
-                                                $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                              }
-                                              else
-                                              {
-                                                 //Controlliamo se è un tool admin
-                                                 if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive)) 
-                                                 {
-                                                    $response["detail"] = "Ok";
-                                                    $response["context"] = "View";
-                                                    $response["dashboardParams"] = getDashboardParams($link);
-                                                    $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                                 }
-                                                 else
-                                                 {
-                                                    $response["detail"] = "loggedUserKo";
-                                                 }
-                                              }
-                                            }
-                                         }
-                                      }
-                                      else
-                                      {
-                                         $response["detail"] = "checkLoggedUserQueryKo";
-                                      }
-                                    }
-                                }
-                                else
-                                {
-                                   $response["detail"] = "checkLoggedUserQueryKo";
-                                }
-                               break;
-
-                            case "ToolAdmin":
-                               //Controlliamo se è un tool admin
-                                if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive))
-                                {
-                                   $response["detail"] = "Ok";
-                                   $response["context"] = "View";
-                                   $response["dashboardParams"] = getDashboardParams($link);
-                                   $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                }
-                                else
-                                {
-                                  //Controlliamo se è un utente autorizzato in DashboardsViewPermissions
-                                  $permissionQuery2 = "SELECT count(*) AS isAuthorized FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId AND username = '$applicantUsername'";
-                                  $permissionResult2 = mysqli_query($link, $permissionQuery2);
-
-                                  if($permissionResult2)
-                                  {
-                                     $row = mysqli_fetch_array($permissionResult2);
-
-                                     if($row["isAuthorized"] > 0)
-                                     {
-                                       $response["detail"] = "Ok";
-                                       $response["context"] = "View";
-                                       $response["dashboardParams"] = getDashboardParams($link);
-                                       $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                     }
-                                     else
-                                     {
-                                       $response["detail"] = "loggedUserKo";
-                                     }
-                                  }
-                                  else
-                                  {
-                                     $response["detail"] = "checkLoggedUserQueryKo";
-                                  }
-                                }
-                               break;
-                      }
-                   }
-                   //Utente NON collegato all'applicazione
-                   else
-                   {  
-                      $proceed = null;
-
-                      //Caso credenziali non fornite
-                      if(($_REQUEST['username'] == "") || ($_REQUEST['password'] == ""))
-                      {
-                         $response["detail"] = "credentialsMissing";
-                         $proceed = false; 
-                     }
-                     else//Credenziali fornite
-                     {
-                         //Controllo presenza credenziali fornite su elenco utenti LDAP e locale
-                         $applicantUsername = $_REQUEST['username'];
-                         $ldapusr = "cn=" . $applicantUsername . ",dc=ldap,dc=disit,dc=org";
-                         $applicantPassword = $_REQUEST['password'];
-                         $applicantPasswordMd5 = md5($applicantPassword);
-
-                         $query = "SELECT count(*) AS isRegistered FROM Dashboard.Users WHERE username = '$applicantUsername' AND password = '$applicantPasswordMd5'";
-                         $result = mysqli_query($link, $query);
-                         if($result)
-                         {
-                            $row = mysqli_fetch_array($result);
-                            $tool = "Dashboard";
-                            
-                            if($ldapActive == "yes")
-                            {
-                                $ds2 = ldap_connect($ldapServer, $ldapPort);
-                                ldap_set_option($ds2, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                $bind = ldap_bind($ds2, $ldapusr, $applicantPassword);//Mancano username e password
-
-                                $ldapMember = checkMembership($ds2, $ldapusr, $tool);
-                                ldap_unbind($ds2);
-
-                                 if(($row["isRegistered"] <= 0)&&($ldapMember == false))
-                                 {
-                                   $response["detail"] = "userNotRegistered";
-                                   $proceed = false;
-                                 }
-                                 else
-                                 {
-                                     //Controllo di presenza del richiedente fra l'elenco degli utenti autorizzati a vedere questa dashboard
-                                     $proceed = true;
-                                 }
-                            }
-                         }
-                         else 
-                         {
-                            $response["detail"] = "checkLoggedViewUserQueryKo";
-                            $proceed = false;
-                         }
-                     }
-
-                     //Codice a comune tra i due casi if-else precedenti se vanno a buon fine
-                     if($proceed)
-                     {
-                         switch($authorRole)
-                         {
-                            //Autore è un Manager: possono entrare l'autore, gli utenti abilitati in Dashboard.DashboardsViewPermissions, gli area managers dei gruppi di cui l'autore fa parte e i tool admin
-                             case "Manager":
-                                //Controlliamo se è l'autore
-                                $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
-                                $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                                if($permissionResult1)
-                                {
-                                    $row = mysqli_fetch_array($permissionResult1);
-                                    if($row["isAuthor"] > 0)
-                                    {
-                                        $response["detail"] = "Ok";
-                                        $response["context"] = "View";
-                                        $response["dashboardParams"] = getDashboardParams($link);
-                                        $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                    }
-                                    else
-                                    {
-                                       //Controlliamo se è un utente autorizzato in DashboardsViewPermissions
-                                       $permissionQuery2 = "SELECT count(*) AS isAuthorized FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId AND username = '$applicantUsername'";
-                                       $permissionResult2 = mysqli_query($link, $permissionQuery2);
-
-                                       if($permissionResult2)
-                                       {
-                                          $row = mysqli_fetch_array($permissionResult2);
-                                          if($row["isAuthorized"] > 0)
-                                          {
-                                            $response["detail"] = "Ok";
-                                            $response["context"] = "View";
-                                            $response["dashboardParams"] = getDashboardParams($link);
-                                            $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                          }
-                                          else
-                                          {
-                                             //Controlliamo se è un area manager dei gruppi di cui l'autore fa parte
-                                             $permissionQuery3 = "SELECT count(*) AS isAreaManager FROM Dashboard.UsersPoolsRelations WHERE username = '$applicantUsername' AND isAdmin = 1 AND poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$authorUsername')";
-                                             $permissionResult3 = mysqli_query($link, $permissionQuery3);
-
-                                             if($permissionResult3)
-                                             {
-                                               $row = mysqli_fetch_array($permissionResult3);
-                                               if($row["isAreaManager"] > 0)
-                                               {
-                                                 $response["detail"] = "Ok";
-                                                 $response["context"] = "View";
-                                                 $response["dashboardParams"] = getDashboardParams($link);
-                                                 $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                               }
-                                               else
-                                               {
-                                                  //Controlliamo se è un tool admin
-                                                  if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive)) 
-                                                  {
-                                                     $response["detail"] = "Ok";
-                                                     $response["context"] = "View";
-                                                     $response["dashboardParams"] = getDashboardParams($link);
-                                                     $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                                  }
-                                                  else
-                                                  {
-                                                     $response["detail"] = "Ko";
-                                                  }
-                                               }
-                                             }
-                                          }
-                                       }
-                                       else
-                                       {
-                                          $response["detail"] = "checkLoggedViewUserQueryKo";
-                                       }
-                                    }
-                                }
-                                else
-                                {
-                                    $response["detail"] = "checkLoggedViewUserQueryKo";
-                                }
-                                break;
-
-                             case "AreaManager":
-                                //RESTITUIAMO L'AUTORE E I TOOL ADMIN
-                                //Controlliamo se è l'autore
-                                $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
-                                $permissionResult1 = mysqli_query($link, $permissionQuery1);
-                                if($permissionResult1)
-                                {
-                                    $row = mysqli_fetch_array($permissionResult1);
-                                    if($row["isAuthor"] > 0)
-                                    {
-                                        $response["detail"] = "Ok";
-                                        $response["context"] = "View";
-                                        $response["dashboardParams"] = getDashboardParams($link);
-                                        $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                    }
-                                    else
-                                    {
-                                      //Controlliamo se è un utente autorizzato in DashboardsViewPermissions
-                                      $permissionQuery2 = "SELECT count(*) AS isAuthorized FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId AND username = '$applicantUsername'";
-                                      $permissionResult2 = mysqli_query($link, $permissionQuery2);
-
-                                      if($permissionResult2)
-                                      {
-                                         $row = mysqli_fetch_array($permissionResult2);
-
-                                         if($row["isAuthorized"] > 0)
-                                         {
-                                           $response["detail"] = "Ok";
-                                           $response["context"] = "View";
-                                           $response["dashboardParams"] = getDashboardParams($link);
-                                           $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                         }
-                                         else
-                                         {
-                                           //Controlliamo se è un area manager dei gruppi di cui l'autore fa parte
-                                            $permissionQuery3 = "SELECT count(*) AS isAreaManager FROM Dashboard.UsersPoolsRelations WHERE username = '$applicantUsername' AND isAdmin = 1 AND poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$authorUsername')";                 
-                                            $permissionResult3 = mysqli_query($link, $permissionQuery3);
-
-                                            if($permissionResult3)
-                                            {
-                                              $row = mysqli_fetch_array($permissionResult3);
-                                              if($row["isAreaManager"] > 0)
-                                              {
-                                                $response["detail"] = "Ok";
-                                                $response["context"] = "View";
-                                                $response["dashboardParams"] = getDashboardParams($link);
-                                                $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                              }
-                                              else
-                                              {
-                                                  //Controlliamo se è un tool admin
-                                                 if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive)) 
-                                                 {
-                                                    $response["detail"] = "Ok";
-                                                    $response["context"] = "View";
-                                                    $response["dashboardParams"] = getDashboardParams($link);
-                                                    $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                                 }
-                                                 else
-                                                 {
-                                                    $response["detail"] = "Ko";
-                                                 }
-                                              } 
-                                            }
-                                         }
-                                      }
-                                      else
-                                      {
-                                         $response["detail"] = "checkLoggedViewUserQueryKo";
-                                      }
-                                    }
-                                }
-                                else
-                                {
-                                   $response["detail"] = "checkLoggedViewUserQueryKo";
-                                }
-                                break;
-
-                             case "ToolAdmin":
-                                //Controlliamo se è un tool admin
-                                if(isToolAdmin($link, $applicantUsername, $applicantPassword, $ldapServer, $ldapPort, $ldapActive)) 
-                                {
-                                   $response["detail"] = "Ok";
-                                   $response["context"] = "View";
-                                   $response["dashboardParams"] = getDashboardParams($link);
-                                   $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                }
-                                else
-                                {
-                                  //Controlliamo se è un utente autorizzato in DashboardsViewPermissions
-                                  $permissionQuery2 = "SELECT count(*) AS isAuthorized FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId AND username = '$applicantUsername'";
-                                  $permissionResult2 = mysqli_query($link, $permissionQuery2);
-
-                                  if($permissionResult2)
-                                  {
-                                     $row = mysqli_fetch_array($permissionResult2);
-
-                                     if($row["isAuthorized"] > 0)
-                                     {
-                                       $response["detail"] = "Ok";
-                                       $response["context"] = "View";
-                                       $response["dashboardParams"] = getDashboardParams($link);
-                                       $response["dashboardWidgets"] = getDashboardWidgets($link);
-                                     }
-                                     else
-                                     {
-                                       $response["detail"] = "Ko";
-                                     }
-                                  }
-                                  else
-                                  {
-                                     $response["detail"] = "checkLoggedViewUserQueryKo";
-                                  }
-                                }
-                                break;
-                         }
-                     }
-                   }
-                   break;
+                ldap_unbind($ds);
+                $authorOrigin = 'ldap';
             }
         }
         else
         {
-            $response["visibility"] = "Ko";
+           $authorRole = $row["role"];
+        //   $authorOrigin = 'local';
+           $authorOrigin = '';
         }
 
-        echo json_encode($response);
-        mysqli_close($link);
+        switch($visibility)
+        {
+            //Ok
+            case "public":
+                $response["dashboardParams"] = getDashboardParams($link);
+                $response["dashboardWidgets"] = getDashboardWidgets($link);
+                break;
+
+            //VISIBILITA' RISTRETTA 
+            default:
+               //OK - UTENTI LOCALI LEGACY
+               if($authorOrigin == 'local')
+               {
+                   //Utente collegato all'applicazione
+                   if((isset($_SESSION['loggedUsername']))&&($_REQUEST['loggedUserFirstAttempt'] == "true"))
+                   {
+                        $applicantUsername = $_SESSION['loggedUsername'];
+                        //Controlliamo se è l'autore
+                        $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
+                        $permissionResult1 = mysqli_query($link, $permissionQuery1);
+                        if($permissionResult1)
+                        {
+                            $row = mysqli_fetch_array($permissionResult1);
+                            if($row["isAuthor"] > 0)
+                            {
+                                $response["detail"] = "Ok";
+                                $response["context"] = "View";
+                                $response["dashboardParams"] = getDashboardParams($link);
+                                $response["dashboardWidgets"] = getDashboardWidgets($link);
+                            }
+                            else
+                            {
+                                if($_SESSION['loggedRole'] == 'RootAdmin')
+                                {
+                                    $response["detail"] = "Ok";
+                                    $response["context"] = "View";
+                                    $response["dashboardParams"] = getDashboardParams($link);
+                                    $response["dashboardWidgets"] = getDashboardWidgets($link);
+                                }
+                                else
+                                {
+                                    $response["detail"] = "Ko";
+                                }
+                            }
+                        }
+                   }
+                   //Utente NON collegato all'applicazione
+                   else
+                   {
+                       $proceed = false;
+                        //Caso credenziali non fornite
+                       if(($_REQUEST['username'] == "") || ($_REQUEST['password'] == ""))
+                       {
+                           $response["detail"] = "credentialsMissing";
+                           $proceed = false; 
+                       }
+                       else//Credenziali fornite
+                       {
+                           //Controllo presenza credenziali fornite su elenco utenti locale
+                           $applicantUsername = $_REQUEST['username'];
+                           $applicantPassword = $_REQUEST['password'];
+                           $applicantPasswordMd5 = md5($applicantPassword);
+
+                           $query = "SELECT count(*) AS isRegistered FROM Dashboard.Users WHERE username = '$applicantUsername' AND password = '$applicantPasswordMd5'";
+                           $result = mysqli_query($link, $query);
+                           if($result)
+                           {
+                                $row = mysqli_fetch_array($result);
+
+                                if($row["isRegistered"] <= 0)
+                                {
+                                  $response["detail"] = "userNotRegistered";
+                                  $proceed = false;
+                                }
+                                else
+                                {
+                                    $proceed = true;
+                                }
+                           }
+                           else 
+                           {
+                              $response["detail"] = "checkUserQueryKo";
+                              $proceed = false;
+                           }
+                       }
+                       
+                       if($proceed)
+                       {
+                            //Controlliamo se è l'autore
+                            $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
+                            $permissionResult1 = mysqli_query($link, $permissionQuery1);
+                            if($permissionResult1)
+                            {
+                                $row = mysqli_fetch_array($permissionResult1);
+                                if($row["isAuthor"] > 0)
+                                {
+                                    $response["detail"] = "Ok";
+                                    $response["context"] = "View";
+                                    $response["dashboardParams"] = getDashboardParams($link);
+                                    $response["dashboardWidgets"] = getDashboardWidgets($link);
+                                }
+                                else
+                                {
+                                    $response["detail"] = "Ko";
+                                }
+                            }
+                       }
+                   }
+               }
+               else//CASO LDAP-SSO
+               {
+                   $proceed = false;
+                   //OK - Utente collegato all'applicazione
+                   if((isset($_SESSION['loggedUsername']))&&($_REQUEST['loggedUserFirstAttempt'] == "true"))
+                   {
+                       //Controlliamo se è autore
+                       if($_SESSION['loggedUsername'] == $authorUsername)
+                       {
+                           $proceed = true;
+                       }
+                       else
+                       {
+                           //Se non è autore, o è RootAdmin o ha la delega
+                           if($_SESSION['loggedRole'] == 'RootAdmin')
+                           {
+                               $proceed = true;
+                           }
+                           else
+                           {
+                                if(isset($_SESSION['refreshToken'])) 
+                                {
+                                    //1) Reperimento elenco sue dashboard tramite chiamata ad api di ownership 
+                                    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+                                    $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+
+                                    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+
+                                    $accessToken = $tkn->access_token;
+                                    $_SESSION['refreshToken'] = $tkn->refresh_token;
+                                    //Se non è autore, controlliamo se ha delega
+                                //    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $authorUsername . "/delegator?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                                    $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . $_SESSION['loggedUsername'] . "/delegated?accessToken=" . $accessToken. "&sourceRequest=dashboardmanager";
+
+                                    $options = array(
+                                        'http' => array(
+                                                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                                                'method'  => 'GET',
+                                                'timeout' => 30,
+                                                'ignore_errors' => true
+                                        )
+                                    );
+
+                                    $context  = stream_context_create($options);
+                                    $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
+
+                                    $delegatedDashboards = json_decode($delegatedDashboardsJson);
+
+                                    $hasDelegation = false;
+                                    for($i = 0; $i < count($delegatedDashboards); $i++) 
+                                    {
+                                        if($delegatedDashboards[$i]->elementId == $dashboardId)
+                                        {
+                                            $hasDelegation = true;    // MOD GP
+                                          /*  if($delegatedDashboards[$i]->usernameDelegated == $_SESSION['loggedUsername'])
+                                            {
+                                                $hasDelegation = true;
+                                            }   */
+                                        }
+                                    }
+
+                                    if($hasDelegation)
+                                    {
+                                        $proceed = true;
+                                    }
+                                }
+                                else
+                                {
+                                    $proceed = false;
+                                }
+                           }
+                       }
+                       
+                       
+                   }
+                   //Utente NON collegato all'applicazione
+                   else
+                   {
+                       //Questo else è spostato in testa al file index.php
+                       //header("Location: ../management/ssoLogin.php?redirect=https://main.snap4city.org/view/index.php?iddasboard=NDc4");
+                       
+                   }//Fine else utente NON collegato all'applicazione
+                   
+                   if($proceed)
+                   {
+                       $response["detail"] = "Ok";
+                       $response["context"] = "View";
+                       $response["dashboardParams"] = getDashboardParams($link);
+                       $response["dashboardWidgets"] = getDashboardWidgets($link);
+                   }
+                   else
+                   {
+                       $response["detail"] = "Ko";
+                   }
+               }
+        } 
+    }
+    else
+    {
+        $response["detail"] = "checkVisibilityQueryKo";
+    }
+
+    echo json_encode($response);
+    mysqli_close($link);
     
    
     

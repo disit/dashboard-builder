@@ -18,6 +18,8 @@
     include('process-form.php');
     include('../config.php');
     session_start();
+    
+    checkSession('AreaManager');
 ?>
 
 <html lang="en">
@@ -71,7 +73,7 @@
             echo 'window.location.href = "unauthorizedUser.php";';
             echo '</script>';
         }
-        else if($_SESSION['loggedRole'] != "ToolAdmin")
+        else if($_SESSION['loggedRole'] != "RootAdmin")
         {
             echo '<script type="text/javascript">';
             echo 'window.location.href = "unauthorizedUser.php";';
@@ -112,7 +114,7 @@
                               echo '<li><a class="internalLink" href="../management/accountManagement.php" id="accountManagementLink">Account management</a></li>';
                            }
                            
-                           if($_SESSION['loggedRole'] == "ToolAdmin")
+                           if($_SESSION['loggedRole'] == "RootAdmin")
                            {
                                 echo '<li><a class="internalLink" href="../management/metrics_mng.php" id="link_metric_mng">Metrics management</a></li>';
                                 echo '<li><a class="internalLink" href="../management/widgets_mng.php" id="link_widgets_mng">Widgets management</a></li>';
@@ -120,7 +122,7 @@
                                 echo '<li class="active"><a class="internalLink" href="../management/usersManagement.php" id="link_user_register">Users management</a></li>';
                            }
                            
-                           if(($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
+                           if(($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager"))
                            {
                               echo '<li><a class="internalLink" href="../management/poolsManagement.php?showManagementTab=false&selectedPoolId=-1" id="link_pools_management">Users pools management</a></li>';
                            }
@@ -205,6 +207,7 @@
                                     <option value="Manager">Manager</option>
                                     <option value="AreaManager">Area manager</option>
                                     <option value="ToolAdmin">Tool admin</option>
+                                    <option value="RootAdmin">Root admin</option>
                                 </select>
                             </div>
                         </div>
@@ -246,7 +249,7 @@
                                 <?php
                                     if(isset($_SESSION['loggedRole']))
                                     {
-                                        if($_SESSION['loggedRole'] == "ToolAdmin")
+                                        if($_SESSION['loggedRole'] == "RootAdmin")
                                         {
                                             //Reperimento elenco dei pool
                                             $link = mysqli_connect($host, $username, $password) or die();
@@ -394,6 +397,7 @@
                                     <option value="Manager">Manager</option>
                                     <option value="AreaManager">Area manager</option>
                                     <option value="ToolAdmin">Tool admin</option>
+                                    <option value="RootAdmin">Root admin</option>
                                 </select>
                             </div>
                         </div>
@@ -479,10 +483,23 @@
     {
         var admin = "<?= $_SESSION['loggedRole'] ?>";
         var existingPoolsJson = null;
-        var internalDest = false;
         var tableFirstLoad = true;
         
         buildMainTable(false);
+        
+        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        {
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
+            $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
+            $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+        }
         
         //Settaggio dei globals per il file usersManagement.js
         setGlobals(admin, existingPoolsJson);
@@ -873,7 +890,7 @@
                    $("#addUserPoolsRow").show();
                    break;
                    
-                case "AreaManager":
+                case "AreaManager": case "ToolAdmin": 
                    $(".addUserPoolsTableMakeMemberCheckbox input").click(function(){
                      $(this).parent().parent().find(".addUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
                    });
@@ -887,7 +904,7 @@
                    $("#addUserPoolsRow").show();
                    break;   
                     
-                case "ToolAdmin":
+                case "RootAdmin":
                     $("#addUserPoolsRow").hide();
                     break;
            }
@@ -906,7 +923,7 @@
                    $("#editUserPoolsRow").show();
                    break;
                    
-                case "AreaManager":
+                case "AreaManager": case "ToolAdmin": 
                    $(".editUserPoolsTableMakeMemberCheckbox input").click(function(){
                      $(this).parent().parent().find(".editUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
                    });
@@ -920,7 +937,7 @@
                    $("#editUserPoolsRow").show();
                    break;   
                     
-                case "ToolAdmin":
+                case "RootAdmin":
                     $("#editUserPoolsRow").hide();
                     break;
            }
@@ -1049,7 +1066,11 @@
                                 {
                                     switch(value)
                                     {
-                                       case "ToolAdmin":
+                                       case "RootAdmin": 
+                                          return "Root admin";
+                                          break;
+                                          
+                                       case "ToolAdmin": 
                                           return "Tool admin";
                                           break;
 
@@ -1287,6 +1308,10 @@
                                              case "Tool admin":
                                                 $("#editUserPoolsRow").hide();
                                                 $("#userTypeM").val("ToolAdmin");
+                                                
+                                             case "Root admin":
+                                                $("#editUserPoolsRow").hide();
+                                                $("#userTypeM").val("RootAdmin");   
                                                 break;   
                                           }
 
@@ -1414,132 +1439,6 @@
                     }
             });
         }
-        
-        /*$("#usersTable i.fa-cog").on('click', function()
-        {
-            $("#editUserModalUpdating").hide();
-            $("#editUserModalBody").show();
-            $("#editUserModalFooter").show();
-            $("#editUserModal").modal('show');
-            $("#editUserModalLabel").html("Edit account - " + $(this).parent().parent().find("td").eq(0).html());
-            $("#usernameM").val($(this).parent().parent().find("td").eq(0).html());
-            $("#firstNameM").val($(this).parent().parent().find("td").eq(1).html());
-            $("#lastNameM").val($(this).parent().parent().find("td").eq(2).html());
-            $("#organizationM").val($(this).parent().parent().find("td").eq(3).html());
-            if($(this).parent().parent().find("td").eq(7).html() === "Active")
-            {
-               $("#userStatusM").val(1);
-            }
-            else
-            {
-               $("#userStatusM").val(0);
-            }
-            $("#emailM").val($(this).parent().parent().find("td").eq(5).html());
-            
-            var role = $(this).parent().parent().find("td").eq(4).html();
-            
-            $.ajax({
-                url: "editUser.php",
-                data: {operation: "getUserPoolMemberships", username: $(this).parent().parent().find("td").eq(0).html()},
-                type: "GET",
-                async: true,
-                dataType: 'json',
-                success: function (data) 
-                {
-                  var row = null;
-                  
-                  $("#editUserPoolsTable tbody").empty();
-                  for(var i = 0; i < data.length; i++)
-                  {
-                     row = $('<tr><td class="checkboxCell editUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + data[i].poolId + '" type="checkbox" /></td><td class="checkboxCell editUserPoolsTableMakeAdminCheckbox"><input data-poolId="' +  data[i].poolId + '" type="checkbox" /></td><td class="poolNameCell">' + data[i].poolName + '</td>');
-                     
-                     switch(role)
-                     {
-                        case "Observer": case "Manager":
-                           if(data[i].username !== null)
-                           {
-                              row.find(".editUserPoolsTableMakeMemberCheckbox input").attr("checked", true);
-                           }
-                           $(".editUserPoolsTableMakeAdminHeader").hide();
-                           $(".editUserPoolsTableMakeAdminCheckbox").hide();
-                           break;
-
-                        case "Area manager":
-                           if(data[i].username !== null)
-                           {
-                              if(data[i].isAdmin === "1")
-                              {
-                                 row.find(".editUserPoolsTableMakeAdminCheckbox input").attr("checked", true);
-                              }
-                              else
-                              {
-                                 row.find(".editUserPoolsTableMakeMemberCheckbox input").attr("checked", true);
-                              }
-                           }
-                           
-                           $(".editUserPoolsTableMakeAdminHeader").show();
-                           $(".editUserPoolsTableMakeAdminCheckbox").show();
-                           break;
-
-                        case "Tool admin":
-                           break;   
-                     }
-                     
-                     $("#editUserPoolsTable").append(row);
-                  }
-                  
-                  switch(role)
-                  {
-                     case "Observer": 
-                        $("#editUserPoolsRow").show();
-                        $(".editUserPoolsTableMakeAdminHeader").hide();
-                        $(".editUserPoolsTableMakeAdminCheckbox").hide();
-                        $("#userTypeM").val("Observer");
-                        break;
-                        
-                     case "Manager":   
-                        $("#editUserPoolsRow").show();
-                        $(".editUserPoolsTableMakeAdminHeader").hide();
-                        $(".editUserPoolsTableMakeAdminCheckbox").hide();
-                        $("#userTypeM").val("Manager");
-                        break;
-
-                     case "Area manager":
-                        $(".editUserPoolsTableMakeMemberCheckbox input").click(function(){
-                           $(this).parent().parent().find(".editUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
-                        });
-
-                        $(".editUserPoolsTableMakeAdminCheckbox input").click(function(){
-                           $(this).parent().parent().find(".editUserPoolsTableMakeMemberCheckbox input").prop("checked", false);
-                        });
-                        
-                        $("#editUserPoolsRow").show();
-                        $(".editUserPoolsTableMakeAdminHeader").show();
-                        $(".editUserPoolsTableMakeAdminCheckbox").show();
-                        $("#userTypeM").val("AreaManager");
-                        break;
-
-                     case "Tool admin":
-                        $("#editUserPoolsRow").hide();
-                        $("#userTypeM").val("ToolAdmin");
-                        break;   
-                  }
-                   
-                   $("#editUserModalLoading").hide();
-                   
-                   showEditUserModalBody();
-                },
-                error: function (data)
-                {
-                   console.log("Get user pool memberships KO");
-                   console.log(data);
-                }
-            });
-        });
-        
-        
-        */
-
     });//Fine document ready
 </script>
 </body>

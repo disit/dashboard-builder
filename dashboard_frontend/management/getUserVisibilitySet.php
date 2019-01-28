@@ -21,6 +21,7 @@
    error_reporting(E_ERROR | E_NOTICE);
    
    //Definizioni di funzione
+   /*
    function ldapCheckRole($connection, $userDn, $role) {
       $result = ldap_search(
               $connection, 'dc=ldap,dc=disit,dc=org', 
@@ -37,7 +38,7 @@
           }
       }
       return false;
-  }
+  }*/
    
   //Corpo dell'API
    session_start(); 
@@ -63,7 +64,7 @@
                $query = "SELECT rels.username AS username FROM Dashboard.UsersPoolsRelations AS rels " .
                         "WHERE rels.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$username') " .
                         "AND rels.username <> '$username' " . 
-                        "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'ToolAdmin') " .
+                        "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'RootAdmin') " .
                         "AND rels.username NOT IN (SELECT Dashboard.UsersPoolsRelations.username FROM Dashboard.UsersPoolsRelations WHERE Dashboard.UsersPoolsRelations.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$username') AND Dashboard.UsersPoolsRelations.isAdmin = 1) " .
                         "GROUP BY rels.username";      
                
@@ -81,7 +82,7 @@
                mysqli_close($link);
                break;
            
-           case "AreaManager":
+           case "AreaManager": case "ToolAdmin": 
                //Area manager - Se area manager crea una dashboard si restituiscono solo gli end users dei pools di cui fa parte l'area manager stesso (come admin o come end-user) (quindi esclusi i superadmin, gli altri admins e l'autore della dashboard) - Gli altri area manager non vengono abilitati in automatico alla consultazione della dashboard.
                $query = "SELECT rels.username AS username FROM Dashboard.UsersPoolsRelations AS rels " .
                //Si restringe ai pool cui appartiene l'utente
@@ -89,7 +90,7 @@
                // Si toglie l'utente stesso
                "AND rels.username <> '$username' " .
                //Si tolgono i tool admin
-               "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'ToolAdmin') " .
+               "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'RootAdmin') " .
                //Si tolgono gli admin dei gruppi dell'utente, che sono abilitati di default
                "AND rels.isAdmin = 0 " .
                //Si tolgono gli admin che non sono admin dei pool dell'utente e non sono neanche end user di tali pool
@@ -110,7 +111,7 @@
                mysqli_close($link);
                break;
            
-           case "ToolAdmin":
+           case "RootAdmin":
                //Super admin: si restituiscono tutti i manager e tutti gli area manager e tutti gli observer
                //Reperimento elenco utenti LDAP
                $temp = [];
@@ -123,7 +124,7 @@
                     $bind = ldap_bind($ds);
 
                     $result = ldap_search(
-                            $ds, 'dc=ldap,dc=disit,dc=org', 
+                            $ds, $ldapBaseDN, 
                             '(cn=Dashboard)'
                     );
                     $entries = ldap_get_entries($ds, $result);
@@ -144,17 +145,17 @@
 
                     for($i = 0; $i < count($temp); $i++)
                     {
-                       if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                       if(!checkLdapRole($ds, $temp[$i], "RootAdmin", $ldapBaseDN))
                        {
                           $name = str_replace("cn=", "", $temp[$i]);
-                          $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                          $name = str_replace(",$ldapBaseDN", "", $name);
                           array_push($users, $name);
                        }
                     }
                }
                
                 //Reperimento elenco utenti locali
-                $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
+                $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'RootAdmin'";
                 $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
 
                 if($result2)

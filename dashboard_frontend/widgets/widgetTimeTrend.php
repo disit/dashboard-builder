@@ -15,10 +15,16 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
+    if(!isset($_SESSION))
+    {
+        session_start();
+    }
+    checkSession('Public');
+
 ?>
 
 <script type='text/javascript'> 
-    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId) 
+    $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId) 
     {
         <?php
             $titlePatterns = array();
@@ -30,74 +36,41 @@
             $title = $_REQUEST['title_w'];
         ?> 
         //RANGE TEMPORALI GESTIBILI DAL WIDGET: 4/HOUR, 12/HOUR, 1/DAY, 7/DAY, 30/DAY, 365/DAY (IL DRAW CANCELLA DA SOLO IL LOADING)    
-        var widgetName = "<?= $_REQUEST['name_w'] ?>";       
+        var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";       
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
-        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
-        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var color = '<?= $_REQUEST['color_w'] ?>';
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var wsRetryActive, wsRetryTime = null;
-        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, pattern, totValues, shownValues, 
-            descriptions, threshold, thresholdEval, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
-            widgetParameters, sizeRowsWidget, desc, plotLinesArray, value, day, dayParts, timeParts, date, maxValue, nInterval, alarmSet, plotLineObj, metricName, 
-            widgetTitle, countdownRef,widgetOriginalBorderColor, convertedData, serviceMapTimeRange, unitsWidget, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
-        var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
-        var url = "<?= $_REQUEST['link_w'] ?>";
-        var range = "<?= $_REQUEST['temporal_range_w'] ?>"; 
+        var thresholdObject, chartColor, chartRef, styleParameters, metricType, pattern, totValues, shownValues, showTitle, showHeader, hasTimer, timeRange, globalDiagramRange, myKPITimeRange,
+            threshold, thresholdEval, delta, deltaPerc, originalMetricType, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, fontSize, fontColor, timeToReload, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
+            widgetParameters, sizeRowsWidget, desc, plotLinesArray, sm_based, rowParameters, sm_field, value, day, dayParts, timeParts, date, maxValue, minValue, nInterval, alarmSet, plotLineObj, metricName,
+            widgetTitle, countdownRef,widgetOriginalBorderColor, serviceMapTimeRange, unitsWidget, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed, gridLineColor, chartAxesColor = null;
+        var elToEmpty = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
         var seriesData = [];
         var valuesData = [];
         var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var showHeader = null;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-        {
-            showHeader = false;
-        }
-        else
-        {
-           showHeader = true;
-        } 
-        
-        if(url === "null")
-        {
-            url = null;
-        }
-        
-        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-        {
-            metricName = "<?= $_REQUEST['id_metric'] ?>";
-            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
-            widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-            widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        }
-        else
-        {
-            metricName = metricNameFromDriver;
-            widgetTitleFromDriver.replace(/_/g, " ");
-            widgetTitleFromDriver.replace(/\'/g, "&apos;");
-            widgetTitle = widgetTitleFromDriver;
-            $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
-            widgetHeaderColor = widgetHeaderColorFromDriver;
-            widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
-        }
-        
+        var needWebSocket = false;
+        var loggedOrg = "<?php echo $_SESSION['loggedOrganization'] ?>";
+        var orgKbUrl = "<?php echo $_SESSION['orgKbUrl'] ?>";
+        var orgCentreGpsCoords = "<?php echo $_SESSION['orgGpsCentreLatLng'] ?>";
+        var now = new Date();
+        var nowUTC = now.toUTCString();
+        var isoDate = new Date(nowUTC).toISOString();
+        var isoDateTrimmed = isoDate.substring(0, isoDate.length - 8);
+        var myKPIFromTimeRange = "";
+        var refreshToken = "<?= $_SESSION['refreshToken'] ?>";
+        var accessToken = "<?= $_SESSION['accessToken'] ?>";
+
+        console.log("Entrato in widgetTimeTrend --> " + widgetName);
+
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function(event) 
         {
             if((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange"))
             {
                 clearInterval(countdownRef); 
-                $("#<?= $_REQUEST['name_w'] ?>_content").hide();
-                <?= $_REQUEST['name_w'] ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, null, null, null, null);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, event.newMetricName, event.newTargetTitle, event.newHeaderAndBorderColor, event.newHeaderFontColor, false, null, null, null, null, null, null);
             }
         });
         
@@ -105,23 +78,23 @@
         $(document).on('mouseOverTimeTrendFromExternalContentGis_' + widgetName, function(event) 
         {
             widgetOriginalBorderColor = $("#" + widgetName).css("border-color");
-            $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(event.widgetTitle);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(event.widgetTitle);
             $("#" + widgetName).css("border-color", event.color1);
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("background", event.color1);
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("color", "black");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", "black");
         });
         
         $(document).off('mouseOutTimeTrendFromExternalContentGis_' + widgetName);
         $(document).on('mouseOutTimeTrendFromExternalContentGis_' + widgetName, function(event) 
         {
-            $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
             $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("background", widgetHeaderColor);
-            $("#<?= $_REQUEST['name_w'] ?>_header").css("color", widgetHeaderFontColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", widgetHeaderColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", widgetHeaderFontColor);
         });
         
         $(document).off('showTimeTrendFromExternalContentGis_' + widgetName);
@@ -130,8 +103,8 @@
             if(event.targetWidget === widgetName)
             {
                 clearInterval(countdownRef); 
-                $("#<?= $_REQUEST['name_w'] ?>_content").hide();
-                <?= $_REQUEST['name_w'] ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef, event.fakeId);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef, event.fakeId);
             }
         });
         
@@ -141,56 +114,164 @@
             if(event.targetWidget === widgetName)
             {
                 clearInterval(countdownRef); 
-                $("#<?= $_REQUEST['name_w'] ?>_content").hide();
-                <?= $_REQUEST['name_w'] ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null);
             }
         });
 		
 	$(document).off('resizeHighchart_' + widgetName);
         $(document).on('resizeHighchart_' + widgetName, function(event) 
         {
-            $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
+            showHeader = event.showHeader;
+            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().reflow();
         });
         
         //Definizioni di funzione specifiche del widget
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getInfoJson()
+        function compareSeriesData(a, b)
         {
-            var infoJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
-            {
-                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
-            }
+            var x = a[0];
+            var y = b[0];
             
-            return infoJson;
+            if(x < y)
+            {
+                return -1
+            }
+            else
+            {
+                if(x > y)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getStyleParameters()
+
+
+        $("#" + widgetName).hover(function()
         {
-            var styleParameters = null;
-            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
-            {
-                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
-            }
-            
-            return styleParameters;
-        }
-        
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData) {
+                    var widgetNameD = widgetData.params.name_w;
+                    var showTitleD = widgetData.params.showTitle;
+                    var widgetContentColorD = widgetData.params.color_w;
+                    var fontSizeD = widgetData.params.fontSize;
+                    var fontColorD = widgetData.params.fontColor;
+                    var timeToReloadD = widgetData.params.frequency_w;
+                    var hasTimerD = widgetData.params.hasTimer;
+                    var chartColorD = widgetData.params.chartColor;
+                    var dataLabelsFontSizeD = widgetData.params.dataLabelsFontSize;
+                    var dataLabelsFontColorD = widgetData.params.dataLabelsFontColor;
+                    var chartLabelsFontSizeD = widgetData.params.chartLabelsFontSize;
+                    var chartLabelsFontColorD = widgetData.params.chartLabelsFontColor;
+                    var appIdD = widgetData.params.appId;
+                    var flowIdD = widgetData.params.flowId;
+                    var nrMetricTypeD = widgetData.params.nrMetricType;
+                    var webLinkD = widgetData.params.link_w;
+
+                    if(location.href.includes("index.php") && webLinkD != "" && webLinkD != "none" && webLinkD != null) {
+                        $("#" + widgetName).css("cursor", "pointer");
+                    }
+
+                },
+                error: function()
+                {
+
+                }
+            });
+        });
+
+        $("#" + widgetName).click(function ()
+        {
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData) {
+                    showTitle = widgetData.params.showTitle;
+                    widgetContentColor = widgetData.params.color_w;
+                    fontSize = widgetData.params.fontSize;
+                    fontColor = widgetData.params.fontColor;
+                    timeToReload = widgetData.params.frequency_w;
+                    hasTimer = widgetData.params.hasTimer;
+                    chartColor = widgetData.params.chartColor;
+                    dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                    dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                    chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                    chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                    appId = widgetData.params.appId;
+                    flowId = widgetData.params.flowId;
+                    nrMetricType = widgetData.params.nrMetricType;
+                    var styleParametersString = widgetData.params.styleParameters;
+                    styleParameters = jQuery.parseJSON(styleParametersString);
+                    webLink = widgetData.params.link_w;
+
+                    if(location.href.includes("index.php")  && webLink != "" && webLink != "none") {
+
+                        if (styleParameters != null) {
+                            if (styleParameters['openNewTab'] === "yes") {
+                                var newTab = window.open(webLink);
+                                if (newTab) {
+                                    newTab.focus();
+                                }
+                                else {
+                                    alert('Please allow popups for this website');
+                                }
+                            } else {
+                                window.location.href = webLink;
+                            }
+                        } else {
+                            var newTab = window.open(webLink);
+                            if (newTab) {
+                                newTab.focus();
+                            }
+                            else {
+                                alert('Please allow popups for this website');
+                            }
+                        }
+                    }
+
+                },
+                error: function()
+                {
+                    console.log("Error in opening web link.");
+                }
+            });
+
+        });
+
+
+
         function drawDiagram(metricData, timeRange, seriesName, fromSelector)
         {   
             if(metricData.data.length > 0)
             {
                 desc = metricData.data[0].commit.author.descrip;
                 metricType = '<?= $_REQUEST['id_metric']?>';
-                
+                seriesData = [];
+                valuesData = [];
                 for(var i = 0; i < metricData.data.length; i++) 
                 {
                     day = metricData.data[i].commit.author.computationDate;
 
                     if((metricData.data[i].commit.author.value !== null) && (metricData.data[i].commit.author.value !== "")) 
                     {
+                    /*    var e = 1;
+                        while (Math.round(metricData.data[i].commit.author.value * e) / e !== metricData.data[i].commit.author.value) e *= 10;
+                        var precision = Math.log(e) / Math.LN10;    */
                         value = parseFloat(parseFloat(metricData.data[i].commit.author.value).toFixed(1));
                         flagNumeric = true;
                     } 
@@ -241,7 +322,6 @@
                                 null
                             ]];
                             date = Date.UTC(dayParts[0], dayParts[1]-1, dayParts[2], timeParts[0], timeParts[1]);
-                            console.log("Sample time from ServiceMap: " + dayParts[0] + "-" + (dayParts[1])+ "-" + dayParts[2] + " " + timeParts[0] + ":" + timeParts[1]);
                         }
                         else 
                         {
@@ -270,7 +350,6 @@
                                 [1]
                             ]];
                             date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0]);
-                            console.log("Sample time from ServiceMap: " + dayParts[0] + "-" + (dayParts[1])+ "-" + dayParts[2] + " - " + timeParts[0]);
                         }
                         timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
                         date = Date.UTC(dayParts[0], dayParts[1]-1, dayParts[2], timeParts[0], timeParts[1]);
@@ -316,9 +395,12 @@
                     seriesData.push([date, value]);
                     valuesData.push(value);
                 }
+                
+                seriesData.sort(compareSeriesData);
 
                 maxValue = Math.max.apply(Math, valuesData);
-                nInterval = parseFloat((maxValue / 4).toFixed(1));
+                minValue = Math.min.apply(Math, valuesData);
+                nInterval = parseFloat((Math.abs(maxValue - minValue) / 4).toFixed(1));
 
                 if(flagNumeric && (thresholdObject!== null))
                 {
@@ -511,14 +593,14 @@
                 if(firstLoad !== false)
                 {
                     showWidgetContent(widgetName);
-                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
+                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                 }
                 else
                 {
                     elToEmpty.empty();
-                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
+                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                 }
                 
                 if(metricType === "isAlive") 
@@ -567,13 +649,21 @@
                     }
                   
                     //Disegno del diagramma
-                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts({
+                    chartRef = Highcharts.chart('<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer', {
                         credits: {
                             enabled: false
                         },
                         chart: {
-                            backgroundColor: '<?= $_REQUEST['color_w'] ?>',
-                            type: 'area' 
+                            backgroundColor: 'transparent',
+                            type: 'areaspline',
+                            events: {
+                                load: function () {
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartColorMenuItem").trigger('chartCreated');
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartPlaneColorMenuItem").trigger('chartCreated');
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartLabelsColorMenuItem").trigger('chartCreated');
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartAxesColorMenuItem").trigger('chartCreated');
+                                }
+                            }
                         },
                         exporting: {
                             enabled: false
@@ -587,12 +677,13 @@
                             units: unitsWidget,
                             labels: {
                                 enabled: true,
+                                useHTML: true,
                                 style: {
-                                    fontFamily: 'Verdana',
-                                    color: fontColor,
+                                    fontFamily: 'Montserrat',
+                                    color: chartLabelsFontColor,
                                     fontSize: fontSize + "px",
-                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
-                                    "textOutline": "1px 1px contrast"
+                                    /*"text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
+                                    "textOutline": "1px 1px contrast"*/
                                 }
 
                             }
@@ -602,18 +693,20 @@
                             title: {
                                 text: ''
                             },
-                            min: 0,
+                            min: minValue,
                             max: 8,
                             tickInterval: nInterval,
                             plotLines: plotLinesArray,
+                            gridLineColor: gridLineColor,
+                            lineWidth: 1,
                             labels: {
                                 enabled: true,
                                 style: {
-                                    fontFamily: 'Verdana',
-                                    color: fontColor,
+                                    fontFamily: 'Montserrat',
+                                    color: chartLabelsFontColor,
                                     fontSize: fontSize + "px",
-                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
-                                    "textOutline": "1px 1px contrast"
+                                    /*"text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
+                                    "textOutline": "1px 1px contrast"*/
                                 },
                                 formatter: function () {
                                     switch (this.value)
@@ -652,7 +745,20 @@
                                 data: seriesData,
                                 step: 'left',
                                 zoneAxis: 'x',
-                                zones: myZonesArray
+                                zones: myZonesArray,
+                                color: chartColor,
+                                fillColor: {
+                                    linearGradient: {
+                                        x1: 0,
+                                        y1: 0,
+                                        x2: 0,
+                                        y2: 1
+                                    },
+                                    stops: [
+                                        [0, Highcharts.Color(chartColor).setOpacity(0.75).get('rgba')],
+                                        [1, Highcharts.Color(chartColor).setOpacity(0.25).get('rgba')]
+                                    ]
+                                }
                             }]
                    
                     });
@@ -660,28 +766,26 @@
                 else 
                 {
                     //Disegno del diagramma
-                    
-                    $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts({
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts({
                         credits: {
                             enabled: false
                         },
                         chart: {
-                            backgroundColor: '<?= $_REQUEST['color_w'] ?>',
-                            type: 'spline'
-                            //type: 'areaspline'
+                            backgroundColor: 'transparent',
+                            type: 'areaspline',
+                            events: {
+                                load: function () {
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartColorMenuItem").trigger('chartCreated');
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartPlaneColorMenuItem").trigger('chartCreated');
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartLabelsColorMenuItem").trigger('chartCreated');
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartAxesColorMenuItem").trigger('chartCreated');
+                                }
+                            }
                         },
                         plotOptions: {
                             spline: {
                                 
                             }
-                            /*areaspline: {
-                                color: '#FF0000',
-                                fillColor: '#ffb3b3'
-                            },
-                            
-                            series: {
-                                lineWidth: 2
-                            }*/
                         },
                         exporting: {
                             enabled: false
@@ -693,14 +797,16 @@
                         xAxis: {
                             type: 'datetime',
                             units: unitsWidget,
+                            className: 'timeTrendXAxis',
+                            lineColor: chartAxesColor,
                             labels: {
                                 enabled: true,
                                 style: {
-                                    fontFamily: 'Verdana',
-                                    color: fontColor,
+                                    fontFamily: 'Montserrat',
+                                    color: chartLabelsFontColor,
                                     fontSize: fontSize + "px",
-                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
-                                    "textOutline": "1px 1px contrast"
+                                    /*"text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
+                                    "textOutline": "1px 1px contrast"*/
                                 }
                             }
                         },
@@ -708,18 +814,22 @@
                             title: {
                                 text: ''
                             },
-                            min: 0,
+                            min: minValue,
                             max: maxValue,
                             tickInterval: nInterval,
                             plotLines: plotLinesArray,
+                            lineColor: chartAxesColor,
+                            lineWidth: 1,
+                            className: 'timeTrendYAxis',
+                            gridLineColor: gridLineColor,
                             labels: {
                                 enabled: true,
                                 style: {
-                                    fontFamily: 'Verdana',
-                                    color: fontColor,
+                                    fontFamily: 'Montserrat',
+                                    color: chartLabelsFontColor,
                                     fontSize: fontSize + "px",
-                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
-                                    "textOutline": "1px 1px contrast"
+                                    /*"text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
+                                    "textOutline": "1px 1px contrast"*/
                                 }
                             }
                         },
@@ -730,87 +840,29 @@
                         series: [{
                                 showInLegend: false,
                                 name: seriesName,
-                                data: seriesData/*,
+                                data: seriesData,
+                                color: chartColor,
                                 fillColor: {
                                     linearGradient: {
                                         x1: 0,
                                         y1: 0,
                                         x2: 0,
-                                        y2: 0
+                                        y2: 1
                                     },
                                     stops: [
-                                        [0, '#ffb3b3'],
-                                        [1, Highcharts.Color('#ffb3b3').setOpacity(0).get('rgba')]
+                                        [0, Highcharts.Color(chartColor).setOpacity(0.75).get('rgba')],
+                                        [1, Highcharts.Color(chartColor).setOpacity(0.25).get('rgba')]
                                     ]
-                                }*/
+                                }
                             }]
                     });
                 }
-                
-                //Versione precedente - Disegno del diagramma
-                /*$('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts({
-                    credits: {
-                        enabled: false
-                    },
-                    chart: {
-                        backgroundColor: '<?= $_REQUEST['color_w'] ?>',
-                        type: 'spline'
-                    },
-                    exporting: {
-                        enabled: false
-                    },
-                    title: {
-                        text: ''
-                    },
-                    xAxis: {
-                        type: 'datetime',
-                        units: unitsWidget,
-                        labels: {
-                            enabled: true,
-                            style: {
-                                fontFamily: 'Verdana',
-                                color: fontColor,
-                                fontSize: fontSize + "px",
-                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
-                                "textOutline": "1px 1px contrast"
-                            }
-                        }
-                    },
-                    yAxis: {
-                        title: {
-                            text: ''
-                        },
-                        min: 0,
-                        max: maxValue,
-                        tickInterval: nInterval,
-                        plotLines: plotLinesArray,
-                        labels: {
-                            enabled: true,
-                            style: {
-                                fontFamily: 'Verdana',
-                                color: fontColor,
-                                fontSize: fontSize + "px",
-                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
-                                "textOutline": "1px 1px contrast"
-                            }
-                        }
-                    },
-                    tooltip: {
-                        valueSuffix: ''
-                    },
-                    series: [{
-                            showInLegend: false,
-                            name: '<?= $_REQUEST['id_metric'] ?>',
-                            data: seriesData
-                        }]
-                });*/
-    
             }
             else
             {
                 showWidgetContent(widgetName);
-                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
             }
         }
         
@@ -878,14 +930,15 @@
                                 var plusIndex = convertedDate.indexOf("+");
                                 convertedDate = convertedDate.substr(0, plusIndex);
                                 singleData.commit.author.computationDate = convertedDate;
-                                
-                                if(!isNaN(parseFloat(singleOriginalData[field].value)))
-                                {
-                                    singleData.commit.author.value = parseFloat(singleOriginalData[field].value);
-                                }
-                                else
-                                {
-                                    //console.log("Categoria dato: " + field + " - Indice campione non numerico: " + i);
+
+                                if(singleOriginalData[field] !== undefined) {
+                                    if (!isNaN(parseFloat(singleOriginalData[field].value))) {
+                                        singleData.commit.author.value = parseFloat(singleOriginalData[field].value);
+                                    } else {
+                                        originalDataNotNumeric++;
+                                        continue;
+                                    }
+                                } else {
                                     originalDataNotNumeric++;
                                     continue;
                                 }
@@ -916,28 +969,102 @@
             }
         }
         
-        //Ordinamento dei dati in ordine temporale crescente
-        function convertedDataCompare(a, b) 
+        function convertDataFromPersonalDataToDm(originalData)
         {
-            var dateA = new Date(a.commit.author.computationDate);
-            var dateB = new Date(b.commit.author.computationDate);
-            if(dateA < dateB)
+            var singleOriginalData, singleData, convertedDate = null;
+            var convertedData = {
+                data: []
+            };
+
+            for(var i = 0; i < originalData.length; i++)
             {
-                return -1;
-            }
-            else
-            {
-                if(dateA > dateB)
+                singleData = {
+                    commit: {
+                        author: {
+                            IdMetric_data: null, //Si può lasciare null, non viene usato dal widget
+                            computationDate: null,
+                            value_perc1: null, //Non lo useremo mai
+                            value: null,
+                            descrip: null, //Mettici il nome della metrica splittato
+                            threshold: null, //Si può lasciare null, non viene usato dal widget
+                            thresholdEval: null //Si può lasciare null, non viene usato dal widget
+                        },
+                        range_dates: 0//Si può lasciare null, non viene usato dal widget
+                    }
+                };
+
+                singleOriginalData = originalData[i];
+
+                convertedDate = new Date(singleOriginalData.dataTime); //2001-11-23 03:08:46
+                convertedDate = convertedDate.getFullYear() + "-" + parseInt(convertedDate.getMonth() + 1) + "-" + convertedDate.getDate() + " " + convertedDate.getHours() + ":" + convertedDate.getMinutes() + ":" + convertedDate.getSeconds();
+
+                singleData.commit.author.computationDate = convertedDate;
+
+                if(!isNaN(parseFloat(singleOriginalData.variableValue)))
                 {
-                    return 1;
+                    singleData.commit.author.value = parseFloat(singleOriginalData.variableValue);
                 }
                 else
                 {
-                    return 0;
-                } 
+                    singleData.commit.author.value = singleOriginalData.variableValue;
+                }
+
+                convertedData.data.push(singleData);
             }
+
+            return convertedData;
         }
-        
+
+        function convertDataFromMyKpiToDm(originalData)
+        {
+            var singleOriginalData, singleData, convertedDate = null;
+            var convertedData = {
+                data: []
+            };
+
+            for(var i = 0; i < originalData.length; i++)
+            {
+                singleData = {
+                    commit: {
+                        author: {
+                            IdMetric_data: null, //Si può lasciare null, non viene usato dal widget
+                            computationDate: null,
+                            value_perc1: null, //Non lo useremo mai
+                            value: null,
+                            descrip: null, //Mettici il nome della metrica splittato
+                            threshold: null, //Si può lasciare null, non viene usato dal widget
+                            thresholdEval: null //Si può lasciare null, non viene usato dal widget
+                        },
+                        range_dates: 0//Si può lasciare null, non viene usato dal widget
+                    }
+                };
+
+                singleOriginalData = originalData[i];
+
+                convertedDate = new Date(singleOriginalData.dataTime); //2001-11-23 03:08:46
+                convertedDate = convertedDate.getFullYear() + "-" + parseInt(convertedDate.getMonth() + 1) + "-" + convertedDate.getDate() + " " + convertedDate.getHours() + ":" + convertedDate.getMinutes() + ":" + convertedDate.getSeconds();
+
+                singleData.commit.author.computationDate = convertedDate;
+
+                if(!isNaN(parseFloat(singleOriginalData.value)))
+                {
+                    singleData.commit.author.value = parseFloat(singleOriginalData.value);
+                }
+                else
+                {
+                    singleData.commit.author.value = singleOriginalData.value;
+                }
+
+                convertedData.data.push(singleData);
+            }
+
+            return convertedData;
+        }
+
+        function zeroSpanDateAndHour(number) {
+
+        }
+
         function resizeWidget()
         {
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
@@ -946,299 +1073,613 @@
             $("#" + widgetName + "_loading").css("height", bodyHeight + "px");
             $("#" + widgetName + "_content").css("height", bodyHeight + "px");
         }
-        //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-        
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
-        
-        if(firstLoad === false)
+        function populateWidget(localTimeRange)
         {
-            showWidgetContent(widgetName);
-        }
-        else
-        {
-            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-        }
-        
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
-        
-        //Nuova versione
-        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
-        {
-            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
-        }
-        
-        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
-        {
-            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
-        }
-        
-        if(widgetParameters !== null && widgetParameters !== undefined)
-        {
-            if(widgetParameters.hasOwnProperty("thresholdObject"))
+            if(fromGisExternalContent)
             {
-               thresholdObject = widgetParameters.thresholdObject; 
-            }
-        }
-        
-        sizeRowsWidget = parseInt('<?= $_REQUEST['size_rows'] ?>');
-        
-        if(fromGisExternalContent)
-        {
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').hide();
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').show();
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').hide();
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').show();
 
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').off('click');
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').click(function(){
-                if($(this).attr('data-onMap') === 'false')
-                {
-                    if(fromGisMapRef.hasLayer(fromGisMarker))
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').off('click');
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').click(function(){
+                    if($(this).attr('data-onMap') === 'false')
                     {
-                        fromGisMarker.fire('click');
+                        if(fromGisMapRef.hasLayer(fromGisMarker))
+                        {
+                            fromGisMarker.fire('click');
+                        }
+                        else
+                        {
+                            fromGisMapRef.addLayer(fromGisMarker);
+                            fromGisMarker.fire('click');
+                        } 
+                        $(this).attr('data-onMap', 'true');
+                        $(this).html('near_me');
+                        $(this).css('color', 'white');
+                        $(this).css('text-shadow', '2px 2px 4px black');
                     }
                     else
                     {
-                        fromGisMapRef.addLayer(fromGisMarker);
-                        fromGisMarker.fire('click');
-                    } 
-                    $(this).attr('data-onMap', 'true');
-                    $(this).html('near_me');
-                    $(this).css('color', 'white');
-                    $(this).css('text-shadow', '2px 2px 4px black');
-                }
-                else
+                        fromGisMapRef.removeLayer(fromGisMarker);
+                        $(this).attr('data-onMap', 'false');
+                        $(this).html('navigation');
+                        $(this).css('color', '#337ab7');
+                        $(this).css('text-shadow', 'none');
+                    }
+                });
+
+                switch(fromGisExternalContentRange)
                 {
-                    fromGisMapRef.removeLayer(fromGisMarker);
-                    $(this).attr('data-onMap', 'false');
-                    $(this).html('navigation');
-                    $(this).css('color', '#337ab7');
-                    $(this).css('text-shadow', 'none');
+                    case "4/HOUR":
+                        serviceMapTimeRange = "fromTime=4-hour";
+                        break;
+
+                    case "1/DAY":
+                        serviceMapTimeRange = "fromTime=1-day";
+                        break;
+
+                    case "7/DAY":
+                        serviceMapTimeRange = "fromTime=7-day";
+                        break;
+
+                    case "30/DAY":
+                        serviceMapTimeRange = "fromTime=30-day";
+                        break;     
+
+                    default:
+                        serviceMapTimeRange = "fromTime=1-day";
+                        break;
                 }
-            });
 
-            switch(fromGisExternalContentRange)
-            {
-                case "4/HOUR":
-                    serviceMapTimeRange = "fromTime=4-hour";
-                    break;
+                if (dashboardOrg != null || dashboardOrg != undefined) {
 
-                case "1/DAY":
-                    serviceMapTimeRange = "fromTime=1-day";
-                    break;
+                }
 
-                case "7/DAY":
-                    serviceMapTimeRange = "fromTime=7-day";
-                    break;
-
-                case "30/DAY":
-                    serviceMapTimeRange = "fromTime=30-day";
-                    break;     
-
-                default:
-                    serviceMapTimeRange = "fromTime=1-day";
-                    break;
-            }
-
-            $.ajax({
-                url: "<?php echo $serviceMapUrlForTrendApi; ?>" + "?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
-                type: "GET",
-                data: {},
-                async: true,
-                dataType: 'json',
-                success: function(originalData) 
-                {
-                    //console.log(JSON.stringify(data));
-                    var convertedData = convertDataFromSmToDm(originalData, fromGisExternalContentField);
-                    if(convertedData)
+                $.ajax({
+                 //   url: orgKbUrl + "?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
+                    url: dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&valueName=" + fromGisExternalContentField,
+                  //  url: "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
+                    type: "GET",
+                    data: {},
+                    async: true,
+                    dataType: 'json',
+                    success: function(originalData) 
                     {
-                        if(convertedData.data.length > 0)
+                        var convertedData = convertDataFromSmToDm(originalData, fromGisExternalContentField);
+                        if(convertedData)
                         {
-                            drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true);
+                            if(convertedData.data.length > 0)
+                            {
+                                drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true);
+                            }
+                            else
+                            {
+                                showWidgetContent(widgetName);
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                console.log("Dati non disponibili da Service Map");
+                            }
                         }
                         else
                         {
                             showWidgetContent(widgetName);
-                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                             console.log("Dati non disponibili da Service Map");
                         }
-                    }
-                    else
+                    },
+                    error: function (data)
                     {
                         showWidgetContent(widgetName);
-                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                        console.log("Dati non disponibili da Service Map");
+                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                        console.log("Errore in scaricamento dati da Service Map");
+                        console.log(JSON.stringify(data));
                     }
-                    //console.log(JSON.stringify(convertDataFromSmToDm(originalData, fromGisExternalContentField)));
-
-                },
-                error: function (data)
-                {
-                    showWidgetContent(widgetName);
-                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                    console.log("Errore in scaricamento dati da Service Map");
-                    console.log(JSON.stringify(data));
-                }
-            });
-        }
-        else
-        {
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
-
-            $.ajax({
-                url: "../widgets/getDataMetricsForTimeTrend.php",
-                data: {"IdMisura": ['<?= $_REQUEST['id_metric'] ?>'], "time": "<?= $_REQUEST['time'] ?>", "compare": 0},
-                type: "GET",
-                async: true,
-                dataType: 'json',
-                success: function(metricData) 
-                {   
-                    drawDiagram(metricData, '<?= $_REQUEST['time'] ?>', '<?= $_REQUEST['id_metric'] ?>', false);
-                },
-                error: function(errorData)
-                {
-                    showWidgetContent(widgetName);
-                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                    console.log("Errore in chiamata di getDataMetricsForTimeTrend.php.");
-                    console.log(JSON.stringify(errorData));
-                }
-            });
-        }
-        
-        //Web socket 
-        openWs = function(e)
-        {
-            console.log("Widget " + widgetTitle + " is trying to open WebSocket");
-            try
+                });
+            }
+            else
             {
-                <?php
-                    $genFileContent = parse_ini_file("../conf/environment.ini");
-                    $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
-                    $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
-                    $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
-                    $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
-                    $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
-                    $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
-                    $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
-                    echo 'wsRetryActive = "' . $wsRetryActive . '";';
-                    echo 'wsRetryTime = ' . $wsRetryTime . ';';
-                    echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
-                ?>
-                                            
-                webSocket.addEventListener('open', openWsConn);
-                webSocket.addEventListener('close', wsClosed);
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
                 
-                setTimeout(function(){
+                switch(localTimeRange)
+                {
+                    case "4 Ore":
+                        serviceMapTimeRange = "fromTime=4-hour";
+                        globalDiagramRange = "4/HOUR";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 4);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;
+
+                    case "12 Ore":
+                        serviceMapTimeRange = "fromTime=12-hour";
+                        globalDiagramRange = "12/HOUR";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 12);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;
+
+                    case "Giornaliera":
+                        serviceMapTimeRange = "fromTime=1-day";
+                        globalDiagramRange = "1/DAY";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 24);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;
+
+                    case "Settimanale":
+                        serviceMapTimeRange = "fromTime=7-day";
+                        globalDiagramRange = "7/DAY";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 168);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;    
+
+                    case "Mensile":
+                        serviceMapTimeRange = "fromTime=30-day";
+                        globalDiagramRange = "30/DAY";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 720);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;
+
+                    case "Annuale":
+                        serviceMapTimeRange = "fromTime=365-day";
+                        globalDiagramRange = "365/DAY";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 8760);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;     
+
+                    default:
+                        serviceMapTimeRange = "fromTime=1-day";
+                        globalDiagramRange = "1/DAY";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 24);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;
+                }
+                
+                switch(sm_based)
+                {
+                    case 'yes':
+                        $.ajax({
+                            url: rowParameters + "&" + serviceMapTimeRange + "&valueName=" + sm_field,
+                            type: "GET",
+                            data: {},
+                            async: true,
+                            dataType: 'json',
+                            success: function(originalData) 
+                            {
+                                var convertedData = convertDataFromSmToDm(originalData, sm_field);
+                                if(convertedData)
+                                {
+                                    if(convertedData.data.length > 0)
+                                    {
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true);
+                                    }
+                                    else
+                                    {
+                                        showWidgetContent(widgetName);
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Dati non disponibili da Service Map");
+                                    }
+                                }
+                                else
+                                {
+                                    showWidgetContent(widgetName);
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    console.log("Dati non disponibili da Service Map");
+                                }
+                            },
+                            error: function (data)
+                            {
+                                showWidgetContent(widgetName);
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                console.log("Errore in scaricamento dati da Service Map");
+                                console.log(JSON.stringify(data));
+                            }
+                        });
+                        break;
+
+                    case 'no':
+                        $.ajax({
+                            url: "../widgets/getDataMetricsForTimeTrend.php",
+                            data: {
+                                "IdMisura": ['<?= $_REQUEST['id_metric'] ?>'], 
+                                "time": globalDiagramRange, 
+                                "compare": 0
+                            },
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function(metricData) 
+                            {   
+                                if(metricData.metricType === 'personal')
+                                {
+                                    needWebSocket = true;
+                                }
+                                
+                                drawDiagram(metricData, globalDiagramRange, '<?= $_REQUEST['id_metric'] ?>', false);
+                                
+                                if(needWebSocket)
+                                {
+                                    openWs();
+                                }
+                            },
+                            error: function(errorData)
+                            {
+                                showWidgetContent(widgetName);
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                console.log("Errore in chiamata di getDataMetricsForTimeTrend.php.");
+                                console.log(JSON.stringify(errorData));
+                            }
+                        });
+                        break;
+
+                    case 'myPersonalData':
+                        $.ajax({
+                            url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&last=0&" + serviceMapTimeRange,
+                            type: "GET",
+                            data: {},
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) 
+                            {
+                                var convertedData = convertDataFromPersonalDataToDm(data);
+                                if(convertedData)
+                                {
+                                    if(convertedData.data.length > 0)
+                                    {
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true);
+                                    }
+                                    else
+                                    {
+                                        showWidgetContent(widgetName);
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Dati non disponibili da Service Map");
+                                    }
+                                }
+                                else
+                                {
+                                    showWidgetContent(widgetName);
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    console.log("Dati non disponibili da Service Map");
+                                }
+                            },
+                            error: function(errorData)
+                            {
+                                metricData = null;
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                                if(firstLoad !== false)
+                                {
+                                   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                }
+                            }
+                        });
+                        break;
+
+                    case 'myData':
+                    case 'myKPI':
+                     //   console.log("KPI Api Call.");
+
+                        if (rowParameters.includes("datamanager/api/v1/poidata/")) {
+                            rowParameters = rowParameters.split("datamanager/api/v1/poidata/")[1];
+                        }
+                        $.ajax({
+                            url: "../controllers/myKpiProxy.php",
+                            type: "GET",
+                            data: {
+                                myKpiId: rowParameters,
+                                timeRange: myKPITimeRange
+                            },
+                            async: true,
+                            dataType: 'json',
+                            success: function(data) {
+                                var stopFlag = 1;
+                                var convertedData = convertDataFromMyKpiToDm(data);
+                                if(convertedData)
+                                {
+                                    if(convertedData.data.length > 0)
+                                    {
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true);
+                                    }
+                                    else
+                                    {
+                                        showWidgetContent(widgetName);
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Dati MyKPI non presenti");
+                                    }
+                                }
+                                else
+                                {
+                                    showWidgetContent(widgetName);
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    console.log("Dati MyKPI non presenti");
+                                }
+                            },
+                            error: function (data) {
+                                showWidgetContent(widgetName);
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                console.log("Errore!");
+                                console.log(JSON.stringify(data));
+                            }
+                        });
+                        break;
+                }
+            }
+        }
+        //Fine definizioni di funzione 
+        
+        $.ajax({
+            url: "../controllers/getWidgetParams.php",
+            type: "GET",
+            data: {
+                widgetName: "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>"
+            },
+            async: true,
+            dataType: 'json',
+            success: function(widgetData) 
+            {
+                showTitle = widgetData.params.showTitle;
+                widgetContentColor = widgetData.params.color_w;
+                fontSize = widgetData.params.fontSize;
+                timeToReload = widgetData.params.frequency_w;
+                hasTimer = widgetData.params.hasTimer;
+                widgetTitle = widgetData.params.title_w;
+                widgetHeaderColor = widgetData.params.frame_color_w;
+                widgetHeaderFontColor = widgetData.params.headerFontColor;
+                chartColor = widgetData.params.chartColor;
+                dataLabelsFontSize = widgetData.params.dataLabelsFontSize; 
+                dataLabelsFontColor = widgetData.params.dataLabelsFontColor; 
+                chartLabelsFontSize = widgetData.params.chartLabelsFontSize; 
+                chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                
+                sm_based = widgetData.params.sm_based;
+                rowParameters = widgetData.params.rowParameters;
+                sm_field = widgetData.params.sm_field;
+                gridLineColor = widgetData.params.chartPlaneColor;
+                chartAxesColor = widgetData.params.chartAxesColor;
+                
+                if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+                {
+                    showHeader = false;
+                }
+                else
+                {
+                   showHeader = true;
+                } 
+
+                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+                {
+                    metricName = "<?= $_REQUEST['id_metric'] ?>";
+                    widgetTitle = widgetData.params.title_w;
+                    widgetHeaderColor = widgetData.params.frame_color_w;
+                    widgetHeaderFontColor = widgetData.params.headerFontColor;
+                    timeRange = widgetData.params.temporal_range_w;
+                }
+                else
+                {
+                    metricName = metricNameFromDriver;
+                    widgetTitleFromDriver.replace(/_/g, " ");
+                    widgetTitleFromDriver.replace(/\'/g, "&apos;");
+                    widgetTitle = widgetTitleFromDriver;
+                    $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+                    widgetHeaderColor = widgetHeaderColorFromDriver;
+                    widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+                }
+                
+                setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+        
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                if(firstLoad === false)
+                {
+                    showWidgetContent(widgetName);
+                }
+                else
+                {
+                    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                }
+
+                //Nuova versione
+                if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+                {
+                    styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+                }
+
+                if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+                {
+                    widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+                }
+
+                if(widgetParameters !== null && widgetParameters !== undefined)
+                {
+                    if(widgetParameters.hasOwnProperty("thresholdObject"))
+                    {
+                       thresholdObject = widgetParameters.thresholdObject; 
+                    }
+                }
+
+                sizeRowsWidget = parseInt('<?= $_REQUEST['size_rows'] ?>');
+
+                populateWidget(timeRange);
+
+                //Web socket 
+                openWs = function(e)
+                {
+                    try
+                    {
+                        <?php
+                            $genFileContent = parse_ini_file("../conf/environment.ini");
+                            $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                            $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                            $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                            $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                            $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                            $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                            $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                            echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                            echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                            echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                        ?>
+
+                        webSocket.addEventListener('open', openWsConn);
+                        webSocket.addEventListener('close', wsClosed);
+
+                        setTimeout(function(){
+                            webSocket.removeEventListener('close', wsClosed);
+                            webSocket.removeEventListener('open', openWsConn);
+                            webSocket.removeEventListener('message', manageIncomingWsMsg);
+                            webSocket.close();
+                            webSocket = null;  
+                        }, (timeToReload - 2)*1000);
+                    }
+                    catch(e)
+                    {
+                        //console.log("Widget " + widgetTitle + " could not connect to WebSocket");
+                        wsClosed();
+                    }
+                };
+
+                manageIncomingWsMsg = function(msg)
+                {
+                    var msgObj = JSON.parse(msg.data);
+
+                    switch(msgObj.msgType)
+                    {
+                        case "newNRMetricData":
+                            if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                            {
+                                webSocket.close();
+                                clearInterval(countdownRef);
+                                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                };
+
+                openWsConn = function(e)
+                {
+                    var wsRegistration = {
+                        msgType: "ClientWidgetRegistration",
+                        userType: "widgetInstance",
+                        metricName: encodeURIComponent(metricName),
+                        widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+                      };
+                      webSocket.send(JSON.stringify(wsRegistration));
+
+                      setTimeout(function(){
+                          webSocket.removeEventListener('close', wsClosed);
+                          webSocket.close();
+                      }, (timeToReload - 2)*1000);
+
+                    webSocket.addEventListener('message', manageIncomingWsMsg);
+                };
+
+                wsClosed = function(e)
+                {
                     webSocket.removeEventListener('close', wsClosed);
                     webSocket.removeEventListener('open', openWsConn);
                     webSocket.removeEventListener('message', manageIncomingWsMsg);
-                    webSocket.close();
-                    webSocket = null;  
-                }, (timeToReload - 2)*1000);
-            }
-            catch(e)
-            {
-                console.log("Widget " + widgetTitle + " could not connect to WebSocket");
-                wsClosed();
-            }
-        };
-        
-        manageIncomingWsMsg = function(msg)
-        {
-            console.log("Widget " + widgetTitle + " got new data from WebSocket: \n" + msg.data);
-            var msgObj = JSON.parse(msg.data);
-
-            switch(msgObj.msgType)
-            {
-                case "newNRMetricData":
-                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                    webSocket = null;
+                    if(wsRetryActive === 'yes')
                     {
-                        webSocket.close();
-                        clearInterval(countdownRef);
-                        <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
-                    }
-                    break;
+                        setTimeout(openWs, parseInt(wsRetryTime*1000));
+                    }	
+                };
 
-                default:
-                    console.log("Received: " + msg.data);
-                    break;
-            }
-        };
-        
-        openWsConn = function(e)
-        {
-            console.log("Widget " + widgetTitle + " connected successfully to WebSocket");
-            var wsRegistration = {
-                msgType: "ClientWidgetRegistration",
-                userType: "widgetInstance",
-                metricName: encodeURIComponent(metricName)
-              };
-              webSocket.send(JSON.stringify(wsRegistration));
+                //Per ora non usata
+                wsError = function(e)
+                {
+                    
+                };
 
-              setTimeout(function(){
-                  webSocket.removeEventListener('close', wsClosed);
-                  webSocket.close();
-              }, (timeToReload - 2)*1000);
-              
-            webSocket.addEventListener('message', manageIncomingWsMsg);
-        };
-        
-        wsClosed = function(e)
-        {
-            console.log("Widget " + widgetTitle + " got WebSocket closed");
-            
-            webSocket.removeEventListener('close', wsClosed);
-            webSocket.removeEventListener('open', openWsConn);
-            webSocket.removeEventListener('message', manageIncomingWsMsg);
-            webSocket = null;
-            if(wsRetryActive === 'yes')
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").on('customResizeEvent', function(event){
+                    resizeWidget();
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().reflow();
+                });
+
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").off('updateFrequency');
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").on('updateFrequency', function(event){
+                    clearInterval(countdownRef);
+                    timeToReload = event.newTimeToReload;
+                    countdownRef = startCountdown(widgetName, timeToReload, <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId); 
+                });
+                
+                $("#<?= $_REQUEST['name_w'] ?>").off('changeTimeRangeEvent');
+                $("#<?= $_REQUEST['name_w'] ?>").on('changeTimeRangeEvent', function(event)
+                {
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').hide();
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading').show();
+                    populateWidget(event.newTimeRange);
+                });
+
+                countdownRef = startCountdown(widgetName, timeToReload, <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId); 
+            },
+            error: function(errorData)
             {
-                console.log("Widget " + widgetTitle + " will retry WebSocket reconnection in " + parseInt(wsRetryTime) + "s");
-                setTimeout(openWs, parseInt(wsRetryTime*1000));
-            }	
-        };
         
-        //Per ora non usata
-        wsError = function(e)
-        {
-            console.log("Widget " + widgetTitle + " got WebSocket error: " + e);
-        };
-        
-        openWs();
-        
-        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId); 
-    });//Fine document ready 
+            }
+        });
+    });//Fine document ready
+
 </script>
 
 
-<div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
+<div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-		
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-               <i class="material-icons gisDriverPin" data-onMap="false">navigation</i>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
-        <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
+        <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
             </div>
@@ -1247,16 +1688,17 @@
             </div>
         </div>
         
-        <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
-            <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
-                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
+        <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
+            <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert" class="noDataAlert">
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText" class="noDataAlertText">
                     No data available
                 </div>
-                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertIcon" class="noDataAlertIcon">
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>
                 </div>
             </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
+            <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer" class="chartContainer"></div>
         </div>
     </div>	
 </div> 

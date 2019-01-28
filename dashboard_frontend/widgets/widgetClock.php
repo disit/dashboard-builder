@@ -87,7 +87,7 @@
             months[11] = "Dec";
 
             //var day = days[now.getDay()];
-            var day = now.getDay();
+            var day = now.getDate();
             //var month = months[now.getMonth()];
             var month = parseInt(now.getMonth() + 1);
             var hours = now.getHours();
@@ -204,7 +204,7 @@
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         if((widgetProperties !== null) && (widgetProperties !== ''))
@@ -222,24 +222,24 @@
             console.log("Errore in caricamento proprietà widget");
         }
 		
-		$('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').remove();
+	$('#<?= $_REQUEST['name_w'] ?>_countdownContainerDiv').remove();
+        
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
 });//Fine document ready 
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
 	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-        </div>-->
+	   <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -251,6 +251,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	 
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer">
             </div>

@@ -20,7 +20,8 @@
 <link rel="stylesheet" href="../css/widgetImpulseButton.css">
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId)  
+
+  $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId)  
     {
         <?php
             $titlePatterns = array();
@@ -30,7 +31,17 @@
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
-        ?>
+            
+            $genFileContent = parse_ini_file("../conf/environment.ini");
+            $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+            $env = $genFileContent['environment']['value'];
+            $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$env];
+            $wsServerPort = $wsServerContent["wsServerPort"][$env];
+            $wsPath = $wsServerContent["wsServerPath"][$env];
+            $wsProtocol = $wsServerContent["wsServerProtocol"][$env];
+            $wsRetryActive = $wsServerContent["wsServerRetryActive"][$env];
+            $wsRetryTime = $wsServerContent["wsServerRetryTime"][$env];
+            $useActuatorWS = $wsServerContent["wsServerActuator"][$env]; ?>
                 
         var headerHeight = 25;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
@@ -45,9 +56,8 @@
         var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-        
-        var widgetProperties, styleParameters, metricType, metricName, widgetParameters, 
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var widgetProperties, styleParameters, metricType, metricName, widgetParameters, nrInputId,
             sizeRowsWidget, widgetTitle, widgetHeaderColor, 
             widgetHeaderFontColor, showHeader, minDim, minDimCells, minDimName, offset, dashboardId,
             widgetWidthCells, widgetHeightCells,
@@ -59,15 +69,20 @@
             displayFontColor, displayFontClickColor, displayRadius, displayColor, displayWidth, displayHeight, displayOffNeonEffect, 
             displayOnNeonEffect, impulseMode, targetEntity, targetEntityAttribute, baseValue, sequenceEntityUpdateInterval,
             actuatorTarget, username, endPointHost, endPointPort, nodeRedInputName = null;
-        
+        var useWebSocket = <?= $useActuatorWS ?>;
+        if(Window.webSockets == undefined)
+          Window.webSockets = {};
+
+        console.log("<?= $_REQUEST['name_w'] ?>");
+
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-				showHeader = false;
-		}
-		else
-		{
-			showHeader = true;
-		} 
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        } 
             
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
@@ -107,8 +122,7 @@
         }
         
         //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getStyleParameters()
-        {
+        function getStyleParameters() {
             var styleParameters = null;
             if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
             {
@@ -118,8 +132,7 @@
             return styleParameters;
         }
         
-        function populateWidget()
-        {
+        function populateWidget() {
             showWidgetContent(widgetName);
             $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
             $("#<?= $_REQUEST['name_w'] ?>_loadErrorAlert").hide();
@@ -424,14 +437,12 @@
             }
             
 			
-			$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mousedown');
-			$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mouseup');
-            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+            //$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mousedown');
+            //$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mouseup');
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
         }
         
-        function sequenceEntityUpdate()
-        {
+        function sequenceEntityUpdate() {
             switch(actuatorTarget)
             {
                 case 'broker':
@@ -440,7 +451,7 @@
                         type: "POST",
                         data: {
                             "dashboardId": dashboardId,
-                            "entityId": "<?= $_REQUEST['name_w'] ?>",
+                            "entityId": JSON.parse(entityJson).id,
                             "entityJson": entityJson,
                             "attributeName": attributeName,
                             "attributeType": JSON.parse(entityJson)[attributeName].type,
@@ -500,7 +511,8 @@
                             "username" : $('#authForm #hiddenUsername').val(),
                             "value": currentValue,
                             "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
-                            "httpRoot": "<?= $_REQUEST['httpRoot'] ?>"
+                            "httpRoot": "<?= $_REQUEST['httpRoot'] ?>",
+                            "nrInputId": nrInputId
                         },
                         async: true,
                         dataType: 'json',
@@ -625,8 +637,7 @@
             }
         }
         
-        function handleMouseUp()
-        {
+        function handleMouseUp() {
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').removeClass('onOffButtonActive');
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("background-color", buttonColor);
             
@@ -685,10 +696,7 @@
             switch(impulseMode)
             {
                 case "singlePress":
-                    /*oldValue = currentValue;
-                    currentValue = impulseValue;
-                    updateRemoteValue();*/
-        
+      
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').hide();
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("display", "none");
@@ -699,8 +707,8 @@
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("top", loadingIconMarginTop + "px");
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("left", loadingIconMarginLeft + "px");
         
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mousedown', handleMouseDown);
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mouseup', handleMouseUp);
+                    //$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mousedown', handleMouseDown);
+                    //$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mouseup', handleMouseUp);
                     
                     switch(actuatorTarget)
                     {
@@ -710,7 +718,7 @@
                                 type: "POST",
                                 data: {
                                     "dashboardId": dashboardId,
-                                    "entityId": "<?= $_REQUEST['name_w'] ?>",
+                                    "entityId": JSON.parse(entityJson).id,
                                     "entityJson": entityJson,
                                     "attributeName": attributeName,
                                     "attributeType": JSON.parse(entityJson)[attributeName].type,
@@ -730,7 +738,7 @@
                                                     type: "POST",
                                                     data: {
                                                         "dashboardId": dashboardId,
-                                                        "entityId": "<?= $_REQUEST['name_w'] ?>",
+                                                        "entityId": JSON.parse(entityJson).id,
                                                         "entityJson": entityJson,
                                                         "attributeName": attributeName,
                                                         "attributeType": JSON.parse(entityJson)[attributeName].type,
@@ -744,8 +752,7 @@
                                                         switch(data.result)
                                                         {
                                                             case "Ok":
-                                                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-                                                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+                                                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                                                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
 
                                                                 switch(viewMode)
@@ -866,8 +873,7 @@
                                                                             break;        
                                                                     }
 
-                                                                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-                                                                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+                                                                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                                                                 }, 1500);
                                                                 break;
                                                         }
@@ -939,8 +945,7 @@
                                                                     break;        
                                                             }
 
-                                                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-                                                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+                                                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                                                         }, 1500);
                                                         console.log("Impulse ko:");
                                                         console.log(data);
@@ -1015,8 +1020,7 @@
                                                         break;        
                                                 }
 
-                                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-                                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+                                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                                             }, 1500);
                                             break;
                                     }
@@ -1088,8 +1092,7 @@
                                                 break;        
                                         }
 
-                                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-                                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+                                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                                     }, 1500);
                                     console.log("Impulse ko:");
                                     console.log(data);
@@ -1116,8 +1119,53 @@
                             {
                                 valueToSend = impulseValue;
                             }
-						
-                            $.ajax({
+                            if(useWebSocket) {
+                                var data = {
+                                      "msgType": "SendToEmitter",
+                                      "widgetUniqueName": widgetName,
+                                      "value": valueToSend,
+                                      "inputName": nodeRedInputName,
+                                      "dashboardId": dashboardId,
+                                      "username" : $('#authForm #hiddenUsername').val(),
+                                      "nrInputId": nrInputId
+                                };
+                                var webSocket = Window.webSockets[widgetName];
+                                webSocket.ackReceived=false;
+                                webSocket.onAck = onSuccess1;
+                                console.log(widgetName+" SEND ackReceived:"+webSocket.ackReceived)
+                                if(webSocket.readyState==webSocket.OPEN) {
+                                    webSocket.send(JSON.stringify(data));
+                                    webSocket.timeout = setTimeout(function() {
+                                      if(!webSocket.ackReceived) {
+                                        console.log(widgetName+" ERR1 ackReceived:"+webSocket.ackReceived)
+                                        onError1({});
+                                      }
+                                    },3000)
+                                } else {
+                                    console.log(widgetName+" ERR1 socket not OPEN");
+                                    onError1({});
+                                }
+                            } else {
+                                $.ajax({
+                                    url: "../widgets/actuatorUpdateValuePersonalApps.php",
+                                    type: "POST",
+                                    data: {
+                                        "inputName": nodeRedInputName,
+                                        "dashboardId": dashboardId,
+                                        "widgetName": "<?= $_REQUEST['name_w'] ?>",
+                                        "username" : $('#authForm #hiddenUsername').val(),
+                                        "value": valueToSend,
+                                        "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
+                                        "httpRoot": "<?= $_REQUEST['httpRoot'] ?>",
+                                        "nrInputId": nrInputId
+                                    },
+                                    async: true,
+                                    dataType: 'json',
+                                    success: onSuccess1,
+                                    error: onError1
+                                });
+                            }
+                            /*$.ajax({
                                 url: "../widgets/actuatorUpdateValuePersonalApps.php",
                                 type: "POST",
                                 data: {
@@ -1127,7 +1175,8 @@
                                     "username" : $('#authForm #hiddenUsername').val(),
                                     "value": valueToSend,
                                     "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
-                                    "httpRoot": "<?= $_REQUEST['httpRoot'] ?>"
+                                    "httpRoot": "<?= $_REQUEST['httpRoot'] ?>",
+                                    "nrInputId": nrInputId
                                 },
                                 async: true,
                                 dataType: 'json',
@@ -1147,7 +1196,8 @@
                                                         "username" : $('#authForm #hiddenUsername').val(),
                                                         "value": baseValue,
                                                         "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
-                                                        "httpRoot": "<?= $_REQUEST['httpRoot'] ?>"
+                                                        "httpRoot": "<?= $_REQUEST['httpRoot'] ?>",
+                                                        "nrInputId": nrInputId
                                                     },
                                                     async: true,
                                                     dataType: 'json',
@@ -1509,7 +1559,7 @@
                             });
                             break;
                     }
-                    
+                    */
                     
                     break;
                     
@@ -1520,7 +1570,7 @@
                         type: "POST",
                         data: {
                             "dashboardId": dashboardId,
-                            "entityId": "<?= $_REQUEST['name_w'] ?>",
+                            "entityId": JSON.parse(entityJson).id,
                             "entityJson": entityJson,
                             "attributeName": attributeName,
                             "attributeType": JSON.parse(entityJson)[attributeName].type,
@@ -1580,142 +1630,401 @@
                     break;    
             }
         }
-        
-        function updateRemoteValue()
-        {
-            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mousedown', handleMouseDown);
-            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mouseup', handleMouseUp);
-            
-            var requestComplete = false;
-            updateRequestStartTime = new Date();
-            setUpdatingMsgInterval = setInterval(function(){
-                if((requestComplete === false)&&(Math.abs(new Date() - updateRequestStartTime) > 1100))
-                {
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').hide();
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
-                    $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("display", "none");
-                    $('#<?= $_REQUEST['name_w'] ?>_display').css("display", "none");
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "block");
-                    var loadingIconMarginLeft = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').width()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').width())/2);
-                    var loadingIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').height())/2);
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("top", loadingIconMarginTop + "px");
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("left", loadingIconMarginLeft + "px");
-                }
-            }, 250);
-            
-            switch(actuatorTarget)
+        }
+
+        var onSuccess1 = function (data) {
+            switch(data.result)
             {
-                case 'broker':
-                    $.ajax({
-                        url: "../widgets/actuatorUpdateValue.php",
-                        type: "POST",
-                        data: {
-                            "dashboardId": dashboardId,
-                            "entityId": "<?= $_REQUEST['name_w'] ?>",
-                            "entityJson": entityJson,
-                            "attributeName": attributeName,
-                            "attributeType": JSON.parse(entityJson)[attributeName].type,
-                            "value": currentValue,
-                            "dashboardUsername": $('#authForm #hiddenUsername').val()
-                        },
-                        async: true,
-                        dataType: 'json',
-                        success: function(data) 
-                        {
-                            requestComplete = true;
-                            clearInterval(setUpdatingMsgInterval);
-                            switch(data.result)
-                            {
-                                case "insertQueryKo":
-                                    showUpdateResult("DB KO");
-                                    break;
-
-                                case "updateEntityKo":
-                                    showUpdateResult("Device KO");
-                                    break;
-
-                                case "updateEntityAndUpdateQueryKo":
-                                    showUpdateResult("DB and device KO");
-                                    break;
-
-                                case "updateQueryKo":
-                                    showUpdateResult("DB KO");
-                                    break;
-
-                                case "Ok":
-                                    showUpdateResult("Device OK");
-                                    break;    
-                            }
-                        },
-                        error: function(errorData)
-                        {
-                            requestComplete = true;
-                            clearInterval(setUpdatingMsgInterval);
-                            showUpdateResult("API KO");
-                            console.log("Update value KO");
-                            console.log(JSON.stringify(errorData));
+                case "Ok":
+                    if(useWebSocket) {
+                        var webSocket = Window.webSockets[data.widgetName];
+                        console.log(data.widgetName+" SUCC1 ackReceived: "+webSocket.ackReceived)
+                    }
+                    setTimeout(function(){
+                        if(useWebSocket) {
+                            var dataToEmitter = {
+                                "msgType": "SendToEmitter",
+                                "widgetUniqueName": data.widgetName,
+                                "value": baseValue,
+                                "inputName": nodeRedInputName,
+                                "dashboardId": dashboardId,
+                                "username" : $('#authForm #hiddenUsername').val(),
+                                "nrInputId": nrInputId
+                            };
+                            webSocket.ackReceived=false
+                            webSocket.onAck = onSuccess2
+                            webSocket.send(JSON.stringify(dataToEmitter));
+                            webSocket.timeout=setTimeout(function() {
+                              console.log(data.widgetName+" ERR2 ackReceived:"+webSocket.ackReceived)
+                              if(!webSocket.ackReceived)
+                                onError2({widgetName: data.widgetName})
+                            },3000);
+                        } else {
+                            $.ajax({
+                                url: "../widgets/actuatorUpdateValuePersonalApps.php",
+                                type: "POST",
+                                data: {
+                                    "inputName": nodeRedInputName,
+                                    "dashboardId": dashboardId,
+                                    "widgetName": "<?= $_REQUEST['name_w'] ?>",
+                                    "username" : $('#authForm #hiddenUsername').val(),
+                                    "value": baseValue,
+                                    "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
+                                    "httpRoot": "<?= $_REQUEST['httpRoot'] ?>",
+                                    "nrInputId": nrInputId
+                                },
+                                async: true,
+                                dataType: 'json',
+                                success: onSuccess2,
+                                error: onError2
+                            });                            
                         }
-                    });
+                    }, 1000);
                     break;
-                
-                case 'app':
-                    $.ajax({
-                        url: "../widgets/actuatorUpdateValuePersonalApps.php",
-                        type: "POST",
-                        data: {
-                            "inputName": nodeRedInputName,
-                            "dashboardId": dashboardId,
-                            "widgetName": "<?= $_REQUEST['name_w'] ?>",
-                            "username" : $('#authForm #hiddenUsername').val(),
-                            "value": currentValue,
-                            "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
-                            "httpRoot": "<?= $_REQUEST['httpRoot'] ?>"
-                        },
-                        async: true,
-                        dataType: 'json',
-                        success: function(data) 
+                default:
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "block");
+                    var errorIconMarginLeft = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').width()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').width())/2);
+                    var errorIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').height())/2);
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("top", errorIconMarginTop + "px");
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("left", errorIconMarginLeft + "px");
+
+                    setTimeout(function(){
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
+
+                        currentValue = baseValue;
+
+                        switch(viewMode)
                         {
-                            requestComplete = true;
-                            clearInterval(setUpdatingMsgInterval);
-                            switch(data.result)
-                            {
-                                case "insertQueryKo":
-                                    showUpdateResult("DB KO");
-                                    break;
+                            case "emptyButton":
+                                break;
+                            case "iconOnly":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                break;
+                            case "textOnly":
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                break;
+                            case "displayOnly":
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                break;    
+                            case "iconAndText":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                break;    
+                            case "iconAndDisplay":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                $('#<?= $_REQUEST['name_w'] ?>_display').textfill({
+                                    maxFontPixels: -20
+                                });
 
-                                case "updateBlockKo":
-                                    showUpdateResult("Device KO");
-                                    break;
-
-                                case "updateBlockAndUpdateQueryKo":
-                                    showUpdateResult("DB and device KO");
-                                    break;
-
-                                case "updateQueryKo":
-                                    showUpdateResult("DB KO");
-                                    break;
-
-                                case "Ok":
-                                    showUpdateResult("Device OK");
-                                    break;    
-                            }
-                        },
-                        error: function(errorData)
-                        {
-                            requestComplete = true;
-                            clearInterval(setUpdatingMsgInterval);
-                            showUpdateResult("API KO");
-                            console.log("Update value KO");
-                            console.log(JSON.stringify(errorData));
+                                if(displayFontSize < parseInt($('#<?= $_REQUEST['name_w'] ?>_display span').css('font-size').replace('px', '')))
+                                {
+                                    $("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
+                                }
+                                break;
+                            case "displayAndText":
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                break;    
+                            case "all":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                break;        
                         }
-                    });
-                    break;  
+
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
+                    }, 1500);
+                    break;
             }
-            
         }
         
-        function showUpdateResult(msg)
-        {
+        var onError1 = function(data) {
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "block");
+            var errorIconMarginLeft = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').width()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').width())/2);
+            var errorIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').height())/2);
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("top", errorIconMarginTop + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("left", errorIconMarginLeft + "px");
+
+            setTimeout(function(){
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
+
+                currentValue = baseValue;
+
+                switch(viewMode)
+                {
+                    case "emptyButton":
+
+                        break;
+
+                    case "iconOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        break;
+
+                    case "textOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        break;
+
+                    case "displayOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        break;    
+
+                    case "iconAndText":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        break;    
+
+                    case "iconAndDisplay":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').textfill({
+                            maxFontPixels: -20
+                        });
+
+                        if(displayFontSize < parseInt($('#<?= $_REQUEST['name_w'] ?>_display span').css('font-size').replace('px', '')))
+                        {
+                            $("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
+                        }
+                        break;
+
+                    case "displayAndText":
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        break;    
+
+                    case "all":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        break;        
+                }
+
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
+            }, 1500);
+            console.log("Impulse ko:");
+            console.log(data);
+        }
+
+        var onSuccess2=function(data) {
+            switch(data.result)
+            {
+                case "Ok":
+                    if(useWebSocket) {
+                        console.log(data.widgetName+" SUCC2 ackReceived:"+Window.webSockets[data.widgetName].ackReceived)
+                    }
+
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+
+                    switch(viewMode)
+                    {
+                        case "emptyButton":
+                            break;
+
+                        case "iconOnly":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                            break;
+
+                        case "textOnly":
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                            break;
+
+                        case "displayOnly":
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                            $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                            break;    
+
+                        case "iconAndText":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');    
+                            break;    
+
+                        case "iconAndDisplay":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                            $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                            $('#<?= $_REQUEST['name_w'] ?>_display').textfill({
+                                maxFontPixels: -20
+                            });
+
+                            if(displayFontSize < parseInt($('#<?= $_REQUEST['name_w'] ?>_display span').css('font-size').replace('px', '')))
+                            {
+                                $("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
+                            }
+                            break;
+
+                        case "displayAndText":
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                            $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                            break;    
+
+                        case "all":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                            $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                            break;        
+                    }
+                    break;
+
+                default:
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "block");
+                    var errorIconMarginLeft = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').width()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').width())/2);
+                    var errorIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').height())/2);
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("top", errorIconMarginTop + "px");
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("left", errorIconMarginLeft + "px");
+
+                    setTimeout(function(){
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
+
+                        currentValue = baseValue;
+
+                        switch(viewMode)
+                        {
+                            case "emptyButton":
+
+                                break;
+
+                            case "iconOnly":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                break;
+
+                            case "textOnly":
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                break;
+
+                            case "displayOnly":
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                break;    
+
+                            case "iconAndText":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                break;    
+
+                            case "iconAndDisplay":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                $('#<?= $_REQUEST['name_w'] ?>_display').textfill({
+                                    maxFontPixels: -20
+                                });
+
+                                if(displayFontSize < parseInt($('#<?= $_REQUEST['name_w'] ?>_display span').css('font-size').replace('px', '')))
+                                {
+                                    $("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
+                                }
+                                break;
+
+                            case "displayAndText":
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                break;    
+
+                            case "all":
+                                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                                $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                                break;        
+                        }
+
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
+                    }, 1500);
+                    break;
+            }
+        }
+        
+        var onError2 = function(data) {
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "block");
+            var errorIconMarginLeft = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').width()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').width())/2);
+            var errorIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').height())/2);
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("top", errorIconMarginTop + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("left", errorIconMarginLeft + "px");
+
+            setTimeout(function(){
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
+
+                currentValue = baseValue;
+
+                switch(viewMode)
+                {
+                    case "emptyButton":
+
+                        break;
+
+                    case "iconOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        break;
+
+                    case "textOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        break;
+
+                    case "displayOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        break;    
+
+                    case "iconAndText":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        break;    
+
+                    case "iconAndDisplay":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').textfill({
+                            maxFontPixels: -20
+                        });
+
+                        if(displayFontSize < parseInt($('#<?= $_REQUEST['name_w'] ?>_display span').css('font-size').replace('px', '')))
+                        {
+                            $("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
+                        }
+                        break;
+
+                    case "displayAndText":
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        break;    
+
+                    case "all":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
+                        $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+                        break;        
+                }
+
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
+            }, 1500);
+            console.log("Impulse ko:");
+            console.log(data);
+        }
+
+        function showUpdateResult(msg) {
             //msg = "Pippo";
             if(msg !== "Device OK")
             {
@@ -1810,14 +2119,12 @@
                             break;        
                     }
                   
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                 }, 1500);
             }
             else
             {
-                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mousedown(handleMouseDown);
-                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').mouseup(handleMouseUp);
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
                 
                 switch(viewMode)
@@ -1873,8 +2180,7 @@
             }
         }
         
-        function resizeWidget()
-		{
+        function resizeWidget(){
 				setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
 				
 				if($("#<?= $_REQUEST['name_w'] ?>_chartContainer").width() > $("#<?= $_REQUEST['name_w'] ?>_chartContainer").height())
@@ -2004,7 +2310,7 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
         
         $.ajax({
             url: getParametersWidgetUrl,
@@ -2040,6 +2346,7 @@
                     }
                     else
                     {
+                        nrInputId = widgetProperties.param.nrInputId;
                         nodeRedInputName = widgetProperties.param.name;
                         dataType = widgetProperties.param.valueType;
                         baseValue = widgetProperties.param.offValue;
@@ -2047,23 +2354,29 @@
                         username = widgetProperties.param.creator;
                         endPointHost = widgetProperties.param.endPointHost;
                         endPointPort = widgetProperties.param.endPointPort;
+                        if(useWebSocket)
+                            openWs(widgetName);
                     }
                     
                     switch(dataType)
                     {
-                        case "Integer":
+                        case "Integer": case "integer":
                             currentValue = parseInt(widgetProperties.param.currentValue);
+                            baseValue = parseInt(baseValue);
+                            impulseValue = parseInt(impulseValue);
                             break;
 
-                        case "Float":
+                        case "Float": case "float":
                             currentValue = parseFloat(widgetProperties.param.currentValue);
+                            baseValue = parseFloat(baseValue);
+                            impulseValue = parseFloat(impulseValue);
                             break;
 
-                        case "String":
+                        case "String": case "string":
                             currentValue = widgetProperties.param.currentValue;
                             break;
 
-                        case "Boolean":
+                        case "Boolean": case "boolean":
                             if((widgetProperties.param.currentValue === true)||(widgetProperties.param.currentValue === 'true')||(widgetProperties.param.currentValue === 'True'))
                             {
                                 currentValue = true;
@@ -2072,6 +2385,8 @@
                             {
                                 currentValue = false;   
                             }
+                            baseValue = Boolean(baseValue);
+                            impulseValue = Boolean(impulseValue);
                             break;    
                     }
                     
@@ -2163,17 +2478,176 @@
         });
         
         $(document).off('resizeHighchart_' + widgetName);
-		$(document).on('resizeHighchart_' + widgetName, function(event) 
-		{
-			populateWidget();
-		});
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+            populateWidget();
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        //Web socket 
+        
+        var openWs = function(widget)
+        {
+            try
+            {
+                <?php
+                    echo 'wsRetryActive = "' . $wsRetryActive . '";'."\n";
+                    echo 'wsRetryTime = ' . $wsRetryTime . ';'."\n";
+                    echo 'wsUrl="' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '";'."\n";
+                ?>
+                //webSocket = new WebSocket(wsUrl);
+                initWebsocket(widget, wsUrl, null, wsRetryTime*1000, function(socket){
+                    console.log('socket initialized!');
+                    //do something with socket...
+                    //Window.webSockets["<?= $_REQUEST['name_w'] ?>"] = socket;
+                    openWsConn(widget);
+                }, function(){
+                    console.log('init of socket failed!');
+                });                                          
+                /*webSocket.addEventListener('open', openWsConn);
+                webSocket.addEventListener('close', wsClosed);*/
+            }
+            catch(e)
+            {
+                wsClosed();
+            }
+        };
+        
+        var manageIncomingWsMsg = function(msg)
+        {
+            var msgObj = JSON.parse(msg.data);
+            console.log(msgObj);
+            if(msgObj.msgType=="DataToEmitterAck") {
+              var webSocket = Window.webSockets[msgObj.widgetUniqueName];
+              if(! webSocket.ackReceived) {
+                clearTimeout(webSocket.timeout);
+                webSocket.ackReceived = true;
+                console.log(msgObj.widgetUniqueName+" ACK ackReceived:"+webSocket.ackReceived)
+                webSocket.onAck({result:"Ok", widgetName:msgObj.widgetUniqueName});
+              }
+            }
+        };
+        
+        timeToReload=200;
+        var openWsConn = function(widget) {            
+            var webSocket = Window.webSockets[widget];
+            /*setTimeout(function(){
+                var webSocket = Window.webSockets[widget];
+                webSocket.removeEventListener('message', manageIncomingWsMsg);
+                webSocket.close();
+            }, (timeToReload - 2)*1000);*/
+              
+            webSocket.addEventListener('message', manageIncomingWsMsg);
+        };
+        
+        var wsClosed = function(e)
+        {
+            var webSocket = Window.webSockets["<?= $_REQUEST['name_w'] ?>"];
+            webSocket.removeEventListener('message', manageIncomingWsMsg);
+            if(wsRetryActive === 'yes')
+            {
+                setTimeout(openWs, parseInt(wsRetryTime*1000));
+            }	
+        };
+
+        function initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed) {
+          if (!existingWebsocket || existingWebsocket.readyState != existingWebsocket.OPEN) {
+              if (existingWebsocket) {
+                  existingWebsocket.close();
+              }
+              var websocket = new WebSocket(url);
+              websocket.widget = widget;
+              console.log("store websocket for "+widget)
+              Window.webSockets[widget] = websocket;
+              websocket.onopen = function () {
+                  console.info('websocket opened! url: ' + url);
+                  success(websocket);
+              };
+              websocket.onclose = function () {
+                  console.info('websocket closed! url: ' + url + " reconnect in "+retryTimeMs+"ms");
+                  //reconnect after a retryTime
+                  setTimeout(function(){
+                    initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed);
+                  }, retryTimeMs);
+              };
+              websocket.onerror = function (e) {
+                  console.info('websocket error! url: ' + url);
+                  console.info(e);
+              };
+          } else {
+              success(existingWebsocket);
+          }
+
+          return;
+      };
+
+/*        
+        function initWebsocket(widget, url, existingWebsocket, timeoutMs, numberOfRetries) {
+          timeoutMs = timeoutMs ? timeoutMs : 1500;
+          numberOfRetries = numberOfRetries ? numberOfRetries : 0;
+          var hasReturned = false;
+          var promise = new Promise((resolve, reject) => {
+              setTimeout(function () {
+                  if(!hasReturned) {
+                      console.info('opening websocket timed out: ' + url);
+                      rejectInternal();
+                  }
+              }, timeoutMs);
+              if (!existingWebsocket || existingWebsocket.readyState != existingWebsocket.OPEN) {
+                  if (existingWebsocket) {
+                      existingWebsocket.close();
+                  }
+                  var websocket = new WebSocket(url);
+                  websocket.widget = widget;
+                  console.log("store websocket for "+widget)
+                  Window.webSockets[widget] = websocket;
+                  websocket.onopen = function () {
+                      if(hasReturned) {
+                          websocket.close();
+                      } else {
+                          console.info('websocket to opened! url: ' + url);
+                          resolve(websocket);
+                      }
+                  };
+                  websocket.onclose = function () {
+                      console.info('websocket closed! url: ' + url);
+                      hasReturned = false;
+                      rejectInternal();
+                  };
+                  websocket.onerror = function () {
+                      console.info('websocket error! url: ' + url);
+                      rejectInternal();
+                  };
+              } else {
+                  resolve(existingWebsocket);
+              }
+
+              function rejectInternal() {
+                  if(numberOfRetries <= 0) {
+                      console.log("reject "+numberOfRetries)
+                      reject();
+                  } else if(!hasReturned) {
+                      hasReturned = true;
+                      console.info('retrying connection to websocket! url: ' + url + ', remaining retries: ' + (numberOfRetries-1));
+                      initWebsocket(widget, url, null, timeoutMs, numberOfRetries-1).then(resolve, reject);
+                  }
+              }
+          });
+          promise.then(function () {hasReturned = true;}, function () {hasReturned = true;});
+          return promise;
+      };
+*/      
 });//Fine document ready 
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -2185,6 +2659,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available

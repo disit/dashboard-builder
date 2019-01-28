@@ -175,7 +175,7 @@ class dashboardWizardControllerSSP {
 				$column = $columns[ $columnIdx ];
 
 				if ( $requestColumn['searchable'] == 'true' ) {
-					$binding = self::bind( $bindings, '%'.$str.'%', PDO::PARAM_STR );
+					$binding = self::bind( $bindings, '%'.$str.'%', PDO::PARAM_STR );                       // QUI INVECE NON TOGLIERE I '%'
 					$globalSearch[] = "`".$column['db']."` LIKE ".$binding;
 				}
 			}
@@ -198,9 +198,11 @@ class dashboardWizardControllerSSP {
                         $strArray[$k] != '' ) {
                      //  $str != '' ) {
                             $flag = true;
-                            $binding = self::bind( $bindings, '%'.$strArray[$k].'%', PDO::PARAM_STR );      // TOGLIERE I '%'
+                        //    $binding = self::bind( $bindings, '%'.$strArray[$k].'%', PDO::PARAM_STR );      // TOGLIERE I '%'
+                        $binding = self::bind( $bindings, $strArray[$k], PDO::PARAM_STR );      // TOGLIERE I '%'
                         if ($k == 0) {
-                            $columnSearch[$columnIdx] = "`".$column['db']."` LIKE ".$binding;
+                       //     $columnSearch[$columnIdx] = "`".$column['db']."` LIKE ".$binding;
+                            $columnSearch[$columnIdx] = "`".$column['db']."` = ".$binding;
                         } else {
                             $columnSearch[$columnIdx] = $columnSearch[$columnIdx]." OR `".$column['db']."` LIKE ".$binding;
                         }
@@ -327,7 +329,7 @@ class dashboardWizardControllerSSP {
 	 */
 	static function complex ( $request, $conn, $table, $primaryKey, $columns, $whereResult=null, $whereAll=null )
 	{
-		$bindings = array();
+        $bindings = array();
 		$db = self::db( $conn );
 		$localWhereResult = array();
 		$localWhereAll = array();

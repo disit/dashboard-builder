@@ -18,69 +18,6 @@
     require '../phpmailer/PHPMailerAutoload.php';
     
     //Definizioni di funzione
-    function notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $notificatorToolName)
-    {
-        if($notificatorUrl != "")
-        {
-            $usr = md5($username);
-            $clientApplication = md5($notificatorToolName);
-
-            $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogin&usr=' . $usr . '&clientApplication=' . $clientApplication;
-            $notificatorUrl = $notificatorUrl.$data;
-
-            $options = array(
-                  'http' => array(
-                          'header'  => "Content-type: application/json\r\n",
-                          'method'  => 'POST',
-                          'timeout' => 30
-                  )
-            );
-
-            try
-            {
-                   $context  = stream_context_create($options);
-                   $callResult = @file_get_contents($notificatorUrl, false, $context);
-            }
-            catch (Exception $ex) 
-            {
-                   //Non facciamo niente di specifico in caso di mancata risposta dell'host
-            }
-        }
-    }
-    
-    function notificatorLogout($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $notificatorToolName)
-    {
-        /*$logoutAuthObj = ['username' => $username, 'clientApplication' => $ldapToolName];
-        $logoutAuthJson = json_encode($logoutAuthObj);
-        $logoutAuthJsonMd5 = md5($logoutAuthJson);*/
-        $usr = md5($username);
-        $clientApplication = md5($notificatorToolName);
-        
-        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=remoteLogout&usr=' . $usr . '&clientApplication=' . $clientApplication;
-        $notificatorUrl = $notificatorUrl.$data;
-      
-      $options = array(
-          'http' => array(
-              'header'  => "Content-type: application/json\r\n",
-              'method'  => 'POST',
-              'timeout' => 30
-          )
-      );
-
-      try
-      {
-         $context  = stream_context_create($options);
-         $callResult = @file_get_contents($notificatorUrl, false, $context);
-         
-         //$file = fopen("C:\dashboardLog.txt", "w");
-         //fwrite($file, "Call result: " . $callResult . "\n");
-      }
-      catch (Exception $ex) 
-      {
-         //Non facciamo niente di specifico in caso di mancata risposta dell'host
-      }
-    }
-    
     function returnManagedStringForDb($original)
     {
         if($original == NULL)
@@ -104,43 +41,7 @@
             return $original;
         }
     }
-    
-    function checkLdapMembership($connection, $userDn, $tool) 
-    {
-         $result = ldap_search($connection, 'dc=ldap,dc=disit,dc=org', '(&(objectClass=posixGroup)(memberUid=' . $userDn . '))');
-         $entries = ldap_get_entries($connection, $result);
-         foreach ($entries as $key => $value) 
-         {
-            if(is_numeric($key)) 
-            {
-               if($value["cn"]["0"] == $tool) 
-               {
-                  return true;
-               }
-            }
-         }
-         return false;
-     }
-   
-
-   function checkLdapRole($connection, $userDn, $role) 
-   {
-      $result = ldap_search($connection, 'dc=ldap,dc=disit,dc=org', '(&(objectClass=organizationalRole)(cn=' . $role . ')(roleOccupant=' . $userDn . '))');
-      $entries = ldap_get_entries($connection, $result);
-      foreach ($entries as $key => $value) 
-      {
-         if(is_numeric($key)) 
-         {
-            if($value["cn"]["0"] == $role) 
-            {
-               return true;
-            }
-         }
-      }
-      return false;
-  }
-    
-    
+       
     function canEditDashboard()
     {
         $result = false;
@@ -154,7 +55,7 @@
                     $result = true;
                 }
             }
-            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
+            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin"))
             {
                 //Utente amministratore, edita qualsiasi dashboard
                 if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))
@@ -242,7 +143,7 @@
     else if(isset($_REQUEST['login']))
     {
         $username = mysqli_real_escape_string($link, $_POST['loginUsername']);
-        $ldapUsername = "cn=". $username . ",dc=ldap,dc=disit,dc=org";
+        $ldapUsername = "cn=". $username . "," . $ldapBaseDN;
         $password = mysqli_real_escape_string($link, $_POST['loginPassword']);
         $ldapPassword = $_POST['loginPassword'];
         $ldapOk = false;
@@ -260,65 +161,94 @@
             $bind = ldap_bind($ds, $ldapUsername, $ldapPassword);
             if($ds && $bind)
             {
-                if(checkLdapMembership($ds, $ldapUsername, $ldapToolName))
+                if(checkLdapMembership($ds, $ldapUsername, $ldapToolName, $ldapBaseDN))
                 {
-                   if(checkLdapRole($ds, $ldapUsername, "ToolAdmin"))
+                   if(checkLdapRole($ds, $ldapUsername, "RootAdmin", $ldapBaseDN))
                    {
-                      $ldapRole = "ToolAdmin";
-                      $ldapOk = true;
-                      ini_set('session.gc_maxlifetime', $sessionDuration);
-                      session_set_cookie_params($sessionDuration);
-                      session_start();
-                      session_regenerate_id();
-                      $_SESSION['sessionEndTime'] = time() + $sessionDuration;
-                      $_SESSION['loggedUsername'] = $username;
-                      $_SESSION['loggedPassword'] = $ldapPassword;
-                      $_SESSION['loggedRole'] = "ToolAdmin";
-                      $_SESSION['loggedType'] = "ldap";
-                      //notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapToolName);
-                      mysqli_close($link);
-                      $resultMsg = "Ok";
-                   }
+                        $ldapRole = "RootAdmin";
+                        $ldapOk = true;
+                        ini_set('session.gc_maxlifetime', $sessionDuration);
+                        session_set_cookie_params($sessionDuration);
+                        session_start();
+                        session_regenerate_id();
+                        $_SESSION['sessionEndTime'] = time() + $sessionDuration;
+                        $_SESSION['loggedUsername'] = $username;
+                        $_SESSION['loggedPassword'] = $ldapPassword;
+                        $_SESSION['loggedRole'] = "RootAdmin";
+                        $_SESSION['loggedType'] = "ldap";
+                        mysqli_close($link);
+                        $resultMsg = "Ok";
+                   } 
                    else
                    {
-                       if(checkLdapRole($ds, $ldapUsername, "AreaManager"))
-                       {
-                          $ldapRole = "AreaManager";
-                          $ldapOk = true;
-                          ini_set('session.gc_maxlifetime', $sessionDuration);
-                          session_set_cookie_params($sessionDuration);
-                          session_start();
-                          session_regenerate_id();
-                          $_SESSION['sessionEndTime'] = time() + $sessionDuration;
-                          $_SESSION['loggedUsername'] = $username;
-                          $_SESSION['loggedPassword'] = $ldapPassword;
-                          $_SESSION['loggedRole'] = "AreaManager";
-                          $_SESSION['loggedType'] = "ldap";
-                          //notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapToolName);
-                          mysqli_close($link);
-                          $resultMsg = "Ok";
-                       }
-                       else
-                       {
-                          if(checkLdapRole($ds, $ldapUsername, "Manager"))
-                          {
-                             $ldapRole = "Manager";
-                             $ldapOk = true;
-                             ini_set('session.gc_maxlifetime', $sessionDuration);
-                             session_set_cookie_params($sessionDuration);
-                             session_start();
-                             session_regenerate_id();
-                             $_SESSION['sessionEndTime'] = time() + $sessionDuration;
-                             $_SESSION['loggedUsername'] = $username;
-                             $_SESSION['loggedPassword'] = $ldapPassword;
-                             $_SESSION['loggedRole'] = "Manager";
-                             $_SESSION['loggedType'] = "ldap";
-                             //notificatorLogin($username, $notificatorApiUsr, $notificatorApiPwd, $notificatorUrl, $ldapToolName);
-                             mysqli_close($link);
-                             $resultMsg = "Ok";
-                          }
-                       }
+                        if(checkLdapRole($ds, $ldapUsername, "ToolAdmin", $ldapBaseDN))
+                        {
+                           $ldapRole = "ToolAdmin";
+                           $ldapOk = true;
+                           ini_set('session.gc_maxlifetime', $sessionDuration);
+                           session_set_cookie_params($sessionDuration);
+                           session_start();
+                           session_regenerate_id();
+                           $_SESSION['sessionEndTime'] = time() + $sessionDuration;
+                           $_SESSION['loggedUsername'] = $username;
+                           $_SESSION['loggedPassword'] = $ldapPassword;
+                           $_SESSION['loggedRole'] = "ToolAdmin";
+                           $_SESSION['loggedType'] = "ldap";
+                           mysqli_close($link);
+                           $resultMsg = "Ok";
+                        }
+                        else
+                        {
+                            if(checkLdapRole($ds, $ldapUsername, "AreaManager", $ldapBaseDN))
+                            {
+                               $ldapRole = "AreaManager";
+                               $ldapOk = true;
+                               ini_set('session.gc_maxlifetime', $sessionDuration);
+                               session_set_cookie_params($sessionDuration);
+                               session_start();
+                               session_regenerate_id();
+                               $_SESSION['sessionEndTime'] = time() + $sessionDuration;
+                               $_SESSION['loggedUsername'] = $username;
+                               $_SESSION['loggedPassword'] = $ldapPassword;
+                               $_SESSION['loggedRole'] = "AreaManager";
+                               $_SESSION['loggedType'] = "ldap";
+                               mysqli_close($link);
+                               $resultMsg = "Ok";
+                            }
+                            else
+                            {
+                               if(checkLdapRole($ds, $ldapUsername, "Manager", $ldapBaseDN))
+                               {
+                                  $ldapRole = "Manager";
+                                  $ldapOk = true;
+                                  ini_set('session.gc_maxlifetime', $sessionDuration);
+                                  session_set_cookie_params($sessionDuration);
+                                  session_start();
+                                  session_regenerate_id();
+                                  $_SESSION['sessionEndTime'] = time() + $sessionDuration;
+                                  $_SESSION['loggedUsername'] = $username;
+                                  $_SESSION['loggedPassword'] = $ldapPassword;
+                                  $_SESSION['loggedRole'] = "Manager";
+                                  $_SESSION['loggedType'] = "ldap";
+                                  mysqli_close($link);
+                                  $resultMsg = "Ok";
+                               }
+                            }
+                        }
                    }
+                   
+                /*   $organization = checkLdapOrganization($ds, $ldapUsername, $ldapBaseDN);
+                   if (is_null($organization)) {
+                        $organization = "none";
+                        $organizationLdap = "Other";
+                   } else if ($organization == "") {
+                        $organization = "none";
+                        $organizationLdap = "Other";
+                   } else {
+                        $organizationLdap = $organization;
+                   }
+                   $_SESSION['loggedOrganization'] = $organizationLdap; */
+                   
                 }
             }
             else
@@ -657,220 +587,8 @@
             
             header("location: dashboards.php?newDashId=" . $newDashId . "&newDashAuthor=" . $dashboardAuthorName . "&newDashTitle=" . urlencode($title));
             
-            /*echo '<script type="text/javascript">';
-            echo 'window.open("dashboard_configdash.php?dashboardId=' . $newDashId . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $dashboardAuthorName . '&dashboardTitle=' . urlencode(dashboardTitle) . '", "_blank");';
-            echo '</script>'; */
         }
     } 
-    else if(isset($_REQUEST['editDashboard']))
-    {
-        session_start();
-        mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
-        $queryFail = false;
-        $response = array();
-        
-        /*$dashboardId = $_SESSION['dashboardId'];
-        $dashboardName = $_SESSION['dashboardTitle']; 
-        $oldDashboardTitle = $_SESSION['dashboardTitle']; */
-        
-        $dashboardId = $_REQUEST['dashboardIdUnderEdit'];
-        $dashboardName = $_REQUEST['currentDashboardTitle'];
-        $dashboardAuthor = $_REQUEST['dashboardUser'];
-        $dashboardEditor = $_REQUEST['dashboardEditor'];
-        $oldDashboardTitle = $_REQUEST['currentDashboardTitle'];
-        
-        $newDashboardTitle = mysqli_real_escape_string($link, $_REQUEST['inputTitleDashboard']); 
-        $newDashboardSubtitle = mysqli_real_escape_string($link, $_REQUEST['inputSubTitleDashboard']); 
-        $newDashboardColor = mysqli_real_escape_string($link, $_REQUEST['inputColorDashboard']);
-        $nCols = mysqli_real_escape_string($link, $_POST['inputWidthDashboard']); 
-        $newDashboardBckColor =  mysqli_real_escape_string($link, $_REQUEST['inputColorBackgroundDashboard']); 
-        $newDashboardExtColor = mysqli_real_escape_string($link, $_REQUEST['inputExternalColorDashboard']); 
-        $headerFontSize = mysqli_real_escape_string($link, $_REQUEST['headerFontSize']);
-        $viewMode = mysqli_real_escape_string($link, $_POST['inputDashboardViewMode']);
-        
-        if(isset($_POST['widgetsBorders']))
-        {
-            $widgetsBorders = "yes";
-        }
-        else
-        {
-            $widgetsBorders = "no";
-        }
-        $widgetsBordersColor = mysqli_real_escape_string($link, $_REQUEST['inputWidgetsBordersColor']); 
-        $headerFontColor = mysqli_real_escape_string($link, $_REQUEST['headerFontColor']); 
-        $visibility = mysqli_real_escape_string($link, $_POST['inputDashboardVisibility']);
-        $filename = NULL;
-        $logoLink = NULL;
-        if(isset($_POST['headerVisible']))
-        {
-            $headerVisible = 1;
-        }
-        else
-        {
-            $headerVisible = 0;
-        }
-
-        if(isset($_POST['authorizedPagesJson']))
-        {
-            if(($_POST['authorizedPagesJson'] != "[]")&&($_POST['authorizedPagesJson'] != ""))
-            {
-               $embeddable = "yes";
-               $authorizedPagesJson = mysqli_real_escape_string($link, $_POST['authorizedPagesJson']);
-            }
-            else
-            {
-                $embeddable = "no";
-                $authorizedPagesJson = "[]";
-            }
-        }
-        else
-        {
-            $embeddable = "no";
-            $authorizedPagesJson = "[]";
-        }
-
-        //New version: lasciamo gli addendi espliciti per agevolare la lettura
-        $width = ($nCols * 78) + 10;
-
-        //Logo della dashboard
-        $uploadFolder = "../img/dashLogos/dashboard" . $dashboardId . "/";
-
-        if(($_REQUEST['dashboardLogoLinkInput'] != NULL) && ($_REQUEST['dashboardLogoLinkInput'] != ''))
-        {
-            $logoLink = mysqli_real_escape_string($link, $_REQUEST['dashboardLogoLinkInput']); 
-        }
-
-        //Nuovo file caricato, si cancella il vecchio e si aggiorna il nome del file su DB.
-        if($_FILES['dashboardLogoInput']['size'] > 0)
-        {
-            if(!file_exists("../img/dashLogos/"))
-            {
-                $oldMask = umask(0);
-                mkdir("../img/dashLogos/", 0777);
-                umask($oldMask);
-            }
-
-            if(!file_exists($uploadFolder))
-            {
-                $oldMask = umask(0);
-                mkdir($uploadFolder, 0777);
-                umask($oldMask);
-            }
-            else
-            {
-                $oldFiles = glob($uploadFolder . '*');
-                foreach($oldFiles as $fileToDel)
-                { 
-                    if(is_file($fileToDel))
-                    {
-                       unlink($fileToDel);
-                    }
-                }
-            }
-
-            $filename = $_FILES['dashboardLogoInput']['name'];
-
-            if(!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder.$filename))  
-            {  
-                echo 'Something has gone wrong during logo upload: dashboard update has been cancelled';
-                mysqli_close($link);
-                exit();
-            }
-            else 
-            {
-               chmod($uploadFolder.$filename, 0666); 
-               $query = "UPDATE Dashboard.Config_dashboard SET name_dashboard = '$newDashboardTitle', title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoFilename = '$filename', logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility', headerVisible = $headerVisible, embeddable = '$embeddable', authorizedPagesJson = '$authorizedPagesJson', viewMode='$viewMode', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
-               $result = mysqli_query($link, $query);  
-
-                if(!$result)
-                {
-                    $rollbackResult = mysqli_rollback($link);
-                    mysqli_close($link);
-                    $queryFail = true;
-                    echo '<script type="text/javascript">';
-                    echo 'alert("Error during dashboard update: please repeat the procedure.");';
-                    echo 'window.location.href = "dashboard_configdash.php?dashboardId=' . $dashboardId . ';';
-                    echo '</script>';
-                    die();
-                }
-                else
-                {
-                  $response["newLogo"] = "YES";
-                  $response["fileName"] = $uploadFolder . $filename;
-                  $response["logoLink"] = $logoLink;
-                  $response["width"] = $width;
-                  $response["num_cols"] = $nCols;
-                }
-            }
-        }//Nessun nuovo file caricato
-        else
-        {
-            $query = "UPDATE Dashboard.Config_dashboard SET name_dashboard = '$newDashboardTitle', title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility', headerVisible = $headerVisible, embeddable = '$embeddable', authorizedPagesJson = '$authorizedPagesJson', viewMode='$viewMode', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
-            $result = mysqli_query($link, $query);
-
-            if(!$result)
-            {
-               $rollbackResult = mysqli_rollback($link);
-               mysqli_close($link);
-               $queryFail = true;
-               echo '<script type="text/javascript">';
-               echo 'alert("Error during dashboard update: please repeat the procedure.");';
-               echo 'window.location.href = "dashboard_configdash.php?dashboardId=' . $dashboardId . '";';
-               echo '</script>';
-               die();
-            }
-            else
-            {
-               $response["newLogo"] = "NO";
-               $response["logoLink"] = $logoLink;
-               $response["width"] = $width;
-               $response["num_cols"] = $nCols;
-            }
-        }
-
-         //Cancellazione vecchi permessi di visualizzazione
-         $delOldPermissionsQuery = "DELETE FROM Dashboard.DashboardsViewPermissions WHERE IdDashboard = $dashboardId";
-         $delOldPermissionsResult = mysqli_query($link, $delOldPermissionsQuery);
-
-         if(!$delOldPermissionsResult)
-         {
-             $rollbackResult = mysqli_rollback($link);
-             mysqli_close($link);
-             $queryFail = true;
-             echo '<script type="text/javascript">';
-             echo 'alert("Error during dashboard update: please repeat the procedure.");';
-             echo 'window.location.href = "dashboard_configdash.php?dashboardId=' . $dashboardId . '";';
-             echo '</script>';
-             die();
-         }
-         else
-         {
-            if($visibility == "restrict")
-            {
-               foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
-               {
-                  $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($dashboardId, '$selectedUser')";
-                  $result4 = mysqli_query($link, $insertQuery);
-               }
-            }
-         }
-
-        if(!$queryFail) 
-        {
-            $commit = mysqli_commit($link);
-            mysqli_close($link);
-            header("location: dashboard_configdash.php?dashboardId=" . $dashboardId . "&dashboardAuthorName=" . $dashboardAuthor . "&dashboardEditorName=" . $dashboardEditor . "&dashboardTitle=" . urlencode($newDashboardTitle));
-            
-            if($oldDashboardTitle != $newDashboardTitle)
-            {
-                //DA FINIRE - Se è cambiato, aggiorniamo il nome della dashboard sul Notificatore
-                
-                
-                
-            }
-            
-        }
-    }
     else if(isset($_REQUEST['add_widget'])) 
     {
         session_start();
@@ -926,7 +644,6 @@
                 $colsLabelsBckColor = NULL;
                 $tableBorders = NULL;
                 $tableBordersColor = NULL;
-                $infoJsonObject = NULL;
                 $infoJson = NULL;
                 $legendFontSize = NULL;
                 $legendFontColor = NULL;
@@ -976,8 +693,6 @@
                 }
                 
                 $creationDate = date('Y-m-d H:i:s');
-                
-                //$file = fopen("C:\dashboardLog.txt", "w");
          
                 if($_REQUEST['widgetCategory'] == "actuator")
                 {
@@ -988,7 +703,7 @@
                     else
                     {
                         $widgetActuatorType = $_REQUEST['widgetActuatorTypePersonalApps'];
-                        $id_metric = $_REQUEST['personalAppsInputs'];
+                        $id_metric = str_replace('.', '_', str_replace('-', '_', $_REQUEST['personalAppsInputs']));
                     }
                     
                     $type_widget = $widgetActuatorType;
@@ -1027,12 +742,12 @@
                 {
                     if($_REQUEST['metricsCategory'] === 'app')
                     {
-                        $id_metric = mysqli_real_escape_string($link, $_REQUEST['select-metricNR']); 
+                        $id_metric = str_replace('.', '_', str_replace('-', '_', mysqli_real_escape_string($link, $_REQUEST['select-metricNR']))); 
                         $type_widget = mysqli_real_escape_string($link, $_REQUEST['select-widgetNR']);
                     }
                     else 
                     {
-                        $id_metric = mysqli_real_escape_string($link, $_REQUEST['select-metric']); 
+                        $id_metric = mysqli_real_escape_string($link, str_replace('.', '_', str_replace('-', '_', $_REQUEST['select-metric']))); 
                         $type_widget = mysqli_real_escape_string($link, $_REQUEST['select-widget']); 
                     }
                 }
@@ -1043,9 +758,15 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
                 
-                if(($type_widget == "widgetSelector")||($type_widget == "widgetSelectorWeb"))
+                if(($type_widget == "widgetSelector") || ($type_widget == "widgetSelectorNew"))
                 {
                   $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor']);
+                  $styleParameters = json_encode($styleParametersArray);
+                }
+                
+                if($type_widget == "widgetSelectorWeb")
+                {
+                  $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['addGisRectDim']);
                   $styleParameters = json_encode($styleParametersArray);
                 }
                 
@@ -1067,33 +788,6 @@
                 
                 if($type_widget == "widgetFirstAid")
                 {
-                    $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
-                    $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
-                    $infoJsonObject = [];
-                    $infoJsonFirstAxis = [];
-                    $infoJsonSecondAxis = [];
-
-                    foreach ($infoNamesJsonFirstAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    foreach ($infoNamesJsonSecondAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
-                    $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
-
-                    $infoJson = json_encode($infoJsonObject);
-
                     if(isset($_POST['showTableFirstCell'])&&($_POST['showTableFirstCell']!=""))
                     {
                         $showTableFirstCell = mysqli_real_escape_string($link, $_POST['showTableFirstCell']); 
@@ -1150,36 +844,6 @@
 
                 if($type_widget == "widgetPieChart")
                 {
-                    if(isset($_POST['infoNamesJsonFirstAxis'])&&($_POST['infoNamesJsonFirstAxis']!="")&&(isset($_POST['infoNamesJsonSecondAxis']))&&($_POST['infoNamesJsonSecondAxis']!=""))
-                    {
-                        $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
-                        $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
-                        $infoJsonObject = [];
-                        $infoJsonFirstAxis = [];
-                        $infoJsonSecondAxis = [];
-
-                        foreach ($infoNamesJsonFirstAxis as $name) 
-                        {
-                            //Hack per metriche contenenti indirizzi IP
-                            $name = preg_replace('/\./', "_", $name);
-                            $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                        }
-                        unset($name);
-
-                        foreach ($infoNamesJsonSecondAxis as $name) 
-                        {
-                            //Hack per metriche contenenti indirizzi IP
-                            $name = preg_replace('/\./', "_", $name);
-                            $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                        }
-                        unset($name);
-
-                        $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
-                        $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
-
-                        $infoJson = json_encode($infoJsonObject);
-                    }
-
                     if(isset($_POST['legendFontSize'])&&($_POST['legendFontSize']!=""))
                     {
                         $legendFontSize = mysqli_real_escape_string($link, $_POST['legendFontSize']);
@@ -1304,33 +968,6 @@
 
                 if(($type_widget == "widgetLineSeries") || ($type_widget == "widgetCurvedLineSeries"))
                 {
-                    $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
-                    $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
-                    $infoJsonObject = [];
-                    $infoJsonFirstAxis = [];
-                    $infoJsonSecondAxis = [];
-
-                    foreach ($infoNamesJsonFirstAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    foreach ($infoNamesJsonSecondAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
-                    $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
-
-                    $infoJson = json_encode($infoJsonObject);
-
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
                         $rowsLabelsFontSize = $_POST['rowsLabelsFontSize'];
@@ -1430,152 +1067,8 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
 
-                if($type_widget == "widgetScatterSeries")
-                {
-                    $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
-                    $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
-                    $infoJsonObject = [];
-                    $infoJsonFirstAxis = [];
-                    $infoJsonSecondAxis = [];
-
-                    foreach ($infoNamesJsonFirstAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    foreach ($infoNamesJsonSecondAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
-                    $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
-
-                    $infoJson = json_encode($infoJsonObject);
-
-                    if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
-                    {
-                        $rowsLabelsFontSize = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSize']); 
-                    }
-
-                    if(isset($_POST['rowsLabelsFontColor'])&&($_POST['rowsLabelsFontColor']!=""))
-                    {
-                        $rowsLabelsFontColor = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColor']);
-                    }
-
-                    if(isset($_POST['colsLabelsFontSize'])&&($_POST['colsLabelsFontSize']!=""))
-                    {
-                        $colsLabelsFontSize = mysqli_real_escape_string($link, $_POST['colsLabelsFontSize']); 
-                    }
-
-                    if(isset($_POST['colsLabelsFontColor'])&&($_POST['colsLabelsFontColor']!=""))
-                    {
-                        $colsLabelsFontColor = mysqli_real_escape_string($link, $_POST['colsLabelsFontColor']);
-                    }
-
-                    if(isset($_POST['dataLabelsFontSize'])&&($_POST['dataLabelsFontSize']!=""))
-                    {
-                        $dataLabelsFontSize = mysqli_real_escape_string($link, $_POST['dataLabelsFontSize']); 
-                    }
-
-                    if(isset($_POST['dataLabelsFontColor'])&&($_POST['dataLabelsFontColor']!=""))
-                    {
-                        $dataLabelsFontColor = mysqli_real_escape_string($link, $_POST['dataLabelsFontColor']); 
-                    }
-
-                    if(isset($_POST['legendFontSize'])&&($_POST['legendFontSize']!=""))
-                    {
-                        $legendFontSize = mysqli_real_escape_string($link, $_POST['legendFontSize']); 
-                    }
-
-                    if(isset($_POST['legendFontColor'])&&($_POST['legendFontColor']!=""))
-                    {
-                        $legendFontColor = mysqli_real_escape_string($link, $_POST['legendFontColor']); 
-                    }
-
-                    if(isset($_POST['barsColorsSelect'])&&($_POST['barsColorsSelect']!=""))
-                    {
-                        $barsColorsSelect = mysqli_real_escape_string($link, $_POST['barsColorsSelect']); 
-                    }
-
-                    if(isset($_POST['chartType'])&&($_POST['chartType']!=""))
-                    {
-                        $chartType = mysqli_real_escape_string($link, $_POST['chartType']); 
-                    }
-
-                    if(isset($_POST['dataLabels'])&&($_POST['dataLabels']!=""))
-                    {
-                        $dataLabels = mysqli_real_escape_string($link, $_POST['dataLabels']); 
-                    }
-
-                    if(isset($_POST['dataLabelsRotation'])&&($_POST['dataLabelsRotation']!=""))
-                    {
-                        $dataLabelsRotation = mysqli_real_escape_string($link, $_POST['dataLabelsRotation']);
-                    }
-
-                    $styleParametersArray = array();
-                    $styleParametersArray['rowsLabelsFontSize'] = $rowsLabelsFontSize;
-                    $styleParametersArray['rowsLabelsFontColor'] = $rowsLabelsFontColor;
-                    $styleParametersArray['colsLabelsFontSize'] = $colsLabelsFontSize;
-                    $styleParametersArray['colsLabelsFontColor'] = $colsLabelsFontColor;
-                    $styleParametersArray['dataLabelsFontSize'] = $dataLabelsFontSize;
-                    $styleParametersArray['dataLabelsFontColor'] = $dataLabelsFontColor;
-                    $styleParametersArray['legendFontSize'] = $legendFontSize;
-                    $styleParametersArray['legendFontColor'] = $legendFontColor;
-                    $styleParametersArray['barsColorsSelect'] = $barsColorsSelect;
-                    $styleParametersArray['chartType'] = $chartType;
-                    $styleParametersArray['dataLabels'] = $dataLabels;
-                    $styleParametersArray['dataLabelsRotation'] = $dataLabelsRotation;
-
-                    if(isset($_POST['barsColors'])&&($_POST['barsColors']!=""))
-                    {
-                        $temp = json_decode($_POST['barsColors']);
-                        $barsColors = [];
-                        foreach ($temp as $color) 
-                        {
-                            array_push($barsColors, $color);
-                        }
-                    }
-
-                    $styleParametersArray['barsColors'] = $barsColors;
-                    $styleParameters = json_encode($styleParametersArray);
-                }
-
                 if($type_widget == "widgetBarSeries")
                 {
-                    $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
-                    $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
-                    $infoJsonObject = [];
-                    $infoJsonFirstAxis = [];
-                    $infoJsonSecondAxis = [];
-                    
-                    foreach($infoNamesJsonFirstAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-                      
-                    foreach($infoNamesJsonSecondAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
-                    $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
-
-                    $infoJson = json_encode($infoJsonObject);
-
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
                         $rowsLabelsFontSize = $_POST['rowsLabelsFontSize'];
@@ -1666,33 +1159,6 @@
 
                 if($type_widget == "widgetRadarSeries")
                 {
-                    $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
-                    $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
-                    $infoJsonObject = [];
-                    $infoJsonFirstAxis = [];
-                    $infoJsonSecondAxis = [];
-
-                    foreach ($infoNamesJsonFirstAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    foreach ($infoNamesJsonSecondAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
-                    $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
-
-                    $infoJson = json_encode($infoJsonObject);
-
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
                         $rowsLabelsFontSize = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSize']);
@@ -1801,33 +1267,6 @@
 
                 if($type_widget == "widgetTable")
                 {
-                    $infoNamesJsonFirstAxis = json_decode($_POST['infoNamesJsonFirstAxis']);
-                    $infoNamesJsonSecondAxis = json_decode($_POST['infoNamesJsonSecondAxis']);
-                    $infoJsonObject = [];
-                    $infoJsonFirstAxis = [];
-                    $infoJsonSecondAxis = [];
-
-                    foreach ($infoNamesJsonFirstAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonFirstAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    foreach ($infoNamesJsonSecondAxis as $name) 
-                    {
-                        //Hack per metriche contenenti indirizzi IP
-                        $name = preg_replace('/\./', "_", $name);
-                        $infoJsonSecondAxis[preg_replace('/_/', ".", $name)] = $_POST[$name];
-                    }
-                    unset($name);
-
-                    $infoJsonObject["firstAxis"] = $infoJsonFirstAxis;
-                    $infoJsonObject["secondAxis"] = $infoJsonSecondAxis;
-
-                    $infoJson = json_encode($infoJsonObject);
-
                     if(isset($_POST['showTableFirstCell'])&&($_POST['showTableFirstCell']!=""))
                     {
                         $showTableFirstCell = mysqli_real_escape_string($link, $_POST['showTableFirstCell']); 
@@ -1887,7 +1326,7 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
                 
-                if($type_widget == "widgetProtezioneCivile")
+                if($type_widget == "widgetProtezioneCivile" || $type_widget == "widgetProtezioneCivileFirenze")
                 {
                   if(isset($_POST['meteoTabFontSize']) && ($_POST['meteoTabFontSize'] != "") && ($_POST['meteoTabFontSize'] != null))
                   {
@@ -1913,12 +1352,12 @@
                     $headerFontColor = mysqli_real_escape_string($link, $_POST['inputHeaderFontColorWidget']);
                 }
 
-                if(isset($_POST['inputZoomControlsColor'])&&($_POST['inputZoomControlsColor']!="")&&($type_widget == 'widgetExternalContent'))
+                if(isset($_POST['inputZoomControlsColor'])&&($_POST['inputZoomControlsColor']!="")&&(($type_widget == 'widgetExternalContent')||($type_widget =="widgetGisWFS")))
                 {
                     $zoomControlsColor = mysqli_real_escape_string($link, $_POST['inputZoomControlsColor']);
                 }
 
-                if(isset($_POST['inputControlsPosition'])&&($_POST['inputControlsPosition']!="")&&($type_widget == 'widgetExternalContent'))
+                if(isset($_POST['inputControlsPosition'])&&($_POST['inputControlsPosition']!="")&&(($type_widget == 'widgetExternalContent')||($type_widget =="widgetGisWFS")))
                 {
                     $controlsPosition = mysqli_real_escape_string($link, $_POST['inputControlsPosition']); 
                 }
@@ -1928,7 +1367,7 @@
                     $showTitle = mysqli_real_escape_string($link, $_POST['inputShowTitle']); 
                 }
 
-                if(isset($_POST['inputControlsVisibility'])&&($_POST['inputControlsVisibility']!="")&&($type_widget == 'widgetExternalContent'))
+                if(isset($_POST['inputControlsVisibility'])&&($_POST['inputControlsVisibility']!="")&&(($type_widget == 'widgetExternalContent')||($type_widget =="widgetGisWFS")))
                 {
                     $controlsVisibility = mysqli_real_escape_string($link, $_POST['inputControlsVisibility']);
                 }
@@ -1947,6 +1386,7 @@
                 if(isset($_POST['inputTitleWidget'])&&($_POST['inputTitleWidget']!=""))
                 {
                     $title_widget = mysqli_real_escape_string($link, $_POST['inputTitleWidget']); 
+                    $title_widget = htmlentities($title_widget, ENT_QUOTES|ENT_HTML5);
                 }
 
                 if(isset($_POST['inputFreqWidget'])&&($_POST['inputFreqWidget']!=""))
@@ -2031,7 +1471,7 @@
                     $url_widget = "none";
                 }
                 	
-                if(($type_widget == "widgetExternalContent")&&($_REQUEST['widgetMode'] == "selectorWebTarget"))
+                if((($type_widget == 'widgetExternalContent')||($type_widget =="widgetGisWFS"))&&($_REQUEST['widgetMode'] == "selectorWebTarget"))
                 {
                     $url_widget = json_encode(array('homepage' => $url_widget, 'widgetMode' => 'selectorWebTarget'));
                 }
@@ -2175,6 +1615,7 @@
                 if(isset($_POST['inputUdmWidget']) && ($_POST['inputUdmWidget'] != "")) 
                 {
                     $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmWidget']);
+                    $inputUdmWidget = htmlentities($inputUdmWidget, ENT_QUOTES|ENT_HTML5);
                 }
                 
                 $inputUdmPosition = NULL;
@@ -2213,6 +1654,13 @@
                     if(isset($_POST['widgetEventsMode'])) 
                     {
                         $viewMode = mysqli_real_escape_string($link, $_POST['widgetEventsMode']);
+                    }
+                    else
+                    {
+                        if($type_widget == 'widgetMap')
+                        {
+                            $viewMode = 'additive';
+                        }
                     }
                 }
                 
@@ -2269,6 +1717,86 @@
                         echo '</script>';
                      }
                 }
+                ////////////////////////widgetGisWFS/////////////////////////////
+                if($type_widget =="widgetGisWFS"){
+                    $zoomFactor = 1;
+                    $scaleX = 1;
+                    $scaleY = 1;                    
+                    //Aggiornamento della lista dei target degli widget events
+                    mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);                    
+                    $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '$id_dashboard'";
+                    $resultUpdTargetQuery = mysqli_query($link, $updTargetQuery);                    
+                    if($resultUpdTargetQuery)
+                    {
+                        while($row = mysqli_fetch_array($resultUpdTargetQuery)) 
+                        {
+                           $targetList = json_decode($row['parameters'], true);
+                           $widgetId = $row['Id'];
+                           $targetList[$name_widget] = [];
+                           $updatedTargetList = json_encode($targetList);
+                           //$updatedTargetList
+                           /*MODIFICA AL $updatedTargetList*/
+                             $json_parameters0 = $targetList;
+                            $coordinates0 = $json_parameters0->{'latLng'};
+                            $var_zoom0 = $json_parameters0->{'zoom'};
+                            $lat0 = $coordinates0[1];
+                            $lng0 = $coordinates0[0];
+                            $lat1 = str_replace('"','',$lat0);
+                            $lng1 = str_replace('"','',$lng0);
+                            $var_zoom1 = str_replace('"', '', $var_zoom0);
+                            $updatedTargetList = '{"latLng":['.$lng1.','.$lat1.'],"zoom":'.$var_zoom1.'}';
+                            //$updatedTargetList = '{"latLng":['.$coordinates0.',0],"zoom":'.$var_zoom1.',"lat1":"'.$lat1.'","lng1":"'.$lng1.'"}';
+                           //
+                           $query5 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedTargetList' WHERE Id = '$widgetId'";
+                           $result5 = mysqli_query($link, $query5);
+                           if(!$result5)
+                           {
+                              $rollbackResult = mysqli_rollback($link);
+                              mysqli_close($link);
+                              echo '<script type="text/javascript">';
+                              echo 'alert("Error while updating widget target lists");';
+                              echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                              echo '</script>';
+                              exit();
+                           }
+                        }
+                        $commit = mysqli_commit($link);
+                     }
+                     else
+                     {
+                        $rollbackResult = mysqli_rollback($link);
+                        mysqli_close($link);
+                        echo '<script type="text/javascript">';
+                        echo 'alert("Error while updating widget event producers into database");';
+                        echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                        echo '</script>';
+                     }
+                     //
+                     /*PARAMTERI DEFAULT*/
+                     if (($parameters == null)||($parameters == '')){
+                             $parameters = '{"latLng":[11.255751,43.76971],"zoom":11}';
+                             //
+                     }else{
+                         //Controlli sulla forma del json
+                         
+                         $json_parameters = json_decode($parameters);
+                         $coordinates = $json_parameters->{'latLng'};
+                         $var_zoom = $json_parameters->{'zoom'};
+                        $parameters = '{"latLng":['.$coordinates[1].','.$coordinates[0].'],"zoom":'.$var_zoom.'}';
+                          
+                         //////
+                     }
+                     /*
+                     if (($url_widget == null)||($url_widget == '')){
+                             $url_widget = 'gisTarget';
+                     }else{
+                             $url_widget = 'gisTarget';
+                     }
+                     */
+                     /*gisTarget*/
+                     //
+                }
+                //////////////////////////////////////
                 
                 if(isset($_REQUEST['addWidgetRegisterGen']))
                 {
@@ -2281,7 +1809,7 @@
                    $notificatorEnabled = 'no';
                 }
                 
-               if($type_widget == 'widgetTrafficEvents')
+               if(($type_widget == 'widgetTrafficEvents') || ($type_widget == 'widgetTrafficEventsNew'))
                {
                   //31/08/2017 - Patch temporanea in attesa di avere tempo di mettere i controlli sul form
                   $styleParameters = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . $_REQUEST['addWidgetDefaultCategory'] . '"}';
@@ -2297,11 +1825,27 @@
                    $enableFullscreenModal = $_REQUEST['enableFullscreenModal'];
                 }
                 
+                $defParamsQuery = "SELECT * FROM Dashboard.Widgets WHERE id_type_widget = '$type_widget'";
+                $rDefParamsQuery = mysqli_query($link, $defParamsQuery);
+                
+                $defaultParametersJson = mysqli_fetch_assoc($rDefParamsQuery)['defaultParameters'];
+                $defaultParameters = json_decode($defaultParametersJson);
+                
+                if(array_key_exists('chartColor', $defaultParameters))
+                {
+                    $chartColor = $defaultParameters->chartColor;
+                }
+                else
+                {
+                    $chartColor = null;
+                }
+                
+                
                                                 
                     $name_widget = preg_replace('/%20/', 'NBSP', $name_widget);
                 
-                    $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily, entityJson, attributeName, creator, creationDate, actuatorTarget) " .
-                                 "VALUES($nextId , " . returnManagedStringForDb($name_widget) . ", " . returnManagedNumberForDb($id_dashboard) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb($int_temp_widget) . ", " . returnManagedStringForDb($comune_widget) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb($parameters) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb($styleParameters) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ", " . returnManagedStringForDb($newOrionEntityJson) . ", " . returnManagedStringForDb($attributeName) . ", " . returnManagedStringForDb($creator) . ", " . returnManagedStringForDb($creationDate) . ", " . returnManagedStringForDb($actuatorTarget) . ")";
+                    $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily, entityJson, attributeName, creator, creationDate, actuatorTarget, chartColor) " .
+                                 "VALUES($nextId , " . returnManagedStringForDb($name_widget) . ", " . returnManagedNumberForDb($id_dashboard) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb($int_temp_widget) . ", " . returnManagedStringForDb($comune_widget) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb($parameters) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb($styleParameters) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ", " . returnManagedStringForDb($newOrionEntityJson) . ", " . returnManagedStringForDb($attributeName) . ", " . returnManagedStringForDb($creator) . ", " . returnManagedStringForDb($creationDate) . ", " . returnManagedStringForDb($actuatorTarget) . ", " . returnManagedStringForDb($chartColor) . ")";
                     
                     $result4 = mysqli_query($link, $insqDbtb3);
                     
@@ -2588,7 +2132,7 @@
                     header("location: unauthorizedUser.php");
                 }
             }
-            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
+            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "RootAdmin"))
             {
                 //Utente amministratore, edita qualsiasi dashboard
                 if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))
@@ -2674,8 +2218,7 @@
         
         $title_widget_m = NULL;
         $color_widget_m = mysqli_real_escape_string($link, $_POST['inputColorWidgetM']); 
-        $freq_widget_m = NULL;
-        $info_m = mysqli_real_escape_string($link, $_POST['widgetInfoEditorM']); 
+        $freq_widget_m = NULL; 
         $col_m = mysqli_real_escape_string($link, $_POST['inputColumn-m']); 
         $row_m = mysqli_real_escape_string($link, $_POST['inputRows-m']); 
         $color_frame_m = NULL;
@@ -2699,7 +2242,6 @@
         $colsLabelsBckColorM = NULL;
         $tableBordersM = NULL;
         $tableBordersColorM = NULL;
-        $infoJsonObjectM = NULL;
         $infoJsonM = NULL;
         $legendFontSizeM = NULL;
         $legendFontColorM = NULL;
@@ -2772,9 +2314,15 @@
             $styleParametersM = json_encode($styleParametersArrayM);
         }
         
-        if(($type_widget_m == "widgetSelector")||($type_widget_m == "widgetSelectorWeb"))
+        if(($type_widget_m == "widgetSelector") || ($type_widget_m == "widgetSelectorNew"))
         {
           $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor']);
+          $styleParametersM = json_encode($styleParametersArrayM);
+        }
+        
+        if($type_widget_m == "widgetSelectorWeb")
+        {
+          $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['editGisRectDim']);
           $styleParametersM = json_encode($styleParametersArrayM);
         }
         
@@ -2795,7 +2343,7 @@
         }
         
         
-         if($type_widget_m == "widgetProtezioneCivile")
+         if($type_widget_m == "widgetProtezioneCivile" || $type_widget_m == "widgetProtezioneCivileFirenze")
          {
            if(isset($_POST['meteoTabFontSizeM']) && ($_POST['meteoTabFontSizeM'] != "") && ($_POST['meteoTabFontSizeM'] != null))
            {
@@ -2818,33 +2366,6 @@
 
         if($type_widget_m == "widgetFirstAid")
         {
-            $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
-            $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
-            $infoJsonObjectM = [];
-            $infoJsonFirstAxisM = [];
-            $infoJsonSecondAxisM = [];
-
-            foreach ($infoNamesJsonFirstAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            foreach ($infoNamesJsonSecondAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
-            $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
-
-            $infoJsonM = json_encode($infoJsonObjectM);
-
             if(isset($_POST['showTableFirstCellM'])&&($_POST['showTableFirstCellM']!=""))
             {
                 $showTableFirstCellM = mysqli_real_escape_string($link, $_POST['showTableFirstCellM']);
@@ -2901,36 +2422,6 @@
         
         if($type_widget_m == "widgetPieChart")
         {
-            if(isset($_POST['infoNamesJsonFirstAxisM'])&&($_POST['infoNamesJsonFirstAxisM']!="")&&(isset($_POST['infoNamesJsonSecondAxisM']))&&($_POST['infoNamesJsonSecondAxisM']!=""))
-            {
-                $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
-                $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
-                $infoJsonObjectM = [];
-                $infoJsonFirstAxisM = [];
-                $infoJsonSecondAxisM = [];
-
-                foreach ($infoNamesJsonFirstAxisM as $nameM) 
-                {
-                    //Hack per metriche contenenti indirizzi IP
-                    $nameM = preg_replace('/\./', "_", $nameM);
-                    $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-                }
-                unset($nameM);
-
-                foreach ($infoNamesJsonSecondAxisM as $nameM) 
-                {
-                    //Hack per metriche contenenti indirizzi IP
-                    $nameM = preg_replace('/\./', "_", $nameM);
-                    $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-                }
-                unset($nameM);
-
-                $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
-                $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
-
-                $infoJsonM = json_encode($infoJsonObjectM);
-            }
-
             if(isset($_POST['legendFontSizeM'])&&($_POST['legendFontSizeM']!=""))
             {
                 $legendFontSizeM = mysqli_real_escape_string($link, $_POST['legendFontSizeM']);
@@ -3055,33 +2546,6 @@
 
         if(($type_widget_m == "widgetLineSeries") || ($type_widget_m == "widgetCurvedLineSeries"))
         {
-            $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
-            $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
-            $infoJsonObjectM = [];
-            $infoJsonFirstAxisM = [];
-            $infoJsonSecondAxisM = [];
-
-            foreach ($infoNamesJsonFirstAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            foreach ($infoNamesJsonSecondAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
-            $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
-
-            $infoJsonM = json_encode($infoJsonObjectM);
-
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
                 $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
@@ -3182,152 +2646,8 @@
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 
-        if($type_widget_m == "widgetScatterSeries")
-        {
-            $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
-            $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
-            $infoJsonObjectM = [];
-            $infoJsonFirstAxisM = [];
-            $infoJsonSecondAxisM = [];
-
-            foreach ($infoNamesJsonFirstAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            foreach ($infoNamesJsonSecondAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
-            $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
-
-            $infoJsonM = json_encode($infoJsonObjectM);
-
-            if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
-            {
-                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
-            }
-
-            if(isset($_POST['rowsLabelsFontColorM'])&&($_POST['rowsLabelsFontColorM']!=""))
-            {
-                $rowsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColorM']);
-            }
-
-            if(isset($_POST['colsLabelsFontSizeM'])&&($_POST['colsLabelsFontSizeM']!=""))
-            {
-                $colsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['colsLabelsFontSizeM']);
-            }
-
-            if(isset($_POST['colsLabelsFontColorM'])&&($_POST['colsLabelsFontColorM']!=""))
-            {
-                $colsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['colsLabelsFontColorM']);
-            }
-
-            if(isset($_POST['dataLabelsFontSizeM'])&&($_POST['dataLabelsFontSizeM']!=""))
-            {
-                $dataLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['dataLabelsFontSizeM']);
-            }
-
-            if(isset($_POST['dataLabelsFontColorM'])&&($_POST['dataLabelsFontColorM']!=""))
-            {
-                $dataLabelsFontColorM = mysqli_real_escape_string($link, $_POST['dataLabelsFontColorM']);
-            }
-
-            if(isset($_POST['legendFontSizeM'])&&($_POST['legendFontSizeM']!=""))
-            {
-                $legendFontSizeM = mysqli_real_escape_string($link, $_POST['legendFontSizeM']);
-            }
-
-            if(isset($_POST['legendFontColorM'])&&($_POST['legendFontColorM']!=""))
-            {
-                $legendFontColorM = mysqli_real_escape_string($link, $_POST['legendFontColorM']);
-            }
-
-            if(isset($_POST['barsColorsSelectM'])&&($_POST['barsColorsSelectM']!=""))
-            {
-                $barsColorsSelectM = mysqli_real_escape_string($link, $_POST['barsColorsSelectM']);
-            }
-
-            if(isset($_POST['chartTypeM'])&&($_POST['chartTypeM']!=""))
-            {
-                $chartTypeM = mysqli_real_escape_string($link, $_POST['chartTypeM']);
-            }
-
-            if(isset($_POST['dataLabelsM'])&&($_POST['dataLabelsM']!=""))
-            {
-                $dataLabelsM = mysqli_real_escape_string($link, $_POST['dataLabelsM']);
-            }
-
-            if(isset($_POST['dataLabelsRotationM'])&&($_POST['dataLabelsRotationM']!=""))
-            {
-                $dataLabelsRotationM = mysqli_real_escape_string($link, $_POST['dataLabelsRotationM']);
-            }
-
-            $styleParametersArrayM = array();
-            $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
-            $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
-            $styleParametersArrayM['colsLabelsFontSize'] = $colsLabelsFontSizeM;
-            $styleParametersArrayM['colsLabelsFontColor'] = $colsLabelsFontColorM;
-            $styleParametersArrayM['dataLabelsFontSize'] = $dataLabelsFontSizeM;
-            $styleParametersArrayM['dataLabelsFontColor'] = $dataLabelsFontColorM;
-            $styleParametersArrayM['legendFontSize'] = $legendFontSizeM;
-            $styleParametersArrayM['legendFontColor'] = $legendFontColorM;
-            $styleParametersArrayM['barsColorsSelect'] = $barsColorsSelectM;
-            $styleParametersArrayM['chartType'] = $chartTypeM;
-            $styleParametersArrayM['dataLabels'] = $dataLabelsM;
-            $styleParametersArrayM['dataLabelsRotation'] = $dataLabelsRotationM;
-
-            if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
-            {
-                $temp = json_decode($_POST['barsColorsM']);
-                $barsColorsM = [];
-                foreach ($temp as $color) 
-                {
-                    array_push($barsColorsM, $color);
-                }
-            }
-
-            $styleParametersArrayM['barsColors'] = $barsColorsM;
-            $styleParametersM = json_encode($styleParametersArrayM);
-        }
-
         if($type_widget_m == "widgetBarSeries")
         {
-            $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
-            $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
-            $infoJsonObjectM = [];
-            $infoJsonFirstAxisM = [];
-            $infoJsonSecondAxisM = [];
-
-            foreach ($infoNamesJsonFirstAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            foreach ($infoNamesJsonSecondAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
-            $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
-
-            $infoJsonM = json_encode($infoJsonObjectM);
-
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
                 $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
@@ -3418,33 +2738,6 @@
 
         if($type_widget_m == "widgetRadarSeries")
         {
-            $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
-            $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
-            $infoJsonObjectM = [];
-            $infoJsonFirstAxisM = [];
-            $infoJsonSecondAxisM = [];
-
-            foreach($infoNamesJsonFirstAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            foreach ($infoNamesJsonSecondAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
-            $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
-
-            $infoJsonM = json_encode($infoJsonObjectM);
-
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
                 $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
@@ -3553,33 +2846,6 @@
 
         if($type_widget_m == "widgetTable")
         {
-            $infoNamesJsonFirstAxisM = json_decode($_POST['infoNamesJsonFirstAxisM']);
-            $infoNamesJsonSecondAxisM = json_decode($_POST['infoNamesJsonSecondAxisM']);
-            $infoJsonObjectM = [];
-            $infoJsonFirstAxisM = [];
-            $infoJsonSecondAxisM = [];
-
-            foreach ($infoNamesJsonFirstAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonFirstAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            foreach ($infoNamesJsonSecondAxisM as $nameM) 
-            {
-                //Hack per metriche contenenti indirizzi IP
-                $nameM = preg_replace('/\./', "_", $nameM);
-                $infoJsonSecondAxisM[preg_replace('/_/', ".", $nameM)] = $_POST[$nameM];
-            }
-            unset($nameM);
-
-            $infoJsonObjectM["firstAxis"] = $infoJsonFirstAxisM;
-            $infoJsonObjectM["secondAxis"] = $infoJsonSecondAxisM;
-
-            $infoJsonM = json_encode($infoJsonObjectM);
-
             if(isset($_POST['showTableFirstCellM'])&&($_POST['showTableFirstCellM']!=""))
             {
                 $showTableFirstCellM = mysqli_real_escape_string($link, $_POST['showTableFirstCellM']);
@@ -3663,7 +2929,8 @@
 
         if(isset($_POST['inputTitleWidgetM']) && ($_POST['inputTitleWidgetM']!=""))
         {
-            $title_widget_m = mysqli_real_escape_string($link, $_POST['inputTitleWidgetM']);
+            //$title_widget_m = mysqli_real_escape_string($link, $_POST['inputTitleWidgetM']);
+            $title_widget_m = htmlentities($_POST['inputTitleWidgetM'], ENT_QUOTES|ENT_HTML5);
         }
 
         if(isset($_POST['inputDefaultTabM']) && ($_POST['inputDefaultTabM']!=""))
@@ -3729,7 +2996,7 @@
                }
                else
                {
-                   if(($type_widget_m == 'widgetSelector')||($type_widget_m == 'widgetSelectorWeb'))
+                   if(($type_widget_m == 'widgetSelector')||($type_widget_m == 'widgetSelectorWeb')||($type_widget_m == "widgetSelectorNew"))
                    {
                         if(!is_dir("../img/widgetSelectorImages"))
                         {
@@ -3812,6 +3079,28 @@
                         
                         $parametersSelectorArray->queries = array_values($parametersSelectorArray->queries);
                         $parametersM = json_encode($parametersSelectorArray);
+                   }else{
+                       if($type_widget_m == 'widgetGisWFS'){
+                           //
+                                      //  $targetList = json_decode($row['parameters'], true);
+                          // $widgetId = $row['Id'];
+                          // $targetList[$name_widget] = [];
+                           //$updatedTargetList = json_encode($targetList);
+                           //$updatedTargetList
+                           /*MODIFICA AL $updatedTargetList*/
+                             $json_parameters0 = json_decode($_POST['parametersM']);
+                            $coordinates0 = $json_parameters0->{'latLng'};
+                            $var_zoom0 = $json_parameters0->{'zoom'};
+                            $lat0 = $coordinates0[1];
+                            $lng0 = $coordinates0[0];
+                            $lat1 = str_replace('"','',$lat0);
+                            $lng1 = str_replace('"','',$lng0);
+                            $var_zoom1 = str_replace('"', '', $var_zoom0);
+                            $parametersM = '{"latLng":['.$lat1.','.$lng1.'],"zoom":'.$var_zoom1.'}';
+                            //$parametersM = $_POST['parametersM'];
+                           //
+                       }
+                       //
                    }
                }
             }
@@ -3849,7 +3138,7 @@
             $parametersM = json_encode($parametersArrayM);
         }
 
-        if(isset($_POST['select-IntTemp-Widget-m']) && ($_POST['select-IntTemp-Widget-m'] != "") &&($type_widget_m != 'widgetProtezioneCivile')) 
+        if(isset($_POST['select-IntTemp-Widget-m']) && ($_POST['select-IntTemp-Widget-m'] != "") &&($type_widget_m != 'widgetProtezioneCivile' && $type_widget_m != 'widgetProtezioneCivileFirenze'))
         {
             $int_temp_widget_m = mysqli_real_escape_string($link, $_POST['select-IntTemp-Widget-m']);
         }
@@ -3858,7 +3147,7 @@
             $int_temp_widget_m = NULL;
         }
 
-        if (isset($_POST['inputComuneWidgetM']) && ($_POST['inputComuneWidgetM'] != "") &&($type_widget_m != 'widgetProtezioneCivile')) 
+        if (isset($_POST['inputComuneWidgetM']) && ($_POST['inputComuneWidgetM'] != "") &&($type_widget_m != 'widgetProtezioneCivile' && $type_widget_m != 'widgetProtezioneCivileFirenze'))
         {
             $comune_widget_m = mysqli_real_escape_string($link, $_POST['inputComuneWidgetM']);
         }
@@ -3890,7 +3179,7 @@
             $url_m = "none";
         }
         
-        if(($type_widget_m == "widgetExternalContent")&&($_REQUEST['widgetModeM'] == "selectorWebTarget"))
+        if((($type_widget_m == "widgetExternalContent")&&($type_widget_m == "widgetGisWFS"))&&($_REQUEST['widgetModeM'] == "selectorWebTarget"))
         {
             $url_m = json_encode(array('homepage' => $url_m, 'widgetMode' => 'selectorWebTarget'));
         }
@@ -3898,7 +3187,7 @@
         $inputUdmWidget = NULL;
         if(isset($_POST['inputUdmWidgetM']) && $_POST['inputUdmWidgetM'] != "") 
         {
-            $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmWidgetM']);
+            $inputUdmWidget = htmlentities($_POST['inputUdmWidgetM'], ENT_QUOTES|ENT_HTML5);
         }
         
         $inputUdmPosition = NULL;
@@ -3934,7 +3223,7 @@
         
         $lastSeries = NULL;
         
-         if($type_widget_m == 'widgetTrafficEvents')
+         if(($type_widget_m == 'widgetTrafficEvents') || ($type_widget_m == 'widgetTrafficEventsNew'))
          {
             //31/08/2017 - Patch temporanea in attesa di avere tempo di mettere i controlli sul form
             $styleParametersM = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . $_REQUEST['editWidgetDefaultCategory'] . '"}';
@@ -4014,9 +3303,17 @@
             }
             
             $styleParametersArray["showText"] = $_REQUEST['editWidgetShowButtonText'];
+            $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
             $styleParametersM = json_encode($styleParametersArray); 
          }
-         
+
+         // GP PANTALEO messi qui html element per i vari widget per link in new tab nelle opzioni
+        if($type_widget_m == "widgetSingleContent" || $type_widget_m == "widgetTimeTrend" || $type_widget_m == "widgetTimeTrendCompare" || $type_widget_m == "widgetFirstAid")
+        {
+            $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
+            $styleParametersM = json_encode($styleParametersArray);
+        }
+
         if(isset($_REQUEST['enableFullscreenTabM']))
         {
            $enableFullscreenTabM = $_REQUEST['enableFullscreenTabM'];
@@ -4042,7 +3339,7 @@
            $notificatorRegisteredOld = $notificatorRow['notificatorRegistered'];
            $notificatorEnabled = $notificatorRow['notificatorEnabled'];
            $notificatorEnabledOld = $notificatorRow['notificatorEnabled'];
-           $genOriginalName = $notificatorRow['title_w'];
+           $genOriginalName = html_entity_decode($notificatorRow['title_w'], ENT_HTML5);
            
            if($notificatorRegistered == "no")
            {
@@ -4069,26 +3366,26 @@
                   $notificatorEnabledNew = 'no';
                }
            }
-           
+
            if($_REQUEST['widgetCategoryHiddenM'] == "viewer")
            {
-               $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m) 
-                       . ", title_w = " . returnManagedStringForDb($title_widget_m) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m) 
-                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", infoMessage_w = " . returnManagedStringForDb($info_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM) 
-                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) 
-                       . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility) 
-                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM) 
-                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ", viewMode = " . returnManagedStringForDb($viewMode) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . ", lastEditor = " . returnManagedStringForDb($lastEditor) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate) . " WHERE Id = '$widgetIdM' AND id_dashboard = $id_dashboard2";
+               $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
+                       . ", title_w = " . returnManagedStringForDb(html_entity_decode($title_widget_m, ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
+                       . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM)
+                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . ", lastEditor = " . returnManagedStringForDb($lastEditor) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate) . " WHERE Id = '$widgetIdM' AND id_dashboard = $id_dashboard2";
            }
            else
            {
-               $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m) 
-                       . ", title_w = " . returnManagedStringForDb($title_widget_m) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m) 
-                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", infoMessage_w = " . returnManagedStringForDb($info_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM) 
-                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) 
-                       . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility) 
-                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM) 
-                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ", viewMode = " . returnManagedStringForDb($viewMode) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) 
+               $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
+                       . ", title_w = " . returnManagedStringForDb(html_entity_decode($title_widget_m, ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
+                       . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM)
+                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew)
                        . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily)
                        . ", lastEditor = " . returnManagedStringForDb($lastEditor) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate)
                        . " WHERE Id = '$widgetIdM' AND id_dashboard = $id_dashboard2";
@@ -4098,13 +3395,6 @@
            
             if($result7) 
             {
-                //Lasciarle separate, sennò non funziona
-                $updateInfoJson = $link->prepare("UPDATE Dashboard.Config_widget_dashboard SET infoJson = ? WHERE name_w = ? AND id_dashboard = ?");
-                $updateInfoJson->bind_param('ssi', $infoJsonM, $name_widget_m, $id_dashboard2);
-                $result8 = $updateInfoJson->execute();
-                
-                if($result8)
-                {
                     try 
                     {
                         $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = $id_dashboard2";
@@ -4127,7 +3417,7 @@
                           if($notificatorRegisteredNew == 'yes')
                           {
                             $url = $notificatorUrl;
-                            $genOriginalName = preg_replace('/\s+/', '+', $title_widget_m);
+                            $genOriginalName = html_entity_decode(preg_replace('/\s+/', '+', $title_widget_m), ENT_HTML5);
                             $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
                             $containerName = preg_replace('/\s+/', '+', $dashboardName2);
                             $appUsr = preg_replace('/\s+/', '+', $lastEditor); 
@@ -4257,7 +3547,7 @@
                          //SETTING DELLA VALIDITA' DEL GENERATORE SUL NOTIFICATORE CHIAMANDO setGeneratorValidity
                          $url = $notificatorUrl;
                          $genOriginalName = preg_replace('/\s+/', '+', $genOriginalName);
-                         $genNewName = preg_replace('/\s+/', '+', $title_widget_m);
+                         $genNewName = html_entity_decode(preg_replace('/\s+/', '+', $title_widget_m), ENT_HTML5);
                          $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
                          $alrThrSelM = preg_replace('/\s+/', '+', $_REQUEST['alrThrSelM']);
                          $containerName = preg_replace('/\s+/', '+', $dashboardName2);
@@ -4274,8 +3564,17 @@
                             $validity = 0;
                          }
 
+                         if(isset($_REQUEST['dashboardIdToEdit'])&&isset($_REQUEST['currentDashboardTitle'])&&isset($_REQUEST['dashboardUser']))
+                         {
+                            $containerUrl = $appUrl . "/view/indexNR.php?iddasboard=" . base64_encode($id_dashboard2); 
+                         }
+                         else if(isset($_REQUEST['dashboardIdUnderEdit'])&&isset($_REQUEST['dashboardUser']))
+                         {
+                            $containerUrl = $appUrl . "/view/index.php?iddasboard=" . base64_encode($id_dashboard2); 
+                         }
+                         
                          //$data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity . "&setEventsValidityTrue=" . $setEventsValidityTrue;
-                         $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity;
+                         $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity. "&url=" . $containerUrl;
                          $url = $url.$data;
 
                          $options = array(
@@ -4697,21 +3996,13 @@
                          }
                        }
                     }
-                }
-                else
-                {
-                    mysqli_close($link);
-                    echo '<script type="text/javascript">';
-                    echo 'alert("Error: repeat update widget");';
-                    echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard2 . '&dashboardAuthorName=' . $dashboardAuthor . '&dashboardEditorName=' . $lastEditor . '&dashboardTitle=' . urlencode($dashboardName2);
-                    echo '</script>';
-                }
+                
             } 
             else 
             {
                 mysqli_close($link);
                 echo '<script type="text/javascript">';
-                echo 'alert("Error: repeat update widget");';
+                echo 'alert("Error: repeat update widget: schiantata result7");';
                 echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard2 . '&dashboardAuthorName=' . $dashboardAuthor . '&dashboardEditorName=' . $lastEditor . '&dashboardTitle=' . urlencode($dashboardName2);
                 echo '</script>';
             }
@@ -5503,7 +4794,7 @@
         
         if(isset($_SESSION['loggedRole']))
         {
-           if($_SESSION['loggedRole'] == "ToolAdmin")
+           if($_SESSION['loggedRole'] == "RootAdmin")
            {
                 $fileName = $_POST['fileName'];
                 $fileOriginalContent = parse_ini_file("../conf/" . $fileName);
@@ -5615,7 +4906,7 @@
         
         if(isset($_SESSION['loggedRole']))
         {
-           if($_SESSION['loggedRole'] == "ToolAdmin")
+           if($_SESSION['loggedRole'] == "RootAdmin")
            {
                $fileName = $_POST['fileName'];
         

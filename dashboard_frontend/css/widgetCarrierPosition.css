@@ -1,0 +1,14 @@
+.carrierPosTrackCnt, .carrierPosMetersCnt, .carrierPosPercCnt
+{
+    float: left;
+}
+
+.carrierPosTrackCnt
+{
+    width: 100%;
+}
+
+.carrierPosMetersCnt, .carrierPosPercCnt
+{
+    width: 50%;
+}

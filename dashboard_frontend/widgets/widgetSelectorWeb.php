@@ -40,11 +40,9 @@
         var speed = 65;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
         var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
         var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
         var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
         var fontColor = "<?= $_REQUEST['fontColor'] ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
         var url = "<?= $_REQUEST['link_w'] ?>";
@@ -52,7 +50,8 @@
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var showHeader = null;
+        var showHeader = null;
+        var defaultOptionUsed = false;
         var pinContainerWidth = 40;
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         if(url === "null")
@@ -61,13 +60,13 @@
         }
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-				showHeader = false;
-		}
-		else
-		{
-				showHeader = true;
-		}
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        }
         
         //Definizioni di funzione
         function populateWidget()
@@ -75,6 +74,13 @@
             var queries = JSON.parse(widgetProperties.param.parameters).queries;
             var desc, query, color1, color2, targets = null;
             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
+            
+         /*   queries.sort(function(a, b)
+            {
+                if(a.desc < b.desc) return -1;
+                if(a.desc > b.desc) return 1;
+                return 0;
+            }); */
             
             if(firstLoad !== false)
             {
@@ -94,7 +100,7 @@
                 targets = queries[i].targets;
                 symbolMode = queries[i].symbolMode;
                 
-                newRow = $('<div></div>');
+                newRow = $('<div class="selectorRow"></div>');
                 newRow.css("width", "100%");
                 newRow.css("height", rowPercHeight + "%");
                 
@@ -414,7 +420,7 @@
                     }
                 });
                 
-                queryDescContainer = $('<div class="gisQueryDescContainer"></div>');
+                queryDescContainer = $('<div class="gisQueryDescContainer centerWithFlex"></div>');
                 queryDescContainer.css("background", color1);
                 queryDescContainer.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
                 queryDescContainer.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
@@ -449,7 +455,7 @@
                 
                 var descParHeight = queryDescContainer.find("p.gisQueryDescPar").height();
                 var descParMarginTop = Math.floor((newRow.height() - descParHeight) / 2);
-                queryDescContainer.find("p.gisQueryDescPar").css("margin-top", descParMarginTop + "px");
+                //queryDescContainer.find("p.gisQueryDescPar").css("margin-top", descParMarginTop + "px");
             }//Fine del for    
             
             $(document).off('hideLinkFromOtherWebSelector_' + widgetName);
@@ -606,10 +612,6 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        //widgetProperties = getWidgetProperties(widgetName);
-        
         $.ajax({
             url: getParametersWidgetUrl,
             type: "GET",
@@ -621,16 +623,14 @@
                 widgetProperties = data;
                 if((widgetProperties !== null) && (widgetProperties !== undefined))
                 {
-                    //Inizio eventuale codice ad hoc basato sulle proprietà del widget
-                    styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
-                    //Fine eventuale codice ad hoc basato sulle proprietà del widget
+                    styleParameters = getStyleParameters();
                     fontFamily = widgetProperties.param.fontFamily;
                     widgetTargetList = JSON.parse(widgetProperties.param.parameters).targets;
                     queriesNumber = JSON.parse(widgetProperties.param.parameters).queries.length;
                     activeFontColor = styleParameters.activeFontColor;
                     widgetWidth = $('#<?= $_REQUEST['name_w'] ?>_div').width();
                     shownHeight = $('#<?= $_REQUEST['name_w'] ?>_div').height() - 25;
-
+                    
                     switch(styleParameters.rectDim)
                     {
                         case "1":
@@ -649,6 +649,8 @@
                             rowPercHeight =  100 / queriesNumber;
                             break;    
                     }
+                    
+                    styleParameters.rectDim = "4";
 
                     contentHeightPx = queriesNumber * 100;
                     eventContentWPerc = null;
@@ -673,7 +675,17 @@
                             if(defaultOption)
                             {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(i).trigger('click');
+                                defaultOptionUsed = true;
+                                break;
                             }
+                        }
+                        
+                        if(!defaultOptionUsed)
+                        {
+                            JSON.parse(widgetProperties.param.parameters).queries[0].defaultOption = true;
+                            setTimeout(function() {
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(0).trigger('click');
+                            }, 700);
                         }
                     }, parseInt("<?php echo $selectoWebDefaultLoadWaitTime; ?>"));
                 }
@@ -697,24 +709,22 @@
             }
         });
         
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        $(document).on('resizeHighchart_' + widgetName, function(event)
+        {
+            showHeader = event.showHeader;
+        });
         
     });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>  
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -726,6 +736,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available

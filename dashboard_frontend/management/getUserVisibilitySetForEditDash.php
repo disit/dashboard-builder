@@ -18,6 +18,7 @@
    include '../config.php';
    
    //Definizioni di funzione
+   /*
    function ldapCheckRole($connection, $userDn, $role) {
       $result = ldap_search(
               $connection, 'dc=ldap,dc=disit,dc=org', 
@@ -34,7 +35,7 @@
           }
       }
       return false;
-  }
+  }*/
    
    //Altrimenti restituisce in output le warning
    error_reporting(E_ERROR | E_NOTICE);
@@ -94,7 +95,7 @@
                         "(SELECT rels.username AS ConsultationSetUser FROM Dashboard.UsersPoolsRelations AS rels " .
                         "WHERE rels.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$author') " .
                         "AND rels.username <> '$author' " . 
-                        "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'ToolAdmin') " .
+                        "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'RootAdmin') " .
                         "AND rels.username NOT IN (SELECT Dashboard.UsersPoolsRelations.username FROM Dashboard.UsersPoolsRelations WHERE Dashboard.UsersPoolsRelations.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$author') AND Dashboard.UsersPoolsRelations.isAdmin = 1) " .
                         "GROUP BY rels.username) AS A ". 
                         "LEFT JOIN " .
@@ -123,7 +124,7 @@
                
             //OK - Area manager
             //EDITA UNA DASHBOARD DI CUI E' AUTORE OPPURE UNA DI UN Manager APPARTENENTE AD UN POOL DI CUI LUI E' Area Manager
-            case "AreaManager":
+            case "AreaManager": case "ToolAdmin": 
                 if($author == $_SESSION['loggedUsername'])
                 {
                     //Area manager - Se area manager edita una dashboard di cui è autore si restituiscono solo gli end users dei pools di cui fa parte l'area manager stesso (come admin o come end-user) (quindi esclusi i superadmin, gli altri admins e l'autore della dashboard) - Gli altri area manager non vengono abilitati in automatico alla consultazione della dashboard.
@@ -131,7 +132,7 @@
                               "(SELECT rels.username AS ConsultationSetUser FROM Dashboard.UsersPoolsRelations AS rels " .
                               "WHERE rels.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$author') " .
                               "AND rels.username <> '$author' " .
-                              "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'ToolAdmin') " .
+                              "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'RootAdmin') " .
                               "AND rels.isAdmin = 0 " .
                               "AND rels.username NOT IN (SELECT Dashboard.UsersPoolsRelations.username FROM Dashboard.UsersPoolsRelations WHERE Dashboard.UsersPoolsRelations.isAdmin = 1 AND Dashboard.UsersPoolsRelations.username NOT IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE isAdmin = 0)) " .
                               "GROUP BY rels.username) AS A " .
@@ -148,7 +149,7 @@
                               "(SELECT rels.username AS ConsultationSetUser FROM Dashboard.UsersPoolsRelations AS rels " .
                               "WHERE rels.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username IN ('$author', '$loggedUsername')) " .
                               "AND rels.username NOT IN ('$author', '$loggedUsername') " .
-                              "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'ToolAdmin') " .
+                              "AND rels.username NOT IN (SELECT Users.username FROM Dashboard.Users WHERE admin = 'RootAdmin') " .
                               "AND rels.isAdmin = 0 " .
                               "AND rels.username NOT IN (SELECT Dashboard.UsersPoolsRelations.username FROM Dashboard.UsersPoolsRelations WHERE Dashboard.UsersPoolsRelations.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username IN ('$author', '$loggedUsername')) AND Dashboard.UsersPoolsRelations.isAdmin = 1) " .
                               "GROUP BY rels.username) AS A " .
@@ -178,7 +179,7 @@
            
             //OK - Tool admin
             //EDITA UNA DASHBOARD DI CUI E' AUTORE OPPURE UNA DI UN ALTRO Tool Admin OPPURE UNA DI UN Area Manager OPPURE UNA DI UN Manager  
-           case "ToolAdmin":
+            case "RootAdmin":
                if($author == $_SESSION['loggedUsername'])
                {
                    //OK - EDITA UNA DASHBOARD DI CUI E' AUTORE: si restituiscono tutti gli area manager, tutti i manager e tutti gli observer, anche i non facenti parte di pools
@@ -192,7 +193,7 @@
                         $bind = ldap_bind($ds);
 
                         $result = ldap_search(
-                                $ds, 'dc=ldap,dc=disit,dc=org', 
+                                $ds, $ldapBaseDN, 
                                 '(cn=Dashboard)'
                         );
                         $entries = ldap_get_entries($ds, $result);
@@ -213,17 +214,17 @@
 
                         for($i = 0; $i < count($temp); $i++)
                         {
-                           if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                           if(!checkLdapRole($ds, $temp[$i], "RootAdmin", $ldapBaseDN))
                            {
                               $name = str_replace("cn=", "", $temp[$i]);
-                              $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                              $name = str_replace(",$ldapBaseDN", "", $name);
                               array_push($usersList, $name);
                            }
                         }
                      }
                      
                       //Reperimento elenco utenti locali
-                      $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
+                      $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'RootAdmin'";
                       $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
 
                       if($result2)
@@ -265,26 +266,33 @@
                {
                   if(($authorRole == NULL)||($authorRole == 'NULL')&&($ldapActive == "yes"))
                   {
-                     $ldapAuthor = "cn=". $author . ",dc=ldap,dc=disit,dc=org";
+                     $ldapAuthor = "cn=". $author . ",$ldapBaseDN";
                      $ds = ldap_connect($ldapServer, $ldapPort);
                      ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
                      $bind = ldap_bind($ds);
                      
-                     if(ldapCheckRole($ds, $ldapAuthor, "Manager"))
+                     if(checkLdapRole($ds, $ldapAuthor, "Manager", $ldapBaseDN))
                      {
                         $authorRole = "Manager";
                      }
                      else
                      {
-                        if(ldapCheckRole($ds, $ldapAuthor, "AreaManager"))
+                        if(checkLdapRole($ds, $ldapAuthor, "AreaManager", $ldapBaseDN))
                         {
                            $authorRole = "AreaManager";
                         }
                         else
                         {
-                           if(ldapCheckRole($ds, $ldapAuthor, "ToolAdmin"))
+                           if(checkLdapRole($ds, $ldapAuthor, "ToolAdmin", $ldapBaseDN))
                            {
                               $authorRole = "ToolAdmin";
+                           }
+                           else
+                           {
+                                if(checkLdapRole($ds, $ldapAuthor, "RootAdmin", $ldapBaseDN))
+                                {
+                                   $authorRole = "RootAdmin";
+                                }
                            }
                         }
                      }
@@ -293,7 +301,7 @@
                   switch($authorRole)
                   {
                      //OK - Edita la dashboard creata da un altro tool admin
-                     case "ToolAdmin":
+                     case "RootAdmin":
                         $temp = [];
                         $usersList = [];
                         if($ldapActive == "yes")
@@ -303,7 +311,7 @@
                             $bind = ldap_bind($ds);
 
                             $result = ldap_search(
-                                    $ds, 'dc=ldap,dc=disit,dc=org', 
+                                    $ds, $ldapBaseDN, 
                                     '(cn=Dashboard)'
                             );
                             $entries = ldap_get_entries($ds, $result);
@@ -324,10 +332,10 @@
 
                             for($i = 0; $i < count($temp); $i++)
                             {
-                               if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                               if(checkLdapRole($ds, $temp[$i], "RootAdmin", $ldapBaseDN))
                                {
                                   $name = str_replace("cn=", "", $temp[$i]);
-                                  $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                  $name = str_replace(",$ldapBaseDN", "", $name);
                                   array_push($usersList, $name);
                                }
                             }
@@ -336,7 +344,7 @@
                         
 
                          //Reperimento elenco utenti locali
-                         $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
+                         $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'RootAdmin'";
                          $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
 
                          if($result2)
@@ -376,7 +384,7 @@
                         break;
                      
                      //OK - Edita la dashboard di un area manager: si tolgono i tool admin e l'autore della dashboard, entrambi abilitati sempre.
-                     case "AreaManager":
+                     case "AreaManager": case "ToolAdmin": 
                         $temp = [];
                         $usersList = [];
                         
@@ -387,7 +395,7 @@
                             $bind = ldap_bind($ds);
 
                             $result = ldap_search(
-                                    $ds, 'dc=ldap,dc=disit,dc=org', 
+                                    $ds, $ldapBaseDN, 
                                     '(cn=Dashboard)'
                             );
                             $entries = ldap_get_entries($ds, $result);
@@ -408,10 +416,10 @@
 
                             for($i = 0; $i < count($temp); $i++)
                             {
-                               if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                               if(checkLdapRole($ds, $temp[$i], "RootAdmin", $ldapBaseDN))
                                {
                                   $name = str_replace("cn=", "", $temp[$i]);
-                                  $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                  $name = str_replace(",$ldapBaseDN", "", $name);
                                   array_push($usersList, $name);
                                }
                             }
@@ -420,7 +428,7 @@
                         
 
                          //Reperimento elenco utenti locali
-                         $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'ToolAdmin'";
+                         $query2 = "SELECT username FROM Dashboard.Users WHERE admin <> 'RootAdmin'";
                          $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
 
                          if($result2)
@@ -475,7 +483,7 @@
                             $bind = ldap_bind($ds);
 
                             $result = ldap_search(
-                                    $ds, 'dc=ldap,dc=disit,dc=org', 
+                                    $ds, $ldapBaseDN, 
                                     '(cn=Dashboard)'
                             );
                             $entries = ldap_get_entries($ds, $result);
@@ -496,10 +504,10 @@
 
                             for($i = 0; $i < count($temp); $i++)
                             {
-                               if(!ldapCheckRole($ds, $temp[$i], "ToolAdmin"))
+                               if(checkLdapRole($ds, $temp[$i], "RootAdmin", $ldapBaseDN))
                                {
                                   $name = str_replace("cn=", "", $temp[$i]);
-                                  $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
+                                  $name = str_replace(",$ldapBaseDN", "", $name);
                                   array_push($usersList, $name);
                                }
                             }
@@ -508,7 +516,7 @@
 
                          //Reperimento elenco utenti locali (Con rimozione degli area manager dei pool di cui fa parte l'autore della dashboard, inclusi tali area manager di orgine LDAP)
                          $query2 = "SELECT username FROM Dashboard.Users " .
-                                   "WHERE admin <> 'ToolAdmin' " .
+                                   "WHERE admin <> 'RootAdmin' " .
                                    "AND username NOT IN(SELECT Dashboard.UsersPoolsRelations.username FROM Dashboard.UsersPoolsRelations WHERE Dashboard.UsersPoolsRelations.poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$author') AND Dashboard.UsersPoolsRelations.isAdmin = 1 GROUP BY Dashboard.UsersPoolsRelations.username)";
                          
                          $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));

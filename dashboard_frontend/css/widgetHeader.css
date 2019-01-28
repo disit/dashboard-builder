@@ -1,0 +1,105 @@
+.titleDiv
+{
+    float: left;
+    height: 100%;
+    font-size: 14px;
+    font-weight: bold;
+    overflow: hidden ;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 25px;
+    text-align: center;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.20);
+    font-family: inherit;
+    /*-webkit-user-select: text; 
+    -moz-user-select: text; 
+    -ms-user-select: text; 
+    user-select: text; */
+    /*Effetto fade in caso di allarme*/
+    -webkit-transition: background 1.8s ease-in-out;
+    -ms-transition:     background 1.8s ease-in-out;
+    transition:         background 1.8s ease-in-out;
+}
+
+/**[contenteditable] {
+    -webkit-user-select: auto !important;
+}*/
+
+.widgetHeader
+{
+    height: 25px;
+}
+
+.compactMenuConfirmBtn
+{
+    padding: 0px 6px 0px 6px !important;
+    border: none;
+    font-size: 22px;
+    font-weight: bold;
+    border-radius: 2px;
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+}
+
+.compactMenuCancelBtn
+{
+    padding: 0px 6px 0px 6px !important;
+    border: none;
+    font-size: 22px;
+    font-weight: bold;
+    border-radius: 2px;
+    background-color: #f3cf58;
+    color: white;
+}
+
+.compactMenu
+{
+    display: none;
+    position: absolute;
+    background-color: white;
+    padding: 5px 5px 5px 5px;
+    border-radius: 2px;
+    border: 1px solid #bebebe;
+    -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+}
+
+.compactMenuMsg
+{
+    width: 100%;
+    float: left;
+    display: none;
+    color: black;
+    margin-top: 3px;
+    font-size: 14px;
+}
+
+.updateFreqLbl
+{
+    font-size: 15px;
+    margin-top: 1px;
+}
+
+.updateFreqField
+{
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    width: 22px;
+}
+
+.info_source
+{
+    display: none;
+}
+
+#widgetInfoModalCancelBtnView
+{
+    background-color: rgba(51, 64, 69, 1) !important;
+}
+
+#widgetInfoModalCancelBtnView:hover
+{
+    background-color: #f3cf58 !important;
+    cursor: pointer;
+}

@@ -40,57 +40,18 @@
         var headerHeight = 25;        
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
-        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-	var showHeader = null;
-        var thresholdObject, infoJson, styleParameters, metricType, metricData, pattern,  
-            udm, delta, rangeMin, rangeMax, widgetParameters, alarmSet, countdownRef, metricName, widgetTitle, 
+	var showHeader, showTitle, widgetContentColor, fontSize, fontColor, timeToReload, hasTimer, chartColor, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
+            thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, appId, flowId, nrMetricType, 
+            udm, delta, rangeMin, rangeMax, widgetParameters, alarmSet, countdownRef, metricName, widgetTitle, chartRef,
             widgetHeaderColor, widgetHeaderFontColor, widgetOriginalBorderColor, urlToCall, geoJsonServiceData, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed, showHeader = null;
         var wsRetryActive, wsRetryTime = null;
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
         var url = "<?= $_REQUEST['link_w'] ?>";
         var barColors = new Array();
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-		    showHeader = false;
-		}
-		else
-		{
-			showHeader = true;
-		} 
-        
-        if(url === "null")
-        {
-            url = null;
-        }
-        
-        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-        {
-            metricName = "<?= $_REQUEST['id_metric'] ?>";
-            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
-            widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-            widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        }
-        else
-        {
-            metricName = metricNameFromDriver;
-            widgetTitleFromDriver.replace(/_/g, " ");
-            widgetTitleFromDriver.replace(/\'/g, "&apos;");
-            widgetTitle = widgetTitleFromDriver;
-            $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
-            widgetHeaderColor = widgetHeaderColorFromDriver;
-            widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
-        }
+        var needWebSocket = false;
         
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function(event) 
@@ -151,6 +112,7 @@
 	$(document).off('resizeHighchart_' + widgetName);
         $(document).on('resizeHighchart_' + widgetName, function(event) 
         {
+            showHeader = event.showHeader;
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
         });
         
@@ -517,6 +479,11 @@
                                         plotLines: plotLinesObj,
                                         title: {
                                             text: ''
+                                        },
+                                        labels: {
+                                            style: {
+                                                fontFamily: 'Montserrat'
+                                            }
                                         }
                                     }];
                             }
@@ -534,7 +501,8 @@
                             $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
 
                             //Disegno del diagramma
-                            $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts({
+                            
+                            chartRef = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                                 credits: {
                                     enabled: false
                                 },
@@ -543,9 +511,14 @@
                                 },
                                 chart: {
                                     type: 'bar',
-                                    backgroundColor: '<?= $_REQUEST['color_w'] ?>',
+                                    backgroundColor: 'transparent',
                                     spacingBottom: 10,
-                                    spacingTop: 10
+                                    spacingTop: 10,
+                                    events: {
+                                        load: function () {
+                                            $("#<?= $_REQUEST['name_w'] ?>_chartColorMenuItem").trigger('chartCreated');
+                                        }
+                                    }
                                 },
                                 title: {
                                     text: ''
@@ -569,29 +542,22 @@
                                             },
                                             enabled: true,
                                             verticalAlign: 'middle',
-                                            color: fontColor,
+                                            color: dataLabelsFontColor,
                                             style: 
                                             {
-                                                fontFamily: 'Verdana',
-                                                fontWeight: 'bold',
-                                                fontSize: fontSize + "px",
-                                                "textOutline": "1px 1px contrast",
-                                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.3)"
+                                                fontFamily: 'Montserrat',
+                                                fontSize: dataLabelsFontSize + "px",
+                                                "textOutline": "0px 0px contrast",
+                                                /*"text-shadow": "1px 1px 1px rgba(0,0,0,0.3)"*/
                                             }
                                         }
                                     }
                                 },
-                                series: [{
-                                    showInLegend: false,
-                                    name: '<?= $_REQUEST['id_metric'] ?>',
-                                    color: barColors[1],
-                                    data: seriesComplData,
-                                    pointWidth: 200
-                                },
+                                series: [
                                 {
                                     showInLegend: false,
                                     name: '<?= $_REQUEST['id_metric'] ?>',
-                                    color: barColors[0],
+                                    color: chartColor,
                                     data: seriesMainData,
                                     pointWidth: 200
                                 }]
@@ -646,421 +612,425 @@
             $("#" + widgetName + "_loading").css("height", bodyHeight + "px");
             $("#" + widgetName + "_content").css("height", bodyHeight + "px");
         }
-        
-        /*function setupWebSocket()
-        {
-            <?php
-                $genFileContent = parse_ini_file("../conf/environment.ini");
-                $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
-                $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
-                $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
-                $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
-                $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
-                echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
-            ?>
-            webSocket.onopen = function(msg) 
-            { 
-                var wsRegistration = {
-                  msgType: "ClientWidgetRegistration",
-                  userType: "widgetInstance",
-                  metricName: encodeURIComponent(metricName)
-                };
-                webSocket.send(JSON.stringify(wsRegistration));
-                
-                setTimeout(function(){
-                    webSocket.close();
-                }, (timeToReload - 2)*1000);
-            };
-            
-            webSocket.onmessage = function(msg) 
-            { 
-                var msgObj = JSON.parse(msg.data);
-                
-                switch(msgObj.msgType)
-                {
-                    case "newNRMetricData":
-                        if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
-                        {
-                            webSocket.close();
-                            clearInterval(countdownRef);
-                            <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
-                        }
-                        break;
-                        
-                    default:
-                        console.log("Received: " + msg.data);
-                        break;
-                }
-                 
-            };
-            
-            webSocket.onclose = function(msg) 
-            { 
-                console.log("Disconnected - status " + msg); 
-            };
-            
-        }*/
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
-        
-        if(firstLoad === false)
-        {
-            showWidgetContent(widgetName);
-        }
-        else
-        {
-            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-        }
-        
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
-        
-        //Nuova versione
-        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
-        {
-            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
-        }
-        
-        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
-        {
-            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
-        }
-        
-        if(widgetParameters !== null && widgetParameters !== undefined)
-        {
-            if(widgetParameters.hasOwnProperty("thresholdObject"))
-            {
-              thresholdObject = widgetParameters.thresholdObject; 
-            }
-            
-            if((widgetParameters.rangeMin !== null) && (widgetParameters.rangeMin !== "") && (widgetParameters.rangeMin !== undefined))
-            {
-                 rangeMin = widgetParameters.rangeMin;
-            }
-
-             if((widgetParameters.rangeMax !== null) && (widgetParameters.rangeMax !== "") && (widgetParameters.rangeMax !== undefined))
-             {
-                 rangeMax = widgetParameters.rangeMax;
-             }
-
-             //I colori andranno spostati in styleParameters appena esponiamo la loro gestione sul form add/edit widget
-             if((widgetParameters.color1 !== null) && (widgetParameters.color1 !== "") && (typeof widgetParameters.color1 !== "undefined")) 
-             {
-                 barColors[0] = widgetParameters.color1;
-             }
-             else
-             {
-                 barColors[0] = colors.GREEN; 
-             }
-
-             if((widgetParameters.color2 !== null) && (widgetParameters.color2 !== "") && (typeof widgetParameters.color2 !== "undefined")) 
-             {
-                 barColors[1] = widgetParameters.color2;
-             }
-             else
-             {
-                 barColors[1] = colors.LOW_YELLOW;
-             }
-        }
-        else
-        {
-            barColors[0] = colors.GREEN;
-            barColors[1] = colors.LOW_YELLOW;
-        }
-        
-        if(fromGisExternalContent)
-        {
-            if((fromGisFakeId !== null) && (fromGisFakeId !== 'null') && (fromGisFakeId !== undefined))
-            {
-                urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + fromGisFakeId;
-            }
-            else
-            {
-                urlToCall = "<?php echo $serviceMapUrlPrefix; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&format=json";
-            }
-
-            $.ajax({
-                url: urlToCall,
+        $.ajax({
+                url: "../controllers/getWidgetParams.php",
                 type: "GET",
-                data: {},
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
                 async: true,
                 dataType: 'json',
-                success: function(geoJsonServiceData) 
+                success: function(widgetData) 
                 {
-                    $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').hide();
-                    $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').show();
+                    showTitle = widgetData.params.showTitle;
+                    widgetContentColor = widgetData.params.color_w;
+                    fontSize = widgetData.params.fontSize;
+                    fontColor = widgetData.params.fontColor;
+                    timeToReload = widgetData.params.frequency_w;
+                    hasTimer = widgetData.params.hasTimer;
+                    chartColor = widgetData.params.chartColor;
+                    dataLabelsFontSize = widgetData.params.dataLabelsFontSize; 
+                    dataLabelsFontColor = widgetData.params.dataLabelsFontColor; 
+                    chartLabelsFontSize = widgetData.params.chartLabelsFontSize; 
+                    chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                    appId = widgetData.params.appId;
+                    flowId = widgetData.params.flowId;
+                    nrMetricType = widgetData.params.nrMetricType;
+                    
+                    if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+                    {
+                        showHeader = false;
+                    }
+                    else
+                    {
+                        showHeader = true;
+                    } 
 
-                    $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').click(function(){
-                        if($(this).attr('data-onMap') === 'false')
+                    if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+                    {
+                        metricName = "<?= $_REQUEST['id_metric'] ?>";
+                        widgetTitle = widgetData.params.title_w;
+                        widgetHeaderColor = widgetData.params.frame_color_w;
+                        widgetHeaderFontColor = widgetData.params.headerFontColor;
+                    }
+                    else
+                    {
+                        metricName = metricNameFromDriver;
+                        widgetTitleFromDriver.replace(/_/g, " ");
+                        widgetTitleFromDriver.replace(/\'/g, "&apos;");
+                        widgetTitle = widgetTitleFromDriver;
+                        $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+                        widgetHeaderColor = widgetHeaderColorFromDriver;
+                        widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+                    }
+
+                    setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+                    $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+                    $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                    if(firstLoad === false)
+                    {
+                        showWidgetContent(widgetName);
+                    }
+                    else
+                    {
+                        setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                    }
+
+                    //Nuova versione
+                    if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+                    {
+                        styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+                    }
+
+                    if(widgetData.params.parameters !== null)
+                    {
+                        widgetParameters = JSON.parse(widgetData.params.parameters);
+                    }
+
+                    if(widgetParameters !== null && widgetParameters !== undefined)
+                    {
+                        if(widgetParameters.hasOwnProperty("thresholdObject"))
                         {
-                            if(fromGisMapRef.hasLayer(fromGisMarker))
-                            {
-                                fromGisMarker.fire('click');
-                            }
-                            else
-                            {
-                                fromGisMapRef.addLayer(fromGisMarker);
-                                fromGisMarker.fire('click');
-                            } 
-                            $(this).attr('data-onMap', 'true');
-                            $(this).html('near_me');
-                            $(this).css('color', 'white');
-                            $(this).css('text-shadow', '2px 2px 4px black');
+                          thresholdObject = widgetParameters.thresholdObject; 
+                        }
+
+                        if((widgetParameters.rangeMin !== null) && (widgetParameters.rangeMin !== "") && (widgetParameters.rangeMin !== undefined))
+                        {
+                             rangeMin = widgetParameters.rangeMin;
+                        }
+
+                         if((widgetParameters.rangeMax !== null) && (widgetParameters.rangeMax !== "") && (widgetParameters.rangeMax !== undefined))
+                         {
+                             rangeMax = widgetParameters.rangeMax;
+                         }
+
+                         //I colori andranno spostati in styleParameters appena esponiamo la loro gestione sul form add/edit widget
+                         if((widgetParameters.color1 !== null) && (widgetParameters.color1 !== "") && (typeof widgetParameters.color1 !== "undefined")) 
+                         {
+                             barColors[0] = widgetParameters.color1;
+                         }
+                         else
+                         {
+                             barColors[0] = colors.GREEN; 
+                         }
+
+                         if((widgetParameters.color2 !== null) && (widgetParameters.color2 !== "") && (typeof widgetParameters.color2 !== "undefined")) 
+                         {
+                             barColors[1] = widgetParameters.color2;
+                         }
+                         else
+                         {
+                             barColors[1] = colors.LOW_YELLOW;
+                         }
+                    }
+                    else
+                    {
+                        barColors[0] = colors.GREEN;
+                        barColors[1] = colors.LOW_YELLOW;
+                    }
+
+                    if(fromGisExternalContent)
+                    {
+                        if((fromGisFakeId !== null) && (fromGisFakeId !== 'null') && (fromGisFakeId !== undefined))
+                        {
+                            urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + fromGisFakeId;
                         }
                         else
                         {
-                            fromGisMapRef.removeLayer(fromGisMarker);
-                            $(this).attr('data-onMap', 'false');
-                            $(this).html('navigation');
-                            $(this).css('color', '#337ab7');
-                            $(this).css('text-shadow', 'none');
+                            urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&format=json";
                         }
-                    });
 
-                    metricData = {  
-                        "data":[  
-                           {  
-                              "commit":{  
-                                 "author":{  
-                                    "IdMetric_data": fromGisExternalContentField,
-                                    "computationDate": null,
-                                    "value_num":null,
-                                    "value_perc1": null,
-                                    "value_perc2": null,
-                                    "value_perc3": null,
-                                    "value_text": null,
-                                    "quant_perc1": null,
-                                    "quant_perc2": null,
-                                    "quant_perc3": null,
-                                    "tot_perc1": null,
-                                    "tot_perc2": null,
-                                    "tot_perc3": null,
-                                    "series": null,
-                                    "descrip": fromGisExternalContentField,
-                                    "metricType": null,
-                                    "threshold":null,
-                                    "thresholdEval":null,
-                                    "field1Desc": null,
-                                    "field2Desc": null,
-                                    "field3Desc": null,
-                                    "hasNegativeValues": "1"
-                                 }
-                              }
-                           }
-                        ]
+                        $.ajax({
+                            url: urlToCall,
+                            type: "GET",
+                            data: {},
+                            async: true,
+                            dataType: 'json',
+                            success: function(geoJsonServiceData) 
+                            {
+                                $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').hide();
+                                $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').show();
+
+                                $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').off('click');
+                                $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').click(function(){
+                                    if($(this).attr('data-onMap') === 'false')
+                                    {
+                                        if(fromGisMapRef.hasLayer(fromGisMarker))
+                                        {
+                                            fromGisMarker.fire('click');
+                                        }
+                                        else
+                                        {
+                                            fromGisMapRef.addLayer(fromGisMarker);
+                                            fromGisMarker.fire('click');
+                                        } 
+                                        $(this).attr('data-onMap', 'true');
+                                        $(this).html('near_me');
+                                        $(this).css('color', 'white');
+                                        $(this).css('text-shadow', '2px 2px 4px black');
+                                    }
+                                    else
+                                    {
+                                        fromGisMapRef.removeLayer(fromGisMarker);
+                                        $(this).attr('data-onMap', 'false');
+                                        $(this).html('navigation');
+                                        $(this).css('color', '#337ab7');
+                                        $(this).css('text-shadow', 'none');
+                                    }
+                                });
+
+                                metricData = {  
+                                    "data":[  
+                                       {  
+                                          "commit":{  
+                                             "author":{  
+                                                "IdMetric_data": fromGisExternalContentField,
+                                                "computationDate": null,
+                                                "value_num":null,
+                                                "value_perc1": null,
+                                                "value_perc2": null,
+                                                "value_perc3": null,
+                                                "value_text": null,
+                                                "quant_perc1": null,
+                                                "quant_perc2": null,
+                                                "quant_perc3": null,
+                                                "tot_perc1": null,
+                                                "tot_perc2": null,
+                                                "tot_perc3": null,
+                                                "series": null,
+                                                "descrip": fromGisExternalContentField,
+                                                "metricType": null,
+                                                "threshold":null,
+                                                "thresholdEval":null,
+                                                "field1Desc": null,
+                                                "field2Desc": null,
+                                                "field3Desc": null,
+                                                "hasNegativeValues": "1"
+                                             }
+                                          }
+                                       }
+                                    ]
+                                };
+
+                                var fatherNode = null;
+                                if(geoJsonServiceData.hasOwnProperty("BusStop"))
+                                {
+                                    fatherNode = geoJsonServiceData.BusStop;
+                                }
+                                else
+                                {
+                                    if(geoJsonServiceData.hasOwnProperty("Sensor"))
+                                    {
+                                        fatherNode = geoJsonServiceData.Sensor;
+                                    }
+                                    else
+                                    {
+                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                        fatherNode = geoJsonServiceData.Service;
+                                    }
+                                }
+
+                                var serviceProperties = fatherNode.features[0].properties;
+                                var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                                var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                                var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                                serviceSubclass = serviceSubclass.replace(/_/g, " ");
+
+                                var numberPattern = /^-?\d*\.?\d+$/;
+                                var integerPattern = /^[+\-]?\d+$/;
+
+                                if(numberPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
+                                {
+                                    if(integerPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
+                                    {
+                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                        metricData.data[0].commit.author.metricType = "Intero"; 
+                                    }
+                                    else
+                                    {
+                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                        metricData.data[0].commit.author.metricType = "Float"; 
+                                    }
+                                }
+                                else
+                                {
+                                    metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                    metricData.data[0].commit.author.metricType = "Testuale";
+                                }
+                            },
+                            error: function(errorData)
+                            {
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                            },
+                            complete: function()
+                            {
+                                populateWidget(); 
+                            }
+                        });
+                    }
+                    else
+                    {
+                        $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
+                        $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
+
+                        $.ajax({
+                            url: getMetricDataUrl,
+                            type: "GET",
+                            data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) 
+                            {
+                                metricData = data;
+                                needWebSocket = metricData.data[0].needWebSocket;
+                                $("#" + widgetName + "_loading").css("display", "none");
+                                $("#" + widgetName + "_content").css("display", "block");
+                                populateWidget();
+                                
+                                if(needWebSocket)
+                                {
+                                    openWs();
+                                }
+                            },
+                            error: function()
+                            {
+                                metricData = null;
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                                if(firstLoad !== false)
+                                {
+                                   $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                   $("#<?= $_REQUEST['name_w'] ?>_loading").hide();
+                                   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                }
+                            }
+                        });
+                    }
+
+                    //Web socket 
+                    openWs = function(e)
+                    {
+                        try
+                        {
+                            <?php
+                                $genFileContent = parse_ini_file("../conf/environment.ini");
+                                $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                                $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                                $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                                $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                                $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                                $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                                $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                                echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                                echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                                echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                            ?>
+
+                            webSocket.addEventListener('open', openWsConn);
+                            webSocket.addEventListener('close', wsClosed);
+
+                            setTimeout(function(){
+                                webSocket.removeEventListener('close', wsClosed);
+                                webSocket.removeEventListener('open', openWsConn);
+                                webSocket.removeEventListener('message', manageIncomingWsMsg);
+                                webSocket.close();
+                                webSocket = null;
+                            }, (timeToReload - 2)*1000);
+                        }
+                        catch(e)
+                        {
+                            wsClosed();
+                        }
                     };
 
-                    var fatherNode = null;
-                    if(geoJsonServiceData.hasOwnProperty("BusStop"))
+                    manageIncomingWsMsg = function(msg)
                     {
-                        fatherNode = geoJsonServiceData.BusStop;
-                    }
-                    else
-                    {
-                        if(geoJsonServiceData.hasOwnProperty("Sensor"))
-                        {
-                            fatherNode = geoJsonServiceData.Sensor;
-                        }
-                        else
-                        {
-                            //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
-                            fatherNode = geoJsonServiceData.Service;
-                        }
-                    }
+                        var msgObj = JSON.parse(msg.data);
 
-                    var serviceProperties = fatherNode.features[0].properties;
-                    var underscoreIndex = serviceProperties.serviceType.indexOf("_");
-                    var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
-                    var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
-                    serviceSubclass = serviceSubclass.replace(/_/g, " ");
-
-                    var numberPattern = /^-?\d*\.?\d+$/;
-                    var integerPattern = /^[+\-]?\d+$/;
-
-                    if(numberPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
-                    {
-                        if(integerPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
+                        switch(msgObj.msgType)
                         {
-                            metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
-                            metricData.data[0].commit.author.metricType = "Intero"; 
+                            case "newNRMetricData":
+                                if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                                {
+                                    var newValue = msgObj.newValue;
+                                    var point = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().series[0].points[0];       
+                                    point.update(newValue);  
+                                }
+                                break;
+
+                            default:
+                                break;
                         }
-                        else
-                        {
-                            metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
-                            metricData.data[0].commit.author.metricType = "Float"; 
-                        }
-                    }
-                    else
+                    };
+
+                    openWsConn = function(e)
                     {
-                        metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
-                        metricData.data[0].commit.author.metricType = "Testuale";
-                    }
+                        var wsRegistration = {
+                            msgType: "ClientWidgetRegistration",
+                            userType: "widgetInstance",
+                            metricName: encodeURIComponent(metricName),
+                            widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+                          };
+                          webSocket.send(JSON.stringify(wsRegistration));
+
+                          setTimeout(function(){
+                              webSocket.removeEventListener('close', wsClosed);
+                              webSocket.close();
+                          }, (timeToReload - 2)*1000);
+
+                        webSocket.addEventListener('message', manageIncomingWsMsg);
+                    };
+
+                    wsClosed = function(e)
+                    {
+                        webSocket.removeEventListener('close', wsClosed);
+                        webSocket.removeEventListener('open', openWsConn);
+                        webSocket.removeEventListener('message', manageIncomingWsMsg);
+                        webSocket = null;
+
+                        if(wsRetryActive === 'yes')
+                        {
+                            setTimeout(openWs, parseInt(wsRetryTime*1000));
+                        }
+                    };
+
+                    //Per ora non usata
+                    wsError = function(e)
+                    {
+                        
+                    };
+
+                    $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+                        resizeWidget();
+                        $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
+                    });
+
+                    $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+                    $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                        clearInterval(countdownRef);
+                        timeToReload = event.newTimeToReload;
+                        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+                    });
+
+                    countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+                    
                 },
                 error: function(errorData)
                 {
-                    console.log("Error in data retrieval");
-                    console.log(JSON.stringify(errorData));
-                },
-                complete: function()
-                {
-                    populateWidget(); 
+                    
                 }
-            });
-        }
-        else
-        {
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
-            $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
-            
-            $.ajax({
-                url: getMetricDataUrl,
-                type: "GET",
-                data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
-                async: true,
-                dataType: 'json',
-                success: function (data) 
-                {
-                    metricData = data;
-                    $("#" + widgetName + "_loading").css("display", "none");
-                    $("#" + widgetName + "_content").css("display", "block");
-                    populateWidget();
-                    //Posizione WebSocket
-                    //setupWebSocket();
-                },
-                error: function()
-                {
-                    metricData = null;
-                    console.log("Error in data retrieval");
-                    console.log(JSON.stringify(errorData));
-                    if(firstLoad !== false)
-                    {
-                       $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                       $("#<?= $_REQUEST['name_w'] ?>_loading").hide();
-                       $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                    }
-                }
-            });
-        }
-        
-        //Web socket 
-        openWs = function(e)
-        {
-            console.log("Widget " + widgetTitle + " is trying to open WebSocket");
-            try
-            {
-                <?php
-                    $genFileContent = parse_ini_file("../conf/environment.ini");
-                    $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
-                    $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
-                    $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
-                    $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
-                    $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
-                    $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
-                    $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
-                    echo 'wsRetryActive = "' . $wsRetryActive . '";';
-                    echo 'wsRetryTime = ' . $wsRetryTime . ';';
-                    echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
-                ?>
-                                            
-                webSocket.addEventListener('open', openWsConn);
-                webSocket.addEventListener('close', wsClosed);
-                
-                setTimeout(function(){
-                    webSocket.removeEventListener('close', wsClosed);
-                    webSocket.removeEventListener('open', openWsConn);
-                    webSocket.removeEventListener('message', manageIncomingWsMsg);
-                    webSocket.close();
-                    webSocket = null;
-                }, (timeToReload - 2)*1000);
-            }
-            catch(e)
-            {
-                console.log("Widget " + widgetTitle + " could not connect to WebSocket");
-                wsClosed();
-            }
-        };
-        
-        manageIncomingWsMsg = function(msg)
-        {
-            console.log("Widget " + widgetTitle + " got new data from WebSocket: \n" + msg.data);
-            var msgObj = JSON.parse(msg.data);
-
-            switch(msgObj.msgType)
-            {
-                case "newNRMetricData":
-                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
-                    {
-                        /*webSocket.close();
-                        clearInterval(countdownRef);
-                        <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);*/
-                        var newValue = msgObj.newValue;
-                        var point = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().series[1].points[0];       
-                        point.update(newValue);        
-                        point = $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().series[0].points[0];       
-                        point.update(parseInt(100 - newValue));   
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-        };
-        
-        openWsConn = function(e)
-        {
-            console.log("Widget " + widgetTitle + " connected successfully to WebSocket");
-            var wsRegistration = {
-                msgType: "ClientWidgetRegistration",
-                userType: "widgetInstance",
-                metricName: encodeURIComponent(metricName)
-              };
-              webSocket.send(JSON.stringify(wsRegistration));
-
-              setTimeout(function(){
-                  webSocket.removeEventListener('close', wsClosed);
-                  webSocket.close();
-              }, (timeToReload - 2)*1000);
-              
-            webSocket.addEventListener('message', manageIncomingWsMsg);
-        };
-        
-        wsClosed = function(e)
-        {
-            console.log("Widget " + widgetTitle + " got WebSocket closed");
-            
-            webSocket.removeEventListener('close', wsClosed);
-            webSocket.removeEventListener('open', openWsConn);
-            webSocket.removeEventListener('message', manageIncomingWsMsg);
-            webSocket = null;
-            
-            if(wsRetryActive === 'yes')
-            {
-                console.log("Widget " + widgetTitle + " will retry WebSocket reconnection in " + parseInt(wsRetryTime) + "s");
-                setTimeout(openWs, parseInt(wsRetryTime*1000));
-            }
-        };
-        
-        //Per ora non usata
-        wsError = function(e)
-        {
-            console.log("Widget " + widgetTitle + " got WebSocket error: " + e);
-        };
-        
-        openWs(); 
-        
-        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId);
-        
+        });
     });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-		<?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -1072,6 +1042,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available

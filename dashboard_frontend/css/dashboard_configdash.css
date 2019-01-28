@@ -53,6 +53,17 @@ div.contextMenuBtnsRow
     padding-right: 0px !important;
 }
 
+.contextMenuQuitBtn
+{
+    height: 20px;
+    width: 60px;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #bfbfbf;
+    color: white;
+}
+
 .contextMenuCancelBtn
 {
     height: 20px;
@@ -60,7 +71,6 @@ div.contextMenuBtnsRow
     border: none;
     font-size: 14px;
     font-weight: bold;
-    border-radius: 2px;
     background-color: #f3cf58;
     color: white;
 }
@@ -72,14 +82,13 @@ div.contextMenuBtnsRow
     border: none;
     font-size: 14px;
     font-weight: bold;
-    border-radius: 2px;
     background-color: rgba(0, 162, 211, 1);
     color: white;
 }
 
 .fullCtxMenu
 {
-    min-width: 150px;
+    min-width: 160px;
     display: none;
     position: absolute;
     background-color: white;
@@ -99,15 +108,15 @@ div.contextMenuBtnsRow
 
 .fullCtxMenuIcon
 {
-    font-size: 14px;
+    font-size: 10px;
     padding-top: 5px;
     padding-left: 1px !important;
 }
 
 .fullCtxMenuTxt
 {
-    font-size: 15px;
-	text-align: left !important;
+    font-size: 13px;
+    text-align: left !important;
 }
 
 #dashboardCtxMenuBtn:hover
@@ -148,33 +157,45 @@ div.contextMenuBtnsRow
     margin-top: 10px;
 }
 
+#widgetInfoModalBody, #widgetInfoModalFooter
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
 .pcPhoto
 {
-	margin-left: auto;
-	margin-right: auto;
-	display: none;
+    margin-left: auto;
+    margin-right: auto;
+    display: none;
     max-width: 99px;
     max-height: 25px;
-	width: 99px;
-	height: 25px;
+    width: 99px;
+    height: 25px;
     object-fit: contain;
 }
 
 #addWidgetWizardMapCnt
 {
-    height: 250px;
+    height: 204px;
 }
 
 .addWidgetWizardIconsCntLabel
 {
-    margin-bottom: 10px;
-}
-
-.addWidgetWizardIconsCntLabel
-{
-    font-size: 1em;
+    margin-bottom: 2px;
+    padding-top: 0px;
+    font-size: 12px;
     font-weight: bold;
     color: white;
+}
+
+.addWidgetWizardIconsCntAlertLabel
+{
+    margin-bottom: 2px;
+    padding-top: 0px;
+    font-size: 10px;
+    font-weight: bold;
+    font-style: italic;
+    color: rgb(243, 207, 88);
 }
 
 #addWidgetWizard .modalHeader 
@@ -190,4 +211,109 @@ div.contextMenuBtnsRow
 .dataTables_length, .dataTables_filter
 {
     color: white !important;
+}
+
+#modalAddDashboardWizardAvailabilityWarning
+{
+    color: #f3cf58;
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+#authorizedPagesTableCnt
+{
+    height: 160px;
+    overflow-y: auto;
+    padding-top: 20px;
+}
+
+#updateAuthorizedPagesOkMsg, #updateAuthorizedPagesKoMsg
+{
+    display: none;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#modalEditDashboard .modal-body
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+#modalEditDashboard ul.nav>li.active>a
+{
+    background-color: transparent !important;
+    color: #fff;
+    border-bottom: none !important;
+}
+
+#modalEditDashboard ul.nav>li>a:hover 
+{
+    background-color: transparent !important;
+    color: #fff;
+    font-style: italic;
+}
+
+.modalNewLabel
+{
+    color: white;
+    font-weight: bold;
+}
+
+#scrDashboardModalBody
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+#scrDashboardModalMsg
+{
+    display: none;
+    color: white;
+    font-weight: bold;
+}
+
+.scrDashboardDecalog
+{
+    color: white;
+    font-size: 13px;
+    line-height: 1.75;
+}
+
+#dashBckCnt
+{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-position: center; 
+    background-size: cover;
+    z-index: -1;
+}
+
+#dashBckOverlay
+{
+    width: 100%;
+    height: 100%;
+}
+
+@media only screen and (min-width: 992px) 
+{
+    #modalWidgetAdvancedOptions .modal-dialog
+    {
+        width: 50vw !important;
+    }
+}
+
+#changeMetricCnt
+{
+    display: none;
+}
+
+.changeMetricSelectedRowsDelBtn
+{
+    color: red;
+    font-size: 16px;
 }

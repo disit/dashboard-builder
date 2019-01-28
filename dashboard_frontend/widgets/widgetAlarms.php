@@ -34,32 +34,21 @@
         var timeFontSize, scroller, widgetProperties, styleParameters, icon, serviceUri, 
             eventName, eventType, newRow, newIcon, eventContentW, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
             background, originalHeaderColor, originalBorderColor, eventTitle, temp, day, month, hour, min, sec, eventStart, 
-            eventName, serviceUri, eventLat, eventLng, eventTooltip, eventStartDate, eventStartTime,
+            eventName, serviceUri, eventLat, eventLng, eventTooltip, eventStartDate, eventStartTime, widgetTitle,
             eventsNumber, widgetWidth, shownHeight, rowPercHeight, contentHeightPx, eventContentWPerc, dataContainer, middleContainer, subTypeContainer,
             dateContainer, timeContainer, severityContainer, mapPtrContainer, pinContainer, pinMsgContainer, 
             fontSizePin, dateFontSize, mapPinImg, eventNameWithCase, eventSeverity, 
-            typeId, lastPopup, widgetParameters = null;    
+            typeId, lastPopup, widgetParameters, countdownRef = null;    
     
-        
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var speed = 50;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
-        var url = "<?= $_REQUEST['link_w'] ?>";
         var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-        var showHeader = null;        
+        var showHeader, showTitle, timeToReload, fontSize, widgetHeaderFontColor, widgetHeaderColor, widgetContentColor, 
+            fontSize, hasTimer = null;        
         var headerHeight = 25;
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         
         var eventsArray = [];
         var eventsOnMaps = {};
@@ -69,25 +58,7 @@
         var allOthersOnMap = false;
         var severitySortState = 0;
         var timeSortState = 0;
-        
-        if(url === "null")
-        {
-            url = null;
-        }
-        
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-        {
-            showHeader = false;
-        }
-        else
-        {
-            showHeader = true;
-        }
    
-        timeFontSize = parseInt(fontSize*1.6);
-        dateFontSize = parseInt(fontSize*0.95);
-        fontSizePin = parseInt(fontSize*0.95);
-        
         $(document).on("esbEventAdded", function(event){
            console.log("Evento colto da alarms"); 
            if(event.generator !== "<?= $_REQUEST['name_w'] ?>")
@@ -540,11 +511,6 @@
                   
                 updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
                 
-                /*$.event.trigger({
-                    type: "updateEventsMapRef_" + widgetName,
-                    mapRef: eventsOnMaps[widgetName].mapRef
-                });*/
-                
                }
                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.trafficEventLink[data-eventtype=" + eventType + "]").each(function(i){
                   $(this).attr("data-onMap", 'false');
@@ -794,17 +760,9 @@
             $("#" + widgetName + "_mapDiv").remove();
             $("#" + widgetName + "_content").append('<div id="' + widgetName + '_mapDiv" class="mapDiv"></div>');
             $("#" + widgetName + "_mapDiv").show();
-
-            //Passaggio riferimento mappa a widget target (sparirà con nuova versione integrata)
-            /*$.event.trigger({
-                type: "updateEventsMapRef_" + widgetName,
-                mapRef: eventsOnMaps[widgetName].mapRef
-            });*/
             
             eventsOnMaps[widgetName].mapRef = L.map(mapdiv).setView([lat, lng], 17);
             
-            
-
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
                maxZoom: 18
@@ -933,11 +891,6 @@
               eventsOnMaps[widgetName].eventsNumber = 0; 
               
               updateFullscreenPointsList(widgetName, eventsOnMaps[widgetName].eventsPoints);
-              
-              /*$.event.trigger({
-                type: "updateEventsMapRef_" + widgetName,
-                mapRef: eventsOnMaps[widgetName].mapRef
-              });*/
            }
         }
         
@@ -1089,36 +1042,6 @@
                  eventsOnMaps[widgetName].mapRef = null;
               }
             }
-            
-            //Passaggio riferimento mappa a widget target (sparirà con nuova versione integrata)
-            /*$.event.trigger({
-                type: "updateEventsMapRef_" + widgetName,
-                mapRef: eventsOnMaps[widgetName].mapRef
-            });*/
-        }
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getInfoJson()
-        {
-            var infoJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
-            {
-                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
-            }
-            
-            return infoJson;
-        }
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getStyleParameters()
-        {
-            var styleParameters = null;
-            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
-            {
-                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
-            }
-            
-            return styleParameters;
         }
         
         function stepDownInterval()
@@ -1169,70 +1092,88 @@
             scroller = setInterval(stepDownInterval, speed);
         }
 		
-		$(document).off('resizeHighchart_' + widgetName);
-		$(document).on('resizeHighchart_' + widgetName, function(event) 
-		{
-			var newHeight = null;
-			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
-			}
-			else
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
-			}
-			
-			$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').css('height', newHeight + 'px');
-		});
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+        });
 		
         //Fine definizioni di funzione 
         
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         
-        $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer").css("background-color", $("#<?= $_REQUEST['name_w'] ?>_header").css("background-color"));
-        
-        if(firstLoad === false)
-        {
-            showWidgetContent(widgetName);
-        }
-        else
-        {
-            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-        }
-        
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        
-        //Nuova versione
-        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
-        {
-            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
-        }
-        
-        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
-        {
-            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
-        }
-        
-        manageInfoButtonVisibility("<?= $_REQUEST['infoMessage_w'] ?>", $('#<?= $_REQUEST['name_w'] ?>_header'));
-
-        widgetTargetList = widgetParameters;
-        var targetName = null;
-
-        for(var name in widgetTargetList) 
-        {
-           targetName = name + "_div";
-           eventsOnMaps[name] = {
-              noPointsUrl: null,
-              eventsNumber: 0,
-              eventsPoints: [],//Array indicizzato con le coordinate dei punti mostrati
-              mapRef: null
-           };
-        }
-
         $.ajax({
+            url: "../controllers/getWidgetParams.php",
+            type: "GET",
+            data: {
+                widgetName: "<?= $_REQUEST['name_w'] ?>"
+            },
+            async: true,
+            dataType: 'json',
+            success: function(widgetData) 
+            {
+                showTitle = widgetData.params.showTitle;
+                widgetContentColor = widgetData.params.color_w;
+                fontSize = widgetData.params.fontSize;
+                timeToReload = widgetData.params.frequency_w;
+                hasTimer = widgetData.params.hasTimer;
+                widgetTitle = widgetData.params.title_w;
+                widgetHeaderColor = widgetData.params.frame_color_w;
+                widgetHeaderFontColor = widgetData.params.headerFontColor;
+                
+                timeFontSize = parseInt(fontSize*1.6);
+                dateFontSize = parseInt(fontSize*0.95);
+                fontSizePin = parseInt(fontSize*0.95);
+                
+                if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+                {
+                    showHeader = false;
+                }
+                else
+                {
+                    showHeader = true;
+                } 
+                
+                setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+                $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+                $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer").css("background-color", $("#<?= $_REQUEST['name_w'] ?>_header").css("background-color"));
+
+                if(firstLoad === false)
+                {
+                    showWidgetContent(widgetName);
+                }
+                else
+                {
+                    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                }
+                
+                //Nuova versione
+                if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+                {
+                    styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+                }
+
+                if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+                {
+                    widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+                }
+
+                widgetTargetList = widgetParameters;
+                var targetName = null;
+
+                for(var name in widgetTargetList) 
+                {
+                   targetName = name + "_div";
+                   eventsOnMaps[name] = {
+                      noPointsUrl: null,
+                      eventsNumber: 0,
+                      eventsPoints: [],//Array indicizzato con le coordinate dei punti mostrati
+                      mapRef: null
+                   };
+                }
+                
+                $.ajax({
            url: "../widgets/esbDao.php",
            type: "POST",
            data: {
@@ -1877,9 +1818,6 @@
                      clearInterval(scroller);
                      $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").off();
 
-                     //Non decommentarlo, sennò al reload non funziona più
-                     //$(document).off("esbEventAdded");
-
                      $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(0).find("div.trafficEventsButtonIndicator").html("");
                      $("#<?= $_REQUEST['name_w'] ?>_buttonsContainer div.trafficEventsButtonContainer").eq(1).find("div.trafficEventsButtonIndicator").html("");
 
@@ -1922,27 +1860,39 @@
            }
         });
         
-        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+            clearInterval(countdownRef);
+            timeToReload = event.newTimeToReload;
+            countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
+        
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+                
+                
+            },
+            error: function(errorData)
+            {
+        
+            }
+        });
+        
+        
+        
+        
+
+        
     });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
 	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
+	    <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -1954,6 +1904,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                     <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">

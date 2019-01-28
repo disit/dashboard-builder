@@ -17,6 +17,8 @@
     include('../config.php');
     include('process-form.php');
     session_start();
+    
+    checkSession('Public');
 ?>
 
 <!DOCTYPE html>
@@ -26,7 +28,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Snap4City</title>
+        <title><?php include "mobMainMenuClaim.php" ?></title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -78,7 +80,7 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Snap4City
+                            <?php include "mobMainMenuClaim.php" ?>
                         </div>
                     </div>
                     <div class="row">
@@ -88,6 +90,18 @@
                     <div class="row">
                         <div class="col-xs-12" id="iframePagemainContentCnt">
                             <iframe id="iframeApp"></iframe>
+                            
+                            <!--<div id="secureContent" style="width: 100%; height: 100%; background-color: yellow">
+                                <?php
+                                    if((strpos($_SERVER['REQUEST_URI'], 'https://www.km4city.org/webapp-new-bad') !== false)&&(strpos($_SERVER['REQUEST_URI'], 'operation=annotation') !== false)) 
+                                    {
+                                        //$page = file_get_contents("https://www.km4city.org/webapp-new-bad/?operation=annotation&username=" . $_SESSION['loggedUsername'] . "&coordinates=coordinates=43.773066;11.256932%2526&language=en");
+                                        //echo $page;
+                                    }
+                                    
+                                ?>
+                                
+                            </div>-->
                             
                         </div>
                     </div>
@@ -145,13 +159,8 @@
             
             if(difference <= 0)
             {
-                //console.log("Logout");
                 location.href = "logout.php?sessionExpired=true";
             }
-            /*else
-            {
-                console.log("Keep in");
-            }*/
         }, 1000);
         
        $('#iframePagemainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
@@ -160,14 +169,29 @@
             $('#iframePagemainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
         });
         
-        $('#mainMenuCnt .mainMenuIframeLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt #accountManagementLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt #accountManagementLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        {
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
+            $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
+            $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+        }
         
         $('#headerTitleCnt').html(decodeURI("<?= $_REQUEST['pageTitle'] ?>"));
-        $('#iframeApp').attr('src', '<?= $_REQUEST['linkUrl']?>');
         
-       
+        if('<?= $_REQUEST['linkUrl']?>' === 'myAnnotationsOnServicesAndData')
+        {
+            $('#iframeApp').attr('src', '../api/personalAnnotationsSecureLoad.php');
+        }
+        else
+        {
+            $('#iframeApp').attr('src', '<?= $_REQUEST['linkUrl']?>');
+        }
     });//Fine document ready
 </script>

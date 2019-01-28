@@ -30,7 +30,7 @@
         var content, permalink, idWidget, idDash, idraulicoSrc, idraulicoLoc, temporaliSrc, temporaliLoc, idrogeologicoSrc,
         idrogeologicoLoc, neveSrc, neveLoc, ghiaccioSrc, ghiaccioLoc, ventoSrc, ventoLoc, mareSrc, mareLoc, maxAlarmDeg, descW, 
         sizeRowsWidget, styleParameters, genTabFontSize, genTabFontColor, meteoTabFontSize, descWPerc, iconDim, rowHeightPerc,
-        height, genTabFontSizeFactor, meteoLegendaFontSizeFactor, showHeader = null;
+        height, genTabFontSizeFactor, meteoLegendaFontSizeFactor, showHeader, countdown = null;
 		headerHeight = 25;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
 		var widgetName = "<?= $_REQUEST['name_w'] ?>";
@@ -44,13 +44,13 @@
         {
             height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
             $('#<?= $_REQUEST['name_w'] ?>_logo').hide();
-			showHeader = false;
+            showHeader = false;
         }
         else
         {
             $('#<?= $_REQUEST['name_w'] ?>_logo').show();
             height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").height() - $("#<?= $_REQUEST['name_w'] ?>_logo").height());
-			showHeader = true;
+            showHeader = true;
         }
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var percHeight = Math.floor(height / $("#<?= $_REQUEST['name_w'] ?>_div").height() * 100);
@@ -86,7 +86,7 @@
         $("#<?= $_REQUEST['name_w'] ?>_content").css("height", percHeight + "%");
         $("#<?= $_REQUEST['name_w'] ?>_carousel").css("height", carouselPercHeight + "%");
 		
-		$('#<?= $_REQUEST['name_w'] ?>_titleDiv .pcPhoto').css("display", "block");
+        $('#<?= $_REQUEST['name_w'] ?>_titleDiv .pcPhoto').css("display", "block");
         
         //Legge empirica di applicazione responsive del font size del tab general
         genTabFontSizeFactor = genTabFontSize / $("#<?= $_REQUEST['name_w'] ?>_div").width();
@@ -182,61 +182,71 @@
         }
         
         function resizeWidget()
-		{
-				if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")&&(hostFile === "index")))
-				{
-					height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
-				}
-				else
-				{
-					height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").height() - $("#<?= $_REQUEST['name_w'] ?>_logo").height());
-				}
-				percHeight = Math.floor(height / $("#<?= $_REQUEST['name_w'] ?>_div").height() * 100);
-				carouselHeight = parseInt(height - 20);
-				carouselPercHeight = Math.floor(carouselHeight / height * 100);
-				$('#<?= $_REQUEST['name_w'] ?>_loading').css("height", percHeight + "%");
-				$("#<?= $_REQUEST['name_w'] ?>_content").css("height", percHeight + "%");
-				$("#<?= $_REQUEST['name_w'] ?>_carousel").css("height", carouselPercHeight + "%");
-				
-				//Scalatura font size tab general
-				genTabFontSize = genTabFontSizeFactor * $("#<?= $_REQUEST['name_w'] ?>_div").width();
-				$("#<?= $_REQUEST['name_w'] ?>_general").css("font-size", genTabFontSize + "px");
-				
-				//Font size legenda meteo
-				$('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').textfill({
-					maxFontPixels: -20
-				});
+        {
+            if(showHeader === true)
+            {
+                height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
+            }
+            else
+            {
+                height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").height() - $("#<?= $_REQUEST['name_w'] ?>_logo").height());
+            }
+            
+            percHeight = Math.floor(height / $("#<?= $_REQUEST['name_w'] ?>_div").height() * 100);
+            carouselHeight = parseInt(height - 20);
+            carouselPercHeight = Math.floor(carouselHeight / height * 100);
+            
+            $('#<?= $_REQUEST['name_w'] ?>_loading').css("height", percHeight + "%");
+            $("#<?= $_REQUEST['name_w'] ?>_content").css("height", percHeight + "%");
+            $("#<?= $_REQUEST['name_w'] ?>_carousel").css("height", carouselPercHeight + "%");
+            
+            //Legge empirica di applicazione responsive del font size del tab general
+            genTabFontSizeFactor = genTabFontSize / $("#<?= $_REQUEST['name_w'] ?>_div").width();
+            genTabFontSize = genTabFontSizeFactor * $("#<?= $_REQUEST['name_w'] ?>_div").width();
+            
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+            
+            rowHeightPerc = 12.5;
+            descW = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').width() - Math.floor(parseInt(carouselHeight) / 8));
+            descWPerc = Math.floor(descW * 100 / $('#<?= $_REQUEST['name_w'] ?>_div').width());
+            iconDim = 100 - descWPerc;
+            
+            $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcRow").css("height", rowHeightPerc + "%");
+            $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc").css("width", descWPerc + "%");
+            $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcIcon").css("width", iconDim + "%");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').textfill({
+                maxFontPixels: -20
+            });
 
-				var minLegendaFontSize = 40;
-				var meteoLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(0).find('span').css('font-size').replace('px', ''));
+            var minLegendaFontSize = 40;
+            var meteoLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(0).find('span').css('font-size').replace('px', ''));
 
-				for(var k = 0; k < $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').length; k++)
-				{
-					if(parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', '')) < minLegendaFontSize)
-					{
-						minLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', ''));
-					}
-				}
+            for(var k = 0; k < $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').length; k++)
+            {
+                if(parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', '')) < minLegendaFontSize)
+                {
+                    minLegendaFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement').eq(k).find('span').css('font-size').replace('px', ''));
+                }
+            }
 
-				if(minLegendaFontSize > meteoLegendaFontSize)
-				{
-					minLegendaFontSize = meteoLegendaFontSize;
-				}
+            if(minLegendaFontSize > meteoLegendaFontSize)
+            {
+                minLegendaFontSize = meteoLegendaFontSize;
+            }
 
-				$('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement span').css("font-size", minLegendaFontSize*0.9 + "px");
-				
-				//Font size righe meteo
-				$('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').textfill({
-					maxFontPixels: meteoTabFontSize
-				});
+            $('#<?= $_REQUEST['name_w'] ?>_meteo .pcLegendaElement span').css("font-size", minLegendaFontSize*0.9 + "px");
 
-				var minMeteoFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').eq(2).find('span').css('font-size').replace('px', ''));
-				$("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc span").css("font-size", minMeteoFontSize + "px");
-				
-		}
+            $('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').textfill({
+                maxFontPixels: meteoTabFontSize
+            });
+
+            var minMeteoFontSize = parseInt($('#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc').eq(2).find('span').css('font-size').replace('px', ''));
+            $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcDesc span").css("font-size", minMeteoFontSize + "px");
+        }
         //Fine definizioni di funzione
         
-		setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+	setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
         
@@ -326,9 +336,74 @@
         });
         
         var counter = <?= $_REQUEST['frequency_w'] ?>;
-        var countdown = setInterval(function () 
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event)
+        {
+            showHeader = event.showHeader;
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                clearInterval(countdown);
+                counter = event.newTimeToReload;
+                
+                countdown = setInterval(function () 
+                { 
+                   var ref = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_countdownDiv"; 
+                    $(ref).text(counter);
+                    counter--;
+                    if (counter > 60) 
+                    {
+                        $(ref).text(Math.floor(counter / 60) + "m");
+                    } 
+                    else 
+                    {
+                        $(ref).text(counter + "s");
+                    }
+                    if(counter === 0) 
+                    {
+                        $(ref).text(counter + "s");
+                        $("#<?= $_REQUEST['name_w'] ?>").off('customResizeEvent');
+                        $("#<?= $_REQUEST['name_w'] ?>_content").off();
+                        $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcIcon").html("");
+                        switch(maxAlarmDeg)
+                        {
+                            case gradients.YELLOW:
+                                $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPcActiveYellow");
+                                $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPc");
+                                break;
+
+                            case gradients.ORANGE:
+                                $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPcActiveOrange");
+                                $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPc");
+                                break;
+
+                            case gradients.RED:
+                                $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").removeClass("alarmDivPcActiveRed");
+                                $("#<?= $_REQUEST['name_w'] ?>_alarmDivPc").addClass("alarmDivPc");
+                                break;
+
+                            default:
+                                break;
+                        }
+                        $("#<?= $_REQUEST['name_w'] ?>_general").html("");
+
+                        clearInterval(countdown);
+                        setTimeout(<?= $_REQUEST['name_w'] ?>(false), 1000);
+                    }
+                }, 1000);
+                
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
+        
+        countdown = setInterval(function () 
         { 
-			var ref = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_countdownDiv"; 
+	   var ref = "#ProtezioneCivile_" + idDash + "_widgetProtezioneCivile" + idWidget + "_countdownDiv"; 
             $(ref).text(counter);
             counter--;
             if (counter > 60) 
@@ -342,6 +417,7 @@
             if(counter === 0) 
             {
                 $(ref).text(counter + "s");
+                $("#<?= $_REQUEST['name_w'] ?>").off('customResizeEvent');
                 $("#<?= $_REQUEST['name_w'] ?>_content").off();
                 $("#<?= $_REQUEST['name_w'] ?>_meteo .meteoPcIcon").html("");
                 switch(maxAlarmDeg)
@@ -382,8 +458,6 @@
                 idWidget = null;
                 idDash = null;
                 name = null;
-                
-                var counter = <?= $_REQUEST['frequency_w'] ?>;
                 
                 if(msg !== null)
                 {
@@ -587,26 +661,8 @@
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_logo' class="pcLogosContainer">
-            <div id='<?= $_REQUEST['name_w'] ?>_alarmDivPc' class="alarmDivPc">
-                <div id="<?= $_REQUEST['name_w'] ?>_info" class="pcInfoContainer">
-                  <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-                </div>
-                <div id="<?= $_REQUEST['name_w'] ?>_logoPc" class="logoPc">
-                    <img src="../img/protezioneCivile.png">
-                </div>
-
-                <div id="<?= $_REQUEST['name_w'] ?>_iconsModifyWidget" class="iconsModifyPcWidget">
-                    <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                    <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                </div>
-                <div id="<?= $_REQUEST['name_w'] ?>_pcCountdownContainer" class="pcCountdownContainer">
-                    <div id="countdown_<?= $_REQUEST['name_w'] ?>" class="pcCountdown"></div>
-                </div>
-            </div>
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -618,6 +674,7 @@
         </div>
         
         <div id='<?= $_REQUEST['name_w'] ?>_content' class="content pcContainer carousel" data-interval="false" data-pause="hover">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <ul id="<?= $_REQUEST['name_w'] ?>_nav_ul" class="nav nav-tabs nav_ul">
                 <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_generalLi" class="active"><a disabled="true" class="atafTab">general</a></li>
                 <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_meteoLi"><a disabled="true" class="atafTab">meteo</a></li>

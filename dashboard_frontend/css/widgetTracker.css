@@ -1,0 +1,133 @@
+.trackControlsCnt
+{
+    position: absolute;
+    top: 30px;
+    width: 175px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+    overflow-y: auto;
+}
+
+.trackControlsRow
+{
+    width: 100%;
+    height: 25px;
+}
+
+.trackControlsColorCnt
+{
+    width: 25px;
+    height: 100%;
+    float: left;
+}
+
+.trackControlsColorBtn
+{
+    width: 18px;
+    height: 18px;
+    border-radius: 18px;
+}
+
+@keyframes trackControlsColorBtnMovingAnim 
+{
+    0%   {opacity: 1.0}
+    50%  {opacity: 0.1}
+    100% {opacity: 1.0}
+}
+
+.trackControlsColorBtnMoving
+{
+    animation-name: trackControlsColorBtnMovingAnim;
+    animation-duration: 2s;
+}
+
+.trackControlsVariableName
+{
+    width: 125px;
+    height: 100%;
+    float: left;
+    font-weight: bold;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center; 
+    justify-content: flex-start;
+    font-size: 13px;
+}
+
+.trackControlsCaret
+{
+    width: 25px;
+    height: 100%;
+    float: left;
+    align-items: center; 
+    justify-content: flex-start;
+    font-size: 18px;
+}
+
+.trackControlsCaret:hover
+{
+    cursor: pointer;
+}
+
+.trackControlsSubcnt
+{
+    width: 100%;
+    float: left;
+    display: none;
+}
+
+.trackControlsSubrow
+{
+    width: 100%;
+    float: left;
+}
+
+.trackControlsSublbl
+{
+    display: flex;
+    align-items: center; 
+    justify-content: flex-start;
+    font-size: 11px;
+    margin-left: 25px;
+    float: left;
+}
+
+.trackControlsSubfield
+{
+    display: flex;
+    align-items: center; 
+    justify-content: flex-start;
+    font-size: 11px;
+    font-weight: bold;
+    float: left;
+}
+
+.trackControlsBtnRow
+{
+    padding-left: 25px;
+    margin-top: 5px;
+}
+
+.trackControlsBtnCnt
+{
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    font-size: 20px;
+}
+
+.trackControlsBtnCnt:hover
+{
+    cursor: pointer;
+}
+
+.trackerPositionMarker
+{
+    width: 32px;
+    height: 50px;
+    text-align: center;
+    font-size: 41px;
+}

@@ -23,7 +23,12 @@ else
     header('Content-type: image/png');
 }
 include '../config.php';
+require '../sso/autoload.php';
+use Jumbojett\OpenIDConnectClient;
+
 session_start();
+checkSession('Public');
+
 $link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
 mysqli_select_db($link, $dbname);
 
@@ -43,7 +48,7 @@ function canEditDashboard()
                 $result = true;
             }
         }
-        else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
+        else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "RootAdmin"))
         {
             //Utente amministratore, edita qualsiasi dashboard
             if((isset($_SESSION['loggedUsername']))&&(isset($_SESSION['dashboardId']))&&(isset($_SESSION['dashboardAuthorName'])))
@@ -70,15 +75,18 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
         switch($action)
         {
             case "getDashboardParamsAndWidgetsNR":
-                if((isset($_GET['dashboardTitle']))&&(!empty($_GET['dashboardTitle']))&&(isset($_GET['username']))&&(!empty($_GET['username'])))
+              //  if((isset($_GET['dashboardTitle']))&&(!empty($_GET['dashboardTitle']))&&(isset($_GET['username']))&&(!empty($_GET['username'])))
+                if((isset($_GET['dashboardId']))&&(!empty($_GET['dashboardId']))&&(isset($_GET['username']))&&(!empty($_GET['username'])))
                 {
                     $response = [];
-                    $dashboardTitle = urldecode($_GET['dashboardTitle']);
+                    $dashboardTitle = urldecode(@$_GET['dashboardTitle']);
+                    $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
                     $dashboardSubtitle = "";
                     
                     $username = $_GET['username'];
 
-                    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$dashboardTitle' AND user = '$username'";
+                 //   $query = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$dashboardTitle' AND user = '$username' AND deleted = 'no'";
+                    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId' AND user = '$username' AND deleted = 'no'";
                     $result = mysqli_query($link, $query);
                     
                     if($result)
@@ -116,16 +124,18 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                             //OK - Dashboard non esistente, viene creata
                             $nCols = 10;
                             $width = ($nCols * 78) + 10;
-                            
+                            $org = $_SESSION['loggedOrganization'];
+
                             $query2 = "INSERT INTO Dashboard.Config_dashboard " . 
-                                      "(name_dashboard, title_header, subtitle_header, color_header, width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, logoFilename, logoLink, widgetsBorders, widgetsBordersColor, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, fromNodeRed, gridColor) " .
-                                      "VALUES ('$dashboardTitle', '$dashboardTitle', '$dashboardSubtitle', 'rgba(0, 0, 0, 1)', $width, 0, 0, $nCols, '$username', 1, now(), 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)', 'rgba(0,240,255,1)', 28, NULL, '', 'yes', 'rgba(0, 0, 0, 1)', 'author', 1, 'no', '[]', 'mediumResponsive', 'yes', 'rgba(238, 238, 238, 1)')";
+                                      "(name_dashboard, title_header, subtitle_header, color_header, width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, logoFilename, logoLink, widgetsBorders, widgetsBordersColor, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, fromNodeRed, gridColor, organizations) " .
+                                      "VALUES ('$dashboardTitle', '$dashboardTitle', '$dashboardSubtitle', 'rgba(0, 0, 0, 1)', $width, 0, 0, $nCols, '$username', 1, now(), 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)', 'rgba(0,240,255,1)', 28, NULL, '', 'yes', 'rgba(0, 0, 0, 1)', 'author', 1, 'no', '[]', 'mediumResponsive', 'yes', 'rgba(238, 238, 238, 1)', '$org')";
                             
                             $result2 = mysqli_query($link, $query2);
                     
                             if($result2)
                             {
-                                $query3 = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$dashboardTitle' AND user = '$username'";
+                             //   $query3 = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$dashboardTitle' AND user = '$username' AND deleted = 'no'";
+                                $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId' AND user = '$username' AND deleted = 'no'";
                                 $result3 = mysqli_query($link, $query3);
                                 
                                 if($result3)
@@ -156,7 +166,7 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                     }
                     
                     $response["dashboardParams"] = $dashboardParams; 
-                    $response["dashboardWidgets"] = $dashboardWidgets;
+                    @$response["dashboardWidgets"] = $dashboardWidgets;
 
                     echo json_encode($response);
                     mysqli_close($link);
@@ -174,24 +184,6 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                 {
                     while($row = mysqli_fetch_assoc($result)) 
                     {
-                        /*$metric = array(
-                            "idMetric" => $row2['IdMetric'],
-                            "descMetric" => $row2['description'],
-                            "descShortMetric" => $row2['description_short'],
-                            "statusMetric" => $row2['status'],
-                            "areaMetric" => $row2['area'],
-                            "sourceMetric" => $row2['source'],
-                            "freqMetric" => ($row2['frequency'] / 1000),
-                            "municipalityOptionMetric" => $row2['municipalityOption'],
-                            "timeRangeOptionMetric" => $row2['timeRangeOption'],
-                            "typeMetric" => $row2['metricType'],
-                            "dataSourceMetric" => $row2['dataSource'],
-                            "queryMetric" => $row2['query'],
-                            "query2Metric" => $row2['query2'],
-                            "queryTypeMetric" => $row2['queryType'],
-                            "processTypeMetric" => $row2['processType'],
-                            "storingDataMetric" => $row2['storingData']
-                        );*/
                         array_push($metric_list, $row);
                     }
                 }
@@ -574,33 +566,519 @@ else
         }
         else if($action == "get_dashboards")
         {
-            $loggedUsername = $_SESSION['loggedUsername'];
-
-            switch($_SESSION['loggedRole'])
-            {
-                //Gestisce solo le proprie dashboard
-                case "Manager":
-                    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.user = '$loggedUsername' ORDER BY Config_dashboard.name_dashboard ASC";
-                    break;
-
-                //Gestisce le proprie dashboard e di quelle dei manager dei pools di cui è admin 
-                case "AreaManager":
-                   $query = "SELECT * FROM Dashboard.Config_dashboard AS dashes " .
-                             "WHERE dashes.user = '$loggedUsername' " . //Proprie dashboard
-                             "OR (dashes.user IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$loggedUsername' AND isAdmin = 1))) " .
-                             "ORDER BY dashes.name_dashboard ASC";
-                   break;
-
-                 //Gestisce tutte le dashboards
-                 case "ToolAdmin":
-                    $query = "SELECT * FROM Dashboard.Config_dashboard ORDER BY Config_dashboard.name_dashboard ASC";
-                    break;
+            $orgFlag = "all";
+            if (isset($_GET['param']) && !empty($_GET['param'])) {
+                $orgFlag = $_GET['param'];
             }
+            $loggedUsername = $_SESSION['loggedUsername'];
+            $dashIds = [];
+            $delegations = [];
+            $today = date('Y-m-d');
+
+            switch(($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']))
+            {
+                //Nuova casistica GDPR Maggio 2018
+                //RootAdmin: le vede e le edita tutte
+                case "RootAdmin":
+                case "Public":
+                    $visibility = ($_SESSION['isPublic'] ? "AND visibility='public'" : "");
+                    if ($_SESSION['loggedRole'] == "RootAdmin" && $orgFlag != 'all') {
+                        if (isset($_SESSION["loggedOrganization"])) {
+                            $orgName = $_SESSION["loggedOrganization"];
+                        } else {
+                            $orgName = "Other";
+                        }
+                        $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.deleted = 'no' AND organizations REGEXP '$orgName' $visibility ORDER BY dashboards.name_dashboard ASC";
+                    } else {
+                        $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.deleted = 'no' $visibility ORDER BY dashboards.name_dashboard ASC";
+                    }
+
+                    $result = mysqli_query($link, $query);
+                    $dashboard_list = array();
+
+                    if($result)
+                    {
+                        while($row = mysqli_fetch_assoc($result))
+                        {
+                            $dashboardId = $row['Id'];
+                            $row['managementLbl'] = 'show';
+
+                            //Test
+                            if($row['nAccessPerDay'] == null)
+                            {
+                                $row['nAccessPerDay'] = 0;
+                            }
+
+                            if($row['nMinutesPerDay'] == null)
+                            {
+                                $row['nMinutesPerDay'] = 0;
+                            }
+
+                            switch($row['visibility'])
+                            {
+                                case 'public':
+                                    if($row['user'] == $loggedUsername)
+                                    {
+                                     //   if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
+                                            $row['visibilityLbl'] = 'My own: Public';
+                                            $row['authorLbl'] = 'hide';
+                                            $row['rightsLbl'] = 'show';
+                                     /*   } else if (strpos($_GET['param'], 'all') !== false) {
+                                            $row['visibilityLbl'] = 'My own: Public';
+                                            $row['authorLbl'] = 'hide';
+                                            $row['rightsLbl'] = 'show';
+                                        }*/
+                                    }
+                                    else
+                                    {
+                                        $row['visibilityLbl'] = 'Public';
+                                        $row['authorLbl'] = ($_SESSION['isPublic'] ? 'hide' : $row['user']);
+                                        $row['rightsLbl'] = 'hide';
+                                    }
+                                    break;
+
+                                case 'author':
+                                    if($row['user'] == $loggedUsername)
+                                    {
+                                      //  if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
+                                            $row['visibilityLbl'] = 'My own';
+                                            $row['authorLbl'] = 'hide';
+                                            $row['rightsLbl'] = 'Delegations';
+                                    /*    } else if (strpos($_GET['param'], 'all') !== false) {
+                                            $row['visibilityLbl'] = 'My own: Public';
+                                            $row['authorLbl'] = 'hide';
+                                            $row['rightsLbl'] = 'show';
+                                        }*/
+                                    }
+                                    else
+                                    {
+                                        $row['visibilityLbl'] = 'Private';
+                                        $row['authorLbl'] = $row['user'];
+                                        $row['rightsLbl'] = 'Delegations3rd';
+                                    }
+
+                                    break;
+                            }
+
+                            $row['deleteLbl'] = 'show';
+                            $row['editLbl'] = 'show';
+                            $row['cloneLbl'] = 'show';
+
+                            $hasBroker = false;
+                            $hasIotApp = false;
+
+                            //Controlla se ha widget verso BROKER
+                            $dashTypeQ1 = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE actuatorTarget = 'broker' AND id_dashboard = $dashboardId";
+                            $dashTypeR1 = mysqli_query($link, $dashTypeQ1);
+
+                            if($dashTypeR1)
+                            {
+                                if(mysqli_num_rows($dashTypeR1) > 0)
+                                {
+                                    $hasBroker = true;
+                                }
+                            }
+
+                            //Controlla se ha widget verso NodeRED
+                            $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
+                                          "UNION " .
+                                          "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> '' AND NodeRedInputs.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId)";
+
+                            $dashTypeR2 = mysqli_query($link, $dashTypeQ2);
+
+                            if($dashTypeR2)
+                            {
+                                if(mysqli_num_rows($dashTypeR2) > 0)
+                                {
+                                    $hasIotApp = true;
+                                }
+                            }
+
+                            $row['brokerLbl'] = $hasBroker;
+                            $row['iotLbl'] = $hasIotApp;
+
+                            array_push($dashboard_list, $row);
+                        }
+                    }
+                    
+                    break;
+                
+                //Altri utenti: vedono proprie, quelle con delega, public, editano e cancellano solo le proprie
+                case "Manager": case "AreaManager": case "ToolAdmin": 
+                    if(isset($_SESSION['refreshToken'])) 
+                    {
+
+                        $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+                        $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+
+                        $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+
+                        $accessToken = $tkn->access_token;
+                        $_SESSION['refreshToken'] = $tkn->refresh_token;
+
+                        if ($orgFlag != "all") {
+                            //1) Reperimento elenco sue dashboard tramite chiamata ad api di ownership
+
+
+                            $apiUrl = $ownershipApiBaseUrl . "/v1/list/?type=DashboardID&accessToken=" . $accessToken;
+
+                            $options = array(
+                                'http' => array(
+                                    'header' => "Content-type: application/json\r\n",
+                                    'method' => 'GET',
+                                    'timeout' => 30,
+                                    'ignore_errors' => true
+                                )
+                            );
+
+                            $context = stream_context_create($options);
+                            $myDashboardsJson = file_get_contents($apiUrl, false, $context);
+
+                            $myDashboards = json_decode($myDashboardsJson);
+
+                            for ($i = 0; $i < count($myDashboards); $i++) {
+                                array_push($dashIds, $myDashboards[$i]->elementId);
+                            }
+
+                            //echo "Dashboards: " . count($dashIds);
+                            //exit();
+                        }
+
+
+                        //2) Reperimento elenco dashboard pubbliche tramite chiamata ad api delegation ad anonymous
+
+                        // See Public Dashboard filtered by ORGANIZATION
+                        if (isset($_SESSION["loggedOrganization"])) {
+                            $ldapBaseDnOrg = "ou=". $_SESSION["loggedOrganization"] .",dc=foo,dc=example,dc=org";
+                        } else {
+                            $ldapBaseDnOrg = "ou=Other,dc=foo,dc=example,dc=org";
+                        }
+
+                        if ($orgFlag == "all") {
+                            $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                        } else {
+                            $ldapBaseDnOrgEncoded = urlencode($ldapBaseDnOrg);
+                            $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" . $ldapBaseDnOrgEncoded;
+                        }
+                        // TEST
+                     //   $apiUrlNew = "http://192.168.0.47:8081/test/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&groupname=" .  urlencode($ldapBaseDnOrg);
+                        // PRODUZIONE
+                  //      $apiUrlNewProd= $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" .  urlencode($ldapBaseDnOrg);
+
+                        $options = array(
+                            'http' => array(
+                                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                                    'method'  => 'GET',
+                                    'timeout' => 30,
+                                    'ignore_errors' => true
+                            )
+                       );
+                        
+                        $context  = stream_context_create($options);
+                        // CHIAMATA API PUBLIC OLD
+                        $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
+                        // CHIAMATA API CON FILTRO PER ORGs
+                    //    $delegatedDashboardsJson = file_get_contents($apiUrlNewProd, false, $context);
+                        
+                        $delegatedDashboards = json_decode($delegatedDashboardsJson);
+
+                        // Patch per filtrare le public di roottooladmin1
+                        $orgNameSql =  mysqli_real_escape_string($link, $_SESSION['loggedOrganization']);
+                        $dashOrgQuery = "SELECT * FROM Dashboard.Config_dashboard WHERE organizations = '" . $orgNameSql . "'";
+
+                        $resultOrgDashIds = mysqli_query($link, $dashOrgQuery);
+                        $dashboardOrgList = array();
+
+                        if($resultOrgDashIds) {
+                            while ($rowOrgDash = mysqli_fetch_assoc($resultOrgDashIds)) {
+
+                                $dashboardId = $rowOrgDash['Id'];
+                                if ($rowOrgDash['organizations'] == $_SESSION['loggedOrganization']) {
+                                    array_push($dashboardOrgList, $dashboardId);
+                                }
+
+                            }
+                        }
+
+                        for($i = 0; $i < count($delegatedDashboards); $i++) 
+                        {
+                            if(@$delegatedDashboards[$i]->elementType == 'DashboardID')
+                            {
+                               // $checkSqlUsr = "SELECT organizations FROM Dashboard.Config_dashboard WHERE Id = " . @$delegatedDashboards[$i]->elementId;
+                             //   $resQ = mysqli_query($link, $checkSqlUsr);
+                                if ($orgFlag != "all") {
+                                    //    if($resQ) {
+                                    //    if ($rowQ = mysqli_fetch_assoc($resQ)) {
+                                    //    if ($rowQ['organizations'] == $_SESSION['loggedOrganization']) {          // DECIDERE POLITICA
+                                    //   if(!in_array($delegatedDashboards[$i]->elementId, $dashIds, true)) {
+                                    if (in_array($delegatedDashboards[$i]->elementId, $dashboardOrgList, true)) {
+                                        array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                    }
+                                    //   }
+                                    //    }
+                                    //  }
+                                    //    }
+                                } else {
+                                    array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                }
+                            //    array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                            }
+                        }
+                        
+                        //echo "Dashboards: " . json_encode($dashIds);
+                        //exit();
+
+                        if ($orgFlag != "all" && $orgFlag != "My org") {
+                            //3) Reperimento elenco dashboard per cui è delegato chiamata ad api delegation
+                            // ENCODIZZARE username per evitare SPAZI !!!
+                            $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . $loggedUsername . "/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+
+                            $options = array(
+                                'http' => array(
+                                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                                    'method' => 'GET',
+                                    'timeout' => 30,
+                                    'ignore_errors' => true
+                                )
+                            );
+
+                            $context = stream_context_create($options);
+                            $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
+
+                            $delegatedDashboards = json_decode($delegatedDashboardsJson);
+
+                            for ($i = 0; $i < count($delegatedDashboards); $i++) {
+                                if ($delegatedDashboards[$i]->elementType == 'DashboardID') {
+                                    //   if(!in_array($delegatedDashboards[$i]->elementId, $dashIds, true)) {
+                                    array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                    //   }
+                                    //   $delegations['dash' . $delegatedDashboards[$i]->elementId] = $delegatedDashboards[$i]->usernameDelegator;
+                                    // CHECK GROUPNAMEDELEGATED
+                                    if (!is_null($delegatedDashboards[$i]->groupnameDelegated)) {
+                                        $groupDelegationString = "";
+                                        if ($delegatedDashboards[$i]->groupnameDelegated != "") {
+                                            if (strpos($delegatedDashboards[$i]->groupnameDelegated, 'cn') !== false) {
+                                                if (strpos($delegatedDashboards[$i]->groupnameDelegated, 'ou') !== false) {
+                                                    $auxString = "";
+                                                    $auxString2 = "";
+                                                    if (explode("cn=", $delegatedDashboards[$i]->groupnameDelegated) != "") {
+                                                        $auxString = explode("cn=", $delegatedDashboards[$i]->groupnameDelegated)[1];
+                                                        $auxString = explode(",", $auxString)[0];
+                                                        $auxString2 = explode("ou=", $delegatedDashboards[$i]->groupnameDelegated)[1];
+                                                        $auxString2 = explode(",", $auxString2)[0];
+                                                        $auxString = $auxString2 . " - " . $auxString;
+                                                    } else if (explode("ou=", $delegatedDashboards[$i]->groupnameDelegated) != "") {
+                                                        $auxString = explode("ou=", $delegatedDashboards[$i]->groupnameDelegated)[1];
+                                                        $auxString = explode(",", $auxString)[0];
+                                                    }
+                                                    $newDelegation = ["delegationId" => $delegatedDashboards[$i]->id, "delegatedGroup" => $auxString];
+                                                    $newDelegationString = $auxString;
+                                                }
+                                            } else {
+                                                if (strpos($delegatedDashboards[$i]->groupnameDelegated, 'ou') !== false) {
+                                                    $auxString = "";
+                                                    explode("ou=", $delegatedDashboards[$i]->groupnameDelegated) != "";
+                                                    $auxString = explode("ou=", $delegatedDashboards[$i]->groupnameDelegated)[1];
+                                                    $auxString = explode(",", $auxString)[0];
+                                                    $newDelegation = ["delegationId" => $delegatedDashboards[$i]->id, "delegatedGroup" => $auxString . " - All Groups"];
+                                                    $newDelegationString = $auxString . " - All Groups";
+                                                }
+                                            }
+                                        }
+                                        $delegations['dash' . $delegatedDashboards[$i]->elementId] = $delegatedDashboards[$i]->usernameDelegator . " to Group: " . $newDelegationString;
+                                    } else {
+                                        $delegations['dash' . $delegatedDashboards[$i]->elementId] = $delegatedDashboards[$i]->usernameDelegator;
+                                    }
+                                }
+                            }
+                        }
+
+
+                     /*   $apiGroupsUrl = $personalDataApiBaseUrl . "/v1/username/" . $loggedUsername . "/delegated?accessToken=" . $accessToken. "&sourceRequest=dashboardmanager";
+
+                        $options = array(
+                            'http' => array(
+                                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                                'method'  => 'GET',
+                                'timeout' => 30,
+                                'ignore_errors' => true
+                            )
+                        );
+
+                        $context  = stream_context_create($options);
+                        $delegatedGroupDashboardsJson = file_get_contents($apiGroupsUrl, false, $context);
+
+                        $delegatedGroupDashboards = json_decode($delegatedGroupDashboardsJson);
+
+                        for($i = 0; $i < count($delegatedGroupDashboards); $i++)
+                        {
+                            if($delegatedGroupDashboards[$i]->elementType == 'DashboardID')
+                            {
+                                array_push($dashIds, $delegatedGroupDashboards[$i]->elementId);
+                                $groupDelegations['dash' . $delegatedGroupDashboards[$i]->elementId] = $delegatedGroupDashboards[$i]->usernameDelegator;
+                            }
+                        }   */
+
+                        //echo "Dashboards: " . json_encode($dashIds);
+                        //exit();
+
+                        //4) Scrittura ed esecuzione query
+                        $dashIdsForQuery = implode(",", $dashIds);
+                        $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.Id IN(" . $dashIdsForQuery . ") AND dashboards.deleted = 'no' ORDER BY dashboards.name_dashboard ASC";
+                        
+                        $result = mysqli_query($link, $query);
+                        $dashboard_list = array();
+
+                        if($result) 
+                        {
+                            while($row = mysqli_fetch_assoc($result)) 
+                            {
+                                $row['authorLbl'] = 'hide';
+                                $dashboardId = $row['Id'];
+                                
+                                switch($row['visibility'])
+                                {
+                                    case 'public':
+                                        
+                                        if($row['user'] == $loggedUsername)
+                                        {
+                                          //  if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
+                                                $row['visibilityLbl'] = 'My own: Public';
+                                                $row['managementLbl'] = 'show';
+                                                $row['rightsLbl'] = 'show';
+                                                $row['deleteLbl'] = 'show';
+                                                $row['editLbl'] = 'show';
+                                                $row['cloneLbl'] = 'show';
+                                         /*   } else if (strpos($_GET['param'], 'all') !== false) {
+                                                $row['visibilityLbl'] = 'My own: Public';
+                                                $row['managementLbl'] = 'show';
+                                                $row['rightsLbl'] = 'show';
+                                                $row['deleteLbl'] = 'show';
+                                                $row['editLbl'] = 'show';
+                                                $row['cloneLbl'] = 'show';
+                                            }*/
+                                        }
+                                        else
+                                        {
+                                            $row['visibilityLbl'] = 'Public';
+                                            $row['rightsLbl'] = 'hide';
+                                            $row['deleteLbl'] = 'hide';
+                                            $row['editLbl'] = 'hide';
+                                            $row['cloneLbl'] = 'hide';
+                                        }
+                                        break;
+
+                                    case 'author':
+                                        if($row['user'] == $loggedUsername)
+                                        {
+                                      //      if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
+                                                $row['visibilityLbl'] = 'My own';
+                                                $row['managementLbl'] = 'show';
+                                                $row['rightsLbl'] = 'show';
+                                                $row['deleteLbl'] = 'show';
+                                                $row['editLbl'] = 'show';
+                                                $row['cloneLbl'] = 'show';
+                                        /*    } else if (strpos($_GET['param'], 'all') !== false) {
+                                                $row['visibilityLbl'] = 'My own: Public';
+                                                $row['managementLbl'] = 'show';
+                                                $row['rightsLbl'] = 'show';
+                                                $row['deleteLbl'] = 'show';
+                                                $row['editLbl'] = 'show';
+                                                $row['cloneLbl'] = 'show';
+                                            }*/
+                                        }
+                                        else
+                                        {
+                                          //  if ($delegations['dash' . $row['Id']] != null && $delegations['dash' . $row['Id']] != "") {
+                                                $row['visibilityLbl'] = 'Delegated by ' . @$delegations['dash' . $row['Id']];
+                                                $row['managementLbl'] = 'hide';
+                                                $row['rightsLbl'] = 'hide';
+                                                $row['deleteLbl'] = 'hide';
+                                                $row['editLbl'] = 'hide';
+                                                $row['cloneLbl'] = 'hide';
+                                          //  }
+                                        }
+                                        break;
+                                }
+                                
+                                $hasBroker = false;
+                                $hasIotApp = false;
+
+                                //Controlla se ha widget verso BROKER
+                                $dashTypeQ1 = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE actuatorTarget = 'broker' AND id_dashboard = $dashboardId";
+                                $dashTypeR1 = mysqli_query($link, $dashTypeQ1);
+
+                                if($dashTypeR1)
+                                {
+                                    if(mysqli_num_rows($dashTypeR1) > 0)
+                                    {
+                                        $hasBroker = true;
+                                    }
+                                }
+
+                                //Controlla se ha widget verso NodeRED
+                                $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
+                                              "UNION " .
+                                              "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> '' AND NodeRedInputs.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId)";
+                                
+                                $dashTypeR2 = mysqli_query($link, $dashTypeQ2);
+
+                                if($dashTypeR2)
+                                {
+                                    if(mysqli_num_rows($dashTypeR2) > 0)
+                                    {
+                                        $hasIotApp = true;
+                                    }
+                                }
+
+                                $row['brokerLbl'] = $hasBroker;
+                                $row['iotLbl'] = $hasIotApp;
+                                //$row['query'] = $dashTypeQ2;
+                                
+                                array_push($dashboard_list, $row);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        switch($_SESSION['loggedRole'])
+                        {
+                            case "RootAdmin":
+                                $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.deleted = 'no' ORDER BY dashboards.name_dashboard ASC";
+                                break;
+                            
+                            default:
+                                $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.user = '$loggedUsername' AND dashboards.deleted = 'no' ORDER BY dashboards.name_dashboard ASC";
+                                break;
+                        }
+                        
+                        $result = mysqli_query($link, $query);
+                        $dashboard_list = array();
+
+                        if($result) 
+                        {
+                            while($row = mysqli_fetch_assoc($result)) 
+                            {
+                                array_push($dashboard_list, $row);
+                            }
+                        }
+                        //Gestisce solo le proprie dashboard
+                        /*case "Manager":
+                            $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.user = '$loggedUsername' AND deleted = 'no' ORDER BY Config_dashboard.name_dashboard ASC";
+                            break;
+
+                        //Gestisce le proprie dashboard e di quelle dei manager dei pools di cui è admin 
+                        case "AreaManager": case "ToolAdmin": 
+                           $query = "SELECT * FROM Dashboard.Config_dashboard AS dashes " .
+                                     "WHERE dashes.user = '$loggedUsername' AND deleted = 'no' " . //Proprie dashboard
+                                     "OR (dashes.user IN (SELECT username FROM Dashboard.UsersPoolsRelations WHERE poolId IN (SELECT poolId FROM Dashboard.UsersPoolsRelations WHERE username = '$loggedUsername' AND isAdmin = 1))) " .
+                                     "ORDER BY dashes.name_dashboard ASC";
+                           break;*/
+                    }
+                    break;
+            }  
             
-            //$file = fopen("C:\dashboardLog.txt", "w");
-            //fwrite($file, "Query: " . $query . "\n");    
-            
-            $result = mysqli_query($link, $query);
+            /*$result = mysqli_query($link, $query);
             $dashboard_list = array();
 
             if($result) 
@@ -609,27 +1087,160 @@ else
                 {
                     array_push($dashboard_list, $row);
                 }
-            }
+            }*/
 
             mysqli_close($link);
             echo json_encode($dashboard_list);
-        } 
+        }
+        else if($action == "get_all_dashboards")
+        {
+            $orgFlag = "all";
+            if (isset($_GET['param']) && !empty($_GET['param'])) {
+                $orgFlag = $_GET['param'];
+            }
+            $loggedUsername = $_SESSION['loggedUsername'];
+            $dashIds = [];
+            $delegations = [];
+            $today = date('Y-m-d');
+
+          //  switch(($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']))
+          //  {
+                //Nuova casistica GDPR Maggio 2018
+                //RootAdmin: le vede e le edita tutte
+              //  case "RootAdmin":
+              //  case "Public":
+                    $visibility = ($_SESSION['isPublic'] ? "AND visibility='public'" : "");
+                    if ($_SESSION['loggedRole'] == "RootAdmin" && $orgFlag != 'all') {
+                        if (isset($_SESSION["loggedOrganization"])) {
+                            $orgName = $_SESSION["loggedOrganization"];
+                        } else {
+                            $orgName = "Other";
+                        }
+                        $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.deleted = 'no' AND organizations REGEXP '$orgName' $visibility ORDER BY dashboards.name_dashboard ASC";
+                    } else {
+                        $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.deleted = 'no' $visibility ORDER BY dashboards.name_dashboard ASC";
+                    }
+
+                    $result = mysqli_query($link, $query);
+                    $dashboard_list = array();
+
+                    if($result)
+                    {
+                        while($row = mysqli_fetch_assoc($result))
+                        {
+                            $dashboardId = $row['Id'];
+                            $row['managementLbl'] = 'show';
+
+                            //Test
+                            if($row['nAccessPerDay'] == null)
+                            {
+                                $row['nAccessPerDay'] = 0;
+                            }
+
+                            if($row['nMinutesPerDay'] == null)
+                            {
+                                $row['nMinutesPerDay'] = 0;
+                            }
+
+                            switch($row['visibility'])
+                            {
+                                case 'public':
+                                    if($row['user'] == $loggedUsername)
+                                    {
+                                        //   if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
+                                        $row['visibilityLbl'] = 'My own: Public';
+                                        $row['authorLbl'] = 'hide';
+                                        $row['rightsLbl'] = 'show';
+                                        /*   } else if (strpos($_GET['param'], 'all') !== false) {
+                                               $row['visibilityLbl'] = 'My own: Public';
+                                               $row['authorLbl'] = 'hide';
+                                               $row['rightsLbl'] = 'show';
+                                           }*/
+                                    }
+                                    else
+                                    {
+                                        $row['visibilityLbl'] = 'Public';
+                                        $row['authorLbl'] = ($_SESSION['isPublic'] ? 'hide' : $row['user']);
+                                        $row['rightsLbl'] = 'hide';
+                                    }
+                                    break;
+
+                                case 'author':
+                                    if($row['user'] == $loggedUsername)
+                                    {
+                                        //  if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
+                                        $row['visibilityLbl'] = 'My own';
+                                        $row['authorLbl'] = 'hide';
+                                        $row['rightsLbl'] = 'Delegations';
+                                        /*    } else if (strpos($_GET['param'], 'all') !== false) {
+                                                $row['visibilityLbl'] = 'My own: Public';
+                                                $row['authorLbl'] = 'hide';
+                                                $row['rightsLbl'] = 'show';
+                                            }*/
+                                    }
+                                    else
+                                    {
+                                        $row['visibilityLbl'] = 'Private';
+                                        $row['authorLbl'] = $row['user'];
+                                        $row['rightsLbl'] = 'Delegations3rd';
+                                    }
+
+                                    break;
+                            }
+
+                            $row['deleteLbl'] = 'show';
+                            $row['editLbl'] = 'show';
+                            $row['cloneLbl'] = 'show';
+
+                            $hasBroker = false;
+                            $hasIotApp = false;
+
+                            //Controlla se ha widget verso BROKER
+                            $dashTypeQ1 = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE actuatorTarget = 'broker' AND id_dashboard = $dashboardId";
+                            $dashTypeR1 = mysqli_query($link, $dashTypeQ1);
+
+                            if($dashTypeR1)
+                            {
+                                if(mysqli_num_rows($dashTypeR1) > 0)
+                                {
+                                    $hasBroker = true;
+                                }
+                            }
+
+                            //Controlla se ha widget verso NodeRED
+                            $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
+                                "UNION " .
+                                "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> '' AND NodeRedInputs.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId)";
+
+                            $dashTypeR2 = mysqli_query($link, $dashTypeQ2);
+
+                            if($dashTypeR2)
+                            {
+                                if(mysqli_num_rows($dashTypeR2) > 0)
+                                {
+                                    $hasIotApp = true;
+                                }
+                            }
+
+                            $row['brokerLbl'] = $hasBroker;
+                            $row['iotLbl'] = $hasIotApp;
+
+                            array_push($dashboard_list, $row);
+                        }
+                    }
+            $stopFlag = 1;
+            mysqli_close($link);
+            echo json_encode($dashboard_list);
+        }
         else if($action == "get_dashboard_icon")
         {
             $dashboardId = $_REQUEST['dashboardId'];
             $query = "SELECT imageData, imageExt FROM Dashboard.dashboardsScreenshots WHERE dashboardsScreenshots.dashboardId = $dashboardId";
-            //$query = "SELECT imageData, imageExt FROM Dashboard.dashboardsScreenshots WHERE dashboardId = 278";
             $result = mysqli_query($link, $query);
             
             if($result)
             {
                 $row = mysqli_fetch_assoc($result);
-                //$response['imageExt'] = $row['imageExt'];
-                //$response['imageData'] = $row['imageData'];
-                
-                //$file = fopen("C:\dashboardLog.txt", "w");
-                //fwrite($file, $row['imageData']);
-                
                 $response = $row['imageData'];
             }
             else
@@ -1271,6 +1882,64 @@ else
         else if($action == "getUsers")
         {
 
+        }
+        else if($action == "getHTTPMetrics")
+        {
+            $query2 = "SELECT * FROM Dashboard.Descriptions WHERE process='JavaProcess'";
+            $result2 = mysqli_query($link, $query2) or die(mysqli_error($link));
+            $metric_list = array();
+
+            if ($result2->num_rows > 0) 
+            {
+                while ($row2 = mysqli_fetch_array($result2)) 
+                {
+                    $metric = array(
+                        "idMetric" => $row2['IdMetric'],
+                        "descMetric" => $row2['description'],
+                        "descShortMetric" => $row2['description_short'],
+                        "statusMetric" => $row2['status_HTTPRetr'],
+                        "areaMetric" => $row2['area'],
+                        "sourceMetric" => $row2['source'],
+                        "frequencyMetric" => ($row2['frequency']),
+                        "typeMetric" => $row2['metricType'],
+                        "sourceURLMetric" => $row2['dataSource'],
+                        "scriptMetric" => $row2['query'],
+                        "rawDataTypeMetric" => $row2['queryType'],
+                        "usernameMetric" => $row2['username_HTTPRetr'],
+                        "passwordMetric" => $row2['password_HTTPRetr']
+                    );
+                    array_push($metric_list, $metric);
+                }
+            }
+
+            mysqli_close($link);
+            echo json_encode($metric_list);
+        }
+        else if ($action == "filterChangeMetricTable")
+        {
+            $widgetType = $_REQUEST['widgetType'];
+            $getUnitQuery = "SELECT * FROM Dashboard.WidgetsIconsMap WHERE mainWidget='$widgetType'";
+            $resultUnit = mysqli_query($link, $getUnitQuery) or die(mysqli_error($link));
+            $retArray = array();
+
+            if ($resultUnit->num_rows > 0)
+            {
+                while ($rowTab = mysqli_fetch_array($resultUnit))
+                {
+                    $rowMetrics = array(
+                        "mainWidget" => $rowTab['mainWidget'],
+                        "targetWidget" => $rowTab['targetWidget'],
+                        "unit" => $rowTab['snap4CityType'],
+                        "icon" => $rowTab['icon'],
+                        "mono_multi" => $rowTab['mono_multi'],
+                        "widgetCategory" => $rowTab['widgetCategory']
+                    );
+                    array_push($retArray, $rowMetrics);
+                }
+            }
+
+            mysqli_close($link);
+            echo json_encode($retArray);
         }
         else 
         {

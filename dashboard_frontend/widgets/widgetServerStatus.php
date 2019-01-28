@@ -42,10 +42,12 @@ include '../config.php';
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
         var showHeader = null;
         var getMetricDataUrl = "../widgets/getDataMetrics.php";
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var widgetProperties, styleParameters, metricType, metricName, pattern, responseMsg, threshold, thresholdEval,
                 delta, deltaPerc, sizeRowsWidget, fontSize, responseCode, metricType, countdownRef, widgetTitle, metricData, widgetHeaderColor,
                 widgetHeaderFontColor, widgetOriginalBorderColor, urlToCall, geoJsonServiceData, showHeader = null;
+
+        console.log("widgetServerStatus : " + widgetName);
 
         if(((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no")))
         {
@@ -343,10 +345,9 @@ include '../config.php';
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
 
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
-        //widgetProperties = getWidgetProperties(widgetName);
-
+        //addLink(widgetName, url, linkElement, divContainer, null);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+        
         $.ajax({
             url: getParametersWidgetUrl,
             type: "GET",
@@ -415,6 +416,22 @@ include '../config.php';
             },
             complete: function ()
             {
+                $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+                    resizeWidget();
+                });
+                
+                $(document).on('resizeHighchart_' + widgetName, function(event)
+                {
+                    showHeader = event.showHeader;
+                });
+                
+                $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+                $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                        clearInterval(countdownRef);
+                        timeToReload = event.newTimeToReload;
+                        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId);
+                });
+                
                 countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId);
             }
         });
@@ -426,7 +443,8 @@ include '../config.php';
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
         <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
 		
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -438,6 +456,7 @@ include '../config.php';
         </div>
 
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available
@@ -447,6 +466,7 @@ include '../config.php';
                 </div>
             </div>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer centerWithFlex">
+                
                 <div id="<?= $_REQUEST['name_w'] ?>_statusContainer" class="statusContainer">
                     <div id='<?= $_REQUEST['name_w'] ?>_serverName' class="serverName">
                         <span></span>

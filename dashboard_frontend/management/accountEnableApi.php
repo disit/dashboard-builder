@@ -83,7 +83,7 @@
    
    if(isset($_SESSION['loggedRole'])&&isset($_SESSION['loggedType']))
    {
-       if($_SESSION['loggedRole'] == "ToolAdmin")
+       if($_SESSION['loggedRole'] == "RootAdmin")
        {
             if(isset($_REQUEST['username'])&&isset($_REQUEST['email'])&&isset($_REQUEST['password'])&&isset($_REQUEST['hash']))
             {

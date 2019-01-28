@@ -31,7 +31,7 @@
 
    if(isset($_SESSION['loggedRole']))
    {
-      if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
+      if(($_SESSION['loggedRole'] == "RootAdmin")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
       {
          mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
          $pools = json_decode($_POST["poolsJson"]);

@@ -39,7 +39,7 @@
         var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var showHeader = null;
+        var showHeader, countdown = null;
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
             var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
@@ -64,7 +64,7 @@
         
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("width", titleWidth + "px");
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
         $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
         $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
         
@@ -313,7 +313,7 @@
                             }
                         });
                        
-                       addLink("<?= $_REQUEST['name_w'] ?>", url, linkElement, divChartContainer);
+                       addLink("<?= $_REQUEST['name_w'] ?>", url, linkElement, divChartContainer, null);
                         
                         $('#source_<?= $_REQUEST['name_w'] ?>').on('click', function () {
                             $('#dialog_<?= $_REQUEST['name_w'] ?>').show();
@@ -333,11 +333,46 @@
                             $('#table_<?= $_REQUEST['name_w'] ?>').addClass('slide');
                             $('#table_<?= $_REQUEST['name_w'] ?>').attr('data-interval', 4000);
                             $('#table_<?= $_REQUEST['name_w'] ?>').carousel('cycle');
-
                         }
 
                         var counter = <?= $_REQUEST['frequency_w'] ?>;
-                        var countdown = setInterval(function () 
+                        
+                        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+                            <?= $_REQUEST['name_w'] ?>(false);
+                        });
+                        
+                        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+                        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                            clearInterval(countdown);
+                            counter = event.newTimeToReload;
+                            countdown = setInterval(function () 
+                            {
+                                counter--;
+                                if(counter > 60) 
+                                {
+                                    $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
+                                } 
+                                else 
+                                {
+                                    $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
+                                }
+                                if (counter === 0) 
+                                {
+                                    $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
+                                    $("#<?= $_REQUEST['name_w'] ?>").off('customResizeEvent');
+                                    $('#table_<?= $_REQUEST['name_w'] ?>').off();
+                                    if(alarmSet)
+                                    {
+                                        $("#<?= $_REQUEST['name_w'] ?>_alarmDiv").removeClass("alarmDivActive");
+                                        $("#<?= $_REQUEST['name_w'] ?>_alarmDiv").addClass("alarmDiv");
+                                    } 
+                                    clearInterval(countdown);
+                                    setTimeout(<?= $_REQUEST['name_w'] ?>(false), 1000);
+                                }
+                            }, 1000);
+                        });
+                        
+                        countdown = setInterval(function () 
                         {
                             counter--;
                             if(counter > 60) 
@@ -351,6 +386,7 @@
                             if (counter === 0) 
                             {
                                 $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
+                                $("#<?= $_REQUEST['name_w'] ?>").off('customResizeEvent');
                                 $('#table_<?= $_REQUEST['name_w'] ?>').off();
                                 if(alarmSet)
                                 {
@@ -381,9 +417,7 @@
         </div>-->
         
         <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        
-        
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -393,7 +427,8 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        <div id="table_<?= $_REQUEST['name_w'] ?>" class="carousel ataf-table-widget" data-interval="false" data-pause="hover"> 
+        <div id="table_<?= $_REQUEST['name_w'] ?>" class="carousel ataf-table-widget" data-interval="false" data-pause="hover">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <ul id="<?= $_REQUEST['name_w'] ?>_nav_ul" class="nav nav-tabs nav_ul">
                 <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_nav_service_state_li" class="active"><a disabled="true" class="atafTab">stato</a></li>
                 <li role="navigation" id="<?= $_REQUEST['name_w'] ?>_nav_lines_li"><a disabled="true" class="atafTab">linee monitorate</a></li>

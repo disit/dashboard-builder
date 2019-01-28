@@ -56,7 +56,7 @@
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var showHeader = null;
+		var showHeader, countdownRef = null;
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var eventsOnMaps = {};
         var widgetTargetListFlags = [];
@@ -813,21 +813,11 @@
             scroller = setInterval(stepDownInterval, speed);
         }
 		
-		$(document).off('resizeHighchart_' + widgetName);
-		$(document).on('resizeHighchart_' + widgetName, function(event) 
-		{
-			var newHeight = null;
-			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
-			}
-			else
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
-			}
-			
-			$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').css('height', newHeight + 'px');
-		});
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+        });
         //Fine definizioni di funzione 
         
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
@@ -844,8 +834,8 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        //addLink(widgetName, url, linkElement, divContainer, null);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         
         //Fine eventuale codice ad hoc basato sulle proprietà del widget
         
@@ -988,28 +978,25 @@
            }
         });
         
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
         
-        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                clearInterval(countdownRef);
+                timeToReload = event.newTimeToReload;
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
+        
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
     });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -1021,6 +1008,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available

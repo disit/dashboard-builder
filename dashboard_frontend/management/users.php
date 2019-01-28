@@ -20,11 +20,11 @@
     
     if(!isset($_SESSION['loggedRole']))
     {
-        header("location: unauthorizedUser.php");
+        header("location: ssoLogin.php");
     }
-    else if($_SESSION['loggedRole'] != "ToolAdmin")
+    else if($_SESSION['loggedRole'] != "RootAdmin")
     {
-        header("location: unauthorizedUser.php");
+        header("location: ssoLogin.php");
     }
 ?>
 
@@ -35,7 +35,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Snap4City</title>
+        <title><?php include "mobMainMenuClaim.php" ?></title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -88,7 +88,7 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Snap4City
+                            <?php include "mobMainMenuClaim.php" ?>
                         </div>
                     </div>
                     <div class="row">
@@ -212,6 +212,7 @@
                                         <option value="Manager">Manager</option>
                                         <option value="AreaManager">Area manager</option>
                                         <option value="ToolAdmin">Tool admin</option>
+                                        <option value="RootAdmin">Root admin</option>
                                     </select>
                                 </div>
                                 <div class="modalFieldLabelCnt">Account type</div>
@@ -252,7 +253,7 @@
                                     <?php
                                         if(isset($_SESSION['loggedRole']))
                                         {
-                                            if($_SESSION['loggedRole'] == "ToolAdmin")
+                                            if($_SESSION['loggedRole'] == "RootAdmin")
                                             {
                                                 //Reperimento elenco dei pool
                                                 $link = mysqli_connect($host, $username, $password) or die();
@@ -426,6 +427,7 @@
                                         <option value="Manager">Manager</option>
                                         <option value="AreaManager">Area manager</option>
                                         <option value="ToolAdmin">Tool admin</option>
+                                        <option value="ToolAdmin">Root admin</option>
                                     </select>
                                 </div>
                                 <div class="modalFieldLabelCnt">Account type</div>
@@ -538,7 +540,20 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
-        $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=mainSetupLink]').show();
+        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        {
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
+            $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
+            $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+        }
+        
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
@@ -612,13 +627,8 @@
             }
         });
         
-        $('#link_user_register .mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt #link_user_register .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt #link_user_register .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        
         var admin = "<?= $_SESSION['loggedRole'] ?>";
         var existingPoolsJson = null;
-        var internalDest = false;
         var tableFirstLoad = true;
         
         buildMainTable(false);
@@ -1018,7 +1028,7 @@
                    $("#addUserPoolsRow").show();
                    break;
                    
-                case "AreaManager":
+                case "AreaManager": case "ToolAdmin": 
                    $(".addUserPoolsTableMakeMemberCheckbox input").click(function(){
                      $(this).parent().parent().find(".addUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
                    });
@@ -1032,7 +1042,7 @@
                    $("#addUserPoolsRow").show();
                    break;   
                     
-                case "ToolAdmin":
+                case "RootAdmin":
                     $("#addUserPoolsRow").hide();
                     break;
            }
@@ -1051,7 +1061,7 @@
                    $("#editUserPoolsRow").show();
                    break;
                    
-                case "AreaManager":
+                case "AreaManager": case "ToolAdmin": 
                    $(".editUserPoolsTableMakeMemberCheckbox input").click(function(){
                      $(this).parent().parent().find(".editUserPoolsTableMakeAdminCheckbox input").prop("checked", false);
                    });
@@ -1065,7 +1075,7 @@
                    $("#editUserPoolsRow").show();
                    break;   
                     
-                case "ToolAdmin":
+                case "RootAdmin":
                     $("#editUserPoolsRow").hide();
                     break;
            }
@@ -1191,6 +1201,10 @@
                                 {
                                     switch(value)
                                     {
+                                       case "RootAdmin":
+                                          return "Root admin";
+                                          break;
+                                       
                                        case "ToolAdmin":
                                           return "Tool admin";
                                           break;

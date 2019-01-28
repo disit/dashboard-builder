@@ -30,7 +30,7 @@
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
         ?> 
-        var scroller, widgetProperties, styleParameters, serviceUri, 
+        var scroller, widgetProperties, styleParameters, serviceUri, queryType,
             eventName, newRow, symbolMode, symbolFile, widgetTargetList, originalHeaderColor, fontFamily, originalBorderColor, 
             eventName, serviceUri, queriesNumber, widgetWidth, shownHeight, rowPercHeight, contentHeightPx, eventContentWPerc, 
             mapPtrContainer, pinContainer, queryDescContainer, activeFontColor, rowHeight, iconSize, queryDescContainerWidth,
@@ -52,30 +52,42 @@
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var showHeader = null;
+        var showHeader = null;
+        var defaultOptionUsed = false;
         var pinContainerWidth = 40;
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-        
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        console.log("Entrato in Selector " + widgetName);
         if(url === "null")
         {
             url = null;
         }
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-			showHeader = false;
-		}
-		else
-		{
-			showHeader = true;
-		}
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        }
         
         //Definizioni di funzione
         function populateWidget()
         {
             var queries = JSON.parse(widgetProperties.param.parameters).queries;
+            //MODIFICHE
+            var mapTarget = JSON.parse(widgetProperties.param.parameters).targets;
+            var mapTargetid= mapTarget[0];
+            //
             var desc, query, color1, color2, targets, display = null;
             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
+            
+         /*   queries.sort(function(a, b)
+            {
+                if(a.desc < b.desc) return -1;
+                if(a.desc > b.desc) return 1;
+                return 0;
+            }); */
             
             if(firstLoad !== false)
             {
@@ -98,7 +110,9 @@
                 defaultOption = queries[i].defaultOption;
                 display = queries[i].display;
                 
-                newRow = $('<div class="selectorRow" ></div>');
+                queryType = queries[i].queryType;
+                
+                newRow = $('<div class="selectorRow"></div>');
                 newRow.css("width", "100%");
                 newRow.css("height", rowPercHeight + "%");
                 
@@ -113,7 +127,7 @@
                 iconSize = parseInt(rowHeight*0.75);
                 var pinMsgFontSize = rowHeight / 3.25;
 
-                pinContainer = $('<div class="gisPinContainer"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
+                pinContainer = $('<div class="gisPinContainer"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" map-target="'+mapTargetid+'" data-display="' + display + '" data-onMap="false"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 
                 if(symbolMode === 'auto')
                 {
@@ -330,7 +344,8 @@
                     }
                 );
                 
-                pinContainer.find("a.gisPinLink").click(function(){
+                pinContainer.find("a.gisPinLink").click(function(event){
+                    event.preventDefault();
                     if(($(this).attr("data-query") !== '')&&(widgetTargetList.length > 0))
                     {
                         $(this).parents("div.gisMapPtrContainer").find("span.gisPinHideMsg").hide();
@@ -349,7 +364,7 @@
                            $(this).attr("data-onMap", "true");
                            $(this).hide();
                            $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
-                           addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display")); 
+                           addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-queryType")); 
                         }
                         else
                         {
@@ -389,8 +404,12 @@
                
                 $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').append(newRow);
                 
-                mapPtrContainer.css("width", newRow.height() + "px");
-                queryDescContainer.css("width", parseInt(newRow.width() - newRow.height()) + "px");
+                //mapPtrContainer.css("width", Math.floor(newRow.height() - 2) + "px");
+                //queryDescContainer.css("width", Math.floor(newRow.width() - Math.ceil(newRow.height()) - 4) + "px");
+                
+                mapPtrContainer.css("width", Math.floor((newRow.height())/newRow.width()*100) + "%");
+                queryDescContainer.css("width", Math.floor((newRow.width() - Math.ceil(newRow.height()))/newRow.width()*100) + "%");
+                
                 pinContainer.find('i.gisPinIcon').css("font-size", newRow.height()*0.8 + "px");
                 queryDescContainer.textfill({
                     maxFontPixels: fontSize
@@ -413,9 +432,9 @@
             }
             
             $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer span.gisQueryDescPar').css("font-size", minFontSize + "px");
-        }
-        
-        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display)
+                               }
+
+        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType)
         {
             //Fin qui targets OK
             for(var i in widgetTargetList)
@@ -429,7 +448,8 @@
                     color1: color1,
                     color2: color2,
                     targets: targets,
-                    display: display
+                    display: display,
+                    queryType: queryType
                 }); 
             }
         }
@@ -482,8 +502,12 @@
             //Resize dei due contenitori di pin e desc, rispettivamente
             var rowPxHeight =  $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').height() / queriesNumber;
             var descPxWidth = $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').width() - rowPxHeight;
-            $('#<?= $_REQUEST['name_w'] ?>_div div.gisMapPtrContainer').css("width", rowPxHeight + "px");
-            $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').css("width", descPxWidth + "px");
+            
+            //$('#<?= $_REQUEST['name_w'] ?>_div div.gisMapPtrContainer').css("width", rowPxHeight + "px");
+            //$('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').css("width", descPxWidth + "px");
+            
+            $('#<?= $_REQUEST['name_w'] ?>_div div.gisMapPtrContainer').css("width", Math.floor((rowPxHeight)/$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').width()*100) + "%");
+            $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer').css("width", Math.floor(($('#<?= $_REQUEST['name_w'] ?>_rollerContainer').width() - Math.ceil(rowPxHeight))/$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').width()*100) + "%");
             
             //Resize dei pin di default
             $('#<?= $_REQUEST['name_w'] ?>_div i.gisPinIcon').css("font-size", rowPxHeight*0.8 + "px");
@@ -532,8 +556,8 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        //addLink(widgetName, url, linkElement, divContainer, null);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         
         $.ajax({
             url: getParametersWidgetUrl,
@@ -569,7 +593,16 @@
                             if(defaultOption)
                             {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(i).trigger('click');
+                                defaultOptionUsed = true;
                             }
+                        }
+                        
+                        if(!defaultOptionUsed)
+                        {
+                            JSON.parse(widgetProperties.param.parameters).queries[0].defaultOption = true;
+                            setTimeout(function() {
+                                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(0).trigger('click');
+                            }, 700);
                         }
                     }, parseInt("<?php echo $crossWidgetDefaultLoadWaitTime; ?>"));
                 }
@@ -593,24 +626,21 @@
             }
         });
         
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
         
+        $(document).on('resizeHighchart_' + widgetName, function(event)
+        {
+            showHeader = event.showHeader;
+        });
     });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>  
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -622,6 +652,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available
@@ -634,5 +665,9 @@
                <div id="<?= $_REQUEST['name_w'] ?>_rollerContainer" class="gisRollerContainer"></div>
             </div>
         </div>
+        
+        <!--<div id="<?= $_REQUEST['name_w'] ?>_resizeHandle" class='resizeHandle'>
+            
+        </div>    -->
     </div>	
 </div>

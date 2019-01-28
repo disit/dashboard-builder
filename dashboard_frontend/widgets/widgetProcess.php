@@ -44,7 +44,7 @@
         var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
         var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
             descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
-            rangeMin, rangeMax, widgetParameters, height, sizeRowsWidget, fontRatio, fontRatioSmall, host, user, pass, jobName, status, date = null;
+            rangeMin, rangeMax, widgetParameters, height, sizeRowsWidget, fontRatio, countdownRef, fontRatioSmall, host, user, pass, jobName, status, date = null;
         var metricId = "<?= $_REQUEST['id_metric'] ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
         var url = "<?= $_REQUEST['link_w'] ?>";
@@ -55,13 +55,13 @@
 		var showHeader = null;
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-			showHeader = false;
-		}
-		else
-		{
-			showHeader = true;
-		}
+        {
+                showHeader = false;
+        }
+        else
+        {
+                showHeader = true;
+        }
         
         //Definizioni di funzione specifiche del widget
         /*Restituisce il JSON delle soglie se presente, altrimenti NULL*/
@@ -103,23 +103,26 @@
         function resizeWidget()
         {
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+            
+            var newHeight = null;
+            if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+            {
+                newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+            }
+            else
+            {
+                newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+            }
+
+            $('#<?= $_REQUEST['name_w'] ?>_content').css('height', newHeight + 'px');
         }
 		
-		$(document).off('resizeHighchart_' + widgetName);
-		$(document).on('resizeHighchart_' + widgetName, function(event) 
-		{
-			var newHeight = null;
-			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
-			}
-			else
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
-			}
-			
-			$('#<?= $_REQUEST['name_w'] ?>_content').css('height', newHeight + 'px');
-		});
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(){
+            showHeader = event.showHeader;
+            resizeWidget();
+        });
+        
         //Fine definizioni di funzione 
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
@@ -132,15 +135,14 @@
         {
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        //addLink(widgetName, url, linkElement, divContainer, null);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         if((widgetProperties !== null) && (widgetProperties !== ''))
         {
             //Inizio eventuale codice ad hoc basato sulle proprietà del widget
             styleParameters = getStyleParameters();//Restituisce null finché non si usa il campo per questo widget
-            
             
             //Lasciamo la chiamata originaria, quella a comune dà problemi
             $.ajax({//Inizio AJAX getParametersWidgets.php
@@ -246,27 +248,27 @@
         {
             console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            clearTimeout(countdownRef);
+            <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                clearInterval(countdownRef);
+                timeToReload = event.newTimeToReload;
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
+        
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
 });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-		<?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -278,6 +280,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id='<?= $_REQUEST['name_w'] ?>_jobName'  class="nomeJob"></div>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer" style="margin-left: auto; margin-right: auto">

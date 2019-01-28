@@ -25,23 +25,7 @@
    mysqli_select_db($link, $dbname);
    
    //Definizioni di funzione
-   function checkLdapRole($connection, $userDn, $role) 
-   {
-      $result = ldap_search($connection, 'dc=ldap,dc=disit,dc=org', '(&(objectClass=organizationalRole)(cn=' . $role . ')(roleOccupant=' . $userDn . '))');
-      $entries = ldap_get_entries($connection, $result);
-      foreach ($entries as $key => $value) 
-      {
-         if(is_numeric($key)) 
-         {
-            if($value["cn"]["0"] == $role) 
-            {
-               return true;
-            }
-         }
-      }
-      return false;
-  }
-   
+  
    if(!$link->set_charset("utf8")) 
    {
        exit();
@@ -49,7 +33,7 @@
 
    if(isset($_SESSION['loggedRole']))
    {
-      if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
+      if(($_SESSION['loggedRole'] == "RootAdmin")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
       {
          //Elenco complessivo utenti LDAP non tool admin
          $temp = [];
@@ -62,7 +46,7 @@
             $bind = ldap_bind($ds);
 
             $result = ldap_search(
-                     $ds, 'dc=ldap,dc=disit,dc=org', 
+                     $ds, $ldapBaseDN, 
                      '(cn=Dashboard)'
             );
             $entries = ldap_get_entries($ds, $result);
@@ -83,23 +67,23 @@
 
             for($i = 0; $i < count($temp); $i++)
             {
-               if(!checkLdapRole($ds, $temp[$i], "ToolAdmin"))
+               if(!checkLdapRole($ds, $temp[$i], "RootAdmin", $ldapBaseDN))
                {
                   $name = str_replace("cn=", "", $temp[$i]);
-                  $name = str_replace(",dc=ldap,dc=disit,dc=org", "", $name);
-                  if(checkLdapRole($ds, $temp[$i], "Observer"))
+                  $name = str_replace("," . $ldapBaseDN, "", $name);
+                  if(checkLdapRole($ds, $temp[$i], "Observer", $ldapBaseDN))
                   {
                      $role = "Observer";
                   }
                   else
                   {
-                     if(checkLdapRole($ds, $temp[$i], "Manager"))
+                     if(checkLdapRole($ds, $temp[$i], "Manager", $ldapBaseDN))
                      {
                         $role = "Manager";
                      }
                      else
                      {
-                        if(checkLdapRole($ds, $temp[$i], "AreaManager"))
+                        if(checkLdapRole($ds, $temp[$i], "AreaManager", $ldapBaseDN))
                         {
                            $role = "AreaManager";
                         }
@@ -169,7 +153,7 @@
                         $i++;
                      }
 
-                     $query3 = "SELECT * FROM Dashboard.Users WHERE Dashboard.Users.admin <> 'ToolAdmin' AND Dashboard.Users.username NOT IN " . $complementary;
+                     $query3 = "SELECT * FROM Dashboard.Users WHERE Dashboard.Users.admin <> 'RootAdmin' AND Dashboard.Users.username NOT IN " . $complementary;
                      $result3 = mysqli_query($link, $query3);
 
                      if($result3)

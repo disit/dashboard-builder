@@ -42,7 +42,7 @@
             } 
             mysqli_close($link);
 
-            if($_SESSION['loggedRole'] == "Manager")
+            if(($_SESSION['loggedRole'] == "Manager")||($_SESSION['loggedRole'] == "AreaManager")||($_SESSION['loggedRole'] == "ToolAdmin"))
             {
                 //Utente non amministratore, edita una dashboard solo se ne é l'autore
                 if((isset($_SESSION['loggedUsername']))&&($_SESSION['loggedUsername'] == $dashboardAuthorName))
@@ -57,7 +57,7 @@
                     $response['detail'] = 'unauthorized';
                 }
             }
-            else if(($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "ToolAdmin"))
+            else if($_SESSION['loggedRole'] == "RootAdmin")
             {
                 //Utente amministratore, edita qualsiasi dashboard
                 $response['detail'] = 'Ok';

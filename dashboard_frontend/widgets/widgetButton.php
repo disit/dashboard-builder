@@ -14,6 +14,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
    include('../config.php');
+    $stopFlag = 1;
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
@@ -45,18 +46,18 @@
         var widgetProperties, buttonHeight, widgetTargetList, originalHeaderColor, originalBorderColor, originalTitle, 
             originalHeaderFontColor, styleParameters, innerWidth, innerHeight, innerTop, innerLeft,
             outerMinDim, innerMinDim, outerBorderRadius, innerBorderRadius, widgetWidthCells, widgetHeightCells,
-            minDim, minDimCells, minDimName, showHeader, buttonPercentWidth, buttonPercentHeight = null;
+            minDim, minDimCells, minDimName, showHeader, buttonPercentWidth, buttonPercentHeight, target = null;
 		
 		$("#" + widgetName + "_countdownContainerDiv").hide();
 		
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-		    showHeader = false;
-		}
-		else
-		{
-			showHeader = true;
-		}  
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        }  
         
         //Rimozione bordo per questo widget
         $("#" + widgetName).css("border", "none");
@@ -142,6 +143,10 @@
             {
                 $(this).css("background-color", color);
             });
+
+            if (styleParameters.openNewTab === "no") {
+                var stopFlag = 1;
+            }
             
             if(styleParameters.hasImage === 'no')
             {
@@ -155,7 +160,9 @@
                 }
                 else
                 {
-                    $('#<?= $_REQUEST['name_w'] ?>_buttonBackground').css("display", "none");
+                  //  console.log("ARRIVA IN SHOW-IMAGE = NO! ");
+                 //   $('#<?= $_REQUEST['name_w'] ?>_buttonBackground').css("display", "none");
+                    $('#<?= $_REQUEST['name_w'] ?>_buttonText').css("display", "none");
                 }
             }
             else
@@ -186,7 +193,9 @@
                 }
                 else
                 {
-                    $('#<?= $_REQUEST['name_w'] ?>_buttonBackground').css("display", "none");
+                 //   console.log("ARRIVA IN SHOW-IMAGE = YES! ")
+                //    $('#<?= $_REQUEST['name_w'] ?>_buttonBackground').css("display", "none");
+                    $('#<?= $_REQUEST['name_w'] ?>_buttonText').css("display", "none");
                     $('#<?= $_REQUEST['name_w'] ?>_buttonBackground').css("height", "100%");
                     $('#<?= $_REQUEST['name_w'] ?>_buttonBackground').css("border-radius", outerBorderRadius + "px");
                     
@@ -207,129 +216,151 @@
                 $('#<?= $_REQUEST['name_w'] ?>_buttonInnerBackground').css("border-radius", innerBorderRadius + "px");
             }
             
-            if((widgetTargetList.geoTargetsJson.length > 0)||(hasChangeMetric))
+            if((widgetTargetList !== null)&&(widgetTargetList !== undefined))
             {
-               button.hover(
-                  function() 
-                  {
-                     originalHeaderColor = {
-                         changeMetricTargetsJson: {},
-                         geoTargetsJson: []
-                     };
-                     originalBorderColor = {
-                         changeMetricTargetsJson: {},
-                         geoTargetsJson: []
-                     };
-                     originalTitle = {
-                         changeMetricTargetsJson: {},
-                         geoTargetsJson: []
-                     };
-                     originalHeaderFontColor = {
-                         changeMetricTargetsJson: {},
-                         geoTargetsJson: []
-                     };
-                     
-                     for(var widgetName in widgetTargetList.changeMetricTargetsJson)
-                     {
-                        if(widgetTargetList.changeMetricTargetsJson[widgetName] !== "noMetricChange")
-                        {
-                           originalHeaderColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_header").css("background-color");
-                           originalBorderColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName).css("border-color");
-                           originalTitle.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_titleDiv").html();
-                           originalHeaderFontColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_titleDiv").css("color");
-                           
-                           $("#" + widgetName + "_header").css("background", hoverColor);
-                           $("#" + widgetName).css("border-color", hoverColor);
-                           $("#" + widgetName + "_titleDiv").html(buttonText);
-                           $("#" + widgetName + "_titleDiv").css("color", fontColor);
-                        }
-                     }
-                     
-                     for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
-                     {
-                        originalHeaderColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background-color");
-                        originalBorderColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color");
-                        originalTitle.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html();
-                        originalHeaderFontColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color");
-                        
-                        $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background", hoverColor);
-                        $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color", hoverColor);
-                        $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html(buttonText);
-                        $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color", fontColor);
-                     }
-                  }, 
-                  function() 
-                  {
-                     if(justClicked === false)
-                     {
-                        for(var widgetName in widgetTargetList.changeMetricTargetsJson)
-                        {
-                           if(widgetTargetList.changeMetricTargetsJson[widgetName] !== "noMetricChange")
-                           {
-                              $("#" + widgetName + "_header").css("background", originalHeaderColor.changeMetricTargetsJson[widgetName]);
-                              $("#" + widgetName).css("border-color", originalBorderColor.changeMetricTargetsJson[widgetName]); 
-                              $("#" + widgetName + "_titleDiv").html(originalTitle.changeMetricTargetsJson[widgetName]);
-                              $("#" + widgetName + "_titleDiv").css("color", originalHeaderFontColor.changeMetricTargetsJson[widgetName]);
-                           }
-                        } 
-
-                        for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
-                        {
-                           $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background", originalHeaderColor.geoTargetsJson[i]);
-                           $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color", originalBorderColor.geoTargetsJson[i]);
-                           $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html(originalTitle.geoTargetsJson[i]);
-                           $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color", originalHeaderFontColor.geoTargetsJson[i]);
-                        } 
-                     }
-                     else
-                     {
-                         justClicked = false;
-                     }
-                  }
-               );
-    
-            button.mousedown(function()
-            {
-               $('#<?= $_REQUEST['name_w'] ?>_button').addClass('onOffButtonActive');
-            });
-            
-            button.mouseup(function()
-            {
-                $('#<?= $_REQUEST['name_w'] ?>_button').css("background-color", color);
-                $('#<?= $_REQUEST['name_w'] ?>_button').removeClass('onOffButtonActive');
-                
-                justClicked = true;
-                
-                for(var widgetName in widgetTargetList.changeMetricTargetsJson)
+                if((widgetTargetList.geoTargetsJson.length > 0)||(hasChangeMetric))
                 {
-                     $.event.trigger({
-                         type: "changeMetricFromButton_" + widgetName,
-                         targetWidget: widgetName,
-                         newMetricName: widgetTargetList.changeMetricTargetsJson[widgetName],
-                         newTargetTitle: buttonText,
-                         newHeaderAndBorderColor: color,
-                         newHeaderFontColor: fontColor
-                     }); 
-                }
+                   button.hover(
+                      function() 
+                      {
+                         originalHeaderColor = {
+                             changeMetricTargetsJson: {},
+                             geoTargetsJson: []
+                         };
+                         originalBorderColor = {
+                             changeMetricTargetsJson: {},
+                             geoTargetsJson: []
+                         };
+                         originalTitle = {
+                             changeMetricTargetsJson: {},
+                             geoTargetsJson: []
+                         };
+                         originalHeaderFontColor = {
+                             changeMetricTargetsJson: {},
+                             geoTargetsJson: []
+                         };
 
-                for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
+                         for(var widgetName in widgetTargetList.changeMetricTargetsJson)
+                         {
+                            if(widgetTargetList.changeMetricTargetsJson[widgetName] !== "noMetricChange")
+                            {
+                               originalHeaderColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_header").css("background-color");
+                               originalBorderColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName).css("border-color");
+                               originalTitle.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_titleDiv").html();
+                               originalHeaderFontColor.changeMetricTargetsJson[widgetName] = $("#" + widgetName + "_titleDiv").css("color");
+
+                               $("#" + widgetName + "_header").css("background", hoverColor);
+                               $("#" + widgetName).css("border-color", hoverColor);
+                               $("#" + widgetName + "_titleDiv").html(buttonText);
+                               $("#" + widgetName + "_titleDiv").css("color", fontColor);
+                            }
+                         }
+
+                         for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
+                         {
+                            originalHeaderColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background-color");
+                            originalBorderColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color");
+                            originalTitle.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html();
+                            originalHeaderFontColor.geoTargetsJson[i] = $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color");
+
+                            $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background", hoverColor);
+                            $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color", hoverColor);
+                            $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html(buttonText);
+                            $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color", fontColor);
+                         }
+                      }, 
+                      function() 
+                      {
+                         if(justClicked === false)
+                         {
+                            for(var widgetName in widgetTargetList.changeMetricTargetsJson)
+                            {
+                               if(widgetTargetList.changeMetricTargetsJson[widgetName] !== "noMetricChange")
+                               {
+                                  $("#" + widgetName + "_header").css("background", originalHeaderColor.changeMetricTargetsJson[widgetName]);
+                                  $("#" + widgetName).css("border-color", originalBorderColor.changeMetricTargetsJson[widgetName]); 
+                                  $("#" + widgetName + "_titleDiv").html(originalTitle.changeMetricTargetsJson[widgetName]);
+                                  $("#" + widgetName + "_titleDiv").css("color", originalHeaderFontColor.changeMetricTargetsJson[widgetName]);
+                               }
+                            } 
+
+                            for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
+                            {
+                               $("#" + widgetTargetList.geoTargetsJson[i] + "_header").css("background", originalHeaderColor.geoTargetsJson[i]);
+                               $("#" + widgetTargetList.geoTargetsJson[i]).css("border-color", originalBorderColor.geoTargetsJson[i]);
+                               $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").html(originalTitle.geoTargetsJson[i]);
+                               $("#" + widgetTargetList.geoTargetsJson[i] + "_titleDiv").css("color", originalHeaderFontColor.geoTargetsJson[i]);
+                            } 
+                         }
+                         else
+                         {
+                             justClicked = false;
+                         }
+                      }
+                   );
+
+                button.mousedown(function()
                 {
-                   $("#" + widgetTargetList.geoTargetsJson[i] + "_driverWidgetType").val("button"); 
-                   $("#" + widgetTargetList.geoTargetsJson[i] + "_buttonUrl").val(url);
-                   $("#" + widgetTargetList.geoTargetsJson[i] + "_iFrame").attr("src", url);
-                }
-            });
+                   $('#<?= $_REQUEST['name_w'] ?>_button').addClass('onOffButtonActive');
+                });
+
+                button.mouseup(function()
+                {
+                    $('#<?= $_REQUEST['name_w'] ?>_button').css("background-color", color);
+                    $('#<?= $_REQUEST['name_w'] ?>_button').removeClass('onOffButtonActive');
+
+                    justClicked = true;
+
+                    for(var widgetName in widgetTargetList.changeMetricTargetsJson)
+                    {
+                         $.event.trigger({
+                             type: "changeMetricFromButton_" + widgetName,
+                             targetWidget: widgetName,
+                             newMetricName: widgetTargetList.changeMetricTargetsJson[widgetName],
+                             newTargetTitle: buttonText,
+                             newHeaderAndBorderColor: color,
+                             newHeaderFontColor: fontColor
+                         }); 
+                    }
+
+                    for(var i = 0; i < widgetTargetList.geoTargetsJson.length; i++)
+                    {
+                       $("#" + widgetTargetList.geoTargetsJson[i] + "_driverWidgetType").val("button"); 
+                       $("#" + widgetTargetList.geoTargetsJson[i] + "_buttonUrl").val(url);
+                       $("#" + widgetTargetList.geoTargetsJson[i] + "_iFrame").attr("src", url);
+                    }
+                });
+
+               }
+               else
+               {
+                   if (styleParameters.openNewTab == null )
+                   {
+                       target = "_blank";
+                   }
+                   else
+                   {
+                       if (styleParameters.openNewTab === "yes")
+                       {
+                           target = "_blank";
+                      //     console.log("Apre NUOVO TAB !" + target);
+                       }
+                       else
+                       {
+                           target = "_self";
+                       //    console.log("Apre All'interno dello STESSO TAB ! " + target);
+                       }
+                   }
+                   addLink(widgetMainDivName, url, linkElement, button, target);
+               }
+            }
             
-           }
-           else
-           {
-              addLink(widgetMainDivName, url, linkElement, button);
-           }
+            
            
             $('#<?= $_REQUEST['name_w'] ?>_buttonText').textfill({
                 maxFontPixels: fontSize
             });
-            
+
         }//Fine funzione populateWidget()
         
         function lighterColor(hex, lum) 
@@ -352,6 +383,10 @@
         function resizeWidget()
         {
             setWidgetLayout(hostFile, widgetMainDivName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, hasTimer);
+            
+            //QUI LASCIARLO, L'OMOLOGO IN SETWIDGETLAYOUT SU QUESTO WIDGET NON FUNZIONA E NON SI CAPISCE PERCHE'
+            var widgetCtxMenuBtnCntLeft = $("#<?= $_REQUEST['name_w'] ?>").width() - $("#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt").width();
+            $("#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt").css("left", widgetCtxMenuBtnCntLeft + "px");
             
             if(showHeader)
             {
@@ -423,13 +458,16 @@
            widgetWidthCells = parseInt(widgetProperties.param.size_columns);
            widgetHeightCells = parseInt(widgetProperties.param.size_rows);
            outerBorderRadius = parseInt(styleParameters.borderRadius);
-           for(var index in widgetTargetList.changeMetricTargetsJson)
+           if((widgetTargetList !== null)&&(widgetTargetList !== undefined))
            {
-               if(widgetTargetList.changeMetricTargetsJson[index] !== "noMetricChange")
-               {
-                   hasChangeMetric = true;
-                   break;
-               }
+               for(var index in widgetTargetList.changeMetricTargetsJson)
+                {
+                    if(widgetTargetList.changeMetricTargetsJson[index] !== "noMetricChange")
+                    {
+                        hasChangeMetric = true;
+                        break;
+                    }
+                }
            }
            
            populateWidget();  
@@ -438,25 +476,24 @@
         $('#<?= $_REQUEST['name_w'] ?>_content').css('background-color', 'transparent');
         $('#<?= $_REQUEST['name_w'] ?> .pcPhoto').hide();
         
-        //
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
     });//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
-	<?php include '../widgets/widgetHeader.php'; ?>
-	<?php include '../widgets/widgetCtxMenu.php'; ?>
-	
-    <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-        <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-        <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-            <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-        </div> 
-    </div>-->
-
-   
+    <?php include '../widgets/widgetHeader.php'; ?>
+    <?php include '../widgets/widgetCtxMenu.php'; ?>
 
     <div id="<?= $_REQUEST['name_w'] ?>_content" class="content" style="position: relative">
+        <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
         <div id="<?= $_REQUEST['name_w'] ?>_button" class="onOffButton" style="position: relative">
             <div id="<?= $_REQUEST['name_w'] ?>_buttonBefore" class="onOffButtonBefore"></div>
             <div id='<?= $_REQUEST['name_w'] ?>_buttonBackground' class='widgetButtonBackground centerWithFlex'>

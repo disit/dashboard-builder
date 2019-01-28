@@ -40,7 +40,6 @@
         {
             if(mysqli_num_rows($r1) > 0)
             {
-                //$sql = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$metricName' ORDER BY computationDate desc LIMIT 1"; 
                 $metricType = "shared";
             }
             else
@@ -53,12 +52,11 @@
                     if(mysqli_num_rows($r2) > 0)
                     {
                         $metricType = "personal";
-                        //$sql = "SELECT Data.*, NodeRedMetrics.shortDesc as descrip, NodeRedMetrics.metricType, '', '', '', 1 from Data INNER JOIN NodeRedMetrics ON Data.IdMetric_data=NodeRedMetrics.name where Data.IdMetric_data = '$metricName' ORDER BY computationDate desc LIMIT 1"; 
                     }
                 }
             }
         }
-
+        
         $rangedays = array();
         $hourMin = '';
         
@@ -73,32 +71,36 @@
             
             if($unit=='DAY')
             {
-                $having1 = "HAVING date(computationDate)>=date(now())-interval " . ($v-1) . " $unit";
+                $where = " AND computationDate>=date(now())-interval " . ($v-1) . " $unit";
+                $having1 = "";
             }
             else
             {
-                $having1 = "HAVING computationDate>=now()-interval " . $v . " $unit";
+                $where = "AND computationDate>=now()-interval " . $v . " $unit";
+                $having1 = "";
             }
               
-            array_push($rangedays,  $having1);
+            array_push($rangedays,  array($where,$having1));
             
-            if (isset($_GET['compare']) && ($_GET['compare']==1)) 
+            if(isset($_GET['compare']) && ($_GET['compare']==1)) 
             {
                 if($unit=='DAY')
                 {
-                    $having2 = "HAVING date(computationDate)>=date(now())-interval " . ((2*$v)-1) . " $unit AND date(computationDate)<date(now())-interval " . ($v-1) . " $unit" ;
+                    $where = "AND date(computationDate)>=date(now())-interval " . ((2*$v)-1) . " $unit AND date(computationDate)<date(now())-interval " . ($v-1) . " $unit";
+                    $having2 = "" ;
                 }
                 else
                 {
-                    $having2 = "HAVING computationDate>=now()-interval " . $v . " HOUR - INTERVAL 1 DAY AND computationDate<now()-interval 1 DAY" ;
+                    $where = "AND computationDate>=now()-interval " . $v . " HOUR - INTERVAL 1 DAY AND computationDate<now()-interval 1 DAY" ;
+                    $having2 = "";
                 }
-                array_push($rangedays,  $having2);
+                array_push($rangedays,  array($where,$having2));
             }       
         } 
         else
         {
             $having1 = '';
-            array_push($rangedays,  $having1);
+            array_push($rangedays,  array("",$having1));
         }    
 
         $rows = array();
@@ -109,19 +111,20 @@
             $idValue = mysqli_real_escape_string($link, $idValue);
             foreach ($rangedays as $rangedaysValue) 
             {
-                $rangedaysValue = mysqli_real_escape_string($link, $rangedaysValue);
+                $rangedaysValue[0] = mysqli_real_escape_string($link, $rangedaysValue[0]);
+                $rangedaysValue[1] = mysqli_real_escape_string($link, $rangedaysValue[1]);
                 
                 $i++;
                 
                 if($metricType == "shared")
                 {
-                    $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(description_short) as descrip FROM Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
+                    $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(description_short) as descrip FROM Dashboard.Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data='" . $idValue . "' $rangedaysValue[0] GROUP BY date(computationDate)$hourMin  $rangedaysValue[1]";
                 }
                 else
                 {
                     if($metricType == "personal")
                     {
-                        $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(shortDesc) as descrip FROM Dashboard.Data INNER JOIN NodeRedMetrics ON Data.IdMetric_data=NodeRedMetrics.name where Data.IdMetric_data='" . $idValue . "' GROUP BY date(computationDate)$hourMin  $rangedaysValue";
+                        $sql = "SELECT max(IdMetric_data) as IdMetric_data, max(computationDate) as computationDate, max(value_perc1) as value_perc1, MAX(value_num)as value, max(shortDesc) as descrip FROM Dashboard.Data INNER JOIN NodeRedMetrics ON Data.IdMetric_data=NodeRedMetrics.name where Data.IdMetric_data='" . $idValue . "' $rangedaysValue[0] GROUP BY date(computationDate)$hourMin  $rangedaysValue[1]";
                     }
                 }
                 
@@ -131,7 +134,7 @@
                 {
                     $rows[] = array('commit' => array('author' => $r, 'range_dates' => $i));
                 }
-                $data = array('data' => $rows);
+                $data = array('data' => $rows, 'metricType' => $metricType);
             }
         }
 

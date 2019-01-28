@@ -33,21 +33,27 @@
         foreach($widgetName as $widgetNameIteration)
         { 
             $widgetNameIteration = mysqli_real_escape_string($link, $widgetNameIteration);
-            $sql = "SELECT widgets.*, descriptions.metricType, nodeRedInputs.* FROM Config_widget_dashboard AS widgets " .
+            $sql = "SELECT widgets.*, descriptions.metricType, nodeRedInputs.id AS nrInputId, nodeRedInputs.name, nodeRedInputs.valueType, nodeRedInputs.user, nodeRedInputs.startValue, nodeRedInputs.domainType, nodeRedInputs.minValue, nodeRedInputs.maxValue, nodeRedInputs.offValue, nodeRedInputs.onValue, nodeRedInputs.dataPrecision FROM Config_widget_dashboard AS widgets " .
                    "LEFT JOIN Descriptions AS descriptions " .
                    "ON widgets.id_metric = descriptions.IdMetric " .
                    "LEFT JOIN NodeRedInputs AS nodeRedInputs " .
                    "ON widgets.id_metric = nodeRedInputs.name " .
                    "WHERE widgets.name_w = '$widgetNameIteration'";
+            
+            //$file = fopen("C:\dashboardLog.txt", "w");
+            //fwrite($file, "sql: " . $sql . "\n");
+            
             $result = $link->query($sql);
 
             while($r = mysqli_fetch_assoc($result)) 
             {
                $parameters = array('param' => $r);
-               $entityId = $r['name_w'];
                
                if($r['entityJson'] != null)
                {
+                   $sourceEntity = json_decode($r['entityJson']);
+                   $entityId = $sourceEntity->id;
+                   
                    //Se il widget è un attuatore su broker, recuperiamo anche il suo valore più recente impostato
                    $lastValueQuery = "SELECT value FROM ActuatorsEntitiesValues WHERE entityId = '$entityId' AND actuationResult = 'Ok' ORDER BY STR_TO_DATE(actionTime, '%Y-%m-%d %T') DESC LIMIT 1";
                    $lastValueResult = $link->query($lastValueQuery);
@@ -66,8 +72,10 @@
                {
                    if($r['actuatorTarget'] == 'app')
                    {
+                       $nrInputId = $r['nrInputId'];
                        //Se il widget è un attuatore su personal app, recuperiamo anche il suo valore più recente impostato
-                        $lastValueQuery = "SELECT value FROM ActuatorsAppsValues WHERE widgetName = '$widgetNameIteration' AND actuationResult = 'Ok' ORDER BY STR_TO_DATE(actionTime, '%Y-%m-%d %T') DESC LIMIT 1";
+                        $lastValueQuery = "SELECT value FROM ActuatorsAppsValues WHERE nrInputId = $nrInputId AND actuationResult = 'Ok' ORDER BY STR_TO_DATE(actionTime, '%Y-%m-%d %T') DESC LIMIT 1";
+                        //fwrite($file, "lastValueQuery: " . $lastValueQuery . "\n");
                         $lastValueResult = $link->query($lastValueQuery);
 
                         if($lastValueResult)

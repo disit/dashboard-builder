@@ -1,6 +1,6 @@
 <?php
     /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -70,7 +70,7 @@ else
 if($entityJson != null)
 {
      mysqli_autocommit($link, true);
-     //Cancellazione widget attuatore: lo marchiamo come cancellato sul DB dell'applicazione e lo stesso facciamo per l'entità Orion corrispondente
+     //Cancellazione entità attuatore su broker: la marchiamo come cancellata se non ci sono widget che la puntano
      $canceller = $username;
      $cancelDate = date('Y-m-d H:i:s');
      $entityObj = json_decode($entityJson);
@@ -79,46 +79,73 @@ if($entityJson != null)
      $entityObj->actuatorCanceller->value = $canceller;
      $updatedEntityJson = json_encode($entityObj);
      $entityId = $entityObj->id;
+     
+    //Cancellazione widget
+    $delWQ = "DELETE FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetName' AND id_dashboard = '$dashboardId'";
+    $delWR = mysqli_query($link, $delWQ);
 
-     $entityUpdatedAttributes = ['actuatorDeleted' => ["value" => true, "type" => "Boolean"], 'actuatorDeletionDate' => ["value" => $cancelDate, "type" => "String"], 'actuatorCanceller' => ["value" => $username, "type" => "String"]];
-     $entityUpdatedAttributesJson = json_encode($entityUpdatedAttributes);
-
-     $orionDeleteEntityUrl = $orionBaseUrl. "/v2/entities/" . $entityId . "/attrs";
-
-     $orionCallOptions = array(
-         'http' => array(
-             'header'  => "Content-type: application/json\r\n",
-             'method'  => 'PATCH',
-             'content' => $entityUpdatedAttributesJson,
-             'timeout' => 30
-         )
-     );
-
-     try
-     {
-        $context  = stream_context_create($orionCallOptions);
-        $callResult = file_get_contents($orionDeleteEntityUrl, false, $context);
-
-        if(strpos($http_response_header[0], '204 No Content') === false)
+    if($delWR) 
+    {
+        //Conteggio widget attuatori che puntano l'entità in esame
+        $cntWQ = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE actuatorTarget = 'broker' AND entityJson LIKE '%$entityId%'";
+        $cntWR = mysqli_query($link, $cntWQ);
+        
+        if($cntWR)
         {
-             $response = "orionDeleteEntityKo";
+            if(mysqli_num_rows($cntWR) == 0)
+            {
+                //Se nessun widget punta più l'entità allora la marchiamo come cancellata
+                $entityUpdatedAttributes = ['actuatorDeleted' => ["value" => true, "type" => "Boolean"], 'actuatorDeletionDate' => ["value" => $cancelDate, "type" => "String"], 'actuatorCanceller' => ["value" => $username, "type" => "String"]];
+                $entityUpdatedAttributesJson = json_encode($entityUpdatedAttributes);
+
+                $orionDeleteEntityUrl = $orionBaseUrl. "/v2/entities/" . $entityId . "/attrs";
+
+                $orionCallOptions = array(
+                    'http' => array(
+                        'header'  => "Content-type: application/json\r\n",
+                        'method'  => 'PATCH',
+                        'content' => $entityUpdatedAttributesJson,
+                        'timeout' => 30
+                    )
+                );
+
+                try
+                {
+                   $context  = stream_context_create($orionCallOptions);
+                   $callResult = file_get_contents($orionDeleteEntityUrl, false, $context);
+
+                   if(strpos($http_response_header[0], '204 No Content') === false)
+                   {
+                        $response = "orionDeleteEntityKo";
+                   }
+                   else
+                   {
+                        mysqli_close($link);
+                        $response = "Ok";
+                   }
+                }
+                catch (Exception $ex) 
+                {
+                    $response = "orionDeleteEntityKo";
+                }
+            }
+            else
+            {
+                mysqli_close($link);
+                $response = "Ok";
+            }
         }
         else
         {
-             $updateQ = "UPDATE Dashboard.Config_widget_dashboard SET entityJson = '" . $updatedEntityJson . "', canceller = '" . $username . "', cancelDate = '" . $cancelDate . "' WHERE name_w = '$widgetName' AND id_dashboard = '$dashboardId'";
-             $updateR = mysqli_query($link, $updateQ);
-
-             if($updateR) 
-             {
-                 mysqli_close($link);
-                 $response = "Ok";
-             }
+            mysqli_close($link);
+            $response = "cntRemainingWidgetsOnEntityKo";
         }
-     }
-     catch (Exception $ex) 
-     {
-         $response = "orionDeleteEntityKo";
-     }
+    }
+    else
+    {
+        mysqli_close($link);
+        $response = "delWidgetKo";
+    }
 }
 else
 {

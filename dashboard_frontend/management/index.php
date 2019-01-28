@@ -14,7 +14,19 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
    include('../config.php');
-   include('process-form.php'); 
+   include('process-form.php');
+   
+   session_start();
+    
+   $envFile = parse_ini_file("../conf/environment.ini");
+   
+    /*if(!isset($_SESSION['loggedRole'])&&($envFile['environment']['value'] != 'dev'))
+    {
+        header("location: ssoLogin.php");
+    }*/
+ //checkSession('Public');
+   header("location: iframeApp.php?linkUrl=https://www.snap4city.org/drupal&linkId=snap4cityPortalLink&pageTitle=www.snap4city.org&fromSubmenu=false");
+   exit();
 ?>
 
 <!DOCTYPE html>
@@ -23,7 +35,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Snap4City</title>
+        <title><?php include "mobMainMenuClaim.php" ?></title>
 
         <!-- jQuery -->
         <script src="../js/jquery-1.10.1.min.js"></script>
@@ -135,7 +147,7 @@
                 </div>
                 <div class="col-xs-12 col-xs-offset-0 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-0" id="loginRightCol"> 
                     <div class="col-xs-12 col-md-6 col-md-offset-3" id="loginFormContainer">
-                        <form id="loginForm" role="form" method="post" action="">
+                        <form id="loginForm" role="form" method="post" action="ssoLogin.php">
                             <div class="col-xs-12" id="loginFormTitle" class="centerWithFlex">
                                Login
                             </div>
@@ -166,6 +178,7 @@
                             <div class="col-xs-12 centerWithFlex" id="loginFormFooter">
                                <button type="reset" id="loginCancelBtn" class="btn cancelBtn" data-dismiss="modal">Reset</button>
                                <button type="button" id="loginConfirmBtn" name="login" class="btn confirmBtn internalLink">Login</button>
+                               <button type="submit" id="ssoBtn" name="ssoLogin" class="btn confirmBtn internalLink">SSO</button>
                             </div>
                         </form>    
                     </div>
@@ -219,7 +232,7 @@
                             {
                                 case "Ok":
                                     $('#loginFormMessage').html("");
-                                    location.href = "dashboards.php";
+                                    location.href = "dashboards.php?fromSubmenu=false&linkId=dashboardsLink";
                                     break;
                                     
                                 default:

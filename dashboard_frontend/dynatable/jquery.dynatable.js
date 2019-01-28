@@ -907,6 +907,13 @@
           },
           attrType = a[attr] ? typeof(a[attr]) : typeof(b[attr]),
           type = types[attrType] || 'number';
+
+          if ((attr === "nAccessPerDay") || (attr === "nMinutesPerDay")) {
+            type = 'number';
+          }
+
+       //   console.log("INNER Type of A : " + typeof(a[attr]) + " - INNER Type of B: " + typeof(a[attr]) + ";");
+       //   console.log("Valore A : " + a[attr] + " - Valore B: " + b[attr] + " - Tipo: " + type);
       return type;
     };
 
@@ -920,6 +927,19 @@
         var aAttr = (a['dynatable-sortable-text'] && a['dynatable-sortable-text'][attr]) ? a['dynatable-sortable-text'][attr] : a[attr],
             bAttr = (b['dynatable-sortable-text'] && b['dynatable-sortable-text'][attr]) ? b['dynatable-sortable-text'][attr] : b[attr],
             comparison;
+        
+      //  console.log("Type of a: " + typeof aAttr + " - Type of b: " + typeof bAttr);
+        
+        if(typeof aAttr !== 'string')
+        {
+            aAttr = aAttr.toString();
+        }
+        
+        if(typeof bAttr !== 'string')
+        {
+            bAttr = bAttr.toString();
+        }
+        
         aAttr = aAttr.toLowerCase();
         bAttr = bAttr.toLowerCase();
         comparison = aAttr === bAttr ? 0 : (direction > 0 ? aAttr > bAttr : bAttr > aAttr);

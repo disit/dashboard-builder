@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -52,8 +52,9 @@
         var headerHeight = 25;
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
 		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-		var showHeader = null;
-        
+		var showHeader, countdownRef = null;
+        console.log("Widget Firts Aid: " + widgetName);
+
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
 		{
 				showHeader = false;
@@ -64,7 +65,96 @@
 		}
         
         //Definizioni di funzione specifiche del widget
-        
+
+
+        $("#" + widgetName).hover(function()
+        {
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData) {
+                    var widgetNameD = widgetData.params.name_w;
+                    var showTitleD = widgetData.params.showTitle;
+                    var widgetContentColorD = widgetData.params.color_w;
+                    var fontSizeD = widgetData.params.fontSize;
+                    var fontColorD = widgetData.params.fontColor;
+                    var timeToReloadD = widgetData.params.frequency_w;
+                    var hasTimerD = widgetData.params.hasTimer;
+                    var chartColorD = widgetData.params.chartColor;
+                    var dataLabelsFontSizeD = widgetData.params.dataLabelsFontSize;
+                    var dataLabelsFontColorD = widgetData.params.dataLabelsFontColor;
+                    var chartLabelsFontSizeD = widgetData.params.chartLabelsFontSize;
+                    var chartLabelsFontColorD = widgetData.params.chartLabelsFontColor;
+                    var appIdD = widgetData.params.appId;
+                    var flowIdD = widgetData.params.flowId;
+                    var nrMetricTypeD = widgetData.params.nrMetricType;
+                    var webLinkD = widgetData.params.link_w;
+
+                    if(location.href.includes("index.php") && webLinkD != "" && webLinkD != "none" && webLinkD != null) {
+                        $("#" + widgetName).css("cursor", "pointer");
+                    }
+
+                },
+                error: function()
+                {
+
+                }
+            });
+        });
+
+        $("#" + widgetName).click(function ()
+        {
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData) {
+                    showTitle = widgetData.params.showTitle;
+                    widgetContentColor = widgetData.params.color_w;
+                    fontSize = widgetData.params.fontSize;
+                    fontColor = widgetData.params.fontColor;
+                    timeToReload = widgetData.params.frequency_w;
+                    hasTimer = widgetData.params.hasTimer;
+                    chartColor = widgetData.params.chartColor;
+                    dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                    dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                    chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                    chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                    appId = widgetData.params.appId;
+                    flowId = widgetData.params.flowId;
+                    nrMetricType = widgetData.params.nrMetricType;
+                    webLink = widgetData.params.link_w;
+
+                    if(location.href.includes("index.php")  && webLink != "" && webLink != "none") {
+
+                        var newTab = window.open(webLink);
+                        if (newTab) {
+                            newTab.focus();
+                        }
+                        else {
+                            alert('Please allow popups for this website');
+                        }
+                    }
+
+                },
+                error: function()
+                {
+                    console.log("Error in opening web link.");
+                }
+            });
+
+        });
+
+
         //Funzione di calcolo ed applicazione dell'altezza della tabella
         function setTableHeight()
         {
@@ -931,8 +1021,6 @@
                     $("#<?= $_REQUEST['name_w'] ?>_noDataAlert").css("display", "block");
                     
                     updateLastSeries(series);
-                    
-                    console.log(JSON.stringify(data));
                   }
                });
             } 
@@ -1608,21 +1696,22 @@
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
         }
 		
-		$(document).off('resizeHighchart_' + widgetName);
-		$(document).on('resizeHighchart_' + widgetName, function(event) 
-		{
-			var newHeight = null;
-			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
-			}
-			else
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
-			}
-			
-			$('#<?= $_REQUEST['name_w'] ?>_table').css('height', newHeight + 'px');
-		});
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+            var newHeight = null;
+            if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+            {
+                    newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+            }
+            else
+            {
+                    newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+            }
+
+            $('#<?= $_REQUEST['name_w'] ?>_table').css('height', newHeight + 'px');
+        });
         //Fine definizioni di funzione  
         
         //Codice core del widget
@@ -1644,8 +1733,8 @@
             showWidgetContent(widgetName);
         }
         
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        //addLink(widgetName, url, linkElement, divContainer, null);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         if(widgetProperties !== null)
@@ -1664,31 +1753,38 @@
         {
             console.log("Errore in caricamento proprietà widget");
         }
-        startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+            var newHeight = null;
+            if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+            {
+                    newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
+            }
+            else
+            {
+                    newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
+            }
+
+            $('#<?= $_REQUEST['name_w'] ?>_table').css('height', newHeight + 'px');
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                clearInterval(countdownRef);
+                timeToReload = event.newTimeToReload;
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
+        
+        countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
     });
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-		<?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_mapButtonDiv" class="mapButtonContainer">
-               <i id="<?= $_REQUEST['name_w'] ?>_mapButton" class="fa fa-map-marker mapButton" style="font-size: 22px"></i>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -1700,7 +1796,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
-            <!--<p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>-->
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available

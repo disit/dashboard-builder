@@ -22,23 +22,25 @@
        session_start();
     }
     
+    checkSession('Public');
+    
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
-    
-    if(!isset($_SESSION['loggedRole']))
-    {
-        header("location: unauthorizedUser.php");
-    }
 ?>
 
 <!DOCTYPE html>
 <html>
     <head>
+        <style>
+            .dashboardsListCardOverlayDiv {
+                top:40px !important;
+            }
+        </style>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Snap4City</title>
+        <title><?php include "mobMainMenuClaim.php" ?></title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -94,12 +96,10 @@
         <link href="../css/dashboard.css" rel="stylesheet">
         <link href="../css/dashboardList.css" rel="stylesheet">
         <link href="../css/iotApplications.css" rel="stylesheet">
+        <link href="../css/microApplications.css" rel="stylesheet">
         
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
-        
-        <!--<link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">-->
     </head>
     <body class="guiPageBody">
         <div class="container-fluid">
@@ -110,11 +110,39 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Snap4City
+                            <?php include "mobMainMenuClaim.php" ?>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">Micro applications</div>
+                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">
+                            <script type="text/javascript">
+                              /*  if(location.href.includes("AllOrgs") != false) {
+                                    var divList = document.getElementById('headerTitleCnt');
+                                    var strToAppend = "of All Organizations";
+                                    divList.insertAdjacentHTML('beforeend', strToAppend);
+                                } else {
+                                    var divList = document.getElementById('headerTitleCnt');
+                                //    var strToAppend = "MicroApplications of My Organization (" + "<?php echo $_SESSION['loggedOrganization']; ?>" + ")";
+                                    var isPublicSession = "<?php echo $_SESSION['isPublic'] ?>";
+                                    if (isPublicSession == 1) {
+                                        var strToAppend = "";
+                                    } else {
+                                        var strToAppend = "of My Organization";
+                                    }
+                                    divList.insertAdjacentHTML('beforeend', strToAppend);
+                                }   */
+
+                                  <?php
+                                  if(isset($_GET['pageTitle']))
+                                  {
+                                  ?>
+                                    document.write("<?php echo $_GET['pageTitle']; ?>");
+                                  <?php
+                                  }
+                                  ?>
+
+                            </script>
+                        </div>
                         <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
@@ -137,17 +165,35 @@
                                         <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-1 col-md-offset-2 dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
                                                 <div class="col-xs-6 centerWithFlex">
-                                                    <div class="dashboardsListSortBtnCnt">
+                                                    <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Sort ascending">
                                                         <i class="fa fa-sort-alpha-asc dashboardsListSort"></i>
                                                     </div> 
                                                 </div>
                                                 <div class="col-xs-6 centerWithFlex">
-                                                    <div class="dashboardsListSortBtnCnt">
+                                                    <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Sort descending">
                                                         <i class="fa fa-sort-alpha-desc dashboardsListSort"></i>
                                                     </div>    
                                                 </div>
                                             </div>
                                         </div>
+                                        <?php
+                                        if(($_SESSION['loggedRole']) === 'RootAdmin')
+                                        {
+                                        ?>
+                                        <div id="dashboardListsCardsOrgsSort" class="col-xs-6 col-sm-4 col-md-2 dashboardsListMenuItem">
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12 col-md-6 col-md-2">
+                                                <div class="col-xs-6 centerWithFlex">
+                                                    <script type="text/javascript">
+                                                        if(location.href.includes("AllOrgs") != false) {
+                                                            document.write('<div id="microAppList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="All Organizations"></div>');
+                                                        } else {
+                                                            document.write('<div id="microAppList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My Organizations"></div>');
+                                                        }
+                                                    </script>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php } ?>
                                         <div id="dashboardListsPages" class="col-xs-12 col-sm-6 col-md-3 dashboardsListMenuItem">
                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 List<br>pages
@@ -170,15 +216,17 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">
+<?php if(!$_SESSION['isPublic']) : ?>                                        
+                                   <!--     <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">
                                             <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 New<br>dashboard
                                             </div>-->
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <button id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" type="button" class="btn btn-warning">Request new</button>
+                                       <!--     <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">    -->
+                                      <!--          <button id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" type="button" class="btn btn-warning">Request new</button> -->
                                                 <!--<i id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" class="fa fa-plus-square"></i>-->
-                                            </div>
-                                        </div>
+                                      <!--      </div> -->
+                                     <!--   </div>  -->
+<?php endif; ?>                                        
                                     </div>
                                     
                                     
@@ -413,14 +461,35 @@
 </html>
 
 <script type='text/javascript'>
-    $(document).ready(function () 
+    var microAppLat = null;
+    var microAppLng = null;
+    $(document).ready(function ()
     {
         var dashboardsList = null;
-        
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
+        var orgFilter = "<?php echo $_SESSION['loggedOrganization']; ?>";
+        var orgLang = "<?php echo $_SESSION['orgLang']; ?>";
+        var param = "";
+        if (location.href.includes("AllOrgs")) {
+            param = "AllOrgs";
+        }
+        var loggedRole = "<?= ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
-        
+
+        if(location.href.includes("AllOrgs") != false) {
+            //   documnet.write("<i class="fa fa-cubes dashboardsListSort" data-active="false" ></i>");
+            var divList = document.getElementById('microAppList');
+            var strToAppend = "<i class=\"fa fa-cubes dashboardsListSort\" data-active=\"false\" ></i>";
+       //     divList.innerHtml(strToAppend);
+            divList.insertAdjacentHTML('beforeend', strToAppend);
+        } else if (loggedRole == "RootAdmin") {
+            var divList = document.getElementById('microAppList');
+            var strToAppend = "<i class=\"fa fa-cube dashboardsListSort\" data-active=\"false\" ></i>";
+            //     divList.innerHtml(strToAppend);
+            divList.insertAdjacentHTML('beforeend', strToAppend);
+        }
+
         setInterval(function(){
             var now = parseInt(new Date().getTime() / 1000);
             var difference = sessionEndTime - now;
@@ -474,14 +543,19 @@
             $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
         });
         
-        $('#microApplicationsLink .mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        /*$('#mobMainMenuPortraitCnt #dashboardsLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt #dashboardsLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");*/
+        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
-        var loggedRole = "<?= $_SESSION['loggedRole'] ?>";
-        var loggedType = "<?= $_SESSION['loggedType'] ?>";
-        var usr = "<?= $_SESSION['loggedUsername'] ?>";
-        var tableFirstLoad = true;
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        {
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
+            $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
+            $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+        }
             
         $('#color_hf').css("background-color", '#ffffff');
             
@@ -490,24 +564,6 @@
         {
            event.preventDefault();
            location.href = "logout.php";
-           /*$.ajax({
-                url: "iframeProxy.php",
-                action: "notificatorRemoteLogout",
-                async: true,
-                success: function()
-                {
-
-                },
-                error: function(errorData)
-                {
-                    console.log("Remote logout from Notificator failed");
-                    console.log(JSON.stringify(errorData));
-                },
-                complete: function()
-                {
-                    location.href = "logout.php";
-                }
-            });*/
         });
             
         function myRowWriter(rowIndex, record, columns, cellWriter)
@@ -558,14 +614,16 @@
                title = title.substr(0, 100) + " ...";
             }
 
-             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" data-org="' + record.organizations + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' +
                                '<div class="dashboardsListCardInnerDiv">' +
-                                  '<div class="dashboardsListCardTitleDiv col-xs-12 centerWithFlex">' + title + '</div>' + 
+                               '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;">New Tab</button></div>' +
+                                  '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span>' +
+                               //         '<button class="cardButton" style="font-size:8px;float: right;">New Tab</button>' +
+                                  '</div>' +
                                   '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
                                   '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex">View</div>' +
-                                  '<div class="dashboardsListCardImgDiv"></div>' + 
-                                  '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' + 
-                                      //'<button type="button" class="editDashBtnCard">Edit</button>' + 
+                                  '<div class="dashboardsListCardImgDiv"></div>' +
+                                  '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' +
                                   '</div>' +  
                                '</div>' +
                             '</div>';   
@@ -577,6 +635,9 @@
             $.ajax({
                 url: "../controllers/getMicroApplications.php",
                 data: {
+                    orgFilter: orgFilter,
+                    param: param,
+                    role: loggedRole
                 },
                 type: "GET",
                 async: true,
@@ -694,6 +755,8 @@
                         
                         $('#list_dashboard_cards div.dashboardsListCardDiv').each(function(i){
                             //$(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/microApplications/" + $(this).attr('data-uniqueid') + "/" + $(this).attr('data-icon') + ")");
+                        //    $(this).find('div.dashboardsListCardDiv').css("padding", "10px 25px 35px 25px");
+
                             $(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/microApplications/" + $(this).attr('data-icon') + ")");
                             $(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
                             $(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
@@ -720,13 +783,54 @@
                             $(this).find('.dashboardsListCardOverlayTxt').click(function() 
                             {
                                 var url = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
-                                
+                                var orgFilterSpec = $(this).parents('div.dashboardsListCardDiv').attr('data-org');
+                            //    var microAppHeaderTitleCnt = $('#headerTitleCnt')[0].firstChild.data + ": " + $(this)[0].parentNode.children[0].firstChild.innerText;
+                                var microAppHeaderTitleCnt = $('#headerTitleCnt')[0].innerText + ": " + $(this)[0].parentNode.children[1].firstChild.innerText;
+                                $('#headerTitleCnt').html(microAppHeaderTitleCnt);
                                 $('#dashboardsListTableRow').hide();
                                 $('#iotApplicationsIframeRow').show();
                                 $('#mainContentCnt').css('padding', '0px 0px 0px 0px');
                                 $('#iotApplicationsIframeCnt').css('padding-left', '0px');
                                 $('#iotApplicationsIframeCnt').css('padding-right', '0px');
-                                $('#iotApplicationsIframe').attr('src', url + '&coordinates=43.7712;11.2561&lang=ita&maxDistance=2&maxResults=150');
+                                var defaultLat = "43.7712";
+                                var defaultLng = "11.256";
+                                var lat = defaultLat;
+                                var lng = defaultLng;
+                                var latLng = "<?= $_SESSION['orgGpsCentreLatLng'] ?>";
+                                if (loggedRole != "Public") {
+                                    lat = (latLng.split(",")[0]).trim();
+                                    lng = (latLng.split(",")[1]).trim();
+                                } else {
+                                    lat = "";
+                                    lng = "";
+                                }
+
+                                $.ajax({
+                                    url: "../controllers/getOrganizationParameters.php",
+                                    data: {
+                                        action: "getSpecificOrgParameters",
+                                        param: orgFilterSpec
+                                    },
+                                    type: "GET",
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        var orgLatLng = data.orgGpsCentreLatLng;
+                                        microAppLat = orgLatLng.split(",")[0].trim();
+                                        microAppLng = orgLatLng.split(",")[1].trim();
+                                        if (orgLang === null || orgLang === undefined) {
+                                            orgLang = "";
+                                        }
+                                    //    $('#iotApplicationsIframe').attr('src', url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang+'&maxDistance=0.3&maxResults=150');
+                                        $('#iotApplicationsIframe').attr('src', url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang);
+                                    },
+                                    error: function (errorData) {
+                                        console.log("Errore in reperimento parametri Org specifica: ");
+                                        console.log(JSON.stringify(errorData));
+                                    }
+                                });
+
+                             //   $('#iotApplicationsIframe').attr('src', url + '&coordinates='+microAppLat+';'+microAppLng+'&lang=ita&maxDistance=0.3&maxResults=150');
                             });
                         });
                         
@@ -743,10 +847,52 @@
                             var dynatable = $('#list_dashboard_cards').data('dynatable');
                             $("#dynatable-query-search-list_dashboard_cards").val("");
                             dynatable.queries.runSearch("");
-                        }); 
+                        });
+
+                        $(this).find(".cardLinkBtn").click(function(){
+                            var url = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
+                            var defaultLat = "43.7712";
+                            var defaultLng = "11.256";
+                            var lat = defaultLat;
+                            var lng = defaultLng;
+                            var latLng = "<?= $_SESSION['orgGpsCentreLatLng'] ?>";
+                            if (loggedRole != "Public") {
+                                lat = (latLng.split(",")[0]).trim();
+                                lng = (latLng.split(",")[1]).trim();
+                            } else {
+                                lat = "";
+                                lng = "";
+                            }
+                            var orgFilterSpec = $(this).parents('div.dashboardsListCardDiv').attr('data-org');
+
+                            $.ajax({
+                                url: "../controllers/getOrganizationParameters.php",
+                                data: {
+                                    action: "getSpecificOrgParameters",
+                                    param: orgFilterSpec
+                                },
+                                type: "GET",
+                                async: true,
+                                dataType: 'json',
+                                success: function (data) {
+                                    var orgLatLng = data.orgGpsCentreLatLng;
+                                    microAppLat = orgLatLng.split(",")[0].trim();
+                                    microAppLng = orgLatLng.split(",")[1].trim();
+                                    if (orgLang === null || orgLang === undefined) {
+                                        orgLang = "";
+                                    }
+                                //    window.open(url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang+'&maxDistance=0.3&maxResults=150');
+                                    window.open(url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang);
+                                },
+                                error: function (errorData) {
+                                    console.log("Errore in reperimento parametri Org specifica: ");
+                                    console.log(JSON.stringify(errorData));
+                                }
+                            });
+                        });
                         
                       });
-                    
+
                     
                     $('#list_dashboard_cards').dynatable({
                         table: {
@@ -772,14 +918,14 @@
                       
                       var dynatable = $('#list_dashboard_cards').data('dynatable');
                       dynatable.sorts.clear();
-                      dynatable.sorts.add('title', 1); // 1=ASCENDING, -1=DESCENDING
+                      dynatable.sorts.add('sub_nature', 1); // 1=ASCENDING, -1=DESCENDING
                       dynatable.process();
                       
                       $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
                       $('#dashboardListsCardsSort i.dashboardsListSort').eq(0).click(function(){
                           var dynatable = $('#list_dashboard_cards').data('dynatable');
                           dynatable.sorts.clear();
-                          dynatable.sorts.add('title', 1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.sorts.add('sub_nature', 1); // 1=ASCENDING, -1=DESCENDING
                           dynatable.process();
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(0, 162, 211, 1)');
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
@@ -788,12 +934,36 @@
                       $('#dashboardListsCardsSort i.dashboardsListSort').eq(1).click(function(){
                           var dynatable = $('#list_dashboard_cards').data('dynatable');
                           dynatable.sorts.clear();
-                          dynatable.sorts.add('title', -1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.sorts.add('sub_nature', -1); // 1=ASCENDING, -1=DESCENDING
                           dynatable.process();
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(255, 204, 0, 1)');
                       });
-                    
+
+                      // Toggle-Button for Filtering by Organization
+
+                      if (!location.href.includes("AllOrgs")) {
+                          $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", true);
+                          $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
+                      } else {
+                          $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", false);
+                          $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
+                      }
+
+                      $('#dashboardListsCardsOrgsSort i.dashboardsListSort').eq(0).click(function(){
+                            if($('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active") === "true")
+                            {
+                                $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "false");
+                                location.href = "../management/microApplications.php?linkId=microApplicationsList&fromSubmenu=false&sorts[title_header]=1&param=AllOrgs&pageTitle=" + $('#headerTitleCnt')[0].innerText;
+                            }
+                            else
+                            {
+                                $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "true");
+                                location.href = "../management/microApplications.php?linkId=microApplicationsList&fromSubmenu=false&sorts[title_header]=1&pageTitle=" + $('#headerTitleCnt')[0].innerText;
+                            }
+                      });
+
+
                     /*$('#list_dashboard').bind('dynatable:afterProcess', function(e, dynatable){
                         $('span.dynatable-per-page-label').remove();
                         

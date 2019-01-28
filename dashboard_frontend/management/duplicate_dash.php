@@ -1,6 +1,6 @@
 <?php
    /* Dashboard Builder.
-   Copyright (C) 2016 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -14,520 +14,296 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */                 
 
-//file per colpiare una dashboard con un altro nome e duplicarne tutti i widget associati
 include '../config.php';
+require '../sso/autoload.php';
+use Jumbojett\OpenIDConnectClient;
+
+function returnManagedStringForDb($original)
+{
+    if($original == NULL)
+    {
+        return "NULL";
+    }
+    else
+    {
+        return "'" . $original . "'";
+    }
+}
+
 session_start();
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
-    if(isset($_REQUEST['dashboardDuplication'])) 
+$sourceDashId = mysqli_real_escape_string($link, $_REQUEST['sourceDashboardId']); 
+$newDashboardTitle = mysqli_real_escape_string($link, $_REQUEST['newDashboardTitle']);
+$widgetsMap = [];
+
+$query0 = "SELECT Config_dashboard.logoFilename FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = $sourceDashId";
+$result0 = mysqli_query($link, $query0);
+
+if($result0)
+{
+   $row0 = mysqli_fetch_array($result0);
+   $sourceDashLogoFilename = $row0['logoFilename'];
+}
+else
+{
+   echo "originalDashRecordQueryKo";
+   exit();
+}
+ 
+$query1 = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id= $sourceDashId";
+$result1 = mysqli_query($link, $query1) or die(mysqli_error($link));
+
+if($result1) 
+{
+    $row1 = mysqli_fetch_assoc($result1);
+    
+    unset($row1['Id']);
+    $row1['name_dashboard'] = $newDashboardTitle;
+    $row1['title_header'] = $newDashboardTitle;
+    $row1['user'] = $_SESSION['loggedUsername'];
+    
+    $query2 = "INSERT INTO Dashboard.Config_dashboard(";        
+    $newQueryFields = "";
+    $newQueryValues = "";
+
+    $count = 0;
+    foreach($row1 as $key => $value) 
     {
-        $copiaDash = $_REQUEST['dashboardDuplication'];
-
-        $sourceDashId = mysqli_real_escape_string($link, $copiaDash['sourceDashboardId']); 
-        $sourceDashTitle = mysqli_real_escape_string($link, $copiaDash['sourceDashboardTitle']); 
-        $sourceDashAuthorName = mysqli_real_escape_string($link, $copiaDash['sourceDashboardAuthorName']); 
-        $newDashboardTitle = mysqli_real_escape_string($link, $copiaDash['newDashboardTitle']);
-
-        $query0 = "SELECT Config_dashboard.logoFilename FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = $sourceDashId";
-        $result0 = mysqli_query($link, $query0);
-
-        if($result0)
+        if($count == 0)
         {
-           $row0 = mysqli_fetch_array($result0);
-           $sourceDashLogoFilename = $row0['logoFilename'];
+            $newQueryFields = $key;
+            $newQueryValues = returnManagedStringForDb($value);
         }
         else
         {
-           echo "originalDashRecordQueryKo";
-           exit();
+            $newQueryFields = $newQueryFields . ", " . $key;
+            
+            if($key == 'subtitle_header')
+            {
+                $newQueryValues = $newQueryValues . ", '$value'";
+            }
+            else
+            {
+                $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
+            }
+            
         }
 
-        //Controllo su esistenza di una dashboard con il nome scelto per quella clonata  
-        $query1 = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.title_header = '$newDashboardTitle'";
-        $result1 = mysqli_query($link, $query1) or die(mysqli_error($link));
-
-        if($result1->num_rows > 0) 
-        {
-            echo "titleAlreadyUsed";
-        } 
-        else 
-        {
-            mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
-            //Vengono selezionati tutti i parametri della dashboard sorgente
-
-            //$file = fopen("C:\Users\marazzini\Desktop\dashboardLog.txt", "w");
-
-            $query2 = "INSERT INTO Dashboard.Config_dashboard (name_dashboard, title_header, subtitle_header, color_header, width, height, num_rows, num_columns, user, status_dashboard, color_background, external_frame_color, headerFontColor, headerFontSize, logoFilename, logoLink, widgetsBorders, widgetsBordersColor, reference, visibility, headerVisible) " .
-                      "VALUES ('$newDashboardTitle', '$newDashboardTitle', " .
-                      "(SELECT src.subtitle_header FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.color_header FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.width FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.height FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.num_rows FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.num_columns FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.user FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.status_dashboard FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.color_background FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.external_frame_color FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.headerFontColor FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.headerFontSize FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.logoFilename FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.logoLink FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.widgetsBorders FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.widgetsBordersColor FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "(SELECT src.reference FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId), " .
-                      "'public', " .
-                      "(SELECT src.headerVisible FROM Dashboard.Config_dashboard AS src WHERE src.Id= $sourceDashId)" .
-                      ")";
-
-             //fwrite($file, "Query2: " . $query2 . "\n");                   
-
-             $result2 = mysqli_query($link, $query2);
-
-             if($result2)
-             {
-                $clonedDashId = mysqli_insert_id($link);
-
-                $query3 = "SELECT AUTO_INCREMENT AS MaxId FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Dashboard' AND TABLE_NAME = 'Config_widget_dashboard'";
-                //fwrite($file, "Query3: " . $query3 . "\n");
-                $result3 = mysqli_query($link, $query3);
-                if($result3) 
-                {
-                   $row3 = mysqli_fetch_array($result3);
-                   $maxId = $row3['MaxId'];
-
-                   $query4 = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$sourceDashId'";
-                   //fwrite($file, "Query4: " . $query4 . "\n");
-                   $result4 = mysqli_query($link, $query4);
-
-                   if($result4)
-                   {
-                      if(mysqli_num_rows($result4) > 0) 
-                      {
-                         while($row4 = mysqli_fetch_array($result4)) 
-                         {
-                            $clonedWidgetId = $maxId;
-
-                            //Costruzione del nome del widget clonato
-                            switch($row4['type_w'])
-                            {
-                                case 'widgetSce':
-                                    //Sostituzione del vecchio Id widget col nuovo Id Widget
-                                    $clonedWidgetName = preg_replace('~widgetSce\d*~', 'widgetSce'.$clonedWidgetId, $row4['name_w']);
-                                    //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
-                                    $clonedWidgetName = preg_replace("/_\d+\_/", "_" . $clonedDashId . "_", $clonedWidgetName);
-                                    break;
-
-                                case 'widgetGenericContent':
-                                    //Sostituzione del vecchio Id widget col nuovo Id Widget
-                                    $clonedWidgetName = preg_replace('~widgetGenericContent\d*~', 'widgetGenericContent'.$clonedWidgetId, $row4['name_w']);
-                                    //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
-                                    $clonedWidgetName = preg_replace("/_\d+\_/", "_" . $clonedDashId . "_", $clonedWidgetName);
-                                    break;
-
-                                case 'widgetTimeTrend':
-                                    //Sostituzione del vecchio Id widget col nuovo Id Widget
-                                    $clonedWidgetName = preg_replace('~widgetTimeTrend\d*~', 'widgetTimeTrend'.$clonedWidgetId, $row4['name_w']);
-                                    //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
-                                    $clonedWidgetName = preg_replace("/_\d+\_/", "_" . $clonedDashId . "_", $clonedWidgetName);break;
-
-                                case 'widgetTimeTrendCompare':
-                                    //Sostituzione del vecchio Id widget col nuovo Id Widget
-                                    $clonedWidgetName = preg_replace('~widgetTimeTrendCompare\d*~', 'widgetTimeTrendCompare'.$clonedWidgetId, $row4['name_w']);
-                                    //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
-                                    $clonedWidgetName = preg_replace("/_\d+\_/", "_" . $clonedDashId . "_", $clonedWidgetName);
-                                    break;
-
-                                default:
-                                    $clonedWidgetName = $row4['id_metric'] . '_' . $clonedDashId . '_' . $row4['type_w'] . $clonedWidgetId;
-                                    break;
-                            }
-
-                            if(($row4['frequency_w'] == null)||($row4['frequency_w'] == '')||($row4['frequency_w'] == 'NULL'))
-                            {
-                               $frequency = "NULL";
-                            }
-                            else
-                            {
-                               $frequency = $row4['frequency_w'];
-                            }
-
-                            if(($row4['temporal_range_w'] == null)||($row4['temporal_range_w'] == '')||($row4['temporal_range_w'] == 'NULL'))
-                            {
-                               $temporal_range_w = "NULL";
-                            }
-                            else
-                            {
-                               $temporal_range_w = "'" . $row4['temporal_range_w'] . "'";
-                            }
-
-                            if(($row4['municipality_w'] == null)||($row4['municipality_w'] == '')||($row4['municipality_w'] == 'NULL'))
-                            {
-                               $municipality_w = "NULL";
-                            }
-                            else
-                            {
-                               $municipality_w = "'" . $row4['municipality_w'] . "'";
-                            }
-
-                            if(($row4['infoMessage_w'] == null)||($row4['infoMessage_w'] == '')||($row4['infoMessage_w'] == 'NULL'))
-                            {
-                               $infoMessage_w = "NULL";
-                            }
-                            else
-                            {
-                               if($row4['infoMessage_w'] == '')
-                               {
-                                  $infoMessage_w = "''";
-                               }
-                               else
-                               {
-                                  $infoMessage_w = "'" . mysqli_real_escape_string($link, $row4['infoMessage_w']) . "'";
-                               }
-                            }
-
-                            if(($row4['link_w'] == null)||($row4['link_w'] == '')||($row4['link_w'] == 'NULL'))
-                            {
-                               $link_w = "NULL";
-                            }
-                            else
-                            {
-                               $link_w = "'" . $row4['link_w'] . "'";
-                            }
-
-                            if(($row4['parameters'] == null)||($row4['parameters'] == '')||($row4['parameters'] == 'NULL'))
-                            {
-                               $parameters = "NULL";
-                            }
-                            else
-                            {
-                               $parameters = "'" . $row4['parameters'] . "'";
-                            }
-
-                            if(($row4['frame_color_w'] == null)||($row4['frame_color_w'] == '')||($row4['frame_color_w'] == 'NULL'))
-                            {
-                               $frame_color_w = "NULL";
-                            }
-                            else
-                            {
-                               $frame_color_w = "'" . $row4['frame_color_w'] . "'";
-                            }
-
-                            if(($row4['udm'] == null)||($row4['udm'] == '')||($row4['udm'] == 'NULL'))
-                            {
-                               $udm = "NULL";
-                            }
-                            else
-                            {
-                               $udm = "'" . $row4['udm'] . "'";
-                            }
-
-                            if(($row4['udmPos'] == null)||($row4['udmPos'] == '')||($row4['udmPos'] == 'NULL'))
-                            {
-                               $udmPos = "NULL";
-                            }
-                            else
-                            {
-                               $udmPos = "'" . $row4['udmPos'] . "'";
-                            }
-
-                            if(($row4['fontSize'] == null)||($row4['fontSize'] == '')||($row4['fontSize'] == 'NULL'))
-                            {
-                               $fontSize = "NULL";
-                            }
-                            else
-                            {
-                               $fontSize = $row4['fontSize'];
-                            }
-
-                            if(($row4['fontColor'] == null)||($row4['fontColor'] == '')||($row4['fontColor'] == 'NULL'))
-                            {
-                               $fontColor= "NULL";
-                            }
-                            else
-                            {
-                               $fontColor = "'" . $row4['fontColor'] . "'";
-                            }
-
-                            if(($row4['controlsPosition'] == null)||($row4['controlsPosition'] == '')||($row4['controlsPosition'] == 'NULL'))
-                            {
-                               $controlsPosition = "NULL";
-                            }
-                            else
-                            {
-                               $controlsPosition = "'" . $row4['controlsPosition'] . "'";
-                            }
-
-                            if(($row4['showTitle'] == null)||($row4['showTitle'] == '')||($row4['showTitle'] == 'NULL'))
-                            {
-                               $showTitle = "NULL";
-                            }
-                            else
-                            {
-                               $showTitle = "'" . $row4['showTitle'] . "'";
-                            }
-
-                            if(($row4['controlsVisibility'] == null)||($row4['controlsVisibility'] == '')||($row4['controlsVisibility'] == 'NULL'))
-                            {
-                               $controlsVisibility = "NULL";
-                            }
-                            else
-                            {
-                               $controlsVisibility = "'" . $row4['controlsVisibility'] . "'";
-                            }
-
-                            if(($row4['zoomFactor'] == null)||($row4['zoomFactor'] == '')||($row4['zoomFactor'] == 'NULL'))
-                            {
-                               $zoomFactor = "NULL";
-                            }
-                            else
-                            {
-                               $zoomFactor = $row4['zoomFactor'];
-                            }
-
-                            if(($row4['defaultTab'] == null)||($row4['defaultTab'] == '')||($row4['defaultTab'] == 'NULL'))
-                            {
-                               $defaultTab = "NULL";
-                            }
-                            else
-                            {
-                               $defaultTab = $row4['defaultTab'];
-                            }
-
-                            if(($row4['zoomControlsColor'] == null)||($row4['zoomControlsColor'] == '')||($row4['zoomControlsColor'] == 'NULL'))
-                            {
-                               $zoomControlsColor = "NULL";
-                            }
-                            else
-                            {
-                               $zoomControlsColor = "'" . $row4['zoomControlsColor'] . "'";
-                            }
-
-                            if(($row4['scaleX'] == null)||($row4['scaleX'] == '')||($row4['scaleX'] == 'NULL'))
-                            {
-                               $scaleX = "NULL";
-                            }
-                            else
-                            {
-                               $scaleX = $row4['scaleX'];
-                            }
-
-                            if(($row4['scaleY'] == null)||($row4['scaleY'] == '')||($row4['scaleY'] == 'NULL'))
-                            {
-                               $scaleY = "NULL";
-                            }
-                            else
-                            {
-                               $scaleY = $row4['scaleY'];
-                            }
-
-                            if(($row4['headerFontColor'] == null)||($row4['headerFontColor'] == '')||($row4['headerFontColor'] == 'NULL'))
-                            {
-                               $headerFontColor = "NULL";
-                            }
-                            else
-                            {
-                               $headerFontColor = "'" . $row4['headerFontColor'] . "'";
-                            }
-
-                            if(($row4['styleParameters'] == null)||($row4['styleParameters'] == '')||($row4['styleParameters'] == 'NULL'))
-                            {
-                               $styleParameters = "NULL";
-                            }
-                            else
-                            {
-                               $styleParameters = "'" . $row4['styleParameters'] . "'";
-                            }
-
-                            if(($row4['infoJson'] == null)||($row4['infoJson'] == '')||($row4['infoJson'] == 'NULL'))
-                            {
-                               $infoJson = "NULL";
-                            }
-                            else
-                            {
-                               $infoJson = "'" . mysqli_real_escape_string($link, $row4['infoJson']) . "'";
-                            }
-
-                            if(($row4['serviceUri'] == null)||($row4['serviceUri'] == '')||($row4['serviceUri'] == 'NULL'))
-                            {
-                               $serviceUri = "NULL";
-                            }
-                            else
-                            {
-                               $serviceUri = "'" . $row4['serviceUri'] . "'";
-                            }
-
-                            if(($row4['viewMode'] == null)||($row4['viewMode'] == '')||($row4['viewMode'] == 'NULL'))
-                            {
-                               $viewMode = "NULL";
-                            }
-                            else
-                            {
-                               $viewMode = "'" . $row4['viewMode'] . "'";
-                            }
-
-                            if(($row4['hospitalList'] == null)||($row4['hospitalList'] == '')||($row4['hospitalList'] == 'NULL'))
-                            {
-                               $hospitalList = "NULL";
-                            }
-                            else
-                            {
-                               $hospitalList = "'" . $row4['hospitalList'] . "'";
-                            }
-
-                            if(($row4['lastSeries'] == null)||($row4['lastSeries'] == '')||($row4['lastSeries'] == 'NULL'))
-                            {
-                               $lastSeries = "NULL";
-                            }
-                            else
-                            {
-                               $lastSeries = "'" . $row4['lastSeries'] . "'";
-                            }
-
-                            $query5 = "INSERT INTO Dashboard.Config_widget_dashboard " .
-                                      "(name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, " .
-                                      "link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, " .
-                                      "scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, lastSeries, notificatorRegistered, notificatorEnabled) " .
-                                      "VALUES ('$clonedWidgetName', $clonedDashId, '" . $row4['id_metric'] . "', '" . $row4['type_w'] . "', " . $row4['n_row'] . ", " . $row4['n_column'] . ", " .
-                                      "" . $row4['size_rows'] . ", " . $row4['size_columns'] . ", '" . $row4['title_w'] . "', '" . $row4['color_w'] . "', " . $frequency . ", " . $temporal_range_w . ", " .
-                                      "" . $municipality_w . ", " . $infoMessage_w . ", " . $link_w . ", " . $parameters . ", " . $frame_color_w . ", " . $udm . ", " .
-                                      "" . $udmPos . ", " . $fontSize . ", " . $fontColor . ", " . $controlsPosition . ", " . $showTitle . ", " . $controlsVisibility . ", " .
-                                      "" . $zoomFactor . ", " . $defaultTab . ", " . $zoomControlsColor . ", " . $scaleX . ", " . $scaleY . ", " . $headerFontColor . ", " .
-                                      "" . $styleParameters . ", " . $infoJson . ", " . $serviceUri . ", " . $viewMode . ", " . $hospitalList . ", " . $lastSeries . ", " .
-                                      "'" . 'no' . "', '" . 'no' . "'" .
-                                      ")";
-
-                            //fwrite($file, "Query5: " . $query5 . "\n");
-
-                            $result5 = mysqli_query($link, $query5);
-                            if(!$result5)
-                            {
-                               mysqli_rollback($link);
-                               echo "Ko";
-                               exit();
-                            }
-                            else
-                            {
-                               $maxId++;
-                            }
-                         }
-
-                         mysqli_commit($link);
-
-                         //Copia logo della dashboard
-                         if(($sourceDashLogoFilename != NULL) && ($sourceDashLogoFilename != ""))
-                         {
-                             $originalLogo = "../img/dashLogos/dashboard" . $sourceDashId . "/" . $sourceDashLogoFilename;
-                             $uploadFolder ="../img/dashLogos/dashboard". $clonedDashId ."/";
-
-                             if(file_exists("../img/dashLogos/") == false)
-                             {
-                                 mkdir("../img/dashLogos/");
-                             }
-
-                             mkdir($uploadFolder);
-
-                             if(!is_dir($uploadFolder))  
-                             {  
-                                 echo "logoDirCreationKo";
-                                 exit();  
-                             }   
-                             else   
-                             {
-                                 $clonedLogo = "../img/dashLogos/dashboard" . $clonedDashId . "/" . $sourceDashLogoFilename;
-                                 if(copy($originalLogo, $clonedLogo) == false)
-                                 {
-                                     echo "logoFileCopyKo";
-                                     exit();   
-                                 }
-                                 else
-                                 {
-                                    //mysqli_commit($link);
-                                    echo "Ok";
-                                    exit();
-                                 }
-                             }  
-                         }
-                         else
-                         {
-                            //mysqli_commit($link);
-                            echo "Ok";
-                            exit();
-                         }
-                      }
-                      else
-                      {
-                          mysqli_commit($link);
-
-                         //Copia logo della dashboard
-                         if(($sourceDashLogoFilename != NULL) && ($sourceDashLogoFilename != ""))
-                         {
-                             $originalLogo = "../img/dashLogos/dashboard" . $sourceDashId . "/" . $sourceDashLogoFilename;
-                             $uploadFolder ="../img/dashLogos/dashboard". $clonedDashId ."/";
-
-                             if(file_exists("../img/dashLogos/") == false)
-                             {
-                                 mkdir("../img/dashLogos/");
-                             }
-
-                             mkdir($uploadFolder);
-
-                             if(!is_dir($uploadFolder))  
-                             {  
-                                 echo "logoDirCreationKo";
-                                 exit();  
-                             }   
-                             else   
-                             {
-                                 $clonedLogo = "../img/dashLogos/dashboard" . $clonedDashId . "/" . $sourceDashLogoFilename;
-                                 if(copy($originalLogo, $clonedLogo) == false)
-                                 {
-                                     echo "logoFileCopyKo";
-                                     exit();   
-                                 }
-                                 else
-                                 {
-                                    //mysqli_commit($link);
-                                    echo "Ok";
-                                    exit();
-                                 }
-                             }  
-                         }
-                         else
-                         {
-                            //mysqli_commit($link);
-                            echo "Ok";
-                            exit();
-                         }
-                      }
-                   }
-                   else
-                   {
-                      mysqli_rollback($link);
-                      echo "Ko";
-                      exit();
-                   }
-                }
-                else
-                {
-                   mysqli_rollback($link);
-                   echo "Ko";
-                   exit();
-                }
-             }
-             else
-             {
-                mysqli_rollback($link);
-                echo "Ko";
-                exit();
-             }
-        }
-    } 
-    else 
-    {
-       echo "Ko";
+        $count++;
     }
 
+    $query2 = $query2 . $newQueryFields;
+    $query2 = $query2 . ") VALUES(";
+    $query2 = $query2 . $newQueryValues;
+    $query2 = $query2 . ")";
+    
+    //$file = fopen("C:\dashboardLog.txt", "w");
+    //fwrite($file, "Query2: " . $query2 . "\n");    
+    
+    mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);                
+
+     $result2 = mysqli_query($link, $query2);
 
 
+     if($result2)
+     {
+         $title = $row1['name_dashboard'];
+         $newId = mysqli_insert_id($link);;
+
+         //Salvataggio su API ownership
+         if(isset($_SESSION['refreshToken']))
+         {
+             $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+             $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+
+             $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+             $accessToken = $tkn->access_token;
+             $_SESSION['refreshToken'] = $tkn->refresh_token;
+
+             $callBody = ["elementId" => $newId, "elementType" => "DashboardID", "elementName" => $title];
+
+             $apiUrl = $ownershipApiBaseUrl . "/v1/register/?accessToken=" . $accessToken;
+
+             $options = array(
+                 'http' => array(
+                     'header'  => "Content-type: application/json\r\n",
+                     'method'  => 'POST',
+                     'timeout' => 30,
+                     'content' => json_encode($callBody),
+                     'ignore_errors' => true
+                 )
+             );
+
+             try
+             {
+                 $context  = stream_context_create($options);
+                 $callResult = @file_get_contents($apiUrl, false, $context);
+                 $callResultArray = json_decode($callResult, true);
+             }
+             catch (Exception $ex)
+             {
+                 //Non facciamo niente di specifico in caso di mancata risposta dell'hostù
+                 $stopFlag = 1;
+             }
+         }
+
+         if ($callResultArray['elementId']) {
+
+             $clonedDashId = mysqli_insert_id($link);
+
+             $query3 = "SELECT AUTO_INCREMENT AS MaxId FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Dashboard' AND TABLE_NAME = 'Config_widget_dashboard'";
+             $result3 = mysqli_query($link, $query3);
+             if ($result3) {
+                 $row3 = mysqli_fetch_array($result3);
+                 $maxId = $row3['MaxId'];
+
+                 $query4 = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$sourceDashId'";
+                 $result4 = mysqli_query($link, $query4);
+
+                 if ($result4) {
+                     while ($row4 = mysqli_fetch_assoc($result4)) {
+                         $sourceWidgetName = $row4['name_w'];
+                         $clonedWidgetId = $maxId;
+
+                         //Costruzione del nome del widget clonato
+                         switch ($row4['type_w']) {
+                             case 'widgetSce':
+                                 //Sostituzione del vecchio Id widget col nuovo Id Widget
+                                 $clonedWidgetName = preg_replace('~widgetSce\d*~', 'widgetSce' . $clonedWidgetId, $row4['name_w']);
+                                 //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
+                                 $clonedWidgetName = preg_replace("/_\d+\_/", "_" . $clonedDashId . "_", $clonedWidgetName);
+                                 break;
+
+                             case 'widgetTimeTrend':
+                                 //Sostituzione del vecchio Id widget col nuovo Id Widget
+                                 $clonedWidgetName = preg_replace('~widgetTimeTrend\d*~', 'widgetTimeTrend' . $clonedWidgetId, $row4['name_w']);
+                                 //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
+                                 $clonedWidgetName = preg_replace("/_\d+\_/", "_" . $clonedDashId . "_", $clonedWidgetName);
+                                 break;
+
+                             case 'widgetTimeTrendCompare':
+                                 //Sostituzione del vecchio Id widget col nuovo Id Widget
+                                 $clonedWidgetName = preg_replace('~widgetTimeTrendCompare\d*~', 'widgetTimeTrendCompare' . $clonedWidgetId, $row4['name_w']);
+                                 //Sostituzione del vecchio Id dashboard col nuovo Id dashboard
+                                 $clonedWidgetName = preg_replace("/_\d+\_/", "_" . $clonedDashId . "_", $clonedWidgetName);
+                                 break;
+
+                             default:
+                                 $clonedWidgetName = $row4['id_metric'] . '_' . $clonedDashId . '_' . $row4['type_w'] . $clonedWidgetId;
+                                 break;
+                         }
+
+                         unset($row4['Id']);
+
+                         $row4['name_w'] = $clonedWidgetName;
+                         $row4['id_dashboard'] = $clonedDashId;
+                         $row4['creator'] = $_SESSION['loggedUsername'];
+
+                         $widgetsMap[$sourceWidgetName] = $clonedWidgetName;
+
+                         $query5 = "INSERT INTO Dashboard.Config_widget_dashboard(";
+                         $newQueryFields = "";
+                         $newQueryValues = "";
+
+                         $count = 0;
+                         foreach ($row4 as $key => $value) {
+                             if ($count == 0) {
+                                 $newQueryFields = $key;
+                                 $newQueryValues = returnManagedStringForDb($value);
+                             } else {
+                                 $newQueryFields = $newQueryFields . ", " . $key;
+                                 $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
+                             }
+
+                             $count++;
+                         }
+
+                         $query5 = $query5 . $newQueryFields;
+                         $query5 = $query5 . ") VALUES(";
+                         $query5 = $query5 . $newQueryValues;
+                         $query5 = $query5 . ")";
+
+                         $result5 = mysqli_query($link, $query5);
+                         if (!$result5) {
+                             mysqli_rollback($link);
+                             echo "Ko";
+                             exit();
+                         } else {
+                             $maxId++;
+                         }
+                     }
+
+                     mysqli_commit($link);
+
+                     //Aggiornamento dei campi dei parametri per interazioni cross widget
+                     foreach ($widgetsMap as $originalW => $clonedW) {
+                         $updParamsQ = "UPDATE Dashboard.Config_widget_dashboard " .
+                             "SET parameters = REPLACE(parameters, '$originalW', '$clonedW') " .
+                             "WHERE id_dashboard = $clonedDashId";
+
+                         $updParamsR = mysqli_query($link, $updParamsQ);
+                     }
+
+                     mysqli_commit($link);
+
+                     //Copia logo della dashboard
+                     if (file_exists("../img/dashLogos/dashboard" . $sourceDashId . "/" . $sourceDashLogoFilename)) {
+                         $originalLogo = "../img/dashLogos/dashboard" . $sourceDashId . "/" . $sourceDashLogoFilename;
+                         $uploadFolder = "../img/dashLogos/dashboard" . $clonedDashId . "/";
+
+                         if (!file_exists("../img/dashLogos/")) {
+                             mkdir("../img/dashLogos/");
+                         }
+
+                         if (!file_exists($uploadFolder)) {
+                             mkdir($uploadFolder);
+                         }
+
+                         if (is_dir($uploadFolder)) {
+                             $clonedLogo = "../img/dashLogos/dashboard" . $clonedDashId . "/" . $sourceDashLogoFilename;
+                             copy($originalLogo, $clonedLogo);
+                         }
+                     }
+
+                     //Copia screenshot della dashboard
+                     if (file_exists("../img/dashScr/dashboard" . $sourceDashId . "/lastDashboardScr.png")) {
+                         $originalScr = "../img/dashScr/dashboard" . $sourceDashId . "/lastDashboardScr.PNG";
+                         $uploadFolder = "../img/dashScr/dashboard" . $clonedDashId . "/";
+
+                         if (!file_exists("../img/dashScr/")) {
+                             mkdir("../img/dashScr/");
+                         }
+
+                         if (!file_exists($uploadFolder)) {
+                             mkdir($uploadFolder);
+                         }
+
+                         if (is_dir($uploadFolder)) {
+                             $clonedScr = "../img/dashScr/dashboard" . $clonedDashId . "/lastDashboardScr.PNG";
+                             copy($originalScr, $clonedScr);
+                         }
+                     }
+
+                     echo "Ok";
+                     exit();
+                 } else {
+                     mysqli_rollback($link);
+                     echo "Ko";
+                     exit();
+                 }
+             } else {
+                 mysqli_rollback($link);
+                 echo "Ko";
+                 exit();
+             }
+         }
+     }
+     else
+     {
+        mysqli_rollback($link);
+        echo "Ko";
+        exit();
+     }
+}

@@ -35,7 +35,7 @@
    if(isset($_SESSION['loggedRole']))
    {
       //28 Giugno 2017 - Questo caso (area manager) non dovrebbe più esserci, consentiamo l'aggiunta e la modifica di utenti solo al tool admin
-       if($_SESSION['loggedRole'] == "AreaManager")
+       if(($_SESSION['loggedRole'] == "AreaManager")||($_SESSION['loggedRole'] == "ToolAdmin"))
        {
             $usersJson = json_decode($_POST['usersJson']);
             
@@ -88,7 +88,7 @@
             }
             mysqli_close($link);
        }
-       else if($_SESSION['loggedRole'] == "ToolAdmin")
+       else if(($_SESSION['loggedRole'] == "RootAdmin"))
        {
            $usersJson = json_decode($_POST['usersJson']);
             

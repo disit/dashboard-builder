@@ -22,16 +22,71 @@ div.widgetCtxMenuBtnCnt:hover
 
 div.widgetCtxMenu
 {
-	position: absolute;
-	z-index: 999 !important;
+    position: absolute;
+    z-index: 999 !important;
 }
 
 div.fullCtxMenuRow, div.fullCtxMenuIcon, div.fullCtxMenuTxt
 {
-	z-index: inherit;
+    z-index: inherit;
 }
 
 div.widgetSubmenu
 {
-	position: absolute !important;
+    position: absolute !important;
+    width: 190px !important;
+}
+
+div.widgetSubmenuLarge
+{
+    width: 500px !important;
+}
+
+div.submenuLabel
+{
+    font-size: 12px;
+}
+
+.submenuFontSize
+{
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    width: 100%;
+    text-align: center;
+}
+
+.sizeControl
+{
+    font-size: 18px;
+    margin-top: 5px;
+}
+
+.sizeControl:hover
+{
+    cursor: pointer;
+    color: rgba(0, 162, 211, 1);
+}
+
+.fontSizeSubmenu
+{
+    /*min-width: 0px !important;
+    width: 100px !important;*/
+}
+
+.transQuadWhite, .transQuadGrey
+{
+    height: 6.4px;
+    width: 6.4px;
+    float: left;
+}
+
+.transQuadWhite
+{
+    background-color: white;
+}
+
+.transQuadGrey
+{
+    background-color: #DDDDDD;
 }

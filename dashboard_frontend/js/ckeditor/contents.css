@@ -3,28 +3,40 @@ Copyright (c) 2003-2016, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.md or https://ckeditor.com/license
 */
 
+@font-face {
+    font-family: Montserrat;
+    src: url(../../fonts/montserrat/Montserrat-Regular.ttf);
+}
+
 body
 {
 	/* Font */
-	font-family: sans-serif, Arial, Verdana, "Trebuchet MS";
+	font-family: "Montserrat", sans-serif, Arial, Verdana, "Trebuchet MS";
 	font-size: 12px;
 
 	/* Text color */
-	color: #333;
+	color: white;
 
 	/* Remove the background color to make it transparent */
-	background-color: #fff;
+	background-color: rgba(108, 135, 147, 1);
 
 	margin: 20px;
 }
 
 .cke_editable
 {
-	font-size: 13px;
-	line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.6;
 
-	/* Fix for missing scrollbars with RTL texts. (#10488) */
-	word-wrap: break-word;
+    /* Fix for missing scrollbars with RTL texts. (#10488) */
+    word-wrap: break-word;
+    
+    
+}
+
+.cke_editable:hover
+{
+    cursor: default !important;
 }
 
 blockquote

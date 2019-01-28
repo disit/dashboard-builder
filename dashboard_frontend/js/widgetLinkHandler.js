@@ -13,14 +13,24 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-function addLink(name, url, linkElement, elementToBeWrapped)
+function addLink(name, url, linkElement, elementToBeWrapped, target)
 {
     if(url) 
     {
         if(linkElement.length === 0)
         {
-           linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='_blank' class='elementLink2'></a>");
-           elementToBeWrapped.wrap(linkElement); 
+            if (target === null)
+            {
+              //  console.log("Arriva in widgetLinkHandler.js CASO BLANK TARGET = " + target);
+                linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='_blank' class='elementLink2'></a>");
+                elementToBeWrapped.wrap(linkElement);
+            }
+            else
+            {
+              //  console.log("Arriva in widgetLinkHandler.js  CASO SAME TARGET = " + target);
+                linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='"+ target + "' class='elementLink2'></a>");
+                elementToBeWrapped.wrap(linkElement);
+            }
         }
     }
 }

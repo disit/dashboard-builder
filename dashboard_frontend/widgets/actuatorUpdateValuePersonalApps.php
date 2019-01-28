@@ -41,6 +41,7 @@
     $endPointPort = mysqli_real_escape_string($link, $_REQUEST['endPointPort']);
     $httpRoot = mysqli_real_escape_string($link, $_REQUEST['httpRoot']);
     $nodeRedInputName = mysqli_real_escape_string($link, $_REQUEST['inputName']);
+    $nrInputId = mysqli_real_escape_string($link, $_REQUEST['nrInputId']);
     
     if(($httpRoot == "null")||($httpRoot == "NULL"))
     {
@@ -66,8 +67,8 @@
     
    
     //1)Inserimento nuovo record su DB
-    $q = "INSERT INTO Dashboard.ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress) " .
-         "VALUES('$widgetName', '$actionTime', '$value', '$username', '$ipAddress')";
+    $q = "INSERT INTO Dashboard.ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress, nrInputId) " .
+         "VALUES('$widgetName', '$actionTime', '$value', '$username', '$ipAddress', $nrInputId)";
                     
     $r = mysqli_query($link, $q);
     
@@ -105,7 +106,7 @@
            
            if(strpos($http_response_header[0], '200') === false)
            {
-              //3 negativo) Se update su NodeRED KO, aggiorniamo record con risultato positivo e timestamp
+              //3 negativo) Se update su NodeRED OK, aggiorniamo record con risultato positivo e timestamp
               $actuationResultTime = date('Y-m-d H:i:s');
               $updateQ = "UPDATE Dashboard.ActuatorsAppsValues SET actuationResult = 'Ko', actuationResultTime = '$actuationResultTime' WHERE id = $lastActionId";
               $updateR = mysqli_query($link, $updateQ);

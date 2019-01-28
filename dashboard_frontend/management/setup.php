@@ -20,11 +20,11 @@
     
     if(!isset($_SESSION['loggedRole']))
     {
-        header("location: unauthorizedUser.php");
+        header("location: ssoLogin.php");
     }
-    else if($_SESSION['loggedRole'] != "ToolAdmin")
+    else if($_SESSION['loggedRole'] != "RootAdmin")
     {
-        header("location: unauthorizedUser.php");
+        header("location: ssoLogin.php");
     }
 ?>
 
@@ -35,7 +35,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Snap4City</title>
+        <title><?php include "mobMainMenuClaim.php" ?></title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -86,7 +86,7 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Snap4City
+                            <?php include "mobMainMenuClaim.php" ?>
                         </div>
                     </div>
                     <div class="row">
@@ -327,7 +327,19 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
-        $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=mainSetupLink]').show();
+        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        {
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
+            $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
+            $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+        }
         
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
@@ -382,7 +394,7 @@
             $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
         });
         
-        $('#setupLink .mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
+        //$('#setupLink .mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuPortraitCnt #setupLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         $('#mobMainMenuLandCnt #setupLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         

@@ -41,10 +41,11 @@
                         //Dashboard non esistente, viene creata
                         $nCols = 10;
                         $width = ($nCols * 78) + 10;
+                        $org = $_SESSION['loggedOrganization'];
 
                         $query2 = "INSERT INTO Dashboard.Config_dashboard " . 
-                                  "(name_dashboard, title_header, subtitle_header, color_header, width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, logoFilename, logoLink, widgetsBorders, widgetsBordersColor, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, fromNodeRed, gridColor) " .
-                                  "VALUES ('$dashboardTitle', '$dashboardTitle', '$dashboardSubtitle', 'rgba(0, 0, 0, 1)', $width, 0, 0, $nCols, '$username', 1, now(), 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)', 'rgba(0,240,255,1)', 28, NULL, '', 'yes', 'rgba(0, 0, 0, 1)', 'public', 1, 'no', '[]', 'mediumResponsive', 'yes', 'rgba(238, 238, 238, 1)')";
+                                  "(name_dashboard, title_header, subtitle_header, color_header, width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, logoFilename, logoLink, widgetsBorders, widgetsBordersColor, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, fromNodeRed, gridColor, organizations) " .
+                                  "VALUES ('$dashboardTitle', '$dashboardTitle', '$dashboardSubtitle', 'rgba(0, 0, 0, 1)', $width, 0, 0, $nCols, '$username', 1, now(), 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)', 'rgba(0,240,255,1)', 28, NULL, '', 'yes', 'rgba(0, 0, 0, 1)', 'public', 1, 'no', '[]', 'mediumResponsive', 'yes', 'rgba(238, 238, 238, 1)', '$org')";
 
                         $result2 = mysqli_query($link, $query2);
 

@@ -15,6 +15,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
     include '../config.php';//Escape
 
+    $needWebSocket = false;
     
     $link = new mysqli($host, $username, $password, $dbname);
     
@@ -39,6 +40,7 @@
             if(mysqli_num_rows($r1) > 0)
             {
                 $sql = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data INNER JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$metricName' ORDER BY computationDate desc LIMIT 1"; 
+                $needWebSocket = false;
             }
             else
             {
@@ -50,6 +52,7 @@
                     if(mysqli_num_rows($r2) > 0)
                     {
                         $sql = "SELECT Data.*, NodeRedMetrics.shortDesc as descrip, NodeRedMetrics.metricType, '', '', '', 1 from Data INNER JOIN NodeRedMetrics ON Data.IdMetric_data=NodeRedMetrics.name where Data.IdMetric_data = '$metricName' ORDER BY computationDate desc LIMIT 1"; 
+                        $needWebSocket = true;
                     }
                 }
             }
@@ -60,11 +63,10 @@
 
         while($r = mysqli_fetch_assoc($result)) 
         {
-            $rows[] =  array('commit' => array ('author' => $r));
+            $rows[] =  array('commit' => array ('author' => $r), 'needWebSocket' => $needWebSocket);
         }
+        
         $data = array('data' =>  $rows);
-          
-
         $data_json = json_encode($data);   
         $link->close();
         echo($data_json);

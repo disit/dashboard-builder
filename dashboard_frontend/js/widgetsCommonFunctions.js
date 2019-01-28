@@ -28,14 +28,24 @@ function setHeaderFontColor(widget, color)
 }
 
 //Usata in tutti gli widget
-function addLink(name, url, linkElement, elementToBeWrapped)
+function addLink(name, url, linkElement, elementToBeWrapped, target)
 {
     if(url !== 'none' && url !== 'map') 
     {
         if(linkElement.length === 0)
         {
-           linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='_blank' class='elementLink2'></a>");
-           elementToBeWrapped.wrap(linkElement); 
+            if (target === null)
+            {
+             //   console.log("Arriva in commonFunctions.php  CASO BLANK TARGET = " + target);
+                linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='_blank' class='elementLink2'></a>");
+                elementToBeWrapped.wrap(linkElement);
+            }
+            else
+            {
+             //   console.log ("Arriva in commonFunctions.js  CASO SAME TARGET = " + target);
+                linkElement = $("<a id='" + name + "_link_w' href='" + url + "' target='"+ target + "' class='elementLink2'></a>");
+                elementToBeWrapped.wrap(linkElement);
+            }
         }
     }
 }
@@ -51,88 +61,102 @@ function showWidgetContent(widgetName)
 function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer)
 {
     var titleWidth, contentHeight = null;
+
+    if((!widgetName.includes('widgetExternalContent'))&&(!widgetName.includes('widgetMap'))&&(!widgetName.includes('widgetGisWFS')))
+    {
+        $("#" + widgetName + "_buttonsDiv").remove();
+    }
+
+    //Impostazione header
+    $("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
+    $("#" + widgetName + "_infoButtonDiv a.info_source").css("color", widgetHeaderFontColor);
+    if(widgetHeaderFontColor !== widgetHeaderColor)
+    {
+        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer a.iconFullscreenModal").css("color", widgetHeaderFontColor);
+        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer a.iconFullscreenTab").css("color", widgetHeaderFontColor);
+        $("#" + widgetName + "_countdownDiv").css("border-color", widgetHeaderFontColor);
+    }
+    
+    if(showHeader)
+    {
+        $("#" + widgetName + "_header").show();
+    }
+    else
+    {
+        $("#" + widgetName + "_header").hide();
+    }
+
+    //Impostazione menu di contesto
+    var widgetCtxMenuBtnCntLeft = $("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width();
+    $("#" + widgetName + "_widgetCtxMenuBtnCnt").css("left", widgetCtxMenuBtnCntLeft + "px");
+
+    if(hostFile === 'config')
+    {
+       $("#" + widgetName + "_widgetCtxMenuBtnCnt").show();
+    }
+    else
+    {
+       $("#" + widgetName + "_widgetCtxMenuBtnCnt").hide();
+    }
+
+    if(hostFile === 'config')
+    {
+        $("#" + widgetName + "_header").css("width", widgetCtxMenuBtnCntLeft + "px");
+
+        if(showHeader)
+        {
+            $("#" + widgetName + "_widgetCtxMenuBtnCnt").css("color", widgetHeaderFontColor);
+            $("#" + widgetName + "_widgetCtxMenuBtnCnt").css("background-color", widgetHeaderColor);
+        }
+
+        //TBD - Da specializzare in presenza/assenza di infoButton e bottoniFullscreen
+        if(hasTimer === 'yes')
+        {
+            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_countdownContainerDiv").width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width()));
+        }
+        else
+        {
+            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width()));
+            $("#" + widgetName + "_countdownContainerDiv").remove();
+        }
+
+        //Il caso widgetButton è gestito nel codice del widget, da qui non funziona e non si capisce perché
+
+        if(widgetName.includes('widgetButton'))
+        {
+            titleWidth = parseInt(parseInt($("#" + widgetName).width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width()));
+        }
+        
+        var headerWidth = parseInt($("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width());
+        $("#" + widgetName + "_header").css("width", headerWidth + "px");
+        $("#" + widgetName + "_titleDiv").css("width", Math.floor(titleWidth/headerWidth*100) + "%");
+    }
+    else
+    {
+        $("#" + widgetName + "_header").css("width", "100%");
+
+        if(hasTimer === 'yes')
+        {
+            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_countdownContainerDiv").width()));
+        }
+        else
+        {
+            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width()));
+            $("#" + widgetName + "_countdownContainerDiv").remove();
+        }
+
+        if(widgetName.includes('widgetButton'))
+        {
+            titleWidth = parseInt(parseInt($("#" + widgetName).width() - $("#" + widgetName + "_infoButtonDiv").width()));
+        }
+        $("#" + widgetName + "_titleDiv").css("width", Math.floor(titleWidth/$("#" + widgetName).width()*100) + "%");
+        //TBD - Da specializzare in presenza/assenza di infoButton e bottoniFullscreen
+    }
+
+    $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
+    $("#" + widgetName + "_countdownContainerDiv").css("color", widgetHeaderFontColor);
 	
-	if(!widgetName.includes('widgetExternalContent'))
-	{
-		$("#" + widgetName + "_buttonsDiv").remove();
-	}
-	
-	//Impostazione header
-	$("#" + widgetName + "_header").css("background-color", widgetHeaderColor);
-	$("#" + widgetName + "_infoButtonDiv a.info_source").css("color", widgetHeaderFontColor);
-	if(widgetHeaderFontColor !== widgetHeaderColor)
-	{
-		$("#" + widgetName + "_buttonsDiv div.singleBtnContainer a.iconFullscreenModal").css("color", widgetHeaderFontColor);
-		$("#" + widgetName + "_buttonsDiv div.singleBtnContainer a.iconFullscreenTab").css("color", widgetHeaderFontColor);
-		$("#" + widgetName + "_countdownDiv").css("border-color", widgetHeaderFontColor);
-	}
-	
-	//Impostazione menu di contesto
-	var widgetCtxMenuBtnCntLeft = $("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width();
-	$("#" + widgetName + "_widgetCtxMenuBtnCnt").css("left", widgetCtxMenuBtnCntLeft + "px");
-	
-	if(hostFile === 'config')
-	{
-		$("#" + widgetName + "_widgetCtxMenuBtnCnt").show();
-	}
-	else
-	{
-		$("#" + widgetName + "_widgetCtxMenuBtnCnt").hide();
-	}
-	
-	if(hostFile === 'config')
-	{
-		$("#" + widgetName + "_header").css("width", widgetCtxMenuBtnCntLeft + "px");
-		$("#" + widgetName + "_widgetCtxMenuBtnCnt").css("color", widgetHeaderFontColor);
-		$("#" + widgetName + "_widgetCtxMenuBtnCnt").css("background-color", widgetHeaderColor);
-		
-		//TBD - Da specializzare in presenza/assenza di infoButton e bottoniFullscreen
-		if(hasTimer === 'yes')
-		{
-			titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_countdownContainerDiv").width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width()));
-		}
-		else
-		{
-			titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width()));
-			$("#" + widgetName + "_countdownContainerDiv").remove();
-		}
-		
-		//Il caso widgetButton è gestito nel codice del widget, da qui non funziona e non si capisce perché
-		
-		if(widgetName.includes('widgetButton'))
-		{
-			titleWidth = parseInt(parseInt($("#" + widgetName).width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width()));
-		}
-		
-		$("#" + widgetName + "_header").css("width", parseInt($("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width()) + "px");
-	}
-	else
-	{
-		$("#" + widgetName + "_header").css("width", "100%");
-		
-		if(hasTimer === 'yes')
-		{
-			titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width() - $("#" + widgetName + "_countdownContainerDiv").width()));
-		}
-		else
-		{
-			titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - $("#" + widgetName + "_infoButtonDiv").width()));
-			$("#" + widgetName + "_countdownContainerDiv").remove();
-		}
-		
-		if(widgetName.includes('widgetButton'))
-		{
-			titleWidth = parseInt(parseInt($("#" + widgetName).width() - $("#" + widgetName + "_infoButtonDiv").width()));
-		}
-		//TBD - Da specializzare in presenza/assenza di infoButton e bottoniFullscreen
-	}
-	
-	$("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
-	
-	$("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
-	$("#" + widgetName + "_countdownContainerDiv").css("color", widgetHeaderFontColor);
-	
-    if(showHeader === true)
+    if(showHeader)
     {
         //Impostazione altezza widget
         contentHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - headerHeight);
@@ -204,6 +228,8 @@ function startCountdown(widgetName, timeToReload, funcRef, metricNameFromDriverL
         
         if(timeToReload === 0) 
         {
+            $("#" + widgetName).off('customResizeEvent');
+            
             $("#" + widgetName + "_countdownDiv").text(timeToReload + "s");
             clearInterval(intervalRef);
             

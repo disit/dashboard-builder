@@ -298,7 +298,7 @@ div.widgetSeparator
     border-collapse: collapse;
     /*Per avere colonne tutte della stessa larghezza*/
     table-layout: fixed;
-    font-family: Verdana, sans-serif;
+    font-family: Montserrat, sans-serif;
     text-shadow: 1px 1px 1px rgba(0,0,0,0.25);
 }
 
@@ -383,35 +383,10 @@ div.singleBtnContainer
    color: #337ab7;
 }
 
-.titleDiv
-{
-    float: left;
-    height: 100%;
-    font-size: 14px;
-    font-weight: bold;
-    overflow: hidden ;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    line-height: 25px;
-    text-align: center;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.20);
-    font-family: inherit;
-    /*Effetto fade in caso di allarme*/
-    -webkit-transition: background 1.8s ease-in-out;
-    -ms-transition:     background 1.8s ease-in-out;
-    transition:         background 1.8s ease-in-out;
-}
-
 #FIRENZE
 {
     width: 100%;
     height: 100%;
-}
-
-.widgetHeader
-{
-    /*width: 100%;*/
-    height: 25px;
 }
 
 div.buttonTxtContainer
@@ -896,6 +871,7 @@ div.mapDiv, div.gisMapDiv
     width: 100%;
     height: 100%;
     z-index: 0;
+    border: none !important;
 }
 
 .twitterMainContent
@@ -3729,7 +3705,7 @@ span.gisQueryDescPar
    text-align: center;
    word-wrap: break-word;
    overflow: hidden;
-   font-family: Verdana, sans-serif;
+   font-family: Montserrat, sans-serif;
 }
 
 div.gisPinContainer
@@ -4198,3 +4174,15 @@ p.gisMapLoadingDivTextPar
     background: -moz-linear-gradient(#ff0000, #ff6666); 
     background: linear-gradient(to top, #ff0000, #ff6666);
 }
+
+/*.resizeHandle
+{
+    width: 10%;
+    height: 10%;
+    position: absolute;
+    top: 90%;
+    left: 90%;
+    transform: translate(-10%, -10%);
+    z-index: 999999 !important;
+    background-color: red;
+}*/

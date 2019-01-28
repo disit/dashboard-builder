@@ -65,9 +65,9 @@
        die();
    }
    
-   if(isset($_SESSION['loggedRole']))
+   if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] != "Public")
    {
-       if($_SESSION['loggedRole'] == "ToolAdmin")
+       if($_SESSION['loggedRole'] == "RootAdmin")
        {
            $newUserJson = json_decode($_POST['newUserJson']);
            $username = mysqli_real_escape_string($link, $newUserJson->username); 

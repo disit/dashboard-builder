@@ -25,20 +25,23 @@
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     
-    if(!isset($_SESSION['loggedRole']))
-    {
-        header("location: unauthorizedUser.php");
-    }
+    checkSession('Public');
 ?>
 
 <!DOCTYPE html>
 <html>
     <head>
+        <style>
+            .dashboardsListCardOverlayDiv {
+                top:40px !important;
+                height: 165px !important;
+            }
+        </style>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Snap4City</title>
+        <title><?php include "mobMainMenuClaim.php" ?></title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -110,11 +113,36 @@
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            Snap4City
+                            <?php include "mobMainMenuClaim.php" ?>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">External services</div>
+                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">
+                            <script type="text/javascript">
+                            /*    if(location.href.includes("AllOrgs") != false) {
+                                    var divList = document.getElementById('headerTitleCnt');
+                                    var strToAppend = "of All Organizations";
+                                    divList.insertAdjacentHTML('beforeend', strToAppend);
+                                } else {
+                                    var divList = document.getElementById('headerTitleCnt');
+                                    //    var strToAppend = "MicroApplications of My Organization (" + "<?php echo $_SESSION['loggedOrganization']; ?>" + ")";
+                                    var isPublicSession = "<?php echo $_SESSION['isPublic'] ?>";
+                                    if (isPublicSession == 1) {
+                                        var strToAppend = "";
+                                    } else {
+                                        var strToAppend = "of My Organization";
+                                    }
+                                    divList.insertAdjacentHTML('beforeend', strToAppend);
+                                }   */
+                                <?php
+                                if(isset($_GET['pageTitle']))
+                                {?>
+                                    document.write("<?php echo $_GET['pageTitle']; ?>");
+                                <?php
+                                }
+                                ?>
+                            </script>
+                        </div>
                         <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
@@ -148,6 +176,24 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <?php
+                                        if(($_SESSION['loggedRole']) === 'RootAdmin')
+                                        {
+                                        ?>
+                                        <div id="dashboardListsCardsOrgsSort" class="col-xs-6 col-sm-4 col-md-2 dashboardsListMenuItem">
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12 col-md-6">
+                                                <div class="col-xs-6 centerWithFlex">
+                                                    <script type="text/javascript">
+                                                        if(location.href.includes("AllOrgs") != false) {
+                                                            document.write('<div id="extServiceList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="All Organizations"></div>');
+                                                        } else {
+                                                            document.write('<div id="extServiceList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My Organizations"></div>');
+                                                        }
+                                                    </script>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php } ?>
                                         <div id="dashboardListsPages" class="col-xs-12 col-sm-6 col-md-3 dashboardsListMenuItem">
                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 List<br>pages
@@ -170,7 +216,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">
+                                    <!--    <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">    -->
                                             <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 New<br>dashboard
                                             </div>-->
@@ -178,7 +224,7 @@
                                                 <button id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" type="button" class="btn btn-warning">Create new</button>
                                                 
                                             </div>-->
-                                        </div>
+                                    <!--    </div>  -->
                                     </div>
                                     
                                     
@@ -416,11 +462,29 @@
     $(document).ready(function () 
     {
         var dashboardsList = null;
-        
+        var orgFilter = "<?php echo $_SESSION['loggedOrganization']; ?>";
+        var param = "";
+        if (location.href.includes("AllOrgs")) {
+            param = "AllOrgs";
+        }
+        var loggedRole = "<?php echo $_SESSION['loggedRole']; ?>";
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
-        
+
+        if(location.href.includes("AllOrgs") != false) {
+            //   documnet.write("<i class="fa fa-cubes dashboardsListSort" data-active="false" ></i>");
+            var divList = document.getElementById('extServiceList');
+            var strToAppend = "<i class=\"fa fa-cubes dashboardsListSort\" data-active=\"false\" ></i>";
+            //     divList.innerHtml(strToAppend);
+            divList.insertAdjacentHTML('beforeend', strToAppend);
+        } else  if (loggedRole == "RootAdmin") {
+            var divList = document.getElementById('extServiceList');
+            var strToAppend = "<i class=\"fa fa-cube dashboardsListSort\" data-active=\"false\" ></i>";
+            //     divList.innerHtml(strToAppend);
+            divList.insertAdjacentHTML('beforeend', strToAppend);
+        }
+
         setInterval(function(){
             var now = parseInt(new Date().getTime() / 1000);
             var difference = sessionEndTime - now;
@@ -474,13 +538,23 @@
             $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
         });
         
-        $('#externalServicesLink .mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        /*$('#mobMainMenuPortraitCnt #dashboardsLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt #dashboardsLink .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");*/
+        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
-        var loggedRole = "<?= $_SESSION['loggedRole'] ?>";
-        var loggedType = "<?= $_SESSION['loggedType'] ?>";
-        var usr = "<?= $_SESSION['loggedUsername'] ?>";
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        {
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
+            $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
+            $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+        }
+        
+        var loggedRole = "<?= ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) ?>";
+        var loggedType = "<?= @$_SESSION['loggedType'] ?: '' ?>";
+        var usr = "<?= @$_SESSION['loggedUsername'] ?: '' ?>";
         var tableFirstLoad = true;
             
         $('#color_hf').css("background-color", '#ffffff');
@@ -490,24 +564,6 @@
         {
            event.preventDefault();
            location.href = "logout.php";
-           /*$.ajax({
-                url: "iframeProxy.php",
-                action: "notificatorRemoteLogout",
-                async: true,
-                success: function()
-                {
-
-                },
-                error: function(errorData)
-                {
-                    console.log("Remote logout from Notificator failed");
-                    console.log(JSON.stringify(errorData));
-                },
-                complete: function()
-                {
-                    location.href = "logout.php";
-                }
-            });*/
         });
             
         function myRowWriter(rowIndex, record, columns, cellWriter)
@@ -560,7 +616,9 @@
 
              var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
                                '<div class="dashboardsListCardInnerDiv">' +
-                                  '<div class="dashboardsListCardTitleDiv col-xs-12 centerWithFlex">' + title + '</div>' + 
+                                  '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;">New Tab</button></div>' +
+                               //   '<div id="cardLinkBtn" style="font-size:8px;float: right;">New Tab</div>' +
+                                  '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' + record.nature + '</span></div>' +
                                   '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
                                   '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex">View</div>' +
                                   '<div class="dashboardsListCardImgDiv"></div>' + 
@@ -577,6 +635,9 @@
             $.ajax({
                 url: "../controllers/getExternalServices.php",
                 data: {
+                    orgFilter: "<?= $_SESSION['loggedOrganization'] ?>",
+                    param: param,
+                    role: loggedRole
                 },
                 type: "GET",
                 async: true,
@@ -723,6 +784,9 @@
                                 
                                 $('#dashboardsListTableRow').hide();
                                 $('#iotApplicationsIframeRow').show();
+                            //    var extContentHeaderTitleCnt = $('#headerTitleCnt')[0].firstChild.data + ": " + $(this)[0].parentNode.children[0].firstChild.innerText;
+                                var extContentHeaderTitleCnt = $('#headerTitleCnt')[0].innerText + ": " + $(this)[0].parentNode.children[1].firstChild.innerText;
+                                $('#headerTitleCnt').html(extContentHeaderTitleCnt);
                                 $('#mainContentCnt').css('padding', '0px 0px 0px 0px');
                                 $('#iotApplicationsIframeCnt').css('padding-left', '0px');
                                 $('#iotApplicationsIframeCnt').css('padding-right', '0px');
@@ -743,11 +807,15 @@
                             var dynatable = $('#list_dashboard_cards').data('dynatable');
                             $("#dynatable-query-search-list_dashboard_cards").val("");
                             dynatable.queries.runSearch("");
-                        }); 
-                        
+                        });
+
+                        $(this).find(".cardLinkBtn").click(function(){
+                            var url = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
+                            window.open(url);
+                        });
+
                       });
-                    
-                    
+
                     $('#list_dashboard_cards').dynatable({
                         table: {
                             bodyRowSelector: 'div'
@@ -772,14 +840,14 @@
                       
                       var dynatable = $('#list_dashboard_cards').data('dynatable');
                       dynatable.sorts.clear();
-                      dynatable.sorts.add('title', 1); // 1=ASCENDING, -1=DESCENDING
+                      dynatable.sorts.add('sub_nature', 1); // 1=ASCENDING, -1=DESCENDING
                       dynatable.process();
                       
                       $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
                       $('#dashboardListsCardsSort i.dashboardsListSort').eq(0).click(function(){
                           var dynatable = $('#list_dashboard_cards').data('dynatable');
                           dynatable.sorts.clear();
-                          dynatable.sorts.add('title', 1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.sorts.add('sub_nature', 1); // 1=ASCENDING, -1=DESCENDING
                           dynatable.process();
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(0, 162, 211, 1)');
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
@@ -788,141 +856,37 @@
                       $('#dashboardListsCardsSort i.dashboardsListSort').eq(1).click(function(){
                           var dynatable = $('#list_dashboard_cards').data('dynatable');
                           dynatable.sorts.clear();
-                          dynatable.sorts.add('title', -1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.sorts.add('sub_nature', -1); // 1=ASCENDING, -1=DESCENDING
                           dynatable.process();
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
                           $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(255, 204, 0, 1)');
                       });
-                    
-                    /*$('#list_dashboard').bind('dynatable:afterProcess', function(e, dynatable){
-                        $('span.dynatable-per-page-label').remove();
-                        
-                        //$('#dynatable-per-page-list_dashboard').parents('span.dynatable-per-page').appendTo("#dashboardListsItemsPerPage div.dashboardsListMenuItemContent");
-                        //$('#dynatable-per-page-list_dashboard').addClass('form-control');
-                        
-                        $("#dynatable-pagination-links-list_dashboard").appendTo("#dashboardListsPages div.dashboardsListMenuItemContent");
-                        $("#dynatable-pagination-links-list_dashboard li").eq(0).remove();
-                        //$("#dynatable-pagination-links-list_dashboard li").eq(0).remove();
-                        //$("#dynatable-pagination-links-list_dashboard li").eq($("#dynatable-pagination-links-list_dashboard li").length - 1).remove();
-                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("font-family", "Montserrat");
-                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("font-weight", "bold");
-                        $('#dashboardListsPages div.dashboardsListMenuItemContent').css("color", "white");
-                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("font-family", "Montserrat");
-                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("font-weight", "bold");
-                        $('#dashboardListsPages div.dashboardsListMenuItemContent a').css("color", "white");
-                        $("ul#dynatable-pagination-links-list_dashboard").css("-webkit-padding-start", "0px");
-                        $("ul#dynatable-pagination-links-list_dashboard").css("-webkit-margin-before", "0px");
-                        $("ul#dynatable-pagination-links-list_dashboard").css("-webkit-margin-after", "0px");
-                        $("ul#dynatable-pagination-links-list_dashboard").css("padding", "0px");
-                        
-                        $("#dynatable-query-search-list_dashboard").prependTo("#dashboardListsSearchFilter div.dashboardsListMenuItemContent div.input-group");
-                        $('#dynatable-search-list_dashboard').remove();
-                        $("#dynatable-query-search-list_dashboard").css("border", "none");
-                        $("#dynatable-query-search-list_dashboard").attr("placeholder", "Filter by dashboard title, author...");
-                        $("#dynatable-query-search-list_dashboard").css("width", "100%");
-                        $("#dynatable-query-search-list_dashboard").addClass("form-control");
-                        
-                        $('#list_dashboard input.changeDashboardStatus').bootstrapToggle({
-                            on: "On",
-                            off: "Off",
-                            onstyle: "primary",
-                            offstyle: "default",
-                            size: "mini"
-                        });
-                        
-                        $('#list_dashboard tbody input.changeDashboardStatus').off('change');
-                        $('#list_dashboard tbody input.changeDashboardStatus').change(function() {
-                            if($(this).prop('checked') === false)
-                            {
-                                var newStatus = 0;
-                            }
-                            else
-                            {
-                                var newStatus = 1;
-                            }
 
-                            $.ajax({
-                                url: "process-form.php",
-                                data: {
-                                    modify_status_dashboard: true,
-                                    dashboardId: $(this).parents('tr').attr('data-uniqueid'),
-                                    newStatus: newStatus
-                                },
-                                type: "POST",
-                                async: true,
-                                success: function(data)
-                                {
-                                    if(data !== "Ok")
-                                    {
-                                        console.log("Error updating dashboard status");
-                                        console.log(data);
-                                        alert("Error updating dashboard status");
-                                        location.reload();
-                                    }
-                                    else
-                                    {
-                                        if($('#dashboardTotActiveCnt .pageSingleDataCnt').html() !== "-")
-                                        {
-                                            if(newStatus === 0)
-                                            {
-                                                $('#dashboardTotActiveCnt .pageSingleDataCnt').html(parseInt($('#dashboardTotActiveCnt .pageSingleDataCnt').html()) - 1);
-                                            }
-                                            else
-                                            {
-                                                $('#dashboardTotActiveCnt .pageSingleDataCnt').html(parseInt($('#dashboardTotActiveCnt .pageSingleDataCnt').html()) + 1);
-                                            }
-                                        }
-                                    }
-                                },
-                                error: function(errorData)
-                                {
-                                    console.log("Error updating dashboard status");
-                                    console.log(errorData);
-                                    alert("Error updating dashboard status");
-                                    location.reload();
-                                }
-                            });
-                        });
-                        
-                        $('#list_dashboard button.editDashBtn').off('click');
-                        $('#list_dashboard button.editDashBtn').click(function() 
-                        {
-                            var dashboardId = $(this).parents('tr').attr('data-uniqueid');
-                            var dashboardTitle = $(this).parents('tr').attr('data-dashTitle');
-                            var dashboardAuthorName = $(this).parents('tr').attr('data-authorName');
-                            
-                            window.open("../management/dashboard_configdash.php?dashboardId=" + dashboardId + "&dashboardAuthorName=" + dashboardAuthorName + "&dashboardEditorName=" + encodeURI("<?= $_SESSION['loggedUsername']?>" + "&dashboardTitle=" + encodeURI(dashboardTitle)));
-                        });
-                        
-                        $('#list_dashboard button.viewDashBtn').off('click');
-                        $('#list_dashboard button.viewDashBtn').click(function () 
-                        {
-                            var dashboardId = $(this).parents('tr').attr("data-uniqueid");
-                            window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
-                        });
-                    });
-                    
-                    
-                      $('#list_dashboard').dynatable({
-                        dataset: {
-                          records: data,
-                          perPageDefault: 20,
-                          perPageOptions: [5, 10, 20, 30, 40]
-                        },
-                        writers: {
-                            _rowWriter: myRowWriter
-                        },
-                        features: {
-                            recordCount: false,
-                            perPageSelect: false
-                        },
-                        inputs: {
-                            perPagePlacement: 'after'
+                    // Toggle-Button for Filtering by Organization
+                    if (loggedRole == "RootAdmin") {
+                        if (!location.href.includes("AllOrgs")) {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", true);
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
+                        } else {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", false);
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
                         }
-                      });
-                      $("#dynatable-pagination-links-list_dashboard").hide();
-                      $("#dynatable-query-search-list_dashboard").hide();*/
-                      
+                    }
+
+                    $('#dashboardListsCardsOrgsSort i.dashboardsListSort').eq(0).click(function(){
+
+                        if($('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active") === "true")
+                        {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "false");
+                            location.href = "../management/externalServices.php?linkId=externalServicesList&fromSubmenu=false&sorts[title_header]=1&param=AllOrgs&pageTitle=" + $('#headerTitleCnt')[0].innerText;
+                        }
+                        else
+                        {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "true");
+                            location.href = "../management/externalServices.php?linkId=externalServicesList&fromSubmenu=false&sorts[title_header]=1&pageTitle=" + $('#headerTitleCnt')[0].innerText;
+                        }
+                    });
+
                 },
                 error: function(errorData)
                 {

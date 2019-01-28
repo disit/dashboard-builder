@@ -39,6 +39,12 @@ $valid_url_regex = '/.*/';
 
 // ############################################################################
 
+$genFileContent = parse_ini_file("../conf/environment.ini");
+$tvContent = parse_ini_file("../conf/serviceMapAndTv.ini");
+$tvAdminUser = $tvContent["TwitterVigilanceAdmin"][$genFileContent['environment']['value']];
+$tvAdminPassword = $tvContent["TwitterVigilanceAdminPwd"][$genFileContent['environment']['value']];
+$curlCredentialsString = $tvAdminUser.":".$tvAdminPassword;
+
 $url = $_GET['url'];
 
 if ( !$url ) {
@@ -66,7 +72,7 @@ if ( !$url ) {
   curl_setopt( $ch, CURLOPT_HEADER, false );
   curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
   curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY); 
-  curl_setopt($ch, CURLOPT_USERPWD, 'admin:twv2016!yh');
+  curl_setopt($ch, CURLOPT_USERPWD, $curlCredentialsString);
   
   
   list( $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );

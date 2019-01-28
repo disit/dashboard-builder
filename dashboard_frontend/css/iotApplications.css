@@ -27,3 +27,283 @@
     height: 100%;
     border: none;
 }
+
+.gray-dash {
+  height: 20px;
+  width: 20px;
+  background-color: #627b86;
+  /*border-radius: 50%;*/
+  display: inline-block;
+  margin: 0px 2px;
+}
+
+.white-dash {
+  height: 20px;
+  width: 20px;
+  background-color: #fff;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+  display: inline-block;
+  margin: 0px 2px;
+}
+
+.white-dash1 {
+  height: 20px;
+  width: 10px;
+  background-color: #fff;
+  border-bottom-left-radius: 4px;
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.white-dash2 {
+  height: 20px;
+  width: 10px;
+  background-color: #dedede;
+  border-top-right-radius: 4px;
+  display: inline-block;
+  margin-right: 2px;
+  margin-left: 1px;
+}
+
+.red-dash {
+  height: 20px;
+  width: 20px;
+  background-color: #9e3131;
+  border: black 1px;
+  /*border-radius: 50%;*/
+  display: inline-block;
+  margin: 0px 2px;
+}
+
+#modalAddIoTAppFooter
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+.iotAppModalRow
+{
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.iotAppModalLbl
+{
+    font-weight: bold !important; 
+    margin-top: 6px; 
+    padding-left: 0px !important; 
+    padding-right: 0px !important; 
+    color: white;
+}
+
+#iotAppsListTableRow
+{
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+#iotAppsListTableRow > div.col-xs-12
+{
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+#iotAppsListMenu
+{
+    background-color: rgba(138, 159, 168, 1);/*rgba(51, 64, 69, 1);*/
+    /*margin-bottom: 30px;*/
+}
+
+div.iotAppsListMenuItem
+{
+    height: 50px;
+    background-color: transparent;
+    /*border-bottom: 1px solid #333333;
+    border-top: 1px solid #595959;
+    border-right: 1px solid #333333;
+    border-left: 1px solid #595959;*/
+}
+
+div.iotAppsListCardOverlayDiv
+{
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 90%;
+    margin-left: 5%;
+    background-color: black;
+    opacity: 0.05;
+    -webkit-transition: opacity 0.15s ease-in-out;
+    -ms-transition:     opacity 0.15s ease-in-out;
+    transition:         opacity 0.15s ease-in-out;
+}
+
+.iotAppsListCardOverlayTxt
+{
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 90%;
+    margin-left: 5%;
+    color: white !important;
+    text-decoration: none !important;
+    background-color: transparent;
+    font-size: 3em;
+    opacity: 0;
+    -webkit-transition: opacity 0.15s ease-in-out;
+    -ms-transition:     opacity 0.15s ease-in-out;
+    transition:         opacity 0.15s ease-in-out;
+}
+
+div.iotAppsListMenuItemTitle
+{
+    color: white;
+    font-weight: bold;
+    height: 100%;
+}
+
+div.iotAppsListCardVisibilityDiv  {
+  font-size: 13px;
+  color: white;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+#list_dashboard_cards
+{
+    
+}
+
+div.iotAppsListCardDiv
+{
+    /*background-color: white;*/
+    position: relative;
+    padding: 10px 25px 25px 25px;
+}
+
+/*div.iotAppsListCardDiv:hover
+{
+    cursor: pointer;
+}*/
+
+div.iotAppsListCardBtnDiv
+{
+    
+}
+
+div.iotAppsListCardInnerDiv
+{
+    position: relative;
+    background-color: rgba(108, 135, 147, 1);
+}
+
+div.iotAppsListCardTitleDiv
+{
+    float: left;
+    height: 35px;
+    font-size: 1em;
+    font-weight: bold;
+    background-color: transparent;
+    color: white;
+}
+
+div.iotAppsListCardImgDiv
+{
+    float: left;
+    width: 90%;
+    margin-left: 5%;
+    height: 150px;
+    margin-top: 0px;
+    /*margin-bottom: 10px;*/
+}
+
+div.iotAppsListCardClick2EditDiv
+{
+    float: left;
+    font-size: 1em;
+    font-weight: bold;
+    /*font-style: italic;
+    -webkit-transition: opacity 0.35s ease-in-out;
+    -ms-transition:     opacity 0.35s ease-in-out;
+    transition:         opacity 0.35s ease-in-out;*/
+}
+
+div.iotAppsListMenuItemContent
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    height: 100%;
+}
+
+div.iotAppsListMenuItemHint
+{
+    font-size: 0.8em;
+    color: rgba(51, 64, 69, 1);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#dashboardListsCardsSort, #dashboardListsCardsSort div.iotAppsListMenuItemContent 
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+div.iotAppsListSortBtnCnt
+{
+    background-color: rgba(0, 162, 211, 1);
+    padding: 4px 4px 4px 4px;
+    border-radius: 4px;
+}
+
+div.iotAppsListSortBtnCnt:hover
+{
+    background-color: rgba(255, 204, 0, 1);
+    cursor: pointer;
+}
+
+i.iotAppsListSort
+{
+    font-size: 1.65em;
+    color: white;
+}
+
+.deleteBtn {
+  background-color: #e74a43;
+}
+
+.restartBtn {
+  background-color: #00a2d3;
+  margin-left:40px;
+}
+
+.iotAppHealth {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 5px;
+  background-color: lightgray;
+}
+
+#modalEditIoTAppBody .nav-tabs > li.active > a, #modalEditIoTAppBody .nav > li > a:hover, #modalEditIoTAppBody .nav > li > a:focus
+{
+    background-color: transparent !important;
+    border-bottom: none !important;
+}
+
+#modalEditIoTAppBody .nav-tabs > li > a
+{
+    color: white;
+    font-weight: bold;
+}
+
+#modalEditIoTAppBody .nav > li > a:hover
+{
+    font-style: italic;
+}
+
+.wait {
+  background-image: url("../img/wait.gif");
+  background-repeat: no-repeat;
+  background-position: center center;  
+}

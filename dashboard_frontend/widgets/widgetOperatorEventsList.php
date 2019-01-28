@@ -40,7 +40,6 @@
             fontSizePin, dateFontSize, mapPinImg, eventNameWithCase, eventSeverity, widgetPanToTargetList,
             typeId, lastPopup, widgetParameters, countdownRef, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;    
     
-        
         var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var speed = 50;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
@@ -65,12 +64,6 @@
         var eventsArray = [];
         var eventsOnMaps = {};
         var targetsArrayForNotify = [];
-        //var widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
-        
-        var allFloodsOnMap = false;
-        var allOthersOnMap = false;
-        var severitySortState = 0;
-        var timeSortState = 0;
         
         if(url === "null")
         {
@@ -630,12 +623,10 @@
         
         function removeAllEventsFromMaps(fromSort)
         {
-            console.log("removeAllEventsFromMaps");
            for(var index in eventsOnMaps)
            {
               if(eventsOnMaps[index].mapRef !== null)
               {
-                  console.log("removeAllEventsFromMaps: trovato riferimento a mappa");
                  eventsOnMaps[index].mapRef.off();
                  eventsOnMaps[index].mapRef.remove();
                  eventsOnMaps[index].mapRef = null;
@@ -656,10 +647,6 @@
                     $("#" + widgetTargetList[index] + "_wrapper").hide();
                     $("#" + widgetTargetList[index] + "_defaultMapDiv").show();
                  }
-              }
-              else
-              {
-                 console.log("removeAllEventsFromMaps: trovato riferimento a mappa");    
               }
               
               for(var index2 in eventsOnMaps[index].eventsPoints)
@@ -688,15 +675,12 @@
               if((eventsOnMaps[widgetIndex].eventsPoints[j][0] === lng)&&(eventsOnMaps[widgetIndex].eventsPoints[j][1] === lat))
               {
                  index = j;
-                 console.log("Indice evento da rimuovere: " + index);
                  break;
               }
            }
            
            eventsOnMaps[widgetIndex].eventsPoints.splice(index, 1);
            eventsOnMaps[widgetIndex].eventsNumber--;
-           
-           console.log("Eventi rimanenti: " + eventsOnMaps[widgetIndex].eventsNumber);
            
            updateFullscreenPointsList(widgetName, eventsOnMaps[widgetIndex].eventsPoints);
            
@@ -715,7 +699,6 @@
             {
                eventsOnMaps[widgetIndex].mapRef.off();
                eventsOnMaps[widgetIndex].mapRef.remove();
-               console.log("Distruzione mappa");
             }
 
             $("#" + widgetName + "_mapDiv").remove();
@@ -803,45 +786,6 @@
             }
         }
         
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getInfoJson()
-        {
-            var infoJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
-            {
-                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
-            }
-            
-            return infoJson;
-        }
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getStyleParameters()
-        {
-            var styleParameters = null;
-            if(jQuery.parseJSON(widgetProperties.param.styleParameters !== null))
-            {
-                styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
-            }
-            
-            return styleParameters;
-        }
-        
-        function stepDownInterval()
-        {
-            var oldPos = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
-            var newPos = oldPos + 1;
-            
-            var oldScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
-            $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(newPos);
-            var newScrollTop = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop();
-            
-            if(oldScrollTop === newScrollTop)
-            {
-               $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
-            }
-        }
-        
         function resizeWidget()
 	{
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
@@ -872,24 +816,14 @@
             
             clearInterval(scroller);    
             $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").scrollTop(0);
-            scroller = setInterval(stepDownInterval, speed);
+            //scroller = setInterval(stepDownInterval, speed);
         }
 		
-		$(document).off('resizeHighchart_' + widgetName);
-		$(document).on('resizeHighchart_' + widgetName, function(event) 
-		{
-			var newHeight = null;
-			if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height() - $('#<?= $_REQUEST['name_w'] ?>_header').height();
-			}
-			else
-			{
-				newHeight = $('#<?= $_REQUEST['name_w'] ?>').height();
-			}
-			
-			$('#<?= $_REQUEST['name_w'] ?>_rollerContainer').css('height', newHeight + 'px');
-		});
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        {
+            showHeader = event.showHeader;
+        });
         //Fine definizioni di funzione 
         
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
@@ -907,9 +841,6 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
-        
         //Nuova versione
         if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
         {
@@ -922,7 +853,7 @@
         }
         
         manageInfoButtonVisibility("<?= $_REQUEST['infoMessage_w'] ?>", $('#<?= $_REQUEST['name_w'] ?>_header'));
-		$("#<?= $_REQUEST['name_w'] ?>_rollerContainer").css("height", "100%");
+        $("#<?= $_REQUEST['name_w'] ?>_rollerContainer").css("height", "100%");
 
         widgetTargetList = widgetParameters.targetEventsJson;
         widgetPanToTargetList = widgetParameters.targetPanToJson;
@@ -1035,10 +966,6 @@
                         {
                             loadDefaultMap(widgetName);
                         }
-                        else
-                        {
-                            //console.log("Attualmente non pilotato da alarms");
-                        }
                      }
 
                  }, timeToClearScroll);
@@ -1047,7 +974,6 @@
                 //Web socket 
                 openWs = function(e)
                 {
-                    console.log("Widget operatorEventsList is trying to open WebSocket");
                     try
                     {
                         <?php
@@ -1069,14 +995,12 @@
                     }
                     catch(e)
                     {
-                        console.log("Widget operatorEventsList could not connect to WebSocket");
                         wsClosed();
                     }
                 };
 
                 manageIncomingWsMsg = function(msg)
                 {
-                    console.log("Widget operatorEventsList got new data from WebSocket: \n" + msg.data);
                     var msgObj = JSON.parse(msg.data);
 
                     switch(msgObj.msgType)
@@ -1106,6 +1030,7 @@
                                 }
 
                                 setTimeout(function(){
+                                    clearInterval(countdownRef);
                                     <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, true);
                                 }, 750);
 
@@ -1119,11 +1044,11 @@
 
                 openWsConn = function(e)
                 {
-                    console.log("Widget operatorEventsList connected successfully to WebSocket");
                     var wsRegistration = {
                         msgType: "ClientWidgetRegistration",
                         userType: "widgetInstance",
-                        metricName: encodeURIComponent(metricName)
+                        metricName: encodeURIComponent(metricName),
+                        widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
                       };
                       webSocket.send(JSON.stringify(wsRegistration));
 
@@ -1140,15 +1065,12 @@
 
                 wsClosed = function(e)
                 {
-                    console.log("Widget operatorEventsList got WebSocket closed");
-
                     webSocket.removeEventListener('close', wsClosed);
                     webSocket.removeEventListener('open', openWsConn);
                     webSocket.removeEventListener('message', manageIncomingWsMsg);
                     webSocket = null;
                     if(wsRetryActive === 'yes')
                     {
-                        console.log("Widget operatorEventsList will retry WebSocket reconnection in " + parseInt(wsRetryTime) + "s");
                         setTimeout(openWs, parseInt(wsRetryTime*1000));
                     }
                 };
@@ -1156,7 +1078,7 @@
                 //Per ora non usata
                 wsError = function(e)
                 {
-                    console.log("Widget operatorEventsList got WebSocket error: " + e);
+                    
                 };
 
                 openWs();                            
@@ -1174,6 +1096,17 @@
            }
         });
         
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
+        
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                clearInterval(countdownRef);
+                timeToReload = event.newTimeToReload;
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
+        
         countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
     });//Fine document ready
 </script>
@@ -1181,7 +1114,7 @@
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
         <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -1193,6 +1126,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
                <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                     <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">

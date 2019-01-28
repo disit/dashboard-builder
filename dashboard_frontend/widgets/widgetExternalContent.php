@@ -32,31 +32,12 @@
                 
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
         var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
         var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
         var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
-        var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var color = '<?= $_REQUEST['color_w'] ?>';
-        var fontSize = '<?= $_REQUEST['fontSize'] ?>';
-        var fontColor = '<?= $_REQUEST['fontColor'] ?>';
-        var timeToReload = '<?= $_REQUEST['frequency_w'] ?>';
-        var metricId = '<?= $_REQUEST['id_metric'] ?>';
-        var idWidget = '<?= $_REQUEST['Id'] ?>';
-        var zoomControlsColor = "<?= $_REQUEST['zoomControlsColor'] ?>";
-        var leftWrapper = "0px";
-        var zoomTarget = "body";
         var currentZoom = "<?= $_REQUEST['zoomFactor'] ?>";
-        var currentScaleX = "<?= $_REQUEST['scaleX'] ?>";
-        var currentScaleY = "<?= $_REQUEST['scaleY'] ?>";
-        var controlsPosition = "<?= $_REQUEST['controlsPosition'] ?>";
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
         var controlsVisibility = "<?= $_REQUEST['controlsVisibility'] ?>";
-        var sizeX = "<?= $_REQUEST['size_columns'] ?>";
-        var sizeY = "<?= $_REQUEST['size_rows'] ?>";
-        var colore_frame = "<?= $_REQUEST['frame_color_w'] ?>";
-        var numCols = '<?= $_REQUEST['size_columns'] ?>';
         var wrapperW = $('#<?= $_REQUEST['name_w'] ?>_div').outerWidth();
         var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
@@ -64,8 +45,8 @@
         var headerHeight = 25;
         var wsRetryActive, wsRetryTime = null;
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-		var showHeader = null;
+        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var showHeader = null;
         var widgetProperties, styleParameters, topWrapper, height, zoomDisplayTimeout, wrapperH, titleWidth, sourceMapDivCopy, sourceIfram, 
             fullscreenMapRef, fullscreenDefaultMapRef, minLat, minLng, maxLat, maxLng, lat, lng, eventType, eventName, eventStartDate, eventStartTime, eventSeverity,
             mapPinImg, severityColor, pinIcon, markerLocation, marker, popupText, lastPopup, dataArray, eventSubtype, evtTypeForMaxZoom, pathsQt, gisMapRef,
@@ -79,42 +60,19 @@
         var stopGeometryAjax = {};
         var gisGeometryTankForFullscreen = {};
         var checkTankInterval = null;
-        var widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+        var myPOIId, myPOIlat, myPOIlng = "";
+        console.log("External Content: " + widgetName);
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-				showHeader = false;
-		}
-		else
-		{
-				showHeader = true;
-		}
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        }
         
         //Definizioni di funzione specifiche del widgetfunction setAutoFontSize(container)
-        
-        //Restituisce il JSON delle soglie se presente, altrimenti NULL
-        function getThresholdsJson()
-        {
-            var thresholdsJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
-            {
-                thresholdsJson = widgetProperties.param.parameters; 
-            }
-            
-            return thresholdsJson;
-        }
-        
-        //Restituisce il JSON delle info se presente, altrimenti NULL
-        function getInfoJson()
-        {
-            var infoJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.infoJson !== null))
-            {
-                infoJson = jQuery.parseJSON(widgetProperties.param.infoJson); 
-            }
-            
-            return infoJson;
-        }
         
         //Restituisce il JSON delle info se presente, altrimenti NULL
         function getStyleParameters()
@@ -126,160 +84,6 @@
             }
             
             return styleParameters;
-        }
-        
-        function changeDimX(op)
-        {
-            $("#<?= $_REQUEST['name_w'] ?>_div").parent().attr("data-sizex", sizeX);
-            var width = null;
-            switch(op)
-            {
-                case "+":
-                    width = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerWidth() + 76);
-                    break;
-                    
-                case "-":
-                    width = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerWidth() - 76);
-                    break;
-            }
-            
-            $('#<?= $_REQUEST['name_w'] ?>_content').css("width", width + "px");
-    
-            var formData = new FormData();
-            formData.set('widthUpdated', sizeX);
-            formData.set('idWidget', idWidget);
-            $.ajax({
-                url: "process-form.php",
-                data: formData,
-                async: true,
-                processData: false,
-                contentType: false,  
-                type: 'POST',
-                success: function (msg) 
-                {
-                },
-                error: function()
-                {
-                    console.log("Errore in chiamata PHP per scrittura zoom factor");
-                }
-            });
-        }
-        
-        function changeDimY(op)
-        {
-            $("#<?= $_REQUEST['name_w'] ?>_div").parent().attr("data-sizey", sizeY);
-            var height = null;
-            switch(op)
-            {
-                case "+":
-                    height = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight() + 38);
-                    break;
-                    
-                case "-":
-                    height = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight() - 38);
-                    break;
-            }
-            
-            $('#<?= $_REQUEST['name_w'] ?>_content').css("height", height + "px");
-    
-    
-            var formData = new FormData();
-            formData.set('heightUpdated', sizeY);
-            formData.set('idWidget', idWidget);
-            $.ajax({
-                url: "process-form.php",
-                data: formData,
-                async: true,
-                processData: false,
-                contentType: false,  
-                type: 'POST',
-                success: function (msg) 
-                {
-                    
-                },
-                error: function()
-                {
-                    console.log("Errore in chiamata PHP per scrittura zoom factor");
-                }
-            }); 
-        }
-        
-        function changeZoom()
-        {
-            var target = document.getElementById('<?= $_REQUEST['name_w'] ?>_iFrame');
-            target.contentWindow.postMessage(currentZoom, '*');
-            
-            var formData = new FormData();
-            formData.set('zoomFactorUpdated', currentZoom);
-            formData.set('idWidget', idWidget);
-            $.ajax({
-                url: "process-form.php",
-                data: formData,
-                async: true,
-                processData: false,
-                contentType: false,  
-                type: 'POST',
-                success: function (msg) 
-                {
-                },
-                error: function()
-                {
-                    console.log("Errore in chiamata PHP per scrittura zoom factor");
-                }
-            });  
-        }
-        
-        function updateZoomControlsPosition()
-        {
-            switch (controlsPosition)
-            {
-                case 'topleft':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "1%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "2%");
-                    break;
-
-                case 'topCenter':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "50%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "2%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("transform", "translateX(-50%");
-                    break;
-
-                case 'topRight':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "80%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "2%");
-                    break;
-
-                case 'middleRight':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "80%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "50%");
-                    break;
-
-                case 'bottomRight':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "80%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "78%");
-                    break;
-
-                case 'bottomMiddle':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "50%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "78%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("transform", "translateX(-50%");
-                    break;
-
-                case 'bottomLeft':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "1%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "78%");
-                    break;
-
-                case 'middleLeft':
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "1%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "50%");
-                    break;
-
-                default:
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("left", "1%");
-                    $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("top", "2%");
-                    break;
-            }
         }
         
         //Va aggiornata con showWidgetContent
@@ -300,7 +104,6 @@
             if((controlsVisibility === 'alwaysVisible') && (hostFile === 'config'))
             {
                 $('#<?= $_REQUEST['name_w'] ?>_zoomControls').css("display", "block");
-                updateZoomControlsPosition();
             }
             var target = document.getElementById('<?= $_REQUEST['name_w'] ?>_iFrame');
             target.contentWindow.postMessage(currentZoom, '*');
@@ -424,7 +227,7 @@
             
             gisMapRef = L.map(mapDivLocal);
             
-            gisMapRef.on('load', function(){
+            /*gisMapRef.on('load', function(){
                 $.ajax({
                     url: "../management/nrSendGpsProxy.php",
                     type: "POST",
@@ -455,9 +258,9 @@
                         console.log(JSON.stringify(errorData));
                     }
                 });
-            });
+            });*/
             
-            gisMapRef.on('moveend', function(){
+            /*gisMapRef.on('moveend', function(){
                 $.ajax({
                     url: "../management/nrSendGpsProxy.php",
                     type: "POST",
@@ -488,7 +291,7 @@
                         console.log(JSON.stringify(errorData));
                     }
                 });
-            });
+            });*/
              
             
             gisMapRef.setView(widgetParameters.latLng, widgetParameters.zoom);
@@ -564,7 +367,7 @@
             marker.on('click', function(event){
                 gisMapRef.off('moveend');
                 
-                $.ajax({
+                /*$.ajax({
                     url: "../management/nrSendGpsProxy.php",
                     type: "POST",
                     data: {
@@ -630,7 +433,7 @@
                             }); 
                         }, 1000);
                     }
-                });
+                });*/
                 
                 event.target.unbindPopup();
                 newpopup = null;
@@ -645,7 +448,8 @@
                 }
                 else
                 {
-                    urlToCall = "<?php echo $serviceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json";
+                  //  urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json";
+                    urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
                     fake = false;
                 }
                 
@@ -662,7 +466,6 @@
                     success: function(geoJsonServiceData) 
                     {
                         var fatherNode = null;
-                        //console.log(JSON.stringify(geoJsonServiceData));
                         if(geoJsonServiceData.hasOwnProperty("BusStop"))
                         {
                             fatherNode = geoJsonServiceData.BusStop;
@@ -906,9 +709,6 @@
                             if(!jQuery.isEmptyObject(geoJsonServiceData.realtime))
                             {
                                 realTimeData = geoJsonServiceData.realtime;
-                                
-                                console.log(realTimeData);
-                                
                                 popupText += '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '"></span></div>';
                                 
                                 if((serviceClass.includes("Emergency"))&&(serviceSubclass.includes("First aid")))
@@ -1146,33 +946,33 @@
                         
                         if(hasRealTime)
                         {
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
-                            $('span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
+                            $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
+                            $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                            $('#<?= $_REQUEST['name_w'] ?> span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
                         }
                         else
                         {
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
+                            $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
                         }
                         
-                        $('button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
-                        $('button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function(){
+                        $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function(){
                             $('#' + widgetName + '_gisMapDiv div.recreativeEventMapDataContainer').hide();
                             $('#' + widgetName + '_gisMapDiv div.recreativeEventMapDetailsContainer').show();
                             $('#' + widgetName + '_gisMapDiv button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
                         
-                        $('button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
-                        $('button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function(){
+                        $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function(){
                             $('#' + widgetName + '_gisMapDiv div.recreativeEventMapDataContainer').hide();
                             $('#' + widgetName + '_gisMapDiv div.recreativeEventMapDescContainer').show();
                             $('#' + widgetName + '_gisMapDiv button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
 
-                        $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
-                        $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function(){
+                        $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function(){
                             $('#' + widgetName + '_gisMapDiv div.recreativeEventMapDataContainer').hide();
                             $('#' + widgetName + '_gisMapDiv div.recreativeEventMapContactsContainer').show();
                             $('#' + widgetName + '_gisMapDiv button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
@@ -1181,19 +981,19 @@
                         
                         if(hasRealTime)
                         {
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                            $('#<?= $_REQUEST['name_w'] ?> button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
                         }
                         
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
+                        $('#<?= $_REQUEST['name_w'] ?> table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
+                        $('#<?= $_REQUEST['name_w'] ?> table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
+                        $('#<?= $_REQUEST['name_w'] ?> table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
 
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function(){
+                        $('#<?= $_REQUEST['name_w'] ?> table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function(){
                             $(this).css("outline", "0");
                         });
                         
-                        $('input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
-                        $('input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function(){
+                        $('#<?= $_REQUEST['name_w'] ?> input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?> input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function(){
                             if($(this).attr("data-keepData") === "false")
                             {
                                $(this).attr("data-keepData", "true"); 
@@ -1204,9 +1004,9 @@
                             }
                         });
 
-                        $('button.lastValueBtn').off('mouseenter');
-                        $('button.lastValueBtn').off('mouseleave');
-                        $('button.lastValueBtn[data-id="' + latLngId + '"]').hover(function(){
+                        $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseenter');
+                        $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseleave');
+                        $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id="' + latLngId + '"]').hover(function(){
                             if($(this).attr("data-lastDataClicked") === "false")
                             {
                                 $(this).css("background", color1);
@@ -1259,23 +1059,23 @@
                         //Disabilitiamo i 4Hours se last update più vecchio di 4 ore
                         if(rtDataAgeSec > 14400)
                         {
-                            $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
                             //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
                             if(rtDataAgeSec > 86400)
                             {
-                                $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
+                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
                                 //Disabilitiamo i 7 days se last update più vecchio di 7 days
                                 if(rtDataAgeSec > 604800)
                                 {
-                                    $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
+                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
                                     //Disabilitiamo i 30 days se last update più vecchio di 30 days
                                     if(rtDataAgeSec > 18144000)
                                     {
-                                       $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
+                                       $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
                                     }
                                     else
                                     {
-                                        $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
                                     }
                                 }
                                 else
@@ -1285,20 +1085,20 @@
                             }
                             else
                             {
-                                $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
                             }
                         }
                         else
                         {
-                            $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
-                            $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
-                            $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
-                            $('button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
                         }
 
-                        $('button.timeTrendBtn').off('mouseenter');
-                        $('button.timeTrendBtn').off('mouseleave');
-                        $('button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function(){
+                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('mouseenter');
+                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('mouseleave');
+                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function(){
                             if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
                             {
                                 $(this).css("background-color", "#e6e6e6");
@@ -1366,15 +1166,15 @@
                             }
                         });
 
-                        $('button.lastValueBtn[data-id=' + latLngId + ']').off('click');
-                        $('button.lastValueBtn[data-id=' + latLngId + ']').click(function(event){
-                            $('button.lastValueBtn').each(function(i){
+                        $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id=' + latLngId + ']').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id=' + latLngId + ']').click(function(event){
+                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').each(function(i){
                                 $(this).css("background", $(this).attr("data-color2"));
                             });
-                            $('button.lastValueBtn').css("font-weight", "normal");
+                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').css("font-weight", "normal");
                             $(this).css("background", $(this).attr("data-color1"));
                             $(this).css("font-weight", "bold");
-                            $('button.lastValueBtn').attr("data-lastDataClicked", "false");
+                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').attr("data-lastDataClicked", "false");
                             $(this).attr("data-lastDataClicked", "true");
                             var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
                             var colIndex = $(this).parent().index();
@@ -1400,8 +1200,8 @@
                             }
                         });
 
-                        $('button.timeTrendBtn').off('click');
-                        $('button.timeTrendBtn').click(function(event){
+                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').click(function(event){
                             if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
                             {
                                 $(this).css("background-color", "#e6e6e6");
@@ -1410,11 +1210,11 @@
                             }
                             else
                             {
-                                $('button.timeTrendBtn').css("background", $(this).attr("data-color2"));
-                                $('button.timeTrendBtn').css("font-weight", "normal");
+                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').css("background", $(this).attr("data-color2"));
+                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').css("font-weight", "normal");
                                 $(this).css("background", $(this).attr("data-color1"));
                                 $(this).css("font-weight", "bold");
-                                $('button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').attr("data-timeTrendClicked", "false");
                                 $(this).attr("data-timeTrendClicked", "true");
                                 var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
                                 var colIndex = $(this).parent().index();
@@ -1447,7 +1247,7 @@
                             }
                         });
                         
-                        $('button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
                             if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
                             {
                                 $(this).css("background-color", "#e6e6e6");
@@ -1465,7 +1265,7 @@
                             {
                                 var widgetTargetList = popupContent.find("button.lastValueBtn").eq(0).attr("data-targetWidgets").split(',');
 
-                                if(($('button.lastValueBtn[data-lastDataClicked=true]').length > 0)&&($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false"))
+                                if(($('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-lastDataClicked=true]').length > 0)&&($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false"))
                                 {
                                     for(var i = 0; i < widgetTargetList.length; i++)
                                     {
@@ -1480,7 +1280,7 @@
                                     } 
                                 }
 
-                                if(($('button.timeTrendBtn[data-timeTrendClicked=true]').length > 0)&&($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false"))
+                                if(($('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-timeTrendClicked=true]').length > 0)&&($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false"))
                                 {
                                     for(var i = 0; i < widgetTargetList.length; i++)
                                     {
@@ -1494,15 +1294,15 @@
                             }
                         });
 
-                        $('div.leaflet-popup').off('click');
-                        $('div.leaflet-popup').on('click', function(){
+                        $('#<?= $_REQUEST['name_w'] ?> div.leaflet-popup').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?> div.leaflet-popup').on('click', function(){
                             var compLatLngId = $(this).find('input[type=hidden]').val();
 
-                            $('div.leaflet-popup').css("z-index", "-1");
+                            $('#<?= $_REQUEST['name_w'] ?> div.leaflet-popup').css("z-index", "-1");
                             $(this).css("z-index", "999999");
 
-                            $('input.gisPopupKeepDataCheck').off('click');
-                            $('input.gisPopupKeepDataCheck[data-id="' + compLatLngId + '"]').click(function(){
+                            $('#<?= $_REQUEST['name_w'] ?> input.gisPopupKeepDataCheck').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?> input.gisPopupKeepDataCheck[data-id="' + compLatLngId + '"]').click(function(){
                             if($(this).attr("data-keepData") === "false")
                                 {
                                    $(this).attr("data-keepData", "true"); 
@@ -1513,8 +1313,8 @@
                                 }
                             });
 
-                            $('button.lastValueBtn').off('mouseenter');
-                            $('button.lastValueBtn').off('mouseleave');
+                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseenter');
+                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseleave');
                             $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function(){
                                 if($(this).attr("data-lastDataClicked") === "false")
                                 {
@@ -1565,9 +1365,9 @@
                                 }
                             });
 
-                            $('button.timeTrendBtn').off('mouseenter');
-                            $('button.timeTrendBtn').off('mouseleave');
-                            $('button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function()
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('mouseenter');
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('mouseleave');
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function()
                             {
                                 if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
                                 {
@@ -1636,15 +1436,15 @@
                                 }
                             });
 
-                            $('button.lastValueBtn').off('click');
-                            $('button.lastValueBtn').click(function(event){
-                                $('button.lastValueBtn').each(function(i){
+                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').click(function(event){
+                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').each(function(i){
                                     $(this).css("background", $(this).attr("data-color2"));
                                 });
-                                $('button.lastValueBtn').css("font-weight", "normal");
+                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').css("font-weight", "normal");
                                 $(this).css("background", $(this).attr("data-color1"));
                                 $(this).css("font-weight", "bold");
-                                $('button.lastValueBtn').attr("data-lastDataClicked", "false");
+                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').attr("data-lastDataClicked", "false");
                                 $(this).attr("data-lastDataClicked", "true");
                                 var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
                                 var colIndex = $(this).parent().index();
@@ -1670,8 +1470,8 @@
                                 }
                             });
 
-                            $('button.timeTrendBtn').off('click');
-                            $('button.timeTrendBtn').click(function(event){
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').click(function(event){
                                 if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
                                 {
                                     $(this).css("background-color", "#e6e6e6");
@@ -1680,30 +1480,23 @@
                                 }
                                 else
                                 {
-                                    $('button.timeTrendBtn').each(function(i){
+                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').each(function(i){
                                         $(this).css("background", $(this).attr("data-color2"));
                                     });
-                                    $('button.timeTrendBtn').css("font-weight", "normal");
+                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').css("font-weight", "normal");
                                     $(this).css("background", $(this).attr("data-color1"));
                                     $(this).css("font-weight", "bold");
-                                    $('button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').attr("data-timeTrendClicked", "false");
                                     $(this).attr("data-timeTrendClicked", "true");
                                     var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
                                     var colIndex = $(this).parent().index();
                                     var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-                                    var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+                                    var lastUpdateTime = $(this).parents('#<?= $_REQUEST['name_w'] ?> div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
 
                                     var now = new Date();
                                     var lastUpdateDate = new Date(lastUpdateTime);
                                     var diff = parseFloat(Math.abs(now-lastUpdateDate)/1000);
                                     var range = $(this).attr("data-range");
-                                    /*if(diff > 86400)
-                                    {
-                                        var range = '7/DAY';
-                                    }
-                                    console.log("Last update date: " + lastUpdateDate);
-                                    console.log("Now: " + now);
-                                    console.log("Diff: " + diff);*/
 
                                     for(var i = 0; i < widgetTargetList.length; i++)
                                     {
@@ -1726,7 +1519,7 @@
                                 }
                             });
                             
-                            $('button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
                                 if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
                                 {
                                     $(this).css("background-color", "#e6e6e6");
@@ -1799,7 +1592,8 @@
                 }
                 else
                 {
-                    urlToCall = "<?php echo $serviceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json";
+                  //  urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json";
+                    urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
                     fake = false;
                 }
                 
@@ -1812,7 +1606,6 @@
                     success: function(geoJsonServiceData) 
                     {
                         var fatherNode = null;
-                        //console.log(JSON.stringify(geoJsonServiceData));
                         if(geoJsonServiceData.hasOwnProperty("BusStop"))
                         {
                             fatherNode = geoJsonServiceData.BusStop;
@@ -3298,10 +3091,20 @@
                 }
                 else
                 {
-                    $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "block");
-                    height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 25);
-                    wrapperH = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight() - 25);
-                    topWrapper = "25px";
+                    if(showHeader)
+                    {
+                        $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "block");
+                        height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 25);
+                        wrapperH = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight() - 25);
+                        topWrapper = "25px";
+                    }
+                    else
+                    {
+                        $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "none");
+                        height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
+                        wrapperH = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight());
+                        topWrapper = "0px";
+                    }
 
                     $("#" + widgetName + "_buttonsDiv").css("height", "100%");
                     $("#" + widgetName + "_buttonsDiv").css("float", "left");
@@ -3344,7 +3147,7 @@
                                 titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 0 - 25 - 2));
                                 $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
                                 $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
-								$("#" + widgetName + "_buttonsDiv").hide();
+                                $("#" + widgetName + "_buttonsDiv").hide();
                               }
                            }
                         }
@@ -3390,7 +3193,7 @@
             }
             
             //Modalità Web Link: settaggio iframe
-            if((hostFile === "index") && (showHeader === false))
+            if(showHeader === false)
             {
                 wrapperH = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight());
             }
@@ -3422,7 +3225,7 @@
         {
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         createFullscreenModal();
@@ -3484,11 +3287,21 @@
                 }
                 else
                 {
-                    $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "block");
-                    height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 25);
-                    wrapperH = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight() - 25);
-                    topWrapper = "25px";
-
+                    if(showHeader)
+                    {
+                        $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "block");
+                        height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 25);
+                        wrapperH = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight() - 25);
+                        topWrapper = "25px";
+                    }
+                    else
+                    {
+                        $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "none");
+                        height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
+                        wrapperH = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').outerHeight());
+                        topWrapper = "0px";
+                    }
+                    
                     $("#" + widgetName + "_buttonsDiv").css("height", "100%");
                     $("#" + widgetName + "_buttonsDiv").css("float", "left");
 
@@ -3618,10 +3431,6 @@
                         $("#<?= $_REQUEST['name_w'] ?>_wrapper").show(); 
                         $("#<?= $_REQUEST['name_w'] ?>_iFrame").attr("src", JSON.parse(url).homepage);
                     }
-                    else
-                    {
-                        console.log("Non applicato");
-                    }
                 });
             }
             else
@@ -3648,19 +3457,24 @@
                         $("#<?= $_REQUEST['name_w'] ?>_defaultMapDiv").hide();
                         $("#<?= $_REQUEST['name_w'] ?>_gisMapDiv").show();
                         widgetParameters = JSON.parse(widgetProperties.param.parameters);
-                        coordsCollectionUri = widgetParameters.coordsCollectionUri;
+                        //coordsCollectionUri = widgetParameters.coordsCollectionUri;
                         
                         loadGisMap();
                         
                         $(document).off('addLayerFromGis_' + widgetName);
-                        $(document).on('addLayerFromGis_' + widgetName, function(event) 
+                        $(document).on('addLayerFromGis_' + widgetName, function(event)
                         {
                             var mapBounds = gisMapRef.getBounds();
                             var query, targets = null;
                             var eventGenerator = event.eventGenerator;
                             var color1 = event.color1;
                             var color2 = event.color2;
-                            
+                            var queryType = event.queryType;
+                            var apiUrl = "";
+                            var dataForApi = "";
+
+                            //alert("Query type: " + queryType);
+
                             var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
                             if($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0)
@@ -3706,15 +3520,47 @@
 
                             var pattern = new RegExp(re1+re2+re3+re4+re5+re6+re7+re8+re9, ["i"]);
 
-                            if(pattern.test(event.query))
+                            if(queryType === "Default")
                             {
-                                //console.log("Service Map selection substitution");
-                                query = event.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                if (event.query.includes("datamanager/api/v1/poidata/")) {
+                                    if (event.desc != "My POI") {
+                                        myPOIId = event.query.split("datamanager/api/v1/poidata/")[1];
+                                        apiUrl = "../controllers/myPOIProxy.php";
+                                        dataForApi = myPOIId;
+                                        query = event.query;
+                                    } else {
+                                        apiUrl = "../controllers/myPOIProxy.php";
+                                        dataForApi = "All";
+                                        query = event.query;
+                                    }
+                                } else {
+
+
+                                    if (pattern.test(event.query)) {
+                                        //console.log("Service Map selection substitution");
+                                        query = event.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                    } else {
+                                        //console.log("Service Map selection addition");
+                                        query = event.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                    }
+                                }
+                            }
+                            else if(queryType === "MyPOI") {
+                                if (event.desc != "My POI") {
+                                    myPOIId = event.query.split("datamanager/api/v1/poidata/")[1];
+                                    apiUrl = "../controllers/myPOIProxy.php";
+                                    dataForApi = myPOIId;
+                                    query = event.query;
+                                } else {
+                                    apiUrl = "../controllers/myPOIProxy.php";
+                                    dataForApi = "All";
+                                    query = event.query;
+                                }
+
                             }
                             else
                             {
-                                //console.log("Service Map selection addition");
-                                query = event.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                query = event.query;
                             }
 
                             if(event.targets !== "")
@@ -3726,40 +3572,90 @@
                                 targets = [];
                             }
 
+                            if(queryType != "MyPOI" && !event.query.includes("datamanager/api/v1/poidata/")) {
+                                apiUrl = query + "&geometry=true&fullCount=false";
+                            }
+
                             $.ajax({
-                                url: query + "&geometry=true",
+                             //   url: query + "&geometry=true&fullCount=false",
+                                url: apiUrl,
                                 type: "GET",
-                                data: {},
+                                data: {
+                                    myPOIId: dataForApi
+                                },
                                 async: true,
                                 timeout: 0,
                                 dataType: 'json',
-                                success: function(geoJsonData) 
+                                success: function(geoJsonData)
                                 {
-                                    var fatherGeoJsonNode = null;
+                                    var fatherGeoJsonNode = {};
 
-                                    if(geoJsonData.hasOwnProperty("BusStops"))
+                                    if(queryType === "Default")
                                     {
-                                        fatherGeoJsonNode = geoJsonData.BusStops;
+                                        if (event.query.includes("datamanager/api/v1/poidata/")) {
+                                            fatherGeoJsonNode.features = [];
+                                            if (event.desc != "My POI") {
+                                                fatherGeoJsonNode.features[0] = geoJsonData;
+                                            } else {
+                                                fatherGeoJsonNode.features = geoJsonData;
+                                            }
+                                            fatherGeoJsonNode.type = "FeatureCollection";
+                                        } else {
+                                            if (geoJsonData.hasOwnProperty("BusStops")) {
+                                                fatherGeoJsonNode = geoJsonData.BusStops;
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty("SensorSites")) {
+                                                    fatherGeoJsonNode = geoJsonData.SensorSites;
+                                                } else {
+                                                    fatherGeoJsonNode = geoJsonData.Services;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if (queryType === "MyPOI")
+                                    {
+                                        fatherGeoJsonNode.features = [];
+                                        if (event.desc != "My POI") {
+                                            fatherGeoJsonNode.features[0] = geoJsonData;
+                                        } else {
+                                            fatherGeoJsonNode.features = geoJsonData;
+                                        }
+                                        fatherGeoJsonNode.type = "FeatureCollection";
                                     }
                                     else
                                     {
-                                        if(geoJsonData.hasOwnProperty("SensorSites"))
+                                        if(geoJsonData.hasOwnProperty("BusStop"))
                                         {
-                                            fatherGeoJsonNode = geoJsonData.SensorSites;
+                                            fatherGeoJsonNode = geoJsonData.BusStop;
                                         }
                                         else
                                         {
-                                            fatherGeoJsonNode = geoJsonData.Services;
+                                            if(geoJsonData.hasOwnProperty("Sensor"))
+                                            {
+                                                fatherGeoJsonNode = geoJsonData.Sensor;
+                                            }
+                                            else
+                                            {
+                                                if(geoJsonData.hasOwnProperty("Service"))
+                                                {
+                                                    fatherGeoJsonNode = geoJsonData.Service;
+                                                }
+                                                else
+                                                {
+                                                    fatherGeoJsonNode = geoJsonData.Services;
+                                                }
+                                            }
                                         }
                                     }
-                                    
+
+
                                     for(var i = 0; i < fatherGeoJsonNode.features.length; i++)
                                     {
                                         fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
                                         fatherGeoJsonNode.features[i].properties.color1 = color1;
                                         fatherGeoJsonNode.features[i].properties.color2 = color2;
                                     }
-                                    
+
                                     if(!gisLayersOnMap.hasOwnProperty(event.desc)&&(event.display !== 'geometries'))
                                     {
                                         gisLayersOnMap[event.desc] = L.geoJSON(fatherGeoJsonNode, {
@@ -3803,9 +3699,9 @@
                                     }
 
                                     eventGenerator.show();
-                                    
+
                                     var wkt = null;
-                                    
+
                                     if(event.display !== 'pins')
                                     {
                                         stopGeometryAjax[event.desc] = false;
@@ -3815,7 +3711,7 @@
                                             tank: [],
                                             lastConsumedIndex: 0
                                         };
-                                        
+
                                         for(var i = 0; i < fatherGeoJsonNode.features.length; i++)
                                         {
                                             if(fatherGeoJsonNode.features[i].properties.hasOwnProperty('hasGeometry')&&fatherGeoJsonNode.features[i].properties.hasOwnProperty('serviceUri'))
@@ -3823,15 +3719,15 @@
                                                 if(fatherGeoJsonNode.features[i].properties.hasGeometry === true)
                                                 {
                                                     //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
-                                                    
+
                                                     $.ajax({
-                                                        url: "<?php echo $serviceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
+                                                        url: "<?php echo $superServiceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
                                                         type: "GET",
                                                         data: {},
                                                         async: true,
                                                         timeout: 0,
                                                         dataType: 'json',
-                                                        success: function(geometryGeoJson) 
+                                                        success: function(geometryGeoJson)
                                                         {
                                                             if(!stopGeometryAjax[event.desc])
                                                             {
@@ -3848,7 +3744,7 @@
                                                                         geometry: wkt.toJson()
                                                                     }
                                                                 ];
-                                                                
+
                                                                 if(!gisGeometryLayersOnMap.hasOwnProperty(event.desc))
                                                                 {
                                                                     gisGeometryLayersOnMap[event.desc] = [];
@@ -3895,14 +3791,14 @@
 
                                     setTimeout(function(){
                                         eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false"); 
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
                                         eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
                                     }, 1500);
 
                                     console.log("Error in getting GeoJSON from ServiceMap");
                                     console.log(JSON.stringify(errorData));
                                 }
-                            }); 
+                            });
                         });
 
                         $(document).off('removeLayerFromGis_' + widgetName);
@@ -4035,108 +3931,6 @@
                     });
                     break;
             }
-            
-            $('#<?= $_REQUEST['name_w'] ?>_xPlus').on('click', function () 
-            {
-                clearTimeout(zoomDisplayTimeout);
-                sizeX = parseInt(parseInt(sizeX) + 1);
-                changeDimX("+");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("width<br/>" + sizeX);
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "visible");
-
-                updateZoomControlsPosition();
-
-                zoomDisplayTimeout = setTimeout(function(){
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "hidden");
-                }, 300);
-            });
-
-            $('#<?= $_REQUEST['name_w'] ?>_xMin').on('click', function () 
-            {
-                clearTimeout(zoomDisplayTimeout);
-                sizeX = parseInt(parseInt(sizeX) - 1);
-                changeDimX("-");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("width<br/>" + sizeX);
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "visible");
-
-                updateZoomControlsPosition();
-
-                zoomDisplayTimeout = setTimeout(function(){
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "hidden");
-                }, 300);
-            });
-
-            $('#<?= $_REQUEST['name_w'] ?>_yPlus').on('click', function () 
-            {
-                clearTimeout(zoomDisplayTimeout);
-                sizeY = parseInt(parseInt(sizeY) + 1);
-                changeDimY("+");
-
-                updateZoomControlsPosition();
-
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("height<br/>" + sizeY);
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "visible");
-
-                zoomDisplayTimeout = setTimeout(function(){
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "hidden");
-                }, 300);
-            });
-
-            $('#<?= $_REQUEST['name_w'] ?>_yMin').on('click', function () 
-            {
-                clearTimeout(zoomDisplayTimeout);
-                sizeY = parseInt(parseInt(sizeY) - 1);
-                changeDimY("-");
-
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("height<br/>" + sizeY);
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "visible");
-
-                updateZoomControlsPosition();
-
-                zoomDisplayTimeout = setTimeout(function(){
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "hidden");
-                }, 300);
-            });
-
-            $('#<?= $_REQUEST['name_w'] ?>_zoomIn').on('click', function () 
-            {
-                clearTimeout(zoomDisplayTimeout);
-                currentZoom = (parseFloat(currentZoom) + parseFloat('0.05')).toFixed(2);
-                changeZoom();
-                var percentZoom = parseInt(currentZoom*100);
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("zoom<br/>" + percentZoom + "%");
-                $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "visible");
-
-                zoomDisplayTimeout = setTimeout(function(){
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "hidden");
-                }, 300);
-            });
-
-            $('#<?= $_REQUEST['name_w'] ?>_zoomOut').on('click', function () 
-            {
-                if(parseFloat(currentZoom - 0.1).toFixed(2) > 0.1)
-                {
-                    clearTimeout(zoomDisplayTimeout);
-                    currentZoom = parseFloat(currentZoom - 0.05).toFixed(2);
-                    changeZoom();
-                    var percentZoom = parseInt(currentZoom*100);
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("");
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").html("zoom<br/>" + percentZoom + "%");
-                    $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "visible");
-                    zoomDisplayTimeout = setTimeout(function(){
-                        $("#<?= $_REQUEST['name_w'] ?>_zoomDisplay").css("visibility", "hidden");
-                    }, 300);
-                }
-                else
-                {
-                    alert("You have reached the minimum zoom factor");
-                }
-            });
             
             $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv a.iconFullscreenModal').click(function()
             {
@@ -4848,7 +4642,7 @@
                             for(var i in gisGeometryServiceUriToShowFullscreen[desc])
                             {
                                 $.ajax({
-                                    url: "<?php echo $serviceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + gisGeometryServiceUriToShowFullscreen[desc][i],
+                                    url: "<?php echo $superServiceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + gisGeometryServiceUriToShowFullscreen[desc][i],
                                     type: "GET",
                                     data: {},
                                     async: true,
@@ -5004,6 +4798,8 @@
             $(document).off('resizeHighchart_' + widgetName);
             $(document).on('resizeHighchart_' + widgetName, function(event) 
             {
+                showHeader = event.showHeader;
+                
                 if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
                 {
                     $("#<?= $_REQUEST['name_w'] ?>_wrapper").css("height", parseInt($("#<?= $_REQUEST['name_w'] ?>").height() - $('#<?= $_REQUEST['name_w'] ?>_header').height()) + "px");
@@ -5017,7 +4813,6 @@
             //Web socket 
             openWs = function(e)
             {
-                console.log("Widget " + widgetTitle + " is trying to open WebSocket");
                 try
                 {
                     <?php
@@ -5039,21 +4834,17 @@
                 }
                 catch(e)
                 {
-                    console.log("Widget " + widgetTitle + " could not connect to WebSocket");
                     wsClosed();
                 }
             };
 
             manageIncomingWsMsg = function(msg)
             {
-                console.log("Widget " + widgetTitle + " got new data from WebSocket: \n" + msg.data);
                 var msgObj = JSON.parse(msg.data);
 
                 switch(msgObj.msgType)
                 {
                      case "newNRMetricData":
-                         console.log("newNRMetricData");
-                         
                          if((encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))&&(msgObj.newValue !== 'Off'))
                          {
                             if($('#' + widgetName + '_wrapper').is(':visible'))
@@ -5075,11 +4866,6 @@
                                 gisMapRef.fitBounds(layer.getBounds());
                             }
                          }
-                         
-                         
-                         
-                         
-                         
                          break;
 
                      default:
@@ -5089,34 +4875,34 @@
 
             openWsConn = function(e)
             {
-                console.log("Widget " + widgetTitle + " connected successfully to WebSocket");
                 var wsRegistration = {
                     msgType: "ClientWidgetRegistration",
                     userType: "widgetInstance",
-                    metricName: encodeURIComponent(metricName)
+                    metricName: encodeURIComponent(metricName),
+                    widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
                   };
                   
                 webSocket.send(JSON.stringify(wsRegistration));
-
                 webSocket.addEventListener('message', manageIncomingWsMsg);
             };
 
             wsClosed = function(e)
             {
-                console.log("Widget " + widgetTitle + " got WebSocket closed");
-
                 webSocket.removeEventListener('close', wsClosed);
                 webSocket.removeEventListener('open', openWsConn);
                 webSocket.removeEventListener('message', manageIncomingWsMsg);
                 webSocket = null;
                 if(wsRetryActive === 'yes')
                 {
-                    console.log("Widget " + widgetTitle + " will retry WebSocket reconnection in " + parseInt(wsRetryTime) + "s");
                     setTimeout(openWs, parseInt(wsRetryTime*1000));
                 }
             };
 
             openWs();
+            
+            $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+                resizeWidget();
+            });
         }    
         else
         {
@@ -5127,21 +4913,8 @@
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div" data-emptyMapShown="false">
     <div class='ui-widget-content'>
-		<?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-	
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv">
-               <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-               <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-               <div class="singleBtnContainer"><a class="iconFullscreenModal" href="#" data-toggle="tooltip" title="Fullscreen popup"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></a></div>
-               <div class="singleBtnContainer"><a class="iconFullscreenTab" href="#" data-toggle="tooltip" title="Fullscreen new tab"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></div>
-            </div>
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -5153,11 +4926,12 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id="<?= $_REQUEST['name_w'] ?>_mapDiv" class="mapDiv"></div>
             <div id="<?= $_REQUEST['name_w'] ?>_gisMapDiv" class="gisMapDiv"></div>
             <div id="<?= $_REQUEST['name_w'] ?>_wrapper" class="iframeWrapper">
-                <div id="<?= $_REQUEST['name_w'] ?>_zoomControls" class="iframeZoomControls">
+                <!--<div id="<?= $_REQUEST['name_w'] ?>_zoomControls" class="iframeZoomControls">
                     <div id="<?= $_REQUEST['name_w'] ?>_dimDiv" class="zoomControlsRow">
                         <div class="zoomControlsLabelDiv">
                             width
@@ -5185,7 +4959,7 @@
                             <i id="<?= $_REQUEST['name_w'] ?>_zoomIn" class="fa fa-plus-square-o"></i>
                         </div>
                     </div>
-                </div>
+                </div>-->
                 <div id="<?= $_REQUEST['name_w'] ?>_zoomDisplay" class="zoomDisplay"></div>
                 <iframe id="<?= $_REQUEST['name_w'] ?>_iFrame" class="iFrame"></iframe>
             </div>

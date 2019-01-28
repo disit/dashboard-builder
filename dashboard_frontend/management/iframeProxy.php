@@ -17,7 +17,7 @@
             break;
         
         case "getMeteoForecast":
-            $page = file_get_contents($serviceMapUrlPrefix . "api/v1/?serviceUri=" . $_REQUEST['cityServiceUri']);
+            $page = file_get_contents($superServiceMapUrlPrefix . "api/v1/?serviceUri=" . $_REQUEST['cityServiceUri']);
             break;
         
         case "getOrionEntityList":

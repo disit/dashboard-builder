@@ -1,6 +1,6 @@
 <?php
 /* Dashboard Builder.
-   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -21,8 +21,9 @@
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad) 
     {
         var scroller1, scroller2, scrollBottom1, scrollBottom2, contentHeight, trendsNumber, quotesNumber, trendsContentHeight, quotesContentHeight, 
-            rowPercHeight, rowPxHeight, fullRowPxHeight, actualTab, countdown, timeToClearScroll, titleWidth, fontRatio, fullRowPercHeight, contentPercWidth, iconWidth, contentWidth = null;
+            rowPercHeight, rowPxHeight, fullRowPxHeight, showHeader, timeToReload, actualTab, countdown, timeToClearScroll, titleWidth, fontRatio, fullRowPercHeight, contentPercWidth, iconWidth, contentWidth = null;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var speed = 140;
         var defaultTab = parseInt("<?= $_REQUEST['defaultTab'] ?>");
         actualTab = 1;
@@ -36,13 +37,13 @@
         {
             var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 23);
             $('#<?= $_REQUEST['name_w'] ?>_header').hide();
-			showHeader = false;
+            showHeader = false;
         }
         else
         {
             var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - headerHeight - 23);
             $('#<?= $_REQUEST['name_w'] ?>_header').show();
-			showHeader = true;
+            showHeader = true;
         }
         
         var counter = parseInt('<?= $_REQUEST['frequency_w'] ?>');
@@ -102,7 +103,7 @@
         
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("width", titleWidth + "px");
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
         $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
         $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
         
@@ -206,8 +207,6 @@
                     success: function (msg) {
                         var noHashTrend = null;
                         var linkHashTrend = null;
-                        //console.log("../widgets/curlProxyForTwitterVg.php?url=<?=$internalTwitterVigilanceHost?>/query/query.php?trends=Firenze");
-                        //console.log(JSON.stringify(msg));
                         
                         if(firstLoad !== false)
                         {
@@ -452,7 +451,64 @@
                                         clearInterval(scroller1);
                                         clearInterval(scroller2);
                                     }, timeToClearScroll);
+                                    
+                                    $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+                                        $("#<?= $_REQUEST['name_w'] ?>").off('customResizeEvent');
+                                        clearInterval(countdown);
+                                        clearInterval(scroller1);
+                                        clearInterval(scroller2);
+                                        $("#<?= $_REQUEST['name_w'] ?>_content").off();
+                                        $("#<?= $_REQUEST['name_w'] ?>_content").scrollTop(0);
+                                        $('#<?= $_REQUEST['name_w'] ?>_content').removeClass('slide');
+                                        $("#<?= $_REQUEST['name_w'] ?>_trends_li").off();
+                                        $("#<?= $_REQUEST['name_w'] ?>_quotes_li").off();
+                                        quotesNumber = null;
+                                        trendsNumber = null;
+                                        <?= $_REQUEST['name_w'] ?>(false);
+                                    });
+                                    
+                                    $(document).off('resizeHighchart_' + widgetName);
+                                    $(document).on('resizeHighchart_' + widgetName, function(event)
+                                    {
+                                        showHeader = event.showHeader;
+                                    });
+                                    
+                                    $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+                                    $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                                        clearInterval(countdown);
+                                        timeToReload = event.newTimeToReload;
+                                        countdown = setInterval(function () 
+                                        {
+                                            $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter);
+                                            counter--;
 
+                                            if(counter > 60)
+                                            {
+                                                $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(Math.floor(counter / 60) + "m");
+                                            } 
+                                            else 
+                                            {
+                                                $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
+                                            }
+                                            if(counter === 0) 
+                                            {
+                                                $("#<?= $_REQUEST['name_w'] ?>").off('customResizeEvent');
+                                                $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
+                                                clearInterval(countdown);
+                                                clearInterval(scroller1);
+                                                clearInterval(scroller2);
+                                                $("#<?= $_REQUEST['name_w'] ?>_content").off();
+                                                $("#<?= $_REQUEST['name_w'] ?>_content").scrollTop(0);
+                                                $('#<?= $_REQUEST['name_w'] ?>_content').removeClass('slide');
+                                                $("#<?= $_REQUEST['name_w'] ?>_trends_li").off();
+                                                $("#<?= $_REQUEST['name_w'] ?>_quotes_li").off();
+                                                quotesNumber = null;
+                                                trendsNumber = null;
+                                                setTimeout(<?= $_REQUEST['name_w'] ?>(false), 1000);
+                                            }
+                                        }, 1000);
+                                    });
+                                    
                                     countdown = setInterval(function () 
                                     {
                                         $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter);
@@ -468,6 +524,7 @@
                                         }
                                         if(counter === 0) 
                                         {
+                                            $("#<?= $_REQUEST['name_w'] ?>").off('customResizeEvent');
                                             $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").text(counter + "s");
                                             clearInterval(countdown);
                                             clearInterval(scroller1);
@@ -513,22 +570,9 @@
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
-        
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
+        <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -546,6 +590,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="twitterMainContent carousel" data-interval="false" data-pause="hover">
+                
             <!-- Wrapper per il carousel -->
             <div id="<?= $_REQUEST['name_w'] ?>_carousel" class="carousel-inner" role="listbox">
                 <div id="<?= $_REQUEST['name_w'] ?>_trendsContainer" class="item active"></div>

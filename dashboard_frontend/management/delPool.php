@@ -33,7 +33,7 @@ include '../config.php';
 
    if(isset($_SESSION['loggedRole']))
    {
-      if(($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
+      if(($_SESSION['loggedRole'] == "RootAdmin")||($_SESSION['loggedRole'] == "ToolAdmin")||($_SESSION['loggedRole'] == "AreaManager"))
       {
          $poolIdToDelete = mysqli_real_escape_string($link, $_POST["poolIdToDelete"]);
 

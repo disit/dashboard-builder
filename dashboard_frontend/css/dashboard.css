@@ -2007,8 +2007,27 @@ body.dashboardViewBodyAuth
     #headerTitleCnt
     {
         height: 50px;
+        padding-top: 0px;
+        padding-bottom: 0px;
     }
 }
+
+#headerSubTitleCnt
+{
+    height: 75px;
+    font-size: 1em;
+    font-weight: bold;
+    background: rgba(51, 64, 69, 1);
+    color: white;
+}
+
+#headerSubTitleCnt
+{
+    padding-top: 0px;
+    padding-bottom: 0px;
+    height: 30px;
+}
+
 
 #headerMenuCnt
 {
@@ -2036,6 +2055,7 @@ body.dashboardViewBodyAuth
     background-color: rgba(51, 64, 69, 1);
     color: white;
     height: 100vh;
+    /*overflow-y: auto;*/
 }
 
 #mainContentCnt
@@ -2192,28 +2212,33 @@ div.dashEditMenuItemCnt
     background-color: rgba(51, 64, 69, 1);
     border-left: 1px solid #595959;
     border-top: 1px solid #595959;
-	border-right: 1px solid #333333;
+    border-right: 1px solid #333333;
     border-bottom: 1px solid #333333;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
 }
 
 div.dashEditMenuItemCnt:hover
 {
-	background: rgba(0, 162, 211, 1);
-	font-weight: bold;
+    background: rgba(0, 162, 211, 1);
+    font-weight: bold;
 }
 
 div.dashEditMenuIconCnt, div.dashEditMenuTxtCnt
 {
-    width: 100%;
+    /*width: 100%;
     float: left;
     display: flex;
     align-items: center; 
-    justify-content: center;
+    justify-content: center;*/
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    
 }
 
 div.dashEditMenuTxtCnt
 {
-    font-size: 0.9em;
+    font-size: 1em;
 }
 
 div.dashEditMenuIconCnt
@@ -2228,29 +2253,61 @@ div.dashEditMenuIconCnt
 
 div.mainMenuItemCnt
 {
-    height: 35px;
-    font-size: 0.95em;
-    font-weight: 400;
+    height: 25px;
+    font-size: 12px;
     display: flex;
     align-items: center; 
     justify-content: flex-start;
     border: none;
     border-top: 1px solid #595959;
     border-bottom: 1px solid #333333;
+    border-right: 1px solid #333333;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media(min-width:992px) 
+{
+    div.mainMenuItemCnt
+    {
+        height: 35px;
+        font-size: 0.95em;
+        font-weight: 400;
+        border: none;
+        border-top: 1px solid #595959;
+        border-bottom: 1px solid #333333;
+    }    
 }
 
 div.mainMenuSubItemCnt
 {
-    height: 25px;
-    font-size: 0.85em;
+    height: 20px;
+    font-size: 10px;
     font-weight: 400;
     display: flex;
     align-items: center; 
     justify-content: flex-start;
     border: none;
     border-top: 1px solid #364449;
-    /*border-bottom: 1px solid #7b939d;*/
+    border-right: 1px solid #364449;
     background-color: rgba(76, 95, 103, 1);
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media(min-width:992px) 
+{
+    div.mainMenuSubItemCnt
+    {
+        height: 25px;
+        font-size: 0.85em;
+        font-weight: 400;
+        border: none;
+        border-top: 1px solid #595959;
+        border-bottom: 1px solid #333333;
+    }    
 }
 
 div.mainMenuSubItemCnt:hover
@@ -2259,8 +2316,6 @@ div.mainMenuSubItemCnt:hover
     background-color: rgba(0, 162, 211, 1);
     color: white;
 }
-
- 
 
 div.mobMainMenuItemCnt
 {
@@ -2276,6 +2331,22 @@ div.mobMainMenuItemCnt
     border-bottom: 1px solid #333333;
 }
 
+#mobMainMenuBtn
+{
+    font-size: 36px;
+}
+
+#porHr
+{
+    margin-bottom: 0px !important;
+}
+
+#landHr
+{
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
 div.mainMenuItemCnt:hover
 {
     cursor: pointer;
@@ -2286,6 +2357,13 @@ div.mainMenuItemCntActive
 {
     background: rgba(0, 162, 211, 1);
     font-weight: bold;
+}
+
+div.subMenuItemCntActive
+{
+    background: rgba(0, 162, 211, 1);
+    font-weight: bold;
+    color: white;
 }
 
 a.moduleLink:hover
@@ -2310,20 +2388,22 @@ a.moduleLink:hover
     text-transform: uppercase;
 }
 
-.editDashBtnCard
+.dashBtnCard
 {
     border: none;
-    font-weight: bold;
+    font-weight: normal;
     background-color: rgba(51, 64, 69, 1);
     color: white;
-    border-radius: 5px;
-    font-size: 1.2em;
+    /*border-radius: 5px;*/
+    font-size: 11px;
     margin-bottom: 10px;
+    width: 100px !important;
 }
 
-.editDashBtnCard:hover
+.dashBtnCard:hover
 {
     background-color: rgba(0, 162, 211, 1);
+    font-weight: bold;
 }
 
 .viewDashBtn
@@ -2377,18 +2457,6 @@ a.moduleLink:hover
     cursor: default;
 }
 
-#mainMenuIconCnt img
-{
-    width: 48px;
-    height: 48px;
-}
-
-#mobMainMenuIconCnt img
-{
-    width: 20px;
-    height: 20px;
-}
-
 #mainMenuUsrCnt
 {
     font-size: 1.1em;
@@ -2429,7 +2497,24 @@ a.moduleLink:hover
 
 #mainMenuUsrLogoutCnt
 {
-    display: none;
+    padding-top: 10px;
+}
+
+#mainMenuUsrLoginBtn
+{
+    background: #39a25a;
+    font-size: 10px;
+}
+
+#mobMainMenuUsrLoginBtn
+{
+    background: #39a25a;
+}
+
+#mainMenuUsrLogoutBtn
+{
+    background: #e37777;
+    font-size: 10px;
 }
 
 #mobMainMenuUsrLogoutBtn
@@ -2445,7 +2530,7 @@ div.accountEditFieldContainer
 div.modalHeader
 {
     width: 100%;
-    background: rgba(0, 162, 211, 1);
+    background: rgba(51, 64, 69, 1);
     font-size: 1.8em;
     font-weight: bold;
     color: white;
@@ -2456,6 +2541,8 @@ div.modalHeader
 div.modalBody
 {
     background: white;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
 }
 
 div.modalCell
@@ -2707,8 +2794,21 @@ input[type="text"]:disabled
 
 #cloneDashboardTitleMsg
 {
-    font-size: 0.9em;
-    color: red;
+    font-size: 12px;
+}
+
+#cloneDashboardTitleMsg.error
+{
+    font-style: italic;
+    font-weight: bold;
+    color: #f3cf58;
+}
+
+#cloneDashboardTitleMsg.ok
+{
+    font-style: italic;
+    font-weight: bold;
+    color: white;
 }
 
 #authFormMessage
@@ -3005,4 +3105,418 @@ input[type="text"]:disabled
     width: 100%;
     height: 100%;
     border: none;
+}
+
+#modalAddDashboardWizard
+{
+    color: white;
+}
+
+#modalAddDashboardWizard div.modal-dialog
+{
+    width: 98vw;
+}
+
+.modalAddDashboardWizardChoiceCnt
+{
+    font-weight: bold !important;
+    margin-top: 25px !important;
+}
+
+#modalAddDashboardWizardAvailabilityMsg
+{
+    display: none;
+    font-weight: bold;
+    color: #f3cf58;
+    margin-top: 25px !important;
+}
+
+.modalAddDashboardWizardChoiceCnt:hover
+{
+    cursor: pointer;
+    background-color: rgb(138, 159, 168) !important;
+    font-style: italic;
+}
+
+.modalAddDashboardWizardChoiceCntSelected
+{
+    background-color: rgb(138, 159, 168) !important;
+    font-style: italic;
+}
+
+.modalAddDashboardWizardChoicePic
+{
+    /*height: 210px;*/
+    width: 75%;
+    margin-left: 12.5%;
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+#modalAddDashboardWizardTitleAlreadyUsedMsg, #modalAddDashboardWizardTemplateMsg, #wizardTab1MsgCnt
+{
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+    color: rgb(243, 207, 88);
+}
+
+#widgetInfoModal .modalHeader
+{
+    background-color: rgba(51, 64, 69, 1) !important;   
+}
+
+#widgetInfoModalFooter
+{
+    padding-top: 0px !important;
+}
+
+#widgetInfoModalBodyView
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+    color: white;
+}
+
+#mainMenuScrollableCnt.col-md-12, .mainMenuScrollBtnsCnt.col-md-12
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+#mainMenuScrollableCnt
+{
+    
+}
+
+#mainMenuInnerCnt
+{
+    position: relative;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+#delDashRunningMsg, #delDashOkMsg, #delDashKoMsg, #limitsDashKoMsg
+{
+    display: none;
+}
+
+#dashToDelPic, #dashToClonePic
+{
+    height: 250px;
+}
+
+#dashToClonePic
+{
+    margin-top: 5px !important;
+    margin-bottom: 15px;
+}
+
+.dashboardsListCardVisibilityDiv
+{
+    color: white;
+    font-size: 11px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.dashboardsListCardIotDiv
+{
+    /*border: 1px solid red;*/
+    color: white;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 12px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+#delDashModalBody, #delDashModalFooter, #delDashNameMsg, #cloneDashboardModalBody, #cloneDashboardModalFooter, #delegationsModalBody, #delegationsModalFooter,
+#iotAppsModalBody, #iotAppsModalFooter, #checkDashLimitsModalBody, #checkDashLimitsModalFooter
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+#delegationsModalBody
+{
+    min-height: 26vh;
+}
+
+#delDashNameMsg
+{
+    color: white !important;
+}
+
+#currentDashboardTitleCnt
+{
+    margin-bottom: 10px;
+}
+
+#currentDashboardTitle
+{
+    font-weight: bold; 
+    margin-top: 6px; 
+    color: white;
+}
+
+#cloneDashboardModal
+{
+    color: white;
+}
+
+#delegationsDashPic
+{
+    height: 250px;
+    margin-top: 0px !important;
+    margin-bottom: 15px;
+}
+
+.delegationsModalTxt
+{
+    font-weight: bold;
+    color: white;
+}
+
+#newDelegationLbl, #currentDelegationsLbl, #newDelegationLbl, #currentGroupDelegationsLbl
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    font-weight: bold;
+    color: white;
+}
+
+#currentDelegationsLbl, #currentGroupDelegationsLbl
+{
+    margin-top: 25px;
+}
+
+#newDelegationCnt, #newGroupDelegationCnt
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+#newDelegation, #newGroupDelegation
+{
+    width: 100%;
+}
+
+#delegationsTableCnt, #groupDelegationsTableCnt
+{
+    max-height: 200px;
+    overflow-y: auto;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+#delegationsTable, #groupDelegationsTable
+{
+    width: 100%;
+}
+
+#delegationsTable thead, #groupDelegationsTable thead
+{
+    background-color: #576c75 !important;
+    color: white;
+}
+
+#delegationsTable td, #delegationsTable th, #groupDelegationsTable td, #groupDelegationsTable th
+{
+    text-align: center; !important
+}
+
+.removeDelegationBtn
+{
+    color: red;
+    font-size: 18px;
+}
+
+.delegatedName
+{
+    color: #576c75;
+}
+
+tr.delegationTableRow:nth-child(odd), tr.groupDelegationTableRow:nth-child(odd)
+{
+    background-color: #f9f9f9;
+}
+
+tr.delegationTableRow:nth-child(even), tr.groupDelegationTableRow:nth-child(even)
+{
+    background-color: #ffffff;
+}
+
+.removeDelegationBtn:hover
+{
+    cursor: pointer;
+    color: #f3cf58;
+}
+
+#newDelegatedMsg, .delegationsModalMsg, #newGroupDelegatedMsg
+{
+    color: #f3cf58;
+    font-style: italic;
+    font-weight: bold;
+    font-size: 12px;
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+span.dashboardListCardTypeSpan[data-hasIotModal="true"]:hover
+{
+    cursor: pointer;
+    color: rgb(255, 204, 0);
+}
+
+#iotAppsModal div.modal-dialog
+{
+   width: 98vw;
+}
+
+#iotAppsDashPic
+{
+    height: 155px;
+    margin-top: 0px !important;
+    /*margin-bottom: 15px;*/
+}
+
+#iotAppsTableCnt
+{
+    max-height: 300px;
+    overflow-y: auto;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+#iotAppsTable
+{
+    width: 100%;
+}
+
+#iotAppsTable thead
+{
+    background-color: #576c75 !important;
+    color: white;
+}
+
+#iotAppsTable td, #iotAppsTable th
+{
+    text-align: center;
+}
+
+.iotAppName
+{
+    color: #576c75;
+    margin-top: 0px !important;
+}
+
+tr.iotAppsTableRow:nth-child(odd)
+{
+    background-color: #f9f9f9;
+}
+
+tr.iotAppsTableRow:nth-child(even)
+{
+    background-color: #ffffff;
+}
+
+.iotAppName:hover
+{
+    cursor: pointer;
+    font-weight: bold;
+    background-color: #f3cf58;
+}
+
+#iotAppsIframe
+{
+    width: 100%;
+    height: 80vh;
+}
+
+.iotAppsModalLbl
+{
+    font-weight: bold;
+    color: white;
+    margin-top: 10px;
+}
+
+#iotAppsNoAppsCnt
+{
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+    color: #f3cf58;
+}
+
+#delegationsModal div.modal-dialog
+{
+    width: 50vw;
+}
+
+.delegationsModalLbl
+{
+    font-weight: bold;
+    color: white;
+}
+
+#newOwnershipResultMsg, #newVisibilityResultMsg
+{
+    display: none;
+    font-weight: bold;
+    color: white;
+}
+
+#delegationsNotAvailableRow, #groupDelegationsNotAvailableRow
+{
+    display: none;
+    font-weight: bold;
+    color: white;
+}
+
+/*div.modalScrOverlayDiv
+{
+    position: absolute;
+    top: 55px;
+    left: 0;
+    width: 90%;
+    margin-left: 5%;
+    background-color: black;
+    opacity: 0.05;
+    -webkit-transition: opacity 0.15s ease-in-out;
+    -ms-transition:     opacity 0.15s ease-in-out;
+    transition:         opacity 0.15s ease-in-out;
+}*/
+
+/**/
+
+#delegationsModal .nav-tabs > li.active > a, #delegationsModal .nav > li > a:hover, #delegationsModal .nav > li > a:focus
+{
+    background-color: transparent !important;
+    border-bottom: none !important;
+}
+
+#delegationsModal .nav > li > a:hover
+{
+    font-style: italic;
+}
+
+.modalFirstLbl
+{
+    margin-top: 15px;
+}
+
+/* Aggiunta per metriche HTTP - Jason Ravagli*/
+.invalid-field
+{
+    border: 2px solid red;
+}
+
+.error-feedback
+{
+    color: red;
+}
+
+.flex-center{
+    display: flex;
+    justify-content: center;
 }

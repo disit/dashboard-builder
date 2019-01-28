@@ -44,10 +44,6 @@
     <!-- Gridster -->
     <script src="../js/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>
 
-    <!-- CKEditor --> 
-    <script src="../js/ckeditor/ckeditor.js"></script>
-    <link rel="stylesheet" href="../js/ckeditor/skins/moono/editor.css">
-    
      <!-- Filestyle -->
     <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
     

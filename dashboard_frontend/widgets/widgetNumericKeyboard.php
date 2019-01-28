@@ -30,7 +30,17 @@
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
-        ?>
+            
+            $genFileContent = parse_ini_file("../conf/environment.ini");
+            $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+            $env = $genFileContent['environment']['value'];
+            $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$env];
+            $wsServerPort = $wsServerContent["wsServerPort"][$env];
+            $wsPath = $wsServerContent["wsServerPath"][$env];
+            $wsProtocol = $wsServerContent["wsServerProtocol"][$env];
+            $wsRetryActive = $wsServerContent["wsServerRetryActive"][$env];
+            $wsRetryTime = $wsServerContent["wsServerRetryTime"][$env];
+            $useActuatorWS = $wsServerContent["wsServerActuator"][$env];?>
                 
         var headerHeight = 25;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
@@ -46,27 +56,23 @@
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-        var widgetProperties, styleParameters, metricType, metricName, widgetParameters, 
-            sizeRowsWidget, widgetTitle, widgetHeaderColor, 
-            widgetHeaderFontColor, showHeader, minDim, minDimCells, minDimName, offset, dashboardId,
-            widgetWidthCells, widgetHeightCells,
-            entityJson, attributeName, updateMsgFontSize, setUpdatingMsgIndex, setUpdatingMsgInterval, 
-            dataType, displayColor, currentValue, fontFamily, targetCurrentStatus, oldValue,
-            onOffButtonPercentWidth, onOffButtonPercentHeight, onOffButtonRadius, buttonClickColor, textOnNeonEffect, textOffNeonEffect,
-            buttonColor, offValue, impulseValue, updateRequestStartTime, symbolColor, symbolClickColor, textClickColor, textColor,
-            symbolOnNeonEffect, symbolOffNeonEffect, symbolOnNeonEffectSetting, viewMode, textFontSize, displayFontSize,
-            displayFontColor, displayFontClickColor, displayRadius, displayColor, displayWidth, displayHeight, displayOffNeonEffect, 
-            displayOnNeonEffect, impulseMode, targetEntity, targetEntityAttribute, baseValue, sequenceEntityUpdateInterval, sentValue,
+        var widgetProperties, styleParameters, metricName, widgetParameters, sizeRowsWidget, widgetTitle, widgetHeaderColor, nrInputId,
+            widgetHeaderFontColor, showHeader, minDim, minDimCells, minDimName, dashboardId, widgetWidthCells, widgetHeightCells,
+            entityJson, attributeName, setUpdatingMsgInterval, dataType, displayColor, currentValue, fontFamily, displayFontColor, displayColor, sentValue,
             actuatorTarget, username, endPointHost, endPointPort, nodeRedInputName, btnColor, btnFontColor, displayColor, displayFontColor = null;
+        var useWebSocket = <?= $useActuatorWS ?>;
+        if(Window.webSockets == undefined)
+          Window.webSockets = {};
         
+        console.log("<?= $_REQUEST['name_w'] ?>");        
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-		{
-				showHeader = false;
-		}
-		else
-		{
-			showHeader = true;
-		} 
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        } 
             
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
@@ -211,7 +217,7 @@
                         type: "POST",
                         data: {
                             "dashboardId": dashboardId,
-                            "entityId": "<?= $_REQUEST['name_w'] ?>",
+                            "entityId": JSON.parse(entityJson).id,
                             "entityJson": entityJson,
                             "attributeName": attributeName,
                             "attributeType": JSON.parse(entityJson)[attributeName].type,
@@ -258,22 +264,19 @@
                     break;
                 
                 case 'app':
-                    $.ajax({
-                        url: "../widgets/actuatorUpdateValuePersonalApps.php",
-                        type: "POST",
-                        data: {
-                            "inputName": nodeRedInputName,
-                            "dashboardId": dashboardId,
-                            "widgetName": "<?= $_REQUEST['name_w'] ?>",
-                            "username" : $('#authForm #hiddenUsername').val(),
-                            "value": currentValue,
-                            "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
-                            "httpRoot": "<?= $_REQUEST['httpRoot'] ?>"
-                        },
-                        async: true,
-                        dataType: 'json',
-                        success: function(data) 
-                        {
+                    if(useWebSocket) {
+                        var data = {
+                              "msgType": "SendToEmitter",
+                              "widgetUniqueName": widgetName,
+                              "value": currentValue,
+                              "inputName": nodeRedInputName,
+                              "dashboardId": dashboardId,
+                              "username" : $('#authForm #hiddenUsername').val(),
+                              "nrInputId": nrInputId
+                        };
+                        var webSocket = Window.webSockets[widgetName];
+                        webSocket.ackReceived=false;
+                        webSocket.onAck = function(data) {
                             requestComplete = true;
                             //clearInterval(setUpdatingMsgInterval);
                             switch(data.result)
@@ -298,16 +301,79 @@
                                     showUpdateResult("Device OK");
                                     break;    
                             }
-                        },
-                        error: function(errorData)
-                        {
+                        }
+                        console.log(widgetName+" SEND ackReceived:"+webSocket.ackReceived)
+                        if(webSocket.readyState==webSocket.OPEN) {
+                            webSocket.send(JSON.stringify(data));
+                            webSocket.timeout = setTimeout(function() {
+                              if(!webSocket.ackReceived) {
+                                console.log(widgetName+" ERR1 ackReceived:"+webSocket.ackReceived)
+                                requestComplete = true;
+                                //clearInterval(setUpdatingMsgInterval);
+                                showUpdateResult("API KO");
+                                console.log("Update value KO");
+                              }
+                            },3000)
+                        } else {
+                            console.log(widgetName+" ERR1 socket not OPEN");
                             requestComplete = true;
                             //clearInterval(setUpdatingMsgInterval);
                             showUpdateResult("API KO");
                             console.log("Update value KO");
-                            console.log(JSON.stringify(errorData));
-                        }
-                    });
+                        }                      
+                    } else {                  
+                        $.ajax({
+                            url: "../widgets/actuatorUpdateValuePersonalApps.php",
+                            type: "POST",
+                            data: {
+                                "inputName": nodeRedInputName,
+                                "dashboardId": dashboardId,
+                                "widgetName": "<?= $_REQUEST['name_w'] ?>",
+                                "username" : $('#authForm #hiddenUsername').val(),
+                                "value": currentValue,
+                                "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
+                                "httpRoot": "<?= $_REQUEST['httpRoot'] ?>",
+                                "nrInputId": nrInputId
+                            },
+                            async: true,
+                            dataType: 'json',
+                            success: function(data) 
+                            {
+                                requestComplete = true;
+                                //clearInterval(setUpdatingMsgInterval);
+                                switch(data.result)
+                                {
+                                    case "insertQueryKo":
+                                        showUpdateResult("DB KO");
+                                        break;
+
+                                    case "updateBlockKo":
+                                        showUpdateResult("Device KO");
+                                        break;
+
+                                    case "updateBlockAndUpdateQueryKo":
+                                        showUpdateResult("DB and device KO");
+                                        break;
+
+                                    case "updateQueryKo":
+                                        showUpdateResult("DB KO");
+                                        break;
+
+                                    case "Ok":
+                                        showUpdateResult("Device OK");
+                                        break;    
+                                }
+                            },
+                            error: function(errorData)
+                            {
+                                requestComplete = true;
+                                //clearInterval(setUpdatingMsgInterval);
+                                showUpdateResult("API KO");
+                                console.log("Update value KO");
+                                console.log(JSON.stringify(errorData));
+                            }
+                        });
+                    }
                     break;  
             }
             
@@ -359,7 +425,7 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
         
         $.ajax({
             url: getParametersWidgetUrl,
@@ -382,32 +448,29 @@
                     actuatorTarget = widgetProperties.param.actuatorTarget;
                     if(actuatorTarget === 'broker')
                     {
-                        /*entityJson = widgetProperties.param.entityJson;
+                        entityJson = widgetProperties.param.entityJson;
                         attributeName = widgetProperties.param.attributeName;
                         dataType = JSON.parse(entityJson)[attributeName].type;
-                        targetEntity = widgetParameters.targetEntity;
-                        targetEntityAttribute = widgetParameters.targetEntityAttribute;
-                        impulseValue = widgetParameters.impulseValue;
-                        baseValue = widgetParameters.baseValue;*/
                     }
                     else
                     {
+                        nrInputId = widgetProperties.param.nrInputId;
                         nodeRedInputName = widgetProperties.param.name;
                         dataType = widgetProperties.param.valueType;
-                        /*baseValue = widgetProperties.param.offValue;
-                        impulseValue = widgetProperties.param.onValue;*/
                         username = widgetProperties.param.creator;
                         endPointHost = widgetProperties.param.endPointHost;
                         endPointPort = widgetProperties.param.endPointPort;
+                        if(useWebSocket)
+                          openWs(widgetName)
                     }
                     
                     switch(dataType)
                     {
-                        case "Integer":
+                        case "Integer": case "integer":
                             currentValue = parseInt(widgetProperties.param.currentValue);
                             break;
 
-                        case "Float":
+                        case "Float": case "float":
                             currentValue = parseFloat(widgetProperties.param.currentValue);
                             break;
                     }
@@ -446,32 +509,120 @@
             },
             complete: function()
             {
+                $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+                    resizeWidget();
+                });
                 
+                $(document).on('resizeHighchart_' + widgetName, function(event)
+                {
+                    showHeader = event.showHeader;
+                });
             }
         });
         
         
+        //Web socket 
+        
+        var openWs = function(widget)
+        {
+            try
+            {
+                <?php
+                    echo 'wsRetryActive = "' . $wsRetryActive . '";'."\n";
+                    echo 'wsRetryTime = ' . $wsRetryTime . ';'."\n";
+                    echo 'wsUrl="' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '";'."\n";
+                ?>
+                //webSocket = new WebSocket(wsUrl);
+                initWebsocket(widget, wsUrl, null, wsRetryTime*1000, function(socket){
+                    console.log('socket initialized!');
+                    //do something with socket...
+                    //Window.webSockets["<?= $_REQUEST['name_w'] ?>"] = socket;
+                    openWsConn(widget);
+                }, function(){
+                    console.log('init of socket failed!');
+                });                                          
+                /*webSocket.addEventListener('open', openWsConn);
+                webSocket.addEventListener('close', wsClosed);*/
+            }
+            catch(e)
+            {
+                wsClosed();
+            }
+        };
+        
+        var manageIncomingWsMsg = function(msg)
+        {
+            var msgObj = JSON.parse(msg.data);
+            console.log(msgObj);
+            if(msgObj.msgType=="DataToEmitterAck") {
+              var webSocket = Window.webSockets[msgObj.widgetUniqueName];
+              if(! webSocket.ackReceived) {
+                clearTimeout(webSocket.timeout);
+                webSocket.ackReceived = true;
+                console.log(msgObj.widgetUniqueName+" ACK ackReceived:"+webSocket.ackReceived)
+                webSocket.onAck({result:"Ok", widgetName:msgObj.widgetUniqueName});
+              }
+            }
+        };
+        
+        timeToReload=200;
+        var openWsConn = function(widget) {            
+            var webSocket = Window.webSockets[widget];
+            /*setTimeout(function(){
+                var webSocket = Window.webSockets[widget];
+                webSocket.removeEventListener('message', manageIncomingWsMsg);
+                webSocket.close();
+            }, (timeToReload - 2)*1000);*/
+              
+            webSocket.addEventListener('message', manageIncomingWsMsg);
+        };
+        
+        var wsClosed = function(e)
+        {
+            var webSocket = Window.webSockets["<?= $_REQUEST['name_w'] ?>"];
+            webSocket.removeEventListener('message', manageIncomingWsMsg);
+            if(wsRetryActive === 'yes')
+            {
+                setTimeout(openWs, parseInt(wsRetryTime*1000));
+            }	
+        };
+
+        function initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed) {
+          if (!existingWebsocket || existingWebsocket.readyState != existingWebsocket.OPEN) {
+              if (existingWebsocket) {
+                  existingWebsocket.close();
+              }
+              var websocket = new WebSocket(url);
+              websocket.widget = widget;
+              console.log("store websocket for "+widget)
+              Window.webSockets[widget] = websocket;
+              websocket.onopen = function () {
+                  console.info('websocket opened! url: ' + url);
+                  success(websocket);
+              };
+              websocket.onclose = function () {
+                  console.info('websocket closed! url: ' + url + " reconnect in "+retryTimeMs+"ms");
+                  //reconnect after a retryTime
+                  setTimeout(function(){
+                    initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed);
+                  }, retryTimeMs);
+              };
+              websocket.onerror = function (e) {
+                  console.info('websocket error! url: ' + url);
+                  console.info(e);
+              };
+          } else {
+              success(existingWebsocket);
+          }
+          return;
+      };
 });//Fine document ready 
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-               <i class="material-icons gisDriverPin" data-onMap="false">navigation</i>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -483,6 +634,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available

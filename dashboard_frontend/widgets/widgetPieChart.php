@@ -53,7 +53,7 @@
         var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, 
             pattern, totValues, shownValues, descriptions, udm, threshold, thresholdEval, stopsArray, 
             delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength, metricName, widgetTitle, countdownRef,
-            innerRadius1, widgetParameters, thresholdsJson, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+            innerRadius1, widgetParameters, thresholdsJson = null;
         var colors = [];
 	var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
         var wsRetryActive, wsRetryTime = null;
@@ -114,6 +114,7 @@
 	$(document).off('resizeHighchart_' + widgetName);
         $(document).on('resizeHighchart_' + widgetName, function(event) 
         {
+            showHeader = event.showHeader;
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
         });
         //Definizioni di funzione specifiche del widget
@@ -137,7 +138,7 @@
                     plotBorderWidth: null,
                     plotShadow: false,
                     type: 'pie',
-                    backgroundColor: '<?= $_REQUEST['color_w'] ?>',
+                    backgroundColor: 'transparent',
                     options3d: {
                         enabled: false,
                         alpha: 45,
@@ -869,19 +870,12 @@
         
         function resizeWidget()
 	{
-            if(metricType === 'Series')
-            {
-                clearInterval(countdownRef);
-                <?= $_REQUEST['name_w'] ?>(metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
-            }
-            else
-            {
-                setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+            setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
             
-                var bodyHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - widgetHeaderHeight);
-                $("#" + widgetName + "_loading").css("height", bodyHeight + "px");
-                $("#" + widgetName + "_content").css("height", bodyHeight + "px");
-            } 
+            var bodyHeight = parseInt($("#" + widgetName + "_div").prop("offsetHeight") - widgetHeaderHeight);
+            $("#" + widgetName + "_loading").css("height", bodyHeight + "px");
+            $("#" + widgetName + "_content").css("height", bodyHeight + "px");
+            $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow(); 
 	}
         //Fine definizioni di funzione 
         
@@ -897,9 +891,8 @@
         {
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        addLink(widgetName, url, linkElement, divContainer);
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
-        //widgetProperties = getWidgetProperties(widgetName);
+        //addLink(widgetName, url, linkElement, divContainer, null);
+        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
         
         //Nuova versione
         if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
@@ -1251,132 +1244,26 @@
             }
         });
         
-        //Web socket 
-        openWs = function(e)
-        {
-            console.log("Widget " + widgetTitle + " is trying to open WebSocket");
-            try
-            {
-                <?php
-                    $genFileContent = parse_ini_file("../conf/environment.ini");
-                    $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
-                    $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
-                    $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
-                    $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
-                    $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
-                    $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
-                    $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
-                    echo 'wsRetryActive = "' . $wsRetryActive . '";';
-                    echo 'wsRetryTime = ' . $wsRetryTime . ';';
-                    echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
-                ?>
-                                            
-                webSocket.addEventListener('open', openWsConn);
-                webSocket.addEventListener('close', wsClosed);
-                
-                setTimeout(function(){
-                    webSocket.close();
-                }, (timeToReload - 2)*1000);
-            }
-            catch(e)
-            {
-                console.log("Widget " + widgetTitle + " could not connect to WebSocket");
-                wsClosed();
-            }
-        };
+        $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
+            resizeWidget();
+        });
         
-        manageIncomingWsMsg = function(msg)
-        {
-            console.log("Widget " + widgetTitle + " got new data from WebSocket: \n" + msg.data);
-            var msgObj = JSON.parse(msg.data);
-
-            switch(msgObj.msgType)
-            {
-                case "newNRMetricData":
-                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
-                    {
-                        webSocket.close();
-                        clearInterval(countdownRef);
-                        <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef);
-                    }
-                    break;
-
-                default:
-                    console.log("Received: " + msg.data);
-                    break;
-            }
-        };
-        
-        openWsConn = function(e)
-        {
-            console.log("Widget " + widgetTitle + " connected successfully to WebSocket");
-            var wsRegistration = {
-                msgType: "ClientWidgetRegistration",
-                userType: "widgetInstance",
-                metricName: encodeURIComponent(metricName)
-              };
-              webSocket.send(JSON.stringify(wsRegistration));
-
-              setTimeout(function(){
-                  webSocket.removeEventListener('close', wsClosed);
-                  webSocket.removeEventListener('open', openWsConn);
-                  webSocket.removeEventListener('message', manageIncomingWsMsg);
-                  webSocket.close();
-                  webSocket = null;
-              }, (timeToReload - 2)*1000);
-              
-            webSocket.addEventListener('message', manageIncomingWsMsg);
-        };
-        
-        wsClosed = function(e)
-        {
-            console.log("Widget " + widgetTitle + " got WebSocket closed");
-            
-            webSocket.removeEventListener('close', wsClosed);
-            webSocket.removeEventListener('open', openWsConn);
-            webSocket.removeEventListener('message', manageIncomingWsMsg);
-            webSocket = null;
-            if(wsRetryActive === 'yes')
-            {
-                console.log("Widget " + widgetTitle + " will retry WebSocket reconnection in " + parseInt(wsRetryTime) + "s");
-                setTimeout(openWs, parseInt(wsRetryTime*1000));
-            }					
-        };
-        
-        //Per ora non usata
-        wsError = function(e)
-        {
-            console.log("Widget " + widgetTitle + " got WebSocket error: " + e);
-        };
-        
-        openWs();
+        $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
+        $("#<?= $_REQUEST['name_w'] ?>").on('updateFrequency', function(event){
+                clearInterval(countdownRef);
+                timeToReload = event.newTimeToReload;
+                countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
+        });
         
         countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
-        
-            
-        
-        
     });//Fine document ready
 
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
-	    <?php include '../widgets/widgetHeader.php'; ?>
-		<?php include '../widgets/widgetCtxMenu.php'; ?>
-        <!--<div id='<?= $_REQUEST['name_w'] ?>_header' class="widgetHeader">
-            <div id="<?= $_REQUEST['name_w'] ?>_infoButtonDiv" class="infoButtonContainer">
-               <a id ="info_modal" href="#" class="info_source"><i id="source_<?= $_REQUEST['name_w'] ?>" class="source_button fa fa-info-circle" style="font-size: 22px"></i></a>
-            </div>    
-            <div id="<?= $_REQUEST['name_w'] ?>_titleDiv" class="titleDiv"></div>
-            <div id="<?= $_REQUEST['name_w'] ?>_buttonsDiv" class="buttonsContainer">
-                <div class="singleBtnContainer"><a class="icon-cfg-widget" href="#"><span class="glyphicon glyphicon-cog glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-                <div class="singleBtnContainer"><a class="icon-remove-widget" href="#"><span class="glyphicon glyphicon-remove glyphicon-modify-widget" aria-hidden="true"></span></a></div>
-            </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_countdownContainerDiv" class="countdownContainer">
-                <div id="<?= $_REQUEST['name_w'] ?>_countdownDiv" class="countdown"></div> 
-            </div>   
-        </div>-->
+        <?php include '../widgets/widgetHeader.php'; ?>
+        <?php include '../widgets/widgetCtxMenu.php'; ?>
         
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
@@ -1388,6 +1275,7 @@
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainerPie"></div>
             <div id="<?= $_REQUEST['name_w'] ?>_legendContainer1" class="legendContainer1"></div>
