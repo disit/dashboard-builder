@@ -118,6 +118,9 @@ foreach ($resKPIArray as $resKPIRecord) {
     $last_value_KPI = $resKPIRecord['lastValue'];
     $unit_KPI = $resKPIRecord['dataType'] . "-mykpi";
     $get_instances_KPI = $resKPIRecord['getInstances'];
+    if ($get_instances_KPI == "") {
+        $get_instances_KPI = $parameters_KPI;
+    }
     $last_date_KPI_millis = $resKPIRecord['lastDate'];
     $last_date_KPI = date("Y-m-d H:i:s",$last_date_KPI_millis/1000);
 
@@ -202,12 +205,16 @@ foreach ($resPOIArray as $resPOIRecord) {
         $unique_name_id_POI = $resPOIRecord['properties']['kpidata']['valueName'];
         $last_value_POI = $resPOIRecord['properties']['kpidata']['lastValue'];
         //   $unit_POI = $resPOIRecord['dataType'];
-        $get_instances_POI = $resPOIRecord['properties']['kpidata']['getInstances'];
+
         $last_date_POI_millis = $resPOIRecord['properties']['kpidata']['lastDate'];
         $last_date_POI = date("Y-m-d H:i:s", $last_date_POI_millis / 1000);
      //   $parameters_POI = $resPOIRecord['properties']['kpidata']['id'] . "__" . $resPOIRecord['geometry']['coordinates'][1] . ";" . $resPOIRecord['geometry']['coordinates'][0];
         $parameters_POI = "datamanager/api/v1/poidata/" . $resPOIRecord['properties']['kpidata']['id'];
         $ownership_POI = $resPOIRecord['properties']['kpidata']['ownership'];
+        $get_instances_POI = $resPOIRecord['properties']['kpidata']['getInstances'];
+        if ($get_instances_POI == "") {
+            $get_instances_POI = $parameters_POI;
+        }
 
         //  $metric_POI = $resPOIRecord['metric'];
       //  $saved_direct_POI = $resPOIRecord['savedDirect'];
@@ -295,6 +302,9 @@ foreach ($resMyDataArray as $resMyDataRecord) {
     $last_value_MyData = $resMyDataRecord['lastValue'];
     $unit_MyData = $resMyDataRecord['dataType'] . "-mykpi";
     $get_instances_MyData = $resMyDataRecord['getInstances'];
+    if ($get_instances_MyData == "") {
+        $get_instances_MyData = $parameters_MyData;
+    }
     $last_date_MyData_millis = $resMyDataRecord['lastDate'];
     $last_date_MyData = date("Y-m-d H:i:s",$last_date_MyData_millis/1000);
 
@@ -421,6 +431,20 @@ foreach ($resArray as $resRecord) {
 
 // Eventualmente eseguire da qui HealthinessCheck.php ?
 // include 'HealthinessCheck.php';
+
+$queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
+$rs = mysqli_query($link, $queryMaxId);
+$result = [];
+if($rs) {
+
+    $dashboardName = "";
+
+    if ($row = mysqli_fetch_assoc($rs)) {
+        $maxWizardId = $row['id'];
+        $queryUpdateMaxId = "ALTER TABLE Dashboard.DashboardWizard AUTO_INCREMENT " . (string) (intval($maxWizardId) + 1);
+        $rs2 = mysqli_query($link, $queryUpdateMaxId);
+    }
+}
 
 $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');

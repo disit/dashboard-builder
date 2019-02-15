@@ -472,7 +472,7 @@
                                         $k1 = generateUUID();
                                         $k2 = generateUUID();
 
-                                        $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . $_SESSION['loggedUsername'] . "&organization=" . $_SESSION['loggedOrganization'];
+                                        $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . rawurlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization'];
                                         
                                         try
                                         {
@@ -2003,7 +2003,7 @@
                                     $k1 = generateUUID();
                                     $k2 = generateUUID();
 
-                                    $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . $_SESSION['loggedUsername'] . "&organization=" . $_SESSION['loggedOrganization'];
+                                    $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . rawurlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization'];
 
                                     try
                                     {

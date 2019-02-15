@@ -185,13 +185,13 @@
         
         $('#headerTitleCnt').html(decodeURI("<?= $_REQUEST['pageTitle'] ?>"));
         
-        if('<?= $_REQUEST['linkUrl']?>' === 'myAnnotationsOnServicesAndData')
+        if('<?= addslashes($_REQUEST['linkUrl'])?>' === 'myAnnotationsOnServicesAndData')
         {
             $('#iframeApp').attr('src', '../api/personalAnnotationsSecureLoad.php');
         }
         else
         {
-            $('#iframeApp').attr('src', '<?= $_REQUEST['linkUrl']?>');
+            $('#iframeApp').attr('src', '<?= addslashes($_REQUEST['linkUrl'])?>');
         }
     });//Fine document ready
 </script>

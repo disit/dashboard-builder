@@ -63,7 +63,8 @@ if(isset($_SESSION['loggedUsername']))
                     // URL ENCODE $newDelegated
                     $newDelegatedEncoded = urlencode($newDelegated);
                     $callBody = ["groupnameDelegated" => $newDelegated, "elementId" => $dashboardId, "elementType" => "DashboardID"];
-                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $dashboardAuthor . "/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                    // ENCODIZZARE username per username con SPAZI !!!
+                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($dashboardAuthor) . "/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
 
                     $options = array(
                         'http' => array(

@@ -278,7 +278,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             var myGpsActive, myGpsPeriod, myGpsInterval, globalDashboardTitle = null, backOverlayOpacity = null;
             var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo $_REQUEST['embedPreview'];}else{echo 'false';} ?>";
             var loggedUsername = "<?php echo $_SESSION['loggedUsername']; ?>";
-          
+
             
             $("#chatContainer").css("top", $('#dashboardViewHeaderContainer').height());
             $("#chatContainer").css("left", $(window).width() - $('#chatContainer').width());
@@ -605,7 +605,20 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 {
                     $('#dashBckOverlay').hide();
                 }
-                                
+
+                if( navigator.userAgent.match(/Android/i)
+                    || navigator.userAgent.match(/webOS/i)
+                    || navigator.userAgent.match(/iPhone/i)
+                    || navigator.userAgent.match(/iPad/i)
+                    || navigator.userAgent.match(/iPod/i)
+                    || navigator.userAgent.match(/BlackBerry/i)
+                    || navigator.userAgent.match(/Windows Phone/i)) {
+
+                    $('#dashBckCnt').css('width', '100%');
+                    $('#dashBckCnt').css('height', '100%');
+
+                }
+
                 if('<?php echo $embeddable; ?>' === 'yes')
                 {
                     if(window.self !== window.top)

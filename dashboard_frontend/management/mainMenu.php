@@ -372,7 +372,7 @@
                         $(this).find('div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
                         if($(this).attr('data-externalApp') === 'yes')
                         {
-                            location.href = "iframeApp.php?linkUrl=" + encodeURI(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
+                            location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
                         }
                         break;
                         
@@ -423,7 +423,7 @@
                     $(this).find('div.mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
                     if($(this).attr('data-externalApp') === 'yes')
                     {
-                        location.href = "iframeApp.php?linkUrl=" + encodeURI(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=" + submenuId;
+                        location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=" + submenuId;
                     }
                     break;
 

@@ -1244,6 +1244,15 @@
                                         //fake: $(this).attr("data-fake")
                                     }); 
                                 }
+
+                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                                    if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                    {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                });
                             }
                         });
                         
@@ -1295,7 +1304,7 @@
                         });
 
                         $('#<?= $_REQUEST['name_w'] ?> div.leaflet-popup').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?> div.leaflet-popup').on('click', function(){
+                     /*   $('#<?= $_REQUEST['name_w'] ?> div.leaflet-popup').on('click', function(){
                             var compLatLngId = $(this).find('input[type=hidden]').val();
 
                             $('#<?= $_REQUEST['name_w'] ?> div.leaflet-popup').css("z-index", "-1");
@@ -1527,7 +1536,7 @@
                                     $(this).off("click");
                                 }
                             });
-                        });
+                        }); */
                     },
                     error: function(errorData)
                     {

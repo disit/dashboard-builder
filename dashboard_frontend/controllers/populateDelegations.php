@@ -19,7 +19,7 @@ if($r)
     {
         $dashboardAuthor = $row['user'];
         $callBody = ["usernameDelegated" => "ANONYMOUS", "elementId" => $row['Id'], "elementType" => "DashboardID", "sourceRequest" => "dashboardmanager"];            
-        $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $dashboardAuthor . "/delegation";
+        $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($dashboardAuthor) . "/delegation";
 
         $options = array(
               'http' => array(

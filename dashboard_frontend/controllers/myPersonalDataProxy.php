@@ -32,7 +32,7 @@ if(isset($_SESSION['loggedUsername']))
 {
     $username = $_SESSION['loggedUsername'];
     $vname = $_REQUEST['variableName'];
-    switch($vname) {
+/*    switch($vname) {
       case 'Num_Utenti_globali_connessi':
       case 'Num_Utenti_distinti_globali':
       case 'Timestamp_estrazione_dati':
@@ -43,15 +43,15 @@ if(isset($_SESSION['loggedUsername']))
 
         $link = mysqli_connect($sql_host_pd, $usrDb, $pwdDb);
         mysqli_select_db($link, "profiledb");
-        $r = mysqli_query($link, "SELECT unix_timestamp(data_time) as data_time_uts,app_name,app_id,variable_vale,variable_unit FROM data WHERE variable_name ='$vname' AND username='$username' ORDER BY data_time DESC LIMIT 1");
+        $r = mysqli_query($link, "SELECT unix_timestamp(data_time) as data_time_uts,app_name,app_id,variable_value,variable_unit FROM data WHERE variable_name ='$vname' AND username='$username' ORDER BY data_time DESC LIMIT 1");
         if($r && $row=  mysqli_fetch_assoc($r)) {
-          $result='[{"username":"'.$username.'","dataTime":'.$row['data_time'].
+          $result='[{"username":"'.$username.'","dataTime":'.$row['data_time_uts'].
                   ',"APPName":"'.$row['app_name'].'","APPID":"'.$row['app_id]'].
-                  '","motivation":"","variableName":"'.$vname.'","variableValue":"'.$row['variable_value'].'","variableUnit":"'.$row['variable_unit'].'"}';
+                  '","motivation":"","variableName":"'.$vname.'","variableValue":"'.$row['variable_value'].'","variableUnit":"'.$row['variable_unit'].'"}]';
           echo $result;
           exit;
         } 
-    }
+    }*/
     if(isset($_SESSION['refreshToken'])) 
     {
         $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
@@ -61,6 +61,7 @@ if(isset($_SESSION['loggedUsername']))
 
         $accessToken = $tkn->access_token;
         $_SESSION['refreshToken'] = $tkn->refresh_token;
+
         
         if(isset($_REQUEST['fromTime']))
         {
@@ -97,17 +98,17 @@ if(isset($_SESSION['loggedUsername']))
             $startTimeFormatted = $startDate . "T" . $startTime;
             
             //$todayDate = date("Y-m-d", time()) . "T00:00:00";
-            $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $_SESSION['loggedUsername'] . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&from=" . $startTimeFormatted;
+            $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&from=" . $startTimeFormatted;
         }
         else
         {
             if(isset($_REQUEST['']))
             {
-                $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $_SESSION['loggedUsername'] . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'] . "&motivation=" . urlencode($_REQUEST['motivation']);
+                $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'] . "&motivation=" . urlencode($_REQUEST['motivation']);
             }
             else
             {
-                $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $_SESSION['loggedUsername'] . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'];
+                $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'];
             }
         }
                     

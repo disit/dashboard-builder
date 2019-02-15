@@ -50,7 +50,8 @@ if(isset($_SESSION['loggedUsername']))
             $accessToken = $tkn->access_token;
             $_SESSION['refreshToken'] = $tkn->refresh_token;
 
-            $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $dashboardAuthor . "/delegation/" .$delegationId . "?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+            // ENCODIZZARE username per username con SPAZI !!!
+            $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($dashboardAuthor) . "/delegation/" .$delegationId . "?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
 
             $options = array(
                 'http' => array(

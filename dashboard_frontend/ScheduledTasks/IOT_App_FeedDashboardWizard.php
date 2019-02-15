@@ -26,6 +26,7 @@ $startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $lastCheck = str_replace("T", " ", $start_scritp_time_string[0]);
+echo("Starting FeedT IO_App SCRIPT at: ".$lastCheck."\n");
 
 $count2 = 0;
 
@@ -46,13 +47,14 @@ $sm_based2 = "";
 $parameters2 = "";
 $healthiness2 = "true";
 $ownership2 = "";
+$organizations2 = "";
 
 $s2 = "";
 $a2 = "";
 $dt2 = "";
 $actSensArray2 = [];
 
-$query2 = "SELECT NR.name, NR.metricType, NR.appId, NR.flowId, NR.flowName, NR.httpRoot, C.name_w, C.title_w, C.type_w, C.id_dashboard FROM Dashboard.NodeRedMetrics NR INNER JOIN Dashboard.Config_widget_dashboard C ON C.id_metric = NR.name;";
+$query2 = "SELECT NR.name, NR.metricType, NR.appId, NR.flowId, NR.flowName, NR.httpRoot, NR.organization, C.name_w, C.title_w, C.type_w, C.id_dashboard FROM Dashboard.NodeRedMetrics NR INNER JOIN Dashboard.Config_widget_dashboard C ON C.id_metric = NR.name;";
 $rs2 = mysqli_query($link, $query2);
 $result2 = [];
 if($rs2) {
@@ -112,9 +114,10 @@ if($rs2) {
                             $sm_based2 = "no";
                             
                             $ownership2 = "private";
+                            $organizations2 = $row2['organization'];
 
-                            $insertQuery2 = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership) VALUES ('$nature2','$high_level_type2','$sub_nature2','$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', '$healthiness2', '$lastCheck', '$ownership2') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "', get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "';";
-                            mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership) VALUES ('$nature2','$high_level_type2','$sub_nature2','$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', '$healthiness2', '$lastCheck', '$ownership2') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "',  get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "';");
+                            $insertQuery2 = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature2','$high_level_type2','$sub_nature2','$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', '$healthiness2', '$lastCheck', '$ownership2', '$organizations2') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "', get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "', organizations = '" . $organizations2 . "';";
+                            mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature2','$high_level_type2','$sub_nature2','$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', '$healthiness2', '$lastCheck', '$ownership2', '$organizations2') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "',  get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "', organizations = '" . $organizations2 . "';");
                             $count2++;
                             echo($count2 . " - Dashboard METRIC for DataViewers (From IOT App to Dashboard) : " . $unique_name_id2 . ", MEASURE: " . $low_level_type2 . "\n");
                     
@@ -144,13 +147,14 @@ $sm_based = "";
 $parameters = "";
 $healthiness = "true";
 $ownership = "";
+$organizations = "";
 
 $s = "";
 $a = "";
 $dt = "";
 $actSensArray = [];
 
-$query = "SELECT NR.name, NR.valueType, NR.appId, NR.flowId, NR.flowName, NR.httpRoot, C.name_w, C.title_w, C.type_w, C.id_dashboard FROM Dashboard.NodeRedInputs NR INNER JOIN Dashboard.Config_widget_dashboard C ON C.id_metric = NR.name;";
+$query = "SELECT NR.name, NR.valueType, NR.appId, NR.flowId, NR.flowName, NR.httpRoot, NR.organization, C.name_w, C.title_w, C.type_w, C.id_dashboard FROM Dashboard.NodeRedInputs NR INNER JOIN Dashboard.Config_widget_dashboard C ON C.id_metric = NR.name;";
 $rs = mysqli_query($link, $query);
 $result = [];
 if($rs) {
@@ -219,9 +223,10 @@ if($rs) {
                             $sm_based = "no";
                             //    $parameters = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $s . "&format=json";     // EMPTY
                             $ownership = "private";
+                            $organizations = $row['organization'];
                             // METTERE ANCHE HEALTHINESS A VERDE
-                            $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';";
-                            mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
+                            $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck', '$ownership', '$organizations') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "';";
+                            mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck', '$ownership', '$organizations') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "';");
                             $count++;
                             echo($count . " - Dashboard ACTUATOR (From Dashboard to IOT App) : " . $unique_name_id . ", MEASURE: " . $low_level_type . "\n");
                     //    }
@@ -231,3 +236,23 @@ if($rs) {
         }
     }
 }
+
+$queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
+$rs = mysqli_query($link, $queryMaxId);
+$result = [];
+if($rs) {
+
+    $dashboardName = "";
+
+    if ($row = mysqli_fetch_assoc($rs)) {
+        $maxWizardId = $row['id'];
+        $queryUpdateMaxId = "ALTER TABLE Dashboard.DashboardWizard AUTO_INCREMENT " . (string) (intval($maxWizardId) + 1);
+        $rs2 = mysqli_query($link, $queryUpdateMaxId);
+    }
+}
+
+$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$end_scritp_time = $endTime->format('c');
+$end_scritp_time_string = explode("+", $end_scritp_time);
+$end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);
+echo("End Feed IOT_App SCRIPT at: ".$end_time_ok);

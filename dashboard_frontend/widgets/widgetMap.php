@@ -4366,7 +4366,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             let longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
                             let query = "";
                             if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
-                                query = baseQuery + '&limit=50&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                                query = baseQuery + '&limit=30&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
                                 let metricNameSplit = baseQuery.split("metricName=")[1];
                             } else {
                               //  let metricNameSplit = baseQuery.split("metricName=")[1];
@@ -4374,7 +4374,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             //    var datasetNameAux = baseQuery.split("https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=")[1];
                                 var datasetNameAux = baseQuery.split("WMS&layers=")[1];
                                 wmsDatasetName = datasetNameAux.split("&metricName=")[0];
-                                query = 'https://heatmap.snap4city.org/heatmap.php?dataset=' + wmsDatasetName + '&limit=50&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                                query = 'https://heatmap.snap4city.org/heatmap.php?dataset=' + wmsDatasetName + '&limit=30&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
                             }
 
                             heatmapData = null;
@@ -4486,13 +4486,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 format: 'image/png',
                                                 crs: L.CRS.EPSG4326,
                                                 transparent: true,
-                                                opacity: 0.8,
+                                                opacity: 0.5,
                                                 time: timestampISO,
                                               //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                                                 tiled: true   // TESTARE COME ANTWERP ??
                                               //  attribution: "IGN ©"
                                             }).addTo(map.defaultMapRef);
-                                            current_opacity = 0.8;
+                                            current_opacity = 0.5;
 
                                           //  var imageUrl = 'http://blackicemedia.com/presentations/2013-02-hires/img/awesome_tiger.svg',
                                          /*   var imageUrl = '../img/prova.png';
@@ -5098,6 +5098,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
                     }
                     populateWidget();
+                 //   globalMapView = true;
                 },
                 error: function (errorData) {
 
@@ -6598,7 +6599,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         format: 'image/png',
                                         crs: L.CRS.EPSG4326,
                                         transparent: true,
-                                        opacity: 0.8,
+                                        opacity: 0.5,
                                         time: timestampISO,
                                         //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                                         tiled: true   // TESTARE COME ANTWERP ??
@@ -6630,7 +6631,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
 
                     }
-                }, 500);    // PANTALEO - AUMENTARE UN PO' IL VALORE DI setTimeOut QUI SE LA MAPPA NON CARICA ABBASTANZA VELOCEMENTE SE HA UNA HEATMAP DI DEFAULT
+                }, 750);    // PANTALEO - AUMENTARE UN PO' IL VALORE DI setTimeOut QUI SE LA MAPPA NON CARICA ABBASTANZA VELOCEMENTE SE HA UNA HEATMAP DI DEFAULT
 
                 $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen").modal('show');
 

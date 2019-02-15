@@ -82,6 +82,19 @@ foreach ($resArrayPreviMeteo['results']['bindings'] as $key => $val) {
 
 }
 
+$queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
+$rs = mysqli_query($link, $queryMaxId);
+$result = [];
+if($rs) {
+
+    $dashboardName = "";
+
+    if ($row = mysqli_fetch_assoc($rs)) {
+        $maxWizardId = $row['id'];
+        $queryUpdateMaxId = "ALTER TABLE Dashboard.DashboardWizard AUTO_INCREMENT " . (string) (intval($maxWizardId) + 1);
+        $rs2 = mysqli_query($link, $queryUpdateMaxId);
+    }
+}
 
 $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');

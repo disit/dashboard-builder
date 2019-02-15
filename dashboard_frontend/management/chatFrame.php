@@ -63,7 +63,7 @@ session_start();
                 curl_close($curl);
                 $arr = json_decode($curl_response, true);
                 if (!$arr["result"]) {
-                    $service_url = "http://192.168.0.10:8080/datamanager/api/v1/username/" . $addMem . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
+                    $service_url = "http://192.168.0.10:8080/datamanager/api/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
                     $curl = curl_init($service_url);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                     $curl_response = curl_exec($curl);

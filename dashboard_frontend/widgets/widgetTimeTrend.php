@@ -50,6 +50,7 @@
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
         var needWebSocket = false;
+    //    var loggedRole = "<?php echo $_SESSION['loggedRole'] ?>";
         var loggedOrg = "<?php echo $_SESSION['loggedOrganization'] ?>";
         var orgKbUrl = "<?php echo $_SESSION['orgKbUrl'] ?>";
         var orgCentreGpsCoords = "<?php echo $_SESSION['orgGpsCentreLatLng'] ?>";
@@ -1135,6 +1136,10 @@
                 if (dashboardOrg != null || dashboardOrg != undefined) {
 
                 }
+
+            //    if (loggedRole == "RootAdmin") {
+                    dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
+             //   }
 
                 $.ajax({
                  //   url: orgKbUrl + "?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,

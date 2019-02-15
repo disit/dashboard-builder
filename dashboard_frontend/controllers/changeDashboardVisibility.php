@@ -78,8 +78,9 @@ if(isset($_SESSION['loggedUsername']))
                 if(strpos($http_response_header[0], '200') !== false) 
                 {
                     //2) Aggiungiamo delega anonima; 
-                    $callBody = ["usernameDelegated" => "ANONYMOUS", "elementId" => $dashboardId, "elementType" => "DashboardID"];            
-                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $dashboardAuthor . "/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                    $callBody = ["usernameDelegated" => "ANONYMOUS", "elementId" => $dashboardId, "elementType" => "DashboardID"];
+                    // ENCODIZZARE username per username con SPAZI !!!
+                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($dashboardAuthor) . "/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
 
                     $options = array(
                           'http' => array(

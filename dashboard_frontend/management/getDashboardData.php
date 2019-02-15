@@ -361,7 +361,7 @@
                                     $_SESSION['refreshToken'] = $tkn->refresh_token;
                                     //Se non è autore, controlliamo se ha delega
                                 //    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $authorUsername . "/delegator?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
-                                    $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . $_SESSION['loggedUsername'] . "/delegated?accessToken=" . $accessToken. "&sourceRequest=dashboardmanager";
+                                    $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . rawurlencode($_SESSION['loggedUsername']) . "/delegated?accessToken=" . $accessToken. "&sourceRequest=dashboardmanager";
 
                                     $options = array(
                                         'http' => array(

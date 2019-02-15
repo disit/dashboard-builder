@@ -47,6 +47,7 @@ $env = $genFileContent['environment']['value'];
 
 $count = 1;
 
+//$query = "SELECT * FROM Dashboard.Config_dashboard WHERE deleted != 'yes' AND (organizations IS NULL OR organizations = 'Other') ORDER BY id DESC;";
 $query = "SELECT * FROM Dashboard.Config_dashboard WHERE deleted != 'yes' ORDER BY id DESC;";
 $rs = mysqli_query($link, $query);
 $result = [];
@@ -65,10 +66,10 @@ if($rs) {
         $organization = checkLdapOrganization($ds, $ldapUsername, $ldapBaseDN);
         if (is_null($organization)) {
             $organization = "None";
-            $organizationName = "None";
+            $organizationName = "Other";
         } else if ($organization == "") {
             $organization = "None";
-            $organizationName = "None";
+            $organizationName = "Other";
         } else {
             $organizationName = $organization;
         }

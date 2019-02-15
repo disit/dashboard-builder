@@ -50,9 +50,9 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var err error
 		var username, role, organization string
 		if dat["accessToken"] != nil {
-			username, role, organization, err = checkToken(dat["accessToken"].(string), "nodered")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
 			if err != nil {
-				username, role, organization, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
+				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
 			}
 		} else {
 			err = fmt.Errorf("missing accessToken")
@@ -63,6 +63,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			response["error"] = err
 		} else {
 			if role != "RootAdmin" {
+				organization, _ = getOrganization(username)
 				log.Print("AddEmitter: force user ", username, "@", organization, "/", dat["user"])
 				dat["user"] = username
 				dat["organization"] = organization
@@ -84,8 +85,8 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 				response["result"] = "Ko"
 				response["error"] = err
 			} else {
-				res, err := db.Exec("INSERT INTO Dashboard.NodeRedInputs(name, valueType, user, startValue, domainType, minValue, NodeRedInputs.maxValue, offValue, onValue, endPointPort, endPointHost, httpRoot, appId, flowId, flowName, nodeId) "+
-					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dat["name"], dat["valueType"], dat["user"], dat["startValue"], dat["domainType"], dat["minValue"], dat["maxValue"], dat["offValue"], dat["onValue"], dat["endPointPort"], dat["endPointHost"], dat["httpRoot"], dat["appId"], dat["flowId"], dat["$flowName"], dat["nodeId"])
+				res, err := db.Exec("INSERT INTO Dashboard.NodeRedInputs(name, valueType, user, startValue, domainType, minValue, NodeRedInputs.maxValue, offValue, onValue, endPointPort, endPointHost, httpRoot, appId, flowId, flowName, nodeId, organization) "+
+					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dat["name"], dat["valueType"], dat["user"], dat["startValue"], dat["domainType"], dat["minValue"], dat["maxValue"], dat["offValue"], dat["onValue"], dat["endPointPort"], dat["endPointHost"], dat["httpRoot"], dat["appId"], dat["flowId"], dat["$flowName"], dat["nodeId"], dat["organization"])
 				if err != nil {
 					log.Print(err)
 					response["result"] = "Ko"
@@ -292,9 +293,9 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var organization string
 		var err error
 		if dat["accessToken"] != nil {
-			username, role, organization, err = checkToken(dat["accessToken"].(string), "nodered")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
 			if err != nil {
-				username, role, organization, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
+				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
 			}
 		} else {
 			err = fmt.Errorf("missing accessToken")
@@ -305,12 +306,13 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			response["error"] = err
 		} else {
 			if role != "RootAdmin" {
+				organization, _ = getOrganization(username)
 				log.Print("AddEditMetric: force user ", username, "@", organization, "/", dat["user"])
 				dat["user"] = username
 				dat["organization"] = organization
 			} else {
 				organization, _ = getOrganization(dat["user"].(string))
-				log.Print("AddEditMetric: RootAdmin using user ", dat["user"],"@",organization)
+				log.Print("AddEditMetric: RootAdmin using user ", dat["user"], "@", organization)
 				dat["organization"] = organization
 			}
 			_, err := db.Exec("DELETE FROM "+dashboard+".NodeRedMetrics WHERE NodeRedMetrics.name = ? "+
@@ -322,8 +324,8 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 				response["result"] = "Ko"
 			} else {
 				_, err := db.Exec("INSERT INTO "+dashboard+".NodeRedMetrics(name, metricType, user,"+
-					" shortDesc, fullDesc, appId, flowId, flowName, nodeId, httpRoot)"+
-					" VALUES(?,?,?,?,?,?,?,?,?,?);", dat["metricName"], dat["metricType"], dat["user"], dat["metricName"], dat["metricName"], dat["appId"], dat["flowId"], dat["flowName"], dat["nodeId"], dat["httpRoot"])
+					" shortDesc, fullDesc, appId, flowId, flowName, nodeId, httpRoot, organization)"+
+					" VALUES(?,?,?,?,?,?,?,?,?,?,?);", dat["metricName"], dat["metricType"], dat["user"], dat["metricName"], dat["metricName"], dat["appId"], dat["flowId"], dat["flowName"], dat["nodeId"], dat["httpRoot"], dat["organization"])
 
 				if err != nil {
 					log.Print(err)

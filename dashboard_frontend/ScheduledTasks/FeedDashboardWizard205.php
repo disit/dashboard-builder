@@ -49,8 +49,8 @@ $healthiness = "";
 $ownership = "";
 $organizationFromKb = "";
 $organizations = "";
-$organizationHelsTemplate = "[\'DISIT\', \'Helsinki\']";
-$organizationAntwTemplate = "[\'DISIT\', \'Antwerp\']";
+$organizationHelsTemplate = "Helsinki";
+$organizationAntwTemplate = "Antwerp";
 
 $baseKm4CityUri = "http://www.disit.org/km4city/resource/";
 $kbUrlHelsinki = "https://helsinki.snap4city.org/ServiceMap/api/v1/";
@@ -238,6 +238,20 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
 
 // Eventualmente eseguire da qui HealthinessCheck.php ?
 // include 'HealthinessCheck.php';
+
+$queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
+$rs = mysqli_query($link, $queryMaxId);
+$result = [];
+if($rs) {
+
+    $dashboardName = "";
+
+    if ($row = mysqli_fetch_assoc($rs)) {
+        $maxWizardId = $row['id'];
+        $queryUpdateMaxId = "ALTER TABLE Dashboard.DashboardWizard AUTO_INCREMENT " . (string) (intval($maxWizardId) + 1);
+        $rs2 = mysqli_query($link, $queryUpdateMaxId);
+    }
+}
 
 $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');

@@ -196,9 +196,11 @@
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
                         Value type
                     </div>
-                    <div class="col-xs-12 wizardActInputCnt">
-                        <input type="text" id="actuatorValueType" class="form-control"></input>
-                    </div>  
+                    <div class="col-xs-12 wizardActInputCnt" style="overflow:auto;">
+                       <!-- <input type="text" id="actuatorValueType" class="form-control"> -->
+                            <select id="actuatorValueType" class="form-control"></select>
+                      <!--  </input>    -->
+                    </div>
                 </div>
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorMinBaseValueCell">
@@ -426,6 +428,7 @@
         orgGpsCentreLatLng = null;
         orgZoomLevel = null;
         console.log("Entrato in addWidgetWizardInclusionCode.");
+        var orionBrokerValueTypes = null;
 
         // Check LDAP Organization to centre Wizard Map
         $.ajax({
@@ -452,6 +455,37 @@
             error: function (data)
             {
                 console.log("Error in retrieving Organization Parameters:");
+                console.log(JSON.stringify(data));
+            }
+        });
+
+        // Check Orion Broker Value types
+        $.ajax({
+            url: "../controllers/getOrionBrokerValueTypes.php",
+            type: "GET",
+            data: {
+                action: "getAllTypes"
+            },
+            async: true,
+            dataType: 'json',
+            success: function (data)
+            {
+                if (data.detail === 'ValueTypes_OK') {
+                    orionBrokerValueTypes = data.valueTypeRows;
+                    var $actuatorValuesMenuDrop = $("#actuatorValueType");
+                    $.each(orionBrokerValueTypes, function(idx) {
+                    //    $actuatorValuesMenuDrop.append($("<option />").val(idx).text(orionBrokerValueTypes[idx]));
+                        $actuatorValuesMenuDrop.append($("<option />").val(orionBrokerValueTypes[idx]).text(orionBrokerValueTypes[idx]));
+                    });
+                } else {
+
+                }
+                var stopFlag = 1;
+
+            },
+            error: function (data)
+            {
+                console.log("Error in retrieving Orion Broker Value Types:");
                 console.log(JSON.stringify(data));
             }
         });
@@ -687,7 +721,7 @@
                                             if($('#actuatorTargetWizard').val() === 'broker')
                                             {
                                                 //Caso broker: controlliamo tutti i campi
-                                                if(($('#actuatorEntityName').val().trim() !== '')&&($('#actuatorValueType').val().trim() !== '')&&($('#actuatorMinBaseValue').val().trim() !== '')&&($('#actuatorMaxImpulseValue').val().trim() !== ''))
+                                                if(($('#actuatorEntityName').val().trim() !== '')&&(!$('#actuatorEntityName').val().includes(' '))&&($('#actuatorValueType').val().trim() !== '')&&($('#actuatorMinBaseValue').val().trim() !== '')&&($('#actuatorMaxImpulseValue').val().trim() !== ''))
                                                 {
                                                     $('#addWidgetWizardNextBtn').removeClass('disabled');
                                                     $('#cTab a').attr("data-toggle", "tab");
@@ -786,7 +820,7 @@
                                     if($('#actuatorTargetWizard').val() === 'broker')
                                     {
                                         //Caso broker: controlliamo tutti i campi
-                                        if(($('#actuatorEntityName').val().trim() !== '')&&($('#actuatorValueType').val().trim() !== '')&&($('#actuatorMinBaseValue').val().trim() !== '')&&($('#actuatorMaxImpulseValue').val().trim() !== ''))
+                                        if(($('#actuatorEntityName').val().trim() !== '')&&(!$('#actuatorEntityName').val().includes(' '))&&($('#actuatorValueType').val().trim() !== '')&&($('#actuatorMinBaseValue').val().trim() !== '')&&($('#actuatorMaxImpulseValue').val().trim() !== ''))
                                         {
                                             $('#addWidgetWizardNextBtn').removeClass('disabled');
                                             $('#cTab a').attr("data-toggle", "tab");
@@ -1572,6 +1606,7 @@
         }
         
         $('#actuatorEntityName').on('input', checkActuatorFieldsEmpty);
+        $('#actuatorEntityName').on('input', checkActuatorFieldsSpace);
         $('#actuatorValueType').on('input', checkActuatorFieldsEmpty);
         $('#actuatorMinBaseValue').on('input', checkActuatorFieldsEmpty);
         $('#actuatorMaxImpulseValue').on('input', checkActuatorFieldsEmpty);
@@ -1648,7 +1683,15 @@
             
             checkTab1Conditions();
         }
-        
+
+        function checkActuatorFieldsSpace()
+        {
+            var stopFlag = 1;
+            if($('#actuatorEntityName').val().includes(' ')) {
+                $('#wizardTab1MsgCnt').html("Some of the new actuator fields are not filled correctly: EMPTY SPACES NOT ALLOWED in Device Name");
+            }
+        }
+
         function updateWidgetCompatibleRows()
         {
             var selectedWidget, snap4citytype, snap4citytypeArray, selectedRowUnits, count, globalCount, originalBckColor = null;
@@ -3666,7 +3709,10 @@
                     if (widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].instance_uri == "any") {
                       //  gisLayersOnMap[widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].serviceType].clearLayers();
                         addWidgetWizardMapRef.removeLayer(gisLayersOnMap[widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].servicetype]);
-                    } else {
+                    } else if ((widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].instance_uri == "MyPOI") && (widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].sub_nature == "Any")){
+                        gisLayersOnMap[widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].servicetype].clearLayers();
+                    }
+                    else {
                         clearMarker($(this).parents('tr').attr('data-rowid'));
                     }
                   //  addWidgetWizardMapRef.removeLayer(gisLayersOnMap[widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].servicetype]);
@@ -4450,9 +4496,13 @@
             {
                 if(instanceUri === "any + status") {
                     var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=http://www.disit.org/km4city/resource/" + uniqueNameId + "&format=json&realtime=false&fullCount=false";
-                    if (orgName != null && orgName != '') {
-                        var baseUrl = orgKbUrl;
-                        urlKbToCall = baseUrl + "?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                        urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    } else {
+                        if (orgName != null && orgName != '') {
+                            var baseUrl = orgKbUrl;
+                            urlKbToCall = baseUrl + "?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                        }
                     }
                     $.ajax({
                         url: urlKbToCall,
@@ -4491,7 +4541,9 @@
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "any") {
                     var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
-                    if (orgName != null && orgName != '') {
+                    if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                        urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
+                    } else if (orgName != null && orgName != '') {
                         var baseUrl = orgKbUrl;
                         urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
                     }
@@ -4532,10 +4584,15 @@
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "single_marker") {
                     var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
-                    if (orgName != null && orgName != '') {
-                        var baseUrl = orgKbUrl;
-                        urlSensorKbToCall = baseUrl + "?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                        urlSensorKbToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    } else {
+                        if (orgName != null && orgName != '') {
+                            var baseUrl = orgKbUrl;
+                            urlSensorKbToCall = baseUrl + "?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                        }
                     }
+                    urlSensorKbToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     $.ajax({
                         url: urlSensorKbToCall,
                         type: "GET",
@@ -4704,7 +4761,7 @@
                 $(this).attr('data-selected', 'false');
                 try
                 {
-                    if (instanceUri == "any") {
+                    if (instanceUri == "any" || (instanceUri.toLowerCase() == "mypoi" && $(this).attr("data-sub_nature") == "Any")) {
                         gisLayersOnMap[serviceType].clearLayers();
                     } else {
                         clearMarker(currentMarkerId);

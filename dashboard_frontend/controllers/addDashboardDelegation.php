@@ -61,8 +61,9 @@ if(isset($_SESSION['loggedUsername']))
                     $accessToken = $tkn->access_token;
                     $_SESSION['refreshToken'] = $tkn->refresh_token;
                     
-                    $callBody = ["usernameDelegated" => $newDelegated, "elementId" => $dashboardId, "elementType" => "DashboardID"];            
-                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $dashboardAuthor . "/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                    $callBody = ["usernameDelegated" => $newDelegated, "elementId" => $dashboardId, "elementType" => "DashboardID"];  // GUARDARE SE è NECESSARIO ENCODIZZARE le options del POST
+                    // ENCODIZZARE username per username con SPAZI !!!
+                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($dashboardAuthor) . "/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
 
                     $options = array(
                           'http' => array(

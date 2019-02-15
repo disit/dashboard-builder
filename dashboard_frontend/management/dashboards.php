@@ -176,13 +176,13 @@
                                                 </div>
 <?php if(!$_SESSION['isPublic']) : ?>                                              
                                                 <div class="col-xs-3 centerWithFlex">
-                                                    <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My own dashboards">
-                                                        <i class="fa fa-user-secret dashboardsListSort" data-active="false"></i>
+                                                    <div id="mySort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My own dashboards">
+                                                        <i id="myIcon" class="fa fa-user-secret dashboardsListSort" data-active="false"></i>
                                                     </div>    
                                                 </div>
                                                 <div class="col-xs-3 centerWithFlex">
-                                                    <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Public dashboards">
-                                                        <i class="fa fa-globe dashboardsListSort" data-active="false" ></i>
+                                                    <div id="publicSort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Public dashboards">
+                                                        <i id="publicIcon" class="fa fa-globe dashboardsListSort" data-active="false" ></i>
                                                     </div>    
                                                 </div>
                                                 <div class="col-xs-3 centerWithFlex">
@@ -257,7 +257,7 @@
                                                 <th data-dynatable-column="status_dashboard">Status</th>
                                                 <th>Edit</th>
                                                 <th>View</th>
-                                                <th>Organization</th>
+                                                <th>Organizations</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -685,8 +685,11 @@
      //   if (location.href.includes("[search]=My+own")) {
         if (location.href.includes("My+orgMy%3FlinkId") || location.href.includes("My+orgMy?linkId")) {
           //  $('#sessionExpiringPopup').show();
+		// NEW PANTA PARTIAL MOD
+        //    $('#publicSort').hide();
         } else {
             $('#delegatedBtn').hide();
+
         }
         var dashboardsList, dashboardWizardChoice = null;
         var allDashboardsList = null;
@@ -1027,22 +1030,24 @@
             });
         }
 
-        $.ajax({
-            url: "get_data.php",
-            data: {
-                action: "get_all_dashboards",
-                param: ""
-            },
-            type: "GET",
-            async: true,
-            dataType: 'json',
-            success: function(data)
-            {
-                allDashboardsList = data;
-            },
-            error: function(errorData) {
-            }
-        });
+		// NEW PANTA PARTIAL MOD - qui da rimettere solo if (orgFlag == "all") ...
+      //  if (orgFlag == "all") {
+            $.ajax({
+                url: "get_data.php",
+                data: {
+                    action: "get_all_dashboards",
+                    param: ""
+                },
+                type: "GET",
+                async: true,
+                dataType: 'json',
+                success: function (data) {
+                    allDashboardsList = data;
+                },
+                error: function (errorData) {
+                }
+            });
+      //  }
 
         //Nuova tabella
         $.ajax({
@@ -2262,6 +2267,14 @@
                   dynatable.sorts.clear();
                   dynatable.sorts.add('title_header', 1); // 1=ASCENDING, -1=DESCENDING
                   dynatable.process();
+				  // NEW PANTA PARTIAL MOD
+                /*  if (orgFlag.includes("My orgMy?linkId")) {
+                      $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(255, 204, 0, 1)');
+                      $('#myIcon').attr("data-active", "true");
+                  } //else {
+                    //  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(255, 204, 0, 1)');
+                    //  $('#publicIcon').attr("data-active", "true");
+                 // }*/
 
                   $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
                   $('#dashboardListsCardsSort i.dashboardsListSort').eq(0).click(function(){

@@ -365,7 +365,8 @@ if (!empty($_REQUEST["filterDistinct"])) {
 
         // Call Delegation API
         //    $queryDelegated = $personalDataApiBaseUrl . "/v1/username/".$dashLoggedUsername."/delegated?sourceRequest=dashboardwizard&accessToken=valoreFake";
-        $queryDelegated = $personalDataApiBaseUrl . "/v1/username/".$dashLoggedUsername."/delegated?sourceRequest=dashboardwizard&accessToken=" . $accessToken;
+        // ENCODIZZARE username per username con SPAZI !!!
+        $queryDelegated = $personalDataApiBaseUrl . "/v1/username/".rawurlencode($dashLoggedUsername)."/delegated?sourceRequest=dashboardwizard&accessToken=" . $accessToken;
         $queryDelegatedResults = file_get_contents($queryDelegated);
 
         //$file = fopen("C:\dashboardLog.txt", "w");
@@ -873,7 +874,8 @@ if(isset($_REQUEST["initWidgetWizard"])) {
 
         // Call Delegation API
     //    $queryDelegated = $personalDataApiBaseUrl . "/v1/username/".$dashLoggedUsername."/delegated?sourceRequest=dashboardwizard&accessToken=valoreFake";
-        $queryDelegated = $personalDataApiBaseUrl . "/v1/username/".$dashLoggedUsername."/delegated?sourceRequest=dashboardwizard&accessToken=" . $accessToken;
+        // ENCODIZZARE username per username con SPAZI !!!
+        $queryDelegated = $personalDataApiBaseUrl . "/v1/username/".rawurlencode($dashLoggedUsername)."/delegated?sourceRequest=dashboardwizard&accessToken=" . $accessToken;
         $queryDelegatedResults = file_get_contents($queryDelegated);
 
         //$file = fopen("C:\dashboardLog.txt", "w");

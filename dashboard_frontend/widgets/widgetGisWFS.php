@@ -292,10 +292,6 @@
            }).addTo(defaultMapRef);
            defaultMapRef.attributionControl.setPrefix('');*/
            /*MAPPA DI DEFAULT OL*/            
-           var overlayGroup = new ol.layer.Group({
-   		title: 'Layers_list',
-   		layers: [ ]
-   });
                        
                       var raster = new ol.layer.Group({
    			layers:[
@@ -307,7 +303,7 @@
                                                        })]
                                     });          
    var map = new ol.Map({
-   		layers: [raster, overlayGroup],
+   		layers: [raster],
    		target: document.getElementById('<?= $_REQUEST['name_w'] ?>_defaultMapDiv'),
    		view: new ol.View({
    			center: ol.proj.transform( [11.255694, 43.769789] , 'EPSG:4326', 'EPSG:3857'),
@@ -755,11 +751,7 @@
                        var OLlatLng= widgetParameters.latLng;
                        var OLZoom= widgetParameters.zoom;
                       ////////////
-                        var overlayGroup = new ol.layer.Group({
-   		title: 'Layers_list',
-   		layers: [ ]
-   });
-                       
+
                       var raster = new ol.layer.Group({
    			layers:[
                                                                new ol.layer.Tile({
@@ -770,7 +762,7 @@
                                                        })]
                                     });          
    var map = new ol.Map({
-   		layers: [raster, overlayGroup],
+   		layers: [raster],
    		target: document.getElementById('<?= $_REQUEST['name_w'] ?>_gisMapDiv'),
    		view: new ol.View({
    			//center: ol.proj.transform( [12.335848, 45.438025] , 'EPSG:4326', 'EPSG:3857'),
@@ -844,14 +836,22 @@
                query = event.query;
                var desc = event.desc;
                //**//
+               var query_text =query.toLowerCase();
+               //if(query_text.includes('service=wfs')){
+                  //
+                  console.log('WFS Incluso in '+ desc);
+               
                //ESTRARRE IL NOME DELLA FEATURE//
-               var res = query.split("typeNames=");
+               if (query.includes("typeNames=")){
+                  var res = query.split("typeNames="); 
+               }else{
+               var res = query.split("typeName=");
+             }
                //**//
                var query=query+'&srsname=EPSG:3857';
                //
    
                  var vectorSource = new ol.source.Vector({
-                               //url: query,
                                url: '../widgets/proxyGisWFS.php?url='+query,
                                format: new ol.format.WFS({
                                rsName: 'EPSG:4326'
@@ -867,14 +867,14 @@
                           $.ajax({
                            type: 'HEAD',
                            //url: urlToFile,
-                           url: "../widgets/proxyGisWFS.php?url="+urlToFile,
+                           url: urlToFile,
                            complete: function (xhr){
-                             if (xhr.status === '404'){
+                             if ((xhr.status === '404')||(xhr.responsetext=='Error')){
                                return false; // Not found
                              }else{
                                 return true; 
                              }
-                           }
+                                }
                          });
                 }
                                    
@@ -889,9 +889,21 @@
                                    complete: function (xhr){
                                      if (xhr.status === 404){
                                        alert('Error during Selector: "'+desc+'" Execution. Check if url is correct');
+                                       loadingDiv.empty();
+                                       loadingDiv.append(loadKoText);
                                        return false; // Not found
                                      }else{
                                          //
+                                        var patt1 = /version=[0-9].[0-9].[0-9]/;
+                                        var cerca = query.match(patt1);
+                                        var matched= cerca[0];
+                                        if (matched !== "version=1.1.0"){
+                                            alert('Error during Selector: "'+desc+'" Execution. WFS Version must be "1.1.0"');
+                                            loadingDiv.empty();
+                                            loadingDiv.append(loadKoText);
+                                            return false;
+                                        //var query = query.replace(matched, "version=1.1.0");
+                                         }else{
                                          var xmlHttp = null;
                                          xmlHttp = new XMLHttpRequest();
                                                //xmlHttp.open( "GET", urlToFile, false );
@@ -905,6 +917,8 @@
                                                var content = xmlHttp.responseXML.childNodes[0].nodeName;
                                                if ((content.includes('FeatureCollection') == false)){
                                                    alert('Error during Selector: "'+desc+'" Execution. Projection type not supported by GisWFS Widget.');
+                                                   loadingDiv.empty();
+                                                   loadingDiv.append(loadKoText);
                                                    return false;
                                                }else{
                                                   return true; 
@@ -914,16 +928,21 @@
                                             }
                                          //
                                          
+                                        }
+                                     //
                                      }
                                    }
                                });
                            }else{
                               alert('Error during Selector: "'+desc+'" Execution. WFS API is not correct.');
+                              loadingDiv.empty();
+                              loadingDiv.append(loadKoText);
                               return false; 
                            }  
                           }
                                                   
                    //////
+                   if(query_text.includes('service=wfs')){
                     //var url_icon = res[1];
                     var controlUrl=doesURLcorrect(query,desc);
                     var style1 =doesFileExist(mapPinImg);
@@ -938,6 +957,9 @@
                                var style1='false';
                                return(style1);
                            });
+              //
+              style1 = false;
+              
               //
               if (style1){
                   var new_level = new ol.layer.Vector({
@@ -998,51 +1020,94 @@
                                });
               }
               ///FINE AGGIUNTA PER I PIN///
-               /*var new_level = new ol.layer.Vector({
-                       source: vectorSource,
-                       title: res[1],
-                       style: [ 
-                           //
-                            new ol.style.Style({
-                                         image: new ol.style.Icon(({
-                                                 anchor: [0.5, 46],
-                                                 anchorXUnits: 'fraction',
-                                                 anchorYUnits: 'pixels',
-                                                 src: mapPinImg
-                                               }))
-                                        }),
+            map.addLayer(new_level);
+            //
+            }else if (query_text.includes('wms')){              
+                  var str_liv = query.split('?service=wms');
+                  var url = str_liv[0];
+                  //var layer = query.split('layers=Snap4City%3A');
+                  var layer = query.split('layers=');
+                  //
+                  var layer1 =layer[1].split('&');                   
+                  var time = query.split('time=');
+                  var time1 =time[1].split('&');
+                  var wmsDatasetName =layer1[0].replace("%3A", ":");
+                  var timestampISO =time1[0].replace("%3A", ":"); 
+                  var new_level = new ol.layer.Tile({
+                                    title: res[1],
+                                    source: new ol.source.TileWMS({
+                                    url: url,
+                                    params: {
+                                            'LAYERS':  wmsDatasetName,
+                                            'VERSION': '1.3.0',
+                                            'FORMAT': 'image/png'
+                                        }
+                                    })
+                   });
+                   map.addLayer(new_level);
+                   //wmsGroup.getLayers().push(new_level);
+                   loadingDiv.empty();
+                   loadingDiv.append(loadOkText);  
+                  //
+               }else if (query_text.includes('servicemap.disit.org')){
+                        //var mapPinImg = '../img/gisMapIcons/Accommodation_Hotel.png';
+                        //console.log(feature.properties.serviceType);
+                            $.ajax({
+                                type: 'GET',
+                                url: '../widgets/proxyGisWFS.php?url='+query, 
+                                success: function(result){
+                                            var data = JSON.parse(result);
+                                            var dati_query = data.Services;	
+                                            var json_data = JSON.stringify(dati_query);
+                                            /////
+                                            var esempio = data.features[0];
+                                            var type_image = esempio.properties.serviceType;
+                                            //console.log(esempio.properties.serviceType);
+                                            var mapPinImg = '../img/gisMapIcons/'+type_image+'.png';
+                                            ////
+                                            var source_v = new ol.source.Vector({
+   				url: '../widgets/proxyGisWFS.php?url='+query,
+   				format: new ol.format.GeoJSON()
+   				});
+                                                var vector = new ol.layer.Vector({
+   				source: source_v,
+                                                        style: [ 
+                                                            new ol.style.Style({
+                                                                         image: new ol.style.Icon(({
+                                                                                 anchor: [0.5, 46],
+                                                                                 anchorXUnits: 'fraction',
+                                                                                 anchorYUnits: 'pixels',
+                                                                                 src: mapPinImg
+                                                                               }))
+                                                                        }),
                             //
-                           new ol.style.Style({
-                             image: new ol.style.Circle({
-                             fill: new ol.style.Fill({
-                                     color: color2
-                                   }),
-                              radius: 5,
-                              stroke: new ol.style.Stroke({
-                                      color:  color1,
-                                      width: 1
-                                      })
-                                   })
-                              }),
-                           //
-                           new ol.style.Style({
-                                       fill: new ol.style.Fill({
-                                       color: color2
-                                  }),
-                                      radius: 5,
-                                      stroke: new ol.style.Stroke({
-                                                color: color1,
-                                                width: 1
-                                            })
-                                  })],
-                              //style: [style_pin]
-                             //AGGIUNTA TOGLIERE SE DA PROBLEMI//         
-                             //features: [iconStyle]
-                     
-                   });*/
-   //new_level.setStyle(style1);         
-   map.addLayer(new_level);
+                                                                new ol.style.Style({
+                                                                            fill: new ol.style.Fill({
+                                                                            color: color2
+                                                                       }),
+                                                                           radius: 5,
+                                                                           stroke: new ol.style.Stroke({
+                                                                                     color: color1,
+                                                                                     width: 1
+                                                                                 })
+                                                                       })]
+                                                   });               
+                                 map.addLayer(vector);
+                                 //wfsGroup.getLayers().push(vector);
+                                 loadingDiv.empty();
+                                 loadingDiv.append(loadOkText);
+     }
+                        });
    //map.getZoom();
+                   
+                   //
+               }else{
+                    //alert('Error during Selector: "'+desc+'" Execution. Check Selector URI Correctness.');
+                    loadingDiv.empty();
+                    loadingDiv.append(loadKoText);
+                        
+               }
+   
    
    
    //console.log(map);
@@ -1079,7 +1144,38 @@
                        $(document).off('removeLayerFromGis_' + widgetName);
                        $(document).on('removeLayerFromGis_' + widgetName, function(event) {
                            var queryType = event.query;
-                           var query_split = queryType.split('&typeNames=');
+                           //
+                           console.log('queryType:  ');
+                           console.log(queryType);
+                           //var query_split = queryType.split('&typeNames=');
+                           if (queryType.includes("wms")) {
+                                            var query_split = queryType;
+                                            //var map_ex = map.getLayerGroup();
+                                            var group1 = map.getLayers();
+                                            var arr = group1.array_;
+                                            var lun = arr.length;
+                                            ///////////
+                                            for (var y = 0; y < lun; y++) {
+                                                var type = arr[y].type;
+                                                var tx = group1.array_[y];
+                                                if(type == 'TILE'){
+                                                     var tx2 = tx.values_.source.params_;
+                                                            var tx3 = tx2.LAYERS;
+                                                            var tx4 = tx3.split('Snap4City:');
+                                                            var tx5 = tx4[0];
+                                                            if (queryType.includes(tx5)) {
+                                                                    map.removeLayer(tx);
+                                                            }
+                                                }
+                                            }
+                           }else{
+                           ///
+                           if (queryType.includes("typeNames=")){
+                                    var query_split = queryType.split('&typeNames='); 
+                                 }else{
+                                     var query_split = queryType.split('&typeName=');
+                              }
+                           ///
                            var title_layer = query_split[1];
                            var map_ex = map.getLayerGroup();
                            var group1 = map_ex.getLayers();
@@ -1088,12 +1184,20 @@
                            for(var y=1; y<lun;y++){
                                var tx2='';
                                var tx=group1.array_[y];
-                               var tx2=tx.values_.title;
-                               if (tx2 === title_layer){
-                                        map.removeLayer(tx);
-                                    }
+                               var tx2=tx.values_.source.url_;
+                               var tipo = tx.type;
+                               console.log(tipo);
+                               if(tipo == 'TILE'){
+                                   console.log('Error_TILE');
+                               }else{
+                                    if (tx2.includes(queryType)){
+                                             map.removeLayer(tx);
+                                         }
+                               }
+                               
                               }
                        //CLICK
+                   }
                            ///////
                        });
                            
@@ -2103,7 +2207,8 @@
    /**/
    var dt = $('#<?= $_REQUEST['name_w'] ?>_div').attr("data-role");
    if (dt == "gisTarget"){
-   /**	Popup	**/		var id_name='<?= $_REQUEST['name_w'] ?>_popup';
+   /**	Popup	**/		
+   var id_name='<?= $_REQUEST['name_w'] ?>_popup';
    var container = document.getElementById('<?= $_REQUEST['name_w'] ?>_popup');
    var content_element = document.getElementById('<?= $_REQUEST['name_w'] ?>_popup-content');
    var closer = document.getElementById('<?= $_REQUEST['name_w'] ?>_ol-popup-closer');
@@ -2125,11 +2230,10 @@
    	  function(feature) {
    		return feature;
    	  });
-                                       //  
+                                       //
                                        //
                                        var id_f = feature.getId();
-                                       var name_l=id_f.split('.');
-                                       var layers_sel=name_l[0];
+                                       var layers_sel=id_f;
                                        var layer = map.forEachLayerAtPixel(evt.pixel,
    	  function(layer) {
    		return layer;
@@ -2176,25 +2280,38 @@
                                                }
                                                //              
                                                //
-                       var content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + '</h3>';
-                                               //Popup nuovo stile uguali a quelli degli eventi ricreativi
-                       if (feature.get('descr')){
-                                content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('descr') + '</h3>';
-                       }
-                       if (feature.get('descrizion')){
-                               content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('descrizion') + '</h3>';
-                        }
-                       content += '<div class="recreativeEventMapBtnContainer"><button  class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive"  type="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionDet('+id_name+');" id="'+id_name+'_detailBtn" >Details</button><button data-id="' + evt.latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" data-role="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionDecr('+id_name+');" id="'+id_name+'_dscrBtn">Description</button></div>';
-                       content += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer ol_detail" id="'+id_name+'_ol_detail">';
-                       content += '<table class="gisPopupGeneralDataTable">';
-                       //Intestazione
-                       content += '<thead>';
-                       content += '<th style="background: ' + evt.color2 + '">Description</th>';
-                       content += '<th style="background: ' + evt.color2 + '">Value</th>';
-                       content += '</thead>';
-                       content += '<tbody>';
+            var latLngId = evt.coordinate[1]+""+evt.coordinate[0];
+                        latLngId = latLngId.replace(".", "");
+                        latLngId = latLngId.replace(".", "");
                        //
                        var proprieta=feature.getProperties();
+                       console.log("layer");
+                       console.log(layer.getSource().url_);
+                       var uri_source = layer.getSource().url_;
+                       var urlLow = uri_source.toLowerCase();
+                       console.log('uri_source:  '+uri_source);
+                                    if (urlLow.includes('getfeature')){
+                                        console.log('Include: '+ urlLow);
+                                    var content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + '</h3>';
+                                                            //Popup nuovo stile uguali a quelli degli eventi ricreativi
+                                    if (feature.get('descr')){
+                                             content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('descr') + '</h3>';
+                                    }
+                                    if (feature.get('descrizion')){
+                                            content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('descrizion') + '</h3>';
+                                     }
+                                    if (feature.get('name')){
+                                             content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('name') + '</h3>';
+                                    }
+                                    content += '<div class="recreativeEventMapBtnContainer"><button  class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive"  type="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionDet('+id_name+');" id="'+id_name+'_detailBtn" >Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" data-role="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionDecr('+id_name+');" id="'+id_name+'_dscrBtn">Description</button></div>';
+                                    content += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer ol_detail" id="'+id_name+'_ol_detail">';
+                                    content += '<table class="gisPopupGeneralDataTable">';
+                                    //Intestazione
+                                    content += '<thead>';
+                                    content += '<th style="background: ' + evt.color2 + '">Description</th>';
+                                    content += '<th style="background: ' + evt.color2 + '">Value</th>';
+                                    content += '</thead>';
+                                    content += '<tbody>';    
                        jQuery.each(proprieta, function(i, val) {
                                    var inc = i.includes('db_');
                                    var inc_shape = i.includes('hape');
@@ -2205,23 +2322,879 @@
                                    if ((inc === false)&&(inc_shape === false)&&(inc_dsc === false)){
                                    content +='<tr><td>'+i+'</td><td>'+val+'</td></tr>';
                                    }
-                        });                        
-                       content += '</tbody>';
-                       content += '</table>';
-                       content += '</div>';
-                       content += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer ol_descr" id="'+id_name+'_ol_descr">';
-                       
-                       if (feature.get('descriz')){
-                                   content  += feature.get('descriz')+'<br>';
-   }else{
-                               content += "No description available";
-                           }
-                       content += '</div>';
-              //
-              content += '</div>';
-              
+                        });
+                                content += '</tbody>';
+                               content += '</table>';
+                               content += '</div>';
+                               content += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer ol_descr" id="'+id_name+'_ol_descr">';
+   
+                               if (feature.get('descriz')){
+                                           content  += feature.get('descriz')+'<br>';
+                                }else{
+                                       content += "No description available";
+                                   }
+                               content += '</div>';
+                                //
+                                content += '</div>';
+                        
+                        content_element.innerHTML = content;
+                                       if (Array.isArray(coord[0])){
+                                                       var poin = coord[0].length;
+                                                       var lun = poin/2;
+                                                       if (!(coord[0][lun])){
+                                                               overlay.setPosition(coord[0][0][0]);
+                                                       }else{
+                                                               overlay.setPosition(coord[0][lun]);
+                                                           }
+                                                       }else{
+   				overlay.setPosition(coord);
+                                               		}
+                        
+                        }else{
+                        //console.log('NON Include');
+                        //////notihng///
+                        //console.log('proprieta:');
+                        var uriToLoad = 'https://www.disit.org/superservicemap/api/v1/?serviceUri='+proprieta.serviceUri+'&format=json';
+                        //console.log(uriToLoad);
+                        /////////////////
+                        /*
+                        var mapPinImg = '../img/gisMapIcons/over/' + proprieta.serviceType + '_over.png';
+                        feature.setStyle(new ol.style.Style({
+                                                image: new ol.style.Icon(({
+                                                       anchor: [0.5, 46],
+                                                       anchorXUnits: 'fraction',
+                                                       anchorYUnits: 'pixels',
+                                                       src: mapPinImg
+                                                        }))
+                                          }));
+                                          console.log(mapPinImg);*/
+                        /////////////////////
+                        $.ajax({
+                                    url: uriToLoad,
+                                    type: "GET",
+                                    data: {},
+                                    async: false,
+                                    dataType: 'json',
+                                    success: function(geoJsonServiceData) 
+                                    {
+                                            var fatherNode = null;
+                                                if(geoJsonServiceData.hasOwnProperty("BusStop"))
+                                                {
+                                                    fatherNode = geoJsonServiceData.BusStop;
+                                                }
+                                                else
+                                                {
+                                                    if(geoJsonServiceData.hasOwnProperty("Sensor"))
+                                                    {
+                                                        fatherNode = geoJsonServiceData.Sensor;
+                                                    }
+                                                    else
+                                                    {
+                                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                                        fatherNode = geoJsonServiceData.Service;
+                                                    }
+                                                }
+                                                var serviceProperties = fatherNode.features[0].properties;
+                                                console.log('serviceProperties:');
+                                                console.log(serviceProperties);
+                                                //////////////////////****************************************//////////////////////////////
+                                                var content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + '</h3>';
+                                               //Popup nuovo stile uguali a quelli degli eventi ricreativi
+                                                    if (feature.get('descr')){
+                                                             content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('descr') + '</h3>';
+                                                    }
+                                                    if (feature.get('descrizion')){
+                                                            content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('descrizion') + '</h3>';
+                                                     }
+                                                    if (feature.get('name')){
+                                                             content = '<div class="leaflet-popup-content" style="width: 436px;"><h3 class="recreativeEventMapTitle" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">' + feature.get('name') + '</h3>';
+                                                    }
+                                                    content += '<div class="recreativeEventMapBtnContainer"><button  class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive"  type="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionDet('+id_name+');" id="'+id_name+'_detailBtn" >Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" data-role="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionDecr('+id_name+');" id="'+id_name+'_dscrBtn">Description</button>';
+                                                    ///
+                                                    if(geoJsonServiceData.hasOwnProperty("realtime")){
+                                                       content +='<button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionRT('+id_name+');" id="'+id_name+'_rtBtn">RT data</button>'; 
+                                                    //onclick="myFunctionRT('+id_name+');" id="'+id_name+'_rtBtn"
+                                                    }
+                                                    ///
+                                                    content += '</div>';
+                                                    content += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer ol_detail" id="'+id_name+'_ol_detail">';
+                                                    content += '<table class="gisPopupGeneralDataTable">';
+                                                    //Intestazione
+                                                    content += '<thead>';
+                                                    content += '<th style="background: ' + evt.color2 + '">Description</th>';
+                                                    content += '<th style="background: ' + evt.color2 + '">Value</th>';
+                                                    content += '</thead>';
+                                                    content += '<tbody>';
+                                                var popupText = '';
+                                                if(serviceProperties.hasOwnProperty('website'))
+                                                            {
+                                                                if((serviceProperties.website !== '')&&(serviceProperties.website !== undefined)&&(serviceProperties.website !== 'undefined')&&(serviceProperties.website !== null)&&(serviceProperties.website !== 'null'))
+                                                                {
+                                                                    if(serviceProperties.website.includes('http')||serviceProperties.website.includes('https'))
+                                                                    {
+                                                                        popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank">Link</a></td></tr>';
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank">Link</a></td></tr>';
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    popupText += '<tr><td>Website</td><td>-</td></tr>';
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                popupText += '<tr><td>Website</td><td>-</td></tr>';
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('email'))
+                                                            {
+                                                                if((serviceProperties.email !== '')&&(serviceProperties.email !== undefined)&&(serviceProperties.email !== 'undefined')&&(serviceProperties.email !== null)&&(serviceProperties.email !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>E-Mail</td><td>' + serviceProperties.email + '<td></tr>';
+                                                                }
+                                                                else
+                                                                {
+                                                                    popupText += '<tr><td>E-Mail</td><td>-</td></tr>';
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                popupText += '<tr><td>E-Mail</td><td>-</td></tr>';
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('address'))
+                                                            {
+                                                                if((serviceProperties.address !== '')&&(serviceProperties.address !== undefined)&&(serviceProperties.address !== 'undefined')&&(serviceProperties.address !== null)&&(serviceProperties.address !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Address</td><td>' + serviceProperties.address + '</td></tr>';
+                                                                }
+                                                                else
+                                                                {
+                                                                    popupText += '<tr><td>Address</td><td>-</td></tr>';
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                popupText += '<tr><td>Address</td><td>-</td></tr>';
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('civic'))
+                                                            {
+                                                                if((serviceProperties.civic !== '')&&(serviceProperties.civic !== undefined)&&(serviceProperties.civic !== 'undefined')&&(serviceProperties.civic !== null)&&(serviceProperties.civic !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Civic n.</td><td>' + serviceProperties.civic + '</td></tr>';
+                                                                }
+                                                                else
+                                                                {
+                                                                    popupText += '<tr><td>Civic n.</td><td>-</td></tr>';
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                popupText += '<tr><td>Civic n.</td><td>-</td></tr>';
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('cap'))
+                                                            {
+                                                                if((serviceProperties.cap !== '')&&(serviceProperties.cap !== undefined)&&(serviceProperties.cap !== 'undefined')&&(serviceProperties.cap !== null)&&(serviceProperties.cap !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>C.A.P.</td><td>' + serviceProperties.cap + '</td></tr>';
+                                                                }
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('city'))
+                                                            {
+                                                                if((serviceProperties.city !== '')&&(serviceProperties.city !== undefined)&&(serviceProperties.city !== 'undefined')&&(serviceProperties.city !== null)&&(serviceProperties.city !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>City</td><td>' + serviceProperties.city + '</td></tr>';
+                                                                }
+                                                                else
+                                                                {
+                                                                    popupText += '<tr><td>City</td><td>-</td></tr>';
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                popupText += '<tr><td>City</td><td>-</td></tr>';
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('province'))
+                                                            {
+                                                                if((serviceProperties.province !== '')&&(serviceProperties.province !== undefined)&&(serviceProperties.province !== 'undefined')&&(serviceProperties.province !== null)&&(serviceProperties.province !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Province</td><td>' + serviceProperties.province + '</td></tr>';
+                                                                }
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('phone'))
+                                                            {
+                                                                if((serviceProperties.phone !== '')&&(serviceProperties.phone !== undefined)&&(serviceProperties.phone !== 'undefined')&&(serviceProperties.phone !== null)&&(serviceProperties.phone !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Phone</td><td>' + serviceProperties.phone + '</td></tr>';
+                                                                }
+                                                                else
+                                                                {
+                                                                    popupText += '<tr><td>Phone</td><td>-</td></tr>';
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                popupText += '<tr><td>Phone</td><td>-</td></tr>';
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('fax'))
+                                                            {
+                                                                if((serviceProperties.fax !== '')&&(serviceProperties.fax !== undefined)&&(serviceProperties.fax !== 'undefined')&&(serviceProperties.fax !== null)&&(serviceProperties.fax !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Fax</td><td>' + serviceProperties.fax + '</td></tr>';
+                                                                }
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('note'))
+                                                            {
+                                                                if((serviceProperties.note !== '')&&(serviceProperties.note !== undefined)&&(serviceProperties.note !== 'undefined')&&(serviceProperties.note !== null)&&(serviceProperties.note !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Notes</td><td>' + serviceProperties.note + '</td></tr>';
+                                                                }
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('agency'))
+                                                            {
+                                                                if((serviceProperties.agency !== '')&&(serviceProperties.agency !== undefined)&&(serviceProperties.agency !== 'undefined')&&(serviceProperties.agency !== null)&&(serviceProperties.agency !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Agency</td><td>' + serviceProperties.agency + '</td></tr>';
+                                                                }
+                                                            }
+   
+                                                            if(serviceProperties.hasOwnProperty('code'))
+                                                            {
+                                                                if((serviceProperties.code !== '')&&(serviceProperties.code !== undefined)&&(serviceProperties.code !== 'undefined')&&(serviceProperties.code !== null)&&(serviceProperties.code !== 'null'))
+                                                                {
+                                                                    popupText += '<tr><td>Code</td><td>' + serviceProperties.code + '</td></tr>';
+                                                                }
+                                                            }
+                                                            content +=popupText;
+                                                /////////////////////*****************************************//////////////////////////////
+                                                content += '</tbody>';
+                                                    content += '</table>';
+                                                    content += '</div>';
+                                                    content += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer ol_descr" id="'+id_name+'_ol_descr">';
+                                                    if (serviceProperties.hasOwnProperty('description')){
+                                                            if((serviceProperties.description !== '')&&(serviceProperties.description !== undefined)&&(serviceProperties.description !== 'undefined')&&(serviceProperties.description !== null)&&(serviceProperties.description !== 'null'))
+                                                                {
+                                                                content  += serviceProperties.description+'<br>';
+                                                            }else{
+                                                                content += "No description available";
+                                                            }
+                                                    }else{
+                                                            content += "No description available";
+                                                        }
+                                                    content += '</div>';
+                                                    //content += '</div>';
+                                                    $(this).css("background", evt.color1);
+                                                    $(this).css("background", "-webkit-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                    $(this).css("background", "background: -o-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                    $(this).css("background", "background: -moz-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                    $(this).css("background", "background: linear-gradient(to left, " + evt.color1 + ", " + evt.color2 + ")");
+                                           ////////////////////GESTIONE DI RT_DATA///////////////
+                                           if(geoJsonServiceData.hasOwnProperty("realtime"))
+                        {
+                        
+                        //var latLngId = event.target.getLatLng().lat + "" + event.target.getLatLng().lng;
+                        
+                        
+                        var serviceProperties = fatherNode.features[0].properties;
+                        var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                        var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                        var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                        serviceSubclass = serviceSubclass.replace(/_/g, " ");
+//////////////
+                        if((serviceClass.includes("Emergency"))&&(serviceSubclass.includes("First aid"))){
+                            console.log("First aid");
+                            ////////////
+                            content += '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer ol_rt" id="'+id_name+'_ol_rt">';
+                            var realTimeData = geoJsonServiceData.realtime;
+                            var last_update = realTimeData.results.bindings[0].measuredTime.value.replace("T", " ");
+                            console.log(last_update);
+                            content += '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '">'+last_update+'</span></div>';
+                                    //Tabella nuovo stile
+                            //      //Tabella ad hoc per First Aid
+                                    content += '<table id="' + latLngId + '" class="psPopupTable">';
+                                    var series = {  
+                                        "firstAxis":{  
+                                           "desc":"Priority",
+                                           "labels":[  
+                                              "Red code",
+                                              "Yellow code",
+                                              "Green code",
+                                              "Blue code",
+                                              "White code"
+                                           ]
+                                        },
+                                        "secondAxis":{  
+                                           "desc":"Status",
+                                           "labels":[],
+                                           "series":[]
+                                        }
+                                     };
+
+                                    var dataSlot = null;
+                                    
+                                    measuredTime = realTimeData.results.bindings[0].measuredTime.value.replace("T", " ").replace("Z", "");
+                                    
+                                    for(var i = 0; i < realTimeData.results.bindings.length; i++)
+                                    {
+                                        if(realTimeData.results.bindings[i].state.value.indexOf("estinazione") > 0)
+                                        {
+                                           series.secondAxis.labels.push("Addressed");
+                                        }
+
+                                        if(realTimeData.results.bindings[i].state.value.indexOf("ttesa") > 0)
+                                        {
+                                           series.secondAxis.labels.push("Waiting");
+                                        }
+
+                                        if(realTimeData.results.bindings[i].state.value.indexOf("isita") > 0)
+                                        {
+                                           series.secondAxis.labels.push("In visit");
+                                        }
+
+                                        if(realTimeData.results.bindings[i].state.value.indexOf("emporanea") > 0)
+                                        {
+                                           series.secondAxis.labels.push("Observation");
+                                        }
+
+                                        if(realTimeData.results.bindings[i].state.value.indexOf("tali") > 0)
+                                        {
+                                           series.secondAxis.labels.push("Totals");
+                                        }
+
+                                       dataSlot = [];
+                                       dataSlot.push(realTimeData.results.bindings[i].redCode.value);
+                                       dataSlot.push(realTimeData.results.bindings[i].yellowCode.value);
+                                       dataSlot.push(realTimeData.results.bindings[i].greenCode.value);
+                                       dataSlot.push(realTimeData.results.bindings[i].blueCode.value);
+                                       dataSlot.push(realTimeData.results.bindings[i].whiteCode.value);
+
+                                       series.secondAxis.series.push(dataSlot);
+                                    }
+
+                                    var colsQt = parseInt(parseInt(series.firstAxis.labels.length) + 1);
+                                    var rowsQt = parseInt(parseInt(series.secondAxis.labels.length) + 1);
+                                    
+                                    for(var i = 0; i < rowsQt; i++)
+                                    {
+                                        var newRow = $("<tr></tr>");
+                                        var z = parseInt(parseInt(i) -1);
+
+                                        if(i === 0)
+                                        {
+                                            //Riga di intestazione
+                                            for(var j = 0; j < colsQt; j++)
+                                            {
+                                                if(j === 0)
+                                                {
+                                                    //Cella (0,0)
+                                                    var newCell = $("<td></td>");
+
+                                                    newCell.css("background-color", "transparent");
+                                                }
+                                                else
+                                                {
+                                                    //Celle labels
+                                                    var k = parseInt(parseInt(j) - 1);
+                                                    var colLabelBckColor = null;
+                                                    switch(k)
+                                                    {
+                                                       case 0:
+                                                          colLabelBckColor = "#ff0000";
+                                                          break;
+
+                                                       case 1:
+                                                          colLabelBckColor = "#ffff00";
+                                                          break;
+
+                                                       case 2:
+                                                          colLabelBckColor = "#66ff33";
+                                                          break;
+
+                                                       case 3:
+                                                          colLabelBckColor = "#66ccff";
+                                                          break;
+
+                                                       case 4:
+                                                          colLabelBckColor = "#ffffff";
+                                                          break;   
+                                                    }
+
+                                                    newCell = $("<td><span>" + series.firstAxis.labels[k] + "</span></td>");
+                                                    newCell.css("font-weight", "bold");
+                                                    newCell.css("background-color", colLabelBckColor);
+                                                }
+                                                newRow.append(newCell);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            //Righe dati
+                                            for(var j = 0; j < colsQt; j++)
+                                            {
+                                                k = parseInt(parseInt(j) -1);
+                                                if(j === 0)
+                                                {
+                                                    //Cella label
+                                                    newCell = $("<td>" + series.secondAxis.labels[z] + "</td>");
+                                                    newCell.css("font-weight", "bold");
+                                                }
+                                                else
+                                                {
+                                                    //Celle dati
+                                                    newCell = $("<td>" + series.secondAxis.series[z][k] + "</td>");
+                                                    if(i === (rowsQt - 1))
+                                                    {
+                                                       newCell.css('font-weight', 'bold');
+                                                       switch(j)
+                                                       {
+                                                          case 1:
+                                                             newCell.css('background-color', '#ffb3b3');
+                                                             break;
+
+                                                          case 2:
+                                                             newCell.css('background-color', '#ffff99');
+                                                             break;
+
+                                                          case 3:
+                                                             newCell.css('background-color', '#d9ffcc');
+                                                             break;
+
+                                                          case 4:
+                                                             newCell.css('background-color', '#cceeff');
+                                                             break;
+
+                                                          case 5:
+                                                             newCell.css('background-color', 'white');
+                                                             break;   
+                                                       }
+                                                    }
+                                                }
+                                                newRow.append(newCell);
+                                            }
+                                        }    
+                                        content += newRow.prop('outerHTML');
+                                    }
+                                    
+                                    content += '</table></div>';
+                            ///////////
+                        }else{
+                                content += '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer ol_rt" id="'+id_name+'_ol_rt">';
+                                var realTimeData = geoJsonServiceData.realtime;
+                                var last_update = realTimeData.results.bindings[0].measuredTime.value.replace("T", " ");
+                                console.log(last_update);
+                                content += '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '">'+last_update+'</span></div>';
+                                    //Tabella nuovo stile
+                                    content += '<table id="' + id_name + '_table" class="gisPopupTable">';
+
+                                    //Intestazione
+                                    content += '<thead>';
+                                    content += '<th style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">Description</th>';
+                                    content += '<th style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">Value</th>';
+                                    content += '<th colspan="5" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');">Buttons</th>';
+                                    content += '</thead>';
+
+                                    //Corpo
+                                    content += '<tbody>';
+                                    var dataDesc, dataVal, data4HBtn, dataDayBtn, data7DayBtn, data30DayBtn, rtDataAgeSec, datalvBtn = null;
+                                    
+                                    for(var i = 0; i < realTimeData.head.vars.length; i++)
+                                    {
+                                        if((realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '')&&(realTimeData.head.vars[i] !== null)&&(realTimeData.head.vars[i] !== 'undefined'))
+                                        {
+                                            if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
+                                            {
+                                                if(!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available'))
+                                                {
+                                                    //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                    ////
+                                                    dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function(str){ return str.toUpperCase(); });
+                                                    dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
+                                                    datalvBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + evt.fake + '" data-fakeid="' + evt.fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.values_.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + evt.color1 + '" data-color2="' + evt.color2 + '">Last<br>value</button></td>';
+                                                    data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-fakeid="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.values_.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="" data-color1="' + evt.color1 + '" data-color2="' + evt.color2 + '">Last<br>4 hours</button></td>';
+                                                    dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.values_.serviceUri + '" data-timeTrendClicked="false" data-range-shown="24 hours" data-range="1/DAY" data-targetWidgets="" data-color1="' + evt.color1 + '" data-color2="' + evt.color2 + '">Last<br>24 hours</button></td>';
+                                                    data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.values_.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="" data-color1="' + evt.color1 + '" data-color2="' + evt.color2 + '">Last<br>7 days</button></td>';
+                                                    data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.values_.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="" data-color1="' + evt.color1 + '" data-color2="' + evt.color2 + '">Last<br>30 days</button></td>';
+                                                    content += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>'+ datalvBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + '</tr>';
+                                                }
+                                            }
+                                            else
+                                            {
+                                                var measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
+                                                //Calcolo age
+                                                var now = new Date();
+                                                var measuredTimeDate = new Date(measuredTime);
+                                                rtDataAgeSec = Math.abs(now - measuredTimeDate)/1000;
+                                                console.log("rtDataAgeSec: "+rtDataAgeSec);
+                                                ///////////////
+                                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseenter');
+                                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseleave');
+                                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id="' + latLngId + '"]').hover(function(){
+                                                    if($(this).attr("data-lastDataClicked") === "false")
+                                                    {
+                                                        $(this).css("background", evt.color1);
+                                                        $(this).css("background", "-webkit-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                        $(this).css("background", "background: -o-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                        $(this).css("background", "background: -moz-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                        $(this).css("background", "background: linear-gradient(to left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                        $(this).css("font-weight", "bold");
+                                                    }
+
+                                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                                    var colIndex = $(this).parent().index();
+                                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
+                                                    var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                                    {
+                                                        $.event.trigger({
+                                                            type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                                            eventGenerator: $(this),
+                                                            targetWidget: widgetTargetList[i],
+                                                            value: $(this).attr("data-lastValue"),
+                                                            color1: $(this).attr("data-color1"),
+                                                            color2: $(this).attr("data-color2"),
+                                                            widgetTitle: title
+                                                        }); 
+                                                    }
+                                                }, 
+                                                
+                                                        );
+                                //////////////////
+                                $(this).css("background", "-webkit-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                $(this).css("background", "background: -o-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                $(this).css("background", "background: -moz-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                $(this).css("background", "background: linear-gradient(to left, " + evt.color1 + ", " + evt.color2 + ")");
+                                 ////////////////
+                                            }
+                                        }
+                                    }
+                                    
+                                    content += '</tbody>';
+                                    content+= '</table>';
+                                    content += '<p><b>Keep data on target widget(s) after popup close: </b><input data-id="' + latLngId + '" type="checkbox" class="gisPopupKeepDataCheck" data-keepData="false"/></p>'; 
+                                
+                                
+                                evt.hasRealTime = true;
+                                content += '</div>';
+                            
+                        }
+                    }   
+                  /////////////////////////////
+                 ////////////////////FINE GESTIONE DI RT_DATA//////////
+                                           
+                                           content_element.innerHTML = content;
+                                       if (Array.isArray(coord[0])){
+                                                       var poin = coord[0].length;
+                                                       var lun = poin/2;
+                                                       if (!(coord[0][lun])){
+                                                               overlay.setPosition(coord[0][0][0]);
+                                                       }else{
+                                                               overlay.setPosition(coord[0][lun]);
+                                                           }
+                                                       }else{
+   				overlay.setPosition(coord);
+                                               		}
+                                                        
+                                       /////I DATI VANNO GESTITI QUI////////
+                                       //***///GESTIRE QUI LA MODIFICA DEI DATI///***//
+                                        if(rtDataAgeSec > 14400)
+                                                            {
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
+                                                                //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
+                                                                if(rtDataAgeSec > 86400)
+                                                                {
+                                                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
+                                                                    //Disabilitiamo i 7 days se last update più vecchio di 7 days
+                                                                    if(rtDataAgeSec > 604800)
+                                                                    {
+                                                                        $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
+                                                                        //Disabilitiamo i 30 days se last update più vecchio di 30 days
+                                                                        if(rtDataAgeSec > 18144000)
+                                                                        {
+                                                                           $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpen button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                                            }
+
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('mouseenter');
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('mouseleave');
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function(){
+                                                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                                                {
+                                                                    $(this).css("background-color", "#e6e6e6");
+                                                                    $(this).off("hover");
+                                                                    $(this).off("click");
+                                                                }
+                                                                else
+                                                                {
+                                                                    if($(this).attr("data-timeTrendClicked") === "false")
+                                                                    {
+                                                                        $(this).css("background", evt.color1);
+                                                                        $(this).css("background", "-webkit-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("background", "background: -o-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("background", "background: -moz-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("background", "background: linear-gradient(to left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("font-weight", "bold");
+                                                                    }
+
+                                                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+
+                                                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                                                    {
+                                                                        $.event.trigger({
+                                                                            type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                                            eventGenerator: $(this),
+                                                                            targetWidget: widgetTargetList[i],
+                                                                            value: $(this).attr("data-lastValue"),
+                                                                            color1: $(this).attr("data-color1"),
+                                                                            color2: $(this).attr("data-color2"),
+                                                                            widgetTitle: title
+                                                                        }); 
+                                                                    }
+                                                                }
+                                                            }, 
+                                                            function(){
+                                                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                                                {
+                                                                    $(this).css("background-color", "#e6e6e6");
+                                                                    $(this).off("hover");
+                                                                    $(this).off("click");
+                                                                }
+                                                                else
+                                                                {
+                                                                    if($(this).attr("data-timeTrendClicked")=== "false")
+                                                                    {
+                                                                        $(this).css("background", evt.color2);
+                                                                        $(this).css("font-weight", "normal"); 
+                                                                    }
+                                                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                                                    {
+                                                                        $.event.trigger({
+                                                                            type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                                            eventGenerator: $(this),
+                                                                            targetWidget: widgetTargetList[i],
+                                                                            value: $(this).attr("data-lastValue"),
+                                                                            color1: $(this).attr("data-color1"),
+                                                                            color2: $(this).attr("data-color2")
+                                                                        }); 
+                                                                    }
+                                                                }
+                                                            });
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id=' + latLngId + ']').off('click');
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id=' + latLngId + ']').click(function(event){
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').each(function(i){
+                                                                    $(this).css("background", $(this).attr("data-color2"));
+                                                                });
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').css("font-weight", "normal");
+                                                                $(this).css("background", $(this).attr("data-color1"));
+                                                                $(this).css("font-weight", "bold");
+                                                                $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').attr("data-lastDataClicked", "false");
+                                                                $(this).attr("data-lastDataClicked", "true");
+                                                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                                                var colIndex = $(this).parent().index();
+                                                                var title = $(this).parents("tr").find("td").eq(0).html();
+                                                                for(var i = 0; i < widgetTargetList.length; i++)
+                                                                {
+                                                                    $.event.trigger({
+                                                                        type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                                                        eventGenerator: $(this),
+                                                                        targetWidget: widgetTargetList[i],
+                                                                        value: $(this).attr("data-lastValue"),
+                                                                        color1: $(this).attr("data-color1"),
+                                                                        color2: $(this).attr("data-color2"),
+                                                                        widgetTitle: title,
+                                                                        field: $(this).attr("data-field"),
+                                                                        serviceUri: $(this).attr("data-serviceUri"),
+                                                                        marker: markersCache["" + $(this).attr("data-id") + ""],
+                                                                        mapRef: gisMapRef,
+                                                                        fake: $(this).attr("data-fake"),
+                                                                        fakeId: $(this).attr("data-fakeId")
+                                                                    });
+                                                                }
+                                                            });
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').off('click');
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').click(function(event){
+                                                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                                                {
+                                                                            $(this).css("background-color", "#e6e6e6");
+                                                                            $(this).off("hover");
+                                                                            $(this).off("click");
+                                                                }
+                                                                else
+                                                                {
+                                                                    
+                                                                    //$('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').css("background", $(this).attr("data-color2"));
+                                                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').css("font-weight", "normal");
+                                                                    $(this).css("background", $(this).attr("data-color1"));
+                                                                    $(this).css("font-weight", "bold");
+                                                                    $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                                                    $(this).attr("data-timeTrendClicked", "true");
+                                                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                                                    var colIndex = $(this).parent().index();
+                                                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+                                                                    var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+                                                                    var now = new Date();
+                                                                    var lastUpdateDate = new Date(lastUpdateTime);
+                                                                    var diff = parseFloat(Math.abs(now-lastUpdateDate)/1000);
+                                                                    var range = $(this).attr("data-range");
+                                                                    
+                                                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                                                    {
+                                                                        $.event.trigger({
+                                                                            type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                                            eventGenerator: $(this),
+                                                                            targetWidget: widgetTargetList[i],
+                                                                            range: range,
+                                                                            color1: $(this).attr("data-color1"),
+                                                                            color2: $(this).attr("data-color2"),
+                                                                            widgetTitle: title,
+                                                                            field: $(this).attr("data-field"),
+                                                                            serviceUri: $(this).attr("data-serviceUri"),
+                                                                            marker: markersCache["" + $(this).attr("data-id") + ""],
+                                                                            mapRef: gisMapRef,
+                                                                            fake: false
+                                                                            //fake: $(this).attr("data-fake")
+                                                                        }); 
+                                                                    }
+                                                                }
+                                                            });
+                                                            
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                                                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                                                {
+                                                                    
+                                                                    if($(this).attr("data-disabled") === "true"){
+                                                                            $(this).css("background-color", "#e6e6e6");
+                                                                            $(this).off("hover");
+                                                                            $(this).off("click");
+                                                                     }
+                                                                }else{
+                                                                    $(this).css("background", evt.color2);
+                                                                    $(this).css("font-weight", "normal");
+                                                                }
+                                                            });
+                                                            
+                                                            
+                                       //********************************************//
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseenter');
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn').off('mouseleave');
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id="' + latLngId + '"]').hover(function(){
+                                                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                                                {
+                                                                    $(this).css("background-color", "#e6e6e6");
+                                                                    $(this).off("hover");
+                                                                    $(this).off("click");
+                                                                }
+                                                                else
+                                                                {
+                                                                    if($(this).attr("data-timeTrendClicked") === "false")
+                                                                    {
+                                                                        $(this).css("background", evt.color1);
+                                                                        $(this).css("background", "-webkit-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("background", "background: -o-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("background", "background: -moz-linear-gradient(left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("background", "background: linear-gradient(to left, " + evt.color1 + ", " + evt.color2 + ")");
+                                                                        $(this).css("font-weight", "bold");
+                                                                    }
+
+                                                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+
+                                                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                                                    {
+                                                                        $.event.trigger({
+                                                                            type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                                            eventGenerator: $(this),
+                                                                            targetWidget: widgetTargetList[i],
+                                                                            value: $(this).attr("data-lastValue"),
+                                                                            color1: $(this).attr("data-color1"),
+                                                                            color2: $(this).attr("data-color2"),
+                                                                            widgetTitle: title
+                                                                        }); 
+                                                                    }
+                                                                }
+                                                            }, 
+                                                            function(){
+                                                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                                                {
+                                                                    $(this).css("background-color", "#e6e6e6");
+                                                                    $(this).off("hover");
+                                                                    $(this).off("click");
+                                                                }
+                                                                else
+                                                                {
+                                                                    if($(this).attr("data-timeTrendClicked")=== "false")
+                                                                    {
+                                                                        $(this).css("background", evt.color2);
+                                                                        $(this).css("font-weight", "normal"); 
+                                                                    }
+                                                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                                                    {
+                                                                        $.event.trigger({
+                                                                            type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                                            eventGenerator: $(this),
+                                                                            targetWidget: widgetTargetList[i],
+                                                                            value: $(this).attr("data-lastValue"),
+                                                                            color1: $(this).attr("data-color1"),
+                                                                            color2: $(this).attr("data-color2")
+                                                                        }); 
+                                                                    }
+                                                                }
+                                                            });
+                                                            //
+                                                            //////
+                                                            $('#<?= $_REQUEST['name_w'] ?> button.lastValueBtn[data-id="' + latLngId + '"]').each(function(i){
+                                                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                                                {
+                                                                    $(this).css("background-color", "#e6e6e6");
+                                                                    $(this).off("hover");
+                                                                    $(this).off("click");
+                                                                }else{
+                                                                    $(this).css("background", evt.color2);
+                                                                    $(this).css("font-weight", "normal"); 
+                                                                }
+                                                            });
+                                               /////////////////////////////////////
+                                             }
+                                         });
+                                    }
    //ExternalContent_1226_widgetGisWFS8061_popup
    /******/
+   /*
                            content_element.innerHTML = content;
                                        if (Array.isArray(coord[0])){
                                                        var poin = coord[0].length;
@@ -2234,6 +3207,7 @@
                                                        }else{
    				overlay.setPosition(coord);
                                                		}
+   */
    			}
    });
    map.on('pointermove', function(e) {
@@ -2241,12 +3215,12 @@
    	var pixel = map.getEventPixel(e.originalEvent);
    	var hit = map.hasFeatureAtPixel(pixel);
    	map.getTarget().style.cursor = hit ? 'pointer' : '';
-   });
+   	  });
     }else{
    $('#<?= $_REQUEST['name_w'] ?>_popup').hide();
     }                             
-   //                                
-         
+   //
+     
    });//Fine document ready
    
    //
@@ -2254,19 +3228,34 @@
    var id0=id_d.id;
    $('#'+id0+'_ol_detail').show();
    $('#'+id0+'_ol_descr').hide();
+   $('#'+id0+'_ol_rt').hide();
    $('#'+id0+'_detailBtn').css({"font-weight":"bold"});
    $('#'+id0+'_dscrBtn').css({"font-weight":"normal"});
+   $('#'+id0+'_rtBtn').css({"font-weight":"normal"});
    //
    }
    
    function myFunctionDecr(id_d) {
    var id0=id_d.id;
    $('#'+id0+'_ol_detail').hide();
+   $('#'+id0+'_ol_rt').hide();
    $('#'+id0+'_ol_descr').show();
    $('#'+id0+'_detailBtn').css({"font-weight":"normal"});
    $('#'+id0+'_dscrBtn').css({"font-weight":"bold"});
+   $('#'+id0+'_rtBtn').css({"font-weight":"normal"});
    //
    }
+   
+   function myFunctionRT(id_d){
+   var id0=id_d.id;
+   $('#'+id0+'_ol_detail').hide();
+   $('#'+id0+'_ol_descr').hide();
+   $('#'+id0+'_ol_rt').show();
+   $('#'+id0+'_detailBtn').css({"font-weight":"normal"});
+   $('#'+id0+'_dscrBtn').css({"font-weight":"normal"});
+   $('#'+id0+'_rtBtn').css({"font-weight":"bold"});   
+   }
+   
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div" data-emptyMapShown="false">

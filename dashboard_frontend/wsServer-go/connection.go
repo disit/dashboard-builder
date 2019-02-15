@@ -193,13 +193,13 @@ func ownershipLimitsDash(dat map[string]interface{}) (int, int, error) {
 	return claims, nil
 }*/
 
-func checkToken(accessToken string, clientID string) (string, string, string, error) {
+func checkToken(accessToken string, clientID string) (string, string, error) {
 	log.Print("checkToken")
 	ctx := context.Background()
 	provider, err := oidc.NewProvider(ctx, "https://www.snap4city.org/auth/realms/master")
 	if err != nil {
 		log.Print(err)
-		return "", "", "", err
+		return "", "", err
 	}
 
 	// Configure an OpenID Connect aware OAuth2 client.
@@ -214,11 +214,11 @@ func checkToken(accessToken string, clientID string) (string, string, string, er
 	idToken, err := verifier.Verify(ctx, accessToken)
 	if err != nil {
 		log.Print(err)
-		return "", "", "", err
+		return "", "", err
 	}
 	var data map[string]interface{}
 	if err := idToken.Claims(&data); err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 	var role string
 	var username string
@@ -254,8 +254,7 @@ func checkToken(accessToken string, clientID string) (string, string, string, er
 	} else {
 		log.Print("cannot convert roles")
 	}
-	organization, err := getOrganization(username)
-	return username, role, organization, nil
+	return username, role, nil
 }
 
 func getOrganization(username string) (string, error) {

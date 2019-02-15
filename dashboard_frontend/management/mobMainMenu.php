@@ -247,7 +247,7 @@
                             }
                         }
 
-                        if((strpos($privileges2, "'".@$_SESSION['loggedRole']."'") !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ((strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin')))
+                        if((strpos($privileges2, "'".@($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']."'")) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ((strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin')))
                         {
                             echo $newItem;
                         }
@@ -457,7 +457,7 @@
                             }
                         }
 
-                        if((strpos($privileges2, "'".$_SESSION['loggedRole']) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType'])))  && (strpos($allowedOrgs2, "'".$organizationSql) !== false))
+                        if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType'])))  && (strpos($allowedOrgs2, "'".$organizationSql) !== false))
                         {
                             echo $newItem;
                         }
@@ -609,7 +609,7 @@
                         if($(this).attr('data-externalApp') === 'yes')
                         {
                             console.log("Link id iframe: " + linkId);
-                            location.href = "iframeApp.php?linkUrl=" + encodeURI(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
+                            location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
                         }
                         break;
                         
@@ -657,7 +657,7 @@
                     $(this).find('div.mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
                     if($(this).attr('data-externalApp') === 'yes')
                     {
-                        location.href = "iframeApp.php?linkUrl=" + encodeURI(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=" + submenuId;
+                        location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=" + submenuId;
                     }
                     break;
 
@@ -729,7 +729,7 @@
                         if($(this).attr('data-externalApp') === 'yes')
                         {
                             console.log("Link id iframe: " + linkId);
-                            location.href = "iframeApp.php?linkUrl=" + encodeURI(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
+                            location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
                         }
                         break;
                         
@@ -777,7 +777,7 @@
                     $(this).find('div.mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
                     if($(this).attr('data-externalApp') === 'yes')
                     {
-                        location.href = "iframeApp.php?linkUrl=" + encodeURI(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=" + submenuId;
+                        location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=" + submenuId;
                     }
                     break;
 

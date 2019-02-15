@@ -2048,6 +2048,8 @@
                     var choosenWidgetType = null;
                     var mainWidget, targetWidget, unit, icon, mono_multi, widgetCategory = null;
                     var dashTitleEscaped = null;
+                    var gpsLatLng = "<?= $_SESSION['orgGpsCentreLatLng'] ?>";
+                    var mapZoomLevel = "<?= $_SESSION['orgZoomLevel'] ?>";
                     
                     $('#dashBckCnt').css("height", ($(window).height() - $('#dashboardViewHeaderContainer').height()) + "px");
                     var changeMetricSelectedRows = {};
@@ -14509,11 +14511,25 @@
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
 
-                                    var gisTargetCenterParameters = {
-                                        latLng: [43.769789, 11.255694],
-                                        zoom: 11,
-                                        coordsCollectionUri: null
-                                    };
+                                    if (gpsLatLng != null && mapZoomLevel != null) {
+                                      //  latLngArray = "[" + gpsLatLng + "]";
+                                      //  var latLngArray = JSON.parse(gpsLatLng);
+                                        var latLngArray  = new Float32Array(2);
+                                        latLngArray[0] = gpsLatLng.split(', ')[0];
+                                        latLngArray[1] = gpsLatLng.split(', ')[1];
+                                        var gisTargetCenterParameters = {
+                                            latLng: [latLngArray[0], latLngArray[1]],
+                                            zoom: mapZoomLevel,
+                                            coordsCollectionUri: null
+                                        };
+                                    } else {
+                                        var gisTargetCenterParameters = {
+                                            latLng: [43.769789, 11.255694],
+                                            zoom: 11,
+                                            coordsCollectionUri: null
+                                        };
+                                    }
+
                                     $("#parameters").val(JSON.stringify(gisTargetCenterParameters));
 
                                     $('#coordsCollectionUri').change(function () {
@@ -14522,7 +14538,7 @@
 
                                     if (gisTargetCenterMapDivRef === null) {
                                         gisTargetCenterMapDiv = "gisTargetCenterMapDiv";
-                                        gisTargetCenterMapDivRef = L.map(gisTargetCenterMapDiv).setView([43.769789, 11.255694], 11);
+                                        gisTargetCenterMapDivRef = L.map(gisTargetCenterMapDiv).setView([latLngArray[0], latLngArray[1]], mapZoomLevel);
 
                                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
@@ -14699,6 +14715,18 @@
                                 backOverlayOpacity = parseFloat(dashboardParams.backOverlayOpacity);
                                 var backOverlayOpacityPerc = backOverlayOpacity*100;
                                 $('#dashBckCnt').css('background-image', 'url("../img/dashBackgrounds/dashboard' + dashboardId + '/' + dashBckImg + '")');
+                                if( navigator.userAgent.match(/Android/i)
+                                    || navigator.userAgent.match(/webOS/i)
+                                    || navigator.userAgent.match(/iPhone/i)
+                                    || navigator.userAgent.match(/iPad/i)
+                                    || navigator.userAgent.match(/iPod/i)
+                                    || navigator.userAgent.match(/BlackBerry/i)
+                                    || navigator.userAgent.match(/Windows Phone/i)) {
+
+                                    $('#dashBckCnt').css('width', '100%');
+                                    $('#dashBckCnt').css('height', '100%');
+
+                                }
                                 $('#dashBckImgFlag').attr("checked", true);
                                 $('#dashBckOverlay').show();
                                 $('#dashBckOverlay').css('background-color', 'rgba(0,0,0,' + backOverlayOpacity + ')');
@@ -15931,6 +15959,9 @@
                                 var entityJson = JSON.parse(data.entityJson);
                                 var attributeName = data.attributeName;
                                 var widgetTypeM = data.type_widget;
+                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb") {
+                                    $("#specificParamsM").css("width", "100%");
+                                }
                                 var paramsRaw = data['param_w'];
                                 var styleParamsRaw = data['styleParameters'];
                                 var serviceUri = data['serviceUri'];
