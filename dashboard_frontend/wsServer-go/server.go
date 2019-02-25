@@ -64,11 +64,10 @@ func main() {
 	ctx, _ := context.WithCancel(context.Background())
 
 	go manager.start()
-	//http.HandleFunc("/", handleConnections)
 	http.HandleFunc("/", handleConnections)
-	//http.HandleFunc("/server/", handleConnections)
-	//http.HandleFunc("/", home)
-	go startRedis(ctx, ws.redisAddress)
+	if ws.redisEnabled == "yes" {
+		go startRedis(ctx, ws.redisAddress)
+	}
 	// go countGo()
 
 	log.Printf("serving on port " + port + "")
@@ -122,6 +121,11 @@ func buildAndInit() *WebSocketServer {
 		fmt.Printf("Fail to read file: %v", err)
 		os.Exit(1)
 	}
+	ldapContent, err := ini.Load("../conf/ldap.ini")
+	if err != nil {
+		fmt.Printf("Fail to read file: %v", err)
+		os.Exit(1)
+	}
 
 	wss := new(WebSocketServer)
 
@@ -143,7 +147,8 @@ func buildAndInit() *WebSocketServer {
 	a = ssoFileContent.Sections()
 	wss.clientSecret = a[0].Key("ssoClientSecret[" + wss.activeEnv + "]").String()
 	wss.clientID = a[0].Key("ssoClientId[" + wss.activeEnv + "]").String()
-	wss.ssohost = a[0].Key("ssoHost[" + wss.activeEnv + "]").String()
+	wss.ssoHost = a[0].Key("ssoHost[" + wss.activeEnv + "]").String()
+	wss.ssoIssuer = a[0].Key("ssoIssuer[" + wss.activeEnv + "]").String()
 
 	a = redisServerContent.Sections()
 	wss.redisEnabled = a[0].Key("redisEnabled[" + wss.activeEnv + "]").String()
@@ -154,6 +159,12 @@ func buildAndInit() *WebSocketServer {
 	a = ownershipContent.Sections()
 	wss.ownershipUrl = a[0].Key("ownershipApiBaseUrl[" + wss.activeEnv + "]").String()
 	log.Print("ownership: ", wss.ownershipUrl)
+
+	a = ldapContent.Sections()
+	wss.ldapServer = a[0].Key("ldapServer[" + wss.activeEnv + "]").String()
+	wss.ldapPort = a[0].Key("ldapPort[" + wss.activeEnv + "]").String()
+	wss.ldapBaseDN = a[0].Key("ldapBaseDN[" + wss.activeEnv + "]").String()
+	log.Print("ldap: ", wss.ldapServer, ":", wss.ldapPort, " ", wss.ldapBaseDN)
 
 	wss.clientWidgets = make(map[string][]*WebsocketUser)
 
