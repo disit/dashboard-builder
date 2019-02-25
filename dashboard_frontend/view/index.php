@@ -257,6 +257,10 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <script src="../widgets/trafficEventsTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/alarmTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/fakeGeoJsons.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
+    
+    <!--OpenLayers -->
+    <script src="ol/ol.js"></script>
+    <link rel="stylesheet" href="ol/ol.css" />
 
     <script type='text/javascript'>
         var array_metrics = new Array();
