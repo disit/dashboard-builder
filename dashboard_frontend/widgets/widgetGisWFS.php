@@ -26,8 +26,8 @@
 <script src="../trafficRTDetails/js/date.format.js"></script>
 <script src="../trafficRTDetails/js/zoomHandler.js"></script>
 <!-- jQuery -->
-<script src="ol/ol.js"></script>
-<link rel="stylesheet" href="ol/ol.css" />
+<!--<script src="ol/ol.js"></script>
+<link rel="stylesheet" href="ol/ol.css" />-->
 <!-- layerSwitcher -->
 <!--<script src="node_modules/ol-layerswitcher/dist/ol-layerswitcher.js"></script>-->
 <!--<link rel="stylesheet" href="node_modules/ol-layerswitcher/src/ol-layerswitcher.css" />-->
@@ -292,16 +292,16 @@
            }).addTo(defaultMapRef);
            defaultMapRef.attributionControl.setPrefix('');*/
            /*MAPPA DI DEFAULT OL*/            
-                       
-                      var raster = new ol.layer.Group({
+          
+            var raster = new ol.layer.Group({
    			layers:[
-                                                               new ol.layer.Tile({
-                                                               source: new ol.source.OSM({
-                                                                       imagerySet: 'Aerial',
-                                                                        type: 'base',
-                                                                })
-                                                       })]
-                                    });          
+                                  new ol.layer.Tile({
+                                             source: new ol.source.OSM({
+                                                            imagerySet: 'Aerial',
+                                                            type: 'base',
+                                                      })
+                                        })]
+                        });
    var map = new ol.Map({
    		layers: [raster],
    		target: document.getElementById('<?= $_REQUEST['name_w'] ?>_defaultMapDiv'),
@@ -309,8 +309,8 @@
    			center: ol.proj.transform( [11.255694, 43.769789] , 'EPSG:4326', 'EPSG:3857'),
                                                        //center: ol.proj.transform(OLlatLng,'EPSG:4326', 'EPSG:3857'),
                                                        //
-   			maxZoom: 18,
-                                                       zoom: 18
+                       maxZoom: 18,
+                       zoom: 18
    		})
    	});
            /**/
@@ -1020,6 +1020,7 @@
                                });
               }
               ///FINE AGGIUNTA PER I PIN///
+            new_level.setZIndex(5);
             map.addLayer(new_level);
             //
             }else if (query_text.includes('wms')){              
@@ -1029,21 +1030,25 @@
                   var layer = query.split('layers=');
                   //
                   var layer1 =layer[1].split('&');                   
-                  var time = query.split('time=');
-                  var time1 =time[1].split('&');
+                  //var time = query.split('time=');
+                  //var time1 =time[1].split('&');
                   var wmsDatasetName =layer1[0].replace("%3A", ":");
-                  var timestampISO =time1[0].replace("%3A", ":"); 
+                  //var timestampISO =time1[0].replace("%3A", ":"); 
+                  var tileSource = new ol.source.TileWMS({
+                                                url: url,
+                                                transition: 0,
+                                                params: {
+                                                        'LAYERS':wmsDatasetName,
+                                                        'TILED': true
+                                                    }
+                                    });
+                  //
                   var new_level = new ol.layer.Tile({
                                     title: res[1],
-                                    source: new ol.source.TileWMS({
-                                    url: url,
-                                    params: {
-                                            'LAYERS':  wmsDatasetName,
-                                            'VERSION': '1.3.0',
-                                            'FORMAT': 'image/png'
-                                        }
-                                    })
-                   });
+                                    source: tileSource
+                        });
+                        //EPSG:3857
+                   new_level.setZIndex(1);
                    map.addLayer(new_level);
                    //wmsGroup.getLayers().push(new_level);
                    loadingDiv.empty();
@@ -1066,19 +1071,19 @@
                                             var mapPinImg = '../img/gisMapIcons/'+type_image+'.png';
                                             ////
                                             var source_v = new ol.source.Vector({
-   				url: '../widgets/proxyGisWFS.php?url='+query,
-   				format: new ol.format.GeoJSON()
-   				});
+                                                        url: '../widgets/proxyGisWFS.php?url='+query,
+                                                        format: new ol.format.GeoJSON()
+                                                });
                                                 var vector = new ol.layer.Vector({
-   				source: source_v,
+                                                        source: source_v,
                                                         style: [ 
                                                             new ol.style.Style({
-                                                                         image: new ol.style.Icon(({
+                                                                         image: new ol.style.Icon({
                                                                                  anchor: [0.5, 46],
                                                                                  anchorXUnits: 'fraction',
                                                                                  anchorYUnits: 'pixels',
                                                                                  src: mapPinImg
-                                                                               }))
+                                                                               })
                                                                         }),
                             //
                                                                 new ol.style.Style({
@@ -1091,7 +1096,8 @@
                                                                                      width: 1
                                                                                  })
                                                                        })]
-                                                   });               
+                                                   });
+                                 vector.setZIndex(5);
                                  map.addLayer(vector);
                                  //wfsGroup.getLayers().push(vector);
                                  loadingDiv.empty();
@@ -1159,13 +1165,13 @@
                                                 var type = arr[y].type;
                                                 var tx = group1.array_[y];
                                                 if(type == 'TILE'){
-                                                     var tx2 = tx.values_.source.params_;
-                                                            var tx3 = tx2.LAYERS;
-                                                            var tx4 = tx3.split('Snap4City:');
-                                                            var tx5 = tx4[0];
-                                                            if (queryType.includes(tx5)) {
-                                                                    map.removeLayer(tx);
-                                                            }
+                                                    var tx2 = tx.values_.source.params_;
+                                                    var tx3 = tx2.LAYERS;
+                                                    var tx4 = tx3.split('Snap4City:');
+                                                    var tx5 = tx4[0];
+                                                    if (queryType.includes(tx5)) {
+                                                             map.removeLayer(tx);
+                                                       }
                                                 }
                                             }
                            }else{
@@ -2415,7 +2421,7 @@
                                                        content +='<button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + evt.color1 + '; background: -webkit-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -o-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: -moz-linear-gradient(right, ' + evt.color1 + ', ' + evt.color2 + '); background: linear-gradient(to right, ' + evt.color1 + ', ' + evt.color2 + ');" onclick="myFunctionRT('+id_name+');" id="'+id_name+'_rtBtn">RT data</button>'; 
                                                     //onclick="myFunctionRT('+id_name+');" id="'+id_name+'_rtBtn"
                                                     }
-                                                    ///
+                                                    /// 
                                                     content += '</div>';
                                                     content += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer ol_detail" id="'+id_name+'_ol_detail">';
                                                     content += '<table class="gisPopupGeneralDataTable">';
@@ -3194,6 +3200,28 @@
                                     }
    //ExternalContent_1226_widgetGisWFS8061_popup
    /******/
+   ////////////////////////////////////////////////////
+   /*
+   if(!('.recreativeEventMapBtn').length){
+                console.log('NO RT');
+               $('.ol_detail').show();
+               $('.ol_descr').hide();
+               $('.ol_rt').hide();
+               $('#<?= $_REQUEST['name_w'] ?>_detailBtn').css({"font-weight":"normal"});
+              $('#<?= $_REQUEST['name_w'] ?>_dscrBtn').css({"font-weight":"normal"});
+              $('#<?= $_REQUEST['name_w'] ?>_rtBtn').css({"font-weight":"bold"});
+   }else{
+       
+      //
+      console.log('OK RT');
+            $('.ol_detail').hide();
+            $('.ol_descr').hide();
+            $('.ol_rt').show();
+            $('#<?= $_REQUEST['name_w'] ?>_detailBtn').css({"font-weight":"normal"});
+            $('#<?= $_REQUEST['name_w'] ?>_dscrBtn').css({"font-weight":"normal"});
+            $('#<?= $_REQUEST['name_w'] ?>_rtBtn').css({"font-weight":"bold"});
+   }*/
+/////////////////////////////////////////
    /*
                            content_element.innerHTML = content;
                                        if (Array.isArray(coord[0])){
