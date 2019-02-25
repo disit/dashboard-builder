@@ -67,8 +67,12 @@ type WebSocketServer struct {
 	redisEnabled  string
 	clientSecret  string
 	clientID      string
-	ssohost       string
+	ssoHost       string
+	ssoIssuer     string
 	ownershipUrl  string
+	ldapServer    string
+	ldapPort      string
+	ldapBaseDN    string
 	clientWidgets map[string][]*WebsocketUser
 }
 
@@ -89,26 +93,7 @@ func ownershipRegisterDash(newDashId int64, title interface{}, dat map[string]in
 
 	callBody := callBody{ElementId: newDashId, ElementType: "DashboardID", ElementName: title.(string)}
 	jsonValue, _ := json.Marshal(callBody)
-	/*
-		ctx := context.TODO()
-		_, err := oidc.NewProvider(ctx, "https://www.snap4city.org/auth/realms/master")
 
-		if err != nil {
-			log.Print(err)
-			fmt.Println("Ownership call failed")
-			return "Ko"
-		}
-		oauth2Config := oauth2.Config{
-			ClientID:     ws.clientID,
-			ClientSecret: ws.clientSecret,
-			Endpoint: oauth2.Endpoint{
-			TokenURL: "https://" + ws.ssohost + "/auth/realms/master/protocol/openid-connect/token"},
-			Scopes: []string{oidc.ScopeOpenID},
-		}
-		_ = oauth2Config
-
-		fmt.Println(dat["accessToken"])
-	*/
 	apiURL := ws.ownershipUrl + "/v1/register/?accessToken=" + fmt.Sprint(dat["accessToken"])
 
 	resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonValue))
@@ -148,25 +133,6 @@ func ownershipLimitsDash(dat map[string]interface{}) (int, int, error) {
 	}
 }
 
-/*func checkToken(accessToken string) bool {
-	ctx := context.TODO()
-	_, err := oidc.NewProvider(ctx, "https://www.snap4city.org/auth/realms/master")
-
-	if err != nil {
-		log.Print(err)
-		return "Ko"
-	}
-	oauth2Config := oauth2.Config{
-		ClientID:     ws.clientID,
-		ClientSecret: ws.clientSecret,
-		Endpoint: oauth2.Endpoint{
-		TokenURL: "https://" + ws.ssohost + "/auth/realms/master/protocol/openid-connect/token"},
-		Scopes: []string{oidc.ScopeOpenID},
-	}
-	_ = oauth2Config
-	oauth2.NewClient(ctx,)
-}*/
-
 /*func getUserinfo(client *oauth2., endpoint string, token string) (jose.Claims, error) {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
@@ -196,20 +162,12 @@ func ownershipLimitsDash(dat map[string]interface{}) (int, int, error) {
 func checkToken(accessToken string, clientID string) (string, string, error) {
 	log.Print("checkToken")
 	ctx := context.Background()
-	provider, err := oidc.NewProvider(ctx, "https://www.snap4city.org/auth/realms/master")
+	provider, err := oidc.NewProvider(ctx, ws.ssoIssuer)
 	if err != nil {
 		log.Print(err)
 		return "", "", err
 	}
 
-	// Configure an OpenID Connect aware OAuth2 client.
-	/*oauth2Config := oauth2.Config{
-		ClientID:     ws.clientID,
-		ClientSecret: ws.clientSecret,
-		Endpoint: oauth2.Endpoint{
-			TokenURL: "https://" + ws.ssohost + "/auth/realms/master/protocol/openid-connect/token"},
-		Scopes: []string{oidc.ScopeOpenID},
-	}*/
 	verifier := provider.Verifier(&oidc.Config{ClientID: clientID})
 	idToken, err := verifier.Verify(ctx, accessToken)
 	if err != nil {
@@ -258,8 +216,8 @@ func checkToken(accessToken string, clientID string) (string, string, error) {
 }
 
 func getOrganization(username string) (string, error) {
-	baseDN := "dc=ldap,dc=disit,dc=org"
-	l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", "192.168.0.137", 389))
+	baseDN := ws.ldapBaseDN
+	l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%s", ws.ldapServer, ws.ldapPort))
 	if err != nil {
 		log.Print(err)
 		return "", err
