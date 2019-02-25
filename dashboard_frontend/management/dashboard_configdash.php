@@ -199,6 +199,9 @@
     <link href="../css/chat.css?v=<?php echo time();?>" rel="stylesheet">
     <!--<script src="../js/bootstrap-ckeditor-.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>-->
     
+    <!--OpenLayers-->
+    <script src="ol/ol.js"></script>
+    <link rel="stylesheet" href="ol/ol.css" />
 </head>
 
 <body> 
@@ -2048,8 +2051,6 @@
                     var choosenWidgetType = null;
                     var mainWidget, targetWidget, unit, icon, mono_multi, widgetCategory = null;
                     var dashTitleEscaped = null;
-                    var gpsLatLng = "<?= $_SESSION['orgGpsCentreLatLng'] ?>";
-                    var mapZoomLevel = "<?= $_SESSION['orgZoomLevel'] ?>";
                     
                     $('#dashBckCnt').css("height", ($(window).height() - $('#dashboardViewHeaderContainer').height()) + "px");
                     var changeMetricSelectedRows = {};
@@ -7618,6 +7619,7 @@
 
                                 $("li.gs_w").each(function(){
                                     //if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "selectorWebTarget"))
+                                  if($(this).hasAttribute("id")){
                                     if(($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "selectorWebTarget"))||($(this).attr("id").includes("GisWFS")&&($(this).find("div.widget").attr("data-role") === "selectorWebTarget")))
                                     {
                                       widgetId = $(this).attr("id");
@@ -7625,6 +7627,7 @@
                                       newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
                                       widgetsNumber++;
                                     }
+                                   }
                                 });
 
                                 if(widgetsNumber > 0)
@@ -14511,25 +14514,11 @@
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
 
-                                    if (gpsLatLng != null && mapZoomLevel != null) {
-                                      //  latLngArray = "[" + gpsLatLng + "]";
-                                      //  var latLngArray = JSON.parse(gpsLatLng);
-                                        var latLngArray  = new Float32Array(2);
-                                        latLngArray[0] = gpsLatLng.split(', ')[0];
-                                        latLngArray[1] = gpsLatLng.split(', ')[1];
-                                        var gisTargetCenterParameters = {
-                                            latLng: [latLngArray[0], latLngArray[1]],
-                                            zoom: mapZoomLevel,
-                                            coordsCollectionUri: null
-                                        };
-                                    } else {
-                                        var gisTargetCenterParameters = {
-                                            latLng: [43.769789, 11.255694],
-                                            zoom: 11,
-                                            coordsCollectionUri: null
-                                        };
-                                    }
-
+                                    var gisTargetCenterParameters = {
+                                        latLng: [43.769789, 11.255694],
+                                        zoom: 11,
+                                        coordsCollectionUri: null
+                                    };
                                     $("#parameters").val(JSON.stringify(gisTargetCenterParameters));
 
                                     $('#coordsCollectionUri').change(function () {
@@ -14538,7 +14527,7 @@
 
                                     if (gisTargetCenterMapDivRef === null) {
                                         gisTargetCenterMapDiv = "gisTargetCenterMapDiv";
-                                        gisTargetCenterMapDivRef = L.map(gisTargetCenterMapDiv).setView([latLngArray[0], latLngArray[1]], mapZoomLevel);
+                                        gisTargetCenterMapDivRef = L.map(gisTargetCenterMapDiv).setView([43.769789, 11.255694], 11);
 
                                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
@@ -14715,18 +14704,6 @@
                                 backOverlayOpacity = parseFloat(dashboardParams.backOverlayOpacity);
                                 var backOverlayOpacityPerc = backOverlayOpacity*100;
                                 $('#dashBckCnt').css('background-image', 'url("../img/dashBackgrounds/dashboard' + dashboardId + '/' + dashBckImg + '")');
-                                if( navigator.userAgent.match(/Android/i)
-                                    || navigator.userAgent.match(/webOS/i)
-                                    || navigator.userAgent.match(/iPhone/i)
-                                    || navigator.userAgent.match(/iPad/i)
-                                    || navigator.userAgent.match(/iPod/i)
-                                    || navigator.userAgent.match(/BlackBerry/i)
-                                    || navigator.userAgent.match(/Windows Phone/i)) {
-
-                                    $('#dashBckCnt').css('width', '100%');
-                                    $('#dashBckCnt').css('height', '100%');
-
-                                }
                                 $('#dashBckImgFlag').attr("checked", true);
                                 $('#dashBckOverlay').show();
                                 $('#dashBckOverlay').css('background-color', 'rgba(0,0,0,' + backOverlayOpacity + ')');
@@ -24630,7 +24607,7 @@
                                         displayedUdm = displayedUdm.replace(/&Hat;/g, "^");
                                         $("#inputUdmWidgetM").val(displayedUdm);
 
-                                        //Open in New Tab or Not    // NEW PANTALEO
+                                        //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');
 
                                         newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label">Open Web Link in a New Tab</label>');
@@ -25567,7 +25544,7 @@
                                         //Campo di registrazione widget sul Notificatore
                                         editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
 
-                                        //Open in New Tab or Not    // NEW PANTALEO
+                                        //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');
 
                                         newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label">Open Web Link in a New Tab</label>');
@@ -25636,7 +25613,7 @@
                                         
                                         //Campo di registrazione widget sul Notificatore
                                         editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
-                                        //Open in New Tab or Not    // NEW PANTALEO
+                                        //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');
 
                                         newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label">Open Web Link in a New Tab</label>');
