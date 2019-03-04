@@ -23,9 +23,7 @@ if (!isset($_SESSION)) {
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
-if (!isset($_SESSION['loggedRole'])) {
-  header("location: unauthorizedUser.php");
-}
+checkSession('Manager');
 ?>
 
 <!DOCTYPE html>
