@@ -149,7 +149,7 @@
                         <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
                             <div class="row mainContentRow" id="iotApplicationsIframeRow">
                                 <div class="col-xs-12 mainContentCellCnt" id="iotApplicationsIframeCnt">
-                                    <iframe id="iotApplicationsIframe"></iframe>
+                                    <iframe id="iotApplicationsIframe" allow="geolocation"></iframe>
                                 </div>
                             </div>    
                             
