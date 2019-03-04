@@ -207,7 +207,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
 
-            rowHeightPerc = 16.6;
+            rowHeightPerc = 14.29;
             descW = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').width() - Math.floor(parseInt(carouselHeight) / 6));
             descWPerc = Math.floor(descW * 100 / $('#<?= $_REQUEST['name_w'] ?>_div').width());
             iconDim = 100 - descWPerc;
@@ -316,7 +316,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             $("#<?= $_REQUEST['name_w'] ?>_content").carousel(1);
         });
 
-        rowHeightPerc = 16.6;
+        rowHeightPerc = 14.29;
         descW = parseInt($('#<?= $_REQUEST['name_w'] ?>_div').width() - Math.floor(parseInt(carouselHeight) / 6));
         descWPerc = Math.floor(descW * 100 / $('#<?= $_REQUEST['name_w'] ?>_div').width());
         iconDim = 100 - descWPerc;
