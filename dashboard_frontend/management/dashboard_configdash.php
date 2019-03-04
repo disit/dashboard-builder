@@ -159,7 +159,8 @@
     <!-- Leaflet -->
    <!-- Versione locale: 1.3.1 --> 
    <link rel="stylesheet" href="../leafletCore/leaflet.css" />
-   <script src="../leafletCore/leaflet.js"></script> 
+   <script src="../leafletCore/leaflet.js"></script>
+   <script src="../js/OMS-leaflet/oms.min.js"></script>    <!-- OverlappingMarkerSpider for Leaflet --!>
    
    <!-- Leaflet Wicket: libreria per parsare i file WKT --> 
    <script src="../wicket/wicket.js"></script> 
