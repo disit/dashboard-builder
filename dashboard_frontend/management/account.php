@@ -18,7 +18,7 @@
     include('process-form.php');
     session_start();
     
-    checkSession('RootAdmin');
+    checkSession('AreaManager');
 ?>
 
 <!DOCTYPE html>
