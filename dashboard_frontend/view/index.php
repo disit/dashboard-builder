@@ -214,6 +214,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <!-- Versione locale: 1.3.1 --> 
     <link rel="stylesheet" href="../leafletCore/leaflet.css" />
     <script src="../leafletCore/leaflet.js"></script>
+    <script src="../js/OMS-leaflet/oms.min.js"></script>    <!-- OverlappingMarkerSpider for Leaflet --!>
    
    <!-- Leaflet marker cluster plugin -->
    <link rel="stylesheet" href="../leaflet-markercluster/MarkerCluster.css" />
