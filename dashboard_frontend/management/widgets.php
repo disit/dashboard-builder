@@ -18,14 +18,7 @@
     include('process-form.php');
     session_start();
     
-    if(!isset($_SESSION['loggedRole']))
-    {
-        header("location: ssoLogin.php");
-    }
-    else if($_SESSION['loggedRole'] != "RootAdmin")
-    {
-        header("location: ssoLogin.php");
-    }
+    checkSession('RootAdmin');
 ?>
 
 <!DOCTYPE html>
