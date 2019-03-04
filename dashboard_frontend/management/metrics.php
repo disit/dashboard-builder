@@ -18,10 +18,8 @@
     include('process-form.php');
     session_start();
     
-    if(!isset($_SESSION['loggedRole']))
-    {
-        header("location: ssoLogin.php");
-    }
+    checkSession('ToolAdmin');
+
 ?>
 
 <!DOCTYPE html>
