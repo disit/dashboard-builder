@@ -43,10 +43,17 @@ function udate($format = 'u', $microT) {
 
     if (isset($_REQUEST['last'])) {
         $lastValueString = "&last=" . $_REQUEST['last'];
+    } else if (isset($_GET['lastValue'])) {
+        $lastValueString = "&last=" . $_GET['lastValue'];
     } else {
         $lastValueString = "&last=0";
     }
 
+    if (isset($_GET['action'])) {
+        $action = $_GET['action'];
+    } else {
+        $action = "";
+    }
 
   //  if(isset($_SESSION['refreshToken'])) {
         $oidc = new OpenIDConnectClient('https://www.snap4city.org', 'php-dashboard-builder', '0afa15e8-87b9-4830-a60c-5fd4da78a9c4');
@@ -85,7 +92,11 @@ function udate($format = 'u', $microT) {
         $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
 
         $myKpiDataArray = [];
-        $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . $myKpiTimeRange . $lastValueString;
+        if ($action == "getDistinctDays") {
+            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values/dates?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
+        } else {
+            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . $myKpiTimeRange . $lastValueString;
+        }
 
         $options = array(
             'http' => array(
