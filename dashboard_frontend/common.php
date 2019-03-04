@@ -157,8 +157,27 @@ function checkUserLevel($username, $host, $usernameDb, $passwordDb)
 }
 
 function checkSession($role, $redirect = '') {
-  if(!isset($_SESSION['loggedRole']))
-  {
+  $goodSession=true;
+  if(isset($_SESSION['refreshToken'])) {
+      $parts = explode(".", $_SESSION['refreshToken']);
+      $claims =  json_decode(base64_decode($parts[1]));
+      if(isset($claims->exp) && $claims->exp < time()) {
+        //refresh token expired
+        $goodSession=false;
+      }
+  } else if(isset($_SESSION['loggedRole'])) {
+    $goodSession=false;
+  }
+  if(!$goodSession) {
+      $f=fopen("/tmp/checkSession.log","a");
+      if(isset($claims->exp))
+        fwrite($f,date('c')." invalid session, expired refresh token, exp: ".($claims->exp-time())." sub: $claims->sub tkn: ".$_SESSION['refreshToken']."\n");
+      else
+        fwrite($f,date('c')." invalid session, no refresh token for ".$_SESSION['loggedUsername']."/".$_SESSION['loggedRole']." \n");
+      fclose($f);    
+  }
+  if(!isset($_SESSION['loggedRole']) || !$goodSession) {
+    $_SESSION = array();
     $_SESSION['isPublic'] = true;
     $curRole = 'Public';
     //$_SESSION['loggedRole'] = "Public";
@@ -171,12 +190,14 @@ function checkSession($role, $redirect = '') {
     $_SESSION['isPublic'] = false;
     $curRole = $_SESSION['loggedRole'];
   }
+  
+  //redirect to login or the specified redirect if the current role level is lower than the minimum required role level or if the session is expired
   $roles=array('Public','Observer','Manager','AreaManager','ToolAdmin','RootAdmin');
-  if(array_search($role, $roles) >  array_search($curRole, $roles)) {
-    if(!$redirect)
+  if(!$goodSession || array_search($curRole, $roles) < array_search($role, $roles) ) {
+    if(!$redirect) {
       $redirect = 'ssoLogin.php';
+    }
     header("Location: $redirect");
-    #echo array_search($role, $roles)." ".array_search($_SESSION['loggedRole'], $roles);
     exit();
   }
 }
