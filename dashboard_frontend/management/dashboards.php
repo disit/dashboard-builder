@@ -1478,7 +1478,9 @@
                                     else
                                     {
                                         $('#newOwner').addClass('disabled');
+                                        $('#newOwnershipResultMsg').show();
                                         $('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+                                        $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
                                         
                                         setTimeout(function()
