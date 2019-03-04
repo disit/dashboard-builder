@@ -19,15 +19,7 @@
     include('../config.php');
     session_start();
        
-    if(!isset($_SESSION['loggedRole']))
-    {
-        header("location: ssoLogin.php");
-    }
-    else if(($_SESSION['loggedRole'] != "RootAdmin")&&($_SESSION['loggedRole'] != "ToolAdmin")&&($_SESSION['loggedRole'] != "AreaManager"))
-    {
-        header("location: ssoLogin.php");
-    }
-    
+    checkSession('RootAdmin');    
 ?>
 
 <html lang="en">
