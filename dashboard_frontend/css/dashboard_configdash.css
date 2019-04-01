@@ -179,6 +179,11 @@ div.contextMenuBtnsRow
     height: 204px;
 }
 
+#addWidgetWizardMapCnt2
+{
+    height: 285px;
+}
+
 .addWidgetWizardIconsCntLabel
 {
     margin-bottom: 2px;
@@ -204,6 +209,21 @@ div.contextMenuBtnsRow
 }
 
 #addWidgetWizard .modal-body
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+#addWidgetWizard2 .modalHeader 
+{
+    background-color: rgba(51, 64, 69, 1) !important;
+}
+
+#addWidgetWizard2 .modal-body
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+#addWidgetWizard2 .body
 {
     background-color: rgba(108, 135, 147, 1) !important;
 }
@@ -308,6 +328,10 @@ div.contextMenuBtnsRow
 }
 
 #changeMetricCnt
+{
+    display: none;
+}
+#changeMetricCnt2
 {
     display: none;
 }
