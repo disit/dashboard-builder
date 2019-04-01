@@ -107,8 +107,12 @@ foreach ($resKPIArray as $resKPIRecord) {
     if ($resKPIRecord['latitude'] != "" && $resKPIRecord['longitude'] != "") {
      //   $parameters_KPI = $resKPIRecord['id'] . "__" . $resKPIRecord['latitude'] . ";" . $resKPIRecord['longitude'];
         $parameters_KPI = "datamanager/api/v1/poidata/" . $resKPIRecord['id'];
+        $latitude_KPI = $resKPIRecord['latitude'];
+        $longitude_KPI = $resKPIRecord['longitude'];
     } else {
         $parameters_KPI = $resKPIRecord['id'];
+        $latitude_KPI = "";
+        $longitude_KPI = "";
     }
     $high_level_type_KPI = $resKPIRecord['highLevelType'];
     $nature_KPI = $resKPIRecord['nature'];
@@ -116,11 +120,17 @@ foreach ($resKPIArray as $resKPIRecord) {
     $sub_nature_KPI = $resKPIRecord['subNature'];
     $unique_name_id_KPI = $resKPIRecord['valueName'];
     $last_value_KPI = $resKPIRecord['lastValue'];
-    $unit_KPI = $resKPIRecord['dataType'] . "-mykpi";
     $get_instances_KPI = $resKPIRecord['getInstances'];
     if ($get_instances_KPI == "") {
         $get_instances_KPI = $parameters_KPI;
     }
+  /*  if (strpos($get_instances_KPI, 'datamanager/api/v1/poidata') !== false) {
+        $unit_KPI = $resKPIRecord['dataType'] . "-geo";
+        $kpiId = explode("datamanager/api/v1/poidata/", $get_instances_KPI)[1];
+    } else {    */
+        $unit_KPI = $resKPIRecord['dataType'] . "-mykpi";
+        $kpiId = $get_instances_KPI;
+   // }
     $last_date_KPI_millis = $resKPIRecord['lastDate'];
     $last_date_KPI = date("Y-m-d H:i:s",$last_date_KPI_millis/1000);
 
@@ -142,8 +152,8 @@ foreach ($resKPIArray as $resKPIRecord) {
 
     if (!is_null($nature_KPI)) {
         if ($nature_KPI != '') {
-            echo($count . " - MY KPI: " . $nature_KPI . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id_KPI . ", MOTIVATION: " . $low_level_type_KPI . "\n");
-            $insertQuery_KPI = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations) VALUES ('$nature_KPI','$high_level_type_KPI','$sub_nature_KPI','$low_level_type_KPI', '$unique_name_id_KPI', '$instance_uri_KPI', '$get_instances_KPI', '$unit_KPI', '$metric_KPI', '$saved_direct_KPI', '$kb_based_KPI', '$sm_based_KPI', '$parameters_KPI', '$last_date_KPI', '$last_value_KPI', '$healthiness_KPI', '$lastCheck_KPI', '$ownership_KPI', '$organizations_KPI') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = healthiness, lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "';";
+            echo($count . " - MY KPI: " . $nature_KPI . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id_KPI . ", MOTIVATION: " . $low_level_type_KPI . ", KPI-ID: " . $kpiId . "\n");
+            $insertQuery_KPI = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude) VALUES ('$nature_KPI','$high_level_type_KPI','$sub_nature_KPI','$low_level_type_KPI', '$unique_name_id_KPI', '$instance_uri_KPI', '$get_instances_KPI', '$unit_KPI', '$metric_KPI', '$saved_direct_KPI', '$kb_based_KPI', '$sm_based_KPI', '$parameters_KPI', '$last_date_KPI', '$last_value_KPI', '$healthiness_KPI', '$lastCheck_KPI', '$ownership_KPI', '$organizations_KPI', '$latitude_KPI', '$longitude_KPI') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', unit = '" . $unit_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = healthiness, lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "';";
             try {
                 //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                 mysqli_query($link, $insertQuery_KPI);
@@ -153,7 +163,7 @@ foreach ($resKPIArray as $resKPIRecord) {
                 echo $e->getMessage();
                 $updtQuery_KPI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = healthiness, lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "' WHERE high_level_type = '" . $high_level_type_KPI . "' AND sub_nature = '" . $sub_nature_KPI . "' AND low_level_type = '" . $low_level_type_KPI . "' AND unique_name_id = '" . $unique_name_id_KPI . "' AND instance_uri = '" . $instance_uri_KPI . "' AND get_instances = '" . $get_instances_KPI . "';";
                 mysqli_query($link, $updtQuery);
-                echo ("\nUPDATE QUERY: ".$updtQuery."\n");
+                echo ("\nUPDATE QUERY per KPI-ID: " . $kpiId . ": " . $updtQuery . "\n");
             }
         }
     }
@@ -218,7 +228,7 @@ foreach ($resPOIArray as $resPOIRecord) {
 
         //  $metric_POI = $resPOIRecord['metric'];
       //  $saved_direct_POI = $resPOIRecord['savedDirect'];
-        $kb_based_KPI = $resPOIRecord['properties']['kpidata']['kbBased'];
+        $kb_based_POI = $resPOIRecord['properties']['kpidata']['kbBased'];
         if ($resPOIRecord['properties']['kpidata']['smBased'] == "") {
             $sm_based_POI = "myPOI";
         } else {
@@ -300,11 +310,18 @@ foreach ($resMyDataArray as $resMyDataRecord) {
     $sub_nature_MyData = $resMyDataRecord['subNature'];
     $unique_name_id_MyData = $resMyDataRecord['valueName'];
     $last_value_MyData = $resMyDataRecord['lastValue'];
-    $unit_MyData = $resMyDataRecord['dataType'] . "-mykpi";
+  //  $unit_MyData = $resMyDataRecord['dataType'] . "-mykpi";
     $get_instances_MyData = $resMyDataRecord['getInstances'];
     if ($get_instances_MyData == "") {
         $get_instances_MyData = $parameters_MyData;
     }
+  /*  if (strpos($get_instances_MyData, 'datamanager/api/v1/poidata') !== false) {
+        $unit_MyData = $resKPIRecord['dataType'] . "-geo";
+        $kpiId = explode("datamanager/api/v1/poidata/", $get_instances_MyData)[1];
+    } else {    */
+        $unit_MyData = $resKPIRecord['dataType'] . "-mykpi";
+        $kpiId = $get_instances_MyData;
+  //  }
     $last_date_MyData_millis = $resMyDataRecord['lastDate'];
     $last_date_MyData = date("Y-m-d H:i:s",$last_date_MyData_millis/1000);
 
@@ -326,8 +343,8 @@ foreach ($resMyDataArray as $resMyDataRecord) {
 
     if (!is_null($nature_MyData)) {
         if ($nature_MyData != '') {
-            echo($count . " - MY Data: " . $nature_MyData . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id_MyData . ", MOTIVATION: " . $low_level_type_MyData . "\n");
-            $insertQuery_MyData = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations) VALUES ('$nature_MyData','$high_level_type_MyData','$sub_nature_MyData','$low_level_type_MyData', '$unique_name_id_MyData', '$instance_uri_MyData', '$get_instances_MyData', '$unit_MyData', '$metric_MyData', '$saved_direct_MyData', '$kb_based_MyData', '$sm_based_MyData', '$parameters_MyData', '$last_date_MyData', '$last_value_MyData', '$healthiness_MyData', '$lastCheck_MyData', '$ownership_MyData', '$organizations_MyData') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = healthiness, lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', organizations = '" . $organizations_MyData . "';";
+            echo($count . " - MY Data: " . $nature_MyData . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id_MyData . ", MOTIVATION: " . $low_level_type_MyData . ", KPI-ID: " . $kpiId . "\n");
+            $insertQuery_MyData = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude) VALUES ('$nature_MyData','$high_level_type_MyData','$sub_nature_MyData','$low_level_type_MyData', '$unique_name_id_MyData', '$instance_uri_MyData', '$get_instances_MyData', '$unit_MyData', '$metric_MyData', '$saved_direct_MyData', '$kb_based_MyData', '$sm_based_MyData', '$parameters_MyData', '$last_date_MyData', '$last_value_MyData', '$healthiness_MyData', '$lastCheck_MyData', '$ownership_MyData', '$organizations_MyData', '$latitude_MyData', '$longitude_MyData') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = healthiness, lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', organizations = '" . $organizations_MyData . "', latitude = '" . $latitude_MyData . "', longitude = '" . $longitude_MyData . "';";
             try {
                 //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                 mysqli_query($link, $insertQuery_MyData);
