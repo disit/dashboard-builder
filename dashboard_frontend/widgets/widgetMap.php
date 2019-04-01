@@ -89,6 +89,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             mapDate = null;
             resetPageFlag = null;
             wmsDatasetName = null;
+            passedParams = null;
+
+            var dataForApi = "";
 
             //Definizioni di funzione
 
@@ -2191,6 +2194,14 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     '<div id="<?= $_REQUEST['name_w'] ?>_modalLinkOpenGisMap" class="modalLinkOpenGisMap" data-mapRef="null"></div>' +
                     '<div id="<?= $_REQUEST['name_w'] ?>_modalLinkOpenGisTimeTrend" class="modalLinkOpenGisTimeTrend"></div>' +
                     '</div>' +
+                    '<div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_modalLinkLoading" class="loadingDiv">' +
+                    '<div class="LoadingTextDiv">' +
+                    '<p>Loading data, please wait</p>' +
+                    '</div>' +
+                    '<div class="loadingIconDiv">' +
+                    '<i class="fa fa-spinner fa-spin"></i>' +
+                    '</div>' +
+                    '</div>' +
                     '</div>' +
                     '<div class="modal-footer">' +
                     '<button type="button" id="<?= $_REQUEST['name_w'] ?>_modalLinkOpenCloseBtn" class="btn btn-primary">Back to dashboard</button>' +
@@ -3125,7 +3136,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                             var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, ["i"]);
 
-                            if (queryType === "Default") {
+                         /*   if (queryType === "Default") {
                                 if (pattern.test(query)) {
                                     query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
                                 }
@@ -3139,19 +3150,91 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                             else {
                                 targets = [];
+                            }*/
+
+                            if(queryType === "Default")
+                            {
+                                if (passedData.query.includes("datamanager/api/v1/poidata/")) {
+                                    if (passedData.desc != "My POI") {
+                                        myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
+                                        apiUrl = "../controllers/myPOIProxy.php";
+                                        dataForApi = myPOIId;
+                                        query = passedData.query;
+                                    } else {
+                                        apiUrl = "../controllers/myPOIProxy.php";
+                                        dataForApi = "All";
+                                        query = passedData.query;
+                                    }
+                                } else if (passedData.query.includes("/iot/")) {
+                                    query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + passedData.query + "&format=json";
+                                } else {
+
+                                    if (pattern.test(passedData.query)) {
+                                        //console.log("Service Map selection substitution");
+                                        query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                    } else {
+                                        //console.log("Service Map selection addition");
+                                        query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                    }
+                                }
+                            }
+                            else if(queryType === "MyPOI") {
+                                if (passedData.desc != "My POI") {
+                                    myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
+                                    apiUrl = "../controllers/myPOIProxy.php";
+                                    dataForApi = myPOIId;
+                                    query = passedData.query;
+                                } else {
+                                    apiUrl = "../controllers/myPOIProxy.php";
+                                    dataForApi = "All";
+                                    query = passedData.query;
+                                }
+
+                            }
+                            else
+                            {
+                                query = passedData.query;
+                            }
+
+                            if(passedData.targets !== "")
+                            {
+                                targets = passedData.targets.split(",");
+                            }
+                            else
+                            {
+                                targets = [];
+                            }
+
+                            if(queryType != "MyPOI" && !passedData.query.includes("datamanager/api/v1/poidata/")) {
+                                apiUrl = query + "&geometry=true&fullCount=false";
+                            }
+
+                            //    if (queryType === "Sensor" && query.includes("%2525")) {
+                            if (query.includes("%2525") && !query.includes("%252525")) {
+                                let queryPart1 = query.split("/resource/")[0];
+                                let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
+                                let queryPart3 = query.split("&format=")[1];
+                                if (queryPart3 != undefined) {
+                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" + queryPart3;
+                                } else {
+                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
+                                }
                             }
 
                             $.ajax({
-                                url: query + "&geometry=true&fullCount=false",
+                            //    url: query + "&geometry=true&fullCount=false",
+                                url: apiUrl,
                                 type: "GET",
-                                data: {},
+                                data: {
+                                    myPOIId: dataForApi
+                                },
                                 async: true,
                                 timeout: 0,
                                 dataType: 'json',
                                 success: function (geoJsonData) {
-                                    var fatherGeoJsonNode = null;
+                                    var fatherGeoJsonNode = {};
 
-                                    if (queryType === "Default") {
+                                /*    if (queryType === "Default") {
                                         if (geoJsonData.hasOwnProperty("BusStops")) {
                                             fatherGeoJsonNode = geoJsonData.BusStops;
                                         }
@@ -3177,6 +3260,69 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     fatherGeoJsonNode = geoJsonData.Service;
                                                 }
                                                 else {
+                                                    fatherGeoJsonNode = geoJsonData.Services;
+                                                }
+                                            }
+                                        }
+                                    }*/
+
+                                    if(queryType === "Default")
+                                    {
+                                        if (passedData.query.includes("datamanager/api/v1/poidata/")) {
+                                            fatherGeoJsonNode.features = [];
+                                            if (passedData.desc != "My POI") {
+                                                fatherGeoJsonNode.features[0] = geoJsonData;
+                                            } else {
+                                                fatherGeoJsonNode.features = geoJsonData;
+                                            }
+                                            fatherGeoJsonNode.type = "FeatureCollection";
+                                        }
+                                        else {
+                                            if (geoJsonData.hasOwnProperty("BusStops")) {
+                                                fatherGeoJsonNode = geoJsonData.BusStops;
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty("SensorSites")) {
+                                                    fatherGeoJsonNode = geoJsonData.SensorSites;
+                                                } else {
+                                                    if (geoJsonData.hasOwnProperty("Service")) {
+                                                        fatherGeoJsonNode = geoJsonData.Service;
+                                                    } else {
+                                                        fatherGeoJsonNode = geoJsonData.Services;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if (queryType === "MyPOI")
+                                    {
+                                        fatherGeoJsonNode.features = [];
+                                        if (passedData.desc != "My POI") {
+                                            fatherGeoJsonNode.features[0] = geoJsonData;
+                                        } else {
+                                            fatherGeoJsonNode.features = geoJsonData;
+                                        }
+                                        fatherGeoJsonNode.type = "FeatureCollection";
+                                    }
+                                    else
+                                    {
+                                        if(geoJsonData.hasOwnProperty("BusStop"))
+                                        {
+                                            fatherGeoJsonNode = geoJsonData.BusStop;
+                                        }
+                                        else
+                                        {
+                                            if(geoJsonData.hasOwnProperty("Sensor"))
+                                            {
+                                                fatherGeoJsonNode = geoJsonData.Sensor;
+                                            }
+                                            else
+                                            {
+                                                if(geoJsonData.hasOwnProperty("Service"))
+                                                {
+                                                    fatherGeoJsonNode = geoJsonData.Service;
+                                                }
+                                                else
+                                                {
                                                     fatherGeoJsonNode = geoJsonData.Services;
                                                 }
                                             }
@@ -4364,6 +4510,45 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     }
                                 }
                             }
+
+                            if (!event.passedData.includes("heatmap.php")) {
+                                passedParams = event.passedParams;
+
+                                var color1 = passedParams.color1;
+                                var color2 = passedParams.color2;
+                                var desc = passedParams.desc;
+
+                                var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                                if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
+                                    loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                                } else {
+                                    loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
+                                }
+
+                                loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
+                                loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                                loadingDiv.css("background", color1);
+                                loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
+                                loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                                loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                                loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
+
+                                loadingDiv.show();
+
+                                loadingDiv.append(loadingText);
+                                loadingDiv.css("opacity", 1);
+
+                                var parHeight = loadingText.height();
+                                var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                loadingText.css("margin-top", parMarginTop + "px");
+                            }
+
                             let heatmap = {};
                             heatmap.eventType = "heatmap";
                             baseQuery = event.passedData;
@@ -4502,16 +4687,65 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                                 event.legendColors = heatmapLegendColors;
                                                 map.eventsOnMap.push(event);
+
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadOkText);
+
+                                                parHeight = loadOkText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                setTimeout(function () {
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
                                         }
 
                                     } else {
                                         console.log("Ko Heatmap");
                                         console.log(JSON.stringify(errorData));
+                                        loadingDiv.empty();
+                                        loadingDiv.append(loadKoText);
+
+                                        parHeight = loadKoText.height();
+                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                        loadKoText.css("margin-top", parMarginTop + "px");
+
+                                        setTimeout(function () {
+                                            loadingDiv.css("opacity", 0);
+                                            setTimeout(function () {
+                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                });
+                                                loadingDiv.remove();
+                                            }, 350);
+                                        }, 1000);
                                     }
                                 },
                                 error: function (errorData) {
                                     console.log("Ko Heatmap");
                                     console.log(JSON.stringify(errorData));
+                                    loadingDiv.empty();
+                                    loadingDiv.append(loadKoText);
+
+                                    parHeight = loadKoText.height();
+                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                    loadKoText.css("margin-top", parMarginTop + "px");
+
+                                    setTimeout(function () {
+                                        loadingDiv.css("opacity", 0);
+                                        setTimeout(function () {
+                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                            });
+                                            loadingDiv.remove();
+                                        }, 350);
+                                    }, 1000);
                                 }
                             });
 
@@ -4529,6 +4763,44 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             };  */
 
                             //heatmap recommender metadata
+
+                            passedParams = event.passedParams;
+
+                            var color1 = passedParams.color1;
+                            var color2 = passedParams.color2;
+                            var desc = passedParams.desc;
+
+                            var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                            if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
+                                loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                            }
+                            else {
+                                loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
+                            }
+
+                            loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
+                            loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                            var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                            var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                            var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                            loadingDiv.css("background", color1);
+                            loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
+
+                            loadingDiv.show();
+
+                            loadingDiv.append(loadingText);
+                            loadingDiv.css("opacity", 1);
+
+                            var parHeight = loadingText.height();
+                            var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                            loadingText.css("margin-top", parMarginTop + "px");
+
                             map.testMetadata = {
                                 //   max: 8,
                                 metadata: heatmapData[current_page].metadata
@@ -4702,10 +4974,43 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         $('#<?= $_REQUEST['name_w'] ?>_estimateRad').prop('disabled', false);
                                                     }
 
+                                                    loadingDiv.empty();
+                                                    loadingDiv.append(loadOkText);
+
+                                                    parHeight = loadOkText.height();
+                                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                    loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                    setTimeout(function () {
+                                                        loadingDiv.css("opacity", 0);
+                                                        setTimeout(function () {
+                                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                            });
+                                                            loadingDiv.remove();
+                                                        }, 350);
+                                                    }, 1000);
+
                                                 },
                                                 error: function (errorData) {
                                                     console.log("Ko Heatmap");
                                                     console.log(JSON.stringify(errorData));
+                                                    loadingDiv.empty();
+                                                    loadingDiv.append(loadKoText);
+
+                                                    parHeight = loadKoText.height();
+                                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                    loadKoText.css("margin-top", parMarginTop + "px");
+
+                                                    setTimeout(function () {
+                                                        loadingDiv.css("opacity", 0);
+                                                        setTimeout(function () {
+                                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                            });
+                                                            loadingDiv.remove();
+                                                        }, 350);
+                                                    }, 1000);
                                                 }
                                             });
 
@@ -4743,16 +5048,70 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             map.eventsOnMap.push(heatmap);
                                             event.legendColors = heatmapLegendColors;
                                             map.eventsOnMap.push(event);
+
+                                            loadingDiv.empty();
+                                            loadingDiv.append(loadOkText);
+
+                                            parHeight = loadOkText.height();
+                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                            loadOkText.css("margin-top", parMarginTop + "px");
+
+                                            setTimeout(function () {
+                                                loadingDiv.css("opacity", 0);
+                                                setTimeout(function () {
+                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                    });
+                                                    loadingDiv.remove();
+                                                }, 350);
+                                            }, 1000);
+
                                         }
 
                                     } else {
                                         console.log("Ko Heatmap");
                                         console.log(JSON.stringify(errorData));
+
+                                        loadingDiv.empty();
+                                        loadingDiv.append(loadKoText);
+
+                                        parHeight = loadKoText.height();
+                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                        loadKoText.css("margin-top", parMarginTop + "px");
+
+                                        setTimeout(function () {
+                                            loadingDiv.css("opacity", 0);
+                                            setTimeout(function () {
+                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                });
+                                                loadingDiv.remove();
+                                            }, 350);
+                                        }, 1000);
+
                                     }
                                 },
                                 error: function (errorData) {
                                     console.log("Ko Heatmap");
                                     console.log(JSON.stringify(errorData));
+
+                                    loadingDiv.empty();
+                                    loadingDiv.append(loadKoText);
+
+                                    parHeight = loadKoText.height();
+                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                    loadKoText.css("margin-top", parMarginTop + "px");
+
+                                    setTimeout(function () {
+                                        loadingDiv.css("opacity", 0);
+                                        setTimeout(function () {
+                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                            });
+                                            loadingDiv.remove();
+                                        }, 350);
+                                    }, 1000);
+
                                 }
                             });
 
@@ -6095,6 +6454,41 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 window.addHeatmapFromFullscreenClient = function() {
                                     //  function addHeatMapFromClient() {
 
+                                    var color1 = passedParams.color1;
+                                    var color2 = passedParams.color2;
+                                    var desc = passedParams.desc;
+
+                                    var loadingDiv = $('<div class="gisMapModalLoadingDiv"></div>');
+
+                                    if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv').length > 0) {
+                                        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv').last());
+                                    }
+                                    else {
+                                        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_modalLinkOpen'));
+                                    }
+
+                                    loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv').length * loadingDiv.height())) + "px");
+                                    loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                                    var loadingText = $('<p class="gisMapModalLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                    var loadOkText = $('<p class="gisMapModalLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                    var loadKoText = $('<p class="gisMapModalLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                                    loadingDiv.css("background", color1);
+                                    loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
+                                    loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                                    loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                                    loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
+
+                                    loadingDiv.show();
+
+                                    loadingDiv.append(loadingText);
+                                    loadingDiv.css("opacity", 1);
+
+                                    var parHeight = loadingText.height();
+                                    var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                    loadingText.css("margin-top", parMarginTop + "px");
+
                                     let heatmap = {};
                                     heatmap.eventType = "heatmap";
 
@@ -6272,10 +6666,47 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                             } else {
                                                                 $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpen_estimateRad').prop('disabled', false);
                                                             }
+
+                                                            loadingDiv.empty();
+                                                            loadingDiv.append(loadOkText);
+
+                                                            parHeight = loadOkText.height();
+                                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                            loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                            setTimeout(function () {
+                                                                loadingDiv.css("opacity", 0);
+                                                                setTimeout(function () {
+                                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv").each(function (i) {
+                                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                                    });
+                                                                    loadingDiv.remove();
+                                                                }, 350);
+                                                            }, 1000);
+
+
                                                         },
                                                         error: function (errorData) {
                                                             console.log("Ko Heatmap");
                                                             console.log(JSON.stringify(errorData));
+
+                                                            loadingDiv.empty();
+                                                            loadingDiv.append(loadKoText);
+
+                                                            parHeight = loadKoText.height();
+                                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                            loadKoText.css("margin-top", parMarginTop + "px");
+
+                                                            setTimeout(function () {
+                                                                loadingDiv.css("opacity", 0);
+                                                                setTimeout(function () {
+                                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv").each(function (i) {
+                                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                                    });
+                                                                    loadingDiv.remove();
+                                                                }, 350);
+                                                            }, 1000);
+
                                                         }
                                                     });
 
@@ -6312,16 +6743,70 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     heatmapLegendColorsFullscreen.addTo(fullscreendefaultMapRef);
                                                     map.eventsOnMap.push(heatmap);
                                                 //    event.legendColors = heatmapLegendColorsFullscreen;
+
+                                                    loadingDiv.empty();
+                                                    loadingDiv.append(loadOkText);
+
+                                                    parHeight = loadOkText.height();
+                                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                    loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                    setTimeout(function () {
+                                                        loadingDiv.css("opacity", 0);
+                                                        setTimeout(function () {
+                                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                            });
+                                                            loadingDiv.remove();
+                                                        }, 350);
+                                                    }, 1000);
+
                                                 }
 
                                             } else {
                                                 console.log("Ko Heatmap");
                                                 console.log(JSON.stringify(errorData));
+
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadKoText);
+
+                                                parHeight = loadKoText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadKoText.css("margin-top", parMarginTop + "px");
+
+                                                setTimeout(function () {
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
+
                                             }
                                         },
                                         error: function (errorData) {
                                             console.log("Ko Heatmap");
                                             console.log(JSON.stringify(errorData));
+
+                                            loadingDiv.empty();
+                                            loadingDiv.append(loadKoText);
+
+                                            parHeight = loadKoText.height();
+                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                            loadKoText.css("margin-top", parMarginTop + "px");
+
+                                            setTimeout(function () {
+                                                loadingDiv.css("opacity", 0);
+                                                setTimeout(function () {
+                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                    });
+                                                    loadingDiv.remove();
+                                                }, 350);
+                                            }, 1000);
+
                                         }
                                     });
 
