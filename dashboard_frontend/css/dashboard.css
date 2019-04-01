@@ -3154,7 +3154,7 @@ input[type="text"]:disabled
     background-position: center center;
 }
 
-#modalAddDashboardWizardTitleAlreadyUsedMsg, #modalAddDashboardWizardTemplateMsg, #wizardTab1MsgCnt
+#modalAddDashboardWizardTitleAlreadyUsedMsg, #modalAddDashboardWizardTitleAlreadyUsedMsg2, #modalAddDashboardWizardTemplateMsg, #modalAddDashboardWizardTemplateMsg2, #wizardTab1MsgCnt, #wizardTab1MsgCnt2
 {
     font-style: italic;
     font-size: 12px;
