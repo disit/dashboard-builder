@@ -31,8 +31,8 @@ $oidc->providerConfigParam(array('jwks_uri' => $ssoJwksUri));
 $oidc->providerConfigParam(array('issuer' => $ssoIssuer));
 $oidc->providerConfigParam(array('end_session_endpoint' => $ssoEndSessionEndpoint));
 
-if (isset($_SESSION['loggedRole'])) {
-  $username = $_SESSION['loggedUsername'];
+if (isset($_SESSION['loggedRole']) || isset($_SESSION['refreshToken'])) {
+  //$username = $_SESSION['loggedUsername'];
   
   if(isset($_SESSION['refreshToken'])) 
   {
