@@ -685,11 +685,10 @@
      //   if (location.href.includes("[search]=My+own")) {
         if (location.href.includes("My+orgMy%3FlinkId") || location.href.includes("My+orgMy?linkId")) {
           //  $('#sessionExpiringPopup').show();
-		// NEW PANTA PARTIAL MOD
+		// PARTIAL MOD TO BE COMMITTED
         //    $('#publicSort').hide();
         } else {
             $('#delegatedBtn').hide();
-
         }
         var dashboardsList, dashboardWizardChoice = null;
         var allDashboardsList = null;
@@ -1030,7 +1029,6 @@
             });
         }
 
-		// NEW PANTA PARTIAL MOD - qui da rimettere solo if (orgFlag == "all") ...
       //  if (orgFlag == "all") {
             $.ajax({
                 url: "get_data.php",
@@ -1039,7 +1037,7 @@
                     param: ""
                 },
                 type: "GET",
-                async: true,
+                async: false,
                 dataType: 'json',
                 success: function (data) {
                     allDashboardsList = data;
@@ -1057,7 +1055,7 @@
                 param: orgFlag
             },
             type: "GET",
-            async: true,
+            async: false,
             dataType: 'json',
             success: function(data)
             {
@@ -2269,7 +2267,7 @@
                   dynatable.sorts.clear();
                   dynatable.sorts.add('title_header', 1); // 1=ASCENDING, -1=DESCENDING
                   dynatable.process();
-				  // NEW PANTA PARTIAL MOD
+                  // PARTIAL MOD TO BE COMMITTED
                 /*  if (orgFlag.includes("My orgMy?linkId")) {
                       $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(255, 204, 0, 1)');
                       $('#myIcon').attr("data-active", "true");
