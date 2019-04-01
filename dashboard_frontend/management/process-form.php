@@ -2307,7 +2307,7 @@
             }
             $styleParametersM = json_encode($styleParametersArrayM);
         }
-        
+
         if($type_widget_m == "widgetPrevMeteo")
         {
             $styleParametersArrayM = array('orientation' => $_REQUEST['orientationM'], 'language' => $_REQUEST['languageM'], 'todayDim' => $_REQUEST['todayDimM'], 'backgroundMode' => $_REQUEST['backgroundModeM'], 'iconSet' => $_REQUEST['iconSetM']);
@@ -3307,7 +3307,7 @@
             $styleParametersM = json_encode($styleParametersArray); 
          }
 
-         // GP PANTALEO messi qui html element per i vari widget per link in new tab nelle opzioni
+         // messi qui html element per i vari widget per link in new tab nelle opzioni
         if($type_widget_m == "widgetSingleContent" || $type_widget_m == "widgetTimeTrend" || $type_widget_m == "widgetTimeTrendCompare" || $type_widget_m == "widgetFirstAid")
         {
             $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
@@ -3371,7 +3371,8 @@
            {
                $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
                        . ", title_w = " . returnManagedStringForDb(html_entity_decode($title_widget_m, ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
-                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+               //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb($parametersM))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
                        . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM)
@@ -3381,7 +3382,8 @@
            {
                $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
                        . ", title_w = " . returnManagedStringForDb(html_entity_decode($title_widget_m, ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
-                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+               //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb($parametersM))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
                        . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM)
