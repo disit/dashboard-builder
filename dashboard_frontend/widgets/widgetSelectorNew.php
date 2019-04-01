@@ -58,6 +58,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         var defaultOptionUsed = false;
         var pinContainerWidth = 40;
         var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        console.log("Selector Widget loaded: " + widgetName);
+        globalMapView = false;
 
         if (url === "null") {
             url = null;
@@ -384,11 +386,16 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 $(this).find("i.gisPinIcon").css("color", "white");
                                 $(this).find("i.gisPinIcon").css("text-shadow", "black 2px 2px 4px");
                                 let coordsAndType = $(this).attr("data-query");
+                                let passedParams = {};
+                                passedParams.desc = $(this).attr("data-desc");
+                                passedParams.color1 = $(this).attr("data-color1");
+                                passedParams.color2 = $(this).attr("data-color2");
 
                                 $.event.trigger({
                                     type: "addHeatmap",
                                     target: widgetTargetList[0],
-                                    passedData: coordsAndType
+                                    passedData: coordsAndType,
+                                    passedParams: passedParams
                                 });
                             }
                             else {
@@ -486,6 +493,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             }
 
             $('#<?= $_REQUEST['name_w'] ?>_div div.gisQueryDescContainer span.gisQueryDescPar').css("font-size", minFontSize + "px");
+        }
+
+        function triggerSelectorClickOnMapLoad(k) {
+            if (globalMapView == true) {
+                $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(k).trigger('click');
+                defaultOptionUsed = true;
+            } else {
+              //  setTimeout(triggerSelectorClickOnMapLoad, 50);
+            }
         }
 
         function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType) {
@@ -634,6 +650,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             if (defaultOption) {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(i).trigger('click');
                                 defaultOptionUsed = true;
+                            //    triggerSelectorClickOnMapLoad(i);     // se si usa questa direttiva (test) commentare le 2 istruzioni sopra
                             }
                         }
 
@@ -641,6 +658,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             JSON.parse(widgetProperties.param.parameters).queries[0].defaultOption = true;
                             setTimeout(function() {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(0).trigger('click');
+                            //    triggerSelectorClickOnMapLoad(0);     // se si usa questa direttiva (test) commentare l'istruzione sopra
                             }, 700);
                         }
                     }, parseInt("<?php echo $crossWidgetDefaultLoadWaitTime; ?>"));
