@@ -63,10 +63,11 @@
         var newControlDateSubField = [];
         var showControl = [];
         var followControl = [];
+        var timeTrendControl = [];
         var prevBtn = [];
         var nextBtn = [];
 
-        var defaultColors = ["#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900", "#ffdb4d"];
+        defaultColors = ["#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900", "#ffdb4d"];
         var currentRoutes = [];
         var pastTrips = [];
         var lastTrips = [];
@@ -302,8 +303,10 @@
             var dateTime = new Date(dataObj.dataTime);// Milliseconds to date
             dateTime = dateTime.getDate() + "\/" + parseInt(dateTime.getMonth() + 1) + "\/" + dateTime.getFullYear() + " " + dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds();
 
-            popupText += '<tr><td>Datetime</td><td>' + dateTime + '</td></tr>';
-            popupText += '<tr><td>Value</td><td>' + dataObj.value + '</td></tr>';
+            popupText += '<tr><td style="text-align:left; font-size: 12px;">Date & Time:</td><td style="font-size: 12px;">' + dateTime + '</td></tr>';
+            popupText += '<tr><td style="text-align:left; font-size: 12px;">Metric Name:</td><td style="font-size: 12px;">' + dataObj.motivation + '</td></tr>';
+            popupText += '<tr><td style="text-align:left; font-size: 12px;">Value:</td><td style="font-size: 12px;">' + dataObj.value + '</td></tr>';
+            popupText += '<tr><td style="text-align:left; font-size: 12px;">Coordinates:</td><td style="font-size: 12px;">' + dataObj.latitude + ', ' + dataObj.longitude + '</td></tr>';
 
             return popupText;
         }
@@ -375,6 +378,7 @@
                                         tripsData[index].variableValue = "[" + tripsData[index].latitude + "," + tripsData[index].longitude + "]";
                                     //    tripsData[index].variableName = trackSrcList[trackSrcIndex-1].variableName;
                                         tripsData[index].variableName = trackSrcList[trackSrcIndex].variableName;
+                                        tripsData[index].motivation = trackSrcList[trackSrcIndex].motivation;
                                     } else {
                                         tripsData.splice(index, 1);
                                         index--;
@@ -405,9 +409,10 @@
 
                                     var icon = L.divIcon({
                                         className: 'trackerPositionMarkerSecondary',
-                                        iconSize: [16, 16],
-                                        iconAnchor: [6, 8],
-                                        html:'<div style="color: ' + defaultColors[trackIndex%7] + '"><i class="fa fa-circle"></i></div>'
+                                    //    iconSize: [16, 16],
+                                    //    iconAnchor: [6, 8],
+                                    //    html:'<div style="color: ' + defaultColors[trackIndex%7] + '"><i class="fa fa-circle" style="font-size:0.8em"></i></div>'
+                                        html:'<span style="text-align: center; float: left; width: 10px; height: 10px; border: 1px solid #000000; border-radius: 100%; background-color: ' + defaultColors[trackIndex%7] + '; color: white;"></span>'
                                     });
 
                                 //    var popupData = [];
@@ -438,7 +443,7 @@
                                         className: 'trackerPositionMarker',
                                         iconSize: [32, 50],
                                         iconAnchor: [16, 50],
-                                        html:'<div style="color: ' + defaultColors[trackIndex%7] + '"><i class="fa fa-map-marker"></i></div>'
+                                        html:'<div style="color: ' + defaultColors[trackIndex%7] + '"><i class="fa fa-map-marker" style="text-shadow: black 2px 2px 2px";></i></div>'
                                     });
 
                                     var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#',''), 25);
@@ -496,7 +501,7 @@
                             if (viewFlag[trackIndex] === true) {
                                 trajectoryGroup[trackIndex] = L.polyline(trajectory[trackIndex], {
                                     color: defaultColors[trackIndex % 7],
-                                    weight: 5,
+                                    weight: 3,
                                     opacity: 0.8,
                                     smoothFactor: 1
                                 }).addTo(mapRef);
@@ -636,7 +641,7 @@
         }*/
         
         function resizeWidget()
-	{
+	    {
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
             
             optionsMenuLeft = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').width() - $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt').width() - 5;
@@ -655,9 +660,9 @@
             }
 
             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css('font-size', parseInt($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span').css('font-size').replace('px', ''))*0.45);*/
-	}
-        //Fine definizioni di funzione 
-        
+	    }
+        //Fine definizioni di funzione
+
         $.ajax({
                 url: "../controllers/getWidgetParams.php",
                 type: "GET",
@@ -899,10 +904,10 @@
                                     var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + trackSrcList[trackSrcIndex].variableName.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
 
                                     loadingDiv.css("background", defaultColors[trackSrcIndex]);
-                                    loadingDiv.css("background", "-webkit-linear-gradient(left top, " + defaultColors[trackSrcIndex] + ", " + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
-                                    loadingDiv.css("background", "-o-linear-gradient(bottom right, " + defaultColors[trackSrcIndex] + ", " + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
-                                    loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + defaultColors[trackSrcIndex] + ", " + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
-                                    loadingDiv.css("background", "linear-gradient(to bottom right, " + defaultColors[trackSrcIndex] + ", " + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
+                                    loadingDiv.css("background", "-webkit-linear-gradient(left top, " + defaultColors[trackSrcIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
+                                    loadingDiv.css("background", "-o-linear-gradient(bottom right, " + defaultColors[trackSrcIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
+                                    loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + defaultColors[trackSrcIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
+                                    loadingDiv.css("background", "linear-gradient(to bottom right, " + defaultColors[trackSrcIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackSrcIndex].replace('#',''), 25) + ")");
 
                                     loadingDiv.show();
 
@@ -958,15 +963,16 @@
                                     newControlSubRow[trackSrcIndex] = $('<div class="trackControlsSubrow trackControlsBtnRow row"></div>');
                                     newControlSubCnt[trackSrcIndex].append(newControlSubRow[trackSrcIndex]);
 
-                                    showControl[trackSrcIndex] = $('<div id="showControl" class="trackControlsBtnCnt col-xs-4 trackControlShow" data-active="true" data-hoverColor="' + defaultColors[trackSrcIndex % 7] + '" data-trackIndex="' + trackSrcIndex + '" style="color:' + defaultColors[trackSrcIndex % 7] + '"><i class="fa fa-eye"></i></div>');
+                                    showControl[trackSrcIndex] = $('<div id="showControl"' + trackSrcIndex + '"  class="trackControlsBtnCnt col-xs-4 trackControlShow" data-active="true" data-hoverColor="' + defaultColors[trackSrcIndex % 7] + '" data-trackIndex="' + trackSrcIndex + '" style="color:' + defaultColors[trackSrcIndex % 7] + '"><i class="fa fa-eye"></i></div>');
                                     newControlSubRow[trackSrcIndex].append(showControl[trackSrcIndex]);
                                     viewFlag[trackSrcIndex] = true;
 
-                                    followControl[trackSrcIndex] = $('<div id="followControl" class="trackControlsBtnCnt col-xs-4 trackControlFollow" data-hoverColor="' + defaultColors[trackSrcIndex % 7] + '" data-active="false" data-trackIndex="' + trackSrcIndex + '"><i class="fa fa-external-link"></i></div>');
+                                    followControl[trackSrcIndex] = $('<div id="followControl"' + trackSrcIndex + '" class="trackControlsBtnCnt col-xs-4 trackControlFollow" data-hoverColor="' + defaultColors[trackSrcIndex % 7] + '" data-active="false" data-trackIndex="' + trackSrcIndex + '"><i class="fa fa-external-link"></i></div>');
                                     newControlSubRow[trackSrcIndex].append(followControl[trackSrcIndex]);
 
-                                    newControlSubLbl[trackSrcIndex] = $('<div class="trackControlsBtnCnt col-xs-4" data-active="false" data-hoverColor="' + defaultColors[trackSrcIndex % 7] + '"><i class="fa fa-list"></i></div>');
-                                    newControlSubRow[trackSrcIndex].append(newControlSubLbl[trackSrcIndex]);
+                                    timeTrendControl[trackSrcIndex] = $('<div id="timeTrendControl" class="trackControlsBtnCnt col-xs-4" data-targetWidgets="' + widgetParameters[trackSrcIndex].targets + '" data-active="false" data-trackIndex="' + trackSrcIndex + '" data-hoverColor="' + defaultColors[trackSrcIndex % 7] + '"><i class="fa fa-line-chart"></i></div>');
+                                    newControlSubRow[trackSrcIndex].append(timeTrendControl[trackSrcIndex]);
+                               //     newControlSubRow[trackSrcIndex].append(newControlSubLbl[trackSrcIndex]);
 
                                     newControlSubRow[trackSrcIndex] = $('<div class="trackControlsSubrow trackInfoRow row"></div>');
                                     newControlSubCnt[trackSrcIndex].append(newControlSubRow[trackSrcIndex]);
@@ -1021,6 +1027,53 @@
                                         if ($(this).attr('data-active') === 'false') {
                                             $(this).css('color', 'white');
                                         }
+                                    });
+
+                            //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt').find('#timeTrendControl').hover(function () {
+                                    timeTrendControl[trackSrcIndex].hover(function (event) {
+
+                                        if ($(this).attr('data-active') === 'false') {
+                                            $(this).css('color', $(this).attr('data-hoverColor'));
+                                        }
+                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                        var localTrackIndex = parseInt($(this).attr('data-trackIndex'));
+                                        var colorHover1 = $(this).parents('.trackControlsBtnRow').children(0).attr('style').replace("color:", "").replace(";", "").trim();
+                                        var title = $(this).parents('.trackControlsSubcnt').attr('data-variablename') + " - " + tripsDataGlobal[localTrackIndex][0].motivation + " On Day: " + tripsDaysGlobal[localTrackIndex][currentDay[localTrackIndex]];
+                                     //   var colorHover2 = "#" + LightenDarkenColor(colorHover1.replace('#',''), 25);
+
+                                        for(var i = 0; i < widgetTargetList.length; i++)
+                                        {
+                                            $.event.trigger({
+                                                type: "mouseOverTimeTrendFromTracker_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                value: $(this).attr("data-lastValue"),
+                                                color1: colorHover1,
+                                        //        color2: colorHover2,
+                                                widgetTitle: title
+                                            });
+                                        }
+
+
+                                    }, function(){
+
+                                        if ($(this).attr('data-active') === 'false') {
+                                            $(this).css('color', 'white');
+                                        }
+
+                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                        for(var i = 0; i < widgetTargetList.length; i++)
+                                        {
+                                            $.event.trigger({
+                                                type: "mouseOutTimeTrendFromTracker_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                value: $(this).attr("data-lastValue"),
+                                                color1: $(this).attr("data-color1"),
+                                                color2: $(this).attr("data-color2")
+                                            });
+                                        }
+                                     //   }
                                     });
 
                                     function numTripMarkers(trackIndex) {
@@ -1088,7 +1141,7 @@
                                             className: 'trackerPositionMarker',
                                             iconSize: [32, 50],
                                             iconAnchor: [16, 50],
-                                            html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-map-marker"></i></div>'
+                                            html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-map-marker" style="text-shadow: black 2px 2px 2px";></i></div>'
                                         });
 
                                         if (viewFlag[trackIndex] === true) {
@@ -1133,6 +1186,7 @@
                                                             tripsData[index].variableValue = "[" + tripsData[index].latitude + "," + tripsData[index].longitude + "]";
                                                             //    tripsData[index].variableName = trackSrcList[trackSrcIndex-1].variableName;
                                                             tripsData[index].variableName = trackSrcList[trackIndex].variableName;
+                                                            tripsData[index].motivation = trackSrcList[trackIndex].motivation;
                                                         } else {
                                                             tripsData.splice(index, 1);
                                                             index--;
@@ -1160,13 +1214,14 @@
 
                                                         var icon = L.divIcon({
                                                             className: 'trackerPositionMarkerSecondary',
-                                                            iconSize: [16, 16],
-                                                            iconAnchor: [6, 8],
-                                                            html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-circle"></i></div>'
+                                                        //    iconSize: [16, 16],
+                                                        //    iconAnchor: [6, 8],
+                                                        //    html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-circle"></i></div>'
+                                                            html:'<span style="text-align: center; float: left; width: 10px; height: 10px; border: 1px solid #000000; border-radius: 100%; background-color: ' + defaultColors[trackIndex%7] + '; color: white;"></span>'
                                                         });
 
                                                         var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#',''), 25);
-                                                        var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsData[i], defaultColors[trackIndex % 7]);
+                                                        var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsData[i], defaultColors[trackIndex % 7], color2);
                                                         //    mapMarkers[trackIndex].push(L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}));
                                                         mapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
 
@@ -1186,11 +1241,20 @@
                                                             className: 'trackerPositionMarker',
                                                             iconSize: [32, 50],
                                                             iconAnchor: [16, 50],
-                                                            html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-map-marker"></i></div>'
+                                                            html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-map-marker" style="text-shadow: black 2px 2px 2px";></i></div>'
+                                                         /*   html:   '<div id="altMapMarkerContainer">' +
+                                                                        '<div id="innermapMarker" style="color: ' + defaultColors[trackIndex % 7] + '">' +
+                                                                            '<i class="fa fa-map-marker mapMarkerStyle"></i>' +
+                                                                        '</div>' +
+                                                                        '<div id="outerMapMarker">' +
+                                                                    //        '<img src="https://img.icons8.com/pastel-glyph/64/000000/place-marker.png" alt="">' +
+                                                                            '<img src="../img/customIcons/marker-map-border.png">' +
+                                                                        '</div>' +
+                                                                    '</div>'    */
                                                         });
 
                                                         var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#',''), 25);
-                                                        var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsData[i], defaultColors[trackIndex % 7]);
+                                                        var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsData[i], defaultColors[trackIndex % 7], color2);
                                                         lastPosMarkers[trackIndex] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
                                                         mapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
                                                         //   mapRef.addLayer(lastPosMarkers[trackIndex]);
@@ -1236,7 +1300,7 @@
                                                 if (viewFlag[trackIndex] === true) {
                                                     trajectoryGroup[trackIndex] = L.polyline(trajectory[trackIndex], {
                                                         color: defaultColors[trackIndex % 7],
-                                                        weight: 5,
+                                                        weight: 3,
                                                         opacity: 0.8,
                                                         smoothFactor: 1
                                                     }).addTo(mapRef);
@@ -1365,6 +1429,8 @@
 
                                         //   mapRef.addLayer(mapMarkers[trackIndex][numDays(trackIndex) - 1 - currentDay]);
                                         changeDay(currentDay[trackIndex], trackIndex);
+
+                                        timeTrendControl[trackIndex].click();
                                     }
 
                                     function nextDayTrip(trackIndex, dataType, rowParameters) {
@@ -1408,6 +1474,8 @@
 
                                         //   mapRef.addLayer(mapMarkers[trackIndex][numDays(trackIndex) - 1 - currentDay[trackIndex]]);
                                         changeDay(currentDay[trackIndex], trackIndex);
+
+                                        timeTrendControl[trackIndex].click();
                                     }
 
                                     prevBtn[trackSrcIndex].click(function () {
@@ -1454,6 +1522,72 @@
                                         }
                                     });
 
+                                // GESTORE DEL CLICK PER TIME TREND
+                                timeTrendControl[trackSrcIndex].click(function (event) {
+                                  //  if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                      //  $(this).css("background-color", "#e6e6e6");
+                                   //     $(this).off("hover");
+                                      //  $(this).off("click");
+                                  //  }
+                                 //   else {
+                                     /*   $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("background", $(this).attr("data-color2"));
+                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("font-weight", "normal");
+                                        $(this).css("background", $(this).attr("data-color1"));
+                                        $(this).css("font-weight", "bold");
+                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                        $(this).attr("data-timeTrendClicked", "true");*/
+                                        var localTrackIndex = parseInt($(this).attr('data-trackIndex'));
+                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    //    var colIndex = $(this).parent().index();
+                                    //    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+                                        var title = $(this).parents('.trackControlsSubcnt').attr('data-variablename') + " - " + tripsDataGlobal[localTrackIndex][0].motivation;
+                                    //    var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+
+                                    //    var now = new Date();
+                                    //    var lastUpdateDate = new Date(lastUpdateTime);
+                                    //    var diff = parseFloat(Math.abs(now - lastUpdateDate) / 1000);
+                                    //    var range = $(this).attr("data-range");
+                                        var range = "1/DAY";
+                                        var day = tripsDaysGlobal[localTrackIndex][currentDay[localTrackIndex]];
+                                        var firstColor = ($(this).parents('.trackControlsBtnRow').children(0).attr('style')).replace('color:','').replace(";", "").trim();
+                                        var secondColor = "#" + LightenDarkenColor(firstColor.replace('#',''), 25);
+                                        var passedRowParams = "";
+                                        if (wizardRows[Object.keys(wizardRows)[localTrackIndex]].parameters.includes("datamanager/api/v1/poidata/")) {
+                                            passedRowParams = wizardRows[Object.keys(wizardRows)[localTrackIndex]].parameters.split("datamanager/api/v1/poidata/")[1];
+                                        } else {
+                                            passedRowParams = wizardRows[Object.keys(wizardRows)[localTrackIndex]].parameters;
+                                        }
+
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            $.event.trigger({
+                                                type: "showTimeTrendFromTracker_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                range: range,
+                                                color1: firstColor,
+                                                color2: secondColor,
+                                                widgetTitle: title,
+                                                field: $(this).attr("data-field"),
+                                                rowParams: passedRowParams,
+                                                serviceUri: $(this).attr("data-serviceUri"),
+                                            //    marker: markersCache["" + $(this).attr("data-id") + ""],
+                                                mapRef: mapRef,
+                                                day: day,
+                                                fake: false
+                                                //fake: $(this).attr("data-fake")
+                                            });
+                                        }
+
+                                    /*    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                            if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                                $(this).css("background-color", "#e6e6e6");
+                                                $(this).off("hover");
+                                                $(this).off("click");
+                                            }
+                                        });*/
+                                //    }
+                                });
+
                                     showControl[trackSrcIndex].click(function () {
                              //       $('#showControl').click(function () {
                                         if ($(this).attr('data-active') === 'false') {
@@ -1490,6 +1624,10 @@
                                             viewFlag[$(this).attr('data-trackIndex')] = false;
                                             var element = "#trackNavigation" + $(this).attr('data-trackIndex');
                                             $(element).hide();
+                                            var element2 = "#showControl" + $(this).attr('data-trackIndex');
+                                            $(element2).hide();
+                                            var element3 = "#followControl" + $(this).attr('data-trackIndex');
+                                            $(element3).hide();
                                             //   $('.trackNavigateBtnRow').hide();
                                         }
                                     });
@@ -1497,7 +1635,7 @@
                                     //Costruzione polylines
                                     currentRoutes[trackSrcIndex] = new L.Polyline([], {
                                         color: defaultColors[trackSrcIndex % 7],
-                                        weight: 5,
+                                        weight: 3,
                                         opacity: 0.8,
                                         smoothFactor: 1
                                     });
@@ -1507,15 +1645,47 @@
                                     //Init Day 0 for track #trackSrcIndex
                                     currentDay[trackSrcIndex] = 0;
 
-                                    //Costruzione viaggi passati
+                                    //Costruzione viaggi passatitrackDateShow
                                     buildPastTrips(trackSrcIndex, sm_based[trackSrcIndex], rowParameters[trackSrcIndex], wizardRows, loadingDiv, loadOkText, loadKoText);
 
-                                    //Avvio poller
-                                    setInterval(personalPoller.bind(null, trackSrcIndex), 5000);
+                                  /*  mapRef.on('zoomend', function() {
+                                        var currentZoom = mapRef.getZoom();
+                                        for (let n = 0; n < trackSrcList.length; n++ ) {
+                                            if (viewFlag[n] === true) {
+                                                for (let i = 0; i < tripsDataGlobal[n].length; i++) {
+                                                    var circleSize = mapRef.getZoom * 2;
+                                                    var zoomedIcon = L.divIcon({
+                                                        className: 'trackerPositionMarker',
+                                                        html:'<span style="text-align: center; float: left; width: ' + circleSize + 'px; height: ' + circleSize + 'px; border: 1px solid #000000; border-radius: 100%; background-color: ' + defaultColors[trackIndex%7] + '; color: white;"></span>'
+                                                    });
+                                                    mapMarkers[n][i].setIcon(zoomedIcon);
+                                                }
+                                                var zoomedIcon = L.divIcon({
+                                                    className: 'trackerPositionMarker',
+                                                    html:'<div style="color: ' + defaultColors[n] + '"><i class="fa fa-map-marker"></i></div>'
+                                                });
+                                                mapMarkers[n][tripsDataGlobal[n].length - 1].setIcon(zoomedIcon);
+                                            }
+                                        }
+                                    }); */
+
+                                    //Avvio poller  // PER ORA DISABILITATO
+                                //    setInterval(personalPoller.bind(null, trackSrcIndex), 5000);
                             //    }
                                 break;
                         }
                     }
+
+                    // CARICARE WIDGET TIME TREND PARTIRE DA MODELLO WIDGET SCHEMA IN NOTEPAD++ DA PASSARE COME dashboardWidgets[i]
+
+                /*    $("#gridsterUl").find("li#" + dashboardWidgets[i]['name_w']).load("../widgets/" + encodeURIComponent("widgetTimeTrend.php", dashboardWidgets[i], function () {
+                        $(this).find(".icons-modify-widget").css("display", "inline");
+                        $(this).find(".modifyWidgetGenContent").css("display", "block");
+                        $(this).find(".pcCountdownContainer").css("display", "none");
+                        $(this).find(".iconsModifyPcWidget").css("display", "flex");
+                        $(this).find(".iconsModifyPcWidget").css("align-items", "center");
+                        $(this).find(".iconsModifyPcWidget").css("justify-content", "flex-end");
+                    }); */
                     
                 },
                 error: function(errorData)
