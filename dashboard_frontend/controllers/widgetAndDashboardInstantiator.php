@@ -629,8 +629,22 @@
                                                 }
                                                 else
                                                 {
-                                                    //Reperiamo l'entità dal broker
-                                                    $orionGetEntityUrl = $orionBaseUrlLocal. "/v2/entities/" . $sourceWidgetName;
+                                                    //Reperiamo l'entità dal broker     // Aggiusta il nome dell'attuatore controllando i : nel prefisso <ORGANIZATION>:<BROKER>:
+                                                    if (strpos($sourceWidgetName, ':') >= 0) {
+                                                        $newSourceWidgetName = "";
+                                                        $sourceWidgetNameArray = explode(':', $sourceWidgetName);
+                                                        for ($k = 0; $k < sizeof($sourceWidgetNameArray); $k++) {
+                                                            if($k == 2) {
+                                                                $newSourceWidgetName = $newSourceWidgetName . $sourceWidgetNameArray[$k];
+                                                            } else if ($k > 2) {
+                                                                $newSourceWidgetName = $newSourceWidgetName . ":" . $sourceWidgetNameArray[$k];
+                                                            }
+                                                        }
+                                                    } else {
+                                                        $newSourceWidgetName = $sourceWidgetName;
+                                                    }
+
+                                                    $orionGetEntityUrl = $orionBaseUrlLocal. "/v2/entities/" . $newSourceWidgetName;
                                                     
                                                     try
                                                     {
@@ -669,8 +683,22 @@
                                             }
                                             else
                                             {
+                                                if (strpos($sourceWidgetName, ':') >= 0) {
+                                                    $newSourceWidgetName = "";
+                                                    $sourceWidgetNameArray = explode(':', $sourceWidgetName);
+                                                    for ($k = 0; $k < sizeof($sourceWidgetNameArray); $k++) {
+                                                        if($k == 2) {
+                                                            $newSourceWidgetName = $newSourceWidgetName . $sourceWidgetNameArray[$k];
+                                                        } else if ($k > 2) {
+                                                            $newSourceWidgetName = $newSourceWidgetName . ":" . $sourceWidgetNameArray[$k];
+                                                        }
+                                                    }
+                                                } else {
+                                                    $newSourceWidgetName = $sourceWidgetName;
+                                                }
+
                                                 //Reperiamo l'entità dal broker
-                                                $orionGetEntityUrl = $orionBaseUrlLocal. "/v2/entities/" . $sourceWidgetName;
+                                                $orionGetEntityUrl = $orionBaseUrlLocal. "/v2/entities/" . $newSourceWidgetName;
 
                                                 try
                                                 {
@@ -780,8 +808,9 @@
                                             $newWidgetDbRow->entityJson = $sourceEntityJson;
                                             
                                             $sourceEntityDecoded = json_decode($sourceEntityJson);
-                                                    
-                                            foreach($sourceEntityDecoded as $key => $val) 
+
+                                            // TESTARE POI COMMENTARE LE RIGHE SUCCESSIVE FINO A #820 e SOSTITUIRE CON: $newWidgetDbRow->attributeName = $newWidgetDbRow['sm_field'];
+                                            foreach($sourceEntityDecoded as $key => $val)
                                             {
                                                 if(($key != 'actuatorCanceller')&&($key != 'actuatorDeleted')&&($key != 'actuatorDeletionDate')&&($key != 'creationDate')&&($key != 'entityCreator')&&($key != 'entityDesc')&&($key != 'id')&&($key != 'type'))
                                                 {
@@ -883,7 +912,7 @@
                                                 $newWidgetDbRow->rowParameters = $selectedRow['low_level_type'];
                                             }*/
                                         }
-                                        
+
                                         $newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
 
                                         //Query fields
@@ -900,6 +929,9 @@
                                                 $newQueryValues = returnManagedStringForDb($value);
                                                 if ($key == "name_w") {
                                                     $newQueryValues = preg_replace('/\s+/', '_', $newQueryValues);
+                                                    if (strpos($newQueryValues, ':') >= 0) {
+                                                        $newQueryValues = str_replace(':', '_', $newQueryValues);
+                                                    }
                                                 }
                                             }
                                             else
@@ -1350,7 +1382,7 @@
                         else
                         {
                             //Caso widget multi con target widgets (selector + map, selector + map + trend)
-                            
+                            // GP TRACKER
                             //Split dei target widgets
                             $targetWidgets = explode(",", $widgetTypeDbRow['targetWidget']); 
                             $hasTargetWidgetFactory = json_decode($widgetTypeDbRow['hasTargetWidgetFactory']);
@@ -1395,6 +1427,10 @@
                                 {
                                     $id_metric = str_replace('.', '_', str_replace('-', '_', $selectedRow['unique_name_id']));
                                 }
+                                else if (isset($widgetTypeDbRow['mainWidget']))
+                                {
+                                    $id_metric  = str_replace("widget", "", $widgetTypeDbRow['mainWidget']);
+                                }
                                 else
                                 {
                                     //$id_metric = "ToBeReplacedByFactory";
@@ -1410,8 +1446,14 @@
                                 $newWidgetDbRow = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParameters['color_w'], $defaultParameters['frequency_w'], $defaultParameters['temporal_range_w'], $defaultParameters['municipality_w'], $defaultParameters['infoMessage_w'], $defaultParameters['link_w'], $defaultParameters['parameters'], $defaultParameters['frame_color_w'], htmlentities($defaultParameters['udm'], ENT_QUOTES|ENT_HTML5), $defaultParameters['udmPos'], $defaultParameters['fontSize'], $defaultParameters['fontColor'], $defaultParameters['controlsPosition'], $defaultParameters['showTitle'], $defaultParameters['controlsVisibility'], $defaultParameters['zoomFactor'], $defaultParameters['defaultTab'], $defaultParameters['zoomControlsColor'], $defaultParameters['scaleX'], $defaultParameters['scaleY'], $defaultParameters['headerFontColor'], $defaultParameters['styleParameters'], $defaultParameters['infoJson'], $defaultParameters['serviceUri'], $defaultParameters['viewMode'], $defaultParameters['hospitalList'], $defaultParameters['notificatorRegistered'], $defaultParameters['notificatorEnabled'], $defaultParameters['enableFullscreenTab'], $defaultParameters['enableFullscreenModal'], $defaultParameters['fontFamily'], $defaultParameters['entityJson'], $defaultParameters['attributeName'], $creator, null, $defaultParameters['canceller'], $defaultParameters['lastEditDate'], $defaultParameters['cancelDate'], $defaultParameters['actuatorTarget'], $defaultParameters['actuatorEntity'], $defaultParameters['actuatorAttribute'], $defaultParameters['chartColor'], $defaultParameters['dataLabelsFontSize'], $defaultParameters['dataLabelsFontColor'], $defaultParameters['chartLabelsFontSize'], $defaultParameters['chartLabelsFontColor'], 'no', null, null, json_encode($widgetWizardSelectedRows), $newWidgetType);
                                 
                                 //Costruzione titolo widget
-                                $title_w = "Selector";
-                                $title_w = htmlentities($newWidgetDbRow->title_w, ENT_QUOTES|ENT_HTML5);
+                                if (isset($widgetTypeDbRow['mainWidget']))
+                                {
+                                    $title_w  = str_replace("widget", "", $widgetTypeDbRow['mainWidget']);
+                                }
+                                else {
+                                    $title_w = "Selector";
+                                }
+                            //    $title_w = htmlentities($newWidgetDbRow->title_w, ENT_QUOTES|ENT_HTML5);
                                 
                                 if($widgetTypeDbRow['hasMainWidgetFactory'] == 'yes')
                                 {
@@ -1467,6 +1509,10 @@
                                     //Costruzione dei target widgets
                                     for($i = 0; $i < count($targetWidgets); $i++)
                                     {
+                                        if ($i == 0) {
+                                            $mainWidgetType = $type_w;
+                                            $rowParametersToTarget = $newWidgetDbRow->rowParameters;
+                                        }
                                         $targetWidgets[$i] = trim($targetWidgets[$i]);
 
                                         //Reperimento dati del target widget i-esimo
@@ -1489,13 +1535,28 @@
                                                 $nextId = $rowMaxSel2['AUTO_INCREMENT'];
                                             }
 
-                                            //Costruzione n_row ed n_column: mettiamo il target widget accanto al main widget
-                                            $n_row = $firstFreeRow;
-                                            $n_column = $n_column + $size_columns;
-
-                                            //Costruzione size_rows e size_columns
-                                            $size_rows = $defaultParametersTarget[$i]['size_rows'];
-                                            $size_columns = $defaultParametersTarget[$i]['size_columns'];
+                                            //Costruzione n_row ed n_column: mettiamo il target widget accanto al main widget, se invece è un Tracker + Trend mettiamo il timeTrend sotto
+                                            if($mainWidgetType !== "widgetTracker") {
+                                                $n_row = $firstFreeRow;
+                                                $n_column = $n_column + $size_columns;
+                                                //Costruzione titolo widget
+                                                $title_w = "Selector - Map";
+                                                $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
+                                                //Costruzione size_rows e size_columns
+                                                $size_rows = $defaultParametersTarget[$i]['size_rows'];
+                                                $size_columns = $defaultParametersTarget[$i]['size_columns'];
+                                            } else {
+                                                $n_row = $firstFreeRow + $size_rows;
+                                                $n_column = $n_column;
+                                                //Costruzione titolo widget
+                                                $title_w = "Tracker - Trend";
+                                                $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
+                                                //Costruzione size_rows e size_columns
+                                                $size_rows = $defaultParametersTarget[$i]['size_rows'] - 2;
+                                                $size_columns = max($size_columns, $defaultParametersTarget[$i]['size_columns']);
+                                                $rowParameters = "datamanager/api/v1/poidata/" . $rowParametersToTarget;
+                                              //  $rowParameters = $rowParametersToTarget;
+                                            }
 
                                             //Costruzione nome del widget
                                             $id_metric = "ToBeReplacedByFactory";
@@ -1503,13 +1564,14 @@
                                             $type_w = $targetWidgets[$i];
                                             $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
-
-                                            //Costruzione titolo widget
-                                            $title_w = "Selector - Map";
-                                            $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
                                             
                                             $creator = $_SESSION['loggedUsername'];
-                                            $newWidgetDbRowTarget[$i] = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParametersTarget[$i]['color_w'], $defaultParametersTarget[$i]['frequency_w'], $defaultParametersTarget[$i]['temporal_range_w'], $defaultParametersTarget[$i]['municipality_w'], $defaultParametersTarget[$i]['infoMessage_w'], $defaultParametersTarget[$i]['link_w'], $defaultParametersTarget[$i]['parameters'], $defaultParametersTarget[$i]['frame_color_w'], $defaultParametersTarget[$i]['udm'], $defaultParametersTarget[$i]['udmPos'], $defaultParametersTarget[$i]['fontSize'], $defaultParametersTarget[$i]['fontColor'], $defaultParametersTarget[$i]['controlsPosition'], $defaultParametersTarget[$i]['showTitle'], $defaultParametersTarget[$i]['controlsVisibility'], $defaultParametersTarget[$i]['zoomFactor'], $defaultParametersTarget[$i]['defaultTab'], $defaultParametersTarget[$i]['zoomControlsColor'], $defaultParametersTarget[$i]['scaleX'], $defaultParametersTarget[$i]['scaleY'], $defaultParametersTarget[$i]['headerFontColor'], $defaultParametersTarget[$i]['styleParameters'], $defaultParametersTarget[$i]['infoJson'], $defaultParametersTarget[$i]['serviceUri'], $defaultParametersTarget[$i]['viewMode'], $defaultParametersTarget[$i]['hospitalList'], $defaultParametersTarget[$i]['notificatorRegistered'], $defaultParametersTarget[$i]['notificatorEnabled'], $defaultParametersTarget[$i]['enableFullscreenTab'], $defaultParametersTarget[$i]['enableFullscreenModal'], $defaultParametersTarget[$i]['fontFamily'], $defaultParametersTarget[$i]['entityJson'], $defaultParametersTarget[$i]['attributeName'], $creator, null, $defaultParametersTarget[$i]['canceller'], $defaultParametersTarget[$i]['lastEditDate'], $defaultParametersTarget[$i]['cancelDate'], $defaultParametersTarget[$i]['actuatorTarget'], $defaultParametersTarget[$i]['actuatorEntity'], $defaultParametersTarget[$i]['actuatorAttribute'], $defaultParametersTarget[$i]['chartColor'], $defaultParametersTarget[$i]['dataLabelsFontSize'], $defaultParametersTarget[$i]['dataLabelsFontColor'], $defaultParametersTarget[$i]['chartLabelsFontSize'], $defaultParametersTarget[$i]['chartLabelsFontColor'], 'no', null, null, '{}', $newWidgetType);
+
+                                             if ($mainWidgetType !== 'widgetTracker') {
+                                                 $newWidgetDbRowTarget[$i] = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParametersTarget[$i]['color_w'], $defaultParametersTarget[$i]['frequency_w'], $defaultParametersTarget[$i]['temporal_range_w'], $defaultParametersTarget[$i]['municipality_w'], $defaultParametersTarget[$i]['infoMessage_w'], $defaultParametersTarget[$i]['link_w'], $defaultParametersTarget[$i]['parameters'], $defaultParametersTarget[$i]['frame_color_w'], $defaultParametersTarget[$i]['udm'], $defaultParametersTarget[$i]['udmPos'], $defaultParametersTarget[$i]['fontSize'], $defaultParametersTarget[$i]['fontColor'], $defaultParametersTarget[$i]['controlsPosition'], $defaultParametersTarget[$i]['showTitle'], $defaultParametersTarget[$i]['controlsVisibility'], $defaultParametersTarget[$i]['zoomFactor'], $defaultParametersTarget[$i]['defaultTab'], $defaultParametersTarget[$i]['zoomControlsColor'], $defaultParametersTarget[$i]['scaleX'], $defaultParametersTarget[$i]['scaleY'], $defaultParametersTarget[$i]['headerFontColor'], $defaultParametersTarget[$i]['styleParameters'], $defaultParametersTarget[$i]['infoJson'], $defaultParametersTarget[$i]['serviceUri'], $defaultParametersTarget[$i]['viewMode'], $defaultParametersTarget[$i]['hospitalList'], $defaultParametersTarget[$i]['notificatorRegistered'], $defaultParametersTarget[$i]['notificatorEnabled'], $defaultParametersTarget[$i]['enableFullscreenTab'], $defaultParametersTarget[$i]['enableFullscreenModal'], $defaultParametersTarget[$i]['fontFamily'], $defaultParametersTarget[$i]['entityJson'], $defaultParametersTarget[$i]['attributeName'], $creator, null, $defaultParametersTarget[$i]['canceller'], $defaultParametersTarget[$i]['lastEditDate'], $defaultParametersTarget[$i]['cancelDate'], $defaultParametersTarget[$i]['actuatorTarget'], $defaultParametersTarget[$i]['actuatorEntity'], $defaultParametersTarget[$i]['actuatorAttribute'], $defaultParametersTarget[$i]['chartColor'], $defaultParametersTarget[$i]['dataLabelsFontSize'], $defaultParametersTarget[$i]['dataLabelsFontColor'], $defaultParametersTarget[$i]['chartLabelsFontSize'], $defaultParametersTarget[$i]['chartLabelsFontColor'], 'no', null, null, '{}', $newWidgetType);
+                                             } else {
+                                                 $newWidgetDbRowTarget[$i] = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParametersTarget[$i]['color_w'], $defaultParametersTarget[$i]['frequency_w'], "Giornaliera", $defaultParametersTarget[$i]['municipality_w'], $defaultParametersTarget[$i]['infoMessage_w'], $defaultParametersTarget[$i]['link_w'], $defaultParametersTarget[$i]['parameters'], $defaultParametersTarget[$i]['frame_color_w'], $defaultParametersTarget[$i]['udm'], $defaultParametersTarget[$i]['udmPos'], $defaultParametersTarget[$i]['fontSize'], $defaultParametersTarget[$i]['fontColor'], $defaultParametersTarget[$i]['controlsPosition'], $defaultParametersTarget[$i]['showTitle'], $defaultParametersTarget[$i]['controlsVisibility'], $defaultParametersTarget[$i]['zoomFactor'], $defaultParametersTarget[$i]['defaultTab'], $defaultParametersTarget[$i]['zoomControlsColor'], $defaultParametersTarget[$i]['scaleX'], $defaultParametersTarget[$i]['scaleY'], $defaultParametersTarget[$i]['headerFontColor'], $defaultParametersTarget[$i]['styleParameters'], $defaultParametersTarget[$i]['infoJson'], $defaultParametersTarget[$i]['serviceUri'], $defaultParametersTarget[$i]['viewMode'], $defaultParametersTarget[$i]['hospitalList'], $defaultParametersTarget[$i]['notificatorRegistered'], $defaultParametersTarget[$i]['notificatorEnabled'], $defaultParametersTarget[$i]['enableFullscreenTab'], $defaultParametersTarget[$i]['enableFullscreenModal'], $defaultParametersTarget[$i]['fontFamily'], $defaultParametersTarget[$i]['entityJson'], $defaultParametersTarget[$i]['attributeName'], $creator, null, $defaultParametersTarget[$i]['canceller'], $defaultParametersTarget[$i]['lastEditDate'], $defaultParametersTarget[$i]['cancelDate'], $defaultParametersTarget[$i]['actuatorTarget'], $defaultParametersTarget[$i]['actuatorEntity'], $defaultParametersTarget[$i]['actuatorAttribute'], $defaultParametersTarget[$i]['chartColor'], $defaultParametersTarget[$i]['dataLabelsFontSize'], $defaultParametersTarget[$i]['dataLabelsFontColor'], $defaultParametersTarget[$i]['chartLabelsFontSize'], $defaultParametersTarget[$i]['chartLabelsFontColor'], 'myKPI', $rowParameters, null, '{}', $newWidgetType);
+                                             }
 
                                             if($hasTargetWidgetFactory[$i] == 'yes')
                                             {
@@ -2161,7 +2223,21 @@
                                             else
                                             {
                                                 //Reperiamo l'entità dal broker
-                                                $orionGetEntityUrl = $orionBaseUrlLocal. "/v2/entities/" . $sourceWidgetName;
+                                                if (strpos($sourceWidgetName, ':') >= 0) {
+                                                    $newSourceWidgetName = "";
+                                                    $sourceWidgetNameArray = explode(':', $sourceWidgetName);
+                                                    for ($k = 0; $k < sizeof($sourceWidgetNameArray); $k++) {
+                                                        if($k == 2) {
+                                                            $newSourceWidgetName = $newSourceWidgetName . $sourceWidgetNameArray[$k];
+                                                        } else if ($k > 2) {
+                                                            $newSourceWidgetName = $newSourceWidgetName . ":" . $sourceWidgetNameArray[$k];
+                                                        }
+                                                    }
+                                                } else {
+                                                    $newSourceWidgetName = $sourceWidgetName;
+                                                }
+
+                                                $orionGetEntityUrl = $orionBaseUrlLocal . "/v2/entities/" . $newSourceWidgetName;
 
                                                 try
                                                 {
@@ -2201,7 +2277,22 @@
                                         else
                                         {
                                             //Reperiamo l'entità dal broker
-                                            $orionGetEntityUrl = $orionBaseUrlLocal. "/v2/entities/" . $sourceWidgetName;
+
+                                            if (strpos($sourceWidgetName, ':') >= 0) {
+                                                $newSourceWidgetName = "";
+                                                $sourceWidgetNameArray = explode(':', $sourceWidgetName);
+                                                for ($k = 0; $k < sizeof($sourceWidgetNameArray); $k++) {
+                                                    if($k == 2) {
+                                                        $newSourceWidgetName = $newSourceWidgetName . $sourceWidgetNameArray[$k];
+                                                    } else if ($k > 2) {
+                                                        $newSourceWidgetName = $newSourceWidgetName . ":" . $sourceWidgetNameArray[$k];
+                                                    }
+                                                }
+                                            } else {
+                                                $newSourceWidgetName = $sourceWidgetName;
+                                            }
+
+                                            $orionGetEntityUrl = $orionBaseUrlLocal. "/v2/entities/" . $newSourceWidgetName;
 
                                             try
                                             {
