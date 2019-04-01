@@ -124,12 +124,19 @@ checkSession('Manager');
               <div class="row mainContentRow" id="iotAppsListTableRow">
                 <div class="col-xs-12 mainContentCellCnt" style='background-color: rgba(138, 159, 168, 1)'>
                   <div id="iotAppsListMenu" class="row">
-                    <!--<div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-2 iotAppsListMenuItem">
-                        <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
+                    <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-2 iotAppsListMenuItem">
+                        <?php
+                            if(($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin')
+                            {
+                        ?>
+                        <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
                             <input id="dashboardListsViewModeInput" type="checkbox">
                         </div>
-                    </div>-->
-                    <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-1 col-md-offset-2 iotAppsListMenuItem">
+                        <?php
+                            }
+                        ?>
+                    </div>
+                    <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-1 iotAppsListMenuItem">
                       <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
                         <div class="col-xs-6 centerWithFlex">
                           <div class="iotAppsListSortBtnCnt">
@@ -179,13 +186,15 @@ checkSession('Manager');
                   <table id="list_dashboard" class="table">
                     <thead class="iotAppsTableHeader">
                       <tr>
-                        <th data-dynatable-column="title_header">Title</th>
-                        <th data-dynatable-column="user">Creator</th>
-                        <th data-dynatable-column="creation_date">Creation date</th>
-                        <th data-dynatable-column="last_edit_date">Last edit date</th>
-                        <th data-dynatable-column="status_dashboard">Status</th>
-                        <th>Edit</th>
-                        <th>View</th>
+                        <th>Status</th>
+                        <th data-dynatable-column="type">Type</th>
+                        <th data-dynatable-column="title">Title</th>
+                        <th data-dynatable-column="username">Creator</th>
+                        <th data-dynatable-column="created">Creation date</th>
+                        <th data-dynatable-column="modified">Modification date</th>
+                        <th>Dashboards</th>
+                        <th>Open</th>
+                        <th>Management</th>
                       </tr>
                     </thead>
                     <tbody></tbody>
@@ -370,15 +379,18 @@ checkSession('Manager');
                 iotAppsHealthiness[appId].timeout = setTimeout('checkIotApp("'+appId+'")',frequency);
               }
               if(iotAppsHealthiness[appId].healthiness) {
-                $("#health_"+appId).css("background-color","lightgreen");
+                $("#chealth_"+appId).css("background-color","lightgreen");
+                $("#rhealth_"+appId).css("background-color","lightgreen");
                 //$("#iotapp_"+appId+" .iotAppsListCardOverlayTxt").removeClass("wait");
                 $("#iotapp_"+appId+" div.iotAppsListCardOverlayDiv").css("opacity", "0.05");
               } else if(iotAppsHealthiness[appId].healthiness === null) {
-                $("#health_"+appId).css("background-color","lightgray");
+                $("#chealth_"+appId).css("background-color","lightgray");
+                $("#rhealth_"+appId).css("background-color","lightgray");
                 //$("#iotapp_"+appId+" .iotAppsListCardOverlayTxt").removeClass("wait");
                 $("#iotapp_"+appId+" div.iotAppsListCardOverlayDiv").css("opacity", "0.05");
               } else {
-                $("#health_"+appId).css("background-color","red");
+                $("#chealth_"+appId).css("background-color","red");
+                $("#rhealth_"+appId).css("background-color","red");
                 //$("#iotapp_"+appId+" .iotAppsListCardOverlayTxt").addClass("wait");
                 $("#iotapp_"+appId+" div.iotAppsListCardOverlayDiv").css("opacity", "0.8");
               }
@@ -479,7 +491,7 @@ checkSession('Manager');
         function myRowWriter(rowIndex, record, columns, cellWriter)
         {
             var statusBtn, cssClass = null;
-            var title = record.title_header;
+            var title = record.name;
 
             if(rowIndex%2 !== 0)
             {
@@ -490,34 +502,79 @@ checkSession('Manager');
                 cssClass = 'whiteRow';
             }
 
-            if(title.length > 75)
-            {
-               title = title.substr(0, 75) + " ...";
-            }
-
-            var user = record.user;
-            if(user.length > 75)
-            {
-               user = user.substr(0, 75) + " ...";
-            }
-
-            if((record.status_dashboard === '0')||(record.status_dashboard === 0))
-            {
-                statusBtn = '<input type="checkbox" data-toggle="toggle" class="changeDashboardStatus">';
-            }
+            var owner = "";
+            if(record.username!=usr)
+              owner = record.username;
             else
-            {
-                statusBtn = '<input type="checkbox" checked data-toggle="toggle" class="changeDashboardStatus">';
+              owner ='My own';
+            
+            var dashboards = "";
+            //dashboards+='<a href="'+record.url+'/ui/" target="_blank" title="node-red dashboard" class="red-dash"></a>';
+            if(record.type!="plumber") {
+              for(var d of record.dashboards) {
+                var eurl="",vurl="";
+                <?php if(isset($_SESSION['loggedRole']) &&  $_SESSION['loggedRole']!='RootAdmin') echo "if(d.dashboardAuthor==usr)"; ?>
+                  eurl = 'dashboard_configdash.php?dashboardId='+d.dashboardId+'&dashboardAuthorName='+d.dashboardAuthor+'&dashboardEditorName='+usr+'&dashboardTitle='+encodeURIComponent(d.dashboardName);
+                vurl = '../view/?iddasboard='+btoa(d.dashboardId);
+                if(eurl) {
+                  dashboards+='<a href="'+vurl+'" target="_blank" title="view '+d.dashboardName+'" class="white-dash1"></a>'
+                  dashboards+='<a href="'+eurl+'" target="_blank" title="edit '+d.dashboardName+'" class="white-dash2"></a>'
+                } else {
+                  dashboards+='<a href="'+vurl+'" target="_blank" title="view '+d.dashboardName+'" class="white-dash"></a>'
+                }
+              }
+              for(var i=0;i<5-record.dashboards.length; i++) {
+                dashboards+='<div title="no connected dashboard" class="gray-dash"></div>';
+              }
+            }
+            var healthStyle="lightgray";
+            if(iotAppsHealthiness.hasOwnProperty(record.id)) {
+              if(iotAppsHealthiness[record.id].healthiness)
+                healthStyle="lightgreen";
+              else if(iotAppsHealthiness[record.id].healthiness===null)
+                healthStyle="lightgray";
+              else
+                healthStyle="red";                
+            } else {
+              iotAppsHealthiness[record.id] = {"created":record.created, "healthiness": null};
             }
 
-            var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + title + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="dashBtnCard editDashBtn">edit</button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn">view</button></td></tr>';
+            /*var cardDiv = '<div id="iotapp_'+record.id+'" data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.url + '" data-type="' + record.type + '" data-icon="' + record.icon + '" data-iotapps="' + record.iotapps + '" data-privileges="' + record.privileges + '" data-created="' + record.created + '" data-username="' + record.username + '" data-edgetype="' + record.edgetype + '" class="iotAppsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+                               '<div id="iotapp_'+record.id+'" class="iotAppsListCardInnerDiv">' +
+                                  '<div class="iotAppsListCardTitleDiv col-xs-12 centerWithFlex"><div id="health_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div>' + title + '</div>' + 
+                                  '<div class="iotAppsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
+                                  '<a href="'+record.url+'" class="iotAppsListCardOverlayTxt col-xs-12 centerWithFlex" style="opacity:1;" onclick="return false"></a>' +
+                                  '<div class="iotAppsListCardImgDiv" style="height:150px;margin-bottom:3px;"></div>' + 
+                                  '<div class="iotAppsListCardVisibilityDiv col-xs-12 centerWithFlex">'+owner+'</div>'+
+                                  '<div class="iotAppsListCardClick2EditDiv col-xs-12" style="background-color: inherit; color: inherit">' + 
+                                  '<div style="float:left;width: 135px;height: 25px;overflow: auto;" id="dashboardsListCardDashs">'+dashboards+'</div>' +
+                                  '<button type="button" class="dashBtnCard propertiesIoTAppBtnCard" style="float:right;" >Management</button></div>' + 
+                                  '</div>' +  
+                               '</div>' +
+                            '</div>';*/
+             if(!iotAppsHealthiness[record.id].timeout) {
+               checkIotApp(record.id);
+             }
+
+            var newRow = '<tr data-dashTitle="' + record.title + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.username + '">' +
+                  '<td class="' + cssClass + '" ><div id="rhealth_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div></td>' +
+                  '<td class="' + cssClass + '" >' + record.type + '</td>'+
+                  '<td class="' + cssClass + '" style="font-weight: bold"><a href="' + record.url + '" target="_blank">' + title + '</a></td>'+
+                  '<td class="' + cssClass + '">' + owner + '</td>'+
+                  '<td class="' + cssClass + '">' + record.created + '</td>'+
+                  '<td class="' + cssClass + '">' + record.modified + '</td>'+
+                  '<td class="' + cssClass + '">' + dashboards + '</td>'+
+                  //'<td class="' + cssClass + '">' + record.image + '</td>'+
+                  '<td class="' + cssClass + '"><button type="button" class="viewDashBtn">Open</button></td>'+
+                  '<td class="' + cssClass + '"><button type="button" class="viewDashBtn">Management</button></td>'+
+                  '</tr>';
 
             return newRow;
         }
     
         function myCardsWriter(rowIndex, record, columns, cellWriter)
         {
-            var title = record.title;
+            var title = record.name;
 
             if(title.length > 100)
             {
@@ -562,7 +619,7 @@ checkSession('Manager');
 
             var cardDiv = '<div id="iotapp_'+record.id+'" data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.url + '" data-type="' + record.type + '" data-icon="' + record.icon + '" data-iotapps="' + record.iotapps + '" data-privileges="' + record.privileges + '" data-created="' + record.created + '" data-username="' + record.username + '" data-edgetype="' + record.edgetype + '" class="iotAppsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
                                '<div id="iotapp_'+record.id+'" class="iotAppsListCardInnerDiv">' +
-                                  '<div class="iotAppsListCardTitleDiv col-xs-12 centerWithFlex"><div id="health_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div>' + title + '</div>' + 
+                                  '<div class="iotAppsListCardTitleDiv col-xs-12 centerWithFlex"><div id="chealth_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div>' + title + '</div>' + 
                                   '<div class="iotAppsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
                                   '<a href="'+record.url+'" class="iotAppsListCardOverlayTxt col-xs-12 centerWithFlex" style="opacity:1;" onclick="return false"></a>' +
                                   '<div class="iotAppsListCardImgDiv" style="height:150px;margin-bottom:3px;"></div>' + 
@@ -976,9 +1033,7 @@ checkSession('Manager');
                                 }
                             });
                         });
-                        
-                        $('#dashboardListsViewMode').hide();
-                        
+                                                
                         $('#searchDashboardBtn').off('click');
                         $('#searchDashboardBtn').click(function(){
                             var dynatable = $('#list_dashboard_cards').data('dynatable');
@@ -1076,8 +1131,7 @@ checkSession('Manager');
                             size: "mini"
                         });
                                                 
-                        $('#list_dashboard button.editDashBtn').off('click');
-                        $('#list_dashboard button.editDashBtn').click(function() 
+                        $('#list_dashboard button.viewDashBtn').off('click').click(function() 
                         {
                             var dashboardId = $(this).parents('tr').attr('data-uniqueid');
                             var dashboardTitle = $(this).parents('tr').attr('data-dashTitle');
@@ -1090,7 +1144,7 @@ checkSession('Manager');
                     
                       $('#list_dashboard').dynatable({
                         dataset: {
-                          records: data,
+                          records: iotAppsList,
                           perPageDefault: 20,
                           perPageOptions: [5, 10, 20, 30, 40]
                         },
