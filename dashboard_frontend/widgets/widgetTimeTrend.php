@@ -24,7 +24,7 @@
 ?>
 
 <script type='text/javascript'> 
-    $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId) 
+    $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId, fromTrackerFlag, fromTrackerDay, fromTrackerParams)
     {
         <?php
             $titlePatterns = array();
@@ -35,8 +35,8 @@
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
         ?> 
-        //RANGE TEMPORALI GESTIBILI DAL WIDGET: 4/HOUR, 12/HOUR, 1/DAY, 7/DAY, 30/DAY, 365/DAY (IL DRAW CANCELLA DA SOLO IL LOADING)    
-        var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";       
+        //RANGE TEMPORALI GESTIBILI DAL WIDGET: 4/HOUR, 12/HOUR, 1/DAY, 7/DAY, 30/DAY, 365/DAY (IL DRAW CANCELLA DA SOLO IL LOADING)
+        var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";  
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var wsRetryActive, wsRetryTime = null;
         var thresholdObject, chartColor, chartRef, styleParameters, metricType, pattern, totValues, shownValues, showTitle, showHeader, hasTimer, timeRange, globalDiagramRange, myKPITimeRange,
@@ -57,10 +57,12 @@
         var now = new Date();
         var nowUTC = now.toUTCString();
         var isoDate = new Date(nowUTC).toISOString();
-        var isoDateTrimmed = isoDate.substring(0, isoDate.length - 8);
+        var isoDateTrimmed = now.getFullYear()+"-"+(101+now.getMonth()+"").slice(-2)+"-"+(100+now.getDate()+"").slice(-2)+"T"+(100+now.getHours()+"").slice(-2)+":"+(100+now.getMinutes()+"").slice(-2);
         var myKPIFromTimeRange = "";
         var refreshToken = "<?= $_SESSION['refreshToken'] ?>";
         var accessToken = "<?= $_SESSION['accessToken'] ?>";
+        dayTracker = fromTrackerDay;
+        flagTracker = fromTrackerFlag;
 
         console.log("Entrato in widgetTimeTrend --> " + widgetName);
 
@@ -116,7 +118,41 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null);
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null, false, null);
+            }
+        });
+
+        $(document).off('mouseOverTimeTrendFromTracker_' + widgetName);
+        $(document).on('mouseOverTimeTrendFromTracker_' + widgetName, function(event)
+        {
+            widgetOriginalBorderColor = $("#" + widgetName).css("border-color");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(event.widgetTitle);
+            $("#" + widgetName).css("border-color", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", "black");
+        });
+
+        $(document).off('mouseOutTimeTrendFromTracker_' + widgetName);
+        $(document).on('mouseOutTimeTrendFromTracker_' + widgetName, function(event)
+        {
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
+            $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", widgetHeaderColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", widgetHeaderFontColor);
+        });
+
+        $(document).off('showTimeTrendFromTracker_' + widgetName);
+        $(document).on('showTimeTrendFromTracker_' + widgetName, function(event)
+        {
+            if(event.targetWidget === widgetName)
+            {
+                clearInterval(countdownRef);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", false, event.serviceUri, event.field, event.range, event.marker, event.mapRef, event.fakeId, true, event.day, event.rowParams);
             }
         });
 		
@@ -1075,7 +1111,7 @@
             $("#" + widgetName + "_content").css("height", bodyHeight + "px");
         }
         
-        function populateWidget(localTimeRange)
+        function populateWidget(localTimeRange, kpiTracker)
         {
             if(fromGisExternalContent)
             {
@@ -1267,12 +1303,16 @@
                         serviceMapTimeRange = "fromTime=1-day";
                         globalDiagramRange = "1/DAY";
 
-                        var now = new Date();
-                        myKPIFromTimeRange = now.setHours(now.getHours() - 24);
-                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
-                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
-                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
-                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        if (flagTracker === true) {
+                            myKPITimeRange = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                        } else {
+                            var now = new Date();
+                            myKPIFromTimeRange = now.setHours(now.getHours() - 24);
+                            var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                            var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                            var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                            myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        }
                         break;
                 }
                 
@@ -1408,9 +1448,14 @@
                     case 'myKPI':
                      //   console.log("KPI Api Call.");
 
-                        if (rowParameters.includes("datamanager/api/v1/poidata/")) {
-                            rowParameters = rowParameters.split("datamanager/api/v1/poidata/")[1];
+                        if(fromTrackerParams != null && fromTrackerParams != undefined) {
+                            rowParameters = fromTrackerParams;
+                        } else {
+                            if (rowParameters.includes("datamanager/api/v1/poidata/")) {
+                                rowParameters = rowParameters.split("datamanager/api/v1/poidata/")[1];
+                            }
                         }
+
                         $.ajax({
                             url: "../controllers/myKpiProxy.php",
                             type: "GET",
@@ -1467,7 +1512,7 @@
             },
             async: true,
             dataType: 'json',
-            success: function(widgetData) 
+            success: function(widgetData)
             {
                 showTitle = widgetData.params.showTitle;
                 widgetContentColor = widgetData.params.color_w;
@@ -1515,6 +1560,7 @@
                     $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
                     widgetHeaderColor = widgetHeaderColorFromDriver;
                     widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+                 //   $("#" + widgetName + "_titleDiv").html(widgetTitle + " On Day: " + dayTracker);
                 }
                 
                 setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
