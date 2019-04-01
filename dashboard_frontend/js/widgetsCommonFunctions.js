@@ -87,7 +87,16 @@ function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderC
     }
 
     //Impostazione menu di contesto
+  //  console.log($("#" + widgetName).width());/* aggiunto da berna*/
     var widgetCtxMenuBtnCntLeft = $("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width();
+    if (location.href.includes('prova2') && ((widgetName == "DCTemp1_24_widgetTimeTrend6351")||(widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"))){
+        if (widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"){
+                    widgetCtxMenuBtnCntLeft = 230 - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width();
+                }
+                else{
+                    var widgetCtxMenuBtnCntLeft = 1225 - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width();
+                }
+    }
     $("#" + widgetName + "_widgetCtxMenuBtnCnt").css("left", widgetCtxMenuBtnCntLeft + "px");
 
     if(hostFile === 'config')
@@ -128,6 +137,14 @@ function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderC
         }
         
         var headerWidth = parseInt($("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width());
+            if (location.href.includes('prova2') && ((widgetName == "DCTemp1_24_widgetTimeTrend6351")||(widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"))){
+                if (widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"){
+                    headerWidth = parseInt(230 - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width());
+                }
+                else{
+                    var headerWidth = parseInt(1225 - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width());
+                }
+    }
         $("#" + widgetName + "_header").css("width", headerWidth + "px");
         $("#" + widgetName + "_titleDiv").css("width", Math.floor(titleWidth/headerWidth*100) + "%");
     }
