@@ -580,6 +580,7 @@
                 if($(this).attr('data-submenuVisible') === 'false')
                 {
                     $(this).attr('data-submenuVisible', 'true');
+                    $('.mainMenuSubItemCnt').css( "display", "block" );
                     $('#mobMainMenuPortraitCnt a.mainMenuSubItemLink[data-fatherMenuId=' + $(this).attr('id') + ']').show();
                     $(this).find('.submenuIndicator').removeClass('fa-caret-down');
                     $(this).find('.submenuIndicator').addClass('fa-caret-up');
@@ -700,6 +701,7 @@
                 if($(this).attr('data-submenuVisible') === 'false')
                 {
                     $(this).attr('data-submenuVisible', 'true');
+                    $('.mainMenuSubItemCnt').css( "display", "block" );
                     $('#mobMainMenuLandCnt a.mainMenuSubItemLink[data-fatherMenuId=' + $(this).attr('id') + ']').show();
                     $(this).find('.submenuIndicator').removeClass('fa-caret-down');
                     $(this).find('.submenuIndicator').addClass('fa-caret-up');
