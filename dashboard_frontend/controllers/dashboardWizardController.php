@@ -435,21 +435,21 @@ if (!empty($_REQUEST["filterDistinct"])) {
                     }
                 } else if ($allowedRecord[1] === 'MyKPI') {
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "')";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyPOI') {
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "')";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyData') {
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "')";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
                     }
                 }
             }
@@ -1103,21 +1103,21 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                     }
                 } else if ($allowedRecord[1] === 'MyKPI') {
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY  unique_name_id = '" . $allowedRecord[2] . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyPOI') {
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyData') {
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
                     }
                 }
             }
