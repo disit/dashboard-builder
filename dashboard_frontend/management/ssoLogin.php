@@ -77,6 +77,7 @@ $oidc->setRedirectURL($appUrl . '/management/ssoLogin.php?redirect='.urlencode($
 try {
   $oidc->authenticate();
 } catch(Exception $ex) {
+  echo "Autentication problems.<br><a href='logout.php'>Logout</a>";
   //header("location: ".$appUrl . "/management/ssoLogin.php?");
   exit; 
 }
@@ -120,7 +121,7 @@ if ($ds && $bind) {
                   $ldapRole = "Observer";
                   $ldapOk = true;
                 } else {
-                    echo "user $usernameD cannot find role ";
+                    echo "cannot find a role for $usernameD, wait for administrator approval.<br><a href='logout.php'>Logout</a>";
                     exit;                  
                 }
               }
@@ -128,11 +129,12 @@ if ($ds && $bind) {
           }
     } 
   } else {
-    echo "user $usernameD cannot use $ldapToolName ";
+    $_SESSION['refreshToken'] = $oidc->getRefreshToken();
+    echo "user $usernameD cannot use this tool, please wait for administrator approval.<br><a href='logout.php'>Logout</a>";
     exit;
   }
 } else {
-    echo "cannot bind to LDAP";  
+    echo "cannot bind to LDAP, try later.<br><a href='logout.php'>Logout</a>";
     exit;
 }
 $stopFlag = 1;
