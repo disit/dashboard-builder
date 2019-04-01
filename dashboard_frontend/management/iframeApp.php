@@ -30,7 +30,7 @@
 
         <title><?php include "mobMainMenuClaim.php" ?></title>
 
-        <!-- Bootstrap Core CSS -->
+                <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
 
         
@@ -64,13 +64,69 @@
         <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
         
         <!-- Custom CSS -->
-        <link href="../css/dashboard.css" rel="stylesheet">
+        <!--<link href="../css/dashboard.css" rel="stylesheet">
         
         <!-- Custom scripts -->
         <script src="../js/accountManagement.js"></script>
         
         <!--<link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">-->
+        
+        
+        
+        <!-- incluso da me-->
+        
+       <!-- Bootstrap editable tables -->
+       <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+       <script src="../bootstrap3-editable/js/bootstrap-editable.js"></script>
+
+       <!-- Bootstrap table -->
+       <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
+       
+       <!-- Dynatable -->
+       <link rel="stylesheet" href="../dynatable/jquery.dynatable.css">
+       <script src="../dynatable/jquery.dynatable.js"></script>
+       
+        <!-- Bootstrap Multiselect -->
+        <script src="../js/bootstrap-multiselect_1.js"></script>
+        <link href="../css/bootstrap-multiselect_1.css" rel="stylesheet">
+
+        <!-- DataTables -->
+        <script type="text/javascript" charset="utf8" src="../js/DataTables/datatables.js"></script>
+        <link rel="stylesheet" type="text/css" href="../js/DataTables/datatables.css">
+        <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.bootstrap.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.responsive.min.js"></script>
+        <script type="text/javascript" charset="utf8" src="../js/DataTables/responsive.bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="../css/DataTables/dataTables.bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="../css/DataTables/responsive.bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="../css/DataTables/jquery.dataTables.min.css">  
+
+        <!-- Leaflet -->
+        <!-- Versione locale: 1.3.1 --> 
+        <script src="../leafletCore/leaflet.js"></script> 
+        <link rel="stylesheet" href="../leafletCore/leaflet.css" />
+        
+        <!-- Bootstrap slider -->
+        <script src="../bootstrapSlider/bootstrap-slider.js"></script>
+        <link href="../bootstrapSlider/css/bootstrap-slider.css" rel="stylesheet"/>
+        
+        <!-- Filestyle -->
+        <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
+
+       <!-- Font awesome icons -->
+        <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+        
+        <!-- Custom CSS -->
+        <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
+   
+        
+    <!-- fine incluso da me-->
+        
     </head>
     <body class="guiPageBody">
         <div class="container-fluid">
@@ -116,6 +172,7 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
+        console.log("Entrato in iFrame");
        var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
@@ -193,5 +250,11 @@
         {
             $('#iframeApp').attr('src', '<?= addslashes($_REQUEST['linkUrl'])?>');
         }
+        
+        $("#link_start_wizard2").click(function()
+         {
+            
+             $("#addWidgetWizard2").modal("show");
+         });
     });//Fine document ready
 </script>
