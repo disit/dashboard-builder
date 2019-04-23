@@ -126,7 +126,7 @@
         <div id="dataAndWidgetsInnerCnt">
             <div class="row hideFullyCustom">
                 <!-- Mappa -->
-                <div class="col-xs-12 col-md-6">
+                <div class="col-xs-12 col-md-7">
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
                         Map
                     </div>
@@ -135,7 +135,7 @@
                 </div>
 
                 <!-- Icone -->
-                <div class="col-xs-12 col-md-6">
+                <div class="col-xs-12 col-md-5">
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex">
                         Single data widgets
                     </div>
@@ -145,6 +145,16 @@
                         Multi data widgets
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCnt">
+                    </div>
+                    <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
+                        <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Map Controls:</div>
+                    
+                    <label class="switch" style=" margin-left: 10px; float: left">
+                            <input type="checkbox" id="togBtn">
+                            <div class="slider round"><!--ADDED HTML --><span class="on">FixMap</span><span class="off" style="color: black">FreeMap</span><!--END--></div>
+                        </label><!--<button type="button" id="FreezeMap" class="btn cancelBtn" style="margin-top: 10px">FreezeMap</button>-->
+                        <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSUser</button>
+                        <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSOrg</button>
                     </div>
                     <div id="addWidgetWizardWidgetAvailableMsg" class="col-xs-12 centerWithFlex">
                     </div>
@@ -255,6 +265,8 @@
                                 <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations"></th>
                                 <?php } ?>
+                                <th class="widgetWizardTitleCell" data-cellTitle="latitude"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="longitude"></th>
                             </tr>  
                             <tr>  
                                 <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
@@ -277,6 +289,8 @@
                                 <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
                                 <?php } ?>
+                                <th class="widgetWizardTitleCell" data-cellTitle="latitude"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="longitude"></th>
                             </tr>  
                         </thead>
                     </table>
@@ -401,6 +415,35 @@
         </div>
     </div>  -->  
 </div>
+            <?php /*
+                include('../config.php');
+                header("Cache-Control: private, max-age=$cacheControlMaxAge");
+                $link = mysqli_connect($host, $username, $password);
+                mysqli_select_db($link, $dbname);
+
+                    $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where high_level_type='Sensor' and latitude is not null and longitude is not null and latitude<>'' and longitude<>''";
+                    $r = mysqli_query($link, $menuQuery);
+                    if($r)
+                    {
+                        $array=array();
+                        $ii=0;
+                        while($row = mysqli_fetch_assoc($r))
+                        {
+                            $idrow=$row['id'];
+                            $latitude=$row['latitude'];
+                            $longitude=$row['longitude'];
+                            $array[$ii]['id']=$idrow;
+                            $array[$ii]['latitude']=$latitude;
+                            $array[$ii]['longitude']=$longitude;
+                            $ii=$ii+1;
+       }
+       $size = sizeof($array);
+              
+             
+   }
+             * 
+             */
+                ?>
 
 <script type='text/javascript'>
     $(document).ready(function ()
@@ -434,6 +477,11 @@
         var orionBrokerValueTypes = null;
         var markersCache = {};
         var FreezeMap = null;
+        noPOIFlag = 0;
+        poiSubNature = "";
+        poiNature = "";
+        poiNatureArray = [];
+        poiSubNatureArray = [];
 
         // Check LDAP Organization to centre Wizard Map
         $.ajax({
@@ -442,7 +490,7 @@
             data: {
                 action: "getAllParameters"
             },
-            async: true,
+            async: false,
             dataType: 'json',
             success: function (data)
             {
@@ -504,6 +552,466 @@
             actuatorFieldsEmpty: true,
             canProceed: false
         };
+        $('#GPSOrg').click(function(){
+        //    addWidgetWizardMapRef.setView(L.latLng(43.769710, 11.255751), 11);
+            if (orgGpsCentreLatLng != undefined && orgGpsCentreLatLng != null) {
+                if (orgZoomLevel != null && orgZoomLevel != undefined) {
+                    addWidgetWizardMapRef.setView(L.latLng(orgGpsCentreLatLng.split(",")[0].trim(), orgGpsCentreLatLng.split(",")[1].trim()), orgZoomLevel);
+                } else {
+                    addWidgetWizardMapRef.setView(L.latLng(orgGpsCentreLatLng.split(",")[0].trim(), orgGpsCentreLatLng.split(",")[1].trim()), 11);
+                }
+            } else {
+                addWidgetWizardMapRef.setView(L.latLng(43.769710, 11.255751), 11);  // Florence coordinates if no organization available
+            }
+
+        })
+        $('#GPSUser').click(function(){
+            
+            if(navigator.geolocation)
+                navigator.geolocation.getCurrentPosition(showPosition);
+                //navigator.geolocation.watchPosition(showPosition);
+        })
+        function showPosition(position) {
+            
+            var Zoom = addWidgetWizardMapRef.getZoom();
+            addWidgetWizardMapRef=addWidgetWizardMapRef.setView(L.latLng(position.coords.latitude, position.coords.longitude), Zoom);
+        }
+        $('#togBtn').click(function(){
+
+            $.ajax({
+                url: "../controllers/getPOIFilters.php",
+                type: "GET",
+                data: {
+                    org: orgFilter
+                },
+                async: true,
+                dataType: 'json',
+                success: function (data)
+                {
+                    if (data.detail === 'OK_Nature_AND_SubNature') {
+                        poiNatureArray = data.nature;
+                        poiSubNatureArray = data.sub_nature;
+                    } else {
+
+                    }
+                },
+                error: function (data)
+                {
+                    console.log("Error in retrieving POI nature and sub_nature:");
+                    console.log(JSON.stringify(data));
+                }
+            });
+
+           if(FreezeMap){
+               addWidgetWizardMapRef.addControl(addWidgetWizardMapRef.zoomControl);
+               FreezeMap = null;
+               addWidgetWizardMapRef.dragging.enable();
+               addWidgetWizardMapRef.keyboard.enable();
+               addWidgetWizardMapRef.scrollWheelZoom.enable();
+               addWidgetWizardMapRef.doubleClickZoom.enable();
+               //disattivo il sensore che ho selezionato prima di ricreare la tabella, altrimenti si genera in seguito un errore nella selezione degli elementi della tabella
+               if(widgetWizardSelectedSingleRow!==null){
+                    $(widgetWizardSelectedSingleRow).removeClass('selected');
+                    var delesectedUnit = widgetWizardSelectedRows['row' + $(widgetWizardSelectedSingleRow).attr('data-rowid')].unit;
+                    delete widgetWizardSelectedRows['row' + $(widgetWizardSelectedSingleRow).attr('data-rowid')];
+                
+                    widgetWizardSelectedRowsTable.row('[data-rowid=' + $(widgetWizardSelectedSingleRow).attr('data-rowid') + ']').remove().draw(false);
+                
+                    //Aggiornamento unità selezionate
+                    updateSelectedUnits('remove', delesectedUnit);
+                    widgetWizardSelectedSingleRow=null;
+                }
+                resetFilter();
+               widgetWizardTable.clear().destroy();
+            var oi=document.getElementById('widgetWizardTable_paginate');
+            oi.outerHTML="";
+            $('#widgetWizardTable_paginate').empty();
+            var oi2=document.getElementById('widgetWizardTable_filter');
+            oi2.outerHTML="";
+               $('#widgetWizardTable_filter').empty();
+                 widgetWizardTable = $('#widgetWizardTable').DataTable({
+                 
+            "bLengthChange": false,
+            "bInfo": false,
+            "language": {search: ""},
+            aaSorting: [[0, 'desc']],
+            "processing": true,
+            "serverSide": true,
+            "pageLength": widgetWizardPageLength,
+            "ajax": {
+                async: true, 
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
+                data: {
+                    dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
+                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
+                    filterOrg: orgFilter,
+                    poiFlag: noPOIFlag
+                }
+            },
+            'createdRow': function (row, data, dataIndex) {
+                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-high_level_type', data[0]);
+                $(row).attr('data-nature', data[1]);
+                $(row).attr('data-sub_nature', data[2]);
+                $(row).attr('data-low_level_type', data[3]);
+                $(row).attr('data-unique_name_id', data[4]);
+                $(row).attr('data-instance_uri', data[5]);
+                $(row).attr('data-unit', data[6]);
+                $(row).attr('data-servicetype', data[2]);
+                $(row).attr('data-get_instances', data[14]);
+                $(row).attr('data-sm_based', data[16]);
+                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-selected', 'false');
+                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-latitude', data[17]);
+                $(row).attr('data-longitude', data[18]);
+                $(row).attr('data-organizations', data[19]);
+            },
+            "columnDefs": [
+                {
+                    "targets": [5, 11, 12, 14, 16, 17, 18],
+                    "visible": false
+                },
+                {
+                    "targets": 9,
+                    "searchable": true,
+                    "render": function (data, type, row, meta) {
+                        var imageUrl = null;
+                        if (row[9]) {
+                            if (row[9] === 'true') {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
+                            } else {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                            }
+
+                        } else {
+                            imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                        }
+                        return imageUrl;
+                    }
+                },
+                {
+                    "targets": 10,
+                    "searchable": true,
+                    "visible": false
+                },
+            ],
+            initComplete: function () {
+
+                var stopFlag = 1;
+            }
+        });
+
+        $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_paginate").addClass("col-xs-12");
+            $("#widgetWizardTable_paginate").addClass("col-md-4");
+            $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_filter").addClass("col-xs-12");
+            $("#widgetWizardTable_filter").addClass("col-md-3");
+            $("#widgetWizardTable_filter input").attr("placeholder", "Search");
+            $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
+            $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
+               
+           }else{
+               addWidgetWizardMapRef.removeControl(addWidgetWizardMapRef.zoomControl);
+               FreezeMap = true;
+               addWidgetWizardMapRef.dragging.disable();
+               addWidgetWizardMapRef.keyboard.disable();
+               addWidgetWizardMapRef.scrollWheelZoom.disable();
+               addWidgetWizardMapRef.doubleClickZoom.disable();
+               var bounds = addWidgetWizardMapRef.getBounds();
+               var northEastPointLat = bounds._northEast.lat;
+               var northEastPointLat2 = northEastPointLat.toString();
+               var northEastPointLng = bounds._northEast.lng;
+               var northEastPointLng2 = northEastPointLng.toString();
+               var southWestPointLat = bounds._southWest.lat;
+               var southWestPointLat2 = southWestPointLat.toString();
+               var southWestPointLng = bounds._southWest.lng;
+               var southWestPointLng2 = southWestPointLng.toString();
+               resetFilter();
+               widgetWizardTable.clear().destroy();//la mappa viene distrutta e ricreata ad ogni volta che viene azionato il bottone
+            var oi=document.getElementById('widgetWizardTable_paginate');
+            oi.outerHTML="";
+            $('#widgetWizardTable_paginate').empty();
+            var oi2=document.getElementById('widgetWizardTable_filter');
+            oi2.outerHTML="";
+               $('#widgetWizardTable_filter').empty();
+                 widgetWizardTable = $('#widgetWizardTable').DataTable({
+                 
+            "bLengthChange": false,
+            "bInfo": false,
+            "language": {search: ""},
+            aaSorting: [[0, 'desc']],
+            "processing": true,
+            "serverSide": true,
+            "pageLength": widgetWizardPageLength,
+            "ajax": {
+                async: true, 
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
+             /*   data: {
+                    dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
+                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
+                    northEastPointLat: northEastPointLat,
+                    northEastPointLng: northEastPointLng,
+                    southWestPointLat: southWestPointLat,
+                    southWestPointLng: southWestPointLng,
+                    filterOrg: orgFilter,
+                    poiFlag: noPOIFlag
+                }*/
+                data: function(d){
+                    d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
+                    d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>",
+                    d.northEastPointLat = northEastPointLat,
+                    d.northEastPointLng = northEastPointLng,
+                    d.southWestPointLat = southWestPointLat,
+                    d.southWestPointLng = southWestPointLng,
+                    d.filterOrg = orgFilter,
+                    d.poiFlag = getPOIFlag(),
+                    d.poiNature = getPOINature(),
+                    d.poiSubNature = getPOISubNature()
+                }
+            },
+            'createdRow': function (row, data, dataIndex) {
+                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-high_level_type', data[0]);
+                $(row).attr('data-nature', data[1]);
+                $(row).attr('data-sub_nature', data[2]);
+                $(row).attr('data-low_level_type', data[3]);
+                $(row).attr('data-unique_name_id', data[4]);
+                $(row).attr('data-instance_uri', data[5]);
+                $(row).attr('data-unit', data[6]);
+                $(row).attr('data-servicetype', data[2]);
+                $(row).attr('data-get_instances', data[14]);
+                $(row).attr('data-sm_based', data[16]);
+                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-selected', 'false');
+                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-latitude', data[17]);
+                $(row).attr('data-longitude', data[18]);
+                $(row).attr('data-organizations', data[19]);
+            },
+            "columnDefs": [
+                {
+                    "targets": [5, 11, 12, 14, 16, 17, 18],
+                    "visible": false
+                },
+                {
+                    "targets": 9,
+                    "searchable": true,
+                    "render": function (data, type, row, meta) {
+                        var imageUrl = null;
+                        if (row[9]) {
+                            if (row[9] === 'true') {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
+                            } else {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                            }
+                        } else {
+                            imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                        }
+                        return imageUrl;
+                    }
+                },
+                {
+                    "targets": 10,
+                    "searchable": true,
+                    "visible": false
+                },
+            ],
+            initComplete: function () {
+
+                var stopFlag = 2;
+
+                $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
+                $("#widgetWizardTable_paginate").addClass("col-xs-12");
+                $("#widgetWizardTable_paginate").addClass("col-md-4");
+                $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
+                $("#widgetWizardTable_filter").addClass("col-xs-12");
+                $("#widgetWizardTable_filter").addClass("col-md-3");
+                $("#widgetWizardTable_filter input").attr("placeholder", "Search");
+                $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
+                $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
+
+
+
+
+                //window.history.pushState({"northEastPointLat":northEastPointLat,"southWestPointLat":southWestPointLat,"northEastPointLng":northEastPointLng,"southWestPointLng":southWestPointLng},"",url);
+                //window.location.href = window.location.href + "&northEastPointLat="+ northEastPointLat + "&southWestPointLat="+ southWestPointLat + "&northEastPointLng="+ northEastPointLng + "&southWestPointLng="+ southWestPointLng;
+                <?php
+                include('../config.php');
+                header("Cache-Control: private, max-age=$cacheControlMaxAge");
+                $link = mysqli_connect($host, $username, $password);
+                mysqli_select_db($link, $dbname);
+                echo $_GET['northEastPointLat'];
+                $northEastPointLng= $_GET['northEastPointLng'];
+                $southWestPointLat= $_GET['southWestPointLat'];
+                $southWestPointLng= $_GET['southWestPointLng'];
+                $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=".mysql_real_escape_string($nordEastPointLat)." and latitude >=".mysql_real_escape_string($southWestPointLat)." and longitude <=".mysql_real_escape_string($nordEastPointLng)." and longitude >=".mysql_real_escape_string($southWestPointLng)."";
+                $r = mysqli_query($link, $menuQuery);
+                if($r)
+                {
+                    $array=array();
+                    $ii=0;
+                    while($row = mysqli_fetch_assoc($r))
+                    {
+                        $idrow=$row['id'];
+                        $latitude=$row['latitude'];
+                        $longitude=$row['longitude'];
+                        $array[$ii]['id']=$idrow;
+                        $array[$ii]['latitude']=$latitude;
+                        $array[$ii]['longitude']=$longitude;
+                        $ii=$ii+1;
+                    }
+                    $size = sizeof($array);
+                }
+                ?>
+
+          /*      var search = [];
+                //   search=["Sensor"];
+                search = "";
+                var nOptions = 9;
+
+                globalSqlFilterDI[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
+                if(search.length == nOptions && nOptions == highLevelTypeSelectStartOptions)
+                    search = [];
+                globalSqlFilterDI[0].selectedVals = search;
+
+                if (search != "") {
+                    search = search.join('|');
+                }
+                globalSqlFilterDI[0].value = search;
+                if (search == '' && !globalSqlFilterDI[0].allSelected) {
+                    search = 'oiunqauhalknsufhvnoqwpnvfv';
+                }
+                widgetWizardTable.column(0).search(search, false, false).draw();
+                globalSqlFilterDI[0].value = search;
+                var h = $('#highLevelTypeSelect');
+
+                // Chiamata a funzione per popolare menù multi-select di filtraggio
+                for (var n = 0; n < 9; n++)
+                {
+                    if (n !== 4 && n != 5)
+                    {
+                        populateSelectMenus("high_level_type", search,$('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
+                    }
+                }
+*/
+            }
+        });
+        
+         /*   $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_paginate").addClass("col-xs-12");
+            $("#widgetWizardTable_paginate").addClass("col-md-4");
+            $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_filter").addClass("col-xs-12");
+            $("#widgetWizardTable_filter").addClass("col-md-3");
+            $("#widgetWizardTable_filter input").attr("placeholder", "Search");
+            $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
+            $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
+             
+        
+        
+
+               //window.history.pushState({"northEastPointLat":northEastPointLat,"southWestPointLat":southWestPointLat,"northEastPointLng":northEastPointLng,"southWestPointLng":southWestPointLng},"",url);
+               //window.location.href = window.location.href + "&northEastPointLat="+ northEastPointLat + "&southWestPointLat="+ southWestPointLat + "&northEastPointLng="+ northEastPointLng + "&southWestPointLng="+ southWestPointLng;
+               <?php /*
+                include('../config.php');
+                header("Cache-Control: private, max-age=$cacheControlMaxAge");
+                $link = mysqli_connect($host, $username, $password);
+                mysqli_select_db($link, $dbname);
+                echo $_GET['northEastPointLat'];
+                $northEastPointLng= $_GET['northEastPointLng'];
+                $southWestPointLat= $_GET['southWestPointLat'];
+                $southWestPointLng= $_GET['southWestPointLng'];
+                    $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=".mysql_real_escape_string($nordEastPointLat)." and latitude >=".mysql_real_escape_string($southWestPointLat)." and longitude <=".mysql_real_escape_string($nordEastPointLng)." and longitude >=".mysql_real_escape_string($southWestPointLng)."";
+                    $r = mysqli_query($link, $menuQuery);
+                    if($r)
+                    {
+                        $array=array();
+                        $ii=0;
+                        while($row = mysqli_fetch_assoc($r))
+                        {
+                            $idrow=$row['id'];
+                            $latitude=$row['latitude'];
+                            $longitude=$row['longitude'];
+                            $array[$ii]['id']=$idrow;
+                            $array[$ii]['latitude']=$latitude;
+                            $array[$ii]['longitude']=$longitude;
+                            $ii=$ii+1;
+                        }
+                        $size = sizeof($array);
+                    }*/
+                ?>
+                                
+               var search = [];
+            //   search=["Sensor"];
+            //   search = "";
+               var nOptions = 9;
+                                
+               globalSqlFilterDI[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
+               if(search.length == nOptions && nOptions == highLevelTypeSelectStartOptions)
+                   search = [];
+               globalSqlFilterDI[0].selectedVals = search;
+
+               if (search != "") {
+                   search = search.join('|');
+               }
+               globalSqlFilterDI[0].value = search;
+               if (search == '' && !globalSqlFilterDI[0].allSelected) {
+                  search = 'oiunqauhalknsufhvnoqwpnvfv';
+               }
+               widgetWizardTable.column(0).search(search, false, false).draw();
+               globalSqlFilterDI[0].value = search;
+               var h = $('#highLevelTypeSelect');
+
+               // Chiamata a funzione per popolare menù multi-select di filtraggio
+               for (var n = 0; n < 9; n++) 
+               {
+                    if (n !== 4 && n != 5) 
+                    {
+                        populateSelectMenus("high_level_type", search,$('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
+                    }
+                }
+                           */
+           /*     checkTab1Conditions();
+                countSelectedRows(); 
+                var array2 =<?php echo json_encode($array) ?>;
+                console.log(array2);
+                var array3 = [];
+                var es=array2[0]['latitude'];
+                es=parseFloat(es);
+                var index=0;
+                for(var m=0; m < array2.length; m++){
+                    if(((southWestPointLat <= parseFloat(array2[m]['latitude'])) && (parseFloat(array2[m]['latitude']) <= parseFloat(northEastPointLat))) && ((southWestPointLng <= parseFloat(array2[m]['longitude']))&&( parseFloat(array2[m]['longitude']) <= northEastPointLng))){
+                        array3[index]=array2[m]['id'];
+                        index++;
+                        console.log('lat est '+ northEastPointLat);
+                        console.log('lat ovest' + southWestPointLat);
+                        console.log('lat sensor' + array2[m]['latitude']);
+                        console.log('lng est '+ northEastPointLng);
+                        console.log('lng ovest' + southWestPointLng);
+                        console.log('lng sensor' + array2[m]['longitude']);
+                    }else{
+                        var row = $('#widgetWizardTable').find('tr[data-rowid="' + array2[m]['id'] + '"]');
+                        var table = document.getElementById('widgetWizardTable');
+                        var row2 = table.rows[2];
+                        var attr = $(row2).attr('data-rowid');
+                        var length = table.rows.length;
+                        for(var o=2; o<table.rows.length; o++){
+                            var attr=$(table.rows[o]).attr('data-rowid');
+                            if(parseInt(attr)==parseInt(array2[m]['id'])){
+                                table.rows[o].style.display="none";
+                            }
+                        }
+                        var tr=$("#widgetWizardTable tbody tr[data-rowid='" + parseInt(array2[m]['id']) + "']");
+                        //row.style.display="none";//$('tr[data-rowid="' + parseInt(array2[m]['id']) + '"]');
+                        console.log('row '+ row);
+                    }
+                    
+                }
+                console.log(array3.length); */
+            }   
+       })
         
         function updateSelectedUnits(mode, deselectedUnit)
         {
@@ -557,7 +1065,7 @@
         
         function checkTab1Conditions()
         {
-            if((!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))&&(choosenDashboardTemplateName === 'fullyCustom'))
+            if((!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))&&(choosenDashboardTemplateName === 'fullyCustom'))
             {
                 //Fully custom
                 //Primo stadio: se non selezioni tipo di widget, bloccato
@@ -656,7 +1164,7 @@
             }
             else
             {
-                if(!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))
+                if(!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))
                 {
                     //TUTTI I CASI DI DASHBOARD WIZARD ESCLUSA FULLY CUSTOM
                     //Dashboard template con tipo di widget preselezionato, controlliamo solo se c'è almeno una riga selezionata
@@ -872,7 +1380,7 @@
             }
         }
         
-        if(location.href.includes("dashboard_configdash.php")||location.href.includes("prova2.php"))
+        if(location.href.includes("dashboard_configdash.php")||location.href.includes("inspector.php"))
         {
             firstTabIndex = 1;
             selectedTabIndex = 1;
@@ -932,7 +1440,7 @@
             $('#cTab a').attr("data-toggle", "tab");
             $('#bTab a').attr("data-toggle", "tab");
             
-            if(!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))
+            if(!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))
             {
                 $('#aTab a').attr("data-toggle", "tab");
             }
@@ -956,7 +1464,7 @@
                 }
             });
             
-            if((!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))&&(choosenDashboardTemplateName === 'fullyCustom'))
+            if((!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))&&(choosenDashboardTemplateName === 'fullyCustom'))
             {
                 if(!validityConditions.dashTemplateSelected)
                 {
@@ -1010,7 +1518,7 @@
                         }
                         else
                         {
-                            if(!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))
+                            if(!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))
                             {
                                 switch($('#inputTitleDashboardStatus').val())
                                 {
@@ -1104,7 +1612,7 @@
             }
             else
             {
-                if((!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))&&(!validityConditions.dashTemplateSelected))
+                if((!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))&&(!validityConditions.dashTemplateSelected))
                 {
                     $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">No dashboard template selected</span></div></div>');
                     validityConditions.canProceed = false;
@@ -1120,7 +1628,7 @@
                     }
                     else
                     {
-                        if(!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))
+                        if(!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))
                         {
                             switch($('#inputTitleDashboardStatus').val())
                             {
@@ -1233,7 +1741,7 @@
             
             if(canBuildSummary)
             {
-                if(!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))
+                if(!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))
                 {
                     var localExtCnt = $('<div class="col-xs-4"></div>');
                     var dashInfoLbl = $('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><span class="summaryLbl">Dashboard template and title</span></div>');
@@ -1250,7 +1758,7 @@
                     $('#summaryDiv').append(localExtCnt);
                 }
                 
-                if((!location.href.includes("dashboard_configdash")&&!location.href.includes("prova2"))&&(choosenDashboardTemplateName === 'fullyCustom'))
+                if((!location.href.includes("dashboard_configdash")&&!location.href.includes("inspector"))&&(choosenDashboardTemplateName === 'fullyCustom'))
                 {
                     var widgetInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Details</div>';
                     var widgetInfoCnt = '<div class="col-xs-12 centerWithFlex widgetTypeDetails">A fully custom dashboard is created empty, so no widget details are available</div>';
@@ -1479,7 +1987,7 @@
                 $('#actuatorTargetCell .wizardActLbl').show();
                 $('#actuatorTargetCell .wizardActInputCnt').show();
                 
-                if((!location.href.includes("dashboard_configdash.php")&&!location.href.includes("prova2.php"))&&($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr("data-templatename") === 'iotDevicesBroker'))
+                if((!location.href.includes("dashboard_configdash.php")&&!location.href.includes("inspector.php"))&&($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr("data-templatename") === 'iotDevicesBroker'))
                 {
                     $('#actuatorTargetWizard').val('broker');
                     $('#actuatorTargetWizard').trigger('change');
@@ -1810,7 +2318,7 @@
         var healthinessSelectStartOptions = 0;
         var ownershipSelectStartOptions = 0;
 
-        var globalSqlFilter = [
+        globalSqlFilterDI = [
             {
                 "field": "high_level_type",
                 "value": "",
@@ -1894,18 +2402,18 @@
                 nOptions++;
             });
 
-            globalSqlFilter[0].allSelected = (search.length == nOptions);
+            globalSqlFilterDI[0].allSelected = (search.length == nOptions);
             if (search.length == nOptions)
                 search = [];
-            globalSqlFilter[0].selectedVals = search;
+            globalSqlFilterDI[0].selectedVals = search;
 
             search = search.join('|');
-            globalSqlFilter[0].value = search;
-            if (search == '' && !globalSqlFilter[0].allSelected) {
+            globalSqlFilterDI[0].value = search;
+            if (search == '' && !globalSqlFilterDI[0].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
             widgetWizardTable.column(0).search(search, false, false).draw();
-            globalSqlFilter[0].value = search;
+            globalSqlFilterDI[0].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < 9; n++)
@@ -1938,18 +2446,18 @@
                 nOptions++;
             });
 
-            globalSqlFilter[1].allSelected = (search.length == nOptions);
+            globalSqlFilterDI[1].allSelected = (search.length == nOptions);
             if (search.length == nOptions)
                 search = [];
-            globalSqlFilter[1].selectedVals = search;
+            globalSqlFilterDI[1].selectedVals = search;
             search = search.join('|');
 
-            globalSqlFilter[1].value = search;
-            if (search == '' && !globalSqlFilter[1].allSelected) {
+            globalSqlFilterDI[1].value = search;
+            if (search == '' && !globalSqlFilterDI[1].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
             widgetWizardTable.column(1).search(search, false, false).draw();     // CHANGE
-            globalSqlFilter[1].value = search;
+            globalSqlFilterDI[1].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < 9; n++) {
@@ -1981,21 +2489,21 @@
                 nOptions++;
             });
 
-            globalSqlFilter[2].allSelected = (search.length == nOptions);
+            globalSqlFilterDI[2].allSelected = (search.length == nOptions);
             if (search.length == nOptions)
                 search = [];
-            globalSqlFilter[2].selectedVals = search;
+            globalSqlFilterDI[2].selectedVals = search;
             search = search.join('|');
 
-            globalSqlFilter[2].value = search;
-            if (search == '' && !globalSqlFilter[2].allSelected) {
+            globalSqlFilterDI[2].value = search;
+            if (search == '' && !globalSqlFilterDI[2].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
             if (search.charAt(0) == '|') {
                 search = search.substring(1);
             }
             widgetWizardTable.column(2).search(search, false, false).draw();     // CHANGE
-            globalSqlFilter[2].value = search;
+            globalSqlFilterDI[2].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < 9; n++) {
@@ -2027,18 +2535,18 @@
                 nOptions++;
             });
 
-            globalSqlFilter[3].allSelected = (search.length == nOptions);
+            globalSqlFilterDI[3].allSelected = (search.length == nOptions);
             if (search.length == nOptions)
                 search = [];
-            globalSqlFilter[3].selectedVals = search;
+            globalSqlFilterDI[3].selectedVals = search;
             search = search.join('|');
 
-            globalSqlFilter[3].value = search;
-            if (search == '' && !globalSqlFilter[3].allSelected) {
+            globalSqlFilterDI[3].value = search;
+            if (search == '' && !globalSqlFilterDI[3].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
             widgetWizardTable.column(3).search(search, false, false).draw();     // CHANGE
-            globalSqlFilter[3].value = search;
+            globalSqlFilterDI[3].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < 9; n++) {
@@ -2069,18 +2577,18 @@
                 nOptions++;
             });
 
-            globalSqlFilter[6].allSelected = (search.length == nOptions);
+            globalSqlFilterDI[6].allSelected = (search.length == nOptions);
             if (search.length == nOptions)
                 search = [];
-            globalSqlFilter[6].selectedVals = search;
+            globalSqlFilterDI[6].selectedVals = search;
             search = search.join('|');
 
-            globalSqlFilter[6].value = search;
-            if (search == '' && !globalSqlFilter[6].allSelected) {
+            globalSqlFilterDI[6].value = search;
+            if (search == '' && !globalSqlFilterDI[6].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
             widgetWizardTable.column(6).search(search, false, false).draw();
-            globalSqlFilter[6].value = search;
+            globalSqlFilterDI[6].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < 9; n++) {
@@ -2112,18 +2620,18 @@
                 nOptions++;
             });
 
-            globalSqlFilter[7].allSelected = (search.length == nOptions);
+            globalSqlFilterDI[7].allSelected = (search.length == nOptions);
             if (search.length == nOptions)
                 search = [];
-            globalSqlFilter[7].selectedVals = search;
+            globalSqlFilterDI[7].selectedVals = search;
             search = search.join('|');
 
-            globalSqlFilter[7].value = search;
-            if (search == '' && !globalSqlFilter[7].allSelected) {
+            globalSqlFilterDI[7].value = search;
+            if (search == '' && !globalSqlFilterDI[7].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
             widgetWizardTable.column(7).search(search, false, false).draw();
-            globalSqlFilter[7].value = search;
+            globalSqlFilterDI[7].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < 9; n++) {
@@ -2155,18 +2663,18 @@
                 nOptions++;
             });
 
-            globalSqlFilter[8].allSelected = (search.length == nOptions);
+            globalSqlFilterDI[8].allSelected = (search.length == nOptions);
             if (search.length == nOptions)
                 search = [];
-            globalSqlFilter[8].selectedVals = search;
+            globalSqlFilterDI[8].selectedVals = search;
             search = search.join('|');
 
-            globalSqlFilter[8].value = search;
-            if (search == '' && !globalSqlFilter[8].allSelected) {
+            globalSqlFilterDI[8].value = search;
+            if (search == '' && !globalSqlFilterDI[8].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
             widgetWizardTable.column(8).search(search, false, false).draw();
-            globalSqlFilter[8].value = search;
+            globalSqlFilterDI[8].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < 9; n++) {
@@ -2273,7 +2781,7 @@
                         
                         if($(this).attr('data-widgetCategory') === 'actuator')
                         {
-                            if(!location.href.includes("dashboard_configdash.php")&&!location.href.includes("prova2.php"))
+                            if(!location.href.includes("dashboard_configdash.php")&&!location.href.includes("inspector.php"))
                             {
                                 if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr("data-templatename") === 'iotApps')
                                 {
@@ -2317,7 +2825,7 @@
 
                     //LOGICA DI GESTIONE DEI CLICK
                     //Versione pregressa: al deselect dell'icona vengono "riticcati" tutti i tipi di dato in quel momento nel menu a tendina delle unit
-                    globalSqlFilter[6].allSelected = (selected === "false");     
+                    globalSqlFilterDI[6].allSelected = (selected === "false");
 
                     var unit = $(this).attr('data-snap4CityType');
                             
@@ -2360,21 +2868,21 @@
                         nOptions++;
                     });
 
-                    globalSqlFilter[6].allSelected = (search.length === nOptions);
+                    globalSqlFilterDI[6].allSelected = (search.length === nOptions);
                     if(search.length === nOptions)
                     {
                         search = [];
                     }
                     
-                    globalSqlFilter[6].selectedVals = search;
+                    globalSqlFilterDI[6].selectedVals = search;
                     search = search.join('|');
                     
                     widgetWizardTable.column(6).search(search, false, false).draw();
-                    globalSqlFilter[6].value = search;
+                    globalSqlFilterDI[6].value = search;
                     
                     if(!validityConditions.widgetTypeSelected)
                     {
-                        globalSqlFilter[6].allSelected = true;
+                        globalSqlFilterDI[6].allSelected = true;
                     }
                     
                     // Chiamata a funzione per popolare menù multi-select di filtraggio
@@ -2429,6 +2937,52 @@
 
             }
         });
+        function addWidgetWizardUserMarker (feature, latlng) {
+        if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
+                var mapPinImg = '../img/gisMapIcons/generic.png';
+            } else {
+                var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+            }
+            
+            var markerIcon = L.icon({
+                iconUrl: mapPinImg,
+                iconAnchor: [16, 37]
+            });
+
+            var marker = new L.Marker(latlng, {icon: markerIcon});
+            
+            var latLngKey = latlng.lat + "" + latlng.lng;
+            latLngKey = latLngKey.replace(".", "");
+            latLngKey = latLngKey.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
+            markersCache["" + latLngKey + ""] = marker;
+
+            marker.on('mouseover', function (event) {
+                if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
+                    var hoverImg = '../img/gisMapIcons/over/generic_over.png';
+                } else {
+                    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                }
+                var hoverIcon = L.icon({
+                    iconUrl: hoverImg
+                });
+                event.target.setIcon(hoverIcon);
+            });
+
+            marker.on('mouseout', function (event) {
+                if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
+                    var outImg = '../img/gisMapIcons/generic.png';
+                } else {
+                    var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                }
+                var outIcon = L.icon({
+                    iconUrl: outImg
+                });
+                event.target.setIcon(outIcon);
+            });
+             
+        
+        
+        }
 
         //Funzione che prepara icone custom su mappa in base a quelle di ServiceMap
         function addWidgetWizardCreateCustomMarker(feature, latlng) {
@@ -2922,16 +3476,17 @@
                                     var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn, data30DayBtn = null;
                                     for (var i = 0; i < realTimeData.head.vars.length; i++)
                                     {
-                                        if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined'))
+                                        if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined'))
                                         {
                                             if ((realTimeData.head.vars[i] !== 'updating') && (realTimeData.head.vars[i] !== 'measuredTime') && (realTimeData.head.vars[i] !== 'instantTime'))
                                             {
                                                 if (!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available'))
                                                 {
                                                     //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
-                                                    dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                /*    dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
                                                         return str.toUpperCase();
-                                                    });
+                                                    }); */
+                                                    dataDesc = realTimeData.head.vars[i];
                                                     dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
                                                     dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
                                                     data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
@@ -3606,6 +4161,16 @@
          //   addWidgetWizardMapMarkers = new_markers;
         }
 
+        function clearAllMarkers() {
+
+            for (var singleMarkerKey in addWidgetWizardMapMarkers) {
+                //    addWidgetWizardMapMarkers.forEach(function(marker) {
+                    addWidgetWizardMapRef.removeLayer(addWidgetWizardMapMarkers[singleMarkerKey]);
+                    delete addWidgetWizardMapMarkers[singleMarkerKey];
+            }
+
+        }
+
         // widgetWizardTable JS LOGIC ************************************************************************
         $('.checkWidgWizCol').change(function (e) {
             e.preventDefault();
@@ -3651,7 +4216,7 @@
         // Funzione per il popolamento del menù multi-select di filtraggio tabella widgetWIzardTable
         function populateSelectMenus(field, searchTerm, selectElement, columnFilterDivId, n, fromIconFlag, updateIconsFlag)
         {
-            globalSqlFilter[n].active = "";
+            globalSqlFilterDI[n].active = "";
             var distinctField = "";
 
             if (n == 0) 
@@ -3678,9 +4243,9 @@
             }
 
             var nActive = 0;
-            for (var i = 0, len = globalSqlFilter.length; i < len; i++) 
+            for (var i = 0, len = globalSqlFilterDI.length; i < len; i++)
             {
-                if (globalSqlFilter[i].value != "") {
+                if (globalSqlFilterDI[i].value != "") {
                     nActive++;
                 }
             }
@@ -3697,15 +4262,15 @@
                     for (i = 0; i < 9; i++) {
                         if (i !== 4 && i != 5) {
                             if ((i != n || nActive > 1)) {
-                                var str = globalSqlFilter[i].value;
+                                var str = globalSqlFilterDI[i].value;
                                 var auxArray = str.split("|");
                                 var auxFilterString = "";
                                 for (var j in auxArray) {
                                     if (auxArray[j] != '') {
                                         if (j != 0) {
-                                            auxFilterString = auxFilterString + " OR " + globalSqlFilter[i].field + " LIKE '%" + auxArray[j] + "%'";
+                                            auxFilterString = auxFilterString + " OR " + globalSqlFilterDI[i].field + " LIKE '%" + auxArray[j] + "%'";
                                         } else {
-                                            auxFilterString = globalSqlFilter[i].field + " LIKE '%" + auxArray[j] + "%'";
+                                            auxFilterString = globalSqlFilterDI[i].field + " LIKE '%" + auxArray[j] + "%'";
                                         }
                                     }
                                 }
@@ -3772,7 +4337,7 @@
                                 options = '<option value="' + auxVar + '">' + auxVar + '</option>';
                                 select.append(options);
                                 
-                                var selectedFlag = globalSqlFilter[n].allSelected || globalSqlFilter[n].selectedVals.includes(auxVar);
+                                var selectedFlag = globalSqlFilterDI[n].allSelected || globalSqlFilterDI[n].selectedVals.includes(auxVar);
                                 dataNew[x] = {label: auxVar, value: auxVar, selected: selectedFlag};
                             }
                             
@@ -3845,6 +4410,10 @@
         //Handler del bottone di reset dei filtri
         function resetFilter()
         {
+            noPOIFlag = 0;
+            poiSubNature = "";
+            poiNature = "";
+            widgetWizardSelectedSingleRow = null;
             widgetWizardSelectedRows = {};
             choosenWidgetIconName = null;
             $('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-selected', false);
@@ -3908,7 +4477,7 @@
             var searchValueOwnership = "";
             
             //Questo if distingue il caso in cui stiamo agendo sui template di dashboard
-            if(!location.href.includes("dashboard_configdash.php")&&!location.href.includes("prova2.php"))
+            if(!location.href.includes("dashboard_configdash.php")&&!location.href.includes("inspector.php"))
             {
                 //Gestione del preset high level type da template dashboard
                 if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-highlevelsel') !== 'any')
@@ -3966,8 +4535,8 @@
                     searchValueOwnership = selectedValsOwnership.join('|');
                 }
             }
-            
-            globalSqlFilter = [
+
+            globalSqlFilterDI = [
                 {
                     "field": "high_level_type",
                     "value": searchValueHighLevelType,
@@ -4033,7 +4602,7 @@
                 }
             ];
             
-            for(n = 0; n < 17; n++) 
+            for(n = 0; n < 19; n++)
             {
                 switch(n)
                 {
@@ -4121,8 +4690,8 @@
             var selectedValsHighLevelType = [];
             var allSelectedHighLevelType = true;
             var searchValueHighLevelType = "";
-            
-            globalSqlFilter = [
+
+            globalSqlFilterDI = [
                 {
                     "field": "high_level_type",
                     "value": searchValueHighLevelType,
@@ -4190,7 +4759,7 @@
             
             selectedValsHighLevelType = selectedValsHighLevelType.join('|');
             
-            for (n = 0; n < 17; n++) 
+            for (n = 0; n < 19; n++)
             {
                 if((n != 4)&&(n != 5)) 
                 {
@@ -4268,6 +4837,26 @@
             ]
         });
 
+        function getPOIFlag () {
+            return noPOIFlag;
+        }
+
+        function getPOINature () {
+            return poiNature;
+        }
+
+        function getPOISubNature () {
+            return poiSubNature;
+        }
+
+        function buildFilterSearchArray (searchString) {
+            if (searchString.includes("|")) {
+                return searchString.split("|");
+            } else {
+                return searchString;
+            }
+        }
+
         //Creazione tabella GUI del wizard
         widgetWizardTable = $('#widgetWizardTable').DataTable({
             "bLengthChange": false,
@@ -4279,12 +4868,21 @@
             "pageLength": widgetWizardPageLength,
             "ajax": {
                 async: true, 
-                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true&northEastPointLatt=true",
                 data: {
                     dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
                     dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
-                    organization: "<?= $_SESSION['loggedOrganization'] ?>"
+                    organization: "<?= $_SESSION['loggedOrganization'] ?>",
+		            northEastPointLatt: "<?= $_SESSION['northEastPointLat'] ?>",
+                    poiFlag: getPOIFlag()
                 }
+             /*   data: function(d){
+                    d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
+                    d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>",
+                    d.organization = "<?= $_SESSION['loggedOrganization'] ?>",
+                    d.northEastPointLatt = "<?= $_SESSION['northEastPointLat'] ?>",
+                    d.poiFlag = getPOIFlag()
+                }   */
             },
             'createdRow': function (row, data, dataIndex) {
                 $(row).attr('data-rowId', data[12]);
@@ -4301,11 +4899,13 @@
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
-                $(row).attr('data-organizations', data[17]);
+                $(row).attr('data-latitude', data[17]);
+                $(row).attr('data-longitude', data[18]);
+                $(row).attr('data-organizations', data[19]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16],
+                    "targets": [5, 11, 12, 14, 16, 17, 18],
                     "visible": false
                 },
                 {
@@ -4354,27 +4954,40 @@
                                 $.each($('#highLevelTypeSelect option'), function () {
                                     nOptions++;
                                 });
-                                
-                                globalSqlFilter[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
+
+                                globalSqlFilterDI[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
                                 if(search.length == nOptions && nOptions == highLevelTypeSelectStartOptions)
                                     search = [];
-                                
-                                globalSqlFilter[0].selectedVals = search;
 
-                                search = search.join('|');
-                                globalSqlFilter[0].value = search;
-                                if (search == '' && !globalSqlFilter[0].allSelected) {
+                                globalSqlFilterDI[0].selectedVals = search;
+
+                                if (search != "") {
+                                    search = search.join('|');
+                                }
+                                globalSqlFilterDI[0].value = search;
+                                if (search == '' && !globalSqlFilterDI[0].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
-                                widgetWizardTable.column(0).search(search, false, false).draw();
-                                globalSqlFilter[0].value = search;
+
+                                // MODIFICA per ORG BUTTON
+                                var hltSelectedFilter = buildFilterSearchArray(globalSqlFilterDI[0]['value']);
+                            //    if (globalSqlFilterDI[0]['allSelected'] == false && globalSqlFilterDI[0]['value'] != 'POI') {
+                                if (globalSqlFilterDI[0]['allSelected'] == false && !hltSelectedFilter.includes('POI')) {
+                                    noPOIFlag = 1;
+                                } else {
+                                    noPOIFlag = 0;
+                                }
+                                widgetWizardTable.ajax.reload();
+
+                                widgetWizardTable.column(0).search(search, false, false, true).draw(noPOIFlag);
+                                globalSqlFilterDI[0].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < 9; n++) 
                                 {
                                     if (n !== 4 && n != 5) 
                                     {
-                                        populateSelectMenus("high_level_type", search, select, "#highLevelTypeColumnFilter", n, false, true);
+                                        populateSelectMenus("high_level_type", search, select, "#highLevelTypeColumnFilter", n, false, true, true);
                                     }
                                 }
                                 
@@ -4460,18 +5073,53 @@
                                     nOptions++;
                                 });
 
-                                globalSqlFilter[1].allSelected = (search.length == nOptions && nOptions == natureSelectStartOptions);
+                                globalSqlFilterDI[1].allSelected = (search.length == nOptions && nOptions == natureSelectStartOptions);
                                 if (search.length == nOptions && nOptions == natureSelectStartOptions)
                                     search = [];
-                                globalSqlFilter[1].selectedVals = search;
+                                globalSqlFilterDI[1].selectedVals = search;
                                 search = search.join('|');
 
-                                globalSqlFilter[1].value = search;
-                                if (search == '' && !globalSqlFilter[1].allSelected) {
+                                globalSqlFilterDI[1].value = search;
+                                if (search == '' && !globalSqlFilterDI[1].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
-                                widgetWizardTable.column(1).search(search, false, false).draw(); 
-                                globalSqlFilter[1].value = search;
+
+                                var poiFlag = false;
+                                var natureQuery = "";
+                                var natureSelectedFilter = buildFilterSearchArray(globalSqlFilterDI[1]['value']);
+                                if (Array.isArray(natureSelectedFilter)) {
+                                    for (k=0; k < natureSelectedFilter.length; k++) {
+                                        if (poiNatureArray.includes(natureSelectedFilter[k])) {
+                                            poiFlag = true;
+                                            if (natureQuery == "") {
+                                                natureQuery = "'" + natureSelectedFilter[k] + "'";
+                                            } else {
+                                                natureQuery = natureQuery + " OR nature = '" + natureSelectedFilter[k] + "'";
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (poiNatureArray.includes(globalSqlFilterDI[1]['value'])) {
+                                        poiFlag = true;
+                                        natureQuery = "'" + natureSelectedFilter + "'";
+                                    } else {
+                                        poiFlag = false;
+                                    }
+                                }
+
+                            //    if (globalSqlFilterDI[1]['allSelected'] == false && !poiNatureArray.includes(globalSqlFilterDI[1]['value'])) {
+                                if (globalSqlFilterDI[1]['allSelected'] == false && poiFlag == false) {
+                                    noPOIFlag = 1;
+                                    poiNature = "";
+                                } else {
+                                    noPOIFlag = 0;
+                                //    poiNature = globalSqlFilterDI[1]['value'];
+                                    poiNature = natureQuery;
+                                }
+                                widgetWizardTable.ajax.reload();
+
+                                widgetWizardTable.column(1).search(search, false, false).draw();
+                                globalSqlFilterDI[1].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < 9; n++) {
@@ -4532,21 +5180,65 @@
                                     nOptions++;
                                 });
 
-                                globalSqlFilter[2].allSelected = (search.length == nOptions && nOptions == subNatureSelectStartOptions);
+                                globalSqlFilterDI[2].allSelected = (search.length == nOptions && nOptions == subNatureSelectStartOptions);
                                 if (search.length == nOptions && nOptions == subNatureSelectStartOptions)
                                     search = [];
-                                globalSqlFilter[2].selectedVals = search;
+                                globalSqlFilterDI[2].selectedVals = search;
                                 search = search.join('|');
 
-                                globalSqlFilter[2].value = search;
-                                if (search == '' && !globalSqlFilter[2].allSelected) {
+                                globalSqlFilterDI[2].value = search;
+                                if (search == '' && !globalSqlFilterDI[2].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
                                 if (search.charAt(0) == '|') {
                                     search = search.substring(1);
                                 }
+
+                             /*   if (globalSqlFilterDI[2]['allSelected'] == false && !poiSubNatureArray.includes(globalSqlFilterDI[2]['value'])) {
+                                    noPOIFlag = 1;
+                                    poiSubNature = "";
+                                } else {
+                                    noPOIFlag = 0;
+                                    poiSubNature = globalSqlFilterDI[2]['value'];
+                                }
+                                widgetWizardTable.ajax.reload();    */
+
+                                var poiFlag = false;
+                                var subnatureQuery = "";
+                                var subnatureSelectedFilter = buildFilterSearchArray(globalSqlFilterDI[2]['value']);
+                                if (Array.isArray(subnatureSelectedFilter)) {
+                                    for (k=0; k < subnatureSelectedFilter.length; k++) {
+                                        if (poiSubNatureArray.includes(subnatureSelectedFilter[k])) {
+                                            poiFlag = true;
+                                            if (subnatureQuery == "") {
+                                                subnatureQuery = "'" + subnatureSelectedFilter[k] + "'";
+                                            } else {
+                                                subnatureQuery = subnatureQuery + " OR sub_nature = '" + subnatureSelectedFilter[k] + "'";
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (poiSubNatureArray.includes(globalSqlFilterDI[2]['value'])) {
+                                        poiFlag = true;
+                                        subnatureQuery = "'" + subnatureSelectedFilter + "'";
+                                    } else {
+                                        poiFlag = false;
+                                    }
+                                }
+
+                                //    if (globalSqlFilterDI[1]['allSelected'] == false && !poiNatureArray.includes(globalSqlFilterDI[1]['value'])) {
+                                if (globalSqlFilterDI[2]['allSelected'] == false && poiFlag == false) {
+                                    noPOIFlag = 1;
+                                    poiSubNature = "";
+                                } else {
+                                    noPOIFlag = 0;
+                                    //    poiNature = globalSqlFilterDI[1]['value'];
+                                    poiSubNature = subnatureQuery;
+                                }
+                                widgetWizardTable.ajax.reload();
+
                                 widgetWizardTable.column(2).search(search, false, false).draw();     // CHANGE
-                                globalSqlFilter[2].value = search;
+                                globalSqlFilterDI[2].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < 9; n++) {
@@ -4610,18 +5302,18 @@
                                     nOptions++;
                                 });
 
-                                globalSqlFilter[3].allSelected = (search.length == nOptions && nOptions == lowLevelTypeSelectStartOptions);
+                                globalSqlFilterDI[3].allSelected = (search.length == nOptions && nOptions == lowLevelTypeSelectStartOptions);
                                 if (search.length == nOptions && nOptions == lowLevelTypeSelectStartOptions)
                                     search = [];
-                                globalSqlFilter[3].selectedVals = search;
+                                globalSqlFilterDI[3].selectedVals = search;
                                 search = search.join('|');
 
-                                globalSqlFilter[3].value = search;
-                                if (search == '' && !globalSqlFilter[3].allSelected) {
+                                globalSqlFilterDI[3].value = search;
+                                if (search == '' && !globalSqlFilterDI[3].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
                                 widgetWizardTable.column(3).search(search, false, false).draw();     // CHANGE
-                                globalSqlFilter[3].value = search;
+                                globalSqlFilterDI[3].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < 9; n++) {
@@ -4687,18 +5379,29 @@
                                     nOptions++;
                                 });
 
-                                globalSqlFilter[6].allSelected = (search.length == nOptions && nOptions == unitSelectStartOptions);
+                                globalSqlFilterDI[6].allSelected = (search.length == nOptions && nOptions == unitSelectStartOptions);
                                 if (search.length == nOptions && nOptions == unitSelectStartOptions)
                                     search = [];
-                                globalSqlFilter[6].selectedVals = search;
+                                globalSqlFilterDI[6].selectedVals = search;
                                 search = search.join('|');
 
-                                globalSqlFilter[6].value = search;
-                                if (search == '' && !globalSqlFilter[6].allSelected) {
+                                globalSqlFilterDI[6].value = search;
+                                if (search == '' && !globalSqlFilterDI[6].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
+
+                           /*     // MODIFICA per ORG BUTTON
+                                var dataTypeSelectedFilter = buildFilterSearchArray(globalSqlFilterDI[6]['value']);
+                                //    if (globalSqlFilterDI[0]['allSelected'] == false && globalSqlFilterDI[0]['value'] != 'POI') {
+                                if (globalSqlFilterDI[6]['allSelected'] == false && !dataTypeSelectedFilter.includes('map')) {
+                                    noPOIFlag = 1;
+                                } else {
+                                    noPOIFlag = 0;
+                                }
+                                widgetWizardTable.ajax.reload();*/
+
                                 widgetWizardTable.column(6).search(search, false, false).draw();
-                                globalSqlFilter[6].value = search;
+                                globalSqlFilterDI[6].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < 9; n++) {
@@ -4757,18 +5460,30 @@
                                     nOptions++;
                                 });
 
-                                globalSqlFilter[7].allSelected = (search.length == nOptions && nOptions == healthinessSelectStartOptions);
+                                globalSqlFilterDI[7].allSelected = (search.length == nOptions && nOptions == healthinessSelectStartOptions);
                                 if (search.length == nOptions && nOptions == healthinessSelectStartOptions)
                                     search = [];
-                                globalSqlFilter[7].selectedVals = search;
+                                globalSqlFilterDI[7].selectedVals = search;
                                 search = search.join('|');
 
-                                globalSqlFilter[7].value = search;
-                                if (search == '' && !globalSqlFilter[7].allSelected) {
+                                globalSqlFilterDI[7].value = search;
+                                if (search == '' && !globalSqlFilterDI[7].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
+
+                            /*    // MODIFICA per ORG BUTTON
+                                var healthinessSelectedFilter = buildFilterSearchArray(globalSqlFilterDI[7]['value']);
+                                //    if (globalSqlFilterDI[0]['allSelected'] == false && globalSqlFilterDI[0]['value'] != 'POI') {
+                                if (globalSqlFilterDI[7]['allSelected'] == false && !healthinessSelectedFilter.includes('true') && !healthinessSelectedFilter.includes('false')) {
+                                    noPOIFlag = 1;
+                                } else {
+                                    noPOIFlag = 0;
+                                }
+                                widgetWizardTable.ajax.reload();*/
+
+
                                 widgetWizardTable.column(9).search(search, false, false).draw();
-                                globalSqlFilter[7].value = search;
+                                globalSqlFilterDI[7].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < 9; n++) {
@@ -4834,18 +5549,29 @@
                                     nOptions++;
                                 });
 
-                                globalSqlFilter[8].allSelected = (search.length == nOptions && nOptions == ownershipSelectStartOptions);
+                                globalSqlFilterDI[8].allSelected = (search.length == nOptions && nOptions == ownershipSelectStartOptions);
                                 if (search.length == nOptions && nOptions == ownershipSelectStartOptions)
                                     search = [];
-                                globalSqlFilter[8].selectedVals = search;
+                                globalSqlFilterDI[8].selectedVals = search;
                                 search = search.join('|');
 
-                                globalSqlFilter[8].value = search;
-                                if (search == '' && !globalSqlFilter[8].allSelected) {
+                                globalSqlFilterDI[8].value = search;
+                                if (search == '' && !globalSqlFilterDI[8].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
+
+                            /*    // MODIFICA per ORG BUTTON
+                                var ownershipSelectedFilter = buildFilterSearchArray(globalSqlFilterDI[8]['value']);
+                                //    if (globalSqlFilterDI[0]['allSelected'] == false && globalSqlFilterDI[0]['value'] != 'POI') {
+                                if (globalSqlFilterDI[8]['allSelected'] == false && !ownershipSelectedFilter.includes('public') && !ownershipSelectedFilter.includes('private')) {
+                                    noPOIFlag = 1;
+                                } else {
+                                    noPOIFlag = 0;
+                                }
+                                widgetWizardTable.ajax.reload();*/
+
                                 widgetWizardTable.column(15).search(search, false, false).draw();
-                                globalSqlFilter[8].value = search;
+                                globalSqlFilterDI[8].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < 9; n++) {
@@ -4965,7 +5691,11 @@
                     $(widgetWizardSelectedSingleRow).attr('data-selected', 'false');
                     try
                     {
-                        gisLayersOnMap[$(widgetWizardSelectedSingleRow).attr("data-servicetype")].clearLayers();
+                        if (gisLayersOnMap[$(widgetWizardSelectedSingleRow).attr("data-servicetype")] != null && gisLayersOnMap[$(widgetWizardSelectedSingleRow).attr("data-servicetype")] != undefined) {
+                            gisLayersOnMap[$(widgetWizardSelectedSingleRow).attr("data-servicetype")].clearLayers();
+                        } else {
+                            clearAllMarkers();
+                        }
                     }
                     catch(e)
                     {
@@ -5024,6 +5754,8 @@
             var uniqueNameId = $(this).attr("data-unique_name_id");
             var instanceUri = $(this).attr("data-instance_uri");
             var getInstances = $(this).attr("data-get_instances");
+            var latitudeWiz = $(this).attr("data-latitude");
+            var longitudeWiz = $(this).attr("data-longitude");
             var northEastPointLat = bounds._northEast.lat;
             var northEastPointLng = bounds._northEast.lng;
             var southWestPointLat = bounds._southWest.lat;
@@ -5068,30 +5800,38 @@
                             if (geoData.hasOwnProperty("BusStop"))
                             {
                                 fatherNode = geoData.BusStop;
-                                LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
-                                LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
-                                
+                                if(!FreezeMap){
+                                    LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
+                                    LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
+                                }                                
                             } else
                             {
                                 if (geoData.hasOwnProperty("Sensor"))
                                 {
                                     fatherNode = geoData.Sensor;
-                                    LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
-                                    LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    }
                                 } else
                                 {
                                     //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
                                     fatherNode = geoData.Service;
-                                    LatPos=geoData.Service.features[0].geometry.coordinates[1];
-                                    LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Service.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    }
                                 }
                             }
+                            
 
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
                             }).addTo(addWidgetWizardMapRef);
-                          
-                            addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), 11);
+                            if(!FreezeMap){
+                                var Zoom = addWidgetWizardMapRef.getZoom();//serve per mantenere lo zoom della mappa
+                                addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), Zoom);
+                            }
 
                         },
                         error: function (data)
@@ -5101,47 +5841,60 @@
                     });
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "any") {
-                    var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
-                    if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
-                        urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
-                    } else if (orgName != null && orgName != '') {
-                        var baseUrl = orgKbUrl;
-                        urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
-                    }
-                    $.ajax({
-                        url: urlKbToCall,
-                        type: "GET",
-                        async: true,
-                        dataType: 'json',
-                        data: {},
-                        success: function (geoData)
-                        {
-                            var fatherNode = null;
-                            if (geoData.hasOwnProperty("BusStops"))
-                            {
-                                fatherNode = geoData.BusStops;
-                            } else
-                            {
-                                if (geoData.hasOwnProperty("SensorSites"))
-                                {
-                                    fatherNode = geoData.SensorSites;
-                                } else
-                                {
-                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
-                                    fatherNode = geoData.Services;
-                                }
-                            }
+                    if ($(this).attr("data-high_level_type") === "MicroApplication") {
+                        if (latitudeWiz != null && latitudeWiz != undefined && longitudeWiz != null && longitudeWiz != undefined) {
 
-                            gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
-                                pointToLayer: addWidgetWizardCreateCustomMarker
-                            }).addTo(addWidgetWizardMapRef);
+                            //    var latlngForMarker = "[" + latitudeWiz + ", "
 
-                        },
-                        error: function (data)
-                        {
-                            console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                            var mapPinImg = '../img/gisMapIcons/generic.png';
+                            var markerIcon = L.icon({
+                                iconUrl: mapPinImg,
+                                iconAnchor: [16, 37]
+                            });
+
+                            var genericMarker = L.marker([latitudeWiz, longitudeWiz], {icon: markerIcon}).addTo(addWidgetWizardMapRef);
+                            //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
+                            $(this).attr('data-selected', 'true');
+                            addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
+                            addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), 11);
                         }
-                    });
+                    } else {
+                        var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                            urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        } else if (orgName != null && orgName != '') {
+                            var baseUrl = orgKbUrl;
+                            urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        }
+                        $.ajax({
+                            url: urlKbToCall,
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            data: {},
+                            success: function (geoData) {
+                                var fatherNode = null;
+                                if (geoData.hasOwnProperty("BusStops")) {
+                                    fatherNode = geoData.BusStops;
+                                } else {
+                                    if (geoData.hasOwnProperty("SensorSites")) {
+                                        fatherNode = geoData.SensorSites;
+                                    } else {
+                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                        fatherNode = geoData.Services;
+                                    }
+                                }
+
+                                gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                    pointToLayer: addWidgetWizardCreateCustomMarker
+                                }).addTo(addWidgetWizardMapRef);
+
+                            },
+                            error: function (data) {
+                                console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                            }
+                        });
+                    }
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "single_marker") {
                     var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
@@ -5168,23 +5921,30 @@
                             if (geoData.hasOwnProperty("BusStop"))
                             {
                                 fatherNode = geoData.BusStop;
-                                LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
-                                LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
-                                
+                                if(!FreezeMap){
+                                    LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
+                                    LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
+                                }
                             } else
                             {
                                 if (geoData.hasOwnProperty("Sensor"))
                                 {
                                     fatherNode = geoData.Sensor;
-                                    LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
-                                    LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    }
+                                    
                                 
                                 } else
                                 {
                                     //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
                                     fatherNode = geoData.Service;
-                                    LatPos=geoData.Service.features[0].geometry.coordinates[1];
-                                    LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Service.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    }
+                                    
                                 
                                 }
                             }
@@ -5192,9 +5952,11 @@
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
                             }).addTo(addWidgetWizardMapRef);
+                            if(!FreezeMap){
+                                var Zoom = addWidgetWizardMapRef.getZoom();
                             
-                            addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), 11);
-
+                                addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), Zoom);
+                            }
                         },
                         error: function (data)
                         {
@@ -5327,6 +6089,21 @@
                         });
                     }
                     $(this).attr('data-selected', 'true');
+                } else if (latitudeWiz != null && latitudeWiz != undefined && longitudeWiz != null && longitudeWiz != undefined) {
+
+                //    var latlngForMarker = "[" + latitudeWiz + ", "
+
+                    var mapPinImg = '../img/gisMapIcons/generic.png';
+                    var markerIcon = L.icon({
+                        iconUrl: mapPinImg,
+                        iconAnchor: [16, 37]
+                    });
+
+                    var genericMarker = L.marker([latitudeWiz, longitudeWiz], {icon: markerIcon}).addTo(addWidgetWizardMapRef);
+                //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
+                    $(this).attr('data-selected', 'true');
+                    addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
+                    addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), 11);
                 }
             }
             else
@@ -5335,8 +6112,12 @@
                 $(this).attr('data-selected', 'false');
                 try
                 {
-                    if (instanceUri == "any" || (instanceUri.toLowerCase() == "mypoi" && $(this).attr("data-sub_nature") == "Any")) {
-                        gisLayersOnMap[serviceType].clearLayers();
+                    if (instanceUri != null && instanceUri != undefined) {
+                        if (instanceUri == "any" || (instanceUri.toLowerCase() == "mypoi" && $(this).attr("data-sub_nature") == "Any")) {
+                            gisLayersOnMap[serviceType].clearLayers();
+                        } else {
+                            clearMarker(currentMarkerId);
+                        }
                     } else {
                         clearMarker(currentMarkerId);
                     }
@@ -5405,7 +6186,7 @@
                 $('.nav-tabs a[href="#dataAndWidgets"]').on('shown.bs.tab', function () 
                 {
                     selectedTabIndex = 1;
-                    if(location.href.includes("dashboard_configdash.php")||location.href.includes("prova2.php"))
+                    if(location.href.includes("dashboard_configdash.php")||location.href.includes("inspector.php"))
                     {
                         $('#addWidgetWizardPrevBtn').addClass('disabled');
                     }
@@ -5493,7 +6274,7 @@
         
         //Distinzione fra caso inclusione in dashboard_configdash.php e inclusione in dashboards.php
         //Caso dashboard_configdash.php
-        if(location.href.includes("dashboard_configdash")||location.href.includes("prova2"))
+        if(location.href.includes("dashboard_configdash")||location.href.includes("inspector"))
         {
             console.log("Creazione widgets");
             $('#addWidgetWizardConfirmBtn').click(function ()
@@ -5992,7 +6773,7 @@
         
         $('#addWidgetWizard').on('hidden.bs.modal', function () 
         {
-            if(location.href.includes("dashboard_configdash")||location.href.includes("prova2"))
+            if(location.href.includes("dashboard_configdash")||location.href.includes("inspector"))
             {
                 //Ritorno al primo tab
                 $('#bTab a').trigger('click');
