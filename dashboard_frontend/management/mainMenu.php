@@ -265,12 +265,8 @@
 
 <script type='text/javascript'>
      
-                console.log('Creato1');
-                var ii = document.createElement('iframe');
-                ii.style.display = 'float';
-                ii.onload = function() { ii.parentNode.removeChild(ii); };
-                ii.src = 'https://chat.snap4city.org';
-                document.body.appendChild(ii);
+              
+                
                 
     $(document).ready(function () 
     {
