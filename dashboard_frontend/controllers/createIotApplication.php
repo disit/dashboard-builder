@@ -45,7 +45,10 @@ if (isset($_SESSION['refreshToken'])) {
   $_SESSION['refreshToken'] = $tkn->refresh_token;
   //echo $_SESSION['refreshToken'];
 
-  $json = http_get($iotAppApiBaseUrl."/v1/?op=new_nodered&name=".urlencode($_REQUEST['name'])."&type=".urlencode($type)."&accessToken=" . $accessToken);
+  if($type=='portia')
+    $json = http_get($iotAppApiBaseUrl."/v1/?op=new_portia&name=".urlencode($_REQUEST['name'])."&accessToken=" . $accessToken);
+  else
+    $json = http_get($iotAppApiBaseUrl."/v1/?op=new_nodered&name=".urlencode($_REQUEST['name'])."&type=".urlencode($type)."&accessToken=" . $accessToken);
   if ($json['httpcode'] == 200 && !isset($json['result']["error"])) {
     $response['detail'] = 'Ok';
     $response['result'] = $json['result'];
