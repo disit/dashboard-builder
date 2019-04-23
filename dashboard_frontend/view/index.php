@@ -303,6 +303,21 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     console.log("Hide");
                 }
             });
+            
+            $('#chatBtnNew').click(function(){
+                if($(this).attr("data-status") === 'closed')
+                {
+                    $(this).attr("data-status", 'open');
+                    $('#chatContainer').show();
+                    console.log("Show");
+                }
+                else
+                {
+                    $(this).attr("data-status", 'closed');
+                    $('#chatContainer').hide();
+                    console.log("Hide");
+                }
+            });
             //Caricamento della chat asincrono a valle di tutto il loading della dashboard 
           <?php
                     /*include '../config.php';
@@ -338,6 +353,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                         $existChat='No';
                         $idChat='id';
                         $error='no';
+                        $newMessage=0;
                         try  {
                             include '../config.php';
                             include "../rocket-chat-rest-client/RocketChatClient.php";
@@ -383,8 +399,10 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                             //var_dump(preg_replace("/[^a-zA-Z0-9_-]/", "", $existChat));
                             $infoChannelName = $channel->infoByName($nameChat);
                             $existChat=$infoChannelName->channel->name; 
+                            $newMessage=$infoChannel->unreads;
                             }elseif ($_SESSION['loggedRole'] == "RootAdmin") {
                             $infoChannelName = $channel->infoByName($nameChat);
+                            //var_dump($newMessage);
                             if($infoChannel->success){
                             $existChat=$infoChannelName->channel->name;     
                             $existChat=$nameChat; 
@@ -409,16 +427,23 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                             /*if (<?php echo!isset($_SESSION['loggedUsername']); ?>){
                                   $('#chatBtn').attr('style', 'display: float');
                                   $('#chatIframeB').attr('src', 'http:\\www.google.it');
-                            } else */if('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'=='id'){
+                            } else */if('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'!='id'){
                                 $('#chatIframeB').attr('style', 'height: 0px');
                                 $('#chatIframe').attr('src', '<?php echo $chatBaseUrl; ?>/channel/<?php echo $existChat; ?>/?layout=embedded');
-                                $('#chatBtn').attr('style', 'display: float');
-                            }else if ('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'!='id'){
+                                //
+                                if('<?php echo $newMessage; ?>'=='0'){
+                                    $('#chatBtn').attr('style', 'display: float');
+                                
+                                    }else{
+                                $('#chatBtnNew').attr('style', 'display: float;color:red');
+                                }
+                            }else if ('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'=='id'){
                                   
                                 $('#chatIframeB').attr('style', 'height: 100px');
                                 $('#chatIframeB').attr('src', 'chatFrame.php?nameChat=<?php echo $existChat; ?>&idDash=<?php echo base64_decode($_REQUEST['iddasboard']); ?>&idChat=<?php echo $idChat; ?>&idUserChat=<?php echo $userId; ?>');
                                 $('#chatIframe').attr('src', '<?php echo $chatBaseUrl; ?>/channel/<?php echo $existChat; ?>/?layout=embedded');
-                                $('#chatBtn').attr('style', 'display: float');
+                                //$('#chatBtn').attr('style', 'display: float');
+                                
                                 }else if ('<?php echo $error; ?>'!='no'){
                                     console.log('Chat Error: <?php echo $error; ?>');
                                     }
@@ -1432,8 +1457,10 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             </div>
             <div id="headerLogo">
                 <img id="headerLogoImg"/>
-                <i class="fa fa-comment-o" id="chatBtn" data-status="closed" style="display: none"></i> <!-- style="display: none !important" -->
-                
+               <i class="fa fa-comment-o" id="chatBtn" data-status="closed" style="display: none"></i> <!-- style="display: none !important" -->
+               <i class="fa fa-comment" id="chatBtnNew" data-status="closed" style="display: none"></i>
+                <!--<i class="fas fa-bullhorn" id="chatBtn" data-status="closed" style="display: none"></i>-->
+                <!--<i class="fas fa-bullhorn" style="font-size:48px;display: none" id="chatBtnNew" data-status="closed"></i>-->
             </div>
             <div id="clock">
                 <span id="tick2"><?php include('../widgets/time.php'); ?></span>
