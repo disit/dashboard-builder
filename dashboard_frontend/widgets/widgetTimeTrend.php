@@ -23,6 +23,7 @@
 
 ?>
 
+<!-- <script type="text/javascript" src="../js/moment-timezone-with-data.js"></script> -->
 <script type='text/javascript'> 
     $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId, fromTrackerFlag, fromTrackerDay, fromTrackerParams)
     {
@@ -292,7 +293,7 @@
 
 
 
-        function drawDiagram(metricData, timeRange, seriesName, fromSelector)
+        function drawDiagram(metricData, timeRange, seriesName, fromSelector, timeZone)
         {   
             if(metricData.data.length > 0)
             {
@@ -309,7 +310,7 @@
                     /*    var e = 1;
                         while (Math.round(metricData.data[i].commit.author.value * e) / e !== metricData.data[i].commit.author.value) e *= 10;
                         var precision = Math.log(e) / Math.LN10;    */
-                        value = parseFloat(parseFloat(metricData.data[i].commit.author.value).toFixed(1));
+                        value = parseFloat(parseFloat(metricData.data[i].commit.author.value).toFixed(2));
                         flagNumeric = true;
                     } 
                     else if((metricData.data[i].commit.author.value_perc1 !== null) && (metricData.data[i].commit.author.value_perc1 !== "")) 
@@ -437,7 +438,7 @@
 
                 maxValue = Math.max.apply(Math, valuesData);
                 minValue = Math.min.apply(Math, valuesData);
-                nInterval = parseFloat((Math.abs(maxValue - minValue) / 4).toFixed(1));
+                nInterval = parseFloat((Math.abs(maxValue - minValue) / 4).toFixed(2));
 
                 if(flagNumeric && (thresholdObject!== null))
                 {
@@ -712,6 +713,16 @@
                         xAxis: {
                             type: 'datetime',
                             units: unitsWidget,
+                        /*    title:
+                                {
+                                    enabled: true,
+                                    text: "Time - zone: " + timeZone,
+                                    style: {
+                                        fontFamily: 'Montserrat',
+                                        color: chartLabelsFontColor,
+                                        fontSize: fontSize + "px"
+                                    }
+                                },  */
                             labels: {
                                 enabled: true,
                                 useHTML: true,
@@ -732,7 +743,7 @@
                             },
                             min: minValue,
                             max: 8,
-                            tickInterval: nInterval,
+                        //    tickInterval: nInterval,
                             plotLines: plotLinesArray,
                             gridLineColor: gridLineColor,
                             lineWidth: 1,
@@ -836,6 +847,16 @@
                             units: unitsWidget,
                             className: 'timeTrendXAxis',
                             lineColor: chartAxesColor,
+                         /*   title:
+                                {
+                                    enabled: true,
+                                    text: "Time - zone: " + timeZone,
+                                    style: {
+                                        fontFamily: 'Montserrat',
+                                        color: chartLabelsFontColor,
+                                        fontSize: fontSize + "px"
+                                    }
+                                },  */
                             labels: {
                                 enabled: true,
                                 style: {
@@ -853,7 +874,7 @@
                             },
                             min: minValue,
                             max: maxValue,
-                            tickInterval: nInterval,
+                        //    tickInterval: nInterval,
                             plotLines: plotLinesArray,
                             lineColor: chartAxesColor,
                             lineWidth: 1,
@@ -963,10 +984,22 @@
                                     }
                                 }
 
+                                // TIME-ZONE CONVERSION
+                                var localTimeZone = moment.tz.guess();
+                                var momentDateTime = moment(convertedDate);
+                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                localDateTime = localDateTime.replace("T", " ");
+                                var plusIndexLocal = localDateTime.indexOf("+");
+                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+
                                 convertedDate = convertedDate.replace("T", " ");
                                 var plusIndex = convertedDate.indexOf("+");
                                 convertedDate = convertedDate.substr(0, plusIndex);
-                                singleData.commit.author.computationDate = convertedDate;
+                                if (localDateTime == "") {
+                                    singleData.commit.author.computationDate = convertedDate;
+                                } else {
+                                    singleData.commit.author.computationDate = localDateTime;
+                                }
 
                                 if(singleOriginalData[field] !== undefined) {
                                     if (!isNaN(parseFloat(singleOriginalData[field].value))) {
@@ -1192,7 +1225,19 @@
                         {
                             if(convertedData.data.length > 0)
                             {
-                                drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true);
+                                var localTimeZone = moment.tz.guess();
+                                var momentDateTime = moment();
+                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                localDateTime = localDateTime.replace("T", " ");
+                                var plusIndexLocal = localDateTime.indexOf("+");
+                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                var localTimeZoneString = "";
+                                if (localDateTime == "") {
+                                    localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                } else {
+                                    localTimeZoneString = localTimeZone;
+                                }
+                                drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true, localTimeZoneString);
                             }
                             else
                             {
@@ -1332,7 +1377,19 @@
                                 {
                                     if(convertedData.data.length > 0)
                                     {
-                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true);
+                                        var localTimeZone = moment.tz.guess();
+                                        var momentDateTime = moment();
+                                        var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                        localDateTime = localDateTime.replace("T", " ");
+                                        var plusIndexLocal = localDateTime.indexOf("+");
+                                        localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                        var localTimeZoneString = "";
+                                        if (localDateTime == "") {
+                                            localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                        } else {
+                                            localTimeZoneString = localTimeZone;
+                                        }
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString);
                                     }
                                     else
                                     {
@@ -1378,8 +1435,20 @@
                                 {
                                     needWebSocket = true;
                                 }
-                                
-                                drawDiagram(metricData, globalDiagramRange, '<?= $_REQUEST['id_metric'] ?>', false);
+
+                                var localTimeZone = moment.tz.guess();
+                                var momentDateTime = moment();
+                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                localDateTime = localDateTime.replace("T", " ");
+                                var plusIndexLocal = localDateTime.indexOf("+");
+                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                var localTimeZoneString = "";
+                                if (localDateTime == "") {
+                                    localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                } else {
+                                    localTimeZoneString = localTimeZone;
+                                }
+                                drawDiagram(metricData, globalDiagramRange, '<?= $_REQUEST['id_metric'] ?>', false, localTimeZoneString);
                                 
                                 if(needWebSocket)
                                 {
@@ -1411,7 +1480,19 @@
                                 {
                                     if(convertedData.data.length > 0)
                                     {
-                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true);
+                                        var localTimeZone = moment.tz.guess();
+                                        var momentDateTime = moment();
+                                        var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                        localDateTime = localDateTime.replace("T", " ");
+                                        var plusIndexLocal = localDateTime.indexOf("+");
+                                        localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                        var localTimeZoneString = "";
+                                        if (localDateTime == "") {
+                                            localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                        } else {
+                                            localTimeZoneString = localTimeZone;
+                                        }
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString);
                                     }
                                     else
                                     {
@@ -1472,7 +1553,19 @@
                                 {
                                     if(convertedData.data.length > 0)
                                     {
-                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true);
+                                        var localTimeZone = moment.tz.guess();
+                                        var momentDateTime = moment();
+                                        var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                        localDateTime = localDateTime.replace("T", " ");
+                                        var plusIndexLocal = localDateTime.indexOf("+");
+                                        localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                        var localTimeZoneString = "";
+                                        if (localDateTime == "") {
+                                            localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                        } else {
+                                            localTimeZoneString = localTimeZone;
+                                        }
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString);
                                     }
                                     else
                                     {
