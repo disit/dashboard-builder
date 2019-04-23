@@ -108,12 +108,12 @@
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
         <!-- Chat CSS -->
-        <link rel="stylesheet" href="../css/chat.css" type="text/css" />
+        
     </head>
     <body class="guiPageBody">
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
-            
+
             <div class="row mainRow">
                 <?php include "mainMenu.php" ?>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
@@ -672,9 +672,7 @@
         </div>
         <!-- Fine modale gestione IOT Apps dashboard -->
 
-        <div id="chatContainer" data-status="closed">
-            <iframe id="chatIframeB" class="chatIframe" scrolling="no"></iframe>
-        </div>
+       
 
     </body>
 </html>
@@ -682,6 +680,7 @@
 <script type='text/javascript'>
     $(document).ready(function () 
     {
+        $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
      //   if (location.href.includes("[search]=My+own")) {
         if (location.href.includes("My+orgMy%3FlinkId") || location.href.includes("My+orgMy?linkId")) {
           //  $('#sessionExpiringPopup').show();
@@ -746,7 +745,7 @@
             }
         }, 1000);
         
-        $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
+        // $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
         
         $(window).resize(function(){
             $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
@@ -2263,7 +2262,9 @@
                   });
 
                   var dynatable = $('#list_dashboard_cards').data('dynatable');
-                  
+
+              //    $("#row mainRow").include('mainMenu.php');
+
                   dynatable.sorts.clear();
                   dynatable.sorts.add('title_header', 1); // 1=ASCENDING, -1=DESCENDING
                   dynatable.process();
@@ -2726,8 +2727,7 @@
             });
         });
 <?php endif; ?>        
-        $('#chatIframeB').attr('style', 'height: 0px');
-        $('#chatIframeB').attr('src', 'https://chat.snap4city.org/home');
+        
 
 
         if (loggedRole=='RootAdmin') {
