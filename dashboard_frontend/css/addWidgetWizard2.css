@@ -33,9 +33,22 @@ and open the template in the editor.
     
     
 }
+ 
+/* nel caso si desideri mantenere la scrollbar per il body ed eliminarla per altri blocchi div  */
+#addWidgetWizardLabelBody::-webkit-scrollbar{
+    width: 0px;
+}
+
+#widgetWizardTableContainer::-webkit-scrollbar{
+    width: 0px;
+}
+
+/*
 ::-webkit-scrollbar{
     width: 0px;
 }
+*/
+
 #addWidgetWizardLabelBod
 {
     overflow-y: hidden;
@@ -636,7 +649,21 @@ input.testCheckInput{
     background-repeat: no-repeat;
 }
 
-#widgetWizardTableCommandsContainer #resetButton.cancelBtn, #FreezeMap.cancelBtn 
+#widgetWizardTableCommandsContainer #resetButton.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#GPSUser.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#GPSOrg.cancelBtn/*, #FreezeMap.cancelBtn*/ 
 {
     font-weight: bold;
     font-size: 12px !important;
