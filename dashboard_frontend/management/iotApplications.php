@@ -186,14 +186,14 @@ checkSession('Manager');
                   <table id="list_dashboard" class="table">
                     <thead class="iotAppsTableHeader">
                       <tr>
-                        <th>Status</th>
+                        <th data-dynatable-column="status">Status</th>
                         <th data-dynatable-column="type">Type</th>
-                        <th data-dynatable-column="title">Title</th>
+                        <th data-dynatable-column="name">Title</th>
                         <th data-dynatable-column="username">Creator</th>
                         <th data-dynatable-column="created">Creation date</th>
                         <th data-dynatable-column="modified">Modification date</th>
+                        <th data-dynatable-column="id">Id</th>
                         <th>Dashboards</th>
-                        <th>Open</th>
                         <th>Management</th>
                       </tr>
                     </thead>
@@ -237,6 +237,7 @@ checkSession('Manager');
                 <select id="applicationType" class="form-control">
                     <option value="basic">Basic</option>
                     <option value="advanced">Advanced</option>
+                    <option value="portia">Web scraper (portia)</option>
                 </select>    
               </div>
             </div>  
@@ -315,6 +316,7 @@ checkSession('Manager');
                         <option value="basic">Basic</option>
                         <option value="advanced">Advanced</option>
                         <option value="plumber">Data analytic</option>
+                        <option value="portia">Web scraper (portia)</option>
                     </select>    
                   </div>     
                 </div>
@@ -361,6 +363,12 @@ checkSession('Manager');
         frequency = 1000;
       else 
         frequency = 60000;
+      if(!iotAppsHealthiness[appId].pos) {
+        for(i=0; i<iotAppsList.length;i++)
+          if(iotAppsList[i].id==appId) {
+            iotAppsHealthiness[appId].pos = i;
+          }
+      }
       $.ajax({
           url: "../controllers/statusIotApplication.php",
           data: {
@@ -379,22 +387,26 @@ checkSession('Manager');
                 iotAppsHealthiness[appId].timeout = setTimeout('checkIotApp("'+appId+'")',frequency);
               }
               if(iotAppsHealthiness[appId].healthiness) {
+                iotAppsList[iotAppsHealthiness[appId].pos].status = "green";
                 $("#chealth_"+appId).css("background-color","lightgreen");
                 $("#rhealth_"+appId).css("background-color","lightgreen");
                 //$("#iotapp_"+appId+" .iotAppsListCardOverlayTxt").removeClass("wait");
                 $("#iotapp_"+appId+" div.iotAppsListCardOverlayDiv").css("opacity", "0.05");
               } else if(iotAppsHealthiness[appId].healthiness === null) {
+                iotAppsList[iotAppsHealthiness[appId].pos].status = "unknown";
                 $("#chealth_"+appId).css("background-color","lightgray");
                 $("#rhealth_"+appId).css("background-color","lightgray");
                 //$("#iotapp_"+appId+" .iotAppsListCardOverlayTxt").removeClass("wait");
                 $("#iotapp_"+appId+" div.iotAppsListCardOverlayDiv").css("opacity", "0.05");
               } else {
+                iotAppsList[iotAppsHealthiness[appId].pos].status = "red";
                 $("#chealth_"+appId).css("background-color","red");
                 $("#rhealth_"+appId).css("background-color","red");
                 //$("#iotapp_"+appId+" .iotAppsListCardOverlayTxt").addClass("wait");
                 $("#iotapp_"+appId+" div.iotAppsListCardOverlayDiv").css("opacity", "0.8");
               }
             } else {
+              iotAppsList[iotAppsHealthiness[appId].pos].status = "undefined";
               iotAppsHealthiness[appId]="?";
               console.log("iotapp status "+appId+" unknown")
             }
@@ -556,16 +568,16 @@ checkSession('Manager');
                checkIotApp(record.id);
              }
 
-            var newRow = '<tr data-dashTitle="' + record.title + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.username + '">' +
+            var newRow = '<tr data-dashTitle="' + record.title + '" data-uniqueid="' + record.id + '" data-authorName="' + record.username + '">' +
                   '<td class="' + cssClass + '" ><div id="rhealth_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div></td>' +
                   '<td class="' + cssClass + '" >' + record.type + '</td>'+
                   '<td class="' + cssClass + '" style="font-weight: bold"><a href="' + record.url + '" target="_blank">' + title + '</a></td>'+
                   '<td class="' + cssClass + '">' + owner + '</td>'+
                   '<td class="' + cssClass + '">' + record.created + '</td>'+
                   '<td class="' + cssClass + '">' + record.modified + '</td>'+
+                  '<td class="' + cssClass + '">' + record.id + '</td>'+
                   '<td class="' + cssClass + '">' + dashboards + '</td>'+
                   //'<td class="' + cssClass + '">' + record.image + '</td>'+
-                  '<td class="' + cssClass + '"><button type="button" class="viewDashBtn">Open</button></td>'+
                   '<td class="' + cssClass + '"><button type="button" class="viewDashBtn">Management</button></td>'+
                   '</tr>';
 
@@ -1015,7 +1027,7 @@ checkSession('Manager');
                                 } else {
                                   $(this).text("Open")
                                   var c = true
-                                  if(edgetype) {
+                                  if(edgetype && edgetype!="undefined") {
                                     c = confirm("This EDGE application can be accessible only in the local network at address "+url+"\nDo you want to open it?");
                                   } else if(type=="plumber") {
                                     c=false;
@@ -1073,14 +1085,14 @@ checkSession('Manager');
                       
                       var dynatable = $('#list_dashboard_cards').data('dynatable');
                       dynatable.sorts.clear();
-                      dynatable.sorts.add('title', 1); // 1=ASCENDING, -1=DESCENDING
+                      dynatable.sorts.add('name', 1); // 1=ASCENDING, -1=DESCENDING
                       dynatable.process();
                       
                       $('#dashboardListsCardsSort div.iotAppsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
                       $('#dashboardListsCardsSort i.iotAppsListSort').eq(0).click(function(){
                           var dynatable = $('#list_dashboard_cards').data('dynatable');
                           dynatable.sorts.clear();
-                          dynatable.sorts.add('title', 1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.sorts.add('name', 1); // 1=ASCENDING, -1=DESCENDING
                           dynatable.process();
                           $('#dashboardListsCardsSort div.iotAppsListSortBtnCnt').eq(1).css('background-color', 'rgba(0, 162, 211, 1)');
                           $('#dashboardListsCardsSort div.iotAppsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
@@ -1089,7 +1101,7 @@ checkSession('Manager');
                       $('#dashboardListsCardsSort i.iotAppsListSort').eq(1).click(function(){
                           var dynatable = $('#list_dashboard_cards').data('dynatable');
                           dynatable.sorts.clear();
-                          dynatable.sorts.add('title', -1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.sorts.add('name', -1); // 1=ASCENDING, -1=DESCENDING
                           dynatable.process();
                           $('#dashboardListsCardsSort div.iotAppsListSortBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
                           $('#dashboardListsCardsSort div.iotAppsListSortBtnCnt').eq(1).css('background-color', 'rgba(255, 204, 0, 1)');
