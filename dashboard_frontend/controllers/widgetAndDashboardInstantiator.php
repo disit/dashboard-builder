@@ -324,8 +324,10 @@
                                     $id_metric = null;
 
                                     $type_w = $widgetTypeDbRow['mainWidget'];
-                                    $name_w = preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                    $name_w = "w_" . preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                     $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                    $name_w = str_replace(":", "_", $name_w);
+                                    $name_w = str_replace(" ", "_", $name_w);
 
                                     //Costruzione titolo widget
                                     $title_w = $actuatorEntityName . " - " . $actuatorValueType;
@@ -765,13 +767,17 @@
                                         
                                         if(($widgetCategory == 'actuator')&&($selectedRow['high_level_type'] == 'Sensor-Actuator'))
                                         {
-                                            $name_w = preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                            $name_w = "w_" . preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                            $name_w = str_replace(":", "_", $name_w);
+                                            $name_w = str_replace(" ", "_", $name_w);
                                         }
                                         else
                                         {
-                                            $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                            $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                            $name_w = str_replace(":", "_", $name_w);
+                                            $name_w = str_replace(" ", "_", $name_w);
                                         }
                                         
                                         //Costruzione titolo widget
@@ -783,11 +789,11 @@
                                         {
                                             if($selectedRow['unique_name_id'] != null)
                                             {
-                                                $title_w = $selectedRow['sub_nature'] . " - " . $selectedRow['unique_name_id'];
+                                                $title_w = $selectedRow['unique_name_id'] . " - " . $selectedRow['low_level_type'];
                                             }
                                             else
                                             {
-                                                $title_w = $selectedRow['sub_nature'];
+                                                $title_w = $selectedRow['low_level_type'];
                                             }
                                         }
                                         
@@ -1035,17 +1041,19 @@
                                         }
 
                                         $type_w = $widgetTypeDbRow['mainWidget'];
-                                        $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                        $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                        $name_w = str_replace(":", "_", $name_w);
+                                        $name_w = str_replace(" ", "_", $name_w);
 
                                         //Costruzione titolo widget
                                         if($selectedRow['unique_name_id'] != null)
                                         {
-                                            $title_w = $selectedRow['sub_nature'] . " - " . $selectedRow['unique_name_id'];
+                                            $title_w = $selectedRow['unique_name_id'] . " - " . $selectedRow['low_level_type'];
                                         }
                                         else
                                         {
-                                            $title_w = $selectedRow['sub_nature'];
+                                            $title_w = $selectedRow['low_level_type'];
                                         }
                                         
                                         $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
@@ -1147,11 +1155,22 @@
                                                 }
 
                                                 $type_w = $targetWidgets[$i];
-                                                $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                                $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                                $name_w = str_replace(":", "_", $name_w);
+                                                $name_w = str_replace(" ", "_", $name_w);
 
                                                 //Costruzione titolo widget
-                                                $title_w = $selectedRow['sub_nature'] . " - Target";
+                                             //   $title_w = $selectedRow['sub_nature'] . " - Target";
+
+                                                 if($selectedRow['unique_name_id'] != null)
+                                                 {
+                                                     $title_w = $selectedRow['unique_name_id'] . " - " . $selectedRow['low_level_type'];
+                                                 }
+                                                 else
+                                                 {
+                                                     $title_w = $selectedRow['low_level_type'];
+                                                 }
                                                 
                                                 $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 
@@ -1306,8 +1325,10 @@
                                 }
 
                                 $type_w = $widgetTypeDbRow['mainWidget'];
-                                $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                $name_w = str_replace(":", "_", $name_w);
+                                $name_w = str_replace(" ", "_", $name_w);
 
                                 //Costruzione titolo widget
                                 $title_w = "External content";
@@ -1438,8 +1459,10 @@
                                 }
 
                                 $type_w = $widgetTypeDbRow['mainWidget'];
-                                $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                $name_w = str_replace(":", "_", $name_w);
+                                $name_w = str_replace(" ", "_", $name_w);
 
                                 $creator = $_SESSION['loggedUsername'];
                                 
@@ -1554,16 +1577,18 @@
                                                 //Costruzione size_rows e size_columns
                                                 $size_rows = $defaultParametersTarget[$i]['size_rows'] - 2;
                                                 $size_columns = max($size_columns, $defaultParametersTarget[$i]['size_columns']);
-                                                $rowParameters = "datamanager/api/v1/poidata/" . $rowParametersToTarget;
-                                              //  $rowParameters = $rowParametersToTarget;
+                                             //   $rowParameters = "datamanager/api/v1/poidata/" . $rowParametersToTarget;
+                                                $rowParameters = $rowParametersToTarget;
                                             }
 
                                             //Costruzione nome del widget
                                             $id_metric = "ToBeReplacedByFactory";
 
                                             $type_w = $targetWidgets[$i];
-                                            $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                            $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                            $name_w = str_replace(":", "_", $name_w);
+                                            $name_w = str_replace(" ", "_", $name_w);
                                             
                                             $creator = $_SESSION['loggedUsername'];
 
@@ -1905,8 +1930,10 @@
                                 $id_metric = null;
 
                                 $type_w = $widgetTypeDbRow['mainWidget'];
-                                $name_w = preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                $name_w = "w_" . preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                $name_w = str_replace(":", "_", $name_w);
+                                $name_w = str_replace(" ", "_", $name_w);
 
                                 //Costruzione titolo widget
                                 $title_w = $actuatorEntityName . " - " . $actuatorValueType;
@@ -2359,13 +2386,17 @@
 
                                     if(($widgetCategory == 'actuator')&&($selectedRow['high_level_type'] == 'Sensor-Actuator'))
                                     {
-                                        $name_w = preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                        $name_w = "w_" . preg_replace('/\+/', '', $actuatorEntityName) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                        $name_w = str_replace(":", "_", $name_w);
+                                        $name_w = str_replace(" ", "_", $name_w);
                                     }
                                     else
                                     {
-                                        $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                        $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                        $name_w = str_replace(":", "_", $name_w);
+                                        $name_w = str_replace(" ", "_", $name_w);
                                     }
 
                                     //Costruzione titolo widget
@@ -2632,8 +2663,10 @@
                                     }
 
                                     $type_w = $widgetTypeDbRow['mainWidget'];
-                                    $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                    $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                     $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                    $name_w = str_replace(":", "_", $name_w);
+                                    $name_w = str_replace(" ", "_", $name_w);
 
                                     //Costruzione titolo widget
                                     if($selectedRow['unique_name_id'] != null)
@@ -2753,8 +2786,10 @@
                                             }
 
                                             $type_w = $targetWidgets[$i];
-                                            $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                            $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                            $name_w = str_replace(":", "_", $name_w);
+                                            $name_w = str_replace(" ", "_", $name_w);
 
                                             //Costruzione titolo widget
                                             $title_w = $selectedRow['sub_nature'] . " - Target";
@@ -2921,8 +2956,10 @@
                             }
 
                             $type_w = $widgetTypeDbRow['mainWidget'];
-                            $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                            $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                            $name_w = str_replace(":", "_", $name_w);
+                            $name_w = str_replace(" ", "_", $name_w);
 
                             //Costruzione titolo widget
                             $title_w = "External content";
@@ -3061,8 +3098,10 @@
                             }
 
                             $type_w = $widgetTypeDbRow['mainWidget'];
-                            $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                            $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                            $name_w = str_replace(":", "_", $name_w);
+                            $name_w = str_replace(" ", "_", $name_w);
 
                             $creator = $_SESSION['loggedUsername'];
 
@@ -3169,8 +3208,10 @@
                                         $id_metric = "ToBeReplacedByFactory";
 
                                         $type_w = $targetWidgets[$i];
-                                        $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
+                                        $name_w = "w_" . preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_w . $nextId;
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
+                                        $name_w = str_replace(":", "_", $name_w);
+                                        $name_w = str_replace(" ", "_", $name_w);
 
                                         //Costruzione titolo widget
                                         $title_w = "Selector - Map";
@@ -3528,69 +3569,90 @@
             
             $lastUsedColorsJson = json_encode($lastUsedColors);
             $org = $_SESSION['loggedOrganization'];
-            
-            $q = "INSERT INTO Dashboard.Config_dashboard
-                (name_dashboard, title_header, subtitle_header, color_header,
-                width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, last_edit_date, lastUsedColors, organizations) 
-                VALUES ('$title', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP, '$lastUsedColorsJson', '$org')";
-                
-            $r = mysqli_query($link, $q);
-                
-            if($r) 
-            {
-                $_REQUEST['dashboardId'] = mysqli_insert_id($link);
-                
-                $resultAddWidget = addWidgets($link, $serviceMapUrlPrefix, true);
-                
-                if($resultAddWidget)
-                {
-                    $result['detail'] = "Ok";
-                    $result['newDashId'] = $_REQUEST['dashboardId'];
-                }
-                else
-                {
-                    $result['detail'] = "CreateWidgetKo";       
-                }
-                
-                //Salvataggio su API ownership
-                if(isset($_SESSION['refreshToken'])) 
-                {
-                    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
-                    $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
 
-                    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-                    $accessToken = $tkn->access_token;
-                    $_SESSION['refreshToken'] = $tkn->refresh_token;
-                    
-                    $callBody = ["elementId" => $_REQUEST['dashboardId'], "elementType" => "DashboardID", "elementName" => $title];
-                    
-                    $apiUrl = $ownershipApiBaseUrl . "/v1/register/?accessToken=" . $accessToken;
-
-                    $options = array(
-                          'http' => array(
-                                  'header'  => "Content-type: application/json\r\n",
-                                  'method'  => 'POST',
-                                  'timeout' => 30,
-                                  'content' => json_encode($callBody),
-                                  'ignore_errors' => true
-                          )
-                    );
-
-                    try
-                    {
-                        $context  = stream_context_create($options);
-                        $callResult = @file_get_contents($apiUrl, false, $context);
+            if(isset($_SESSION['refreshToken'])) {
+                $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+                $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+                $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+                $accessToken = $tkn->access_token;
+                $_SESSION['refreshToken'] = $tkn->refresh_token;
+                $queryLimits = $ownershipApiBaseUrl . "/v1/limits/?accessToken=" . $accessToken;
+                $queryLimitsResults = file_get_contents($queryLimits);
+                $limitsResultArray = json_decode($queryLimitsResults, true);
+                foreach ($limitsResultArray['limits'] as $limit) {
+                    if ($limit['elementType'] == "DashboardID") {
+                        $dashIdLimit = $limit['limit'];
+                        $dashIdCurrent = $limit['current'];
+                        if ($limit['limit'] - $limit['current'] <= 0) {
+                            $limitCheckResult = false;
+                        } else {
+                            $limitCheckResult = true;
+                        }
                     }
-                    catch (Exception $ex) 
-                    {
-                        //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                }
+
+                if ($limitCheckResult === false) {
+                    $result['detailLimits'] = 'DashboardLimitsKO';
+                } else {
+                    $result['detailLimits'] = 'DashboardLimitsOK';
+                    $result['dashIdLimit'] = $dashIdLimit;
+                    $result['dashIdCurrent'] = $dashIdCurrent;
+
+                    $q = "INSERT INTO Dashboard.Config_dashboard
+                    (name_dashboard, title_header, subtitle_header, color_header,
+                    width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, last_edit_date, lastUsedColors, organizations) 
+                    VALUES ('$title', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP, '$lastUsedColorsJson', '$org')";
+
+                    $r = mysqli_query($link, $q);
+
+                    if ($r) {
+                        $_REQUEST['dashboardId'] = mysqli_insert_id($link);
+
+                        $resultAddWidget = addWidgets($link, $serviceMapUrlPrefix, true);
+
+                        if ($resultAddWidget) {
+                            $result['detail'] = "Ok";
+                            $result['newDashId'] = $_REQUEST['dashboardId'];
+                        } else {
+                            $result['detail'] = "CreateWidgetKo";
+                        }
+
+                        //Salvataggio su API ownership
+                        if (isset($_SESSION['refreshToken'])) {
+                            $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+                            $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+
+                            $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+                            $accessToken = $tkn->access_token;
+                            $_SESSION['refreshToken'] = $tkn->refresh_token;
+
+                            $callBody = ["elementId" => $_REQUEST['dashboardId'], "elementType" => "DashboardID", "elementName" => $title];
+
+                            $apiUrl = $ownershipApiBaseUrl . "/v1/register/?accessToken=" . $accessToken;
+
+                            $options = array(
+                                'http' => array(
+                                    'header' => "Content-type: application/json\r\n",
+                                    'method' => 'POST',
+                                    'timeout' => 30,
+                                    'content' => json_encode($callBody),
+                                    'ignore_errors' => true
+                                )
+                            );
+
+                            try {
+                                $context = stream_context_create($options);
+                                $callResult = @file_get_contents($apiUrl, false, $context);
+                            } catch (Exception $ex) {
+                                //Non facciamo niente di specifico in caso di mancata risposta dell'host
+                            }
+                        }
+                    } else {
+                        $result['detail'] = "CreateDashboardKo";
                     }
                 }
             }
-            else
-            {
-                $result['detail'] = "CreateDashboardKo";
-            }
+
             echo json_encode($result);
             break;
     }
