@@ -27,21 +27,27 @@ use Jumbojett\OpenIDConnectClient;
 error_reporting(E_ERROR | E_NOTICE);
 date_default_timezone_set('Europe/Rome');
 
-session_start(); 
+session_start();
+checkSession('Manager');
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
 $response = NULL;
 
-if(isset($_SESSION['loggedUsername']))
+if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
 {
     $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
     $dashboardTitle = mysqli_real_escape_string($link, $_GET['dashboardTitle']);
+    $username = mysqli_real_escape_string($link, $_SESSION['loggedUsername']);
     
-    $q = "UPDATE Dashboard.Config_dashboard SET deleted = 'yes' WHERE Id = $dashboardId";
+    if($_SESSION['loggedRole']=='RootAdmin')
+      $q = "UPDATE Dashboard.Config_dashboard SET deleted = 'yes' WHERE Id = '$dashboardId'";
+    else
+      $q = "UPDATE Dashboard.Config_dashboard SET deleted = 'yes' WHERE Id = '$dashboardId' AND user='$username'";
     $r = mysqli_query($link, $q);
 
-    if($r)
+    if($r && mysqli_affected_rows($link)==1)
     {
         $response = "Ok";
 
@@ -56,7 +62,6 @@ if(isset($_SESSION['loggedUsername']))
             $_SESSION['refreshToken'] = $tkn->refresh_token;
 
             $apiUrl = $ownershipApiBaseUrl . "/v1/delete/?type=DashboardID&elementId=". $_REQUEST['dashboardId']."&accessToken=" . $accessToken;
-
 
             try
             {
