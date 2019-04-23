@@ -897,29 +897,29 @@
                                     var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn, data30DayBtn = null;
                                     for(var i = 0; i < realTimeData.head.vars.length; i++)
                                     {
-                                        if((realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '')&&(realTimeData.head.vars[i] !== null)&&(realTimeData.head.vars[i] !== 'undefined'))
-                                        {
-                                            if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
-                                            {
-                                                if(!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available'))
-                                                {
-                                                    //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
-                                                    dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function(str){ return str.toUpperCase(); });
-                                                    dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                    dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
-                                                    data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
-                                                    dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
-                                                    data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
-                                                    data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
-                                                    popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + '</tr>';
+                                        if(realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
+                                            if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
+                                                if ((realTimeData.head.vars[i] !== 'updating') && (realTimeData.head.vars[i] !== 'measuredTime') && (realTimeData.head.vars[i] !== 'instantTime')) {
+                                                    if (!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available')) {
+                                                        //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                     /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                            return str.toUpperCase();
+                                                        }); */
+                                                        dataDesc = realTimeData.head.vars[i];
+                                                        dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
+                                                        dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
+                                                        data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
+                                                        dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
+                                                        data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
+                                                        data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
+                                                        popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + '</tr>';
+                                                    }
+                                                } else {
+                                                    measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
+                                                    var now = new Date();
+                                                    var measuredTimeDate = new Date(measuredTime);
+                                                    rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
                                                 }
-                                            }
-                                            else
-                                            {
-                                                measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
-                                                var now = new Date();
-                                                var measuredTimeDate = new Date(measuredTime);
-                                                rtDataAgeSec = Math.abs(now - measuredTimeDate)/1000;
                                             }
                                         }
                                     }
@@ -2051,58 +2051,58 @@
                                     
                                     for(var i = 0; i < realTimeData.head.vars.length; i++)
                                     {
-                                        if((realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '')&&(realTimeData.head.vars[i] !== null)&&(realTimeData.head.vars[i] !== 'undefined'))
-                                        {
-                                            if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
-                                            {
-                                                if(!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available'))
+                                        if(realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
+                                            if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
+                                                if ((realTimeData.head.vars[i] !== 'updating') && (realTimeData.head.vars[i] !== 'measuredTime') && (realTimeData.head.vars[i] !== 'instantTime')) {
+                                                    if (!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available')) {
+                                                        //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                    /*    dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                            return str.toUpperCase();
+                                                        }); */
+                                                        dataDesc = realTimeData.head.vars[i];
+                                                        dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
+                                                        data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-fakeid="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
+                                                        dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="24 hours" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
+                                                        data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
+                                                        data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
+                                                        popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + '</tr>';
+                                                    }
+                                                } else {
+                                                    measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
+                                                    //Calcolo age
+                                                    var now = new Date();
+                                                    var measuredTimeDate = new Date(measuredTime);
+                                                    rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
+                                                }
+                                                /*if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
                                                 {
-                                                    //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
                                                     dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function(str){ return str.toUpperCase(); });
-                                                    dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                    data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-fakeid="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
-                                                    dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="24 hours" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
-                                                    data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
-                                                    data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
-                                                    popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + '</tr>';
                                                 }
-                                            }
-                                            else
-                                            {
-                                                measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
-                                                //Calcolo age
-                                                var now = new Date();
-                                                var measuredTimeDate = new Date(measuredTime);
-                                                rtDataAgeSec = Math.abs(now - measuredTimeDate)/1000;
-                                            }
-                                            /*if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
-                                            {
-                                                dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function(str){ return str.toUpperCase(); });
-                                            }
 
-                                            if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
-                                            {
-                                                if(realTimeData.results.bindings[0][realTimeData.head.vars[i]].value === 'Not Available')
+                                                if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
                                                 {
-                                                    realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                    if(realTimeData.results.bindings[0][realTimeData.head.vars[i]].value === 'Not Available')
+                                                    {
+                                                        realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                    }
+                                                    dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
                                                 }
-                                                dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                            }
-                                            else
-                                            {
-                                                measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
-                                            }
+                                                else
+                                                {
+                                                    measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
+                                                }
 
-                                            if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
-                                            {
-                                                data4HBtn = '<td style="padding-top: 7px; padding-bottom: 7px;"><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-fakeid="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4 Hours</button></td>';
-                                            }
+                                                if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
+                                                {
+                                                    data4HBtn = '<td style="padding-top: 7px; padding-bottom: 7px;"><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-fakeid="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4 Hours</button></td>';
+                                                }
 
-                                            if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
-                                            {
-                                                dataDayBtn = '<td style="padding-top: 7px; padding-bottom: 7px;"><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Day</button></td>';
+                                                if((realTimeData.head.vars[i] !== 'updating')&&(realTimeData.head.vars[i] !== 'measuredTime')&&(realTimeData.head.vars[i] !== 'instantTime'))
+                                                {
+                                                    dataDayBtn = '<td style="padding-top: 7px; padding-bottom: 7px;"><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + false + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Day</button></td>';
+                                                }
+                                                popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + data4HBtn + dataDayBtn + '</tr>';*/
                                             }
-                                            popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + data4HBtn + dataDayBtn + '</tr>';*/
                                         }
                                     }
                                     popupText += '</tbody>';
@@ -3542,8 +3542,9 @@
                                         dataForApi = "All";
                                         query = event.query;
                                     }
+                                } else if (event.query.includes("/iot/")) {
+                                    query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + event.query + "&format=json";
                                 } else {
-
 
                                     if (pattern.test(event.query)) {
                                         //console.log("Service Map selection substitution");
@@ -3551,6 +3552,11 @@
                                     } else {
                                         //console.log("Service Map selection addition");
                                         query = event.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                    }
+                                }
+                                if (!query.includes("&maxResults")) {
+                                    if (!query.includes("&queryId")) {
+                                        query = query + "&maxResults=0";
                                     }
                                 }
                             }
@@ -3585,6 +3591,18 @@
                                 apiUrl = query + "&geometry=true&fullCount=false";
                             }
 
+                        //    if (queryType === "Sensor" && query.includes("%2525")) {
+                            if (query.includes("%2525") && !query.includes("%252525")) {
+                                let queryPart1 = query.split("/resource/")[0];
+                                let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
+                                let queryPart3 = query.split("&format=")[1];
+                                if (queryPart3 != undefined) {
+                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" + queryPart3;
+                                } else {
+                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
+                                }
+                            }
+
                             $.ajax({
                              //   url: query + "&geometry=true&fullCount=false",
                                 url: apiUrl,
@@ -3609,14 +3627,19 @@
                                                 fatherGeoJsonNode.features = geoJsonData;
                                             }
                                             fatherGeoJsonNode.type = "FeatureCollection";
-                                        } else {
+                                        }
+                                        else {
                                             if (geoJsonData.hasOwnProperty("BusStops")) {
                                                 fatherGeoJsonNode = geoJsonData.BusStops;
                                             } else {
                                                 if (geoJsonData.hasOwnProperty("SensorSites")) {
                                                     fatherGeoJsonNode = geoJsonData.SensorSites;
                                                 } else {
-                                                    fatherGeoJsonNode = geoJsonData.Services;
+                                                    if (geoJsonData.hasOwnProperty("Service")) {
+                                                        fatherGeoJsonNode = geoJsonData.Service;
+                                                    } else {
+                                                        fatherGeoJsonNode = geoJsonData.Services;
+                                                    }
                                                 }
                                             }
                                         }
