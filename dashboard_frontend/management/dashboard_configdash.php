@@ -562,6 +562,7 @@
                    echo '<i id="chatBtn" data-status="closed"></i>';
                 }else{
                     echo '<i class="fa fa-comment-o" id="chatBtn" data-status="closed" style="display: none"></i>';
+                    echo '<i class="fa fa-comment" id="chatBtnNew" data-status="closed" style="display: none"></i>';
                     echo '<i class="fa fa-exclamation-triangle" id="chatBtnError" data-status="closed" style="display: none"></i>';
                 }
                 ?>
@@ -2090,7 +2091,20 @@
                     $('#BtnContainerChat').hide();
                 }
             });
-            
+            $('#chatBtnNew').click(function(){
+                if($(this).attr("data-status") === 'closed')
+                {
+                    $(this).attr("data-status", 'open');
+                    $('#chatContainer').show();
+                    console.log("Show");
+                }
+                else
+                {
+                    $(this).attr("data-status", 'closed');
+                    $('#chatContainer').hide();
+                    console.log("Hide");
+                }
+            });
             $('#chatBtnError').click(function(){
                 if($(this).attr("data-status") === 'closed')
                 {
@@ -27806,6 +27820,7 @@
                         $existChat=strtolower((str_replace(" ", "", str_replace('%2520','',str_replace('%20', '', $dashboardTitle))) . "-" . $_REQUEST['dashboardId']));
                         $idChat='id';
                         $userId='id';
+                        $newMessage=0;
                         $admin = new \RocketChat\User();
                         if($admin->login()){
                             $userChat=$admin->infoByUsername($_SESSION['loggedUsername']);
@@ -27831,6 +27846,9 @@
 //var_dump($existChat);
                             //var_dump(preg_replace("/[^a-zA-Z0-9_-]/", "", $existChat));
                             $infoChannel = $channel->infoByName($existChat);
+                            $infoChannel1=$channel->infoUserChannel($existChat,$userId);
+                            $newMessage=$infoChannel1->unreads;
+                            
                             if($infoChannel->success){
                                 $existChat=$infoChannel->channel->name; 
                                 $idChat=$infoChannel->channel->_id;
@@ -27843,12 +27861,18 @@
                     ?>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
                     setTimeout(function() {
+                        console.log('<?php echo $newMessage; ?>');
+                        console.log("Show33333");
                         if('<?php echo $idChat; ?>'!='id'){
                         $('#chatIframeB').attr('style', 'height: 130px');
                         $('#chatIframeD').attr('style', 'height: 0px');
                         $('#chatIframeB').attr('src', 'chatFrame.php?nameChat=<?php echo $existChat; ?>&idDash=<?php echo $_REQUEST['dashboardId']; ?>&idChat=<?php echo $idChat; ?>&idUserChat=<?php echo $userId; ?>');
                         $('#chatIframe').attr('src', '<?php echo $chatBaseUrl; ?>/channel/<?php echo $existChat; ?>/?layout=embedded')
-                        $('#chatBtn').attr('style', 'display: float');
+                        if('<?php echo $newMessage; ?>'=='0'){
+                                  $('#chatBtn').attr('style', 'display: float');    
+                                    }else{
+                                        $('#chatBtnNew').attr('style', 'display: float;color:red');
+                                }
                         }else if('<?php echo $userId; ?>'!='id'){
                         $('#chatIframeB').attr('style', 'height: 0px');
                         $('#chatIframeD').attr('src', 'chatFrameCreate.php?nameChat=<?php echo $existChat ;?>&idDash=<?php echo $_REQUEST['dashboardId'] ;?>&idChat=<?php echo $idChat ;?>&idUserChat=<?php echo $userId ;?>');
@@ -27877,7 +27901,8 @@
                 url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
                 data: {
                     dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
-                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>"
+                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
+                    organization: "<?= $_SESSION['loggedOrganization'] ?>"
                 }
             },
             'createdRow': function (row, data, dataIndex) {
