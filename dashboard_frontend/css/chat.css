@@ -43,6 +43,21 @@
     color: white;
 }
 
+#chatBtnNew
+{
+    position: fixed;
+    top: 5px;
+    /*right: 5px;*/
+    left: 95%;
+    /*width: 40%;*/
+    font-size: 45px;
+    margin-left:10px;
+    /*display: flex;*/
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
 #chatBtnError
 {
     position: fixed;
@@ -64,6 +79,11 @@
 }
 
 #chatBtnError:hover
+{
+    cursor: pointer;
+}
+
+#chatBtnNew:hover
 {
     cursor: pointer;
 }
