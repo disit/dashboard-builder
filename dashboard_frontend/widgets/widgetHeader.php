@@ -61,7 +61,7 @@
 	   <div class="singleBtnContainer"><a class="iconFullscreenTab" href="#" data-toggle="tooltip" title="Fullscreen new tab"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></div>
 	</div>	
 </div>
-
+<script type="text/javascript" src="../js/moment-timezone-with-data.js"></script>
 <script type='text/javascript'>
     $(document).ready(function()
     {
