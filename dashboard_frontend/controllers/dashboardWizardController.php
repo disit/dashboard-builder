@@ -722,7 +722,10 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             array( 'db' => 'get_instances',     'dt' => 14 ),
             array( 'db' => 'ownership',     'dt' => 15 ),
             array( 'db' => 'sm_based',     'dt' => 16 ),
-            array( 'db' => 'organizations',     'dt' => 17 )
+            array( 'db' => 'latitude',     'dt' => 17 ),
+            array( 'db' => 'longitude',     'dt' => 18 ),
+            array( 'db' => 'organizations',     'dt' => 19 )
+
         );
 
         // SQL server connection information
@@ -732,6 +735,13 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             'db'   => 'Dashboard',
             'host' => $host
         );
+        
+        if(isset($_REQUEST['northEastPointLat'])){
+            $northEastPointLat=$_REQUEST['northEastPointLat'];
+            $northEastPointLng=$_REQUEST['northEastPointLng'];
+            $southWestPointLat=$_REQUEST['southWestPointLat'];
+            $southWestPointLng=$_REQUEST['southWestPointLng'];
+        }
 
 
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -899,7 +909,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
 
 
         // NEW DELEGATED ANONYMOUS PER ORG !
-   /*     if (isset($_SESSION["loggedOrganization"])) {
+        if (isset($_SESSION["loggedOrganization"])) {
             $ldapBaseDnOrg = "ou=". $_SESSION["loggedOrganization"] .",dc=foo,dc=example,dc=org";
         } else {
             $ldapBaseDnOrg = "ou=Other,dc=foo,dc=example,dc=org";
@@ -942,7 +952,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                     array_push($allowedElementIDs, $publicRecord['elementId']);
                 }
             }
-        }*/
+        }
 
 
         // Call MyKPI API
