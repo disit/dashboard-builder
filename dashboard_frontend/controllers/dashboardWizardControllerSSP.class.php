@@ -102,7 +102,7 @@ class dashboardWizardControllerSSP {
 	}
 
 
-	/**
+	/**Construct the LIMIT clause for server-side processing SQL query
 	 * Ordering
 	 *
 	 * Construct the ORDER BY clause for server-side processing SQL query
@@ -220,9 +220,56 @@ class dashboardWizardControllerSSP {
                 }
 			}
 		}
+                if(isset($_REQUEST['northEastPointLat'])){
+                    $northEastPointLat=$_REQUEST['northEastPointLat'];
+                    $northEastPointLng=$_REQUEST['northEastPointLng'];
+                    $southWestPointLat=$_REQUEST['southWestPointLat'];
+                    $southWestPointLng=$_REQUEST['southWestPointLng'];
+                }
 
 		// Combine the filters into a single string
 		$where = '';
+                if($northEastPointLat&&$northEastPointLng&&$southWestPointLat&&$southWestPointLng){
+                    if (isset($_REQUEST['poiFlag'])) {
+                        if ($_REQUEST['poiFlag'] == 0) {
+                            if (isset($_REQUEST['filterOrg'])) {
+                                $org = $_REQUEST['filterOrg'];
+                                if (isset($_REQUEST['poiNature'])) {
+                                    if ($_REQUEST['poiNature'] != "") {
+                                        $nat = $_REQUEST['poiNature'];
+                                        if (isset($_REQUEST['poiSubNature'])) {
+                                            if ($_REQUEST['poiSubNature'] != "") {
+                                                $subNat = $_REQUEST['poiSubNature'];
+                                                $where = "(high_level_type = 'POI' AND (sub_nature = " . $subNat . ") AND organizations LIKE '%" . $org . "%') OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                                            } else {
+                                                $where = "(high_level_type = 'POI' AND (nature = " . $nat . ") AND organizations LIKE '%" . $org . "%') OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                                            }
+                                        } else {
+                                            $where = "(high_level_type = 'POI' AND (nature = " . $nat . ") AND organizations LIKE '%" . $org . "%') OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                                        }
+                                    } else if (isset($_REQUEST['poiSubNature'])) {
+                                        if ($_REQUEST['poiSubNature'] != "") {
+                                            $subNat = $_REQUEST['poiSubNature'];
+                                            $where = "(high_level_type = 'POI' AND (sub_nature = " . $subNat . ") AND organizations LIKE '%" . $org . "%') OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                                        } else {
+                                            $where = "(high_level_type = 'POI' AND organizations LIKE '%" . $org . "%') OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                                        }
+                                    } else {
+                                        $where = "(high_level_type = 'POI' AND organizations LIKE '%" . $org . "%') OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                                    }
+                                } else {
+                                    $where = "(high_level_type = 'POI' AND organizations LIKE '%" . $org . "%') OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                                }
+                            } else {
+                                $where = "high_level_type = 'POI' OR latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                            }
+                        } else {
+                            $where = "latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                        }
+                    } else {
+                        $where = "latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=" . $northEastPointLat . " and latitude >=" . $southWestPointLat . " and longitude <=" . $northEastPointLng . " and longitude >=" . $southWestPointLng . "";
+                    }
+                }
 
 		if ( count( $globalSearch ) ) {
 			$where = '('.implode(' OR ', $globalSearch).')';
@@ -237,6 +284,12 @@ class dashboardWizardControllerSSP {
 		if ( $where !== '' ) {
 			$where = 'WHERE '.$where;
 		}
+                
+                $northEastPointLat=null;
+                    $northEastPointLng=null;
+                    $southWestPointLat=null;
+                    $southWestPointLng=null;
+                
 
 		return $where;
 	}
