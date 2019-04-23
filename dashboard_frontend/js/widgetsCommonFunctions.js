@@ -89,7 +89,7 @@ function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderC
     //Impostazione menu di contesto
   //  console.log($("#" + widgetName).width());/* aggiunto da berna*/
     var widgetCtxMenuBtnCntLeft = $("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width();
-    if (location.href.includes('prova2') && ((widgetName == "DCTemp1_24_widgetTimeTrend6351")||(widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"))){
+    if (location.href.includes('inspector') && ((widgetName == "DCTemp1_24_widgetTimeTrend6351")||(widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"))){
         if (widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"){
                     widgetCtxMenuBtnCntLeft = 230 - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width();
                 }
@@ -137,7 +137,7 @@ function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderC
         }
         
         var headerWidth = parseInt($("#" + widgetName).width() - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width());
-            if (location.href.includes('prova2') && ((widgetName == "DCTemp1_24_widgetTimeTrend6351")||(widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"))){
+            if (location.href.includes('inspector') && ((widgetName == "DCTemp1_24_widgetTimeTrend6351")||(widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"))){
                 if (widgetName == "SensoreViaBolognese_24_widgetSingleContent6353"){
                     headerWidth = parseInt(230 - $("#" + widgetName + "_widgetCtxMenuBtnCnt").width());
                 }
@@ -353,4 +353,96 @@ function getMetricData(metricId)
         }
     });
     return metricData;
+}
+
+
+function ecFixFormat(f) {
+    clockf = localStorage.getItem('ec_clockf');
+    if (clockf === '12' && (f.indexOf('h') === -1)) {
+        f = f.replace(/H/g, "h");
+        f = f + " A";
+    }
+    if (clockf === '24' && (f.indexOf('H') === -1)) {
+        f = f.replace(/h/g, "H");
+        f = f.replace(/[Aa]/, "");
+    }
+    return f;
+}
+
+function getQueryParams(qn) {
+    var qs = document.location.search;
+    qs = qs.split('+').join(' ');
+    var params = {}, tokens, re = /[?&]?([^=]+)=([^&]*)/g;
+    while (tokens = re.exec(qs)) {
+        if (qn == "locale" && decodeURIComponent(tokens[1]) == 'locale')
+            return decodeURIComponent(tokens[2]);
+    }
+    return false;
+}
+
+function getLocale() {
+    var locale = getQueryParams('locale');
+    var al = [];
+    if (typeof moment !== "undefined") {
+        al = moment.locales();
+    }
+    if (locale && al.indexOf(locale) > -1)
+        return locale;
+    locale = localStorage.getItem('ec_locale');
+    if (locale && (al.indexOf(locale) > -1 || al.length === 0))
+        return locale;
+    return window.navigator.userLanguage || window.navigator.language || "en";
+}
+
+function getUTCDate(timestamp)
+{
+    var date = new Date(timestamp);
+
+    var year = date.getUTCFullYear();
+    var month = date.getUTCMonth() + 1; // getMonth() is zero-indexed
+    var day = date.getUTCDate();
+    var hours = date.getUTCHours();
+    var minutes = date.getUTCMinutes();
+    var seconds = date.getUTCSeconds();
+
+    month = (month < 10) ? '0' + month : month;
+    day = (day < 10) ? '0' + day : day;
+    hours = (hours < 10) ? '0' + hours : hours;
+    minutes = (minutes < 10) ? '0' + minutes : minutes;
+    seconds = (seconds < 10) ? '0' + seconds: seconds;
+
+    return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+}
+
+/*    function getGMTDate(timestamp)
+    {
+        new Date(timestamp + new Date().getTimezoneOffset() * 60000);
+    }*/
+
+Date.prototype.epochConverterGMTString = function() {
+    if (typeof moment === "undefined") {
+        return this.toUTCString();
+    }
+    moment.locale('en');
+    var md = moment(this);
+    if (!md.isValid()) {
+        return 'Invalid input.';
+    }
+    var locale = getLocale();
+    var myLocaleData = moment.localeData(locale);
+    var myFormat = ecFixFormat(myLocaleData.longDateFormat('LLLL')).replace(/\[([^\]]*)\]/g, " ");
+    if (md.format("SSS") != '000') {
+        myFormat = myFormat.replace(":mm", ":mm:ss.SSS");
+    } else {
+        myFormat = myFormat.replace(":mm", ":mm:ss");
+    }
+    return md.utc().format(myFormat);
+}
+
+Date.prototype.relativeDate=function(){if(typeof moment!=="undefined"){moment.locale('en');var md=moment(this);return md.fromNow();} return '';}
+
+function isValidDate(d) {
+    if (Object.prototype.toString.call(d) !== "[object Date]")
+        return false;
+    return !isNaN(d.getTime());
 }
