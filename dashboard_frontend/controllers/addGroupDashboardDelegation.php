@@ -55,7 +55,6 @@ if(isset($_SESSION['loggedUsername']))
                 {
                     $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
                     $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
-
                     $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
 
                     $accessToken = $tkn->access_token;
