@@ -113,9 +113,9 @@ foreach ($heatmapResultsArray as $heatmapName) {
             $result = [];
             if($rs) {
                 if ($row = mysqli_fetch_assoc($rs)) {
-                    $coords = explode(", ", $row['gpsCentreLatLng']);
-                    $latitude = $coords[0];
-                    $longitude = $coords[1];
+                    $coords = explode(",", $row['gpsCentreLatLng']);
+                    $latitude = trim($coords[0]);
+                    $longitude = trim($coords[1]);
                 }
             }
             break;
