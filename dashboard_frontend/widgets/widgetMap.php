@@ -74,12 +74,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
     }
 
     /*------ ADDED CSS ---------*/
-    .on
+    .animationOn
     {
         display: none;
     }
 
-    .on, .off
+    .animationOn, .animationOff
     {
         color: white;
         position: absolute;
@@ -173,6 +173,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
             //Variabili multi-mappa
             var map = {};
+            var baseQuery = null;
          /*   current_radius = null;
             current_opacity = null;
             changeRadiusOnZoom = false;
@@ -2369,11 +2370,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                 $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpenCloseBtn").off();
                 $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpenCloseBtn").click(function () {
-                    if ($("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen div.modalLinkOpenBodyDefaultMap").is(":visible")) {
+                 /*   if ($("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen div.modalLinkOpenBodyDefaultMap").is(":visible")) {
 
                         fullscreendefaultMapRef.off();
                         fullscreendefaultMapRef.remove();
-                    }
+                    }   */
 
                     if ($("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen div.modalLinkOpenBodyMap").is(":visible")) {
                         fullscreenMapRef.off();
@@ -2399,6 +2400,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen").modal('hide');
                     $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen div.modalLinkOpenBodyMap").modal('hide');
                     $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen div.modalLinkOpenBodyDefaultMap").modal('hide');
+                    var stopFlag = 1;
                 });
             }
 
@@ -2544,7 +2546,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         outMillisArray[n] = outArray[n].valueOf();
                     }
                     var dateNow = new Date(Date.now());
-                    var dateTest = new Date(2019,3,2,7);
                     var result = dateFns.closestTo(dateNow, outArray);
                     var idx = outMillisArray.indexOf(result.valueOf());
                     while (dateFns.isAfter(result, dateNow)) {
@@ -2552,16 +2553,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             result = outArray[++idx];
                         }
                     }
-                    current_page = idx;
-
-                /*    var resultTest = dateFns.closestTo(dateTest, outArray);
-                    var idxTest = outMillisArray.indexOf(resultTest.valueOf());
-                    while (dateFns.isAfter(resultTest, dateTest)) {
-                        if (idxTest < outArray.length) {
-                            resultTest = outArray[++idxTest];
-                        }
+                    if (idx > heatmapData.length - 1) {
+                        current_page = heatmapData.length - 1;
+                    } else {
+                        current_page = idx;
                     }
-                    current_page = idxTest; */
 
                     var utcDate = getUTCDate(Date.now());
                 //    var gmtDate = getGMTDate(Date.now());
@@ -2576,575 +2572,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     return outArray;
                 //    return outMillisArray;
                 }
-
-                //Crea un layer per la heatmap (i dati gli verranno passati nell'evento)
-                //heatmap configuration
-                function initHeatmapLayer(heatmapRangeObject) {
-
-                    var heatmapCfg = {};
-                    var colorScale = {};
-                    var colorGradient = {};
-                    var gradientString = "";
-
-                    map.cfg = JSON.parse(heatmapRangeObject[0].leafletConfigJSON);
-                //    map.cfg['blur'] = 0.85;
-
-                    if (current_radius != null) {
-                        map.cfg['radius'] = current_radius;
-                    }
-                    if (current_opacity != null) {
-                        map.cfg['maxOpacity'] = current_opacity;
-                    }
-
-                    $.ajax({
-                        url: "https://heatmap.snap4city.org/getColorMap.php?metricName=" + map.testMetadata.metadata.metricName,
-                        type: "GET",
-                        async: false,
-                        dataType: 'json',
-                        success: function (dataColorScale) {
-                            colorScale = dataColorScale;
-                        },
-                        error: function (err) {
-                            alert("Error in retrieving color map scale: ");
-                            console.log(err);
-                        }
-                    });
-
-                    var minVal = colorScale[0].min;
-                    if (minVal === null || minVal === undefined) {
-                        minVal = heatmapRangeObject[0].range1Inf;
-                    }
-
-                    var maxVal = colorScale[colorScale.length-1].min;
-                    if (maxVal === null || maxVal === undefined) {
-                        maxVal = heatmapRangeObject[0].range10Inf;
-                    }
-                    colorGradient[0] = 0;
-                    colorGradient[colorScale.length-1] = 1;
-                    gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length-1)) + '", ';
-                    for (let k1 = 1; k1 < colorScale.length-1; k1++) {
-                        colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
-                        gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length-1)) + '", ';
-                    }
-                    gradientString = gradientString + '"' + colorGradient[colorScale.length-1] + '": "#' + fullColorHex(colorScale[colorScale.length-1].rgb.substring(1, colorScale[colorScale.length-1].rgb.length-1)) + '"}';
-                    map.cfg.gradient = JSON.parse(gradientString);
-                    map.heatmapLayer = new HeatmapOverlay(map.cfg);
-                    //map.heatmapLayer.zIndex = 20;
-                  //  map.legendHeatmap = L.control({position: 'topright'});
-                }
-
-                map.legendHeatmap = L.control({position: 'topright'});
-
-                function nextHeatmapPage()
-                {
-                    animationFlag = false;
-                    if (current_page > 0) {
-                        current_page--;
-                        changeHeatmapPage(current_page);
-
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType === 'heatmap') {
-                                removeHeatmap(false);
-                                map.eventsOnMap.splice(i, 1);
-                            } else if (map.eventsOnMap[i].type === 'addHeatmap') {
-                                removeHeatmapColorLegend(i, false);
-                                map.eventsOnMap.splice(i, 1);
-                            } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                            }
-                        }
-
-                        if (addMode === 'additive') {
-                         //   if (baseQuery.includes("heatmap.php")) {
-                                // addHeatmapToMap();
-                                addHeatmapFromClient(false);
-                         /*   } else {
-                                // addHeatmapFromWMSClient();        // TBD
-                            }*/
-                        }
-                        if (addMode === 'exclusive') {
-                            map.defaultMapRef.eachLayer(function (layer) {
-                                map.defaultMapRef.removeLayer(layer);
-                            });
-                            map.eventsOnMap.length = 0;
-
-                            //Remove WidgetAlarm active pins
-                            $.event.trigger({
-                                type: "removeAlarmPin",
-                            });
-                            //Remove WidgetEvacuationPlans active pins
-                            $.event.trigger({
-                                type: "removeEvacuationPlanPin",
-                            });
-                            //Remove WidgetEvents active pins
-                            $.event.trigger({
-                                type: "removeEventFIPin",
-                            });
-                            //Remove WidgetResources active pins
-                            $.event.trigger({
-                                type: "removeResourcePin",
-                            });
-                            //Remove WidgetOperatorEvents active pins
-                            $.event.trigger({
-                                type: "removeOperatorEventPin",
-                            });
-                            //Remove WidgetTrafficEvents active pins
-                            $.event.trigger({
-                                type: "removeTrafficEventPin",
-                            });
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
-                            }).addTo(map.defaultMapRef);
-
-                            addHeatmapFromClient(false);
-                        }
-
-                    }
-                }
-
-                function animateHeatmap()
-                {
-                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                        if (map.eventsOnMap[i].eventType === 'heatmap') {
-                            removeHeatmap(false);
-                            map.eventsOnMap.splice(i, 1);
-                        } else if (map.eventsOnMap[i].type === 'addHeatmap') {
-                            removeHeatmapColorLegend(i, false);
-                            map.eventsOnMap.splice(i, 1);
-                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                        }
-                    }
-                    if (animationFlag === false) {
-                        animationFlag = true;
-                    /*    $.event.trigger({
-                            type: "addHeatmap",
-                            target: "<?= $_REQUEST['name_w'] ?>",
-                            passedData: baseQuery,
-                            passedParams: passedParams,
-                            animationFlag: animationFlag
-                        });*/
-                        addHeatmapFromClient(animationFlag);
-                    } else {
-                        animationFlag = false;
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType === 'heatmap') {
-                                removeHeatmap(false);
-                                //    removeHeatmapColorLegend(i, false);
-                                map.eventsOnMap.splice(i, 1);
-                            } /*else if (map.eventsOnMap[i].type === 'addHeatmap') {
-                                                removeHeatmapColorLegend(i, false);
-                                                map.eventsOnMap.splice(i, 1);
-                                            }*/
-                        }
-                        addHeatmapFromClient(animationFlag);
-                    }
-                }
-
-                //   window.nextHeatmapPage = function()
-                function prevHeatmapPage()
-                {
-                    animationFlag = false;
-                    if (current_page < numHeatmapPages() - 1) {
-                        current_page++;
-                        changeHeatmapPage(current_page);
-
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType === 'heatmap') {
-                                removeHeatmap(false);
-                                map.eventsOnMap.splice(i, 1);
-                            } else if (map.eventsOnMap[i].type === 'addHeatmap') {
-                                removeHeatmapColorLegend(i, false);
-                                map.eventsOnMap.splice(i, 1);
-                            } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                            }
-                        }
-
-                        if (addMode === 'additive') {
-                         //   if (baseQuery.includes("heatmap.php")) {
-                                // addHeatmapToMap();
-                                addHeatmapFromClient(false);
-                         /*   } else {
-                               // addHeatmapFromWMSClient();        // TBD
-                            }*/
-                        }
-                        if (addMode === 'exclusive') {
-                            map.defaultMapRef.eachLayer(function (layer) {
-                                map.defaultMapRef.removeLayer(layer);
-                            });
-                            map.eventsOnMap.length = 0;
-
-                            //Remove WidgetAlarm active pins
-                            $.event.trigger({
-                                type: "removeAlarmPin",
-                            });
-                            //Remove WidgetEvacuationPlans active pins
-                            $.event.trigger({
-                                type: "removeEvacuationPlanPin",
-                            });
-                            //Remove WidgetEvents active pins
-                            $.event.trigger({
-                                type: "removeEventFIPin",
-                            });
-                            //Remove WidgetResources active pins
-                            $.event.trigger({
-                                type: "removeResourcePin",
-                            });
-                            //Remove WidgetOperatorEvents active pins
-                            $.event.trigger({
-                                type: "removeOperatorEventPin",
-                            });
-                            //Remove WidgetTrafficEvents active pins
-                            $.event.trigger({
-                                type: "removeTrafficEventPin",
-                            });
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
-                            }).addTo(map.defaultMapRef);
-
-                            addHeatmapFromClient(false);
-                        }
-
-                    }
-                }
-
-                function changeHeatmapPage(page)
-                {
-                    var btn_next = document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt");
-                    var btn_prev = document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt");
-
-                    // Validate page
-                    if (numHeatmapPages() > 1) {
-                        if (page < 1) page = 1;
-                        if (page > numHeatmapPages()) page = numHeatmapPages();
-
-                        if (current_page == 0) {
-                            btn_next.style.visibility = "hidden";
-                        } else {
-                            btn_next.style.visibility = "visible";
-                        }
-
-                        if (current_page == numHeatmapPages() - 1) {
-                            btn_prev.style.visibility = "hidden";
-                        } else {
-                            btn_prev.style.visibility = "visible";
-                        }
-                    }
-
-                    if (current_page < numHeatmapPages()) {
-                      //  $("#heatMapDescr").text(heatmapData[current_page].metadata[0].date);  // OLD-API
-                        $("#heatMapDescr").text(heatmapData[current_page].metadata.date);
-                        // heatmapData[current_page].metadata[0].date
-                    }
-                }
-
-                function numHeatmapPages()
-                {
-                //    return Math.ceil(heatmapData.length / records_per_page);
-                    return heatmapData.length;
-                }
-
-
-                function setOption(option, value, decimals) {
-                    if (baseQuery.includes("heatmap.php")) {
-                        if (option == "radius") {       // AGGIUNGERE SE FLAG è TRUE SI METTE IL VALORE DI CONFIG
-                            if (resetPageFlag) {
-                                if (resetPageFlag === true) {
-                                    current_radius = map.cfg['radius'];
-                                } else {
-                                    current_radius = Math.max(value, 2);
-                                }
-                            } else {
-                                current_radius = Math.max(value, 2);
-                            }
-                            map.cfg["radius"] = current_radius.toFixed(1);
-                            if (decimals) {
-                                $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_radius).toFixed(parseInt(decimals)));
-                                $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_radius).toFixed(parseInt(decimals)));
-                            }
-                        } else if (option == "maxOpacity") {
-                            if (resetPageFlag) {
-                                if (resetPageFlag === true) {
-                                    current_opacity = map.cfg['maxOpacity'];
-                                } else {
-                                    current_opacity = value;
-                                }
-                            } else {
-                                current_opacity = value;
-                            }
-                            map.cfg["maxOpacity"] = current_opacity;
-                            if (decimals) {
-                                $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                                $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                            }
-                        }
-                        // update the heatmap with the new configuration
-                        map.heatmapLayer.configure(map.cfg);
-                    } else {
-                        if (option == "maxOpacity") {
-                            if (wmsLayer) {
-                                wmsLayer.setOpacity(value);
-                                current_opacity = value;
-                                if (decimals) {
-                                    $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                                    $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                                }
-                            }
-                        }
-                        map.heatmapLayer.configure(map.cfg);
-                    }
-                }
-
-                function upSlider(color, step, decimals, max) {
-                    let value = $("#<?= $_REQUEST['name_w'] ?>_slider" + color).attr("value");
-                    if (parseFloat(parseFloat(value) + parseFloat(step)) <= max) {
-                        $("#<?= $_REQUEST['name_w'] ?>_range" + color).text(parseFloat(parseFloat(value) + parseFloat(step)).toFixed(parseInt(decimals)));
-                        document.getElementById("<?= $_REQUEST['name_w'] ?>_slider" + color).value = parseFloat(parseFloat(value) + parseFloat(step)).toFixed(parseInt(decimals));
-                        $("#<?= $_REQUEST['name_w'] ?>_slider" + color).trigger('change');
-                    }
-                }
-
-                function downSlider(color, step, decimals, min) {
-                    let value = $("#<?= $_REQUEST['name_w'] ?>_slider" + color).attr("value");
-                    if (parseFloat(parseFloat(value) - parseFloat(step)) >= min) {
-                        $("#<?= $_REQUEST['name_w'] ?>_range" + color).text(parseFloat(parseFloat(value) - parseFloat(step)).toFixed(parseInt(decimals)));
-                        document.getElementById("<?= $_REQUEST['name_w'] ?>_slider" + color).value = parseFloat(parseFloat(value) - parseFloat(step)).toFixed(parseInt(decimals));
-                        $("#<?= $_REQUEST['name_w'] ?>_slider" + color).trigger('change');
-                    }
-                }
-
-                function removeHeatmap(resetPageFlag) {
-                    if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
-                        if (resetPageFlag == true) {
-                            current_page = 0;     // CTR SE VA BENE BISOGNA DISTINGUERE IL CASO CHE SI STIA NAVIGANDO LA STESSA HEATMAP_NAME OPPURE UN'ALTRA NUOVA HEATMP_NAME
-                            current_radius = null;
-                            current_opacity = null;
-                            changeRadiusOnZoom = false;
-                            estimateRadiusFlag = false;
-                            estimatedRadius = null;
-                            wmsDatasetName = null;
-                        }
-                        map.testData = [];
-                        map.heatmapLayer.setData({data: []});
-                        map.defaultMapRef.removeLayer(map.heatmapLayer);
-                        if (resetPageFlag != true) {
-                            if(map.cfg["radius"] != current_radius) {
-                                setOption('radius', current_radius, 1);
-                            }
-                            if(map.cfg["maxOpacity"] != current_opacity) {
-                                setOption('maxOpacity', current_opacity, 2);
-                            }
-                        }
-                        map.defaultMapRef.removeControl(map.legendHeatmap);
-                        /*    if(map.heatmapLegendColors) {
-                                map.defaultMapRef.removeControl(map.heatmapLegendColors);
-                            }*/
-                    } else {    // NEW WMS HEATMAP
-                        if (resetPageFlag == true) {
-                            current_page = 0;
-                        }
-                        map.defaultMapRef.removeLayer(wmsLayer);
-                        map.defaultMapRef.removeControl(map.legendHeatmap);
-                    }
-                }
-
-                function removeHeatmapColorLegend(index, resetPageFlag) {
-                    if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
-                        if (resetPageFlag == true) {
-                            current_page = 0;     // CTR SE VA BENE BISOGNA DISTINGUERE IL CASO CHE SI STIA NAVIGANDO LA STESSA HEATMAP_NAME OPPURE UN'ALTRA NUOVA HEATMP_NAME
-                            current_radius = null;
-                            current_opacity = null;
-                            changeRadiusOnZoom = false;
-                            estimateRadiusFlag = false;
-                            estimatedRadius = null;
-                            wmsDatasetName = null;
-                        }
-                        map.testData = [];
-                        map.heatmapLayer.setData({data: []});
-                        map.defaultMapRef.removeLayer(map.heatmapLayer);
-                        if (resetPageFlag != true) {
-                            if(map.cfg["radius"] != current_radius) {
-                                setOption('radius', current_radius, 1);
-                            }
-                            if(map.cfg["maxOpacity"] != current_opacity) {
-                                setOption('maxOpacity', current_opacity, 2);
-                            }
-                        }
-                        map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
-                    } else {    // NEW WMS HEATMAP
-                        if (resetPageFlag == true) {
-                            current_page = 0;
-                        }
-                        map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
-                        map.defaultMapRef.removeLayer(wmsLayer);
-                    }
-                }
-
-                function updateChangeRadiusOnZoom(htmlElement) {
-                    if (htmlElement.checked) {
-                        changeRadiusOnZoom = true;
-                        $("#<?= $_REQUEST['name_w'] ?>_estimateRad").attr('disabled', false);
-                    } else {
-                        changeRadiusOnZoom = false;
-                        $("#<?= $_REQUEST['name_w'] ?>_estimateRad").attr('disabled', true);
-                    }
-                  //  $("#radiusEstCnt").toggle(htmlElement.checked);
-                }
-
-                function computeRadiusOnData(htmlElement) {
-                    if (htmlElement.checked) {
-                        estimateRadiusFlag = true;
-                        $("#<?= $_REQUEST['name_w'] ?>_changeRad").attr('disabled', true);
-                    } else {
-                        estimateRadiusFlag = false;
-                        $("#<?= $_REQUEST['name_w'] ?>_changeRad").attr('disabled', false);
-                    }
-                }
-
-                map.legendHeatmap.onAdd = function () {
-                    map.legendHeatmapDiv = L.DomUtil.create('div');
-                    map.legendHeatmapDiv.id = "heatmapLegend";
-                    // disable interaction of this div with map
-                    if (L.Browser.touch) {
-                        L.DomEvent.disableClickPropagation(map.legendHeatmapDiv);
-                        L.DomEvent.on(map.legendHeatmapDiv, 'mousewheel', L.DomEvent.stopPropagation);
-                    } else {
-                        L.DomEvent.on(map.legendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
-                    }
-                    map.legendHeatmapDiv.style.width = "340px";
-                    map.legendHeatmapDiv.style.fontWeight = "bold";
-                    map.legendHeatmapDiv.style.background = "#cccccc";
-                  //  map.legendHeatmapDiv.style.background = "rgba(255,255,255,0.5)";
-                    //map.legendHeatmap.style.background = "-webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#cccccc))";
-                    map.legendHeatmapDiv.style.padding = "10px";
-
-                    //categories = ['blue', 'cyan', 'green', 'yellowgreen', 'yellow', 'gold', 'orange', 'darkorange', 'tomato', 'orangered', 'red'];
-                    let colors = [];
-                    colors['blue'] = '#0000FF';
-                    colors['cyan'] = '#00FFFF';
-                    colors['green'] = '#008000';
-                    colors['yellowgreen'] = '#9ACD32';
-                    colors['yellow'] = '#FFFF00';
-                    colors['gold'] = '#FFD700';
-                    colors['orange'] = '#FFA500';
-                    colors['darkorange'] = '#FF8C00';
-                    colors['orangered'] = '#FF4500';
-                    colors['tomato'] = '#FF6347';
-                    colors['red'] = '#FF0000';
-                    let colors_value = [];
-                    colors_value['blue'] = '#0000FF';
-                    colors_value['cyan'] = '#00FFFF';
-                    colors_value['green'] = '#008000';
-                    colors_value['yellowgreen'] = '#9ACD32';
-                    colors_value['yellow'] = '#FFFF00';
-                    colors_value['gold'] = '#FFD700';
-                    colors_value['orange'] = '#FFA500';
-                    colors_value['darkorange'] = '#FF8C00';
-                    colors_value['tomato'] = '#FF6347';
-                    colors_value['orangered'] = '#FF4500';
-                    colors_value['red'] = '#FF0000';
-                 //  map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + map.testMetadata.metadata[0].mapName + '</div>';  // OLD-API
-                    map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
-                    if (!baseQuery.includes("heatmap.php")) {
-                        map.legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="on"></span><span class="off" style="color: black; text-align: right">24H</span><span class="on" style="color: black; text-align: right">Static</span></div></label></div></div>';
-                    } else {
-                        map.legendHeatmapDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div>';
-                    }
-                //    map.legendHeatmapDiv.innerHTML += '</div>';
-                    // radius
-                    if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
-                        map.legendHeatmapDiv.innerHTML +=
-                            '<div id="heatmapRadiusControl" style="margin-top:10px">' +
-                            '<div style="display:inline-block; vertical-align:super;">Radius (px):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' +
-                            '<div id= "<?= $_REQUEST['name_w'] ?>_downSlider_radius" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
-                      //  '<input id="<?= $_REQUEST['name_w'] ?>_sliderradius" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="0.0010" value="0.0008" step="0.00001">' +
-                      //  '<input id="<?= $_REQUEST['name_w'] ?>_sliderradius" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="1" max="' + estimatedRadius * 20 + '" value="' + current_radius + '" step="' + Math.floor((estimatedRadius * 20)/40) + '">' +
-                            '<input id="<?= $_REQUEST['name_w'] ?>_sliderradius" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="1" max="' + estimatedRadius * 30 + '" value="' + current_radius + '" step="2">' +
-                            '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_radius" style="display:inline-block; vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
-                            '<span id="<?= $_REQUEST['name_w'] ?>_rangeradius" style="display:inline-block; vertical-align:super;">' + current_radius + '</span>' +
-                            '</div>';
-                        }
-                    // max opacity
-                        map.legendHeatmapDiv.innerHTML +=
-                            '<div id="heatmapOpacityControl">' +
-                            '<div style="display:inline-block; vertical-align:super;">Max Opacity: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
-                            '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
-                            '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxOpacity" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="1" value="' + current_opacity + '" step="0.01">' +
-                            '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_opacity" style="display:inline-block;vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
-                            '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxOpacity" style="display:inline-block;vertical-align:super;">' + current_opacity + '</span>' +
-                            '</div>';
-
-                    // Heatmap Navigation Buottons (prev & next)
-                    map.legendHeatmapDiv.innerHTML +=
-                        '<div id="heatmapNavigationCnt">' +
-                     //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
-                     //   '<a href="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
-                     //   '<a onClick="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
-                     //   '<a onClick="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
-                        '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt" value="< Prev" style="float: left"/>' +
-                        '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt" value="Next >" style="float: right"/>' +
-                      //  '<div id="heatMapDescr" style="text-align: center">' + map.testMetadata.metadata[0].date + '</p>' +   // OLD-API
-                        '<div id="heatMapDescr" style="text-align: center">' + mapDate + '</p>' +
-                      //  '<a href="#" id="prevHeatmapPage">&lt; Prev</a>'
-                      //  '<a href="#" id="nextHeatmapPage">Next &gt;</a>'
-                        '</div>';
-                    if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
-                        map.legendHeatmapDiv.innerHTML +=
-                            '<div id="radiusCnt">' +
-                            // '<input type="checkbox" name="checkfield" id="g01-01" onchange="updateChangeRadiusOnZoom(this)"/> Change Radius on Zoom' +
-                            '<input type="checkbox" name="checkfield" id="<?= $_REQUEST['name_w'] ?>_changeRad"/> Change Radius on Zoom' +
-                            '</div>';
-                        map.legendHeatmapDiv.innerHTML +=
-                            '<div id="radiusEstCnt"">' +
-                            // '<input type="checkbox" name="checkfield" id="g01-01" onchange="updateChangeRadiusOnZoom(this)"/> Change Radius on Zoom' +
-                            '<input type="checkbox" name="checkfield" id="<?= $_REQUEST['name_w'] ?>_estimateRad" disabled="true"/> Estimate Radius Based on Data' +
-                            '</div>';
-                    }
-
-                    function checkLegend(){
-                     /*   if(document.getElementById("<?= $_REQUEST['name_w'] ?>_downSlider_radius") == null){
-                            setTimeout(checkLegend, 500);
-                        }
-                        else{   */
-                            if (baseQuery.includes("heatmap.php"))  {   // OLD HEATMAP
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_sliderradius").addEventListener("input",function(){  setOption('radius', this.value, 1)}, false);
-                            }
-
-                            //document.getElementById("<?= $_REQUEST['name_w'] ?>_downSlider_opacity").addEventListener("click", function(){ downSlider('maxOpacity', 0.1, 2, 0)}, false);
-                            document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function(){ setOption('maxOpacity', this.value, 2)}, false);
-                            //document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxOpacity").addEventListener("click", function(){ upSlider('maxOpacity', 0.01, 2, 0.8)}, false);
-
-                            if (!baseQuery.includes("heatmap.php")) {
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () { animateHeatmap()}, false);
-                            }
-                            document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").addEventListener("click", function(){ prevHeatmapPage()}, false);
-                            document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").addEventListener("click", function(){ nextHeatmapPage()}, false);
-
-                            if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_changeRad").addEventListener("change", function(){ updateChangeRadiusOnZoom(this)}, false);
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_estimateRad").addEventListener("change", function(){ computeRadiusOnData(this)}, false);
-                            }
-
-                            if (current_page == 0) {
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
-                            } else {
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "visible";
-                            }
-
-                            if (current_page == numHeatmapPages() - 1) {
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "hidden";
-                            } else {
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "visible";
-                            }
-                    //    }
-                    }
-                    setTimeout(checkLegend, 500);
-
-                    return map.legendHeatmapDiv;
-                };
 
                 //Risponditore ad eventi innescati dagli widget pilota (aggiungi evento, togli evento)
 
@@ -3439,7 +2866,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         dataForApi = "All";
                                         query = passedData.query;
                                     }
-                                } else if (passedData.query.includes("/iot/")) {
+                                } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
                                     query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
 
@@ -3557,7 +2984,23 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             fatherGeoJsonNode.type = "FeatureCollection";
                                         }
                                         else {
-                                            if (geoJsonData.hasOwnProperty("BusStops")) {
+                                            var countObjKeys = 0;
+                                            var objContainer = {};
+                                            Object.keys(geoJsonData).forEach(function (key) {
+                                                if (countObjKeys == 0) {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        fatherGeoJsonNode = geoJsonData[key];
+                                                    }
+                                                } else {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        if (geoJsonData[key].features) {
+                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                        }
+                                                    }
+                                                }
+                                                countObjKeys++;
+                                            });
+                                        /*    if (geoJsonData.hasOwnProperty("BusStops")) {
                                                 fatherGeoJsonNode = geoJsonData.BusStops;
                                             } else {
                                                 if (geoJsonData.hasOwnProperty("SensorSites")) {
@@ -3569,7 +3012,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         fatherGeoJsonNode = geoJsonData.Services;
                                                     }
                                                 }
-                                            }
+                                            }*/
                                         }
                                     }
                                     else if (queryType === "MyPOI")
@@ -3584,6 +3027,20 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     }
                                     else
                                     {
+                                     /*   var countObjKeys = 0;
+                                        var objContainer = {};
+                                        Object.keys(geoJsonData).forEach(function (key) {
+                                            if (countObjKeys == 0) {
+                                                if (geoJsonData.hasOwnProperty(key)) {
+                                                    fatherGeoJsonNode = geoJsonData[key];
+                                                }
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty(key)) {
+                                                    fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                }
+                                            }
+                                            countObjKeys++;
+                                        });*/
                                         if(geoJsonData.hasOwnProperty("BusStop"))
                                         {
                                             fatherGeoJsonNode = geoJsonData.BusStop;
@@ -4634,9 +4091,578 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 });
 
                 $(document).on('addHeatmap', function (event) {
-                    map.defaultMapRef.off('click');
                     if (event.target === map.mapName) {
+                        map.defaultMapRef.off('click');
                      //   window.addHeatmapToMap = function() {
+
+                        //Crea un layer per la heatmap (i dati gli verranno passati nell'evento)
+                        //heatmap configuration
+                        function initHeatmapLayer(heatmapRangeObject) {
+
+                            var heatmapCfg = {};
+                            var colorScale = {};
+                            var colorGradient = {};
+                            var gradientString = "";
+
+                            map.cfg = JSON.parse(heatmapRangeObject[0].leafletConfigJSON);
+                            //    map.cfg['blur'] = 0.85;
+
+                            if (current_radius != null) {
+                                map.cfg['radius'] = current_radius;
+                            }
+                            if (current_opacity != null) {
+                                map.cfg['maxOpacity'] = current_opacity;
+                            }
+
+                            $.ajax({
+                                url: "https://heatmap.snap4city.org/getColorMap.php?metricName=" + map.testMetadata.metadata.metricName,
+                                type: "GET",
+                                async: false,
+                                dataType: 'json',
+                                success: function (dataColorScale) {
+                                    colorScale = dataColorScale;
+                                },
+                                error: function (err) {
+                                    alert("Error in retrieving color map scale: ");
+                                    console.log(err);
+                                }
+                            });
+
+                            var minVal = colorScale[0].min;
+                            if (minVal === null || minVal === undefined) {
+                                minVal = heatmapRangeObject[0].range1Inf;
+                            }
+
+                            var maxVal = colorScale[colorScale.length-1].min;
+                            if (maxVal === null || maxVal === undefined) {
+                                maxVal = heatmapRangeObject[0].range10Inf;
+                            }
+                            colorGradient[0] = 0;
+                            colorGradient[colorScale.length-1] = 1;
+                            gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length-1)) + '", ';
+                            for (let k1 = 1; k1 < colorScale.length-1; k1++) {
+                                colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
+                                gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length-1)) + '", ';
+                            }
+                            gradientString = gradientString + '"' + colorGradient[colorScale.length-1] + '": "#' + fullColorHex(colorScale[colorScale.length-1].rgb.substring(1, colorScale[colorScale.length-1].rgb.length-1)) + '"}';
+                            map.cfg.gradient = JSON.parse(gradientString);
+                            map.heatmapLayer = new HeatmapOverlay(map.cfg);
+                            //map.heatmapLayer.zIndex = 20;
+                            //  map.legendHeatmap = L.control({position: 'topright'});
+                        }
+
+                        if(!map.legendHeatmap) {
+                            map.legendHeatmap = L.control({position: 'topright'});
+                        }
+
+                        function changeHeatmapPage(page)
+                        {
+                            var btn_next = document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt");
+                            var btn_prev = document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt");
+                            var heatmapDescr = document.getElementById("<?= $_REQUEST['name_w'] ?>_heatMapDescr");
+
+                            // Validate page
+                            if (numHeatmapPages() > 1) {
+                                if (page < 1) page = 1;
+                                if (page > numHeatmapPages()) page = numHeatmapPages();
+
+                                if (current_page == 0) {
+                                    btn_next.style.visibility = "hidden";
+                                } else {
+                                    btn_next.style.visibility = "visible";
+                                }
+
+                                if (current_page == numHeatmapPages() - 1) {
+                                    btn_prev.style.visibility = "hidden";
+                                } else {
+                                    btn_prev.style.visibility = "visible";
+                                }
+                            }
+
+                            if (current_page < numHeatmapPages()) {
+                                //  $("#heatMapDescr").text(heatmapData[current_page].metadata[0].date);  // OLD-API
+                            //    heatmapDescr.text(heatmapData[current_page].metadata.date);
+                                heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+                                // heatmapData[current_page].metadata[0].date
+                            }
+                        }
+
+                        function numHeatmapPages()
+                        {
+                            //    return Math.ceil(heatmapData.length / records_per_page);
+                            return heatmapData.length;
+                        }
+
+
+                        function setOption(option, value, decimals) {
+                            if (baseQuery.includes("heatmap.php")) {
+                                if (option == "radius") {       // AGGIUNGERE SE FLAG è TRUE SI METTE IL VALORE DI CONFIG
+                                    if (resetPageFlag) {
+                                        if (resetPageFlag === true) {
+                                            current_radius = map.cfg['radius'];
+                                        } else {
+                                            current_radius = Math.max(value, 2);
+                                        }
+                                    } else {
+                                        current_radius = Math.max(value, 2);
+                                    }
+                                    map.cfg["radius"] = current_radius.toFixed(1);
+                                    if (decimals) {
+                                        $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_radius).toFixed(parseInt(decimals)));
+                                        $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_radius).toFixed(parseInt(decimals)));
+                                    }
+                                } else if (option == "maxOpacity") {
+                                    if (resetPageFlag) {
+                                        if (resetPageFlag === true) {
+                                            current_opacity = map.cfg['maxOpacity'];
+                                        } else {
+                                            current_opacity = value;
+                                        }
+                                    } else {
+                                        current_opacity = value;
+                                    }
+                                    map.cfg["maxOpacity"] = current_opacity;
+                                    if (decimals) {
+                                        $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
+                                        $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
+                                    }
+                                }
+                                // update the heatmap with the new configuration
+                                map.heatmapLayer.configure(map.cfg);
+                            } else {
+                                if (option == "maxOpacity") {
+                                    if (wmsLayer) {
+                                        wmsLayer.setOpacity(value);
+                                        current_opacity = value;
+                                        if (decimals) {
+                                            $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
+                                            $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
+                                        }
+                                    }
+                                }
+                                map.heatmapLayer.configure(map.cfg);
+                            }
+                        }
+
+                        function upSlider(color, step, decimals, max) {
+                            let value = $("#<?= $_REQUEST['name_w'] ?>_slider" + color).attr("value");
+                            if (parseFloat(parseFloat(value) + parseFloat(step)) <= max) {
+                                $("#<?= $_REQUEST['name_w'] ?>_range" + color).text(parseFloat(parseFloat(value) + parseFloat(step)).toFixed(parseInt(decimals)));
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_slider" + color).value = parseFloat(parseFloat(value) + parseFloat(step)).toFixed(parseInt(decimals));
+                                $("#<?= $_REQUEST['name_w'] ?>_slider" + color).trigger('change');
+                            }
+                        }
+
+                        function downSlider(color, step, decimals, min) {
+                            let value = $("#<?= $_REQUEST['name_w'] ?>_slider" + color).attr("value");
+                            if (parseFloat(parseFloat(value) - parseFloat(step)) >= min) {
+                                $("#<?= $_REQUEST['name_w'] ?>_range" + color).text(parseFloat(parseFloat(value) - parseFloat(step)).toFixed(parseInt(decimals)));
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_slider" + color).value = parseFloat(parseFloat(value) - parseFloat(step)).toFixed(parseInt(decimals));
+                                $("#<?= $_REQUEST['name_w'] ?>_slider" + color).trigger('change');
+                            }
+                        }
+
+                        function removeHeatmap(resetPageFlag) {
+                            if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
+                                if (resetPageFlag == true) {
+                                    current_page = 0;     // CTR SE VA BENE BISOGNA DISTINGUERE IL CASO CHE SI STIA NAVIGANDO LA STESSA HEATMAP_NAME OPPURE UN'ALTRA NUOVA HEATMP_NAME
+                                    current_radius = null;
+                                    current_opacity = null;
+                                    changeRadiusOnZoom = false;
+                                    estimateRadiusFlag = false;
+                                    estimatedRadius = null;
+                                    wmsDatasetName = null;
+                                }
+                                map.testData = [];
+                                map.heatmapLayer.setData({data: []});
+                                map.defaultMapRef.removeLayer(map.heatmapLayer);
+                                if (resetPageFlag != true) {
+                                    if(map.cfg["radius"] != current_radius) {
+                                        setOption('radius', current_radius, 1);
+                                    }
+                                    if(map.cfg["maxOpacity"] != current_opacity) {
+                                        setOption('maxOpacity', current_opacity, 2);
+                                    }
+                                }
+                                map.defaultMapRef.removeControl(map.legendHeatmap);
+                                /*    if(map.heatmapLegendColors) {
+                                        map.defaultMapRef.removeControl(map.heatmapLegendColors);
+                                    }*/
+                            } else {    // NEW WMS HEATMAP
+                                if (resetPageFlag == true) {
+                                    current_page = 0;
+                                }
+                                map.defaultMapRef.removeLayer(wmsLayer);
+                                map.defaultMapRef.removeControl(map.legendHeatmap);
+                            }
+                        }
+
+                        function removeHeatmapColorLegend(index, resetPageFlag) {
+                            if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
+                                if (resetPageFlag == true) {
+                                    current_page = 0;     // CTR SE VA BENE BISOGNA DISTINGUERE IL CASO CHE SI STIA NAVIGANDO LA STESSA HEATMAP_NAME OPPURE UN'ALTRA NUOVA HEATMP_NAME
+                                    current_radius = null;
+                                    current_opacity = null;
+                                    changeRadiusOnZoom = false;
+                                    estimateRadiusFlag = false;
+                                    estimatedRadius = null;
+                                    wmsDatasetName = null;
+                                }
+                                map.testData = [];
+                                map.heatmapLayer.setData({data: []});
+                                map.defaultMapRef.removeLayer(map.heatmapLayer);
+                                if (resetPageFlag != true) {
+                                    if(map.cfg["radius"] != current_radius) {
+                                        setOption('radius', current_radius, 1);
+                                    }
+                                    if(map.cfg["maxOpacity"] != current_opacity) {
+                                        setOption('maxOpacity', current_opacity, 2);
+                                    }
+                                }
+                                map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
+                            } else {    // NEW WMS HEATMAP
+                                if (resetPageFlag == true) {
+                                    current_page = 0;
+                                }
+                                map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
+                                map.defaultMapRef.removeLayer(wmsLayer);
+                            }
+                        }
+
+                        function updateChangeRadiusOnZoom(htmlElement) {
+                            if (htmlElement.checked) {
+                                changeRadiusOnZoom = true;
+                                $("#<?= $_REQUEST['name_w'] ?>_estimateRad").attr('disabled', false);
+                            } else {
+                                changeRadiusOnZoom = false;
+                                $("#<?= $_REQUEST['name_w'] ?>_estimateRad").attr('disabled', true);
+                            }
+                            //  $("#radiusEstCnt").toggle(htmlElement.checked);
+                        }
+
+                        function computeRadiusOnData(htmlElement) {
+                            if (htmlElement.checked) {
+                                estimateRadiusFlag = true;
+                                $("#<?= $_REQUEST['name_w'] ?>_changeRad").attr('disabled', true);
+                            } else {
+                                estimateRadiusFlag = false;
+                                $("#<?= $_REQUEST['name_w'] ?>_changeRad").attr('disabled', false);
+                            }
+                        }
+
+                        map.legendHeatmap.onAdd = function () {
+                            map.legendHeatmapDiv = L.DomUtil.create('div');
+                            map.legendHeatmapDiv.id = "heatmapLegend";
+                            // disable interaction of this div with map
+                            if (L.Browser.touch) {
+                                L.DomEvent.disableClickPropagation(map.legendHeatmapDiv);
+                                L.DomEvent.on(map.legendHeatmapDiv, 'mousewheel', L.DomEvent.stopPropagation);
+                            } else {
+                                L.DomEvent.on(map.legendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
+                            }
+                            map.legendHeatmapDiv.style.width = "340px";
+                            map.legendHeatmapDiv.style.fontWeight = "bold";
+                            map.legendHeatmapDiv.style.background = "#cccccc";
+                            //  map.legendHeatmapDiv.style.background = "rgba(255,255,255,0.5)";
+                            //map.legendHeatmap.style.background = "-webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#cccccc))";
+                            map.legendHeatmapDiv.style.padding = "10px";
+
+                            //categories = ['blue', 'cyan', 'green', 'yellowgreen', 'yellow', 'gold', 'orange', 'darkorange', 'tomato', 'orangered', 'red'];
+                            let colors = [];
+                            colors['blue'] = '#0000FF';
+                            colors['cyan'] = '#00FFFF';
+                            colors['green'] = '#008000';
+                            colors['yellowgreen'] = '#9ACD32';
+                            colors['yellow'] = '#FFFF00';
+                            colors['gold'] = '#FFD700';
+                            colors['orange'] = '#FFA500';
+                            colors['darkorange'] = '#FF8C00';
+                            colors['orangered'] = '#FF4500';
+                            colors['tomato'] = '#FF6347';
+                            colors['red'] = '#FF0000';
+                            let colors_value = [];
+                            colors_value['blue'] = '#0000FF';
+                            colors_value['cyan'] = '#00FFFF';
+                            colors_value['green'] = '#008000';
+                            colors_value['yellowgreen'] = '#9ACD32';
+                            colors_value['yellow'] = '#FFFF00';
+                            colors_value['gold'] = '#FFD700';
+                            colors_value['orange'] = '#FFA500';
+                            colors_value['darkorange'] = '#FF8C00';
+                            colors_value['tomato'] = '#FF6347';
+                            colors_value['orangered'] = '#FF4500';
+                            colors_value['red'] = '#FF0000';
+                            //  map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + map.testMetadata.metadata[0].mapName + '</div>';  // OLD-API
+                            map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
+                            if (!baseQuery.includes("heatmap.php")) {
+                                map.legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                            } else {
+                                map.legendHeatmapDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div>';
+                            }
+                            //    map.legendHeatmapDiv.innerHTML += '</div>';
+                            // radius
+                            if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
+                                map.legendHeatmapDiv.innerHTML +=
+                                    '<div id="heatmapRadiusControl" style="margin-top:10px">' +
+                                    '<div style="display:inline-block; vertical-align:super;">Radius (px):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' +
+                                    '<div id= "<?= $_REQUEST['name_w'] ?>_downSlider_radius" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
+                                    //  '<input id="<?= $_REQUEST['name_w'] ?>_sliderradius" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="0.0010" value="0.0008" step="0.00001">' +
+                                    //  '<input id="<?= $_REQUEST['name_w'] ?>_sliderradius" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="1" max="' + estimatedRadius * 20 + '" value="' + current_radius + '" step="' + Math.floor((estimatedRadius * 20)/40) + '">' +
+                                    '<input id="<?= $_REQUEST['name_w'] ?>_sliderradius" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="1" max="' + estimatedRadius * 30 + '" value="' + current_radius + '" step="2">' +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_radius" style="display:inline-block; vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
+                                    '<span id="<?= $_REQUEST['name_w'] ?>_rangeradius" style="display:inline-block; vertical-align:super;">' + current_radius + '</span>' +
+                                    '</div>';
+                            }
+                            // max opacity
+                            map.legendHeatmapDiv.innerHTML +=
+                                '<div id="heatmapOpacityControl">' +
+                                '<div style="display:inline-block; vertical-align:super;">Max Opacity: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
+                                '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
+                                '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxOpacity" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="1" value="' + current_opacity + '" step="0.01">' +
+                                '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_opacity" style="display:inline-block;vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
+                                '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxOpacity" style="display:inline-block;vertical-align:super;">' + current_opacity + '</span>' +
+                                '</div>';
+
+                            // Heatmap Navigation Buottons (prev & next)
+                            map.legendHeatmapDiv.innerHTML +=
+                                '<div id="heatmapNavigationCnt">' +
+                                //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
+                                //   '<a href="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
+                                //   '<a onClick="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
+                                //   '<a onClick="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
+                                '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt" value="< Prev" style="float: left"/>' +
+                                '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt" value="Next >" style="float: right"/>' +
+                                //  '<div id="heatMapDescr" style="text-align: center">' + map.testMetadata.metadata[0].date + '</p>' +   // OLD-API
+                                '<div id="<?= $_REQUEST['name_w'] ?>_heatMapDescr" style="text-align: center">' + mapDate + '</p>' +
+                                //  '<a href="#" id="prevHeatmapPage">&lt; Prev</a>'
+                                //  '<a href="#" id="nextHeatmapPage">Next &gt;</a>'
+                                '</div>';
+                            if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
+                                map.legendHeatmapDiv.innerHTML +=
+                                    '<div id="radiusCnt">' +
+                                    // '<input type="checkbox" name="checkfield" id="g01-01" onchange="updateChangeRadiusOnZoom(this)"/> Change Radius on Zoom' +
+                                    '<input type="checkbox" name="checkfield" id="<?= $_REQUEST['name_w'] ?>_changeRad"/> Change Radius on Zoom' +
+                                    '</div>';
+                                map.legendHeatmapDiv.innerHTML +=
+                                    '<div id="radiusEstCnt"">' +
+                                    // '<input type="checkbox" name="checkfield" id="g01-01" onchange="updateChangeRadiusOnZoom(this)"/> Change Radius on Zoom' +
+                                    '<input type="checkbox" name="checkfield" id="<?= $_REQUEST['name_w'] ?>_estimateRad" disabled="true"/> Estimate Radius Based on Data' +
+                                    '</div>';
+                            }
+
+                            function checkLegend(){
+                                /*   if(document.getElementById("<?= $_REQUEST['name_w'] ?>_downSlider_radius") == null){
+                            setTimeout(checkLegend, 500);
+                        }
+                        else{   */
+                                if (baseQuery.includes("heatmap.php"))  {   // OLD HEATMAP
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_sliderradius").addEventListener("input",function(){  setOption('radius', this.value, 1)}, false);
+                                }
+
+                                //document.getElementById("<?= $_REQUEST['name_w'] ?>_downSlider_opacity").addEventListener("click", function(){ downSlider('maxOpacity', 0.1, 2, 0)}, false);
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function(){ setOption('maxOpacity', this.value, 2)}, false);
+                                //document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxOpacity").addEventListener("click", function(){ upSlider('maxOpacity', 0.01, 2, 0.8)}, false);
+
+                                if (!baseQuery.includes("heatmap.php")) {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () { animateHeatmap()}, false);
+                                }
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").addEventListener("click", function(){ prevHeatmapPage()}, false);
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").addEventListener("click", function(){ nextHeatmapPage()}, false);
+
+                                if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_changeRad").addEventListener("change", function(){ updateChangeRadiusOnZoom(this)}, false);
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_estimateRad").addEventListener("change", function(){ computeRadiusOnData(this)}, false);
+                                }
+
+                                if (current_page == 0) {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
+                                } else {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "visible";
+                                }
+
+                                if (current_page == numHeatmapPages() - 1) {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "hidden";
+                                } else {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "visible";
+                                }
+                                //    }
+                            }
+                            setTimeout(checkLegend, 500);
+
+                            return map.legendHeatmapDiv;
+                        };
+
+                        function nextHeatmapPage()
+                        {
+                            animationFlag = false;
+                            if (current_page > 0) {
+                                current_page--;
+                                changeHeatmapPage(current_page);
+
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                        removeHeatmap(false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                        removeHeatmapColorLegend(i, false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                        map.eventsOnMap.splice(i, 1);
+                                    }
+                                }
+
+                                if (addMode === 'additive') {
+                                    //   if (baseQuery.includes("heatmap.php")) {
+                                    // addHeatmapToMap();
+                                    addHeatmapFromClient(false);
+                                    /*   } else {
+                                           // addHeatmapFromWMSClient();        // TBD
+                                       }*/
+                                }
+                                if (addMode === 'exclusive') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+
+                                    //Remove WidgetAlarm active pins
+                                    $.event.trigger({
+                                        type: "removeAlarmPin",
+                                    });
+                                    //Remove WidgetEvacuationPlans active pins
+                                    $.event.trigger({
+                                        type: "removeEvacuationPlanPin",
+                                    });
+                                    //Remove WidgetEvents active pins
+                                    $.event.trigger({
+                                        type: "removeEventFIPin",
+                                    });
+                                    //Remove WidgetResources active pins
+                                    $.event.trigger({
+                                        type: "removeResourcePin",
+                                    });
+                                    //Remove WidgetOperatorEvents active pins
+                                    $.event.trigger({
+                                        type: "removeOperatorEventPin",
+                                    });
+                                    //Remove WidgetTrafficEvents active pins
+                                    $.event.trigger({
+                                        type: "removeTrafficEventPin",
+                                    });
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                        maxZoom: 18
+                                    }).addTo(map.defaultMapRef);
+
+                                    addHeatmapFromClient(false);
+                                }
+
+                            }
+                        }
+
+                        function animateHeatmap()
+                        {
+                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                    removeHeatmap(false);
+                                    map.eventsOnMap.splice(i, 1);
+                                } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                    removeHeatmapColorLegend(i, false);
+                                    map.eventsOnMap.splice(i, 1);
+                                } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                    map.eventsOnMap.splice(i, 1);
+                                }
+                            }
+                            if (animationFlag === false) {
+                                animationFlag = true;
+                                addHeatmapFromClient(animationFlag);
+                            } else {
+                                animationFlag = false;
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                        removeHeatmap(false);
+                                        //    removeHeatmapColorLegend(i, false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } /*else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                                removeHeatmapColorLegend(i, false);
+                                                map.eventsOnMap.splice(i, 1);
+                                            }*/
+                                }
+                                addHeatmapFromClient(animationFlag);
+                            }
+                        }
+
+                        //   window.nextHeatmapPage = function()
+                        function prevHeatmapPage()
+                        {
+                            animationFlag = false;
+                            if (current_page < numHeatmapPages() - 1) {
+                                current_page++;
+                                changeHeatmapPage(current_page);
+
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                        removeHeatmap(false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                        removeHeatmapColorLegend(i, false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                        map.eventsOnMap.splice(i, 1);
+                                    }
+                                }
+
+                                if (addMode === 'additive') {
+                                    //   if (baseQuery.includes("heatmap.php")) {
+                                    // addHeatmapToMap();
+                                    addHeatmapFromClient(false);
+                                    /*   } else {
+                                          // addHeatmapFromWMSClient();        // TBD
+                                       }*/
+                                }
+                                if (addMode === 'exclusive') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+
+                                    //Remove WidgetAlarm active pins
+                                    $.event.trigger({
+                                        type: "removeAlarmPin",
+                                    });
+                                    //Remove WidgetEvacuationPlans active pins
+                                    $.event.trigger({
+                                        type: "removeEvacuationPlanPin",
+                                    });
+                                    //Remove WidgetEvents active pins
+                                    $.event.trigger({
+                                        type: "removeEventFIPin",
+                                    });
+                                    //Remove WidgetResources active pins
+                                    $.event.trigger({
+                                        type: "removeResourcePin",
+                                    });
+                                    //Remove WidgetOperatorEvents active pins
+                                    $.event.trigger({
+                                        type: "removeOperatorEventPin",
+                                    });
+                                    //Remove WidgetTrafficEvents active pins
+                                    $.event.trigger({
+                                        type: "removeTrafficEventPin",
+                                    });
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                        maxZoom: 18
+                                    }).addTo(map.defaultMapRef);
+
+                                    addHeatmapFromClient(false);
+                                }
+
+                            }
+                        }
 
                         function prepareCustomMarkerForPointAndClick(dataObj, color1, color2)
                         {
@@ -4674,8 +4700,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             return popupText;
                         }
 
+                     //   $('#'+event.target).on('click', function(e) {
                         map.defaultMapRef.on('click', function(e) {
-                            if (map.testMetadata.metadata.file != 1) {
+                        //    if (map.testMetadata.metadata.file != 1) {
                                 var heatmapPointAndClickData = null;
                                 //  alert("Click on Map !");
                                 var pointAndClickCoord = e.latlng;
@@ -4692,20 +4719,22 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         popupData.longitude = pointAndClickLng;
                                         popupData.metricName = heatmapPointAndClickData.metricName;
                                         popupData.dataTime = heatmapPointAndClickData.date;
-                                        popupData.value = heatmapPointAndClickData.value.toFixed(5);
-                                        var customPointAndClickContent = prepareCustomMarkerForPointAndClick(popupData, "#C2D6D6", "#D1E0E0")
-                                        //   var pointAndClickPopup = L.popup(customPointAndClickMarker).openOn(map.defaultMapRef);
-                                        var popup = L.popup()
-                                            .setLatLng(pointAndClickCoord)
-                                            .setContent(customPointAndClickContent)
-                                            .openOn(map.defaultMapRef);
+                                        if (heatmapPointAndClickData.value) {
+                                            popupData.value = heatmapPointAndClickData.value.toFixed(5);
+                                            var customPointAndClickContent = prepareCustomMarkerForPointAndClick(popupData, "#C2D6D6", "#D1E0E0")
+                                            //   var pointAndClickPopup = L.popup(customPointAndClickMarker).openOn(map.defaultMapRef);
+                                            var popup = L.popup()
+                                                .setLatLng(pointAndClickCoord)
+                                                .setContent(customPointAndClickContent)
+                                                .openOn(map.defaultMapRef);
+                                        }
                                     },
                                     error: function (errorData) {
                                         console.log("Ko Point&Click Heatmap API");
                                         console.log(JSON.stringify(errorData));
                                     }
                                 });
-                            }
+                        //    }
                         });
 
                         function distance(lat1, lon1, lat2, lon2, unit) {   // unit: 'K' for Kilometers
@@ -4850,7 +4879,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 
                         function addHeatmapToMap() {
-                            animationFlag = false;
+                           animationFlag = false;
+                       //    current_page = 0;
                            try {
                                if (map.eventsOnMap.length > 0) {
                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
@@ -4861,7 +4891,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                            removeHeatmapColorLegend(i, true);
                                            map.eventsOnMap.splice(i, 1);
                                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                           map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                           if (map.eventsOnMap[i].type === 'trafficRealTimeDetails') {
+                                               map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                               map.eventsOnMap.splice(i, 1);
+                                           }
                                        }
                                    }
                                }
@@ -4949,7 +4982,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                   };  */
 
                                // Initialize array of Days from metadata
-                           //    daysArray = initDaysArray(heatmapData);
+                               daysArray = initDaysArray(heatmapData);
 
                                //heatmap recommender metadata
                                map.testMetadata = {
@@ -5005,6 +5038,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                }
 
                                                if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
+                                           //    if (event.passedData.includes("heatmap.php")) {
                                                    addHeatmapFromClient(false);
 
                                                } else {                    // NEW HEATMAP  FIRST INSTANTIATION
@@ -5149,8 +5183,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                            }
                         }
 
-                        window.addHeatmapFromClient = function(animationFlag) {
-                      //  function addHeatMapFromClient() {
+                     //   window.addHeatmapFromClient = function(animationFlag) {
+                        function addHeatmapFromClient(animationFlag) {
 
                             let heatmap = {};
                             heatmap.eventType = "heatmap";
@@ -5198,6 +5232,40 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             var parHeight = loadingText.height();
                             var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
                             loadingText.css("margin-top", parMarginTop + "px");
+
+                            let latitude_min = map.defaultMapRef.getBounds()._southWest.lat;
+                            let latitude_max = map.defaultMapRef.getBounds()._northEast.lat;
+                            let longitude_min = map.defaultMapRef.getBounds()._southWest.lng;
+                            let longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
+                            let query = "";
+                            if (event.passedData.includes("heatmap.php")) {    // OLD HEATMAP
+                                //  query = baseQuery + '&limit=30&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                                query = event.passedData + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                                query = query.replace("heatmap.php", "heatmap-metadata.php");       // CON QUESTA RIGA SI PREDONO SOLO I METADATI ORA !!!
+                                let metricNameSplit = event.passedData.split("metricName=")[1];
+                            } else {
+                                //  let metricNameSplit = baseQuery.split("metricName=")[1];
+                                //  heatmapMetricName = baseQuery.split("metricName=")[1];
+                                //    var datasetNameAux = baseQuery.split("https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=")[1];
+                                var datasetNameAux = event.passedData.split("WMS&layers=")[1];
+                                wmsDatasetName = datasetNameAux.split("&metricName=")[0];
+                                query = 'https://heatmap.snap4city.org/heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                            }
+
+                            heatmapData = null;
+                            $.ajax({
+                                url: query,
+                                async: false,
+                                cache: false,
+                                dataType: "text",
+                                success: function (data) {
+                                    heatmapData = JSON.parse(data);
+                                },
+                                error: function (errorData) {
+                                    console.log("Ko Heatmap");
+                                    console.log(JSON.stringify(errorData));
+                                }
+                            });
 
                             map.testMetadata = {
                                 //   max: 8,
@@ -5477,6 +5545,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     }, 1000);
                                                 } else {
                                                     // ANIMATION WMS HEATMAP
+
                                                     var animationCurrentDayTimestamp = [];
                                                     var animationCurrentDayFwdTimestamp = [];
                                                     var animationCurrentDayBckwdTimestamp = [];
@@ -5489,6 +5558,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         while (heatmapData[offsetFwd].metadata['date'].substring(0, 10) == day) {
                                                             animationCurrentDayFwdTimestamp.push(heatmapData[offsetFwd].metadata['date'].replace(" ", "T") + ".000Z");
                                                             offsetFwd++;
+                                                            if (offsetFwd > numHeatmapPages() -1) {
+                                                                break;
+                                                            }
                                                         }
                                                     } else if (current_page == numHeatmapPages() - 1) {
                                                         var offsetBckwd = current_page - 1;
@@ -5504,6 +5576,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         while (heatmapData[offsetFwd].metadata['date'].substring(0, 10) == day) {
                                                             animationCurrentDayFwdTimestamp.push(heatmapData[offsetFwd].metadata['date'].replace(" ", "T") + ".000Z");
                                                             offsetFwd++;
+                                                            if (offsetFwd > numHeatmapPages() -1) {
+                                                                break;
+                                                            }
                                                         }
                                                         var offsetBckwd = current_page - 1;
                                                         while (heatmapData[offsetBckwd].metadata['date'].substring(0, 10) == day) {
@@ -5524,6 +5599,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 //    animationCurrentDayTimestamp = animationCurrentDayTimestamp.reverse();
                                                     animationStringTimestamp = animationCurrentDayTimestamp.join(",");
                                                     //  }
+
 
                                                     var bboxJson = {};
                                                     $.ajax({
@@ -6055,6 +6131,74 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     }
                 });
                 $(document).on('removeHeatmap', function (event) {
+
+                    function removeHeatmap(resetPageFlag) {
+                        if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
+                            if (resetPageFlag == true) {
+                                current_page = 0;     // CTR SE VA BENE BISOGNA DISTINGUERE IL CASO CHE SI STIA NAVIGANDO LA STESSA HEATMAP_NAME OPPURE UN'ALTRA NUOVA HEATMP_NAME
+                                current_radius = null;
+                                current_opacity = null;
+                                changeRadiusOnZoom = false;
+                                estimateRadiusFlag = false;
+                                estimatedRadius = null;
+                                wmsDatasetName = null;
+                            }
+                            map.testData = [];
+                            map.heatmapLayer.setData({data: []});
+                            map.defaultMapRef.removeLayer(map.heatmapLayer);
+                            if (resetPageFlag != true) {
+                                if(map.cfg["radius"] != current_radius) {
+                                    setOption('radius', current_radius, 1);
+                                }
+                                if(map.cfg["maxOpacity"] != current_opacity) {
+                                    setOption('maxOpacity', current_opacity, 2);
+                                }
+                            }
+                            map.defaultMapRef.removeControl(map.legendHeatmap);
+                            /*    if(map.heatmapLegendColors) {
+                                    map.defaultMapRef.removeControl(map.heatmapLegendColors);
+                                }*/
+                        } else {    // NEW WMS HEATMAP
+                            if (resetPageFlag == true) {
+                                current_page = 0;
+                            }
+                            map.defaultMapRef.removeLayer(wmsLayer);
+                            map.defaultMapRef.removeControl(map.legendHeatmap);
+                        }
+                    }
+
+                    function removeHeatmapColorLegend(index, resetPageFlag) {
+                        if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
+                            if (resetPageFlag == true) {
+                                current_page = 0;     // CTR SE VA BENE BISOGNA DISTINGUERE IL CASO CHE SI STIA NAVIGANDO LA STESSA HEATMAP_NAME OPPURE UN'ALTRA NUOVA HEATMP_NAME
+                                current_radius = null;
+                                current_opacity = null;
+                                changeRadiusOnZoom = false;
+                                estimateRadiusFlag = false;
+                                estimatedRadius = null;
+                                wmsDatasetName = null;
+                            }
+                            map.testData = [];
+                            map.heatmapLayer.setData({data: []});
+                            map.defaultMapRef.removeLayer(map.heatmapLayer);
+                            if (resetPageFlag != true) {
+                                if(map.cfg["radius"] != current_radius) {
+                                    setOption('radius', current_radius, 1);
+                                }
+                                if(map.cfg["maxOpacity"] != current_opacity) {
+                                    setOption('maxOpacity', current_opacity, 2);
+                                }
+                            }
+                            map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
+                        } else {    // NEW WMS HEATMAP
+                            if (resetPageFlag == true) {
+                                current_page = 0;
+                            }
+                            map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
+                            map.defaultMapRef.removeLayer(wmsLayer);
+                        }
+                    }
+
                     if (event.target === map.mapName) {
                         for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
                             if (map.eventsOnMap[i].eventType === 'heatmap') {
@@ -6065,6 +6209,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 map.eventsOnMap.splice(i, 1);
                             } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
                                 map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                map.eventsOnMap.splice(i, 1);
+                                removeHeatmap(true);
                             }
                         }
                     }
@@ -6393,7 +6539,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             dataForApi = "All";
                                             query = map.eventsOnMap[i].query;
                                         }
-                                    } else if (map.eventsOnMap[i].query.includes("/iot/")) {
+                                    } else if (map.eventsOnMap[i].query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
                                         query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + map.eventsOnMap[i].query + "&format=json";
                                     } else {
                                         if (pattern.test(query)) {
@@ -6456,7 +6602,23 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         var fatherGeoJsonNode = null;
 
                                         if (queryType === "Default") {
-                                            if (geoJsonData.hasOwnProperty("BusStops")) {
+                                            var countObjKeys = 0;
+                                            var objContainer = {};
+                                            Object.keys(geoJsonData).forEach(function (key) {
+                                                if (countObjKeys == 0) {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        fatherGeoJsonNode = geoJsonData[key];
+                                                    }
+                                                } else {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        if (geoJsonData[key].features) {
+                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                        }
+                                                    }
+                                                }
+                                                countObjKeys++;
+                                            });
+                                        /*    if (geoJsonData.hasOwnProperty("BusStops")) {
                                                 fatherGeoJsonNode = geoJsonData.BusStops;
                                             }
                                             else {
@@ -6466,7 +6628,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 else {
                                                     fatherGeoJsonNode = geoJsonData.Services;
                                                 }
-                                            }
+                                            }*/
                                         }
                                         else if (queryType === "MyPOI")
                                         {
@@ -6479,7 +6641,23 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             fatherGeoJsonNode.type = "FeatureCollection";
                                         }
                                         else {
-                                            if (geoJsonData.hasOwnProperty("BusStop")) {
+                                            var countObjKeys = 0;
+                                            var objContainer = {};
+                                            Object.keys(geoJsonData).forEach(function (key) {
+                                                if (countObjKeys == 0) {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        fatherGeoJsonNode = geoJsonData[key];
+                                                    }
+                                                } else {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        if (geoJsonData[key].features) {
+                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                        }
+                                                    }
+                                                }
+                                                countObjKeys++;
+                                            });
+                                        /*    if (geoJsonData.hasOwnProperty("BusStop")) {
                                                 fatherGeoJsonNode = geoJsonData.BusStop;
                                             }
                                             else {
@@ -6494,7 +6672,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         fatherGeoJsonNode = geoJsonData.Services;
                                                     }
                                                 }
-                                            }
+                                            }*/
                                         }
 
                                         for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
@@ -7167,13 +7345,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 popupData.longitude = pointAndClickLng;
                                                 popupData.metricName = heatmapPointAndClickData.metricName;
                                                 popupData.dataTime = heatmapPointAndClickData.date;
-                                                popupData.value = heatmapPointAndClickData.value.toFixed(5);
-                                                var customPointAndClickContent = prepareCustomMarkerForPointAndClickFullScreen(popupData, "#C2D6D6", "#D1E0E0")
-                                                //   var pointAndClickPopup = L.popup(customPointAndClickMarker).openOn(map.defaultMapRef);
-                                                var popup = L.popup()
-                                                    .setLatLng(pointAndClickCoord)
-                                                    .setContent(customPointAndClickContent)
-                                                    .openOn(fullscreendefaultMapRef);
+                                                if (heatmapPointAndClickData.value) {
+                                                    popupData.value = heatmapPointAndClickData.value.toFixed(5);
+                                                    var customPointAndClickContent = prepareCustomMarkerForPointAndClickFullScreen(popupData, "#C2D6D6", "#D1E0E0")
+                                                    //   var pointAndClickPopup = L.popup(customPointAndClickMarker).openOn(map.defaultMapRef);
+                                                    var popup = L.popup()
+                                                        .setLatLng(pointAndClickCoord)
+                                                        .setContent(customPointAndClickContent)
+                                                        .openOn(fullscreendefaultMapRef);
+                                                }
                                             },
                                             error: function (errorData) {
                                                 console.log("Ko Point&Click Heatmap API");
@@ -8042,10 +8222,44 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     }
                                 }
 
+                                function animateFullscreenHeatmap()
+                                {
+                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                        if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                            removeHeatmap(false);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                            removeHeatmapColorLegend(i, false);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
+                                    }
+                                    if (animationFlag === false) {
+                                        animationFlag = true;
+                                        addHeatmapFromFullscreenClient(animationFlag);
+                                    } else {
+                                        animationFlag = false;
+                                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                            if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                                removeHeatmap(false);
+                                                //    removeHeatmapColorLegend(i, false);
+                                                map.eventsOnMap.splice(i, 1);
+                                            } /*else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                                removeHeatmapColorLegend(i, false);
+                                                map.eventsOnMap.splice(i, 1);
+                                            }*/
+                                        }
+                                        addHeatmapFromFullscreenClient(animationFlag);
+                                    }
+                                }
+
                                 function changeHeatmapPage(page)
                                 {
                                     var btn_next = document.getElementById("<?= $_REQUEST['name_w'] ?>_modalLinkOpen_nextButt");
                                     var btn_prev = document.getElementById("<?= $_REQUEST['name_w'] ?>_modalLinkOpen_prevButt");
+                                    var heatmapDescr = document.getElementById("<?= $_REQUEST['name_w'] ?>_modalLinkOpen_heatMapDescr");
 
                                     // Validate page
                                     if (numHeatmapPages() > 1) {
@@ -8067,7 +8281,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                     if (current_page < numHeatmapPages()) {
                                       //  $("#modalLinkOpenHeatMapDescr").text(heatmapData[current_page].metadata[0].date); // OLD-API
-                                        $("#modalLinkOpenHeatMapDescr").text(heatmapData[current_page].metadata.date);
+                                     //   heatmapDescr.text(heatmapData[current_page].metadata.date);
+                                        heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
                                         // heatmapData[current_page].metadata[0].date
                                     }
                                 }
@@ -8427,6 +8642,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 //    legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + map.testMetadata.metadata[0].mapName + + '</div>'; // OLD-API
                                     legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
                                     legendHeatmapDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls"); ?>' + '</div>';
+                                  /*  if (!baseQuery.includes("heatmap.php")) {
+                                        legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_modalLinkOpen_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_modalLinkOpen_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                                    } else {
+                                        legendHeatmapDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div>';
+                                    }*/
                                     // radius
                                     if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
                                         legendHeatmapDiv.innerHTML +=
@@ -8454,7 +8674,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         '<input type="button" id="<?= $_REQUEST['name_w'] ?>_modalLinkOpen_prevButt" value="< Prev" style="float: left"/>' +
                                         '<input type="button" id="<?= $_REQUEST['name_w'] ?>_modalLinkOpen_nextButt" value="Next >" style="float: right"/>' +
                                       //  '<div id="modalLinkOpenHeatMapDescr" style="text-align: center">' + map.testMetadata.metadata[0].date + '</p>' +  // OLD-API
-                                        '<div id="modalLinkOpenHeatMapDescr" style="text-align: center">' + mapDate + '</p>' +
+                                        '<div id="<?= $_REQUEST['name_w'] ?>_modalLinkOpen_heatMapDescr" style="text-align: center">' + mapDate + '</p>' +
                                         '</div>';
                                     if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
                                         legendHeatmapDiv.innerHTML +=
@@ -8478,6 +8698,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_modalLinkOpen_sliderradius").addEventListener("input",function(){  setOption('radius', this.value, 1)}, false);
                                             }
                                             document.getElementById("<?= $_REQUEST['name_w'] ?>_modalLinkOpen_slidermaxOpacity").addEventListener("input", function(){ setOption('maxOpacity', this.value, 2)}, false);
+
+                                            if (!baseQuery.includes("heatmap.php")) {
+                                                document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () { animateFullscreenHeatmap()}, false);
+                                            }
 
                                             document.getElementById("<?= $_REQUEST['name_w'] ?>_modalLinkOpen_prevButt").addEventListener("click", function(){ prevHeatmapPage()}, false);
                                             document.getElementById("<?= $_REQUEST['name_w'] ?>_modalLinkOpen_nextButt").addEventListener("click", function(){ nextHeatmapPage()}, false);
