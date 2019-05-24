@@ -446,3 +446,57 @@ function isValidDate(d) {
         return false;
     return !isNaN(d.getTime());
 }
+
+
+function compareJsonElementsByKeyValues(key, order='asc') {
+    console.log("JSON Order Function.");
+    return function(a, b) {
+       /* if(!a.hasOwnProperty(key) ||
+            !b.hasOwnProperty(key)) {
+            return 0;
+        }*/
+
+        let varA, varB = null;
+
+        if(a.hasOwnProperty(key)) {
+            varA = (typeof a[key] === 'string') ?
+                a[key].toUpperCase() : a[key];
+            if (!isNaN(parseInt(varA))) {
+                varA = parseInt(varA);
+            } else {
+                /* if (a['desc']) {
+                     varA = a['desc'].toUpperCase();
+                 }*/
+                varA = 100;
+            }
+        } else {
+            varA = 100;
+        }
+
+        if(b.hasOwnProperty(key)) {
+            varB = (typeof b[key] === 'string') ?
+                b[key].toUpperCase() : b[key];
+            if (!isNaN(parseInt(varB))) {
+                varB = parseInt(varB);
+            } else {
+                /* if (b['desc']) {
+                     varB = b['desc'].toUpperCase();
+                 }*/
+                varB = 100;
+            }
+        } else {
+            varB = 100;
+        }
+
+        let comparison = 0;
+        if (varA > varB) {
+            comparison = 1;
+        } else if (varA < varB) {
+            comparison = -1;
+        }
+        return (
+            (order == 'desc') ?
+                (comparison * -1) : comparison
+        );
+    };
+}
