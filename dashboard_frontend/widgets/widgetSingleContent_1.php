@@ -106,7 +106,7 @@
         });
         
         $(document).off('mouseOutLastDataFromExternalContentGis_' + widgetName);
-        $(document).on('mouseOutLastDataFromExternalContentGis_' + widgetName, function(event) 
+        $(document).on('mouseOutLastDataFromExternalContentGis_' + widgetName, function(event)
         {
             $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_titleDiv").html(widgetTitle);
             $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
@@ -460,7 +460,10 @@
                     $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_chartContainer").hide();
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_noDataAlert').show();
                 }
-            } 
+            }
+
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_titleDiv").html(widgetTitle);
+
         }
         
         function resizeWidget()
@@ -712,7 +715,7 @@
                                         //    udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
                                         } else if (data.Sensor) {
                                             var originalMetricType = data.Sensor.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                         //   udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                        //    udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
                                         }
                                         
                                         metricData = {  
@@ -846,7 +849,7 @@
                                                 }
                                             }
 
-                                            //udm = data[0].variableUnit;
+                                        //    udm = data[0].variableUnit;
 
                                             metricData = {  
                                                 data:[  
@@ -907,9 +910,9 @@
                                             console.log("Error in data retrieval");
                                             if(firstLoad !== false)
                                             {
-                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                               $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_chartContainer").hide();
+                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_loading").hide();
+                                               $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_noDataAlert').show();
                                             }
                                         }
                                     },
@@ -920,9 +923,9 @@
                                         console.log(JSON.stringify(errorData));
                                         if(firstLoad !== false)
                                         {
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                           $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_chartContainer").hide();
+                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_loading").hide();
+                                           $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_noDataAlert').show();
                                         }
                                     }
                                 });
@@ -961,7 +964,7 @@
                                                 }
                                             }
 
-                                            //udm = data[0].variableUnit;
+                                        //    udm = data[0].variableUnit;
 
                                             metricData = {
                                                 data:[
@@ -1022,9 +1025,9 @@
                                             console.log("Error in data retrieval");
                                             if(firstLoad !== false)
                                             {
-                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_chartContainer").hide();
+                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_loading").hide();
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_noDataAlert').show();
                                             }
                                         }
                                     },
