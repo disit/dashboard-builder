@@ -3542,7 +3542,7 @@
                                         dataForApi = "All";
                                         query = event.query;
                                     }
-                                } else if (event.query.includes("/iot/")) {
+                                } else if (event.query.includes("/iot/") && !event.query.includes("/api/v1/")) {
                                     query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + event.query + "&format=json";
                                 } else {
 
@@ -3629,7 +3629,23 @@
                                             fatherGeoJsonNode.type = "FeatureCollection";
                                         }
                                         else {
-                                            if (geoJsonData.hasOwnProperty("BusStops")) {
+                                            var countObjKeys = 0;
+                                            var objContainer = {};
+                                            Object.keys(geoJsonData).forEach(function (key) {
+                                                if (countObjKeys == 0) {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        fatherGeoJsonNode = geoJsonData[key];
+                                                    }
+                                                } else {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        if (geoJsonData[key].features) {
+                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                        }
+                                                    }
+                                                }
+                                                countObjKeys++;
+                                            });
+                                        /*    if (geoJsonData.hasOwnProperty("BusStops")) {
                                                 fatherGeoJsonNode = geoJsonData.BusStops;
                                             } else {
                                                 if (geoJsonData.hasOwnProperty("SensorSites")) {
@@ -3641,7 +3657,7 @@
                                                         fatherGeoJsonNode = geoJsonData.Services;
                                                     }
                                                 }
-                                            }
+                                            }   */
                                         }
                                     }
                                     else if (queryType === "MyPOI")
@@ -3656,6 +3672,20 @@
                                     }
                                     else
                                     {
+                                      /*  var countObjKeys = 0;
+                                        var objContainer = {};
+                                        Object.keys(geoJsonData).forEach(function (key) {
+                                            if (countObjKeys == 0) {
+                                                if (geoJsonData.hasOwnProperty(key)) {
+                                                    fatherGeoJsonNode = geoJsonData[key];
+                                                }
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty(key)) {
+                                                    fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                }
+                                            }
+                                            countObjKeys++;
+                                        });*/
                                         if(geoJsonData.hasOwnProperty("BusStop"))
                                         {
                                             fatherGeoJsonNode = geoJsonData.BusStop;
