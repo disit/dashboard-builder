@@ -75,6 +75,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         //Definizioni di funzione
         function populateWidget() {
             var queries = JSON.parse(widgetProperties.param.parameters).queries;
+            queries.sort(compareJsonElementsByKeyValues('rowOrder'));
             var desc, query, color1, color2, targets, display = null;
             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
 
@@ -365,17 +366,20 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             if ($(this).attr("data-onMap") === "false") {
 
                                 var thisQuery = $(this).attr("data-query");
+                                var sourceSelector = event.currentTarget.offsetParent;
                                 $('.gisPinLink').each(function( index ) {
                                     if(($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org")) && $(this).attr("data-query") != thisQuery) {
-                                        if ($(this).attr("data-onMap") === "true") {
-                                            $(this).attr("data-onMap", "false");
-                                            if ($(this).attr("data-symbolMode") === 'auto') {
-                                                $(this).find("i.gisPinIcon").html("navigation");
-                                                $(this).find("i.gisPinIcon").css("color", "black");
-                                                $(this).find("i.gisPinIcon").css("text-shadow", "none");
-                                            } else {
-                                                $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
-                                                $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
+                                        if (sourceSelector == $(this).offsetParent()[0]) {
+                                            if ($(this).attr("data-onMap") === "true") {
+                                                $(this).attr("data-onMap", "false");
+                                                if ($(this).attr("data-symbolMode") === 'auto') {
+                                                    $(this).find("i.gisPinIcon").html("navigation");
+                                                    $(this).find("i.gisPinIcon").css("color", "black");
+                                                    $(this).find("i.gisPinIcon").css("text-shadow", "none");
+                                                } else {
+                                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
+                                                }
                                             }
                                         }
                                     }
@@ -430,8 +434,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                             if ($(this).attr("data-onMap") === "false") {
                                 $(this).attr("data-onMap", "true");
-                                $(this).hide();
-                                $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
+                            //    $(this).hide();
+                            //    $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
                                 addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-queryType"));
                             }
                             else {
@@ -645,8 +649,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     populateWidget();
 
                     setTimeout(function () {
-                        for (var i = 0; i < JSON.parse(widgetProperties.param.parameters).queries.length; i++) {
-                            defaultOption = JSON.parse(widgetProperties.param.parameters).queries[i].defaultOption;
+                        var sortedQueries = JSON.parse(widgetProperties.param.parameters).queries;
+                        sortedQueries.sort(compareJsonElementsByKeyValues('rowOrder'));
+                        for (var i = 0; i < sortedQueries.length; i++) {
+                            defaultOption = sortedQueries[i].defaultOption;
                             if (defaultOption) {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(i).trigger('click');
                                 defaultOptionUsed = true;
@@ -655,7 +661,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
 
                         if (!defaultOptionUsed) {
-                            JSON.parse(widgetProperties.param.parameters).queries[0].defaultOption = true;
+                            sortedQueries[0].defaultOption = true;
                             setTimeout(function() {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(0).trigger('click');
                             //    triggerSelectorClickOnMapLoad(0);     // se si usa questa direttiva (test) commentare l'istruzione sopra
