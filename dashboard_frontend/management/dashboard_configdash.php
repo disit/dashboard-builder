@@ -583,7 +583,7 @@
         </div>
         <div id="logos" class="footerLogos" data-html2canvas-ignore>
             <a title="Logout from this dashboard" href="#" class="footerLogo"><i id="viewLogoutBtn" class="fa fa-sign-out"></i></a>
-            <a title="Disit" href="https://www.disit.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" /></a>
+            <a title="Disit" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" /></a>
         </div>
     </div>
         
@@ -6910,6 +6910,9 @@
                         {
                             if(array_metrics[j]['id'] == str) 
                             {
+                                if (str == "Selector") {
+                                    $("#specificWidgetPropertiesDiv").css("width", "100%");
+                                }
                                 value_text += "Description: " + array_metrics[j]['desc'] + ".\n";
                                 value_text += "Metric Typology: " + array_metrics[j]['type'] + ".\n";
                                 metricType = array_metrics[j]['type'];
@@ -7730,7 +7733,7 @@
                                 //Nuova riga
                                 //Contenitore per tabella delle query
                                 var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selectorWeb' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Link</td><td>Color1</td><td>Color2</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selectorWeb' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Link</td><td>Color1</td><td>Color2</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                 addGisQueryTableContainer.append(addGisQueryTable);
                                 $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
                                 $("#addGisQueryTable i.fa-plus").click(addGisQuery);
@@ -7860,7 +7863,7 @@
                                 //Nuova riga
                                 //Contenitore per tabella delle query
                                 var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                 addGisQueryTableContainer.append(addGisQueryTable);
                                 $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
                                 $("#addGisQueryTable i.fa-plus").click(addGisQuery);
@@ -7982,7 +7985,7 @@
                                     //Nuova riga
                                     //Contenitore per tabella delle query
                                     var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                    var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                    var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                     addGisQueryTableContainer.append(addGisQueryTable);
                                     $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
                                     $("#addGisQueryTable i.fa-plus").click(addGisQuery);
@@ -18676,10 +18679,12 @@
                                         //Nuova riga
                                         //Contenitore per tabella delle query
                                         var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                        var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorWeb' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Link</td><td>Color1</td><td>Color2</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                        var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorWeb' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Link</td><td>Color1</td><td>Color2</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                         editGisQueryTableContainer.append(editGisQueryTable);
                                         $("#specificParamsM").append(editGisQueryTableContainer);
-                                        
+
+                                        editGisParameters.queries.sort(compareJsonElementsByKeyValues('rowOrder'));
+
                                         for(var i = 0; i < editGisParameters.queries.length; i++)
                                         {
                                             newTableRow = $('<tr></tr>');
@@ -18869,6 +18874,31 @@
                                             newTableRow.find('div.colorPicker').colorpicker({color: editGisParameters.queries[i].color2, format: "rgba"});
                                             newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
 
+                                            var rowOrder = editGisParameters.queries[i].rowOrder;
+                                            /*    if (rowOrder != null && rowOrder != null) {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
+                                                } else {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
+                                                }
+                                                newTableRow.append(newTableCell);
+                                                newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
+
+                                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
+                                            newTableCell.find('a').editable({
+                                                emptytext: "Empty",
+                                                display: function (value, response) {
+                                                    if (value.length > 10) {
+                                                        $(this).html(value.substring(0, 10) + "...");
+                                                    }
+                                                    else {
+                                                        $(this).html(value);
+                                                    }
+                                                },
+                                                value: editGisParameters.queries[i].rowOrder
+                                            });
+
+                                            newTableRow.append(newTableCell);
+
                                             newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
                                             newTableCell.find('i').click(delGisQueryM);
                                             newTableRow.append(newTableCell);
@@ -19006,10 +19036,12 @@
                                         //Nuova riga
                                         //Contenitore per tabella delle query
                                         var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                        var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                        var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                         editGisQueryTableContainer.append(editGisQueryTable);
                                         $("#specificParamsM").append(editGisQueryTableContainer);
-                                        
+
+                                        editGisParameters.queries.sort(compareJsonElementsByKeyValues('rowOrder'));
+
                                         for(var i = 0; i < editGisParameters.queries.length; i++)
                                         {
                                             newTableRow = $('<tr></tr>');
@@ -19210,6 +19242,31 @@
                                             newTableCell.find('select').val(editGisParameters.queries[i].display);
                                             newTableCell.find('select').on('change', editGisUpdateParams);
 
+                                            var rowOrder = editGisParameters.queries[i].rowOrder;
+                                            /*    if (rowOrder != null && rowOrder != null) {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
+                                                } else {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
+                                                }
+                                                newTableRow.append(newTableCell);
+                                                newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
+
+                                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
+                                            newTableCell.find('a').editable({
+                                                emptytext: "Empty",
+                                                display: function (value, response) {
+                                                    if (value.length > 10) {
+                                                        $(this).html(value.substring(0, 10) + "...");
+                                                    }
+                                                    else {
+                                                        $(this).html(value);
+                                                    }
+                                                },
+                                                value: editGisParameters.queries[i].rowOrder
+                                            });
+
+                                            newTableRow.append(newTableCell);
+
                                             newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
                                             newTableCell.find('i').click(delGisQueryM);
                                             newTableRow.append(newTableCell);
@@ -19278,7 +19335,8 @@
                                             newSelect = $('<select name="editGisGeolocationWidgets" class="form-control" id="editGisGeolocationWidgets" multiple></select>');
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) {
+                                            //    if ($(this).attr("id").includes("widgetMap") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) {
+                                                if ($(this).attr("id").includes("widgetMap")) {
                                                     widgetId = $(this).attr("id");
                                                     widgetTitle = $(this).find("div.titleDiv").html();
                                                     newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
@@ -19341,10 +19399,12 @@
                                             //Nuova riga
                                             //Contenitore per tabella delle query
                                             var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                             editGisQueryTableContainer.append(editGisQueryTable);
                                             $("#specificParamsM").append(editGisQueryTableContainer);
 
+                                            editGisParameters.queries.sort(compareJsonElementsByKeyValues('rowOrder'));
+                                            
                                             for (var i = 0; i < editGisParameters.queries.length; i++) {
                                                 newTableRow = $('<tr></tr>');
 
@@ -19534,6 +19594,31 @@
                                                 newTableRow.append(newTableCell);
                                                 newTableCell.find('select').val(editGisParameters.queries[i].display);
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
+
+                                                var rowOrder = editGisParameters.queries[i].rowOrder;
+                                            /*    if (rowOrder != null && rowOrder != null) {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
+                                                } else {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
+                                                }
+                                                newTableRow.append(newTableCell);
+                                                newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
+
+                                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
+                                                newTableCell.find('a').editable({
+                                                    emptytext: "Empty",
+                                                    display: function (value, response) {
+                                                        if (value.length > 10) {
+                                                            $(this).html(value.substring(0, 10) + "...");
+                                                        }
+                                                        else {
+                                                            $(this).html(value);
+                                                        }
+                                                    },
+                                                    value: editGisParameters.queries[i].rowOrder
+                                                });
+
+                                                newTableRow.append(newTableCell);
 
                                                 newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
                                                 newTableCell.find('i').click(delGisQueryM);
