@@ -114,8 +114,9 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
     $n = $resArray['results']['bindings'][$key]['n']['value'];   // $n --> service name
 
   //  if (in_array($n, $actSensArray)) {
-        echo($count . " - IOT ACTUATOR: " . $s . ", MEASURE: " . $a . "\n");
+     //   echo($count . " - IOT ACTUATOR: " . $s . ", MEASURE: " . $a . "\n");
         $a = $resArray['results']['bindings'][$key]['a']['value'];   // $a --> attribute
+        echo($count . " - IOT ACTUATOR: " . $s . ", MEASURE: " . $a . "\n");
         if (strpos($a, "actuatorcanceller") === false && strpos($a, "actuatorCanceller") === false && strpos($a, "actuatordeleted") === false && strpos($a, "actuatorDeleted") === false && strpos($a, "actuatordeletiondate") === false && strpos($a, "actuatorDeletionDate") === false && strpos($a, "creationdate") === false && strpos($a, "creationDate") === false && strpos($a, "entitycreator") === false && strpos($a, "entityCreator") === false && strpos($a, "entitydesc") === false && strpos($a, "entityDesc") === false) {
             $dt = $resArray['results']['bindings'][$key]['dt']['value'];   // $dt --> data type
             $serviceType = $resArray['results']['bindings'][$key]['serviceType']['value'];
