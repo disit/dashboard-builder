@@ -1474,7 +1474,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         
         <div id="logos" class="footerLogos">
             <!--<a title="Logout from this dashboard" href="#" class="footerLogo"><i id="viewLogoutBtn" class="fa fa-sign-out"></i></a>-->
-            <a title="Disit" href="https://www.disit.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" /></a>
+            <a title="Disit" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" /></a>
             <div id="embedAutoLogoContainer">
                 <a title="Km4City" href="https://www.km4city.org" target="_new"><img id="embedAutoLogo" src="../img/PoweredByKm4City1Line.png" /></a>
             </div>
