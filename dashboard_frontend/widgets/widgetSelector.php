@@ -75,6 +75,7 @@
         function populateWidget()
         {
             var queries = JSON.parse(widgetProperties.param.parameters).queries;
+            queries.sort(compareJsonElementsByKeyValues('rowOrder'));
             //MODIFICHE
             var mapTarget = JSON.parse(widgetProperties.param.parameters).targets;
             var mapTargetid= mapTarget[0];
@@ -362,8 +363,8 @@
                         if($(this).attr("data-onMap") === "false")
                         {
                            $(this).attr("data-onMap", "true");
-                           $(this).hide();
-                           $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
+                        //   $(this).hide();
+                        //   $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
                            addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-queryType")); 
                         }
                         else
@@ -587,9 +588,11 @@
                     populateWidget();
                     
                     setTimeout(function(){
-                        for(var i = 0; i < JSON.parse(widgetProperties.param.parameters).queries.length; i++)
+                        var sortedQueries = JSON.parse(widgetProperties.param.parameters).queries;
+                        sortedQueries.sort(compareJsonElementsByKeyValues('rowOrder'));
+                        for(var i = 0; i < sortedQueries.length; i++)
                         {
-                            defaultOption = JSON.parse(widgetProperties.param.parameters).queries[i].defaultOption;
+                            defaultOption = sortedQueries[i].defaultOption;
                             if(defaultOption)
                             {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(i).trigger('click');
@@ -599,7 +602,7 @@
                         
                         if(!defaultOptionUsed)
                         {
-                            JSON.parse(widgetProperties.param.parameters).queries[0].defaultOption = true;
+                            sortedQueries[0].defaultOption = true;
                             setTimeout(function() {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(0).trigger('click');
                             }, 700);
