@@ -3778,6 +3778,8 @@
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-latitude', data[18]);
+                $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
             },
             "columnDefs": [
@@ -4475,6 +4477,8 @@
             var uniqueNameId = $(this).attr("data-unique_name_id");
             var instanceUri = $(this).attr("data-instance_uri");
             var getInstances = $(this).attr("data-get_instances");
+            var latitudeWiz = $(this).attr("data-latitude");
+            var longitudeWiz = $(this).attr("data-longitude");
             var northEastPointLat = bounds._northEast.lat;
             var northEastPointLng = bounds._northEast.lng;
             var southWestPointLat = bounds._southWest.lat;
@@ -4511,6 +4515,7 @@
                         async: true,
                         dataType: 'json',
                         data: {},
+                        uniqueNameId: uniqueNameId,
                         success: function (geoData)
                         {
                             var fatherNode = null;
@@ -4554,6 +4559,7 @@
                         async: true,
                         dataType: 'json',
                         data: {},
+                        uniqueNameId: uniqueNameId,
                         success: function (geoData)
                         {
                             var fatherNode = null;
@@ -4600,6 +4606,7 @@
                         async: true,
                         dataType: 'json',
                         data: {},
+                        uniqueNameId: uniqueNameId,
                         success: function (geoData)
                         {
                             var fatherNode = null;
@@ -4647,6 +4654,7 @@
                         },
                         async: true,
                         dataType: 'json',
+                        uniqueNameId: uniqueNameId,
                         success: function(geoData)
                         {
                             var fatherNode = null;
@@ -4691,6 +4699,7 @@
                             },
                             async: true,
                             dataType: 'json',
+                            uniqueNameId: uniqueNameId,
                             success: function (geoData) {
                                 var fatherNode = null;
                                 if (geoData.hasOwnProperty("BusStop")) {
@@ -4730,6 +4739,7 @@
                             },
                             async: true,
                             dataType: 'json',
+                            uniqueNameId: uniqueNameId,
                             success: function (geoData) {
                                 var fatherNode = null;
                                 if (geoData.hasOwnProperty("BusStop")) {
@@ -4754,6 +4764,23 @@
                         });
                     }
                     $(this).attr('data-selected', 'true');
+                } else if (latitudeWiz != null && latitudeWiz != undefined && longitudeWiz != null && longitudeWiz != undefined) {
+
+                    //    var latlngForMarker = "[" + latitudeWiz + ", "
+
+                    var mapPinImg = '../img/gisMapIcons/generic.png';
+                    var markerIcon = L.icon({
+                        iconUrl: mapPinImg,
+                        iconAnchor: [16, 37]
+                    });
+
+                    var genericMarker = L.marker([latitudeWiz, longitudeWiz], {icon: markerIcon}).addTo(addWidgetWizardMapRef);
+                    //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
+                    $(this).attr('data-selected', 'true');
+                    addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
+                /*    if (FreezeMap !== true) {
+                        addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
+                    }   */
                 }
             }
             else
