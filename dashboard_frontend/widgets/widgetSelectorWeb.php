@@ -72,6 +72,7 @@
         function populateWidget()
         {
             var queries = JSON.parse(widgetProperties.param.parameters).queries;
+            queries.sort(compareJsonElementsByKeyValues('rowOrder'));
             var desc, query, color1, color2, targets = null;
             $('#<?= $_REQUEST['name_w'] ?>_rollerContainer').empty();
             
@@ -669,9 +670,11 @@
                     });
                     
                     setTimeout(function(){
-                        for(var i = 0; i < JSON.parse(widgetProperties.param.parameters).queries.length; i++)
+                        var sortedQueries = JSON.parse(widgetProperties.param.parameters).queries;
+                        sortedQueries.sort(compareJsonElementsByKeyValues('rowOrder'));
+                        for(var i = 0; i < sortedQueries.length; i++)
                         {
-                            defaultOption = JSON.parse(widgetProperties.param.parameters).queries[i].defaultOption;
+                            defaultOption = sortedQueries[i].defaultOption;
                             if(defaultOption)
                             {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(i).trigger('click');
@@ -682,7 +685,7 @@
                         
                         if(!defaultOptionUsed)
                         {
-                            JSON.parse(widgetProperties.param.parameters).queries[0].defaultOption = true;
+                            sortedQueries[0].defaultOption = true;
                             setTimeout(function() {
                                 $("#<?= $_REQUEST['name_w'] ?>_rollerContainer a.gisPinLink").eq(0).trigger('click');
                             }, 700);
