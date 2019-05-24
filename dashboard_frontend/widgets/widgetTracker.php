@@ -74,11 +74,11 @@
         var lastPosMarkers = [];
         var mapFollowers = [];
         var tripIndexArray = [];
-        tripsDataGlobal = {};
-        tripsDaysGlobal = {};
-        mapMarkers = {};
-        currentTripMarkerId = 0;
-        currentDay = [];
+        var tripsDataGlobal = {};
+        var tripsDaysGlobal = {};
+        var mapMarkers = {};
+        var currentTripMarkerId = 0;
+        var currentDay = [];
         var ajaxData = {};
         var ajaxInnerData = {};
         var actionData = {};
@@ -87,49 +87,514 @@
         var dataType = [];
         var trajectoryGroup = {};
         var oms = {}    // OverlappingMarkerSpiderfier for Leaflet
-        var lastSample = null;
-        wizardRows = null;
-        trackSrcIndex = null;
-        viewFlag = [];
+        var lastSample = {};
+        var wizardRows = null;
+        var trackSrcIndex = null;
+        var viewFlag = [];
         var rowParameters = [];
         var sm_based = [];
+
+      /*  var currDay = null;
+        var daysArr = null;*/
+
+        var lastDayTripData = {};
+     //   var lastSampleDate = null;
+        var previousDataLength = {};
+        var newTracks = {};
+        var dayString = [];
+        var newMapMarkers = {};
 
         console.log("Entrato in widgetTracker: " + widgetName);
 
         //Definizioni di funzione specifiche del widget
-        function personalPoller(trackIndex) {
-            var localMoving = false, last, lastSample, demiLastSample, lat1, lat2, lon1, lon2, moving, now, elapsedTime,
-                elapsedTimeSeconds, elapsedTimeHours, lastSpeed = null;
-            last = 1;
 
-            if (sm_based[trackIndex] === "MyKPI") {
-                if (rowParameters[trackIndex].includes("datamanager/api/v1/poidata/")) {
-                    rowParameters[trackIndex] = rowParameters[trackIndex].split("datamanager/api/v1/poidata/")[1];
+        function countNumDays(trackIndex) {
+            return tripsDaysGlobal[trackIndex].length;
+        }
+
+        function setLastDay(page, day, trackIndex) {
+            currentDay[trackIndex] = 0;
+            nextBtn[trackIndex][0].style.visibility = "hidden";
+        //    dayString[trackIndex] = tripsDaysGlobal[trackIndex][currentDay[trackIndex]];
+            if (!tripsDaysGlobal[trackIndex].includes(day)) {
+                tripsDaysGlobal[trackIndex].unshift(day);
+            }
+            dayString[trackIndex] = tripsDaysGlobal[trackIndex][0];
+
+        }
+
+        function redrawOnChangePosition(trackIndex, sm_based, rowParameters, wizardRows, lastSample, lastSampleDate, mapMarkers, tripsDataGlobal, newPosition, diffSampleNum) {
+            var lat1, lat2, lon1, lon2, moving, now, elapsedTime, elapsedTimeSeconds, elapsedTimeHours, lastSpeed = null;
+            var tripsUrl = "../controllers/myPersonalDataProxy.php?variableName=" + encodeURI(trackSrcList[trackIndex].variableName) + "&motivation=" + encodeURI(trackSrcList[trackIndex].motivation);
+            appName = trackSrcList[trackIndex].appName;
+            var ajaxData = {};
+            var pastTripsData = tripsDataGlobal;
+            //    if (wizardRows[Object.keys(wizardRows)[0]].high_level_type === "MyKPI") {
+            if (dataType[trackIndex] === "MyKPI") {
+                if (rowParameters.includes("datamanager/api/v1/poidata/")) {
+                    rowParameters = rowParameters.split("datamanager/api/v1/poidata/")[1];
                 }
                 ajaxData = {
-                    "myKpiId": rowParameters[trackIndex],
-                  //  "lastValue":1
+                    "myKpiId": rowParameters,
+                    "action": "getDistinctDays"
                     //  "timeRange": myKPITimeRange
                 };
-                urlAjaxCall = "../controllers/myKpiProxy.php";
-            } else {
-                urlAjaxCall = "../controllers/myPersonalDataProxy.php?variableName=" + encodeURI(trackSrcList[trackIndex].variableName) + "&last=" + last + "&motivation=" + encodeURI(trackSrcList[trackIndex].motivation);
+                //    actionData = "getDistinctDays";
+                tripsUrl = "../controllers/myKpiProxy.php";
             }
 
-            //    getMyPersonalDataUrl = "../controllers/myPersonalDataProxy.php?variableName=" + encodeURI(trackSrcList[trackIndex].variableName) + "&last=" + last + "&motivation=" + encodeURI(trackSrcList[trackIndex].motivation);
+            console.log("DIFF. SAMPLES = " + diffSampleNum);
+
+            let tripsData = [];
+            for (n = diffSampleNum; n > 0; n--) {
+                tripsData[n - 1] = newPosition[trackIndex][newPosition[trackIndex].length - n];
+            }
+
+            if (tripsData.length > 0) {
+
+                if (tripsData[0].APPID != undefined) {  // Se è definito questo parametro allora è un My Personal Data e quindi filtriamo per APPName
+                    for (let index = 0; index < tripsData.length; index++) {
+                        if (tripsData[index].APPName != appName) {
+                            tripsData.splice(index, 1);
+                            index--;
+                        }
+                    }
+                } else {    // Altrimenti è un MyKPI o MyData allora rimappiamo alcune proprietà per compatibilità
+                    for (let index = 0; index < tripsData.length; index++) {
+                        if (tripsData[index].latitude !== undefined && tripsData[index].longitude !== undefined) {
+                            tripsData[index].variableValue = "[" + tripsData[index].latitude + "," + tripsData[index].longitude + "]";
+                            //    tripsData[index].variableName = trackSrcList[trackIndex-1].variableName;
+                            tripsData[index].variableName = trackSrcList[trackIndex].variableName;
+                            tripsData[index].motivation = trackSrcList[trackIndex].motivation;
+                        } else {
+                            tripsData.splice(index, 1);
+                            index--;
+                        }
+                    }
+                }
+
+                //Ordiniamento dei campioni per timestamp
+                tripsData.sort(compareNavSamples);
+
+                //Costruzione dei viaggi
+                // METTERE QUI CONDIZIONE SE GIORNO UGUALE A QUELLO DELL'ULTIMA SERIE CONTINUA SENNò SVUOTA E CAMBIA GIORNO NEL BOX E TIME_TREND ==> TRIGGERA nextDayTrip()
+                let dateTime1 = new Date(tripsDataGlobal[trackIndex][tripsDataGlobal[trackIndex].length - 1].dataTime);// Milliseconds to date
+            //    dateTime1 = dateTime1.getDate() + "\/" + parseInt(dateTime1.getMonth() + 1) + "\/" + dateTime1.getFullYear() + " " + dateTime1.getHours() + ":" + dateTime1.getMinutes() + ":" + dateTime1.getSeconds();
+                let dateTime1Str = dateTime1.getFullYear()+"-"+(101+dateTime1.getMonth()+"").slice(-2)+"-"+(100+dateTime1.getDate()+"").slice(-2)+"T"+(100+dateTime1.getHours()+"").slice(-2)+":"+(100+dateTime1.getMinutes()+"").slice(-2);
+                // CONVERSIONE IN ORA LOCALE MANTENENDO OFFSET
+                //  dateTime1Str = moment(dateTime1Str).tz(moment.tz.guess()).format();
+
+                let dateTime2 = new Date(tripsData[tripsData.length - 1].dataTime);// Milliseconds to date
+            //    dateTime2 = dateTime2.getDate() + "\/" + parseInt(dateTime2.getMonth() + 1) + "\/" + dateTime2.getFullYear() + " " + dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":" + dateTime2.getSeconds();
+                let dateTime2Str = dateTime1.getFullYear()+"-"+(101+dateTime2.getMonth()+"").slice(-2)+"-"+(100+dateTime2.getDate()+"").slice(-2)+"T"+(100+dateTime2.getHours()+"").slice(-2)+":"+(100+dateTime2.getMinutes()+"").slice(-2);
+                // CONVERSIONE IN ORA LOCALE MANTENENDO OFFSET
+                //  dateTime2Str = moment(dateTime2Str).tz(moment.tz.guess()).format();
+
+                let day1 = dateTime1Str.split("T")[0];
+                let day2 = dateTime2Str.split("T")[0];
+
+                if (day1 != day2) {
+                    var urlDayTrip = "";
+                    var ajaxDayTripData = {};
+
+                    for (k = 0; k < mapMarkers[trackIndex].length; k++) {
+                        mapRef.removeLayer(mapMarkers[trackIndex][k]);
+                        oms.removeMarker(mapMarkers[trackIndex][k]);
+                    }
+                    mapRef.removeLayer(trajectoryGroup[trackIndex]);
+
+                    // RIPRENDE nextDayTrip ma con currentDay[trackIndex] = 0;
+                //    var myKPITimeRange = "&from=" + tripsDaysGlobal[trackIndex][currentDay[trackIndex]] + "T00:00" + "&to=" + tripsDaysGlobal[trackIndex][currentDay[trackIndex]] + "T23:59";
+                    var myKPITimeRange = "&from=" + day2 + "T00:00" + "&to=" + day2 + "T23:59";
+                    //    if (wizardRows[Object.keys(wizardRows)[0]].high_level_type === "MyKPI") {
+                    if (dataType[trackIndex] === "MyKPI") {
+                        if (rowParameters.includes("datamanager/api/v1/poidata/")) {
+                            rowParameters = rowParameters.split("datamanager/api/v1/poidata/")[1];
+                        }
+                        ajaxDayTripData = {
+                            "myKpiId": rowParameters,
+                            //  "action": "getDistinctDays"
+                            "timeRange": myKPITimeRange
+                        };
+                        //    actionData = "getDistinctDays";
+                        urlDayTrip = "../controllers/myKpiProxy.php";
+                    }
+
+                //    navigateTripDays(urlDayTrip, ajaxDayTripData, trackIndex, dataType, rowParameters);
+                    $.ajax({
+                        url: urlDayTrip,
+                        type: "GET",
+                        data: ajaxDayTripData,
+                        async: true,
+                        dataType: 'json',
+                        success: function (tripsDataInner) {
+                            if (tripsDataInner[0].APPID != undefined) {  // Se è definito questo parametro allora è un My Personal Data e quindi filtriamo per APPName
+                                for (index = 0; index < tripsDataInner.length; index++) {
+                                    if (tripsDataInner[index].APPName != appName) {
+                                        tripsDataInner.splice(index, 1);
+                                        index--;
+                                    }
+                                }
+                            } else {    // Altrimenti è un MyKPI o MyData allora rimappiamo alcune proprietà per compatibilità
+                                for (index = 0; index < tripsDataInner.length; index++) {
+                                    if (tripsDataInner[index].latitude !== undefined && tripsDataInner[index].longitude !== undefined) {
+                                        tripsDataInner[index].variableValue = "[" + tripsDataInner[index].latitude + "," + tripsDataInner[index].longitude + "]";
+                                        //    tripsDataInner[index].variableName = trackSrcList[trackSrcIndex-1].variableName;
+                                        tripsDataInner[index].variableName = trackSrcList[trackIndex].variableName;
+                                        tripsDataInner[index].motivation = trackSrcList[trackIndex].motivation;
+                                    } else {
+                                        tripsDataInner.splice(index, 1);
+                                        index--;
+                                    }
+                                }
+                            }
+
+                            //Ordiniamento dei campioni per timestamp
+                            tripsDataInner.sort(compareNavSamples);
+
+                            //Costruzione dei viaggi
+                            mapMarkers[trackIndex] = [];
+                            pastTrips[trackIndex] = [];
+                            var newTrip = [];
+                            pastTrips[trackIndex].push(newTrip);
+                            for (var i = 0; i < tripsDataInner.length; i++) {
+                                if (i < (tripsDataInner.length - 1)) {
+                                    //Aggiunta campione a viaggio corrente
+
+                                    var icon = L.divIcon({
+                                        className: 'trackerPositionMarkerSecondary',
+                                        //    iconSize: [16, 16],
+                                        //    iconAnchor: [6, 8],
+                                        //    html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-circle"></i></div>'
+                                        html:'<span style="text-align: center; float: left; width: 10px; height: 10px; border: 1px solid #000000; border-radius: 100%; background-color: ' + defaultColors[trackIndex%7] + '; color: white;"></span>'
+                                    });
+
+                                    var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#',''), 25);
+                                    var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsDataInner[i], defaultColors[trackIndex % 7], color2);
+                                    //    mapMarkers[trackIndex].push(L.marker(JSON.parse(tripsDataInner[i].variableValue), {icon: icon}));
+                                    mapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsDataInner[i].variableValue), {icon: icon}).bindPopup(customPopup);
+
+                                } else {
+                                    //Ultimo campione: può essere un viaggio standalone o essere aggiunto all'ultimo viaggio
+
+                                    //Il marker su mappa dell'ultima posizione lo mostriamo sempre
+                                    var icon = L.divIcon({
+                                        className: 'trackerPositionMarker',
+                                        iconSize: [32, 50],
+                                        iconAnchor: [16, 50],
+                                        html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-map-marker" style="text-shadow: black 2px 2px 2px";></i></div>'
+                                    });
+
+                                    var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#',''), 25);
+                                    var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsDataInner[i], defaultColors[trackIndex % 7], color2);
+                                    lastPosMarkers[trackIndex] = L.marker(JSON.parse(tripsDataInner[i].variableValue), {icon: icon}).bindPopup(customPopup);
+                                    mapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsDataInner[i].variableValue), {icon: icon}).bindPopup(customPopup);
+                                    newMapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsDataInner[i].variableValue), {icon: icon}).bindPopup(customPopup);
+                                    //   mapRef.addLayer(lastPosMarkers[trackIndex]);
+                                    var stopFlag = 1;
+                                    //    lastPosMarkers[trackIndex].addTo(mapRef);
+                                }
+
+                                // mapMarkers[trackIndex].push(L.marker(JSON.parse(tripsDataInner[i].variableValue), {icon: icon}));
+                                //    lastPosMarkers[trackIndex] = L.marker(JSON.parse(tripsDataInner[i].variableValue), {icon: icon});
+                                if (viewFlag[trackIndex] === true) {
+                                    mapRef.addLayer(mapMarkers[trackIndex][i]);
+                                    oms.addMarker(mapMarkers[trackIndex][i]);
+                                }
+
+                                if (mapFollowers[trackIndex] === true) {
+                                    mapRef.setView([lastPosMarkers[trackIndex]._latlng.lat, lastPosMarkers[trackIndex]._latlng.lng], mapRef.getZoom());
+                                }
+
+                            }
+
+                            // DRAW the TRAJECTORY for CURRENT KPI/METRIC
+                            trajectory[trackIndex] = [];
+                            for (i in mapMarkers[trackIndex]) {
+                                var x = mapMarkers[trackIndex][i]._latlng.lat;
+                                var y = mapMarkers[trackIndex][i]._latlng.lng;
+                                trajectory[trackIndex].push([x, y]);
+                            }
+
+                            //    var colorTrajectory = LightenDarkenColor(defaultColors[trackIndex % 7], -20);
+                            trajectoryGroup[trackIndex] = [];
+                            if (viewFlag[trackIndex] === true) {
+                                trajectoryGroup[trackIndex] = L.polyline(trajectory[trackIndex], {
+                                    color: defaultColors[trackIndex % 7],
+                                    weight: 3,
+                                    opacity: 0.8,
+                                    smoothFactor: 1
+                                }).addTo(mapRef);
+                            }
+
+                            var dateString = "";
+                            if (wizardRows[Object.keys(wizardRows)[0]].high_level_type === "MyKPI") {
+                                dateString = tripsDaysGlobal[trackIndex][currentDay[trackIndex]];
+                            } else {
+
+                            }
+
+                            //Condizione iniziale: fermo o in movimento
+                            lastSample[trackIndex] = tripsDataInner[tripsDataInner.length - 1];
+                            //    demiLastSample = tripsDataInner[tripsDataInner.length - 2];
+                            tripsDataGlobal[trackIndex] = tripsDataInner;
+
+                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.trackDateShow').html('&nbsp;' + dateString);
+
+                            lastSampleDate = new Date(lastSample[trackIndex].dataTime);
+                            lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
+
+                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
+
+                            moving = false;
+
+                            //Fermo se non manda dati da più di 4 min
+                            now = new Date();
+                            if (Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 240000)
+                            {
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;N\/A');
+                            } else {
+
+                                //Ultima velocità
+                                lastSpeed = parseFloat(lastSample[trackIndex].value);
+                                moving = true;
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;new position!');
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' m/s');
+
+                            }
+
+                            //Se ultimo viaggio in corso lo mostriamo su mappa
+                            if (moving) {
+                                lastTrips[trackIndex] = pastTrips[trackIndex][pastTrips[trackIndex].length - 1];
+                              /*  for (var j = 0; j < lastTrips[trackIndex].length; j++) {
+                                    currentRoutes[trackIndex].addLatLng(JSON.parse(lastTrips[trackIndex][j].variableValue));
+                                }*/
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', true);
+                            } else {
+                                lastTrips[trackIndex] = null;
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', false);
+                            }
+                            //animateColorCnt(trackIndex);
+                        },
+                        error: function (errorData) {
+                            var stopFlag = 1;
+                        },
+                    });
+
+                    //   mapRef.addLayer(mapMarkers[trackIndex][numDays(trackIndex) - 1 - currentDay[trackIndex]]);
+                    setLastDay(0, day2, trackIndex);
+
+                    timeTrendControl[trackIndex].click();
+                    mapMarkers[trackIndex] = [];
+                    pastTrips[trackIndex] = [];
+                } else {
+                    var newTrip = [];
+                    pastTrips[trackIndex].push(newTrip);
+
+                    var iconCh = L.divIcon({
+                        className: 'trackerPositionMarkerSecondary',
+                        //    iconSize: [16, 16],
+                        //    iconAnchor: [6, 8],
+                        //    html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-circle"></i></div>'
+                        html:'<span style="text-align: center; float: left; width: 10px; height: 10px; border: 1px solid #000000; border-radius: 100%; background-color: ' + defaultColors[trackIndex%7] + '; color: white;"></span>'
+                    });
+
+                    mapMarkers[trackIndex][mapMarkers[trackIndex].length - 1].setIcon(iconCh);
+
+                    for (var i = 0; i < tripsData.length; i++) {
+                        if (i < (tripsData.length - 1)) {
+                            //Aggiunta campione a viaggio corrente
+                            newTrip.push(tripsData[i]);
+                            if (Math.abs(tripsData[i].dataTime - tripsData[i + 1].dataTime) > 120000) {
+                                //Chiusura viaggio corrente e apertura nuovo viaggio
+                                newTrip = [];
+                                pastTrips[trackIndex].push(newTrip);
+                            }
+
+                            var icon = L.divIcon({
+                                className: 'trackerPositionMarkerSecondary',
+                                //    iconSize: [16, 16],
+                                //    iconAnchor: [6, 8],
+                                //    html:'<div style="color: ' + defaultColors[trackIndex%7] + '"><i class="fa fa-circle" style="font-size:0.8em"></i></div>'
+                                html: '<span style="text-align: center; float: left; width: 10px; height: 10px; border: 1px solid #000000; border-radius: 100%; background-color: ' + defaultColors[trackIndex % 7] + '; color: white;"></span>'
+                            });
+
+                            //    var popupData = [];
+
+                            var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#', ''), 25);
+                            var customPopup = prepareCustomMarker(trackIndex, i, null, tripsData[i], defaultColors[trackIndex % 7], color2);
+                            //    mapMarkers[trackIndex].push(L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}));
+                            // CHECK IF tripsData[i] è già presente in mapMarkers non aggiungere
+                            if (diffSampleNum == 0) {
+                                // NO SAMPLE DIFF, DO NOT INCLUDE (probabile campionamento dati più rapido della frequenza di polling)
+                            } else {
+                                newMapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
+                             //   newMapMarkers[trackIndex].push(L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup));
+                            }
+
+                        } else {       // LAST MARKER redrawOnChange
+                            if (tripsData.length == 1) {
+                                newTrip.push(tripsData[i]);
+                            } else {
+                                //Ultimo campione: può essere un viaggio standalone o essere aggiunto all'ultimo viaggio
+                                if (Math.abs(tripsData[i].dataTime - tripsData[i - 1].dataTime) < 120000) {
+                                    //Aggiunta campione a viaggio corrente
+                                    newTrip.push(tripsData[i]);
+                                } else {
+                                    newTrip = [];
+                                    pastTrips[trackIndex].push(newTrip);
+                                    newTrip.push(tripsData[i]);
+                                }
+                            }
+
+                            //Il marker su mappa dell'ultima posizione lo mostriamo sempre
+                            var icon = L.divIcon({
+                                className: 'trackerPositionMarker',
+                                iconSize: [32, 50],
+                                iconAnchor: [16, 50],
+                                html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-map-marker" style="text-shadow: black 2px 2px 2px";></i></div>'
+                            });
+
+                            var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#', ''), 25);
+                            var customPopup = prepareCustomMarker(trackIndex, i, null, tripsData[i], defaultColors[trackIndex % 7], color2);
+                            lastPosMarkers[trackIndex] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
+                            // CHECK IF tripsData[i] è già presente in mapMarkers non aggiungere
+                            if (diffSampleNum == 0) {
+                                // NO SAMPLE DIFF, DO NOT INCLUDE (probabile campionamento dati più rapido della frequenza di polling)
+                            } else {
+                                newMapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
+                            }
+                        }
+
+                        // mapMarkers[trackIndex].push(L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}));
+                        //    lastPosMarkers[trackIndex] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon});
+                        if (viewFlag[trackIndex] === true) {
+                            mapRef.addLayer(newMapMarkers[trackIndex][i]);
+                            oms.addMarker(newMapMarkers[trackIndex][i]);
+                        }
+
+                        if (mapFollowers[trackIndex] === true) {
+                            mapRef.setView([newMapMarkers[trackIndex][i]._latlng.lat, newMapMarkers[trackIndex][i]._latlng.lng], mapRef.getZoom());
+                        }
+
+                    }
+
+                    // DRAW the TRAJECTORY for CURRENT KPI/METRIC
+
+                    for (i in newMapMarkers[trackIndex]) {
+                        var x = newMapMarkers[trackIndex][i]._latlng.lat;
+                        var y = newMapMarkers[trackIndex][i]._latlng.lng;
+                        trajectory[trackIndex].push([x, y]);
+                    }
+
+                    //   var colorTrajectory = LightenDarkenColor(defaultColors[trackIndex % 7], -20);
+                    mapRef.removeLayer(trajectoryGroup[trackIndex]);
+                //    trajectoryGroup[trackIndex] = [];
+                    if (viewFlag[trackIndex] === true) {
+                        trajectoryGroup[trackIndex] = L.polyline(trajectory[trackIndex], {
+                            color: defaultColors[trackIndex % 7],
+                            weight: 3,
+                            opacity: 0.8,
+                            smoothFactor: 1
+                        }).addTo(mapRef);
+                    }
+
+                    // PUSH newMapMarkers a mapMarkers
+
+                    //Condizione iniziale: fermo o in movimento
+                    lastSample[trackIndex] = tripsData[tripsData.length - 1];
+                    //   demiLastSample = tripsData[tripsData.length - 2];
+                    tripsDataGlobal[trackIndex] = tripsData;
+
+                    var lastSampleDate = new Date(lastSample[trackIndex].dataTime);
+                    lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
+
+                    var dateString = "";
+                    if (wizardRows[Object.keys(wizardRows)[0]].high_level_type === "MyKPI") {
+                        dateString = tripsDaysGlobal[trackIndex][currentDay[trackIndex]];
+                    } else {
+
+                    }
+                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.trackDateShow').html('&nbsp;' + dateString);
+                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
+
+                    moving = false;
+
+                    //Fermo se non manda dati da più di 4 min
+                    now = new Date();
+                    if (Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 240000)
+                    //    if(Math.abs(lastSample.dataTime - now.getTime()) > 31540000000)
+                    {
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;N\/A');
+                    } else {
+
+                        lastSpeed = parseFloat(lastSample[trackIndex].value);
+
+                        moving = true;
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;new position!');
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' m/s');
+
+                    }
+
+                    //Se ultimo viaggio in corso lo mostriamo su mappa
+                    if (moving) {
+                        lastTrips[trackIndex] = pastTrips[trackIndex][pastTrips[trackIndex].length - 1];
+                      /*  for (var j = 0; j < lastTrips[trackIndex].length; j++) {
+                            currentRoutes[trackIndex].addLatLng(JSON.parse(lastTrips[trackIndex][j].variableValue));
+                        }*/
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', true);
+                    } else {
+                        lastTrips[trackIndex] = null;
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', false);
+                    }
+
+                    mapMarkers[trackIndex] = mapMarkers[trackIndex].concat(newMapMarkers[trackIndex]);
+                    timeTrendControl[trackIndex].click();
+
+                }
+            }
+        }
+
+        function personalPoller(trackIndex, daysArray, rowParams, curDay, wizardRows, mapMarkers, tripsDataGlobal) {
+            var urlAjaxCall = "";
+            var ajaxData = {};
+        //    var currDay = curDay;
+        //    var daysArr = daysArray;
+            var localMoving = false, last, lat1, lat2, lon1, lon2, moving, now, elapsedTime,
+                elapsedTimeSeconds, elapsedTimeHours, lastSpeed = null;
+            last = 1;
+            var lastSample = {};
+
+        //    var myKPITimeRange = "&from=" + daysArray[curDay]+"T00:00" + "&to=" + daysArray[curDay]+"T23:59";
+
+            if (sm_based[trackIndex] === "MyKPI") {
+                if (rowParams.includes("datamanager/api/v1/poidata/")) {
+                    rowParams = rowParams.split("datamanager/api/v1/poidata/")[1];
+                }
+                ajaxData = {
+                    "myKpiId": rowParams,
+                    //  "action": "getDistinctDays"
+                  //  "timeRange": myKPITimeRange
+                };
+                //    actionData = "getDistinctDays";
+                urlAjaxCall = "../controllers/myKpiProxy.php";
+            }
 
             $.ajax({
                 url: urlAjaxCall,
                 type: "GET",
-                //    data: {},
                 data: ajaxData,
-                async: false,
+                async: true,
                 dataType: 'json',
+                currDay: curDay,
+                daysArr: daysArray,
                 success: function (newPosition) {
 
                     if (newPosition[0].APPID != undefined) {  // Se è definito questo parametro allora è un My Personal Data e quindi filtriamo per APPName
 
-                        lastSample = newPosition[0];
+                        lastSample[trackIndex] = newPosition[0];
 
                         /*    for (index = 0; index < tripsDataGlobal[trackIndex].length; index++) {
                                 if (newPosition[index].APPName != appName) {
@@ -144,115 +609,91 @@
 
                     } else {    // Altrimenti è un MyKPI o MyData allora rimappiamo alcune proprietà per compatibilità
 
-                        newPosition = newPosition.reverse();
-                        lastSample = newPosition[tripsDataGlobal[trackIndex].length - 1];
+                    //    newPosition = newPosition.reverse();
+                        lastSample[trackIndex] = newPosition[tripsDataGlobal[trackIndex].length - 1];
 
                         for (let index = 0; index < newPosition.length; index++) {
-                            if (newPosition[index].latitude !== undefined && newPosition[index].longitude !== undefined) {
+                            if (newPosition[index].latitude !== null && newPosition[index].longitude !== null) {
                                 if (newPosition[index].latitude !== undefined && newPosition[index].longitude !== undefined) {
                                     newPosition[index].variableValue = "[" + newPosition[index].latitude + "," + newPosition[index].longitude + "]";
-                                    //    tripsData[index].variableName = trackSrcList[trackSrcIndex-1].variableName;
+                                    //    tripsData[index].variableName = trackSrcList[trackIndex-1].variableName;
                                     newPosition[index].variableName = trackSrcList[trackIndex].variableName;
-                                    lastSample = newPosition[index];
+                                    lastSample[trackIndex] = newPosition[index];
                                     lastPosMarkers[trackIndex].setLatLng(JSON.parse(newPosition[index].variableValue));
-                                    break;
+                                //    break;
                                 } else {
                                     newPosition.splice(index, 1);
                                     index--;
                                 }
                             }
                         }
+                    //    newPosition = newPosition.reverse();
                     }
 
-                    if (mapFollowers[trackIndex] === true) {
-                        mapRef.flyTo(JSON.parse(lastSample.variableValue), 17);
-                    }
+                    newTracks[trackIndex] = newPosition;
 
-                    if (lastTrips[trackIndex] !== null) {
-                        console.log("Ultimo viaggio in corso");
-                        demiLastSample = lastTrips[trackIndex][lastTrips[trackIndex].length - 1];
-                        lat1 = JSON.parse(demiLastSample.variableValue)[0];
-                        lat2 = JSON.parse(lastSample.variableValue)[0];
-                        lon1 = JSON.parse(demiLastSample.variableValue)[1];
-                        lon2 = JSON.parse(lastSample.variableValue)[1];
+                    localMoving = false;
 
-                        localMoving = false;
-
-                        //Fermo se non manda dati da più di 4 min
-                        now = new Date();
-                        if (Math.abs(lastSample.dataTime - now.getTime()) > 240000)
-                        //   if(Math.abs(lastSample.dataTime - now.getTime()) > 31540000000)
+                    now = new Date();
+                //    if (Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 10000)
+                //    if (previousDataLength[trackIndex] == null || newPosition.length == previousDataLength[trackIndex])
+                      if (previousDataLength[trackIndex] == null || newTracks[trackIndex].length == previousDataLength[trackIndex])
+                    //    if(Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 31540000000)
+                    {
+                        if (Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 40000)
                         {
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;still');
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;N\/A');
-                        } else {
-                            var R = 6371; // Raggio della terra in km
-                            var dLat = deg2rad(lat2 - lat1);
-                            var dLon = deg2rad(lon2 - lon1);
-                            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                            var d = R * c; // Distanza tra i due punti in km
-
-                            //Tempo trascorso in millisecondi
-                            elapsedTime = Math.abs(lastSample.dataTime - demiLastSample.dataTime);
-                            elapsedTimeSeconds = parseFloat(elapsedTime / 1000);
-                            elapsedTimeHours = parseFloat(elapsedTimeSeconds / 3600);
-
-                            //Ultima velocità in chilometri orari
-                            lastSpeed = parseFloat(d / elapsedTimeHours);
-
-                            console.log("Elapsed time hours: " + elapsedTimeHours + " - Last speed: " + lastSpeed + " - Last distance: " + d);
-
-                            //Se si è spostato più di dieci metri fra gli ultimi due campioni e a più di 1 km/h consideriamolo in movimento
-                            //    if((d > 0.01)&&(lastSpeed > 1))
-                            //    {
-                            localMoving = true;
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;moving');
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' Km/h');
-                            /*   }
-                               else
-                               {
-                                   $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;still');
-                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;0 Km/h');
-                            }*/
-
-                            lastTrips[trackIndex].push(lastSample);
-                            currentRoutes[trackIndex].addLatLng(JSON.parse(lastSample.variableValue));
+                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;N\/A');
                         }
+                        previousDataLength[trackIndex] = newPosition.length;
                     } else {
-                        //Per il primo campione in assoluto l'algoritmo è diverso
-                        console.log("Primo campione nuovo viaggio");
+                        localMoving = true;
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;moving');
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;N\/A');
 
-                        localMoving = false;
+                        lastTrips[trackIndex] = [];
+                        lastTrips[trackIndex].push(lastSample[trackIndex]);
 
-                        //Fermo se non manda dati da più di 4 min
-                        now = new Date();
-                        if (Math.abs(lastSample.dataTime - now.getTime()) > 240000)
-                        //    if(Math.abs(lastSample.dataTime - now.getTime()) > 31540000000)
-                        {
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;still');
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;N\/A');
-                        } else {
-                            localMoving = true;
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;first sample');
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;N\/A');
+                          console.log("New sample - New Trip!");
+                          lastTrips[trackIndex] = null;
 
-                            lastTrips[trackIndex] = [];
-                            lastTrips[trackIndex].push(lastSample);
-                            currentRoutes[trackIndex].addLatLng(JSON.parse(lastSample.variableValue));
-                        }
+                          localMoving = false;
+
+                          //Fermo se non manda dati da più di 4 min
+                          now = new Date();
+                          if (Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 240000)
+                          //   if(Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 31540000000)
+                          {
+                              $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                              $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;N\/A');
+                          } else {
+                              lastSpeed = parseFloat(lastSample[trackIndex].value);
+
+                              localMoving = true;
+                              $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;new position!');
+                              $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' m/s');
+                          }
+
+                          var lastSampleDate = new Date(lastSample[trackIndex].dataTime);
+                          lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
+
+                          redrawOnChangePosition(trackIndex, sm_based[trackIndex], rowParams, wizardRows, lastSample[trackIndex], lastSampleDate, mapMarkers, tripsDataGlobal, newTracks, newTracks[trackIndex].length - previousDataLength[trackIndex]);
+                          previousDataLength[trackIndex] = newPosition.length;
+
+                     //   currentRoutes[trackIndex].addLatLng(JSON.parse(lastSample[trackIndex].variableValue));
                     }
+                //    }
 
                     if (localMoving) {
-                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample.variableName + '"]').attr('data-moving', true);
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', true);
                     } else {
-                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample.variableName + '"]').attr('data-moving', false);
+                        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', false);
                     }
 
-                    var lastSampleDate = new Date(lastSample.dataTime);
+                    var lastSampleDate = new Date(lastSample[trackIndex].dataTime);
                     lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
 
-                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
+                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
 
                 },
                 error: function (errorData) {
@@ -314,10 +755,12 @@
 
         function buildPastTrips(trackIndex, sm_based, rowParameters, wizardRows, loadingDiv, loadOkText, loadKoText)
         {
-            var lat1, lat2, lon1, lon2, moving, lastSample, demiLastSample, now, elapsedTime, elapsedTimeSeconds, elapsedTimeHours, lastSpeed = null;
+            var lat1, lat2, lon1, lon2, moving, now, elapsedTime, elapsedTimeSeconds, elapsedTimeHours, lastSpeed = null;
             var tripsUrl = "../controllers/myPersonalDataProxy.php?variableName=" + encodeURI(trackSrcList[trackIndex].variableName) + "&motivation=" + encodeURI(trackSrcList[trackIndex].motivation);
             appName = trackSrcList[trackIndex].appName;
             var ajaxData = {};
+            var lastSample = {};
+            newMapMarkers[trackIndex] = [];
         //    if (wizardRows[Object.keys(wizardRows)[0]].high_level_type === "MyKPI") {
             if (dataType[trackIndex] === "MyKPI") {
                 if (rowParameters.includes("datamanager/api/v1/poidata/")) {
@@ -340,8 +783,8 @@
                 dataType: 'json',
                 success: function (tripsDays)
                 {
-                    tripsDaysGlobal[trackSrcIndex] = tripsDays.reverse();
-                    var myKPITimeRange = "&from=" + tripsDaysGlobal[trackSrcIndex][currentDay[trackSrcIndex]]+"T00:00" + "&to=" + tripsDaysGlobal[trackSrcIndex][currentDay[trackSrcIndex]]+"T23:59";
+                    tripsDaysGlobal[trackIndex] = tripsDays.reverse();
+                    var myKPITimeRange = "&from=" + tripsDaysGlobal[trackIndex][currentDay[trackIndex]]+"T00:00" + "&to=" + tripsDaysGlobal[trackIndex][currentDay[trackIndex]]+"T23:59";
 
                     if (wizardRows[Object.keys(wizardRows)[0]].high_level_type === "MyKPI") {
                         if (rowParameters.includes("datamanager/api/v1/poidata/")) {
@@ -377,8 +820,8 @@
                                     if (tripsData[index].latitude !== undefined && tripsData[index].longitude !== undefined) {
                                         tripsData[index].variableValue = "[" + tripsData[index].latitude + "," + tripsData[index].longitude + "]";
                                     //    tripsData[index].variableName = trackSrcList[trackSrcIndex-1].variableName;
-                                        tripsData[index].variableName = trackSrcList[trackSrcIndex].variableName;
-                                        tripsData[index].motivation = trackSrcList[trackSrcIndex].motivation;
+                                        tripsData[index].variableName = trackSrcList[trackIndex].variableName;
+                                        tripsData[index].motivation = trackSrcList[trackIndex].motivation;
                                     } else {
                                         tripsData.splice(index, 1);
                                         index--;
@@ -399,13 +842,13 @@
                                 if(i < (tripsData.length - 1))
                                 {
                                     //Aggiunta campione a viaggio corrente
-                                    newTrip.push(tripsData[i]);
+                                 /*   newTrip.push(tripsData[i]);
                                     if(Math.abs(tripsData[i].dataTime - tripsData[i+1].dataTime) > 120000)
                                     {
                                         //Chiusura viaggio corrente e apertura nuovo viaggio
                                         newTrip = [];
                                         pastTrips[trackIndex].push(newTrip);
-                                    }
+                                    }*/
 
                                     var icon = L.divIcon({
                                         className: 'trackerPositionMarkerSecondary',
@@ -424,35 +867,36 @@
 
                                 }
                                 else
-                                {
-                                    //Ultimo campione: può essere un viaggio standalone o essere aggiunto all'ultimo viaggio
-                                    if(Math.abs(tripsData[i].dataTime - tripsData[i-1].dataTime) < 120000)
-                                    {
-                                        //Aggiunta campione a viaggio corrente
+                                {       // LAST MARKER buildPastTrips
+                                  /*  if (tripsData.length == 1) {
                                         newTrip.push(tripsData[i]);
-                                    }
-                                    else
-                                    {
-                                        newTrip = [];
-                                        pastTrips[trackIndex].push(newTrip);
-                                        newTrip.push(tripsData[i]);
-                                    }
-
+                                    } else {
+                                        //Ultimo campione: può essere un viaggio standalone o essere aggiunto all'ultimo viaggio
+                                        if (Math.abs(tripsData[i].dataTime - tripsData[i - 1].dataTime) < 120000) {
+                                            //Aggiunta campione a viaggio corrente
+                                            newTrip.push(tripsData[i]);
+                                        } else {
+                                            newTrip = [];
+                                            pastTrips[trackIndex].push(newTrip);
+                                            newTrip.push(tripsData[i]);
+                                        }
+                                    }*/
                                     //Il marker su mappa dell'ultima posizione lo mostriamo sempre
                                     var icon = L.divIcon({
                                         className: 'trackerPositionMarker',
                                         iconSize: [32, 50],
                                         iconAnchor: [16, 50],
-                                        html:'<div style="color: ' + defaultColors[trackIndex%7] + '"><i class="fa fa-map-marker" style="text-shadow: black 2px 2px 2px";></i></div>'
+                                        html: '<div style="color: ' + defaultColors[trackIndex % 7] + '"><i class="fa fa-map-marker" style="text-shadow: black 2px 2px 2px";></i></div>'
                                     });
 
-                                    var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#',''), 25);
-                                    var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsData[i], defaultColors[trackIndex%7], color2);
+                                    var color2 = "#" + LightenDarkenColor(defaultColors[trackIndex % 7].replace('#', ''), 25);
+                                    var customPopup = prepareCustomMarker(trackIndex, i, mapMarkers[trackIndex][i], tripsData[i], defaultColors[trackIndex % 7], color2);
                                     lastPosMarkers[trackIndex] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
                                     mapMarkers[trackIndex][i] = L.marker(JSON.parse(tripsData[i].variableValue), {icon: icon}).bindPopup(customPopup);
-                                 //   mapRef.addLayer(lastPosMarkers[trackIndex]);
+                                    //   mapRef.addLayer(lastPosMarkers[trackIndex]);
                                     var stopFlag = 1;
-                                //    lastPosMarkers[trackIndex].addTo(mapRef);
+                                    //    lastPosMarkers[trackIndex].addTo(mapRef);
+
                                 }
 
                                 // SHOW ALL MARKERS
@@ -508,11 +952,11 @@
                             }
 
                             //Condizione iniziale: fermo o in movimento
-                            lastSample = tripsData[tripsData.length - 1];
-                            demiLastSample = tripsData[tripsData.length - 2];
+                            lastSample[trackIndex] = tripsData[tripsData.length - 1];
+                        //    demiLastSample = tripsData[tripsData.length - 2];
                             tripsDataGlobal[trackIndex] = tripsData;
 
-                            var lastSampleDate = new Date(lastSample.dataTime);
+                            var lastSampleDate = new Date(lastSample[trackIndex].dataTime);
                             lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
 
                             var dateString = "";
@@ -521,56 +965,57 @@
                             } else {
 
                             }
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.trackDateShow').html('&nbsp;' + dateString);
+                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.trackDateShow').html('&nbsp;' + dateString);
 
-                            lat1 = JSON.parse(demiLastSample.variableValue)[0];
+                        /*    lat1 = JSON.parse(demiLastSample.variableValue)[0];
                             lat2 = JSON.parse(lastSample.variableValue)[0];
                             lon1 = JSON.parse(demiLastSample.variableValue)[1];
-                            lon2 = JSON.parse(lastSample.variableValue)[1];
+                            lon2 = JSON.parse(lastSample.variableValue)[1];*/
 
-                            var lastSampleDate = new Date(lastSample.dataTime);
-                            lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
+                        //    var lastSampleDate = new Date(lastSample.dataTime);
+                        //    lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
 
-                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
+                            $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
 
                             moving = false;
 
                             //Fermo se non manda dati da più di 4 min
                             now = new Date();
-                            if(Math.abs(lastSample.dataTime - now.getTime()) > 240000)
+                            if(Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 240000)
                         //    if(Math.abs(lastSample.dataTime - now.getTime()) > 31540000000)
                             {
-                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;still');
-                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;N\/A');
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;N\/A');
                             }
                             else
                             {
-                                var R = 6371; // Raggio della terra in km
+                            /*    var R = 6371; // Raggio della terra in km
                                 var dLat = deg2rad(lat2-lat1);
                                 var dLon = deg2rad(lon2-lon1);
                                 var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
                                 var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                                var d = R * c; // Distanza tra i due punti in km
+                                var d = R * c; // Distanza tra i due punti in km*/
 
                                 //Tempo trascorso in millisecondi
-                                elapsedTime = Math.abs(lastSample.dataTime - demiLastSample.dataTime);
+                            /*    elapsedTime = Math.abs(lastSample.dataTime - demiLastSample.dataTime);
                                 elapsedTimeSeconds = parseFloat(elapsedTime / 1000);
-                                elapsedTimeHours = parseFloat(elapsedTimeSeconds / 3600);
+                                elapsedTimeHours = parseFloat(elapsedTimeSeconds / 3600);*/
 
                                 //Ultima velocità in chilometri orari
-                                lastSpeed = parseFloat(d / elapsedTimeHours);
+                            //    lastSpeed = parseFloat(d / elapsedTimeHours);
+                                lastSpeed = parseFloat(lastSample[trackIndex].value);
 
                                 //Se si è spostato più di dieci metri fra gli ultimi due campioni e a più di 1 km/h consideriamolo in movimento
                             //    if((d > 0.01)&&(lastSpeed > 1))
                             //    {
                                     moving = true;
-                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;moving');
-                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' Km/h');
+                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;new position!');
+                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' m/s');
                             //    }
                             //    else
                             //    {
-                            //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;still');
-                            //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;0 Km/h');
+                            //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                            //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;0 Km/h');
 
                             }
 
@@ -579,15 +1024,15 @@
                             {
                                 lastTrips[trackIndex] = pastTrips[trackIndex][pastTrips[trackIndex].length-1];
                                 for(var j = 0; j < lastTrips[trackIndex].length; j++)
-                                {
+                              /*  {
                                     currentRoutes[trackIndex].addLatLng(JSON.parse(lastTrips[trackIndex][j].variableValue));
-                                }
-                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample.variableName + '"]').attr('data-moving', true);
+                                }*/
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', true);
                             }
                             else
                             {
                                 lastTrips[trackIndex] = null;
-                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample.variableName + '"]').attr('data-moving', false);
+                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', false);
                             }
                             //animateColorCnt(trackIndex);
                         },
@@ -595,13 +1040,14 @@
                             var stopFlag = 1;
                         },
                     });
-
+                //    return tripsDataGlobal;
                 },
                 error: function(errorData)
                 {
                     var stopFlag = 1;
                 }
             });
+            return tripsDataGlobal;
         }
         
         function deg2rad(deg) 
@@ -1104,7 +1550,7 @@
 
                                         if (currentDay[trackIndex] < numDays(trackIndex)) {
                                             // Popolare con data e ora da object
-                                            dayString = tripsDaysGlobal[trackIndex][currentDay[trackIndex]];
+                                            dayString[trackIndex] = tripsDaysGlobal[trackIndex][currentDay[trackIndex]];
                                         }
                                     }
 
@@ -1128,7 +1574,7 @@
 
                                         if (currentTripMarkerId < numTripMarkers(trackIndex)) {
                                             // Popolare con data e ora da object
-                                            dayString = "";
+                                            dayString[trackIndex] = "";
                                         }
                                     }
 
@@ -1205,12 +1651,12 @@
                                                 for (var i = 0; i < tripsData.length; i++) {
                                                     if (i < (tripsData.length - 1)) {
                                                         //Aggiunta campione a viaggio corrente
-                                                        newTrip.push(tripsData[i]);
+                                                      /*  newTrip.push(tripsData[i]);
                                                         if (Math.abs(tripsData[i].dataTime - tripsData[i + 1].dataTime) > 120000) {
                                                             //Chiusura viaggio corrente e apertura nuovo viaggio
                                                             newTrip = [];
                                                             pastTrips[trackIndex].push(newTrip);
-                                                        }
+                                                        }*/
 
                                                         var icon = L.divIcon({
                                                             className: 'trackerPositionMarkerSecondary',
@@ -1227,14 +1673,14 @@
 
                                                     } else {
                                                         //Ultimo campione: può essere un viaggio standalone o essere aggiunto all'ultimo viaggio
-                                                        if (Math.abs(tripsData[i].dataTime - tripsData[i - 1].dataTime) < 120000) {
+                                                    /*    if (Math.abs(tripsData[i].dataTime - tripsData[i - 1].dataTime) < 120000) {
                                                             //Aggiunta campione a viaggio corrente
                                                             newTrip.push(tripsData[i]);
                                                         } else {
                                                             newTrip = [];
                                                             pastTrips[trackIndex].push(newTrip);
                                                             newTrip.push(tripsData[i]);
-                                                        }
+                                                        }*/
 
                                                         //Il marker su mappa dell'ultima posizione lo mostriamo sempre
                                                         var icon = L.divIcon({
@@ -1268,6 +1714,9 @@
                                                         mapRef.addLayer(mapMarkers[trackIndex][i]);
                                                         oms.addMarker(mapMarkers[trackIndex][i]);
                                                     }
+
+                                                    mapRef.setView([lastPosMarkers[trackIndex]._latlng.lat, lastPosMarkers[trackIndex]._latlng.lng], mapRef.getZoom());
+
                                                 }
 
                                                 loadingDiv.empty();
@@ -1314,33 +1763,32 @@
                                                 }
 
                                                 //Condizione iniziale: fermo o in movimento
-                                                lastSample = tripsData[tripsData.length - 1];
-                                                demiLastSample = tripsData[tripsData.length - 2];
+                                                lastSample[trackIndex] = tripsData[tripsData.length - 1];
+                                            //    demiLastSample = tripsData[tripsData.length - 2];
                                                 tripsDataGlobal[trackIndex] = tripsData;
 
-                                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.trackDateShow').html('&nbsp;' + dateString);
+                                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.trackDateShow').html('&nbsp;' + dateString);
 
-                                                var lastSampleDate = new Date(lastSample.dataTime);
+                                                var lastSampleDate = new Date(lastSample[trackIndex].dataTime);
                                                 lastSampleDate = lastSampleDate.getDate() + "\/" + parseInt(lastSampleDate.getMonth() + 1) + "\/" + lastSampleDate.getFullYear() + " " + lastSampleDate.getHours() + ":" + lastSampleDate.getMinutes() + ":" + lastSampleDate.getSeconds();
 
-                                                $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
+                                            //    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.lastSampleCnt').html('&nbsp;' + lastSampleDate);
 
-                                                lat1 = JSON.parse(demiLastSample.variableValue)[0];
+                                            /*    lat1 = JSON.parse(demiLastSample.variableValue)[0];
                                                 lat2 = JSON.parse(lastSample.variableValue)[0];
                                                 lon1 = JSON.parse(demiLastSample.variableValue)[1];
-                                                lon2 = JSON.parse(lastSample.variableValue)[1];
+                                                lon2 = JSON.parse(lastSample.variableValue)[1];*/
 
                                                 moving = false;
 
                                                 //Fermo se non manda dati da più di 4 min
                                                 now = new Date();
-                                                if (Math.abs(lastSample.dataTime - now.getTime()) > 240000)
-                                                //    if(Math.abs(lastSample.dataTime - now.getTime()) > 31540000000)
+                                                if (Math.abs(lastSample[trackIndex].dataTime - now.getTime()) > 240000)
                                                 {
-                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;still');
-                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;N\/A');
+                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;N\/A');
                                                 } else {
-                                                    var R = 6371; // Raggio della terra in km
+                                                 /*   var R = 6371; // Raggio della terra in km
                                                     var dLat = deg2rad(lat2 - lat1);
                                                     var dLon = deg2rad(lon2 - lon1);
                                                     var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -1353,32 +1801,33 @@
                                                     elapsedTimeHours = parseFloat(elapsedTimeSeconds / 3600);
 
                                                     //Ultima velocità in chilometri orari
-                                                    lastSpeed = parseFloat(d / elapsedTimeHours);
+                                                    lastSpeed = parseFloat(d / elapsedTimeHours);*/
+                                                    lastSpeed = parseFloat(lastSample[trackIndex].value);
 
                                                     //Se si è spostato più di dieci metri fra gli ultimi due campioni e a più di 1 km/h consideriamolo in movimento
                                                     //    if((d > 0.01)&&(lastSpeed > 1))
                                                     //    {
                                                     moving = true;
-                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;moving');
-                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' Km/h');
+                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;moving');
+                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;' + lastSpeed.toFixed(2) + ' m/s');
                                                     //    }
                                                     //    else
                                                     //    {
-                                                    //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.statusCnt').html('&nbsp;still');
-                                                    //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample.variableName + '"] div.speedCnt').html('&nbsp;0 Km/h');
+                                                    //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.statusCnt').html('&nbsp;still');
+                                                    //        $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsSubcnt[data-variableName="' + lastSample[trackIndex].variableName + '"] div.speedCnt').html('&nbsp;0 Km/h');
 
                                                 }
 
                                                 //Se ultimo viaggio in corso lo mostriamo su mappa
                                                 if (moving) {
                                                     lastTrips[trackIndex] = pastTrips[trackIndex][pastTrips[trackIndex].length - 1];
-                                                    for (var j = 0; j < lastTrips[trackIndex].length; j++) {
+                                                 /*   for (var j = 0; j < lastTrips[trackIndex].length; j++) {
                                                         currentRoutes[trackIndex].addLatLng(JSON.parse(lastTrips[trackIndex][j].variableValue));
-                                                    }
-                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample.variableName + '"]').attr('data-moving', true);
+                                                    }*/
+                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', true);
                                                 } else {
                                                     lastTrips[trackIndex] = null;
-                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample.variableName + '"]').attr('data-moving', false);
+                                                    $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', false);
                                                 }
                                                 //animateColorCnt(trackIndex);
                                             },
@@ -1501,13 +1950,13 @@
 
                                     followControl[trackSrcIndex].click(function () {
                               //      $('#followControl').click(function () {
-                                        for (var i = 0; i < mapFollowers.length; i++) {
+                                     /*   for (var i = 0; i < mapFollowers.length; i++) {
                                             if (i !== parseInt($(this).attr('data-trackIndex'))) {
                                                 $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt').find('div.trackControlFollow').eq(i).attr('data-active', false);
                                                 mapFollowers[$(this).attr("data-trackIndex")][i] = false;
                                                 $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt').find('div.trackControlFollow').eq(i).css('color', 'white');
                                             }
-                                        }
+                                        }*/
 
                                         var localTrackIndex = parseInt($(this).attr('data-trackIndex'));
 
@@ -1646,7 +2095,7 @@
                                     currentDay[trackSrcIndex] = 0;
 
                                     //Costruzione viaggi passatitrackDateShow
-                                    buildPastTrips(trackSrcIndex, sm_based[trackSrcIndex], rowParameters[trackSrcIndex], wizardRows, loadingDiv, loadOkText, loadKoText);
+                                    lastDayTripData = buildPastTrips(trackSrcIndex, sm_based[trackSrcIndex], rowParameters[trackSrcIndex], wizardRows, loadingDiv, loadOkText, loadKoText);
 
                                   /*  mapRef.on('zoomend', function() {
                                         var currentZoom = mapRef.getZoom();
@@ -1669,8 +2118,11 @@
                                         }
                                     }); */
 
-                                    //Avvio poller  // PER ORA DISABILITATO
-                                //    setInterval(personalPoller.bind(null, trackSrcIndex), 5000);
+                                    //Avvio poller
+                                    setInterval(personalPoller.bind(null, trackSrcIndex, tripsDaysGlobal[trackSrcIndex], rowParameters[trackSrcIndex], currentDay[trackSrcIndex], wizardRows, mapMarkers, lastDayTripData), 15000);
+
+                                //    redrawOnChangePosition(trackSrcIndex, sm_based[trackSrcIndex], rowParameters[trackSrcIndex], wizardRows, loadingDiv, loadOkText, loadKoText);
+
                             //    }
                                 break;
                         }
