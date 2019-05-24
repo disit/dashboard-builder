@@ -151,7 +151,7 @@
                     
                     <label class="switch" style=" margin-left: 10px; float: left">
                             <input type="checkbox" id="togBtn">
-                            <div class="slider round"><!--ADDED HTML --><span class="on">FixMap</span><span class="off" style="color: black">FreeMap</span><!--END--></div>
+                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black">FreeMap</span><!--END--></div>
                         </label><!--<button type="button" id="FreezeMap" class="btn cancelBtn" style="margin-top: 10px">FreezeMap</button>-->
                         <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSUser</button>
                         <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSOrg</button>
@@ -262,11 +262,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><div id="ownershipColumnFilter"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
-                                <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations"></th>
-                                <?php } ?>
-                                <th class="widgetWizardTitleCell" data-cellTitle="latitude"></th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="longitude"></th>
+
                             </tr>  
                             <tr>  
                                 <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
@@ -286,11 +282,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
-                                <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
-                                <?php } ?>
-                                <th class="widgetWizardTitleCell" data-cellTitle="latitude"></th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="longitude"></th>
+
                             </tr>  
                         </thead>
                     </table>
@@ -663,13 +655,13 @@
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
-                $(row).attr('data-latitude', data[17]);
-                $(row).attr('data-longitude', data[18]);
-                $(row).attr('data-organizations', data[19]);
+                $(row).attr('data-latitude', data[18]);
+                $(row).attr('data-longitude', data[19]);
+                $(row).attr('data-organizations', data[17]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16, 17, 18],
+                    "targets": [5, 11, 12, 14, 16],
                     "visible": false
                 },
                 {
@@ -748,16 +740,6 @@
             "ajax": {
                 async: true, 
                 url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
-             /*   data: {
-                    dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
-                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
-                    northEastPointLat: northEastPointLat,
-                    northEastPointLng: northEastPointLng,
-                    southWestPointLat: southWestPointLat,
-                    southWestPointLng: southWestPointLng,
-                    filterOrg: orgFilter,
-                    poiFlag: noPOIFlag
-                }*/
                 data: function(d){
                     d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
                     d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>",
@@ -786,13 +768,13 @@
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
-                $(row).attr('data-latitude', data[17]);
-                $(row).attr('data-longitude', data[18]);
-                $(row).attr('data-organizations', data[19]);
+                $(row).attr('data-latitude', data[18]);
+                $(row).attr('data-longitude', data[19]);
+                $(row).attr('data-organizations', data[17]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16, 17, 18],
+                    "targets": [5, 11, 12, 14, 16],
                     "visible": false
                 },
                 {
@@ -3006,6 +2988,8 @@
             latLngKey = latLngKey.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
             markersCache["" + latLngKey + ""] = marker;
 
+            var uniqueNameId = feature.properties.name;
+
             marker.on('mouseover', function (event) {
                 if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
                     var hoverImg = '../img/gisMapIcons/over/generic_over.png';
@@ -3087,7 +3071,7 @@
                         fatherNode.features[0].properties.color1 = "#F0F0F0";
                      //   fatherNode.features[0].properties.color2 = feature.properties.color2;
                         fatherNode.features[0].properties.color2 = "#CCCCCC";
-                        targetWidgets = 'DCTemp1_24_widgetTimeTrend6351'; //feature.properties.targetWidgets;
+                        targetWidgets = ['DCTemp1_24_widgetTimeTrend6351', "SensoreViaBolognese_24_widgetSingleContent6353"]; //feature.properties.targetWidgets;
                      //   color1 = feature.properties.color1;
                         color1 = "#F0F0F0";
                      //   color2 = feature.properties.color2;
@@ -3265,6 +3249,7 @@
                         popupText += '</div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+                        popupText += '<div class="recreativeEventMapDataContainer recreativeEventNameContainer">' + $(this)[0].uniqueNameId + '</div>';
 
                         if (serviceProperties.hasOwnProperty('description'))
                         {
@@ -3825,6 +3810,16 @@
                                         //fake: $(this).attr("data-fake")
                                     }); 
                                 }
+
+                                $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                                    if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                    {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                });
+
                             }
                         });
                         
@@ -3894,7 +3889,7 @@
                                 }
                             });
 
-                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('mouseenter');
+                         /*   $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('mouseenter');
                             $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('mouseleave');
                             $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function(){
                                 if($(this).attr("data-lastDataClicked") === "false")
@@ -3944,9 +3939,9 @@
                                         color2: $(this).attr("data-color2")
                                     }); 
                                 }
-                            });
+                            }); */
 
-                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseenter');
+                          /*  $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseenter');
                             $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseleave');
                             $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function()
                             {
@@ -4108,7 +4103,16 @@
                                     $(this).off("hover");
                                     $(this).off("click");
                                 }
-                            });
+                            });*/
+                        });
+
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                            if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                            {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
                         });
                         //aggiunto berna fine
                     },
@@ -4124,8 +4128,8 @@
                         serviceSubclass = serviceSubclass.replace(/_/g, " ");
 
                         popupText = '<h3 class="gisPopupTitle">' + serviceProperties.name + '</h3>' +
-                                '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>' +
-                                '<p><i>Data are limited due to an issue in their retrieval</i></p>';
+                                '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>'
+                             //   '<p><i>Data are limited due to an issue in their retrieval</i></p>';
 
                         event.target.bindPopup(popupText, {
                             offset: [15, 0],
@@ -4899,13 +4903,13 @@
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
-                $(row).attr('data-latitude', data[17]);
-                $(row).attr('data-longitude', data[18]);
-                $(row).attr('data-organizations', data[19]);
+                $(row).attr('data-latitude', data[18]);
+                $(row).attr('data-longitude', data[19]);
+                $(row).attr('data-organizations', data[17]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16, 17, 18],
+                    "targets": [5, 11, 12, 14, 16],
                     "visible": false
                 },
                 {
@@ -5841,7 +5845,7 @@
                     });
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "any") {
-                    if ($(this).attr("data-high_level_type") === "MicroApplication") {
+                    if ($(this).attr("data-high_level_type") === "MicroApplication" || $(this).attr("data-high_level_type") === "Special Widget") {
                         if (latitudeWiz != null && latitudeWiz != undefined && longitudeWiz != null && longitudeWiz != undefined) {
 
                             //    var latlngForMarker = "[" + latitudeWiz + ", "
@@ -5856,7 +5860,9 @@
                             //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
                             $(this).attr('data-selected', 'true');
                             addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
-                            addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), 11);
+                            if (FreezeMap !== true) {
+                                addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
+                            }
                         }
                     } else {
                         var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
@@ -6103,7 +6109,9 @@
                 //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
                     $(this).attr('data-selected', 'true');
                     addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
-                    addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), 11);
+                    if (FreezeMap !== true) {
+                        addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
+                    }
                 }
             }
             else
@@ -6114,7 +6122,11 @@
                 {
                     if (instanceUri != null && instanceUri != undefined) {
                         if (instanceUri == "any" || (instanceUri.toLowerCase() == "mypoi" && $(this).attr("data-sub_nature") == "Any")) {
-                            gisLayersOnMap[serviceType].clearLayers();
+                            if ($(this).attr("data-high_level_type") == "Special Widget") {
+                                clearMarker(currentMarkerId);
+                            } else {
+                                gisLayersOnMap[serviceType].clearLayers();
+                            }
                         } else {
                             clearMarker(currentMarkerId);
                         }
