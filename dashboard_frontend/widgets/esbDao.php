@@ -44,7 +44,7 @@
             }
             else if($choosenOption == "time_sismic")
             {
-               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL " . $time . " " . $timeUdm . ") AND payload LIKE '%\"source\":\"sismic\"%' ORDER BY event_time DESC"; 
+               $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.traffic.TrafficInformation' AND type = 'DEFINITION' AND event_time >= (NOW() - INTERVAL " . $time . " " . $timeUdm . ") AND payload LIKE '%\"source\":\"cdfipm\"%' ORDER BY event_time DESC"; 
             }
             else
             {
@@ -65,12 +65,12 @@
                   $eventRow['event_time'] = $row['event_time'];
                   $eventRow['payload'] = $row['payload'];
                   $payload = json_decode($row['payload'], true);
-                  /*if(isset($payload['coords']) && $payload['coords']['latitude']==0 && $payload['coords']['longitude']==0) {
+                  if(isset($payload['coords']) && $payload['coords']['latitude']==0 && $payload['coords']['longitude']==0) {
                     $payload['coords']['latitude']=43.7691;
                     $payload['coords']['longitude']=11.2562;
                     //unset($payload['coords']);
                     $eventRow['payload'] = json_encode($payload);
-                  }*/
+                  }
                   $eventRow['payload_class'] = $row['payload_class'];
                   $eventRow['sender_id'] = $row['sender_id'];
                   $eventRow['type'] = $row['type'];
