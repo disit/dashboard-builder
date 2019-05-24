@@ -153,23 +153,23 @@
         $(document).on('mouseOverTimeTrendFromTracker_' + widgetName, function(event)
         {
             widgetOriginalBorderColor = $("#" + widgetName).css("border-color");
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(event.widgetTitle);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_titleDiv").html(event.widgetTitle);
             $("#" + widgetName).css("border-color", event.color1);
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", event.color1);
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", "black");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("background", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("color", "black");
         });
 
         $(document).off('mouseOutTimeTrendFromTracker_' + widgetName);
         $(document).on('mouseOutTimeTrendFromTracker_' + widgetName, function(event)
         {
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_titleDiv").html(widgetTitle);
             $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", widgetHeaderColor);
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", widgetHeaderFontColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("background", widgetHeaderColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_header").css("color", widgetHeaderFontColor);
         });
 
         $(document).off('showTimeTrendFromTracker_' + widgetName);
@@ -178,8 +178,8 @@
             if(event.targetWidget === widgetName)
             {
                 clearInterval(countdownRef);
-                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", false, event.serviceUri, event.field, event.range, event.marker, event.mapRef, event.fakeId, true, event.day, event.rowParams);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>(true, metricName, event.widgetTitle, event.color1, "black", false, event.serviceUri, event.field, event.range, event.marker, event.mapRef, event.fakeId, true, event.day, event.rowParams);
             }
         });
 		
@@ -220,7 +220,8 @@
                 url: "../controllers/getWidgetParams.php",
                 type: "GET",
                 data: {
-                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                  //  widgetName: "<?= $_REQUEST['name_w'] ?>"
+                    widgetName: widgetName
                 },
                 async: true,
                 dataType: 'json',
@@ -948,6 +949,7 @@
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_chartContainer").hide();
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_noDataAlert').show();
             }
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_titleDiv").html(event.widgetTitle);
         }
         
         function convertDataFromSmToDm(originalData, field)
@@ -1596,29 +1598,30 @@
                                     else
                                     {
                                         showWidgetContent(widgetName);
-                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_noDataAlert').show();
                                         console.log("Dati MyKPI non presenti");
                                     }
                                 }
                                 else
                                 {
                                     showWidgetContent(widgetName);
-                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_chartContainer").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_noDataAlert').show();
                                     console.log("Dati MyKPI non presenti");
                                 }
                             },
                             error: function (data) {
                                 showWidgetContent(widgetName);
-                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_noDataAlert').show();
                                 console.log("Errore!");
                                 console.log(JSON.stringify(data));
                             }
                         });
                         break;
                 }
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_titleDiv").html(widgetTitle);
             }
         }
         //Fine definizioni di funzione 
