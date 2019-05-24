@@ -42,7 +42,6 @@
      } else {
          $user = "";
      }   */
-
     /*  if ($organization == "Other" && $userRole == "Root") {
 
       }*/
