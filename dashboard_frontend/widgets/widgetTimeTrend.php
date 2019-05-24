@@ -1593,6 +1593,8 @@
                         });
                         break;
                 }
+                
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
             }
         }
         //Fine definizioni di funzione 
