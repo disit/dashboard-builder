@@ -48,6 +48,8 @@ var gisDefaultColors = [
     }
 ];    
 
+console.log('dashboard_configdash.js');
+
 function setAddGisParameters(addGisParametersAtt)
 {
     addGisParametersLocal = addGisParametersAtt;
@@ -80,7 +82,8 @@ function addGisQuery()
        color2: gisDefaultColors[($("#addGisQueryTable tr").length - 1)%7].color2,
        targets: [],
        queryType: "Default",     
-       display: "pins"
+       display: "pins",
+       rowOrder: addGisParametersLocal.queries.length + 1
    };
    
    addGisParametersLocal.queries.push(newQueryObj);
@@ -262,6 +265,31 @@ function addGisQuery()
         newTableRow.append(newTableCell);
         newTableCell.find('select').on('change', addGisUpdateParams);
    }
+
+    var rowOrder = newQueryObj.rowOrder;
+    /*    if (rowOrder != null && rowOrder != null) {
+            newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
+        } else {
+            newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
+        }
+        newTableRow.append(newTableCell);
+        newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
+
+    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
+    newTableCell.find('a').editable({
+        emptytext: "Empty",
+        display: function (value, response) {
+            if (value.length > 10) {
+                $(this).html(value.substring(0, 10) + "...");
+            }
+            else {
+                $(this).html(value);
+            }
+        },
+        value: newQueryObj.rowOrder
+    });
+
+    newTableRow.append(newTableCell);
    
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
    newTableCell.find('i').click(delGisQuery);
@@ -297,7 +325,8 @@ function addGisQueryM()
        targets : [],
        queryType: "Default",     
        color1: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color1,
-       color2: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color2
+       color2: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color2,
+       rowOrder: ""
    };
    
    editGisParametersLocal.queries.push(newQueryObj);
@@ -477,7 +506,60 @@ function addGisQueryM()
         newTableCell.find('select').append('<option value="all">Pins and geometries</option>');
         newTableRow.append(newTableCell);
         newTableCell.find('select').on('change', editGisUpdateParams);
+
+       var rowOrderM = newQueryObj.rowOrder;
+       /*    if (rowOrder != null && rowOrder != null) {
+               newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
+           } else {
+               newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
+           }
+           newTableRow.append(newTableCell);
+           newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
+
+       newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
+       newTableCell.find('a').editable({
+           emptytext: "Empty",
+           display: function (value, response) {
+               if (value.length > 10) {
+                   $(this).html(value.substring(0, 10) + "...");
+               }
+               else {
+                   $(this).html(value);
+               }
+           },
+           value: newQueryObj.rowOrder
+       });
+
+       newTableRow.append(newTableCell);
    }
+
+   if($('#editGisQueryTable').attr('data-widgetType') === 'selectorWeb') {
+       var rowOrder = newQueryObj.rowOrder;
+       /*    if (rowOrder != null && rowOrder != null) {
+               newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
+           } else {
+               newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
+           }
+           newTableRow.append(newTableCell);
+           newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
+
+       newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
+       newTableCell.find('a').editable({
+           emptytext: "Empty",
+           display: function (value, response) {
+               if (value.length > 10) {
+                   $(this).html(value.substring(0, 10) + "...");
+               } else {
+                   $(this).html(value);
+               }
+           },
+           value: newQueryObj.rowOrder
+       });
+
+       newTableRow.append(newTableCell);
+
+   }
+
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
    newTableCell.find('i').click(delGisQueryM);
    newTableRow.append(newTableCell);
@@ -595,7 +677,13 @@ function editGisUpdateParams(e, params)
       case 'display':
           newValue = $(this).val();
           editGisParametersLocal.queries[rowIndex].display = newValue;
-          break; 
+          break;
+
+      case 'rowOrder':
+       //   newValue = $(this).val();
+          newValue = params.newValue;
+          editGisParametersLocal.queries[rowIndex].rowOrder = newValue;
+          break;
 
        default:
            break;
