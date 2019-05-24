@@ -431,7 +431,9 @@
                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                 }
-            } 
+            }
+
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
         }
         
         function resizeWidget()
@@ -650,6 +652,9 @@
                                     metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
                                     metricData.data[0].commit.author.metricType = "Testuale";
                                 }
+                            /*    if (serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit) {
+                                    udm = serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit;
+                                }   */
                             },
                             error: function(errorData)
                             {
@@ -683,7 +688,7 @@
                                         //    udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
                                         } else if (data.Sensor) {
                                             var originalMetricType = data.Sensor.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                         //   udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                        //    udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
                                         }
                                         
                                         metricData = {  
@@ -817,7 +822,7 @@
                                                 }
                                             }
 
-                                            //udm = data[0].variableUnit;
+                                        //    udm = data[0].variableUnit;
 
                                             metricData = {  
                                                 data:[  
@@ -932,7 +937,7 @@
                                                 }
                                             }
 
-                                            //udm = data[0].variableUnit;
+                                        //    udm = data[0].variableUnit;
 
                                             metricData = {
                                                 data:[
