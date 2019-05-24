@@ -434,22 +434,28 @@ if (!empty($_REQUEST["filterDistinct"])) {
                         $whereAll = $whereAll . " OR unique_name_id = '" . $allowedRecord[0]. "'";
                     }
                 } else if ($allowedRecord[1] === 'MyKPI') {
+                    $uniqueNameIdEsc = mysqli_real_escape_string($link, $allowedRecord[2]);
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "')";
+                        $lowLevelTypeEsc = mysqli_real_escape_string($link, $allowedRecord[3]);
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "' AND BINARY low_level_type = '" . $lowLevelTypeEsc . "')";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyPOI') {
+                    $uniqueNameIdEsc = mysqli_real_escape_string($link, $allowedRecord[2]);
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "')";
+                        $lowLevelTypeEsc = mysqli_real_escape_string($link, $allowedRecord[3]);
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "' AND BINARY low_level_type = '" . $lowLevelTypeEsc . "')";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyData') {
+                    $uniqueNameIdEsc = mysqli_real_escape_string($link, $allowedRecord[2]);
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "')";
+                        $lowLevelTypeEsc = mysqli_real_escape_string($link, $allowedRecord[3]);
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "' AND BINARY low_level_type = '" . $lowLevelTypeEsc . "')";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "'";
                     }
                 }
             }
@@ -722,9 +728,9 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             array( 'db' => 'get_instances',     'dt' => 14 ),
             array( 'db' => 'ownership',     'dt' => 15 ),
             array( 'db' => 'sm_based',     'dt' => 16 ),
-            array( 'db' => 'latitude',     'dt' => 17 ),
-            array( 'db' => 'longitude',     'dt' => 18 ),
-            array( 'db' => 'organizations',     'dt' => 19 )
+            array( 'db' => 'organizations',     'dt' => 17 ),
+            array( 'db' => 'latitude',     'dt' => 18 ),
+            array( 'db' => 'longitude',     'dt' => 19 )
 
         );
 
@@ -1112,22 +1118,28 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                         $whereAll = $whereAll . " OR unique_name_id = '" . $allowedRecord[0]. "'";
                     }
                 } else if ($allowedRecord[1] === 'MyKPI') {
+                    $uniqueNameIdEsc = mysqli_real_escape_string($link, $allowedRecord[2]);
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
+                        $lowLevelTypeEsc = mysqli_real_escape_string($link, $allowedRecord[3]);
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "' AND BINARY low_level_type = '" . $lowLevelTypeEsc . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY  unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND BINARY  unique_name_id = '" . $uniqueNameIdEsc . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyPOI') {
+                    $uniqueNameIdEsc = mysqli_real_escape_string($link, $allowedRecord[2]);
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
+                        $lowLevelTypeEsc = mysqli_real_escape_string($link, $allowedRecord[3]);
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "' AND BINARY low_level_type = '" . $lowLevelTypeEsc . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "'";
                     }
                 } else if ($allowedRecord[1] === 'MyData') {
+                    $uniqueNameIdEsc = mysqli_real_escape_string($link, $allowedRecord[2]);
                     if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "' AND BINARY low_level_type = '" . $allowedRecord[3] . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
+                        $lowLevelTypeEsc = mysqli_real_escape_string($link, $allowedRecord[3]);
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "' AND BINARY low_level_type = '" . $lowLevelTypeEsc . "' AND (get_instances = '" . $allowedRecord[0] . "' OR get_instances = 'datamanager/api/v1/poidata/" . $allowedRecord[0] . "'))";
                     } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $allowedRecord[2] . "'";
+                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND BINARY unique_name_id = '" . $uniqueNameIdEsc . "'";
                     }
                 }
             }
