@@ -23,7 +23,7 @@ if (!isset($_SESSION)) {
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
-checkSession('Manager');
+checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/iotApplications.php"));
 ?>
 
 <!DOCTYPE html>
