@@ -75,6 +75,9 @@ if ($rs) {
     $count = 0;
     try {
         while ($row = mysqli_fetch_assoc($rs)) {
+            if (strpos($row['unique_name_id'], 'fmi-105406') !== false || strpos($row['unique_name_id'], '37377') !== false) {
+                $stopFlag = 1;
+            }
             $high_level_type = $row['high_level_type'];
             $nature = $row['nature'];
             $sub_nature = $row['sub_nature'];
@@ -93,12 +96,22 @@ if ($rs) {
                 if ($row['high_level_type'] == 'From Dashboad to IOT Device' || $row['high_level_type'] == 'From IOT Device to Dashboard') {
                     //   $url = "http://www.disit.org/ServiceMap/api/v1/?serviceUri=".$row[instance_uri]."&healthiness=true";
                     //   $url = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $row['get_instances'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
-                    $url = "http://www.disit.org/superservicemap/api/v1/?serviceUri=" . $row['get_instances'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                    if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
+                        $sUri = urlencode($row['get_instances']);
+                    } else {
+                        $sUri = $row['get_instances'];
+                    }
+                    $url = "http://www.disit.org/superservicemap/api/v1/?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
                     // $instance_uri = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $row['instance_uri'];
                     $instance_uri = "single_marker";
                 } else if ($row['nature'] != 'IoTDevice' && $sub_nature != "First Aid Data") {
                     //    $url = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $row['get_instances'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
-                    $url = "http://www.disit.org/superservicemap/api/v1/?serviceUri=" . $row['get_instances'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                    if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
+                        $sUri = urlencode($row['get_instances']);
+                    } else {
+                        $sUri = $row['get_instances'];
+                    }
+                    $url = "http://www.disit.org/superservicemap/api/v1/?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
                     //   $instance_uri = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $row['unique_name_id'];
                     $instance_uri = "any + status";
                 } else if ($sub_nature === "First Aid Data") {
@@ -255,7 +268,56 @@ if ($rs) {
 
                 } else {
                     if ($unique_name_id != '') {
+                        if (!empty($healthiness)) {
+                            foreach ($healthiness as $key => $item) {
 
+                                if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
+                                    if ($key != 'capacity' || $sub_nature != 'Car_park') {
+                                        // QUI ALTRE CONDIZIONI PER FILTRARE IL PROCESSING !!!
+                                        $measure = $realtime_data[$key]['value'];
+                                        // if ($realtime_data[$key]['unit'] != '') {
+                                        if (!empty($realtime_data[$key]['unit'])) {
+                                            $unit = $realtime_data[$key]['unit'];
+                                        }
+
+                                        if (array_key_exists($key, $healthiness)) {
+
+                                            $healthiness_value = $healthiness[$key]['healthy'];
+
+                                        } else {
+
+                                            $healthiness_value = "false";
+                                        }
+
+                                        if ($healthiness_value = $healthiness[$key]['healthy'] === false) {
+                                            $healthy = "false";
+                                        } else if ($healthiness_value = $healthiness[$key]['healthy'] === true) {
+                                            $healthy = "true";
+                                        } else {
+                                            $healthy = "false";
+                                        }
+
+                                        $updateTimeU = new DateTime("now", $current_dateTimeZone);
+                                        $offset = $current_dateTimeZone->getOffset($updateTimeU);
+                                        $update_scritp_timeU = $updateTimeU->format('c');
+                                        $update_time_okU = str_replace("T", " ", $update_scritp_timeU);    // VIEW GMT OFFSET !
+                                        echo("             Udpating : " . $key . " at: " . $update_time_okU . "\n");
+
+                                        //    $query_update = "UPDATE DashboardWizard SET last_date= '" . $last_date_wonderful . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';";
+                                        //$query_update = "UPDATE DashboardWizard SET last_date= '" . $last_date . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . $update_time_okU . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';";
+                                        $query_update = "UPDATE DashboardWizard SET healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';";
+                                        //    $rs = mysqli_query($link, $query_update);
+                                        //    mysqli_query($link, "UPDATE DashboardWizard SET last_date= '" . $last_date_wonderful . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';");
+                                        mysqli_query($link, $query_update);
+
+                                        //      }
+                                    }
+                                } else {
+                                    $stop_flag = 1;
+                                }
+
+                            }
+                        }
                         //**********************************************************************************
                         $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
                         $date_now = $now->format('c');
