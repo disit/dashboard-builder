@@ -192,6 +192,8 @@ if($result1)
 
                              default:
                                  $clonedWidgetName = $row4['id_metric'] . '_' . $clonedDashId . '_' . $row4['type_w'] . $clonedWidgetId;
+                                 $clonedWidgetName = str_replace(':', '_', $clonedWidgetName);
+                                 $clonedWidgetName = "w_" . preg_replace('/\s+/', '_', $clonedWidgetName);
                                  break;
                          }
 
@@ -269,7 +271,7 @@ if($result1)
 
                      //Copia screenshot della dashboard
                      if (file_exists("../img/dashScr/dashboard" . $sourceDashId . "/lastDashboardScr.png")) {
-                         $originalScr = "../img/dashScr/dashboard" . $sourceDashId . "/lastDashboardScr.PNG";
+                         $originalScr = "../img/dashScr/dashboard" . $sourceDashId . "/lastDashboardScr.png";
                          $uploadFolder = "../img/dashScr/dashboard" . $clonedDashId . "/";
 
                          if (!file_exists("../img/dashScr/")) {
@@ -281,7 +283,7 @@ if($result1)
                          }
 
                          if (is_dir($uploadFolder)) {
-                             $clonedScr = "../img/dashScr/dashboard" . $clonedDashId . "/lastDashboardScr.PNG";
+                             $clonedScr = "../img/dashScr/dashboard" . $clonedDashId . "/lastDashboardScr.png";
                              copy($originalScr, $clonedScr);
                          }
                      }
