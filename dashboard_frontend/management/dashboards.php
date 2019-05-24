@@ -25,6 +25,10 @@
     mysqli_select_db($link, $dbname);
 
     checkSession('Public');
+    if(isset($_REQUEST['linkId']) && ctype_alnum($_REQUEST['linkId']))
+      $linkId = @$_REQUEST['linkId'];
+    else
+      $linkId = 'invalid';
 ?>
 
 <!DOCTYPE html>
@@ -693,7 +697,7 @@
         var allDashboardsList = null;
 
         var orgFlag = "all";
-        <?php if (isset($_GET['param']) && !empty($_GET['param'])) {    ?>
+        <?php if (isset($_GET['param']) && !empty($_GET['param']) /*&& ($_GET['param']=='My org' || $_GET['param']=='My orgMy?linkId')*/) { ?>
             orgFlag = "<?php echo $_GET['param']; ?>";
         <?php }?>
         
@@ -753,9 +757,9 @@
             $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
         });
         
-        $('#mainMenuCnt .mainMenuLink[id=<?= @$_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= @$_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= @$_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mainMenuCnt .mainMenuLink[id=<?= $linkId ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $linkId ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $linkId ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
         var loggedRole = "<?= ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) ?>";
         var loggedType = "<?= @$_SESSION['loggedType'] ?: '' ?>";
@@ -1233,6 +1237,10 @@
                         $(this).find('.cloneDashBtnCard').off('click');
                         $(this).find('.cloneDashBtnCard').click(function()  // Add Ownership Registraion on Dashboard Clone
                         {
+                            $('#cloneDashboardTitleMsg').html("New title OK");
+                            $('#cloneDashboardTitleMsg').removeClass("error");
+                            $('#cloneDashboardTitleMsg').addClass("ok");
+                            $('#duplicateDashboardBtn').attr("disabled", false);
                             var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
                             var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-dashTitle');
                             $.ajax({
@@ -1282,38 +1290,42 @@
                                                         }, 300);
                                                     }, 3500);
                                                 }
-                                                else
-                                                {
+                                                else {
                                                     dashboardTitlesList = data.titles;
                                                     $('#duplicateDashboardLoadingTitlesRow').hide();
                                                     $('#cloningDashboardFormRow').show();
                                                     $('#cloneDashboardModalFooter').show();
-                                                    $('#newDashboardTitle').on('input', function(){
-                                                        if($('#newDashboardTitle').val().trim().length < 4)
-                                                        {
-                                                            $('#cloneDashboardTitleMsg').html("Title can't be less than 4 characters long");
-                                                            $('#cloneDashboardTitleMsg').removeClass("ok");
-                                                            $('#cloneDashboardTitleMsg').addClass("error");
-                                                            $('#duplicateDashboardBtn').attr("disabled", true);
-                                                        }
-                                                        else
-                                                        {
-                                                            if(dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0)
-                                                            {
-                                                                $('#cloneDashboardTitleMsg').html("Title already in use");
+                                                    dashboardTitlesList = data.titles;
+                                                    if(dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0)
+                                                    {
+                                                        $('#cloneDashboardTitleMsg').html("Title already in use");
+                                                        $('#cloneDashboardTitleMsg').removeClass("ok");
+                                                        $('#cloneDashboardTitleMsg').addClass("error");
+                                                        $('#duplicateDashboardBtn').attr("disabled", true);
+                                                    }
+                                                   // else
+                                                  //  {
+                                                        $('#newDashboardTitle').on('input', function () {
+                                                            if ($('#newDashboardTitle').val().trim().length < 4) {
+                                                                $('#cloneDashboardTitleMsg').html("Title can't be less than 4 characters long");
                                                                 $('#cloneDashboardTitleMsg').removeClass("ok");
                                                                 $('#cloneDashboardTitleMsg').addClass("error");
                                                                 $('#duplicateDashboardBtn').attr("disabled", true);
+                                                            } else {
+                                                                if (dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0) {
+                                                                    $('#cloneDashboardTitleMsg').html("Title already in use");
+                                                                    $('#cloneDashboardTitleMsg').removeClass("ok");
+                                                                    $('#cloneDashboardTitleMsg').addClass("error");
+                                                                    $('#duplicateDashboardBtn').attr("disabled", true);
+                                                                } else {
+                                                                    $('#cloneDashboardTitleMsg').html("New title OK");
+                                                                    $('#cloneDashboardTitleMsg').removeClass("error");
+                                                                    $('#cloneDashboardTitleMsg').addClass("ok");
+                                                                    $('#duplicateDashboardBtn').attr("disabled", false);
+                                                                }
                                                             }
-                                                            else
-                                                            {
-                                                                $('#cloneDashboardTitleMsg').html("New title OK");
-                                                                $('#cloneDashboardTitleMsg').removeClass("error");
-                                                                $('#cloneDashboardTitleMsg').addClass("ok");
-                                                                $('#duplicateDashboardBtn').attr("disabled", false);
-                                                            }
-                                                        }
-                                                    });
+                                                        });
+                                                  //  }
                                                 }
                                             },
                                             error: function(errorData)
