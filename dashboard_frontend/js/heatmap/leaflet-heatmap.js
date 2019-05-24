@@ -213,8 +213,10 @@
         },
         // aggiunta
         configure: function (cfg) {
-            this._heatmap.configure(cfg);
-            this._draw();
+            if(this._heatmap) {
+                this._heatmap.configure(cfg);
+                this._draw();
+            }
         }
     });
 
