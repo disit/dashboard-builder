@@ -67,8 +67,6 @@ $client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environmen
 $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
-// FEEDING TABELLA DASHBOARD_WIZARD CON HEATMAP
-
 $high_level_type = "Heatmap";
 $nature = "";
 $sub_nature_array = [];
@@ -89,8 +87,6 @@ $healthiness = "";
 $ownership = "";
 //$lastCheck = "";
 $organizations = "";
-
-//$accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
 
 $queryHeatmapAPI = "http://192.168.0.59/maps-completed.php";
 
