@@ -40,25 +40,16 @@ $link = mysqli_connect($host, $username, $password);
 //error_reporting(E_ALL);
 mysqli_select_db($link, $dbname);
 
-//$query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'From Dashboad to IOT Device' OR DashboardWizard.high_level_type = 'From IOT Device to Dashboard' OR DashboardWizard.high_level_type = 'Sensor' AND healthiness != 'false' AND healthiness != 'true'";
-//$query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'From Dashboad to IOT Device' OR DashboardWizard.high_level_type = 'From IOT Device to Dashboard' AND healthiness != 'false' AND healthiness != 'true'";
-// $query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'Sensor' AND healthiness != 'false' AND healthiness != 'true'";
 if (defined('STDIN')) {
     if ($argv[1]) {
         $id_arg = $argv[1];
         $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (sub_nature = 'Car_park' AND low_level_type REGEXP 'freeParkingLotsPrediction') AND id > ".$id_arg ." GROUP BY unique_name_id ORDER BY id DESC;";
-        //    $query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'From IOT Device to Dashboard' AND id > ".$id_arg ." GROUP BY unique_name_id ORDER BY id ASC;";
     } else {
         $query = "SELECT * FROM Dashboard.DashboardWizard WHERE sub_nature = 'Car_park' AND low_level_type REGEXP 'freeParkingLotsPrediction' GROUP BY unique_name_id ORDER BY id DESC;";
-        //    $query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'Sensor' GROUP BY unique_name_id ORDER BY id ASC;";
-        //    $query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'From IOT Device to Dashboard' GROUP BY unique_name_id ORDER BY id ASC;";
     }
 } else {
     $query = "SELECT * FROM Dashboard.DashboardWizard WHERE sub_nature = 'Car_park' AND low_level_type REGEXP 'freeParkingLotsPrediction' GROUP BY unique_name_id ORDER BY id DESC;";
-    //   $query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'Sensor' GROUP BY unique_name_id ORDER BY id ASC;";
-    //  $query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'From IOT Device to Dashboard' GROUP BY unique_name_id ORDER BY id ASC;";
 }
-//$query = "SELECT * FROM Dashboard.DashboardWizard WHERE DashboardWizard.high_level_type = 'Sensor'";
 
 
 $rs = mysqli_query($link, $query);
