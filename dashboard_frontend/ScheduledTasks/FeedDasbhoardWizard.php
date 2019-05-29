@@ -48,8 +48,6 @@ $ownership = "public";
 //$organizations = "[\'DISIT\', \'Firenze\']";
 $organizations = "[\'DISIT\', \'Firenze\', \'Toscana\', \'Other\']";
 
-$baseKm4CityUri = "http://www.disit.org/km4city/resource/";
-
 $s = "";
 $a = "";
 $dt = "";
@@ -69,7 +67,7 @@ $queryAscapiEtlDecoded = "select distinct ?s ?a ?dt ?serviceType ?ow ?org ?lat ?
     "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType) " .
     "MINUS{?s a km4c:IoTSensor} MINUS {?s a km4c:IoTActuator}}}";
 
-$queryAscapiEtl = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+$queryAscapiEtl = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 $queryAscapiEtlRresults = file_get_contents($queryAscapiEtl);
 $resArrayEtl = json_decode($queryAscapiEtlRresults, true);
@@ -104,7 +102,7 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
 
     if ($serviceType === "Emergency_First_aid") {
 
-        $queryName = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Fn+%7B+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fresource%2F" . $unique_name_id_for_query ."%3E+%3Chttp%3A%2F%2Fschema.org%2Fname%3E+%3Fn.%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+        $queryName = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=select+distinct+%3Fn+%7B+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fresource%2F" . $unique_name_id_for_query ."%3E+%3Chttp%3A%2F%2Fschema.org%2Fname%3E+%3Fn.%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
         $queryNameRresults = file_get_contents($queryName);
         $ArrayName = json_decode($queryNameRresults, true);
         $n = $ArrayName['results']['bindings'][0]['n']['value'];
@@ -191,10 +189,6 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
         //  if (sizeof($sub_nature_array) > 2) {
         $nature = explode("_", $serviceType)[0];
         $sub_nature = explode($nature . "_", $serviceType)[1];
-        /*  } else {
-              $nature = explode("_", $serviceType)[0];
-              $sub_nature = explode($nature."_", $serviceType)[1];
-          }   */
 
         $low_level_type = explode($s . "/", $a)[1];
 
@@ -210,13 +204,7 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
         $kb_based = "yes";
         $sm_based = "yes";
 
-
-        //    $parameters = $sub_nature;
         $parameters = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $s . "&format=json";      // CAMBIARE CON API NUOVE DI PIERO QUANDO E' PRONTA LA GET
-      /*  if ($ownership != "private") {
-            $ownership = "public";
-        }   */
-        //  $healthiness = "na";
 
         if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
             $sm_based = "yes";
@@ -263,7 +251,6 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
     } else {
         $stop_flag = 4;
     }
-
 
 }
 
