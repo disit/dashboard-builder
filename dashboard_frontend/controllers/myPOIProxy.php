@@ -17,6 +17,10 @@
 include '../config.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
+if (!isset($_SESSION)) {
+    session_start();
+    session_write_close();
+}
 
 function udate($format = 'u', $microT) {
 
@@ -47,52 +51,41 @@ if (isset($_REQUEST['last'])) {
     $lastValueString = "&last=0";
 }
 
-
+if(isset($_SESSION['refreshToken'])) {
 //  if(isset($_SESSION['refreshToken'])) {
-$oidc = new OpenIDConnectClient('https://www.snap4city.org', 'php-dashboard-builder', '0afa15e8-87b9-4830-a60c-5fd4da78a9c4');
-$oidc->providerConfigParam(array('token_endpoint' => 'https://www.snap4city.org/auth/realms/master/protocol/openid-connect/token'));
-$tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-$accessToken = $tkn->access_token;
-$_SESSION['refreshToken'] = $tkn->refresh_token;
+    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+    $oidc->providerConfigParam(array('token_endpoint' => 'https://www.snap4city.org/auth/realms/master/protocol/openid-connect/token'));
+    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+    $accessToken = $tkn->access_token;
+    $_SESSION['refreshToken'] = $tkn->refresh_token;
 
-/*   $genFileContent = parse_ini_file("../conf/environment.ini");
-   $personalDataFileContent = parse_ini_file("../conf/personalData.ini");
-   $env = $genFileContent['environment']['value'];
+    $myPOIDataJsonDelegated = [];
 
-   $host_pd= $personalDataFileContent["host_PD"][$env];
-   $token_endpoint= $personalDataFileContent["token_endpoint_PD"][$env];
-   $client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environment']['value']];
-   $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
-   $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
+    $genFileContent = parse_ini_file("../conf/environment.ini");
+    $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
+    $env = $genFileContent['environment']['value'];
 
-   $ch = curl_init();
-   curl_setopt($ch, CURLOPT_URL,$token_endpoint);
-   curl_setopt($ch, CURLOPT_POST, 1);
-   curl_setopt($ch, CURLOPT_POSTFIELDS,
-       "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
-   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
 
-   $curl_response = curl_exec($ch);
-   curl_close($ch);
-   $access_token_output = json_decode($curl_response)->access_token;   */
+    $myKpiDataArray = [];
+    if ($myPOIId != "All") {
+        $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/" . $myPOIId . "/?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . $myPOITimeRange . $lastValueString;
+    } else {
+        $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&highLevelType=MyPOI" . $myPOITimeRange . $lastValueString;
+        $apiUrlDelegated = $personalDataApiBaseUrl . "/v1/poidata/delegated?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . $myPOITimeRange . $lastValueString;
+        $optionsDelegated = array(
+            'http' => array(
+                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method' => 'GET',
+                'timeout' => 30,
+                'ignore_errors' => true
+            )
+        );
+        $contextDelegated = stream_context_create($optionsDelegated);
+        $myPOIDataJsonDelegated = file_get_contents($apiUrlDelegated, false, $contextDelegated);
+    }
 
-//    echo json_encode($accessToken);
-
-$myPOIDataJsonDelegated = [];
-
-$genFileContent = parse_ini_file("../conf/environment.ini");
-$ownershipFileContent = parse_ini_file("../conf/ownership.ini");
-$env = $genFileContent['environment']['value'];
-
-$personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
-
-$myKpiDataArray = [];
-if ($myPOIId != "All") {
-    $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/" . $myPOIId . "/?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . $myPOITimeRange . $lastValueString;
-} else {
-    $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&highLevelType=MyPOI" . $myPOITimeRange . $lastValueString;
-    $apiUrlDelegated = $personalDataApiBaseUrl . "/v1/poidata/delegated?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . $myPOITimeRange . $lastValueString;
-    $optionsDelegated = array(
+    $options = array(
         'http' => array(
             'header' => "Content-type: application/x-www-form-urlencoded\r\n",
             'method' => 'GET',
@@ -100,46 +93,27 @@ if ($myPOIId != "All") {
             'ignore_errors' => true
         )
     );
-    $contextDelegated = stream_context_create($optionsDelegated);
-    $myPOIDataJsonDelegated = file_get_contents($apiUrlDelegated, false, $contextDelegated);
-}
 
-$options = array(
-    'http' => array(
-        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-        'method' => 'GET',
-        'timeout' => 30,
-        'ignore_errors' => true
-    )
-);
+    $context = stream_context_create($options);
+    $myPOIDataJsonOwned = file_get_contents($apiUrl, false, $context);
 
-$context = stream_context_create($options);
-$myPOIDataJsonOwned = file_get_contents($apiUrl, false, $context);
+    $myPOIDataOwnedArray = json_decode($myPOIDataJsonOwned);
 
-$myPOIDataOwnedArray = json_decode($myPOIDataJsonOwned);
+    $myPOIDataArray = [];
 
-/*  for($i = 0; $i < count($myKpiData); $i++) {
-    //  if ($myKpiData[$i]->elementType == 'DashboardID') {
-          //   if(!in_array($delegatedDashboards[$i]->elementId, $dashIds, true)) {
-          array_push($myKpiDataArray, $myKpiData[$i]->elementId);
-    //  }
-  }   */
-$myPOIDataArray = [];
-
-if ($myPOIDataJsonDelegated) {
-    $myPOIDataJsonArray = json_decode($myPOIDataJsonDelegated);
-    foreach ($myPOIDataJsonArray as $myPOIDataJsonElement) {
-        array_push($myPOIDataArray, $myPOIDataJsonElement);
+    if ($myPOIDataJsonDelegated) {
+        $myPOIDataJsonArray = json_decode($myPOIDataJsonDelegated);
+        foreach ($myPOIDataJsonArray as $myPOIDataJsonElement) {
+            array_push($myPOIDataArray, $myPOIDataJsonElement);
+        }
+        foreach ($myPOIDataOwnedArray as $myPOIDataJsonOwnedElement) {
+            array_push($myPOIDataArray, $myPOIDataJsonOwnedElement);
+        }
+        $myPOIDataJson = json_encode($myPOIDataArray);
+    } else {
+        $myPOIDataJson = json_encode($myPOIDataOwnedArray);
     }
-    foreach ($myPOIDataOwnedArray as $myPOIDataJsonOwnedElement) {
-        array_push($myPOIDataArray, $myPOIDataJsonOwnedElement);
-    }
-    $myPOIDataJson = json_encode($myPOIDataArray);
-} else {
-    $myPOIDataJson = json_encode($myPOIDataOwnedArray);
+
+    echo $myPOIDataJson;
+
 }
-
-echo $myPOIDataJson;
-//   }
-
-//}
