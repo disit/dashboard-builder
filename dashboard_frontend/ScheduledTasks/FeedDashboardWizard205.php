@@ -50,10 +50,6 @@ $organizations = "";
 $organizationHelsTemplate = "Helsinki";
 $organizationAntwTemplate = "Antwerp";
 
-$baseKm4CityUri = "http://www.disit.org/km4city/resource/";
-$kbUrlHelsinki = "https://helsinki.snap4city.org/ServiceMap/api/v1/";
-$kbUrlAntwerp = "https://antwerp.snap4city.org/ServiceMap/api/v1/";
-$kbUrlSuperServiceMap = "https://www.disit.org/superservicemap/api/v1/";
 $kbUrl = "";
 
 $s = "";
@@ -74,7 +70,7 @@ $queryAscapiEtlDecoded = "select distinct ?s ?a ?n ?dt ?serviceType ?ow ?org ?la
     "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType) " .
     "MINUS{?s a km4c:IoTSensor} MINUS {?s a km4c:IoTActuator}}}";
 
-$queryAscapiEtl = "http://192.168.0.205:8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+$queryAscapiEtl = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 $queryAscapiEtlRresults = file_get_contents($queryAscapiEtl);
 $resArrayEtl = json_decode($queryAscapiEtlRresults, true);
@@ -125,17 +121,11 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
         //  if (sizeof($sub_nature_array) > 2) {
         $nature = explode("_", $serviceType)[0];
         $sub_nature = explode($nature . "_", $serviceType)[1];
-        /*  } else {
-              $nature = explode("_", $serviceType)[0];
-              $sub_nature = explode($nature."_", $serviceType)[1];
-          }   */
 
         $low_level_type = explode($s . "/", $a)[1];
 
-        //  $instance_uri = $s;
         $instance_uri = "any + status";
 
-        //  $unique_name_id = explode($baseKm4CityUri, $s)[1];
         $unit = $dt;
         $get_instances = $s;
 
@@ -144,14 +134,7 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
         $kb_based = "yes";
         $sm_based = "yes";
 
-
-        //    $parameters = $sub_nature;
-    //   $parameters = $kbUrl ."?serviceUri=http://www.disit.org/km4city/resource/" . $unique_name_id . "&format=json";      // CAMBIARE CON API NUOVE DI PIERO QUANDO E' PRONTA LA GET
         $parameters = $kbUrl . "?serviceUri=" . $s . "&format=json";
-   /*     if ($ownership != "private") {
-            $ownership = "public";
-        }   */
-        //  $healthiness = "na";
 
         if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
             $sm_based = "yes";
@@ -193,4 +176,4 @@ $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);
-echo("End FeedDashboardWizard205 SCRIPT on 192.168.0.205 at: ".$end_time_ok);
+echo("End FeedDashboardWizard205 SCRIPT on on HEL/ANTW KB at: ".$end_time_ok);
