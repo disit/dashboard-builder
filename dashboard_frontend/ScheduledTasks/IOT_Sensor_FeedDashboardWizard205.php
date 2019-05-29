@@ -53,10 +53,7 @@ $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
 $accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
-//$apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=ServiceURI";
-//$apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
-//$apiUrl = "http://192.168.0.10:8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=ServiceURI";
-$apiUrl = "http://192.168.0.10:8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
+$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
 $apiResults = file_get_contents($apiUrl);
 
 if(trim($apiResults) != "")
@@ -72,7 +69,7 @@ $startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
-echo("Starting IOT_Sensor_FeedDashboardWizard205 SCRIPT on 192.168.0.205 at: ".$start_time_ok."\n");
+echo("Starting IOT_Sensor_FeedDashboardWizard205 SCRIPT on ANT/HEL KB at: ".$start_time_ok."\n");
 
 // FEEDING TABELLA DASHBOARD_WIZARD CON IOT SENSORS
 
@@ -123,7 +120,7 @@ $queryIotSensorDecoded = "select distinct ?s ?n ?a ?dt ?serviceType ?org ?broker
    "?sCategory rdfs:subClassOf km4c:Service. " .
    "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)}";
 
-$queryIotSensor = "http://192.168.0.205:8890/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+$queryIotSensor = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 $queryIotSensorRresults = file_get_contents($queryIotSensor);
 $resArray = json_decode($queryIotSensorRresults, true);
@@ -191,9 +188,13 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
         mysqli_query($link, $insertGeneralServiceQuery);
     }
 
-    $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';";
-  //  mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';");
-    mysqli_query($link, $insertQuery);
+    if ($low_level_type != "source" && $low_level_type != "dateObserved" && $low_level_type != "dateObservedFrom" && $low_level_type != "dateObservedTo") {
+        $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';";
+        //  mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';");
+        mysqli_query($link, $insertQuery);
+    } else {
+        echo("SKIPPED ". $low_level_type ." for DEVICE: ". $unique_name_id ."\n");
+    }
 
     $serviceChangeBuffer["last"] = $unique_name_id;
 
@@ -217,4 +218,4 @@ $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);
-echo("End IOT_Sensor_FeedDashboardWizard205 SCRIPT on 192.168.0.205 at: ".$end_time_ok);
+echo("End IOT_Sensor_FeedDashboardWizard205 SCRIPT on ANT/HEL KB at: ".$end_time_ok);
