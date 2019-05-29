@@ -56,7 +56,7 @@ $s = "";
 $a = "";
 $dt = "";
 
-$queryPreviMeteo = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Floc+%3FlocName+where+%7B%3Fs+a+km4c%3AWeatherReport.+%3Fs+km4c%3ArefersToMunicipality+%3Floc.+%3Floc+foaf%3Aname+%3FlocName.%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+$queryPreviMeteo = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=select+distinct+%3Floc+%3FlocName+where+%7B%3Fs+a+km4c%3AWeatherReport.+%3Fs+km4c%3ArefersToMunicipality+%3Floc.+%3Floc+foaf%3Aname+%3FlocName.%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 $queryPreviMeteo = file_get_contents($queryPreviMeteo);
 $resArrayPreviMeteo = json_decode($queryPreviMeteo, true);
