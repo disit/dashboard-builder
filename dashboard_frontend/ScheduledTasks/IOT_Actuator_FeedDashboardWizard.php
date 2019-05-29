@@ -57,26 +57,8 @@ $a = "";
 $dt = "";
 $actSensArray = [];
 
-//$query = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE actuatorTarget = 'broker';";
 $rs = mysqli_query($link, $query);
 $result = [];
-//if($rs) {
-
-//    while ($row = mysqli_fetch_assoc($rs)) {
- //       array_push($actSensArray, $row['name_w']);
- //   }
-//}
-
-// $actSensKbQuery = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Fs+%3Fn+%3Fa+%3Fdt+%3FserviceType+%3Fav+%7B%7B%3Fs+a+km4c%3AIoTActuator.%7D+UNION+%7B%3Fs+a+km4c%3AIoTSensor.%7D+%3Fs+schema%3Aname+%3Fn.+%3Fs+km4c%3AhasAttribute+%3Fa.+%3Fa+km4c%3Adata_type+%3Fdt.+OPTIONAL+%7B%3Fs+km4c%3Aavailability+%3Fav.%7D+%3Fs+a+%3FsType.+%3FsType+rdfs%3AsubClassOf+%3FsCategory.+%3FsCategory+rdfs%3AsubClassOf+km4c%3AService.+bind%28concat%28replace%28str%28%3FsCategory%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%2C%22_%22%2Creplace%28str%28%3FsType%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%29+as+%3FserviceType%29%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-
-// QUERY CON OWNERSHIP NEW !!
-// $actSensKbQuery = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Fs+%3Fn+%3Fa+%3Fdt+%3FserviceType+%3Fav+%3Fow+%7B%7B%3Fs+a+km4c%3AIoTActuator.%7D+UNION+%7B%3Fs+a+km4c%3AIoTSensor.%7D+%3Fs+schema%3Aname+%3Fn.+%3Fs+km4c%3AhasAttribute+%3Fa.+%3Fa+km4c%3Adata_type+%3Fdt.+OPTIONAL+%7B%3Fs+km4c%3Aavailability+%3Fav.%7D+OPTIONAL+%7B%3Fs+km4c%3Aownership+%3Fow.%7D+%3Fs+a+%3FsType.+%3FsType+rdfs%3AsubClassOf+%3FsCategory.+%3FsCategory+rdfs%3AsubClassOf+km4c%3AService.+bind%28concat%28replace%28str%28%3FsCategory%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%2C%22_%22%2Creplace%28str%28%3FsType%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%29+as+%3FserviceType%29%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-
-// QUERY SOLO CON ACTUATORs !
-// $actSensKbQuery = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Fs+%3Fn+%3Fa+%3Fdt+%3FserviceType+%3Fav+%3Fow+%7B%7B%3Fs+a+km4c%3AIoTActuator.+%3Fs+schema%3Aname+%3Fn.+%3Fs+km4c%3AhasAttribute+%3Fa.+%3Fa+km4c%3Adata_type+%3Fdt.+OPTIONAL+%7B%3Fs+km4c%3Aavailability+%3Fav.%7D+OPTIONAL+%7B%3Fs+km4c%3Aownership+%3Fow.%7D+%3Fs+a+%3FsType.+%3FsType+rdfs%3AsubClassOf+%3FsCategory.+%3FsCategory+rdfs%3AsubClassOf+km4c%3AService.+bind%28concat%28replace%28str%28%3FsCategory%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%2C%22_%22%2Creplace%28str%28%3FsType%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%29+as+%3FserviceType%29%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-
-// LAST OK
-// $actSensKbQuery = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Fs+%3Fn+%3Fa+%3Fdt+%3FserviceType+%3Fav+%3Fow+%28coalesce%28%3Forg%2C%22DISIT%22%29+as+%3Forganization%29+%3FbrokerName+%3Flat+%3Flon+%7B%3Fs+a+km4c%3AIoTActuator.+%3Fs+schema%3Aname+%3Fn.+%3Fs+km4c%3AhasAttribute+%3Fa.+%3Fs+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2FUNIS%2Ffiware%2Fiot-lite%23exposedBy%3E+%3Fbroker.+%3Fbroker+%3Chttp%3A%2F%2Fschema.org%2Fname%3E+%3FbrokerName.+%3Fa+km4c%3Adata_type+%3Fdt.+OPTIONAL+%7B%3Fs+km4c%3Aavailability+%3Fav.%7D+OPTIONAL+%7B%3Fs+km4c%3Aownership+%3Fow.%7D+OPTIONAL+%7B%3Fs+km4c%3Aorganization+%3Forg.%7D+%3Fs+a+%3FsType.+%3FsType+rdfs%3AsubClassOf+%3FsCategory.+%3FsCategory+rdfs%3AsubClassOf+km4c%3AService.+bind%28concat%28replace%28str%28%3FsCategory%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%2C%22_%22%2Creplace%28str%28%3FsType%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%29+as+%3FserviceType%29%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 $actSensKbQueryDecoded = "select distinct ?s ?n ?a ?dt ?serviceType ?av ?ow (coalesce(?org,\"DISIT\") as ?organization) ?brokerName ?lat ?lon { " .
    "?s a km4c:IoTActuator. " .
@@ -95,7 +77,7 @@ $actSensKbQueryDecoded = "select distinct ?s ?n ?a ?dt ?serviceType ?av ?ow (coa
    "?sCategory rdfs:subClassOf km4c:Service. " .
    "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)}";
 
-$actSensKbQuery = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=" . urlencode($actSensKbQueryDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+$actSensKbQuery = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=" . urlencode($actSensKbQueryDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 
 $queryActSensRresults = file_get_contents($actSensKbQuery);
@@ -141,32 +123,14 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
                 $organizations = "DISIT";
             }
 
-            // $unique_name_id = explode($baseKm4CityUri, $s)[1];
-         //   $unique_name_id = $n;
             $unique_name_id = $organizations . ":" . $brokerName . ":" . $n;
-
             $serviceChangeBuffer["current"] = $unique_name_id;
-
-            //  $sub_nature_array = explode("_", $serviceType);
-            //  if (sizeof($sub_nature_array) > 2) {
-            //  $nature = explode("_", $serviceType)[0];
             $nature = "From Dashboard to IOT Device";
-            //  $sub_nature = explode($nature . "_", $serviceType)[1];
-            /*  } else {
-                  $nature = explode("_", $serviceType)[0];
-                  $sub_nature = explode($nature."_", $serviceType)[1];
-              }   */
             $sub_nature = "IoTSensor-Actuator";
-
             $low_level_type = explode($s . "/", $a)[1];
-            /*
-                    if ($low_level_type = 'actuatordeleted') {
-                        $queryDeleted = urlencode("select distinct * where {<" . $a . "> <http://www.disit.org/km4city/schema#editable> ?canc}");
-                    }
-            */
+
             $instance_uri = 'single_marker';
 
-            //  $unique_name_id = explode($baseKm4CityUri, $s)[1];
             $unit = $dt;
             $unitSens = $unit;
             if ($unit == "geolocator") {
@@ -201,19 +165,6 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
                 $ownership = "public";
             }
 
-            /*
-              if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
-                  // $insertGeneralServiceQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, unit, metric, saved_direct, kb_based, parameters, healthiness) VALUES ('$nature','$high_level_type','$sub_nature','', '$unique_name_id', '$instance_uri', '', '$metric', '$saved_direct', '$kb_based', '$parameters', '$healthiness') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', last_date = last_date, last_value = last_value, parameters = parameters, healthiness = healthiness;";
-                  // mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, unit, metric, saved_direct, kb_based, parameters, healthiness) VALUES ('$nature','$high_level_type','$sub_nature','', '$unique_name_id', '$instance_uri', '', '$metric', '$saved_direct', '$kb_based', '$parameters', '$healthiness') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', last_date = last_date, last_value = last_value, parameters = parameters, healthiness = healthiness;");
-                  $sm_based = "yes";
-                  $insertGeneralServiceQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership) VALUES ('$nature','$high_level_type','$sub_nature','', '$unique_name_id', '$instance_uri', '$get_instances', '', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "';";
-                  mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership) VALUES ('$nature','$high_level_type','$sub_nature','', '$unique_name_id', '$instance_uri', '$get_instances', '', '$metric', '$saved_direct', '$kb_based',  '$sm_based', '$parameters', '$healthiness', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "';");
-              }
-              $sm_based = "no";
-            */
-
-            // $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, unit, metric, saved_direct, kb_based, parameters, healthiness) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$unit', '$metric', '$saved_direct', '$kb_based', '$parameters', '$healthiness') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', last_date = last_date, last_value = last_value, parameters = parameters, healthiness = healthiness;";
-            // mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, unit, metric, saved_direct, kb_based, parameters, healthiness) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$unit', '$metric', '$saved_direct', '$kb_based', '$parameters', '$healthiness') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', last_date = last_date, last_value = last_value, parameters = parameters, healthiness = healthiness;");
             $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';";
             mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';");
 
@@ -224,9 +175,6 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
         }
   //  }
 }
-
-// Eventualmente eseguire da qui HealthinessCheck.php ?
-// include 'HealthinessCheck.php';
 
 $queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
 $rs = mysqli_query($link, $queryMaxId);
