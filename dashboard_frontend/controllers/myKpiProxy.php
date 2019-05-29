@@ -17,6 +17,10 @@
 include '../config.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
+if (!isset($_SESSION)) {
+    session_start();
+    session_write_close();
+}
 
 function udate($format = 'u', $microT) {
 
@@ -25,9 +29,6 @@ function udate($format = 'u', $microT) {
 
     return date(preg_replace('`(?<!\\\\)u`', $milliseconds, $format), $timestamp);
 }
-
-//if(isset($_SESSION['loggedUsername']))
-//{
 
     if (isset($_GET['myKpiId'])) {
         $myKpiId = $_GET['myKpiId'];
@@ -55,71 +56,41 @@ function udate($format = 'u', $microT) {
         $action = "";
     }
 
-  //  if(isset($_SESSION['refreshToken'])) {
-        $oidc = new OpenIDConnectClient('https://www.snap4city.org', 'php-dashboard-builder', '0afa15e8-87b9-4830-a60c-5fd4da78a9c4');
-        $oidc->providerConfigParam(array('token_endpoint' => 'https://www.snap4city.org/auth/realms/master/protocol/openid-connect/token'));
-        $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-        $accessToken = $tkn->access_token;
-        $_SESSION['refreshToken'] = $tkn->refresh_token;
+if(isset($_SESSION['refreshToken'])) {
+    //  if(isset($_SESSION['refreshToken'])) {
+    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+    $oidc->providerConfigParam(array('token_endpoint' => 'https://www.snap4city.org/auth/realms/master/protocol/openid-connect/token'));
+    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+    $accessToken = $tkn->access_token;
+    $_SESSION['refreshToken'] = $tkn->refresh_token;
 
-        /*   $genFileContent = parse_ini_file("../conf/environment.ini");
-           $personalDataFileContent = parse_ini_file("../conf/personalData.ini");
-           $env = $genFileContent['environment']['value'];
+    $genFileContent = parse_ini_file("../conf/environment.ini");
+    $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
+    $env = $genFileContent['environment']['value'];
 
-           $host_pd= $personalDataFileContent["host_PD"][$env];
-           $token_endpoint= $personalDataFileContent["token_endpoint_PD"][$env];
-           $client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environment']['value']];
-           $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
-           $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
+    $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
 
-           $ch = curl_init();
-           curl_setopt($ch, CURLOPT_URL,$token_endpoint);
-           curl_setopt($ch, CURLOPT_POST, 1);
-           curl_setopt($ch, CURLOPT_POSTFIELDS,
-               "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
-           curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $myKpiDataArray = [];
+    if ($action == "getDistinctDays") {
+        $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values/dates?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
+    } else {
+        $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . $myKpiTimeRange . $lastValueString;
+    }
 
-           $curl_response = curl_exec($ch);
-           curl_close($ch);
-           $access_token_output = json_decode($curl_response)->access_token;   */
+    $options = array(
+        'http' => array(
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'GET',
+            'timeout' => 30,
+            'ignore_errors' => true
+        )
+    );
 
-        //    echo json_encode($accessToken);
+    $context = stream_context_create($options);
+    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
 
-        $genFileContent = parse_ini_file("../conf/environment.ini");
-        $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
-        $env = $genFileContent['environment']['value'];
+    $myKpiData = json_decode($myKpiDataJson);
 
-        $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
+    echo $myKpiDataJson;
 
-        $myKpiDataArray = [];
-        if ($action == "getDistinctDays") {
-            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values/dates?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
-        } else {
-            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . $myKpiTimeRange . $lastValueString;
-        }
-
-        $options = array(
-            'http' => array(
-                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method' => 'GET',
-                'timeout' => 30,
-                'ignore_errors' => true
-            )
-        );
-
-        $context = stream_context_create($options);
-        $myKpiDataJson = file_get_contents($apiUrl, false, $context);
-
-        $myKpiData = json_decode($myKpiDataJson);
-
-        /*  for($i = 0; $i < count($myKpiData); $i++) {
-            //  if ($myKpiData[$i]->elementType == 'DashboardID') {
-                  //   if(!in_array($delegatedDashboards[$i]->elementId, $dashIds, true)) {
-                  array_push($myKpiDataArray, $myKpiData[$i]->elementId);
-            //  }
-          }   */
-
-        echo $myKpiDataJson;
- //   }
-
-//}
+}
