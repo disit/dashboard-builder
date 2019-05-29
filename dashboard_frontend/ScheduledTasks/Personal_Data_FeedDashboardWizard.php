@@ -68,8 +68,6 @@ $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
 
-// FEEDING TABELLA DASHBOARD_WIZARD CON MY KPI DATA FROM 0.10
-
 //$high_level_type_KPI = "MyKPI";
 $high_level_type_KPI = "";
 $nature_KPI = "";
@@ -181,9 +179,6 @@ foreach ($resKPIArray as $resKPIRecord) {
 
 }
 
-
-// FEEDING TABELLA DASHBOARD_WIZARD CON MY POI DATA FROM 0.10
-
 //$high_level_type_POI = "MyPOI";
 $high_level_type_POI = "";
 $nature_POI = "";
@@ -279,8 +274,6 @@ foreach ($resPOIArray as $resPOIRecord) {
 
 }
 
-
-// FEEDING TABELLA DASHBOARD_WIZARD CON MY DATA FROM 0.10
 
 //$high_level_type_MyData = "MyData";
 $high_level_type_MyData = "";
@@ -391,9 +384,6 @@ foreach ($resMyDataArray as $resMyDataRecord) {
 
 }
 
-
-// FEEDING TABELLA DASHBOARD_WIZARD CON PERSONAL DATA FROM 0.10
-
 $high_level_type = "My Personal Data";
 $nature = "";
 $sub_nature_array = [];
@@ -419,9 +409,6 @@ if (isset($accessToken)) {
     // QUERY ALLE API PER PERSONAL DATA
     $queryPersonalData = $host_pd.":8080/datamanager/api/v1/data?accessToken=fakeVal&sourceRequest=dashboardmanager&last=true";
 }
-
-// Query con anche AVAILABILITY
-//$queryIotSensor = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Fs+%3Fn+%3Fa+%3Fdt+%3FserviceType+%3Fav+%7B%3Fs+a+km4c%3AIoTSensor.+%3Fs+schema%3Aname+%3Fn.+%3Fs+km4c%3AhasAttribute+%3Fa.+%3Fa+km4c%3Adata_type+%3Fdt.+%3Fs+km4c%3Aavailability+%3Fav.+%3Fs+a+%3FsType.+%3FsType+rdfs%3AsubClassOf+%3FsCategory.+%3FsCategory+rdfs%3AsubClassOf+km4c%3AService.+bind%28concat%28replace%28str%28%3FsCategory%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%2C%22_%22%2Creplace%28str%28%3FsType%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%29+as+%3FserviceType%29%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 $queryPersonalDataRresults = file_get_contents($queryPersonalData);
 $resArray = json_decode($queryPersonalDataRresults, true);
