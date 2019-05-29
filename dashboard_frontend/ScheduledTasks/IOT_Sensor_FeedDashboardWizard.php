@@ -52,10 +52,7 @@ $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
 $accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
-//$apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=ServiceURI";
-//$apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
-//$apiUrl = "http://192.168.0.10:8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=ServiceURI";
-$apiUrl = "http://192.168.0.10:8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
+$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
 $apiResults = file_get_contents($apiUrl);
 
 if(trim($apiResults) != "")
@@ -116,9 +113,7 @@ $queryIotSensorDecoded = "select distinct ?s ?n ?a ?dt ?serviceType (coalesce(?o
    "?sCategory rdfs:subClassOf km4c:Service. " .
    "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)}";
 
-$queryIotSensor = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-// Query con anche AVAILABILITY
-//$queryIotSensor = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=select+distinct+%3Fs+%3Fn+%3Fa+%3Fdt+%3FserviceType+%3Fav+%7B%3Fs+a+km4c%3AIoTSensor.+%3Fs+schema%3Aname+%3Fn.+%3Fs+km4c%3AhasAttribute+%3Fa.+%3Fa+km4c%3Adata_type+%3Fdt.+%3Fs+km4c%3Aavailability+%3Fav.+%3Fs+a+%3FsType.+%3FsType+rdfs%3AsubClassOf+%3FsCategory.+%3FsCategory+rdfs%3AsubClassOf+km4c%3AService.+bind%28concat%28replace%28str%28%3FsCategory%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%2C%22_%22%2Creplace%28str%28%3FsType%29%2C%22http%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%22%2C%22%22%29%29+as+%3FserviceType%29%7D&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+$queryIotSensor = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
 $queryIotSensorRresults = file_get_contents($queryIotSensor);
 $resArray = json_decode($queryIotSensorRresults, true);
