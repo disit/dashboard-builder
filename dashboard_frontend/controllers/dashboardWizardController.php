@@ -252,11 +252,11 @@ if (!empty($_REQUEST["filterDistinct"])) {
             foreach($allowedElementCouples as $allowedRecord) {
                 if ($allowedRecord[1] === 'ServiceGraphID') {
                     $privatePOIrecord = [];
-                    $queryServiceTypeFromGraphId = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+                    $queryServiceTypeFromGraphId = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
                     $queryServiceTypeResults = file_get_contents($queryServiceTypeFromGraphId);
                     $resServiceTypeArray = json_decode($queryServiceTypeResults, true);
                     if (empty($resServiceTypeArray['results']['bindings'])) {
-                        $queryServiceTypeFromGraphId2 = "http://192.168.0.205:8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+                        $queryServiceTypeFromGraphId2 = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
                         $queryServiceTypeResults2 = file_get_contents($queryServiceTypeFromGraphId2);
                         $resServiceTypeArray = json_decode($queryServiceTypeResults2, true);
                     }
@@ -398,11 +398,11 @@ if (!empty($_REQUEST["filterDistinct"])) {
             foreach($allowedElementCouples as $allowedRecord) {
                 if ($allowedRecord[1] === 'ServiceGraphID') {
                     $privatePOIrecord = [];
-                    $queryServiceTypeFromGraphId = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+                    $queryServiceTypeFromGraphId = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
                     $queryServiceTypeResults = file_get_contents($queryServiceTypeFromGraphId);
                     $resServiceTypeArray = json_decode($queryServiceTypeResults, true);
                     if (empty($resServiceTypeArray['results']['bindings'])) {
-                        $queryServiceTypeFromGraphId2 = "http://192.168.0.205:8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+                        $queryServiceTypeFromGraphId2 = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
                         $queryServiceTypeResults2 = file_get_contents($queryServiceTypeFromGraphId2);
                         $resServiceTypeArray = json_decode($queryServiceTypeResults2, true);
                     }
@@ -830,6 +830,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             $accessToken = $tkn->access_token;
             $_SESSION['refreshToken'] = $tkn->refresh_token;
         }
+        session_write_close();
 
         $whereAllUsers = "";
 
@@ -929,8 +930,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
         } else {
             $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
         }
-        // TEST
-        //   $apiUrlNew = "http://192.168.0.47:8081/test/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&groupname=" .  urlencode($ldapBaseDnOrg);
+
         // PRODUZIONE
         //      $apiUrlNewProd= $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" .  urlencode($ldapBaseDnOrg);
 
@@ -1082,11 +1082,11 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             foreach($allowedElementCouples as $allowedRecord) {
                 if ($allowedRecord[1] === 'ServiceGraphID') {
                     $privatePOIrecord = [];
-                    $queryServiceTypeFromGraphId = "http://192.168.0.206:8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+                    $queryServiceTypeFromGraphId = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
                     $queryServiceTypeResults = file_get_contents($queryServiceTypeFromGraphId);
                     $resServiceTypeArray = json_decode($queryServiceTypeResults, true);
                     if (empty($resServiceTypeArray['results']['bindings'])) {
-                        $queryServiceTypeFromGraphId2 = "http://192.168.0.205:8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+                        $queryServiceTypeFromGraphId2 = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
                         $queryServiceTypeResults2 = file_get_contents($queryServiceTypeFromGraphId2);
                         $resServiceTypeArray = json_decode($queryServiceTypeResults2, true);
                     }
@@ -1374,7 +1374,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
 
             }
         }
-
+        $out['allowed_elements'] = $allowedElementCouples;
         $out_json = json_encode($out);
         echo $out_json;
     }
