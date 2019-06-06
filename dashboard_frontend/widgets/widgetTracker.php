@@ -753,7 +753,7 @@
         }
 
 
-        function buildPastTrips(trackIndex, sm_based, rowParameters, wizardRows, loadingDiv, loadOkText, loadKoText)
+        function buildPastTrips(trackIndex, sm_based, rowParameters, wizardRows)
         {
             var lat1, lat2, lon1, lon2, moving, now, elapsedTime, elapsedTimeSeconds, elapsedTimeHours, lastSpeed = null;
             var tripsUrl = "../controllers/myPersonalDataProxy.php?variableName=" + encodeURI(trackSrcList[trackIndex].variableName) + "&motivation=" + encodeURI(trackSrcList[trackIndex].motivation);
@@ -915,7 +915,7 @@
                                 }
                             }
 
-                            loadingDiv.empty();
+                      /*      loadingDiv.empty();
                             loadingDiv.append(loadOkText);
 
                             parHeight = loadOkText.height();
@@ -930,7 +930,7 @@
                                     });
                                     loadingDiv.remove();
                                 }, 350);
-                            }, 1000);
+                            }, 1000);*/
 
                             // DRAW the TRAJECTORY for CURRENT KPI/METRIC
                             trajectory[trackIndex] = [];
@@ -1331,7 +1331,7 @@
                             case 'MyData':
                             case 'My Personal Data':
 
-                                    var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+                            /*        var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
                                     if($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0)
                                     {
@@ -1362,7 +1362,7 @@
 
                                     var parHeight = loadingText.height();
                                     var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                    loadingText.css("margin-top", parMarginTop + "px");
+                                    loadingText.css("margin-top", parMarginTop + "px"); */
 
                             //    for (trackSrcIndex = 0; trackSrcIndex < trackSrcList.length; trackSrcIndex++) {
                                     //Map followers disattivati di default all'avvio
@@ -1611,7 +1611,7 @@
                                     }
 
 
-                                    function navigateTripDays(urlDayTrip, ajaxDayTripData, trackIndex, dataType, rowParameters) {
+                                    function navigateTripDays(urlDayTrip, ajaxDayTripData, trackIndex, dataType, rowParameters, loadingDiv, previousButton, nexttButton) {
                                         $.ajax({
                                             url: urlDayTrip,
                                             type: "GET",
@@ -1619,6 +1619,7 @@
                                             async: true,
                                             dataType: 'json',
                                             success: function (tripsData) {
+
                                                 if (tripsData[0].APPID != undefined) {  // Se è definito questo parametro allora è un My Personal Data e quindi filtriamo per APPName
                                                     for (index = 0; index < tripsData.length; index++) {
                                                         if (tripsData[index].APPName != appName) {
@@ -1719,23 +1720,6 @@
 
                                                 }
 
-                                                loadingDiv.empty();
-                                                loadingDiv.append(loadOkText);
-
-                                                parHeight = loadOkText.height();
-                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                                loadOkText.css("margin-top", parMarginTop + "px");
-
-                                                setTimeout(function(){
-                                                    loadingDiv.css("opacity", 0);
-                                                    setTimeout(function(){
-                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function(i){
-                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                        });
-                                                        loadingDiv.remove();
-                                                    }, 350);
-                                                }, 1000);
-
                                                 // DRAW the TRAJECTORY for CURRENT KPI/METRIC
                                                 trajectory[trackIndex] = [];
                                                 for (i in mapMarkers[trackIndex]) {
@@ -1830,15 +1814,82 @@
                                                     $('#<?=str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_trackControlsCnt div.trackControlsColorBtn[data-variableName="' + lastSample[trackIndex].variableName + '"]').attr('data-moving', false);
                                                 }
                                                 //animateColorCnt(trackIndex);
+
+                                             //   let loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                                                let loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                                let loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                                let loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                                                let parHeight = loadingText.height();
+                                                let parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadOkText);
+
+                                                parHeight = loadOkText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                setTimeout(function(){
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function(){
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function(i){
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
+
+                                              /*  previousButton.on('click');
+                                                nexttButton.on('click');*/
+                                            //    nexttButton.hide();
+
                                             },
                                             error: function (errorData) {
                                                 var stopFlag = 1;
+                                             /*   previousButton.on('click');
+                                                nexttButton.on('click');*/
                                             },
                                         });
 
                                     }
 
-                                    function prevDayTrip(trackIndex, dataType, rowParameters) {
+                                    function prevDayTrip(trackIndex, dataType, rowParameters, previousButton, nexttButton) {
+
+                                        var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                                        //    if($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0)
+                                        //    {
+                                        //        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                                        //    }
+                                        //    else
+                                        //    {
+                                        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content'));
+                                        //    }
+
+                                        loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content').length * loadingDiv.height())) + "px");
+                                        loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                                        var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                        var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                        var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                                        loadingDiv.css("background", defaultColors[trackIndex]);
+                                        loadingDiv.css("background", "-webkit-linear-gradient(left top, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+                                        loadingDiv.css("background", "-o-linear-gradient(bottom right, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+                                        loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+                                        loadingDiv.css("background", "linear-gradient(to bottom right, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+
+                                        loadingDiv.show();
+
+                                        loadingDiv.append(loadingText);
+                                        loadingDiv.css("opacity", 1);
+
+                                        var parHeight = loadingText.height();
+                                        var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                        loadingText.css("margin-top", parMarginTop + "px");
+
                                         var urlDayTrip = "";
                                         var ajaxDayTripData = {};
 
@@ -1867,7 +1918,7 @@
                                             urlDayTrip = "../controllers/myKpiProxy.php";
                                         }
 
-                                        navigateTripDays(urlDayTrip, ajaxDayTripData, trackIndex, dataType[trackIndex], rowParameters[trackIndex]);
+                                        navigateTripDays(urlDayTrip, ajaxDayTripData, trackIndex, dataType[trackIndex], rowParameters[trackIndex], loadingDiv, previousButton, nexttButton);
 
                                         /*    var icon = L.divIcon({
                                                 className: 'trackerPositionMarker',
@@ -1882,7 +1933,41 @@
                                         timeTrendControl[trackIndex].click();
                                     }
 
-                                    function nextDayTrip(trackIndex, dataType, rowParameters) {
+                                    function nextDayTrip(trackIndex, dataType, rowParameters, previousButton, nexttButton) {
+
+                                        var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                                        //    if($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0)
+                                        //    {
+                                        //        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                                        //    }
+                                        //    else
+                                        //    {
+                                        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content'));
+                                        //    }
+
+                                        loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content').length * loadingDiv.height())) + "px");
+                                        loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                                        var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                        var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                        var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + trackSrcList[trackIndex].variableName.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                                        loadingDiv.css("background", defaultColors[trackIndex]);
+                                        loadingDiv.css("background", "-webkit-linear-gradient(left top, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+                                        loadingDiv.css("background", "-o-linear-gradient(bottom right, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+                                        loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+                                        loadingDiv.css("background", "linear-gradient(to bottom right, " + defaultColors[trackIndex] + ", " + "#" + LightenDarkenColor(defaultColors[trackIndex].replace('#',''), 25) + ")");
+
+                                        loadingDiv.show();
+
+                                        loadingDiv.append(loadingText);
+                                        loadingDiv.css("opacity", 1);
+
+                                        var parHeight = loadingText.height();
+                                        var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                        loadingText.css("margin-top", parMarginTop + "px");
+
                                         var urlDayTrip = "";
                                         var ajaxDayTripData = {};
 
@@ -1912,7 +1997,7 @@
                                             urlDayTrip = "../controllers/myKpiProxy.php";
                                         }
 
-                                        navigateTripDays(urlDayTrip, ajaxDayTripData, trackIndex, dataType, rowParameters[trackIndex]);
+                                        navigateTripDays(urlDayTrip, ajaxDayTripData, trackIndex, dataType, rowParameters[trackIndex], loadingDiv, previousButton, nexttButton);
 
                                         /*    var icon = L.divIcon({
                                                 className: 'trackerPositionMarker',
@@ -1929,14 +2014,22 @@
 
                                     prevBtn[trackSrcIndex].click(function () {
                                  //   $('#prevButton').click(function(){
-                                        prevDayTrip($(this).attr("data-trackIndex"), dataType, rowParameters);
+                                     /*   prevBtn[$(this).attr("data-trackIndex")].off('click');
+                                        nextBtn[$(this).attr("data-trackIndex")].off('click');*/
+                                        prevDayTrip($(this).attr("data-trackIndex"), dataType, rowParameters, prevBtn[$(this).attr("data-trackIndex")], nextBtn[$(this).attr("data-trackIndex")]);
                                         //    prevTripMarker($(this).attr("data-trackIndex"));
+                                    /*    prevBtn[$(this).attr("data-trackIndex")].on('click');
+                                        nextBtn[$(this).attr("data-trackIndex")].on('click');*/
                                     });
 
                                     nextBtn[trackSrcIndex].click(function () {
                                 //    $('#nextButton').click(function(){
-                                        nextDayTrip($(this).attr("data-trackIndex"), dataType, rowParameters);
+                                     /*   prevBtn[$(this).attr("data-trackIndex")].off('click');
+                                        nextBtn[$(this).attr("data-trackIndex")].off('click');*/
+                                        nextDayTrip($(this).attr("data-trackIndex"), dataType, rowParameters, prevBtn[$(this).attr("data-trackIndex")], nextBtn[$(this).attr("data-trackIndex")]);
                                         //nextTripMarker($(this).attr("data-trackIndex"));
+                                     /*   prevBtn[$(this).attr("data-trackIndex")].on('click');
+                                        nextBtn[$(this).attr("data-trackIndex")].on('click');*/
                                     });
 
                                     //    var popup = new L.Popup();
@@ -2095,7 +2188,7 @@
                                     currentDay[trackSrcIndex] = 0;
 
                                     //Costruzione viaggi passatitrackDateShow
-                                    lastDayTripData = buildPastTrips(trackSrcIndex, sm_based[trackSrcIndex], rowParameters[trackSrcIndex], wizardRows, loadingDiv, loadOkText, loadKoText);
+                                    lastDayTripData = buildPastTrips(trackSrcIndex, sm_based[trackSrcIndex], rowParameters[trackSrcIndex], wizardRows);
 
                                   /*  mapRef.on('zoomend', function() {
                                         var currentZoom = mapRef.getZoom();
