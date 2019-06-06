@@ -55,7 +55,7 @@ session_start();
             //echo '<iframe id="chatIframe" class="chatIframe" src="' . $urlRed . '" style="height: 700px;"></iframe>';
         }
 
-        function isPublic($idDash, $addMem) {
+        function isPublic($idDash, $addMem, $personalDataApiBaseUrl) {
 
             error_reporting(E_ERROR | E_NOTICE);
             date_default_timezone_set('Europe/Rome');
@@ -65,15 +65,14 @@ session_start();
                 $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
                 $accessToken = $tkn->access_token;
                 $_SESSION['refreshToken'] = $tkn->refresh_token;
-                $service_url = "http://192.168.0.10:8080/datamanager/api/v1/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
-                //$service_url = "http://192.168.0.10:8080/datamanager/api/v1/username/ANONYMOUS/delegation/check?accessToken=".$accessToken."&sourceRequest=dashboardmanager&elementID=67";
+                $service_url = $personalDataApiBaseUrl ."/v1/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
                 $curl = curl_init($service_url);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                 $curl_response = curl_exec($curl);
                 curl_close($curl);
                 $arr = json_decode($curl_response, true);
                 if (!$arr["result"]) {
-                    $service_url = "http://192.168.0.10:8080/datamanager/api/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
+                    $service_url = $personalDataApiBaseUrl ."/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
                     $curl = curl_init($service_url);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                     $curl_response = curl_exec($curl);
@@ -84,9 +83,9 @@ session_start();
             return ($arr["result"]);
         }
 
-        function addUser($nameIns) {
+        function addUser($nameIns, $personalDataApiBaseUrl) {
             $checkUser = true;
-            $checkPublicDash = isPublic($_REQUEST['idDash'], $nameIns);
+            $checkPublicDash = isPublic($_REQUEST['idDash'], $nameIns, $personalDataApiBaseUrl);
 
             if ($checkPublicDash) {
                 $admin = new \RocketChat\User();
@@ -157,7 +156,7 @@ session_start();
             <div id="messageBox" style="height: 40px;background-color:#8b9fa7;">
                 <?php
                 if ($_POST["AddUser"]) {
-                    addUser($_POST['NickName']);
+                    addUser($_POST['NickName'], $personalDataApiBaseUrl);
                 }
                 echo '</div>';
                 
