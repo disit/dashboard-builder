@@ -4815,12 +4815,12 @@
             var fatherGeoJsonNode = null;
             var addWidgetWizardMapDiv = "addWidgetWizardMapCnt";
 
-            $("#link_start_wizard").click(function ()
+         /*   $("#link_start_wizard").click(function ()
             {
                 choosenWidgetIconName = null;
                 widgetWizardSelectedRows = {};
                 widgetWizardSelectedRowsTable.clear().draw(false);
-            });
+            });*/
 
             $("#addWidgetWizard").on('shown.bs.modal', function () {
                 if($('#dataAndWidgets').is(':visible'))
