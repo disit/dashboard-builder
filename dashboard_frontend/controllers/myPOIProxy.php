@@ -54,7 +54,7 @@ if (isset($_REQUEST['last'])) {
 if(isset($_SESSION['refreshToken'])) {
 //  if(isset($_SESSION['refreshToken'])) {
     $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
-    $oidc->providerConfigParam(array('token_endpoint' => 'https://www.snap4city.org/auth/realms/master/protocol/openid-connect/token'));
+    $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
     $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
     $accessToken = $tkn->access_token;
     $_SESSION['refreshToken'] = $tkn->refresh_token;
