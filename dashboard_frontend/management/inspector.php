@@ -24,10 +24,10 @@
 
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
-    error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
 
     $lastUsedColors = null;
-    $dashId = $_REQUEST['dashboardId'];
+/*    $dashId = $_REQUEST['dashboardId'];
     $q = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashId'";
     $r = mysqli_query($link, $q);
 
@@ -44,7 +44,7 @@
         {
             $lastUsedColors = json_decode($row['lastUsedColors']);
         }
-    }   
+    }   */
     
     
 ?>
@@ -359,7 +359,89 @@ input:checked + .slider .off
     </div>
     
     <!-- Fine dei modali -->
-    
+    <!-- MODALE HEALTHINESS -->
+    <?php
+    if(($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")){
+        echo(' <div class="modal fade bd-example-modal-lg" id="healthiness-modal" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+                        <div class="modal-dialog" style="background-color: rgba(108, 135, 147, 1);">
+                            <div class="modal-content" style="background-color: rgba(108, 135, 147, 1);">
+                                <div class="modal-header" style="background-color: #576c75; color: white;"><b>Data sources Details</b></div>           
+                            <div role="tabpanel">
+                                    <!-- Nav tabs -->
+                                    <ul class="nav nav-tabs" role="tablist" style="background-color: rgba(108, 135, 147, 1);">
+                                        <li role="presentation" id="tab1" class="active"><a href="#uploadTab" aria-controls="uploadTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1);">Device</a>
+                                        </li>
+                                        <li role="presentation" id="tab2"><a href="#browseTab" aria-controls="browseTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1);">Values</a>
+                                        </li>
+                                        <li role="presentation" id="tab3"><a href="#processTab" aria-controls="processTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1);">Process</a>
+                                        </li>
+                                    </ul>
+                                    <!-- Tab panes -->
+                                    <div class="tab-content">
+                                        <div role="tabpanel" class="tab-pane active" id="uploadTab">
+                                                    <div class="modal-body">
+                                                            <div class="input-group"><span class="input-group-addon">GPS Coordinates: </span><input id="gps" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">High-Level Type: </span><input id="name_highLevel_type" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Nature: </span><input id="name_Nature" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Subnature: </span><input id="name_Subnature" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Value Name: </span><input id="data-unique_name_id" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Datasource: </span><input id="data_source" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Ownership: </span><input id="ownership" type="text" class="form-control" readonly/></div>
+                                                    </div>
+                                          </div>
+                                        <div role="tabpanel" class="tab-pane" id="browseTab">
+                                                        <div class="modal-body">
+                                                            <div class="input-group"><span class="input-group-addon">Value Type: </span><input id="data-low_level_type" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Data Type: </span><input id="data_unit" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Last Date: </span><input id="last_date" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Last Value: </span><input id="last_value" type="text" class="form-control" readonly/></div><br />
+                                                                <table id="healthiness_table" class="addWidgetWizardTable table table-striped dt-responsive nowrap">
+                                                                    <thead class="widgetWizardColTitle">
+                                                                        <tr>
+                                                                            <th class="widgetWizardTitleCell">Value Type</th>
+                                                                            <th class="widgetWizardTitleCell">Healthy</th>
+                                                                            <th class="widgetWizardTitleCell">Delay</th>
+                                                                            <th class="widgetWizardTitleCell">Reason</th>
+                                                                            <th class="widgetWizardTitleCell">Data type</th>
+                                                                            <th class="widgetWizardTitleCell">Unit</th>
+                                                                            <th class="widgetWizardTitleCell">Value</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody style="background-color: #F5F5F5">
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+
+                                        </div>
+                                        <div role="tabpanel" class="tab-pane" id="processTab">
+                                                        <div class="modal-body">
+                                                            <!-- data graph -->
+                                                                    <div class="input-group"><span class="input-group-addon">Process Name Static: </span><input id="processnameStatic" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Knowledge Base IP: </span><input id="kbIp" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Disces Process file path: </span><input id="processPath" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Phoenix table: </span><input id="phoenixTable" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Graph Uri: </span><input id="graph_uri" type="text" class="form-control" readonly/></div><br />
+                                                                    <!-- -->
+                                                                    <div class="input-group"><span class="input-group-addon">Licence: </span><input id="licence" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Owner: </span><input id="owner" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Address: </span><input id="address" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Mail: </span><input id="mail" type="text" class="form-control" readonly/></div><br />
+                                                                    <!-- -->
+                                                            <!-- -->
+                                                        </div>
+                                        </div>
+                                </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn cancelBtn cancelView" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>');
+    }else{
+                        //nothing
+    }
+?>
+    <!-- -->
     <script type='text/javascript'>
     if($(window).width()< 1200){
         $('#right').css('float','left');           
@@ -387,8 +469,158 @@ input:checked + .slider .off
         $("#DCTemp1_24_widgetTimeTrend6351_widgetCtxMenuBtnCnt").css("left",widthpx);
    }
            
+    //fa-circle
+    $(document).on('click','.fa-circle',function(){
+            //
+            
+            //var id0 = $(this).parent().parent().html();
+            var high_level = $(this).parent().parent().attr('data-high_level_type');
+            var name_Nature =  $(this).parent().parent().attr('data-nature');
+            var name_Subnature = $(this).parent().parent().attr('data-sub_nature');
+            var data_unique_name_id = $(this).parent().parent().attr('data-unique_name_id');
+            var data_unit = $(this).parent().parent().attr('data-unit');
+            var data_last_value = $(this).parent().parent().attr('data-last_value');
+            var data_latitude =$(this).parent().parent().attr('data-latitude');
+            var data_longitude =$(this).parent().parent().attr('data-longitude');
+            var parameters =$(this).parent().parent().attr('data-parameters');
+            var data_instance_uri=$(this).parent().parent().attr('data-instance_uri');
+            var data_organizations = $(this).parent().parent().attr('data-organizations');
+            var data_low_level_type = $(this).parent().parent().attr('data-low_level_type');
+            var data_get_instances = $(this).parent().parent().attr('data-get_instances');
+            var last_date = $(this).parent().parent().attr('last_date');
+            var ownership = $(this).parent().parent().attr('ownership');
+            var data_source;
+            if((parameters.includes("iot"))||(name_Subnature.includes("IoT"))){
+                data_source = "IoT";
+            }else{
+                data_source="ETL";
+            }
+            $('#name_highLevel_type').val(high_level);
+            $('#data_source').val(data_source);
+            $('#name_Nature').val(name_Nature);
+            $('#name_Subnature').val(name_Subnature);
+            $('#data-unique_name_id').val(data_unique_name_id);
+            $('#data_unit').val(data_unit);
+            $('#last_date').val(last_date);
+            $('#ownership').val(ownership);
+            $('#gps').val(data_longitude+', '+data_latitude);
+            $('#last_value').val(data_last_value);
+            $('#data-low_level_type').val(data_low_level_type);
+           // $('#data-get_instances').val(data_get_instances);
+            //console.log('high_level: '+high_level);
+            //alert(parameters);
+            //if(high_level === 'Sensor'){
+                var serviceUrivalue = "";
+                var check_para = parameters.includes('http');
+                    if(check_para){
+                            var url_parameters = parameters+'&healthiness=true';                    
+                            $.ajax({
+                                    async: true,
+                                    type: 'GET',
+                                    //url: url_parameters,
+                                    dataType: 'json',
+                                    url: 'getServiceData.php',
+                                    data:{service:url_parameters},
+                                    success: function (data) {
+                                        var json_data = JSON.stringify(data.healthiness);
+                                        console.log(json_data);
+                                        var obj = Object.values(data);
+                                        var obj2 = Object.values(data.healthiness);
+                                       // console.log(obj[2][data_low_level_type]);
+                                       var keys2 = Object.keys(data.healthiness);
+                                       var key4 = Object.values(data.Service.features[0]);
+                                       var key5 =(key4[2].realtimeAttributes);
+                                       //
+                                       /*
+                                       var serviceUri0 = Object.values(key4[2]);
+                                        var serviceUri = serviceUri0[0];
+                                       var res = serviceUri.split("/");
+                                       var l = res.length;
+                                       serviceUrivalue = res[l-1];
+                                        */
+                                       //
+                                       var key3 = Object.values(data.realtime.results.bindings);
+                                       var value_td = "";
+                                        /*DECODIFICARE data.healthiness*/
+                                        for(var y=0; y<obj2.length; y++){
+                                            var name = keys2[y];
+                                            if (key3[0][name]){
+                                                value_td = key3[0][name]['value'];
+                                                //key3[0][name]['value']
+                                            }else{
+                                                value_td = ""; 
+                                            }
+                                            var value_unit_td = "";
+                                            var data_type_td = "";
+                                            if (key5[name]){
+                                                value_unit_td = key5[name]['value_unit'];
+                                                data_type_td = key5[name]['data_type'];
+                                            }else{
+                                                value_unit_td = "";
+                                                data_type_td = "";
+                                            }
+                                            $('#healthiness_table tbody').append('<tr><td>'+keys2[y]+'</td><td>'+obj2[y]['healthy']+'</td><td>'+obj2[y]['reason']+'</td><td>'+obj2[y]['delay']+'</td><td>'+data_type_td+'</td><td>'+value_unit_td+'</td><td>'+value_td+'</td></tr>');
+                                        }
+                                        //serviceUri
+                                        var process_name_ST = data.process_name_ST;
+                                        var processPath = data.process_path;
+                                        var kbIp = data.KB_Ip;
+                                        var mail = data.mail;
+                                        var phoenixTable=data.phoenix_table;
+                                        var owner=data.owner;
+                                        var licence=data.licence;
+                                        var address = data.address;
+                                        var graph_uri = data.Graph_Uri;
+                                        var telephone = data.telephone;
+                                        $('#processnameStatic').val(process_name_ST);
+                                        $('#processPath').val(processPath);
+                                        $('#kbIp').val(kbIp);
+                                        $('#mail').val(mail);
+                                        $('#phoenixTable').val(phoenixTable);
+                                        $('#licence').val(licence);
+                                        $('#owner').val(owner);
+                                        $('#address').val(address);
+                                        $('#graph_uri').val(graph_uri);
+                                        $('#telephone').val(telephone);
+                                        //
+                            }
+                         });   
+                               //
+                        }else{
+                              $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td></tr>');  
+                        } 
+                $('#healthiness-modal').modal('show');
+            /*}else{
+                    $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td>Not available<td></td></tr>'); 
+            }*/
+            //alert(id0);
+            //$('#healthiness-modal').modal('show'); 
+            //alert("Healthiness: "+id0);
+                //                 
+	});	
     
+    $(document).on('click','#modify_healthness',function(){
+        alert('modify healthiness');
+    });
     
+    $(document).on('click','.cancelView',function(){
+        $('#healthiness_table tbody').empty();
+        $('#processnameStatic').val('');
+        $('#kbIp').val('');
+        $('#phoenixTable').val('');
+        $('#graph_uri').val('');
+        $('#mail').val('');
+        $('#licence').val('');
+        $('#owner').val('');
+        $('#address').val('');
+        $('#processPath').val('');
+        $('#tab2').removeClass("active");
+        $('#tab3').removeClass("active");
+        $('#tab1').addClass("active");
+        $('#processTab').removeClass("active");
+        $('#browseTab').removeClass("active");
+        $('#uploadTab').addClass("active");
+    });
     
     $(window).resize(function(){
            if($(window).width()< 1200){
