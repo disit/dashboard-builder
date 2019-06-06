@@ -44,7 +44,8 @@
                 <?php
                 include '../config.php';
 
-                error_reporting(E_ERROR | E_NOTICE);
+                //error_reporting(E_ERROR | E_NOTICE);
+                error_reporting(E_ERROR);
                 date_default_timezone_set('Europe/Rome');
 
                 $link = mysqli_connect($host, $username, $password);
@@ -658,6 +659,8 @@
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
+                $(row).attr('last_date',data[7]);
+                $(row).attr('ownership',data[15]);
             },
             "columnDefs": [
                 {
@@ -771,6 +774,8 @@
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
+                $(row).attr('last_date',data[7]);
+                $(row).attr('ownership',data[15]);
             },
             "columnDefs": [
                 {
@@ -828,7 +833,7 @@
                 $northEastPointLng= $_GET['northEastPointLng'];
                 $southWestPointLat= $_GET['southWestPointLat'];
                 $southWestPointLng= $_GET['southWestPointLng'];
-                $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=".mysql_real_escape_string($nordEastPointLat)." and latitude >=".mysql_real_escape_string($southWestPointLat)." and longitude <=".mysql_real_escape_string($nordEastPointLng)." and longitude >=".mysql_real_escape_string($southWestPointLng)."";
+                $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=".mysqli_real_escape_string($link,$nordEastPointLat)." and latitude >=".mysqli_real_escape_string($link,$southWestPointLat)." and longitude <=".mysqli_real_escape_string($link,$nordEastPointLng)." and longitude >=".mysqli_real_escape_string($link,$southWestPointLng)."";
                 $r = mysqli_query($link, $menuQuery);
                 if($r)
                 {
@@ -4906,6 +4911,8 @@
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
+                $(row).attr('last_date',data[7]);
+                $(row).attr('ownership',data[15]);
             },
             "columnDefs": [
                 {
