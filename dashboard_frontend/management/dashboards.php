@@ -695,6 +695,7 @@
         }
         var dashboardsList, dashboardWizardChoice = null;
         var allDashboardsList = null;
+        allGlobalDashboards = [];
 
         var orgFlag = "all";
         <?php if (isset($_GET['param']) && !empty($_GET['param']) /*&& ($_GET['param']=='My org' || $_GET['param']=='My orgMy?linkId')*/) { ?>
@@ -1032,7 +1033,8 @@
             });
         }
 
-      //  if (orgFlag == "all") {
+     //   if (orgFlag == "all") {
+        function getAllDash(f) {
             $.ajax({
                 url: "get_data.php",
                 data: {
@@ -1040,15 +1042,35 @@
                     param: ""
                 },
                 type: "GET",
-                async: false,
+                async: true,
                 dataType: 'json',
                 success: function (data) {
-                    allDashboardsList = data;
+                    var allDashboardsList = data;
+                    f(allDashboardsList);
                 },
                 error: function (errorData) {
                 }
             });
-      //  }
+        }
+    //    }
+
+        function getAllGlobalDashboards() {
+            $.ajax({
+                url: "get_data.php",
+                data: {
+                    action: "get_all_dashboards",
+                    param: ""
+                },
+                type: "GET",
+                async: true,
+                dataType: 'json',
+                success: function (data) {
+                    allGlobalDashboards = data;
+                },
+                error: function (errorData) {
+                }
+            });
+        }
 
         //Nuova tabella
         $.ajax({
@@ -1164,7 +1186,16 @@
                             dataType: 'json',
                             success: function (data) {
                                 if (data.detail === 'DashboardLimitsOk') {
-                                    $('#addWidgetWizard').modal('show');
+                                    var allDashList = [];
+                                    allDashList = getAllDash(function (allDashList) {
+                                     //   loadWizardModal(allDashList);
+                                        $('#addWidgetWizard').modal('show');}
+                                    );
+
+                                  //  choosenWidgetIconName = null;
+                                  //  widgetWizardSelectedRows = {};
+                                  //  widgetWizardSelectedRowsTable.clear().draw(false);
+
                                 }
                                 else {
                                     $('#modalCheckDashLimits').modal('show');
@@ -2671,74 +2702,7 @@
         
         $('[data-toggle="tooltip"]').tooltip();
 
-<?php if(!$_SESSION['isPublic']) : ?>
-        $("#addWidgetWizardLabelBody").load("addWidgetWizardInclusionCode.php", function() 
-        {
-            $('#inputTitleDashboard').on('input',function(e)
-            {
-                if($(this).val().trim() === '')
-                {
-                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title can\'t be empty');
-                    $('#inputTitleDashboardStatus').val('empty');
-                }
-                else if ($(this).val().includes('"') || $(this).val().includes("'"))
-                {
-                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Single or double quotes are not allowed in dashboard title.');
-                    $('#inputTitleDashboardStatus').val('alreadyUsed');
-                }
-                else
-                {
-                    if($(this).val().length > 300)
-                    {
-                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title can\'t be longer than 300 chars');
-                        $('#inputTitleDashboardStatus').val('tooLong');
-                    }
-                    else
-                    {
-                        var ok = true;
-                        for(var i = 0; i < allDashboardsList.length; i++)
-                        {
-                           if($(this).val().trim().toLowerCase() === allDashboardsList[i].title_header.toLowerCase())
-                           {
-                               ok = false;
-                               break;
-                           }
-                        }
-                        if(!ok)
-                        {
-                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title already in use');
-                            $('#inputTitleDashboardStatus').val('alreadyUsed');
-                        }
-                        else
-                        {
-                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', 'white');
-                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title OK');
-                            $('#inputTitleDashboardStatus').val('ok');
-                        }
-                    }
-                }
 
-                if(($('#dashboardTemplateStatus').val() === 'ok')&&($('#inputTitleDashboardStatus').val() === 'ok'))
-                {
-                    if($('#dashboardDirectStatus').val() != "yes") {
-                        $('#bTab a').attr("data-toggle", "tab");
-                        $('#addWidgetWizardNextBtn').removeClass('disabled');
-                    } else {
-                        $('#addWidgetWizardNextBtn').removeClass('disabled');
-                    }
-                }
-                else
-                {
-                    $('#bTab a').attr("data-toggle", "no");
-                    $('#addWidgetWizardNextBtn').addClass('disabled');
-                }
-            });
-        });
-<?php endif; ?>        
         
 
 
@@ -2825,6 +2789,71 @@
                 }
           //  });
         });
+
+     //   function loadWizardModal (allDashboardsList) {
+        <?php if(!$_SESSION['isPublic']) : ?>
+        $("#addWidgetWizardLabelBody").load("addWidgetWizardInclusionCode.php", function () {
+
+            if (!allDashboardsList) {
+                getAllGlobalDashboards();
+            }
+
+            $('#inputTitleDashboard').on('input', function (e) {
+                if ($(this).val().trim() === '') {
+                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
+                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title can\'t be empty');
+                    $('#inputTitleDashboardStatus').val('empty');
+                } else if ($(this).val().includes('"') || $(this).val().includes("'")) {
+                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
+                    $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Single or double quotes are not allowed in dashboard title.');
+                    $('#inputTitleDashboardStatus').val('alreadyUsed');
+                } else {
+                    if ($(this).val().length > 300) {
+                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
+                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title can\'t be longer than 300 chars');
+                        $('#inputTitleDashboardStatus').val('tooLong');
+                    } else {
+                        var ok = true;
+                     /*   for (var i = 0; i < allDashboardsList.length; i++) {
+                            if ($(this).val().trim().toLowerCase() === allDashboardsList[i].title_header.toLowerCase()) {
+                                ok = false;
+                                break;
+                            }
+                        }*/
+                        for (var i = 0; i < allGlobalDashboards.length; i++) {
+                            if ($(this).val().trim().toLowerCase() === allGlobalDashboards[i].title_header.toLowerCase()) {
+                                ok = false;
+                                break;
+                            }
+                        }
+                        if (!ok) {
+                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
+                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title already in use');
+                            $('#inputTitleDashboardStatus').val('alreadyUsed');
+                        } else {
+                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', 'white');
+                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title OK');
+                            $('#inputTitleDashboardStatus').val('ok');
+                        }
+                    }
+                }
+
+                if (($('#dashboardTemplateStatus').val() === 'ok') && ($('#inputTitleDashboardStatus').val() === 'ok')) {
+                    if ($('#dashboardDirectStatus').val() != "yes") {
+                        $('#bTab a').attr("data-toggle", "tab");
+                        $('#addWidgetWizardNextBtn').removeClass('disabled');
+                    } else {
+                        $('#addWidgetWizardNextBtn').removeClass('disabled');
+                    }
+                } else {
+                    $('#bTab a').attr("data-toggle", "no");
+                    $('#addWidgetWizardNextBtn').addClass('disabled');
+                }
+            });
+        });
+        <?php endif; ?>
+    //    }
+
 
     });
 </script>  
