@@ -69,7 +69,7 @@ and open the template in the editor.
                                         return json_decode($curl_response,true);
                                         }
                                         
-            function isPublic($idDash,$addMem) {
+            function isPublic($idDash,$addMem, $personalDataApiBaseUrl) {
                                         
                                         error_reporting(E_ERROR | E_NOTICE);
                                         date_default_timezone_set('Europe/Rome');
@@ -80,14 +80,14 @@ and open the template in the editor.
                                             $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
                                             $accessToken = $tkn->access_token;
                                             $_SESSION['refreshToken'] = $tkn->refresh_token;
-                                            $service_url = "http://192.168.0.10:8080/datamanager/api/v1/username/ANONYMOUS/delegation/check?accessToken=".$accessToken."&sourceRequest=dashboardmanager&elementID=".$idDash;
+                                            $service_url = $personalDataApiBaseUrl ."/v1/username/ANONYMOUS/delegation/check?accessToken=".$accessToken."&sourceRequest=dashboardmanager&elementID=".$idDash;
                                             $curl = curl_init($service_url);
                                             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                                             $curl_response = curl_exec($curl);
                                             curl_close($curl);
                                             $arr=json_decode($curl_response,true);
                                             if(!$arr["result"]){
-                                                $service_url = "http://192.168.0.10:8080/datamanager/api/v1/username/".rawurlencode($addMem)."/delegation/check?accessToken=".$accessToken."&sourceRequest=dashboardmanager&elementID=".$idDash;
+                                                $service_url = $personalDataApiBaseUrl ."/v1/username/".rawurlencode($addMem)."/delegation/check?accessToken=".$accessToken."&sourceRequest=dashboardmanager&elementID=".$idDash;
                                                 $curl = curl_init($service_url);
                                                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                                                 $curl_response = curl_exec($curl);
@@ -122,10 +122,10 @@ and open the template in the editor.
                         $curpage = '../management/chatPage.php?nameDash='.$nameGroup.'&frame=Btn';
                         header('Refresh: 2; url=' . $curpage);
                         }
-                function addUser($nameGroup,$idGroup,$userAdd,$me,$idDash)
+                function addUser($nameGroup,$idGroup,$userAdd,$me,$idDash, $personalDataApiBaseUrl)
                     {
                     $checkUser=true;
-                    $checkPublicDash=isPublic($idDash,$userAdd);
+                    $checkPublicDash=isPublic($idDash,$userAdd, $personalDataApiBaseUrl);
                     if($checkPublicDash){ 
                         $admin = new \RocketChat\User($userIdAdminChat, $passAdminChat);
                         $groupUser= findMember($userAdd);
@@ -192,7 +192,7 @@ and open the template in the editor.
                          if ($_POST["AddUser"]) 
                          {   
                             $me=talklogin(); 
-                            addUser($nameGroup,$idGroup,$_POST['NickName'],$me,$idDash);
+                            addUser($nameGroup,$idGroup,$_POST['NickName'],$me,$idDash, $personalDataApiBaseUrl);
                           }  
                           
                 }else if($check){
