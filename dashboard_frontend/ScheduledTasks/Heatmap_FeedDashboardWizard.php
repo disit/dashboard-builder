@@ -88,7 +88,7 @@ $ownership = "";
 //$lastCheck = "";
 $organizations = "";
 
-$queryHeatmapAPI = "http://192.168.0.59/maps-completed.php";
+$queryHeatmapAPI = "https://heatmap.snap4city.org/maps-completed.php";
 
 $queryHeatmapResults = file_get_contents($queryHeatmapAPI);
 $heatmapResultsArray = json_decode($queryHeatmapResults, true);
@@ -97,7 +97,7 @@ foreach ($heatmapResultsArray as $heatmapName) {
 
     $count++;
 
-    $queryMetadataAPI = "http://192.168.0.59/heatmap-metadata.php?dataset=" . $heatmapName;
+    $queryMetadataAPI = "https://heatmap.snap4city.org/heatmap-metadata.php?dataset=" . $heatmapName;
     $queryMetadataResults = file_get_contents($queryMetadataAPI);
     $metadataResultsArray = json_decode($queryMetadataResults, true);
 
