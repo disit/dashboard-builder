@@ -745,93 +745,75 @@ else
                         }
 
 
-                        //2) Reperimento elenco dashboard pubbliche tramite chiamata ad api delegation ad anonymous
+                        if ($orgFlag != "My orgMy?linkId") {
+                            //2) Reperimento elenco dashboard pubbliche tramite chiamata ad api delegation ad anonymous
 
-                        // See Public Dashboard filtered by ORGANIZATION
-                        if (isset($_SESSION["loggedOrganization"])) {
-                            $ldapBaseDnOrg = "ou=". $_SESSION["loggedOrganization"] .",dc=foo,dc=example,dc=org";
-                        } else {
-                            $ldapBaseDnOrg = "ou=Other,dc=foo,dc=example,dc=org";
-                        }
+                            // See Public Dashboard filtered by ORGANIZATION
+                            if (isset($_SESSION["loggedOrganization"])) {
+                                $ldapBaseDnOrg = "ou=" . $_SESSION["loggedOrganization"] . ",dc=foo,dc=example,dc=org";
+                            } else {
+                                $ldapBaseDnOrg = "ou=Other,dc=foo,dc=example,dc=org";
+                            }
 
-                        if ($orgFlag == "all") {
-                            $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
-                        } else {
-                            $ldapBaseDnOrgEncoded = urlencode($ldapBaseDnOrg);
-                            $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" . $ldapBaseDnOrgEncoded;
-                        }
-                        // TEST
-                     //   $apiUrlNew = "http://192.168.0.47:8081/test/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&groupname=" .  urlencode($ldapBaseDnOrg);
-                        // PRODUZIONE
-                  //      $apiUrlNewProd= $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" .  urlencode($ldapBaseDnOrg);
+                            if ($orgFlag == "all") {
+                                $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                            } else {
+                                $ldapBaseDnOrgEncoded = urlencode($ldapBaseDnOrg);
+                                $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" . $ldapBaseDnOrgEncoded;
+                            }
 
-                        $options = array(
-                            'http' => array(
-                                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                                    'method'  => 'GET',
+                            // PRODUZIONE
+                            //      $apiUrlNewProd= $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" .  urlencode($ldapBaseDnOrg);
+
+                            $options = array(
+                                'http' => array(
+                                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                                    'method' => 'GET',
                                     'timeout' => 30,
                                     'ignore_errors' => true
-                            )
-                       );
-                        
-                        $context  = stream_context_create($options);
-                        // CHIAMATA API PUBLIC OLD
-                        $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
-                        // CHIAMATA API CON FILTRO PER ORGs
-                    //    $delegatedDashboardsJson = file_get_contents($apiUrlNewProd, false, $context);
-                        
-                        $delegatedDashboards = json_decode($delegatedDashboardsJson);
+                                )
+                            );
 
-                        // Patch per filtrare le public di roottooladmin1
-                        $orgNameSql =  mysqli_real_escape_string($link, $_SESSION['loggedOrganization']);
-                        $dashOrgQuery = "SELECT * FROM Dashboard.Config_dashboard WHERE organizations = '" . $orgNameSql . "'";
+                            $context = stream_context_create($options);
+                            $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
 
-                        $resultOrgDashIds = mysqli_query($link, $dashOrgQuery);
-                        $dashboardOrgList = array();
+                            $delegatedDashboards = json_decode($delegatedDashboardsJson);
 
-                        if($resultOrgDashIds) {
-                            while ($rowOrgDash = mysqli_fetch_assoc($resultOrgDashIds)) {
+                            // Patch per filtrare le public di roottooladmin1
+                            $orgNameSql = mysqli_real_escape_string($link, $_SESSION['loggedOrganization']);
+                            $dashOrgQuery = "SELECT * FROM Dashboard.Config_dashboard WHERE organizations = '" . $orgNameSql . "'";
 
-                                $dashboardId = $rowOrgDash['Id'];
-                                if ($rowOrgDash['organizations'] == $_SESSION['loggedOrganization']) {
-                                    array_push($dashboardOrgList, $dashboardId);
+                            $resultOrgDashIds = mysqli_query($link, $dashOrgQuery);
+                            $dashboardOrgList = array();
+
+                            if ($resultOrgDashIds) {
+                                while ($rowOrgDash = mysqli_fetch_assoc($resultOrgDashIds)) {
+
+                                    $dashboardId = $rowOrgDash['Id'];
+                                    if ($rowOrgDash['organizations'] == $_SESSION['loggedOrganization']) {
+                                        array_push($dashboardOrgList, $dashboardId);
+                                    }
+
                                 }
-
                             }
-                        }
 
-                        for($i = 0; $i < count($delegatedDashboards); $i++) 
-                        {
-                            if(@$delegatedDashboards[$i]->elementType == 'DashboardID')
-                            {
-                               // $checkSqlUsr = "SELECT organizations FROM Dashboard.Config_dashboard WHERE Id = " . @$delegatedDashboards[$i]->elementId;
-                             //   $resQ = mysqli_query($link, $checkSqlUsr);
-                                if ($orgFlag != "all") {
-                                    //    if($resQ) {
-                                    //    if ($rowQ = mysqli_fetch_assoc($resQ)) {
-                                    //    if ($rowQ['organizations'] == $_SESSION['loggedOrganization']) {          // DECIDERE POLITICA
-                                    //   if(!in_array($delegatedDashboards[$i]->elementId, $dashIds, true)) {
-                                    if (in_array($delegatedDashboards[$i]->elementId, $dashboardOrgList, true)) {
+                            for ($i = 0; $i < count($delegatedDashboards); $i++) {
+                                if (@$delegatedDashboards[$i]->elementType == 'DashboardID') {
+                                    if ($orgFlag != "all") {
+                                        if (in_array($delegatedDashboards[$i]->elementId, $dashboardOrgList, true)) {
+                                            array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                        }
+                                    } else {
                                         array_push($dashIds, $delegatedDashboards[$i]->elementId);
                                     }
-                                    //   }
-                                    //    }
-                                    //  }
-                                    //    }
-                                } else {
-                                    array_push($dashIds, $delegatedDashboards[$i]->elementId);
                                 }
-                            //    array_push($dashIds, $delegatedDashboards[$i]->elementId);
                             }
                         }
-                        
-                        //echo "Dashboards: " . json_encode($dashIds);
-                        //exit();
+
 
                         if ($orgFlag != "all" && $orgFlag != "My org") {
                             //3) Reperimento elenco dashboard per cui è delegato chiamata ad api delegation
-                            // ENCODIZZARE username per evitare SPAZI !!!
-                            $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . $loggedUsername . "/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                            $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . rawurlencode($loggedUsername) . "/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
 
                             $options = array(
                                 'http' => array(
@@ -849,10 +831,8 @@ else
 
                             for ($i = 0; $i < count($delegatedDashboards); $i++) {
                                 if ($delegatedDashboards[$i]->elementType == 'DashboardID') {
-                                    //   if(!in_array($delegatedDashboards[$i]->elementId, $dashIds, true)) {
                                     array_push($dashIds, $delegatedDashboards[$i]->elementId);
                                     //   }
-                                    //   $delegations['dash' . $delegatedDashboards[$i]->elementId] = $delegatedDashboards[$i]->usernameDelegator;
                                     // CHECK GROUPNAMEDELEGATED
                                     if (!is_null($delegatedDashboards[$i]->groupnameDelegated)) {
                                         $groupDelegationString = "";
@@ -893,35 +873,6 @@ else
                             }
                         }
 
-
-                     /*   $apiGroupsUrl = $personalDataApiBaseUrl . "/v1/username/" . $loggedUsername . "/delegated?accessToken=" . $accessToken. "&sourceRequest=dashboardmanager";
-
-                        $options = array(
-                            'http' => array(
-                                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                                'method'  => 'GET',
-                                'timeout' => 30,
-                                'ignore_errors' => true
-                            )
-                        );
-
-                        $context  = stream_context_create($options);
-                        $delegatedGroupDashboardsJson = file_get_contents($apiGroupsUrl, false, $context);
-
-                        $delegatedGroupDashboards = json_decode($delegatedGroupDashboardsJson);
-
-                        for($i = 0; $i < count($delegatedGroupDashboards); $i++)
-                        {
-                            if($delegatedGroupDashboards[$i]->elementType == 'DashboardID')
-                            {
-                                array_push($dashIds, $delegatedGroupDashboards[$i]->elementId);
-                                $groupDelegations['dash' . $delegatedGroupDashboards[$i]->elementId] = $delegatedGroupDashboards[$i]->usernameDelegator;
-                            }
-                        }   */
-
-                        //echo "Dashboards: " . json_encode($dashIds);
-                        //exit();
-
                         //4) Scrittura ed esecuzione query
                         $dashIdsForQuery = implode(",", $dashIds);
                         $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.Id IN(" . $dashIdsForQuery . ") AND dashboards.deleted = 'no' ORDER BY dashboards.name_dashboard ASC";
@@ -942,21 +893,12 @@ else
                                         
                                         if($row['user'] == $loggedUsername)
                                         {
-                                          //  if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
                                                 $row['visibilityLbl'] = 'My own: Public';
                                                 $row['managementLbl'] = 'show';
                                                 $row['rightsLbl'] = 'show';
                                                 $row['deleteLbl'] = 'show';
                                                 $row['editLbl'] = 'show';
                                                 $row['cloneLbl'] = 'show';
-                                         /*   } else if (strpos($_GET['param'], 'all') !== false) {
-                                                $row['visibilityLbl'] = 'My own: Public';
-                                                $row['managementLbl'] = 'show';
-                                                $row['rightsLbl'] = 'show';
-                                                $row['deleteLbl'] = 'show';
-                                                $row['editLbl'] = 'show';
-                                                $row['cloneLbl'] = 'show';
-                                            }*/
                                         }
                                         else
                                         {
@@ -971,32 +913,22 @@ else
                                     case 'author':
                                         if($row['user'] == $loggedUsername)
                                         {
-                                      //      if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
                                                 $row['visibilityLbl'] = 'My own';
                                                 $row['managementLbl'] = 'show';
                                                 $row['rightsLbl'] = 'show';
                                                 $row['deleteLbl'] = 'show';
                                                 $row['editLbl'] = 'show';
                                                 $row['cloneLbl'] = 'show';
-                                        /*    } else if (strpos($_GET['param'], 'all') !== false) {
-                                                $row['visibilityLbl'] = 'My own: Public';
-                                                $row['managementLbl'] = 'show';
-                                                $row['rightsLbl'] = 'show';
-                                                $row['deleteLbl'] = 'show';
-                                                $row['editLbl'] = 'show';
-                                                $row['cloneLbl'] = 'show';
-                                            }*/
                                         }
                                         else
                                         {
-                                          //  if ($delegations['dash' . $row['Id']] != null && $delegations['dash' . $row['Id']] != "") {
                                                 $row['visibilityLbl'] = 'Delegated by ' . @$delegations['dash' . $row['Id']];
                                                 $row['managementLbl'] = 'hide';
                                                 $row['rightsLbl'] = 'hide';
                                                 $row['deleteLbl'] = 'hide';
                                                 $row['editLbl'] = 'hide';
                                                 $row['cloneLbl'] = 'hide';
-                                          //  }
+
                                         }
                                         break;
                                 }
@@ -1147,15 +1079,9 @@ else
                                 case 'public':
                                     if($row['user'] == $loggedUsername)
                                     {
-                                        //   if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
                                         $row['visibilityLbl'] = 'My own: Public';
                                         $row['authorLbl'] = 'hide';
                                         $row['rightsLbl'] = 'show';
-                                        /*   } else if (strpos($_GET['param'], 'all') !== false) {
-                                               $row['visibilityLbl'] = 'My own: Public';
-                                               $row['authorLbl'] = 'hide';
-                                               $row['rightsLbl'] = 'show';
-                                           }*/
                                     }
                                     else
                                     {
@@ -1168,15 +1094,9 @@ else
                                 case 'author':
                                     if($row['user'] == $loggedUsername)
                                     {
-                                        //  if (strpos($_GET['param'], 'My org') !== false && ($_SESSION['loggedOrganization'] == $row['organizations'])) {
                                         $row['visibilityLbl'] = 'My own';
                                         $row['authorLbl'] = 'hide';
                                         $row['rightsLbl'] = 'Delegations';
-                                        /*    } else if (strpos($_GET['param'], 'all') !== false) {
-                                                $row['visibilityLbl'] = 'My own: Public';
-                                                $row['authorLbl'] = 'hide';
-                                                $row['rightsLbl'] = 'show';
-                                            }*/
                                     }
                                     else
                                     {
