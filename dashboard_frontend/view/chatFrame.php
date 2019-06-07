@@ -32,12 +32,12 @@ session_start();
         $idUserChat = $_REQUEST['idUserChat'];
         $idDash = $_REQUEST['idDash'];
 
-        function isPublic($idDash, $addMem, $personalDataApiBaseUrl) {
+        function isPublic($idDash, $addMem, $personalDataApiBaseUrl, $ssoClientId, $ssoClientSecret) {
 
             error_reporting(E_ERROR | E_NOTICE);
             date_default_timezone_set('Europe/Rome');
             if (isset($_SESSION['refreshToken'])) {
-                $oidc = new OpenIDConnectClient('https://www.snap4city.org', 'php-dashboard-builder', '0afa15e8-87b9-4830-a60c-5fd4da78a9c4');
+                $oidc = new OpenIDConnectClient('https://www.snap4city.org', $ssoClientId, $ssoClientSecret);
                 $oidc->providerConfigParam(array('token_endpoint' => 'https://www.snap4city.org/auth/realms/master/protocol/openid-connect/token'));
                 $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
                 $accessToken = $tkn->access_token;
@@ -60,9 +60,9 @@ session_start();
             return ($arr["result"]);
         }
 
-        function addUser($nameIns, $personalDataApiBaseUrl) {
+        function addUser($nameIns, $personalDataApiBaseUrl, $ssoClientId, $ssoClientSecret) {
             $checkUser = true;
-            $checkPublicDash = isPublic($_REQUEST['idDash'], $nameIns, $personalDataApiBaseUrl);
+            $checkPublicDash = isPublic($_REQUEST['idDash'], $nameIns, $personalDataApiBaseUrl, $ssoClientId, $ssoClientSecret);
             if ($checkPublicDash) {
                 $admin = new \RocketChat\User();
                 $admin->login();
@@ -102,7 +102,7 @@ session_start();
         <div id="messageBox" style="height: 40px;">
             <?php
             if ($_POST["AddUser"]) {
-                addUser($_POST['NickName'], $personalDataApiBaseUrl);
+                addUser($_POST['NickName'], $personalDataApiBaseUrl, $ssoClientId, $ssoClientSecret);
             }
             echo '</div>';
             ?>
