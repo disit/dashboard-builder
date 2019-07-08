@@ -79,11 +79,11 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                 if((isset($_GET['dashboardId']))&&(!empty($_GET['dashboardId']))&&(isset($_GET['username']))&&(!empty($_GET['username'])))
                 {
                     $response = [];
-                    $dashboardTitle = urldecode(@$_GET['dashboardTitle']);
+                    $dashboardTitle = escapeForSQL(urldecode(@$_GET['dashboardTitle']), $link);
                     $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
                     $dashboardSubtitle = "";
                     
-                    $username = $_GET['username'];
+                    $username = escapeForSQL($_GET['username'], $link);
 
                  //   $query = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$dashboardTitle' AND user = '$username' AND deleted = 'no'";
                     $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId' AND user = '$username' AND deleted = 'no'";
@@ -104,7 +104,7 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                                       "LEFT JOIN Descriptions AS metrics ON dashboardWidgets.id_metric = metrics.IdMetric " .   
                                       "LEFT JOIN NodeRedMetrics AS nrMetrics ON dashboardWidgets.id_metric = nrMetrics.name " . 
                                       "LEFT JOIN NodeRedInputs AS nrInputs ON dashboardWidgets.id_metric = nrInputs.name " . 
-                                      "WHERE dashboardWidgets.id_dashboard = $dashboardId " .
+                                      "WHERE dashboardWidgets.id_dashboard = '$dashboardId' " .
                                       "AND dashboardWidgets.canceller IS NULL " .
                                       "AND dashboardWidgets.cancelDate IS NULL " . 
                                       "ORDER BY dashboardWidgets.n_row, dashboardWidgets.n_column ASC";
@@ -536,6 +536,7 @@ else
     if(isset($_GET['action']) && !empty($_GET['action'])) 
     {
         $action = $_GET['action'];
+    //    $action = escapeForHTML($action);
 
         if($action == "getConfigurationFilesList") 
         {
@@ -745,7 +746,7 @@ else
                         }
 
 
-                        if ($orgFlag != "My orgMy?linkId") {
+                    //    if ($orgFlag != "My orgMy?linkId") {
                             //2) Reperimento elenco dashboard pubbliche tramite chiamata ad api delegation ad anonymous
 
                             // See Public Dashboard filtered by ORGANIZATION
@@ -808,7 +809,7 @@ else
                                     }
                                 }
                             }
-                        }
+                    //    }
 
 
                         if ($orgFlag != "all" && $orgFlag != "My org") {
@@ -1154,7 +1155,7 @@ else
         }
         else if($action == "get_dashboard_icon")
         {
-            $dashboardId = $_REQUEST['dashboardId'];
+            $dashboardId = escapeForSQL($_REQUEST['dashboardId'], $link);
             $query = "SELECT imageData, imageExt FROM Dashboard.dashboardsScreenshots WHERE dashboardsScreenshots.dashboardId = $dashboardId";
             $result = mysqli_query($link, $query);
             
@@ -1454,7 +1455,7 @@ else
         } 
         else if($action == "get_param_widget")
         {
-            $dashboardId = $_REQUEST['dashboardId'];
+            $dashboardId = escapeForSQL($_REQUEST['dashboardId'], $link);
             $name_widget = mysqli_real_escape_string($link, $_GET['widget_to_modify']);
 
             $query5 = "SELECT Config_widget_dashboard.*, Widgets.*
@@ -1863,6 +1864,7 @@ else
         }
         else 
         {
+            $action = escapeForHTML($action);
             echo 'invalid action ' . $action;
         }
     }
