@@ -32,6 +32,10 @@ function udate($format = 'u', $microT) {
 
     if (isset($_GET['myKpiId'])) {
         $myKpiId = $_GET['myKpiId'];
+        if (checkVarType($myKpiId, "integer") === false) {
+            eventLog("Returned the following ERROR in myKpiProxy.php for myKpiId = ".$myKpiId.": ".$myKpiId." is not an integer as expected. Exit from script.");
+            exit();
+        };
     } else {
         $myKpiId = "";
     }
@@ -74,6 +78,7 @@ if(isset($_SESSION['refreshToken'])) {
     if ($action == "getDistinctDays") {
         $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values/dates?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
     } else {
+    //    $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . urlencode($myKpiTimeRange) . urlencode($lastValueString);
         $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . $myKpiTimeRange . $lastValueString;
     }
 
