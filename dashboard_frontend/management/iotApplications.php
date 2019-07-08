@@ -629,6 +629,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
               iotAppsHealthiness[record.id] = {"created":record.created, "healthiness": null};
             }
 
+            title = title.replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
             var cardDiv = '<div id="iotapp_'+record.id+'" data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.url + '" data-type="' + record.type + '" data-icon="' + record.icon + '" data-iotapps="' + record.iotapps + '" data-privileges="' + record.privileges + '" data-created="' + record.created + '" data-username="' + record.username + '" data-edgetype="' + record.edgetype + '" class="iotAppsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
                                '<div id="iotapp_'+record.id+'" class="iotAppsListCardInnerDiv">' +
                                   '<div class="iotAppsListCardTitleDiv col-xs-12 centerWithFlex"><div id="chealth_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div>' + title + '</div>' + 
