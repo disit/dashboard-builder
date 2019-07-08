@@ -169,11 +169,15 @@ if ($ldapOk) {
             $orgGpsCentreLatLng = $row['gpsCentreLatLng'];
             $orgZoomLevel = $row['zoomLevel'];
             $orgLang = $row['lang'];
+            $orgBroker = $row['broker'];
+            $orionIP = $row['orionIP'];
         //    $_SESSION['orgId'] = $orgId;
             $_SESSION['orgKbUrl'] = $orgKbUrl;
             $_SESSION['orgGpsCentreLatLng'] = $orgGpsCentreLatLng;
             $_SESSION['orgZoomLevel'] = $orgZoomLevel;
             $_SESSION['orgLang'] = $orgLang;
+            $_SESSION['orgBroker'] = $orgBroker;
+            $_SESSION['orionIP'] = $orionIP;
         } else {
             
         }
