@@ -498,6 +498,10 @@
                         
                         //Popup nuovo stile uguali a quelli degli eventi ricreativi
                         popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                           // popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                        }
                         popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
@@ -511,7 +515,11 @@
 
                         //Corpo
                         popupText += '<tbody>';
-                        
+
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += '<tr><td>Value Name</td><td>' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '<td></tr>';
+                        }
+
                         if(serviceProperties.hasOwnProperty('website'))
                         {
                             if((serviceProperties.website !== '')&&(serviceProperties.website !== undefined)&&(serviceProperties.website !== 'undefined')&&(serviceProperties.website !== null)&&(serviceProperties.website !== 'null'))
@@ -681,7 +689,16 @@
                         popupText += '</div>';
                         
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
-                        
+
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                        }
+
+                        if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                            popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                            popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                        }
+
                         if(serviceProperties.hasOwnProperty('description'))
                         {
                             if((serviceProperties.description !== '')&&(serviceProperties.description !== undefined)&&(serviceProperties.description !== 'undefined')&&(serviceProperties.description !== null)&&(serviceProperties.description !== 'null'))
@@ -1651,6 +1668,10 @@
                         
                         //Popup nuovo stile uguali a quelli degli eventi ricreativi
                         popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                          //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                        }
                         popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
@@ -1664,7 +1685,11 @@
 
                         //Corpo
                         popupText += '<tbody>';
-                        
+
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += '<tr><td>Value Name</td><td>' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '<td></tr>';
+                        }
+
                         if(serviceProperties.hasOwnProperty('website'))
                         {
                             if((serviceProperties.website !== '')&&(serviceProperties.website !== undefined)&&(serviceProperties.website !== 'undefined')&&(serviceProperties.website !== null)&&(serviceProperties.website !== 'null'))
@@ -1834,7 +1859,16 @@
                         popupText += '</div>';
                         
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
-                        
+
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                        }
+
+                        if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                            popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                            popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                        }
+
                         if(serviceProperties.hasOwnProperty('description'))
                         {
                             if((serviceProperties.description !== '')&&(serviceProperties.description !== undefined)&&(serviceProperties.description !== 'undefined')&&(serviceProperties.description !== null)&&(serviceProperties.description !== 'null'))
