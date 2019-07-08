@@ -333,6 +333,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                             //Popup nuovo stile uguali a quelli degli eventi ricreativi
                             popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                              //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                            }
                             popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
 
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
@@ -346,6 +350,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                             //Corpo
                             popupText += '<tbody>';
+
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += '<tr><td>Value Name</td><td>' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '<td></tr>';
+                            }
 
                             if (serviceProperties.hasOwnProperty('website')) {
                                 if ((serviceProperties.website !== '') && (serviceProperties.website !== undefined) && (serviceProperties.website !== 'undefined') && (serviceProperties.website !== null) && (serviceProperties.website !== 'null')) {
@@ -475,6 +483,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             popupText += '</div>';
 
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                            }
+
+                            if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                                popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                                popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                            }
 
                             if (serviceProperties.hasOwnProperty('description')) {
                                 if ((serviceProperties.description !== '') && (serviceProperties.description !== undefined) && (serviceProperties.description !== 'undefined') && (serviceProperties.description !== null) && (serviceProperties.description !== 'null')) {
@@ -1374,6 +1391,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                             //Popup nuovo stile uguali a quelli degli eventi ricreativi
                             popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                             //   popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                            }
                             popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
 
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
@@ -1387,6 +1408,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                             //Corpo
                             popupText += '<tbody>';
+
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += '<tr><td>Value Name</td><td>' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '<td></tr>';
+                            }
 
                             if (serviceProperties.hasOwnProperty('website')) {
                                 if ((serviceProperties.website !== '') && (serviceProperties.website !== undefined) && (serviceProperties.website !== 'undefined') && (serviceProperties.website !== null) && (serviceProperties.website !== 'null')) {
@@ -1516,6 +1541,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             popupText += '</div>';
 
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                            }
+
+                            if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                                popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                                popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                            }
 
                             if (serviceProperties.hasOwnProperty('description')) {
                                 if ((serviceProperties.description !== '') && (serviceProperties.description !== undefined) && (serviceProperties.description !== 'undefined') && (serviceProperties.description !== null) && (serviceProperties.description !== 'null')) {
@@ -4507,8 +4541,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         removeHeatmapColorLegend(i, false);
                                         map.eventsOnMap.splice(i, 1);
                                     } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                        map.eventsOnMap.splice(i, 1);
+                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
+                                      /*  map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                        map.eventsOnMap.splice(i, 1);*/
                                     }
                                 }
 
@@ -4571,8 +4609,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     removeHeatmapColorLegend(i, false);
                                     map.eventsOnMap.splice(i, 1);
                                 } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                    map.eventsOnMap.splice(i, 1);
+                                    if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                        map.eventsOnMap.splice(i, 1);
+                                    }
                                 }
                             }
                             if (animationFlag === false) {
@@ -4610,8 +4650,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         removeHeatmapColorLegend(i, false);
                                         map.eventsOnMap.splice(i, 1);
                                     } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                        map.eventsOnMap.splice(i, 1);
+                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
+                                     /*   map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                        map.eventsOnMap.splice(i, 1);*/
                                     }
                                 }
 
@@ -4671,6 +4715,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             latLngId = latLngId.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
 
                             var popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + '); text-transform: none;">' + dataObj.mapName + '</h3>';
+                        /*    if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                              //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                            }*/
                             popupText += '<div class="recreativeEventMapBtnContainer"><span data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Heatmap Details</span></div>';
 
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer" style="height:100px; width:270px;">';
@@ -4894,6 +4942,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                            if (map.eventsOnMap[i].type === 'trafficRealTimeDetails') {
                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                                map.eventsOnMap.splice(i, 1);
+                                           } else if (map.eventsOnMap[i]._url) {
+                                               if (map.eventsOnMap[i]._url.includes("animate")) {
+                                                   map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                                   map.eventsOnMap.splice(i, 1);
+                                               }
                                            }
                                        }
                                    }
@@ -5744,7 +5797,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     var upEastLon = parseFloat(bboxJson['maxx']);
                                                     var bottomWestLat = parseFloat(bboxJson['miny']);
                                                     var bottomWestLon = parseFloat(bboxJson['minx']);
-                                                    var imageUrl = 'http://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                    var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
                                                     var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
                                                     var overlayOpacity = current_opacity;
 
@@ -6241,7 +6294,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 url: "../controllers/getWidgetParams.php",
                 type: "GET",
                 data: {
-                    widgetName: "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>"
+                    widgetName: "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
                 },
                 async: true,
                 dataType: 'json',
@@ -7298,6 +7351,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     latLngId = latLngId.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
 
                                     var popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + '); text-transform: none;">' + dataObj.mapName + '</h3>';
+                                  /*  if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                        popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                                       // popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                                    }*/
                                     popupText += '<div class="recreativeEventMapBtnContainer"><span data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Heatmap Details</span></div>';
 
                                     popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer" style="height:100px; width:270px;">';
@@ -7767,7 +7824,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                             var upEastLon = parseFloat(bboxJson['maxx']);
                                                             var bottomWestLat = parseFloat(bboxJson['miny']);
                                                             var bottomWestLon = parseFloat(bboxJson['minx']);
-                                                            var imageUrl = 'http://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                            var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
                                                             var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
                                                             var overlayOpacity = current_opacity;
 
@@ -8834,7 +8891,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         var upEastLon = parseFloat(bboxJson['maxx']);
                                         var bottomWestLat = parseFloat(bboxJson['miny']);
                                         var bottomWestLon = parseFloat(bboxJson['minx']);
-                                        var imageUrl = 'http://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                        var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
                                         var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
                                         var overlayOpacity = current_opacity;
 
