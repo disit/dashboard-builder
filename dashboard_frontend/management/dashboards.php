@@ -114,6 +114,96 @@
         <!-- Chat CSS -->
         
     </head>
+
+    <style type="text/css">
+        .left{
+            float:left;
+        }
+        .right{
+            float: right;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 82px;
+            height: 20px;
+        }
+
+        .switch input {display:none;}
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #DBDBDB;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: blue;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(62px);
+            -ms-transform: translateX(62px);
+            transform: translateX(62px);
+        }
+
+        /*------ ADDED CSS ---------*/
+        .fixMapon
+        {
+            display: none;
+        }
+
+        .fixMapon, .fixMapoff
+        {
+            color: white;
+            position: absolute;
+            transform: translate(-50%,-50%);
+            top: 50%;
+            left: 50%;
+            font-size: 10px;
+            font-family: Verdana, sans-serif;
+        }
+
+        input:checked+ .slider .on
+        {display: block;}
+
+        input:checked + .slider .off
+        {display: none;}
+
+        /*--------- END --------*/
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;}
+    </style>
+
     <body class="guiPageBody">
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
@@ -133,7 +223,7 @@
                                  if(isset($_GET['pageTitle']))
                                  {
                                  ?>
-                                 document.write("<?php echo $_GET['pageTitle']; ?>");
+                                 document.write("<?php echo escapeForJS($_GET['pageTitle']); ?>");
                                  <?php
                                  }
                                  ?>
@@ -509,13 +599,6 @@
                                             </div>
                                             <div class="col-xs-4">
                                                 <select name="newDelegationGroup" id="newDelegationGroup" class="modalInputTxt"></select>
-                                                 <!--   <option value="Citizens">Citizens</option>
-                                                    <option value="City Officials">City Officials</option>
-                                                    <option value="DIGIPOLIS">DIGIPOLIS</option>
-                                                    <option value="Developers">Developers</option>
-                                                    <option value="Data Providers">Data Providers</option>
-                                                    <option value="City Council">City Council</option>  -->
-                                              <!--  </select>   -->
                                             </div>
                                             <div class="col-xs-4">
                                                 <span class="input-group-btn">
@@ -699,7 +782,7 @@
 
         var orgFlag = "all";
         <?php if (isset($_GET['param']) && !empty($_GET['param']) /*&& ($_GET['param']=='My org' || $_GET['param']=='My orgMy?linkId')*/) { ?>
-            orgFlag = "<?php echo $_GET['param']; ?>";
+            orgFlag = "<?php echo escapeForJS($_GET['param']); ?>";
         <?php }?>
         
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
@@ -758,9 +841,9 @@
             $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
         });
         
-        $('#mainMenuCnt .mainMenuLink[id=<?= $linkId ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $linkId ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $linkId ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mainMenuCnt .mainMenuLink[id=<?= escapeForJS($linkId) ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= escapeForJS($linkId) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= escapeForJS($linkId) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
         var loggedRole = "<?= ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) ?>";
         var loggedType = "<?= @$_SESSION['loggedType'] ?: '' ?>";
@@ -1505,6 +1588,21 @@
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
                                         $('#newOwnershipResultMsg').html('Error: New owner does not exists or it is not a valid LDAP user');
+                                        $('#newOwnershipResultMsg').css('color', '#f3cf58');
+                                        $('#newOwnershipConfirmBtn').addClass('disabled');
+
+                                        setTimeout(function()
+                                        {
+                                            $('#newOwner').removeClass('disabled');
+                                            $('#newOwnershipResultMsg').html('');
+                                            $('#newOwnershipResultMsg').hide();
+                                        }, 1750);
+                                    }
+                                    else if (data.detail === 'ApiCallKo1')
+                                    {
+                                        $('#newOwner').addClass('disabled');
+                                        $('#newOwnershipResultMsg').show();
+                                        $('#newOwnershipResultMsg').html('Error: New owner has exceeded his limits for dashboard ownership');
                                         $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -2319,6 +2417,33 @@
                     //  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(255, 204, 0, 1)');
                     //  $('#publicIcon').attr("data-active", "true");
                  // }*/
+                if (orgFlag.includes("My orgMy?linkId")) {
+                    if (loggedRole != "RootAdmin") {
+                        dynatable.queries.runSearch("");
+                    } else {
+                    //    dynatable.queries.runSearch("My own");
+                    //    $('#dashboardListsCardsSort i.dashboardsListSort').eq(2).click();
+                        if($('#dashboardListsCardsSort i.dashboardsListSort').eq(2).attr("data-active") === "false")
+                        {
+                            $('#dashboardListsCardsSort i.dashboardsListSort').eq(2).attr("data-active", "true");
+                            $('#dashboardListsCardsSort i.dashboardsListSort').eq(3).attr("data-active", "false");
+                            dynatable.queries.runSearch("My own");
+                            $('#dynatable-query-search-list_dashboard_cards').val("");
+                            $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
+                            $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(255, 204, 0, 1)');
+                            $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(0, 162, 211, 1)');
+                        }
+                        else
+                        {
+                            $('#dashboardListsCardsSort i.dashboardsListSort').eq(2).attr("data-active", "false");
+                            dynatable.queries.runSearch("");
+                            $('#dynatable-query-search-list_dashboard_cards').val("");
+                            $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
+                            $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
+                            $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(0, 162, 211, 1)');
+                        }
+                    }
+                }
 
                   $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
                   $('#dashboardListsCardsSort i.dashboardsListSort').eq(0).click(function(){
@@ -2695,7 +2820,7 @@
         <?php
             if(isset($_GET['newDashId'])&&isset($_GET['newDashAuthor'])&&isset($_GET['newDashTitle']))
             {
-                echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . $_GET['newDashId'] . '&dashboardAuthorName=' . $_GET['newDashAuthor'] . '&dashboardEditorName=' . $_GET['newDashAuthor'] . '&dashboardTitle=' . $_GET['newDashTitle'] . '");';
+                echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . escapeForJS($_GET['newDashId']) . '&dashboardAuthorName=' . escapeForJS($_GET['newDashAuthor']) . '&dashboardEditorName=' . escapeForJS($_GET['newDashAuthor']) . '&dashboardTitle=' . escapeForJS($_GET['newDashTitle']) . '");';
                 echo 'history.replaceState(null, null, "dashboards.php");';
             }
         ?> 
