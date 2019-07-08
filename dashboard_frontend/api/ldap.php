@@ -127,8 +127,14 @@ else if($action == 'get_logged_ou')
 else if($action == 'get_group_for_ou')
 {
         $connection = ldap_connect($ldapServer, $ldapPort);
-	$resultldap = ldap_search($connection, $ldapBaseDN, '(&(objectClass=groupOfNames)(ou='.$_REQUEST['ou'].'))');
-        $entries = ldap_get_entries($connection, $resultldap);
+        if (checkAlphaNumAndSpaces($_REQUEST['ou']) === true) {
+            $resultldap = ldap_search($connection, $ldapBaseDN, '(&(objectClass=groupOfNames)(ou=' . $_REQUEST['ou'] . '))');
+            $entries = ldap_get_entries($connection, $resultldap);
+        } else {
+            eventLog("Returned the following ERROR in ldap.php: organization '" . escapeForHTML($_REQUEST['ou']) ."' is not an alpha-numeric string.");
+            $entries["count"] = 0;
+            exit();
+        }
 
 	$allGroupsUserOu=array();
 
@@ -147,8 +153,8 @@ else if($action == 'get_group_for_ou')
 else 
 {
 	$result['status'] = 'ko';
-	$result['msg'] = 'invalid action ' . $action;
-	$result['log'] = 'invalid action ' . $action;
+	$result['msg'] = 'invalid action ' . escapeForHTML($action);
+	$result['log'] = 'invalid action ' . escapeForHTML($action);
 	//my_log($result);
     echo json_encode($result);
 }
