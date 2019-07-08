@@ -31,6 +31,10 @@ $response = [];
 if(isset($_SESSION['loggedUsername'])) 
 {
     $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in changeDashboardVisibility.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     $dashboardTitle = mysqli_real_escape_string($link, $_REQUEST['dashboardTitle']);
     $newVisibility = mysqli_real_escape_string($link, $_REQUEST['newVisibility']);
     $dashboardAuthor = $_SESSION['loggedUsername'];
@@ -46,7 +50,7 @@ if(isset($_SESSION['loggedUsername']))
      
     if(isset($_SESSION['refreshToken'])) 
     {
-        $q = "UPDATE Dashboard.Config_dashboard SET visibility='$dbVisibility' WHERE Id = $dashboardId";
+        $q = "UPDATE Dashboard.Config_dashboard SET visibility='$dbVisibility' WHERE Id = '$dashboardId'";
         $r = mysqli_query($link, $q);
 
         if($r) 
