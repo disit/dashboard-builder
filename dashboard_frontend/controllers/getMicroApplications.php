@@ -41,7 +41,11 @@
         }
     }
 
-    $q = "SELECT * FROM Dashboard.DashboardWizard WHERE high_level_type = 'MicroApplication' $filterOrgQuery ORDER BY sub_nature ASC";
+    if ($_GET['role'] != "RootAdmin") {
+        $q = "SELECT * FROM Dashboard.DashboardWizard WHERE high_level_type = 'MicroApplication' $filterOrgQuery ORDER BY sub_nature ASC";
+    } else {
+        $q = "SELECT * FROM Dashboard.DashboardWizard WHERE high_level_type = 'MicroApplication' ORDER BY sub_nature ASC";
+    }
     $r = mysqli_query($link, $q);
 
     if($r)
