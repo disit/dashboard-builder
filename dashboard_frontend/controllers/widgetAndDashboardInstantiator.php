@@ -102,7 +102,7 @@
     $dashboardTitle = $_REQUEST['dashboardTitle'];
     if(isset($_REQUEST['dashboardAuthorName']))
     {
-        $dashboardAuthorName = $_REQUEST['dashboardAuthorName'];
+        $dashboardAuthorName = $_REQUEST['dashboardAuthorName'];    // sempre sovrascritto da $_SESSION['loggedUsername'] ?
     }
     
     if(isset($_REQUEST['dashboardEditorName']))
@@ -131,26 +131,37 @@
         $defaultColors1 = ["#ffdb4d", "#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900"];
         $defaultColors2 = ["#fff5cc", "#ffe0b3", "#ffcccc", "#99ffff", "#99e6ff", "#adebad", "#80ff80"];
         
-        $id_dashboard = $_REQUEST['dashboardId'];
-        $dashboardTitle = $_REQUEST['dashboardTitle'];
-        $dashboardAuthorName = $_REQUEST['dashboardAuthorName'];
-        $dashboardEditor = $_REQUEST['dashboardEditorName'];
-        $creator = $_REQUEST['dashboardEditorName'];
-        $selection = $_REQUEST['selection'];
-        $mapCenterLat = $_REQUEST['mapCenterLat'];
-        $mapCenterLng = $_REQUEST['mapCenterLng'];
-        $mapZoom = $_REQUEST['mapZoom'];
+        $id_dashboard = escapeForSQL($_REQUEST['dashboardId'], $link);
+        if (checkVarType($id_dashboard, "integer") === false) {
+            eventLog("Returned the following ERROR in widgetAndDashboardInstantiator.php for dashboard_id = ".$id_dashboard.": ".$id_dashboard." is not an integer as expected. Exit from script.");
+            exit();
+        };
+        $dashboardTitle = escapeForSQL($_REQUEST['dashboardTitle'], $link);
+        $dashboardAuthorName = escapeForSQL($_REQUEST['dashboardAuthorName'], $link);
+        $dashboardEditor = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
+        $creator = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
+        $selection = escapeForSQL($_REQUEST['selection'], $link);
+        $mapCenterLat = escapeForSQL($_REQUEST['mapCenterLat'], $link);
+        $mapCenterLng = escapeForSQL($_REQUEST['mapCenterLng'], $link);
+        $mapZoom = escapeForSQL($_REQUEST['mapZoom'], $link);
         
         $widgetTypeDbRow = NULL;
         $id_metric = NULL; 
         $widgetWizardSelectedRows = $_REQUEST['widgetWizardSelectedRows'];
-        $newWidgetType = $_REQUEST['widgetType']; 
+        // CONTROLLA SE E' ARRAY
+        if(!is_array($widgetWizardSelectedRows)) {
+            if ($widgetWizardSelectedRows != null) {
+                eventLog("Returned the following ERROR in widgetAndDashboardInstantiator.php: the widgetWizardSelectedRows variable is not an array as expected. Exit from script.");
+                exit();
+            }
+        }
+        $newWidgetType = escapeForSQL($_REQUEST['widgetType'], $link);
         $actuatorTargetWizard = $_REQUEST['actuatorTargetWizard']; 
         $actuatorTargetInstance = $_REQUEST['actuatorTargetInstance'];
-        $actuatorEntityName = $_REQUEST['actuatorEntityName'];
-        $actuatorValueType = $_REQUEST['actuatorValueType']; 
-        $actuatorMinBaseValue = $_REQUEST['actuatorMinBaseValue']; 
-        $actuatorMaxImpulseValue = $_REQUEST['actuatorMaxImpulseValue']; 
+        $actuatorEntityName = escapeForSQL($_REQUEST['actuatorEntityName'], $link);
+        $actuatorValueType = escapeForSQL($_REQUEST['actuatorValueType'], $link);
+        $actuatorMinBaseValue = escapeForSQL($_REQUEST['actuatorMinBaseValue'], $link);
+        $actuatorMaxImpulseValue = escapeForSQL($_REQUEST['actuatorMaxImpulseValue'], $link);
         $title_w = NULL;
         $n_row = NULL;
         $n_column = NULL;
@@ -259,7 +270,7 @@
                       "FROM Dashboard.WidgetsIconsMap AS iconsMap " .
                       "LEFT JOIN Dashboard.Widgets AS widgets " .
                       "ON iconsMap.mainWidget = widgets.id_type_widget " . 
-                      "WHERE iconsMap.icon = '$newWidgetType'";
+                      "WHERE iconsMap.icon = '".escapeForSQL($newWidgetType, $link)."'";
 
                 $r3 = mysqli_query($link, $q3);
 
@@ -297,7 +308,7 @@
                                 }
 
                                 //Calcolo del first free row
-                                $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                                $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                                 $r2 = mysqli_query($link, $q2);
 
                                 if($r2)
@@ -328,6 +339,7 @@
                                     $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                     $name_w = str_replace(":", "_", $name_w);
                                     $name_w = str_replace(" ", "_", $name_w);
+                                    $name_w = str_replace("-", "_", $name_w);
 
                                     //Costruzione titolo widget
                                     $title_w = $actuatorEntityName . " - " . $actuatorValueType;
@@ -461,7 +473,8 @@
                                         $id = $name_w; //Id del widget
                                         $type = $actuatorEntityName; //$actuatorEntityName
                                         $kind = "actuator"; //Per ora fisso
-                                        $contextBroker = "orionUNIFI"; //Per ora fisso
+                                    //    $contextBroker = "orionUNIFI"; //Per ora fisso
+                                        $contextBroker = $_SESSION['orgBroker'];
                                         $protocol = "ngsi"; //Per ora fisso
                                         $format = "json"; //Per ora fisso
                                         
@@ -474,7 +487,9 @@
                                         $k1 = generateUUID();
                                         $k2 = generateUUID();
 
-                                        $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . rawurlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization'];
+                                        $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . urlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization'];
+                                        eventLog("Creazione Widget Attuatore: " . $iotDirApiUrl);
+                                    //    $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . urlencode($_SESSION['loggedUsername']) . "&organization=" . $defaultOrganization;
                                         
                                         try
                                         {
@@ -576,7 +591,7 @@
                             if(($widgetTypeDbRow['targetWidget'] == '')||($widgetTypeDbRow['targetWidget'] == null))
                             {
                                 //Ne creiamo uno per ogni riga selezionata
-                                foreach($widgetWizardSelectedRows as $selectedRowKey => $selectedRow) 
+                                foreach($widgetWizardSelectedRows as $selectedRowKey => $selectedRow)
                                 { 
                                     $selqDbtbMaxSel2 = "SELECT `AUTO_INCREMENT` FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Dashboard' AND TABLE_NAME = 'Config_widget_dashboard'";
                                     $resultMaxSel2 = mysqli_query($link, $selqDbtbMaxSel2);
@@ -589,7 +604,7 @@
                                     }
 
                                     //Calcolo del first free row
-                                    $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                                    $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                                     $r2 = mysqli_query($link, $q2);
 
                                     if($r2)
@@ -771,6 +786,7 @@
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                             $name_w = str_replace(":", "_", $name_w);
                                             $name_w = str_replace(" ", "_", $name_w);
+                                            $name_w = str_replace("-", "_", $name_w);
                                         }
                                         else
                                         {
@@ -778,6 +794,7 @@
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                             $name_w = str_replace(":", "_", $name_w);
                                             $name_w = str_replace(" ", "_", $name_w);
+                                            $name_w = str_replace("-", "_", $name_w);
                                         }
                                         
                                         //Costruzione titolo widget
@@ -1007,7 +1024,7 @@
                                     }
 
                                     //Calcolo del first free row
-                                    $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                                    $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                                     $r2 = mysqli_query($link, $q2);
 
                                     if($r2)
@@ -1045,6 +1062,7 @@
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                         $name_w = str_replace(":", "_", $name_w);
                                         $name_w = str_replace(" ", "_", $name_w);
+                                        $name_w = str_replace("-", "_", $name_w);
 
                                         //Costruzione titolo widget
                                         if($selectedRow['unique_name_id'] != null)
@@ -1159,6 +1177,7 @@
                                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                                 $name_w = str_replace(":", "_", $name_w);
                                                 $name_w = str_replace(" ", "_", $name_w);
+                                                $name_w = str_replace("-", "_", $name_w);
 
                                                 //Costruzione titolo widget
                                              //   $title_w = $selectedRow['sub_nature'] . " - Target";
@@ -1291,7 +1310,7 @@
                             }
 
                             //Calcolo del first free row
-                            $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                            $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                             $r2 = mysqli_query($link, $q2);
 
                             if($r2)
@@ -1329,6 +1348,7 @@
                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                 $name_w = str_replace(":", "_", $name_w);
                                 $name_w = str_replace(" ", "_", $name_w);
+                                $name_w = str_replace("-", "_", $name_w);
 
                                 //Costruzione titolo widget
                                 $title_w = "External content";
@@ -1403,7 +1423,7 @@
                         else
                         {
                             //Caso widget multi con target widgets (selector + map, selector + map + trend)
-                            // GP TRACKER
+                            // GP TRACKER // GP NEW SELECTOR-MAP per HEATMAP
                             //Split dei target widgets
                             $targetWidgets = explode(",", $widgetTypeDbRow['targetWidget']); 
                             $hasTargetWidgetFactory = json_decode($widgetTypeDbRow['hasTargetWidgetFactory']);
@@ -1420,7 +1440,7 @@
                             }
 
                             //Calcolo del first free row
-                            $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                            $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                             $r2 = mysqli_query($link, $q2);
 
                             if($r2)
@@ -1463,6 +1483,7 @@
                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                 $name_w = str_replace(":", "_", $name_w);
                                 $name_w = str_replace(" ", "_", $name_w);
+                                $name_w = str_replace("-", "_", $name_w);
 
                                 $creator = $_SESSION['loggedUsername'];
                                 
@@ -1589,6 +1610,7 @@
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                             $name_w = str_replace(":", "_", $name_w);
                                             $name_w = str_replace(" ", "_", $name_w);
+                                            $name_w = str_replace("-", "_", $name_w);
                                             
                                             $creator = $_SESSION['loggedUsername'];
 
@@ -1735,26 +1757,30 @@
         $defaultColors1 = ["#ffdb4d", "#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900"];
         $defaultColors2 = ["#fff5cc", "#ffe0b3", "#ffcccc", "#99ffff", "#99e6ff", "#adebad", "#80ff80"];
 
-        $id_dashboard = $_REQUEST['dashboardId'];
-        $dashboardTitle = $_REQUEST['dashboardTitle'];
-        $dashboardAuthorName = $_REQUEST['dashboardAuthorName'];
-        $dashboardEditor = $_REQUEST['dashboardEditorName'];
-        $creator = $_REQUEST['dashboardEditorName'];
-        $selection = $_REQUEST['selection'];
-        $mapCenterLat = $_REQUEST['mapCenterLat'];
-        $mapCenterLng = $_REQUEST['mapCenterLng'];
-        $mapZoom = $_REQUEST['mapZoom'];
+        $id_dashboard = escapeForSQL($_REQUEST['dashboardId'], $link);
+        if (checkVarType($id_dashboard, "integer") === false) {
+            eventLog("Returned the following ERROR in widgetAndDashboardInstantiator.php for dashboard_id = ".$id_dashboard.": ".$id_dashboard." is not an integer as expected. Exit from script.");
+            exit();
+        };
+        $dashboardTitle = escapeForSQL($_REQUEST['dashboardTitle'], $link);
+        $dashboardAuthorName = escapeForSQL($_REQUEST['dashboardAuthorName'], $link);
+        $dashboardEditor = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
+        $creator = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
+        $selection = escapeForSQL($_REQUEST['selection'], $link);
+        $mapCenterLat = escapeForSQL($_REQUEST['mapCenterLat'], $link);
+        $mapCenterLng = escapeForSQL($_REQUEST['mapCenterLng'], $link);
+        $mapZoom = escapeForSQL($_REQUEST['mapZoom'], $link);
 
         $widgetTypeDbRow = NULL;
         $id_metric = NULL;
         $widgetWizardSelectedRows = $_REQUEST['widgetWizardSelectedRows'];
-        $newWidgetType = $_REQUEST['widgetType'];
+        $newWidgetType = escapeForSQL($_REQUEST['widgetType'], $link);
         $actuatorTargetWizard = $_REQUEST['actuatorTargetWizard'];
         $actuatorTargetInstance = $_REQUEST['actuatorTargetInstance'];
-        $actuatorEntityName = $_REQUEST['actuatorEntityName'];
-        $actuatorValueType = $_REQUEST['actuatorValueType'];
-        $actuatorMinBaseValue = $_REQUEST['actuatorMinBaseValue'];
-        $actuatorMaxImpulseValue = $_REQUEST['actuatorMaxImpulseValue'];
+        $actuatorEntityName = escapeForSQL($_REQUEST['actuatorEntityName'], $link);
+        $actuatorValueType = escapeForSQL($_REQUEST['actuatorValueType'], $link);
+        $actuatorMinBaseValue = ecapeForSQL($_REQUEST['actuatorMinBaseValue'], $link);
+        $actuatorMaxImpulseValue = escapeForSQL($_REQUEST['actuatorMaxImpulseValue'], $link);
         $title_w = NULL;
         $n_row = NULL;
         $n_column = NULL;
@@ -1843,7 +1869,7 @@
         $sourceWidgetRow = NULL;
         $sourceEntityJson = NULL;
         $selectedRowIds = [];
-        $oldWidgetIdToUpdate = $_REQUEST['widgetId'];  // PANTALEO
+        $oldWidgetIdToUpdate = escapeForSQL($_REQUEST['widgetId'], $link);
 
         if($newWidgetType == NULL)
         {
@@ -1903,7 +1929,7 @@
                             }
 
                             //Calcolo del first free row
-                            $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                            $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                             $r2 = mysqli_query($link, $q2);
 
                             if($r2)
@@ -1934,6 +1960,7 @@
                                 $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                 $name_w = str_replace(":", "_", $name_w);
                                 $name_w = str_replace(" ", "_", $name_w);
+                                $name_w = str_replace("-", "_", $name_w);
 
                                 //Costruzione titolo widget
                                 $title_w = $actuatorEntityName . " - " . $actuatorValueType;
@@ -2005,7 +2032,7 @@
                                 $newWidgetDbRow->title_w = htmlentities($newWidgetDbRow->title_w, ENT_QUOTES|ENT_HTML5);
 
                                 //    $newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                                $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";      // PANTALEO
+                                $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";
 
                                 //Query fields
                                 $newQueryFields = "";
@@ -2018,7 +2045,7 @@
                                 {
                                     if($count == 0)
                                     {
-                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";	//PANTALEO Qr
+                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                         $newQueryValues = returnManagedStringForDb($value);
                                         $fieldsAndValuesObj[$key] = $value;
                                     }
@@ -2027,7 +2054,7 @@
                                      //   if ($key != 'n_row') {
                                     //    if ($key == 'name_w' || $key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
                                         if ($key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
-                                            $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";    //PANTALEO Qr
+                                            $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                             $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
                                             $fieldsAndValuesObj[$key] = $value;
                                         } else {
@@ -2038,7 +2065,7 @@
                                     $count++;
                                 }
 
-                                $newInsQuery = $newInsQuery . $newQueryFields;              // PANTALEO Qr END
+                                $newInsQuery = $newInsQuery . $newQueryFields;
                             /*    $newInsQuery = $newInsQuery . ") VALUES(";
                                 $newInsQuery = $newInsQuery . $newQueryValues;
                                 $newInsQuery = $newInsQuery . ")";  */
@@ -2079,7 +2106,8 @@
                                     $id = $name_w; //Id del widget
                                     $type = $actuatorEntityName; //$actuatorEntityName
                                     $kind = "actuator"; //Per ora fisso
-                                    $contextBroker = "orionUNIFI"; //Per ora fisso
+                                //    $contextBroker = "orionUNIFI"; //Per ora fisso
+                                    $contextBroker = $_SESSION['orgBroker'];
                                     $protocol = "ngsi"; //Per ora fisso
                                     $format = "json"; //Per ora fisso
 
@@ -2092,7 +2120,9 @@
                                     $k1 = generateUUID();
                                     $k2 = generateUUID();
 
-                                    $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . rawurlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization'];
+                                    $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . urlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization'];
+                                //    $iotDirApiUrl = "https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=" . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . urlencode($_SESSION['loggedUsername']) . "&organization=" . $defaultOrganization;
+                                    eventLog("Creazione Widget Attuatore: " . $iotDirApiUrl);
 
                                     try
                                     {
@@ -2207,7 +2237,7 @@
                                 }
 
                                 //Calcolo del first free row
-                                $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                                $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                                 $r2 = mysqli_query($link, $q2);
 
                                 if($r2)
@@ -2390,6 +2420,7 @@
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                         $name_w = str_replace(":", "_", $name_w);
                                         $name_w = str_replace(" ", "_", $name_w);
+                                        $name_w = str_replace("-", "_", $name_w);
                                     }
                                     else
                                     {
@@ -2397,6 +2428,7 @@
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                         $name_w = str_replace(":", "_", $name_w);
                                         $name_w = str_replace(" ", "_", $name_w);
+                                        $name_w = str_replace("-", "_", $name_w);
                                     }
 
                                     //Costruzione titolo widget
@@ -2538,7 +2570,7 @@
                                     }
 
                                     //$newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                                    $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";      // PANTALEO
+                                    $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";
 
                                     //Query fields
                                     $newQueryFields = "";
@@ -2551,7 +2583,7 @@
                                     {
                                         if($count == 0)
                                         {
-                                          //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";	//PANTALEO Qr
+                                          //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                           //  $newQueryValues = returnManagedStringForDb($value);
                                           //  $fieldsAndValuesObj[$key] = $value;
                                         }
@@ -2560,7 +2592,7 @@
                                             //if ($key != 'n_row') {
                                         //    if ($key == 'name_w' || $key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
                                             if ($key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
-                                                $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";    //PANTALEO Qr
+                                                $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                                 $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
                                                 $fieldsAndValuesObj[$key] = $value;
                                             } else {
@@ -2571,7 +2603,7 @@
                                         $count++;
                                     }
 
-                                    $newInsQuery = $newInsQuery . $newQueryFields;              // PANTALEO Qr END
+                                    $newInsQuery = $newInsQuery . $newQueryFields;
                                     /*    $newInsQuery = $newInsQuery . ") VALUES(";
                                         $newInsQuery = $newInsQuery . $newQueryValues;
                                         $newInsQuery = $newInsQuery . ")";  */
@@ -2629,7 +2661,7 @@
                                 }
 
                                 //Calcolo del first free row
-                                $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                                $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                                 $r2 = mysqli_query($link, $q2);
 
                                 if($r2)
@@ -2667,6 +2699,7 @@
                                     $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                     $name_w = str_replace(":", "_", $name_w);
                                     $name_w = str_replace(" ", "_", $name_w);
+                                    $name_w = str_replace("-", "_", $name_w);
 
                                     //Costruzione titolo widget
                                     if($selectedRow['unique_name_id'] != null)
@@ -2691,7 +2724,7 @@
                                     }
 
                                     //$newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                                    $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";      // PANTALEO
+                                    $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";
 
                                     //Query fields
                                     $newQueryFields = "";
@@ -2703,7 +2736,7 @@
                                     {
                                         if($count == 0)
                                         {
-                                            //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";	//PANTALEO Qr
+                                            //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                             //  $newQueryValues = returnManagedStringForDb($value);
                                             //  $fieldsAndValuesObj[$key] = $value;
                                         }
@@ -2712,7 +2745,7 @@
                                             //if ($key != 'n_row') {
                                             //    if ($key == 'name_w' || $key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
                                             if ($key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
-                                                $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";    //PANTALEO Qr
+                                                $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                                 $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
                                                 $fieldsAndValuesObj[$key] = $value;
                                             } else {
@@ -2790,6 +2823,7 @@
                                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                             $name_w = str_replace(":", "_", $name_w);
                                             $name_w = str_replace(" ", "_", $name_w);
+                                            $name_w = str_replace("-", "_", $name_w);
 
                                             //Costruzione titolo widget
                                             $title_w = $selectedRow['sub_nature'] . " - Target";
@@ -2807,7 +2841,7 @@
                                             }
 
                                             //$newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                                            $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";      // PANTALEO
+                                            $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";
 
                                             //Query fields
                                             $newQueryFields = "";
@@ -2819,7 +2853,7 @@
                                             {
                                                 if($count == 0)
                                                 {
-                                                    //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";	//PANTALEO Qr
+                                                    //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                                     //  $newQueryValues = returnManagedStringForDb($value);
                                                     //  $fieldsAndValuesObj[$key] = $value;
                                                 }
@@ -2828,7 +2862,7 @@
                                                     //if ($key != 'n_row') {
                                                     //    if ($key == 'name_w' || $key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
                                                     if ($key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
-                                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";    //PANTALEO Qr
+                                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
                                                         $fieldsAndValuesObj[$key] = $value;
                                                     } else {
@@ -2922,7 +2956,7 @@
                         }
 
                         //Calcolo del first free row
-                        $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                        $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                         $r2 = mysqli_query($link, $q2);
 
                         if($r2)
@@ -2960,6 +2994,7 @@
                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                             $name_w = str_replace(":", "_", $name_w);
                             $name_w = str_replace(" ", "_", $name_w);
+                            $name_w = str_replace("-", "_", $name_w);
 
                             //Costruzione titolo widget
                             $title_w = "External content";
@@ -2977,7 +3012,7 @@
                             }
 
                             //$newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                            $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";      // PANTALEO
+                            $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";
 
                             //Query fields
                             $newQueryFields = "";
@@ -2990,7 +3025,7 @@
                             {
                                 if($count == 0)
                                 {
-                                    //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";	//PANTALEO Qr
+                                    //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                     //  $newQueryValues = returnManagedStringForDb($value);
                                     //  $fieldsAndValuesObj[$key] = $value;
                                 }
@@ -2999,7 +3034,7 @@
                                     //if ($key != 'n_row') {
                                     //    if ($key == 'name_w' || $key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
                                     if ($key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
-                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";    //PANTALEO Qr
+                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
                                         $fieldsAndValuesObj[$key] = $value;
                                     } else {
@@ -3010,7 +3045,7 @@
                                 $count++;
                             }
 
-                            $newInsQuery = $newInsQuery . $newQueryFields;              // PANTALEO Qr END
+                            $newInsQuery = $newInsQuery . $newQueryFields;
                             /*    $newInsQuery = $newInsQuery . ") VALUES(";
                             $newInsQuery = $newInsQuery . $newQueryValues;
                             $newInsQuery = $newInsQuery . ")";  */
@@ -3063,7 +3098,7 @@
                         }
 
                         //Calcolo del first free row
-                        $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $id_dashboard";
+                        $q2 = "SELECT MAX(n_row + size_rows) AS maxRow FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '$id_dashboard'";
                         $r2 = mysqli_query($link, $q2);
 
                         if($r2)
@@ -3102,6 +3137,7 @@
                             $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                             $name_w = str_replace(":", "_", $name_w);
                             $name_w = str_replace(" ", "_", $name_w);
+                            $name_w = str_replace("-", "_", $name_w);
 
                             $creator = $_SESSION['loggedUsername'];
 
@@ -3119,7 +3155,7 @@
                             }
 
                             //$newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                            $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";      // PANTALEO
+                            $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";
 
                             //Query fields
                             $newQueryFields = "";
@@ -3131,7 +3167,7 @@
                             {
                                 if($count == 0)
                                 {
-                                    //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";	//PANTALEO Qr
+                                    //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                     //  $newQueryValues = returnManagedStringForDb($value);
                                     //  $fieldsAndValuesObj[$key] = $value;
                                 }
@@ -3140,7 +3176,7 @@
                                     //if ($key != 'n_row') {
                                     //    if ($key == 'name_w' || $key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
                                     if ($key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
-                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";    //PANTALEO Qr
+                                        $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
                                         $fieldsAndValuesObj[$key] = $value;
                                     } else {
@@ -3212,6 +3248,7 @@
                                         $name_w = preg_replace('/%20/', 'NBSP', $name_w);
                                         $name_w = str_replace(":", "_", $name_w);
                                         $name_w = str_replace(" ", "_", $name_w);
+                                        $name_w = str_replace("-", "_", $name_w);
 
                                         //Costruzione titolo widget
                                         $title_w = "Selector - Map";
@@ -3228,7 +3265,7 @@
                                         }
 
                                         //$newInsQuery = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                                        $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";      // PANTALEO
+                                        $newInsQuery = "UPDATE Dashboard.Config_widget_dashboard SET";
 
                                         //Query fields
                                         $newQueryFields = "";
@@ -3240,7 +3277,7 @@
                                         {
                                             if($count == 0)
                                             {
-                                                //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";	//PANTALEO Qr
+                                                //  $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                                 //  $newQueryValues = returnManagedStringForDb($value);
                                                 //  $fieldsAndValuesObj[$key] = $value;
                                             }
@@ -3249,7 +3286,7 @@
                                                 //if ($key != 'n_row') {
                                                 //    if ($key == 'name_w' || $key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
                                                 if ($key == 'title_w' || $key == 'id_metric' || $key == 'rowParameters' || $key == 'sm_field' || $key == 'wizardRowIds') {
-                                                    $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";    //PANTALEO Qr
+                                                    $newQueryFields = $newQueryFields . " " . $key . " = " . returnManagedStringForDb($value) . ",";
                                                     $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
                                                     $fieldsAndValuesObj[$key] = $value;
                                                 } else {
@@ -3360,26 +3397,30 @@
         $defaultColors1 = ["#ffdb4d", "#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900"];
         $defaultColors2 = ["#fff5cc", "#ffe0b3", "#ffcccc", "#99ffff", "#99e6ff", "#adebad", "#80ff80"];
 
-        $id_dashboard = $_REQUEST['dashboardId'];
-        $dashboardTitle = $_REQUEST['dashboardTitle'];
-        $dashboardAuthorName = $_REQUEST['dashboardAuthorName'];
-        $dashboardEditor = $_REQUEST['dashboardEditorName'];
-        $creator = $_REQUEST['dashboardEditorName'];
-        $selection = $_REQUEST['selection'];
-        $mapCenterLat = $_REQUEST['mapCenterLat'];
-        $mapCenterLng = $_REQUEST['mapCenterLng'];
-        $mapZoom = $_REQUEST['mapZoom'];
+        $id_dashboard = escapeForSQL($_REQUEST['dashboardId'], $link);
+        if (checkVarType($id_dashboard, "integer") === false) {
+            eventLog("Returned the following ERROR in widgetAndDashboardInstantiator.php for dashboard_id = ".$id_dashboard.": ".$id_dashboard." is not an integer as expected. Exit from script.");
+            exit();
+        };
+        $dashboardTitle = escapeForSQL($_REQUEST['dashboardTitle'], $link);
+        $dashboardAuthorName = escapeForSQL($_REQUEST['dashboardAuthorName'], $link);    // sempre sovrascritto da $_SESSION['loggedUsername'] ?
+        $dashboardEditor = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
+        $creator = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
+        $selection = escapeForSQL($_REQUEST['selection'], $link);
+        $mapCenterLat = escapeForSQL($_REQUEST['mapCenterLat'], $link);
+        $mapCenterLng = escapeForSQL($_REQUEST['mapCenterLng'], $link);
+        $mapZoom = escapeForSQL($_REQUEST['mapZoom'], $link);
 
         $widgetTypeDbRow = NULL;
         $id_metric = NULL;
         $widgetWizardSelectedRows = $_REQUEST['widgetWizardSelectedRows'];
-        $newWidgetType = $_REQUEST['widgetType'];
+        $newWidgetType = escapeForSQL($_REQUEST['widgetType'], $link);
         $actuatorTargetWizard = $_REQUEST['actuatorTargetWizard'];
         $actuatorTargetInstance = $_REQUEST['actuatorTargetInstance'];
-        $actuatorEntityName = $_REQUEST['actuatorEntityName'];
-        $actuatorValueType = $_REQUEST['actuatorValueType'];
-        $actuatorMinBaseValue = $_REQUEST['actuatorMinBaseValue'];
-        $actuatorMaxImpulseValue = $_REQUEST['actuatorMaxImpulseValue'];
+        $actuatorEntityName = escapeForSQL($_REQUEST['actuatorEntityName'], $link);
+        $actuatorValueType = escapeForSQL($_REQUEST['actuatorValueType'], $link);
+        $actuatorMinBaseValue = escapeForSQL($_REQUEST['actuatorMinBaseValue'], $link);
+        $actuatorMaxImpulseValue = escapeForSQL($_REQUEST['actuatorMaxImpulseValue'], $link);
         $title_w = NULL;
         $n_row = NULL;
         $n_column = NULL;
