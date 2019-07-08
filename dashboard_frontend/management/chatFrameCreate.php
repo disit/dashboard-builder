@@ -31,6 +31,10 @@ session_start();
         $idChat = $_REQUEST['idChat'];
         $idUserChat = $_REQUEST['idUserChat'];
         $idDash = $_REQUEST['idDash'];
+        if (checkVarType($idDash, "integer") === false) {
+            eventLog("Returned the following ERROR in chatFrameCreate.php for idDash = ".$idDash.": ".$idDash." is not an integer as expected. Exit from script.");
+            exit();
+        };
 
          function archive() {
             $admin = new \RocketChat\User();
@@ -65,6 +69,7 @@ session_start();
                 $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
                 $accessToken = $tkn->access_token;
                 $_SESSION['refreshToken'] = $tkn->refresh_token;
+             //   $service_url = $personalDataApiBaseUrl ."/v1/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . checkVarTtpe($idDash, "integer");
                 $service_url = $personalDataApiBaseUrl ."/v1/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
                 $curl = curl_init($service_url);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -72,6 +77,7 @@ session_start();
                 curl_close($curl);
                 $arr = json_decode($curl_response, true);
                 if (!$arr["result"]) {
+                //    $service_url = $personalDataApiBaseUrl ."/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . checkVarTtpe($idDash, "integer");
                     $service_url = $personalDataApiBaseUrl ."/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
                     $curl = curl_init($service_url);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
