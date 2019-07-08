@@ -38,6 +38,10 @@ $response = NULL;
 if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
 {
     $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in deleteDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     $dashboardTitle = mysqli_real_escape_string($link, $_GET['dashboardTitle']);
     $username = mysqli_real_escape_string($link, $_SESSION['loggedUsername']);
     
@@ -61,7 +65,8 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
             $accessToken = $tkn->access_token;
             $_SESSION['refreshToken'] = $tkn->refresh_token;
 
-            $apiUrl = $ownershipApiBaseUrl . "/v1/delete/?type=DashboardID&elementId=". $_REQUEST['dashboardId']."&accessToken=" . $accessToken;
+        //    $dashboardIdValidated = checkVarType($dashboardId, "integer");
+            $apiUrl = $ownershipApiBaseUrl . "/v1/delete/?type=DashboardID&elementId=". $dashboardId ."&accessToken=" . $accessToken;
 
             try
             {
@@ -72,6 +77,7 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
             {
                 //Non facciamo niente di specifico in caso di mancata risposta dell'host
             }
+
         }
 
     }
