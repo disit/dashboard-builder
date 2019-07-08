@@ -31,9 +31,17 @@ $response = [];
 if(isset($_SESSION['loggedUsername'])) 
 {
     $dashboardId = $_REQUEST['dashboardId'];
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in delDashboardDelegation.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    }
     $delegationId = $_REQUEST['delegationId'];
+    if (checkVarType($delegationId, "integer") === false) {
+        eventLog("Returned the following ERROR in delDashboardDelegation.php for delegationId = ".$delegationId.": ".$delegationId." is not an integer as expected. Exit from script.");
+        exit();
+    }
     
-    $q = "SELECT user FROM Dashboard.Config_dashboard WHERE Id = $dashboardId";
+    $q = "SELECT user FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId'";
     $r = mysqli_query($link, $q);
         
     if($r)
