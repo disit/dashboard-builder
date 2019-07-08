@@ -2,8 +2,6 @@
 
 include '../config.php';
 
-$ip_from_source = $_REQUEST['ip'];
-
 // Create connection
 //$conn = new mysqli($servername, $username, $password, $dbname);
 $conn = new mysqli($host, $username, $password, $dbname);
@@ -22,6 +20,8 @@ if ($result->num_rows > 0) {
     }
 }
 */
+
+$ip_from_source = escapeForSQL($_REQUEST['ip'], $conn);
 
 // $get_credentials = "SELECT username,password FROM IP_cam_credentials WHERE IP = '$ip';";             // GP MOD
 $get_credentials = "SELECT username,password FROM IP_cam_credentials WHERE IP = '$ip_from_source';";
