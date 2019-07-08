@@ -689,3 +689,17 @@ tr.summaryTableRow:nth-child(even)
 {
     background-color: #576c75;
 }
+
+#GPSUser.cancelBtn/*, #FreezeMap.cancelBtn*/
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#GPSOrg.cancelBtn/*, #FreezeMap.cancelBtn*/
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
