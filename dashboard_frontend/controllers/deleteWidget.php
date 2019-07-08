@@ -18,6 +18,9 @@ include '../config.php';
 error_reporting(E_ERROR | E_NOTICE);
 date_default_timezone_set('Europe/Rome');
 
+require '../sso/autoload.php';
+use Jumbojett\OpenIDConnectClient;
+
 session_start(); 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
@@ -26,13 +29,21 @@ $response = NULL;
 
 if(isset($_REQUEST['dashboardIdToEdit'])&&isset($_REQUEST['currentDashboardTitle'])&&isset($_REQUEST['dashboardUser']))
 {
-    $dashboardId = $_REQUEST['dashboardIdToEdit'];
+    $dashboardId = escapeForSQL($_REQUEST['dashboardIdToEdit'], $link);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in deleteWidget.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     $username = $_REQUEST['dashboardUser'];
     $dashboardTitle = $_REQUEST['currentDashboardTitle'];	
 }
 else
 {
-    $dashboardId = $_REQUEST['dashboardId'];
+    $dashboardId = escapeForSQL($_REQUEST['dashboardId'], $link);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in deleteWidget.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     $username = $_REQUEST['username'];
     $dashboardTitle = $_REQUEST['dashboardTitle'];
 }
@@ -41,7 +52,7 @@ $widgetName = mysqli_real_escape_string($link, $_GET['nameWidget']);
 
 try 
 {
-    $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
+    $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = '$dashboardId'";
     $lastEditDateResult = mysqli_query($link, $lastEditDateQuery);
 } 
 catch (Exception $ex) 
@@ -87,18 +98,21 @@ if($entityJson != null)
     if($delWR) 
     {
         //Conteggio widget attuatori che puntano l'entità in esame
-        $cntWQ = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE actuatorTarget = 'broker' AND entityJson LIKE '%$entityId%'";
+        $entityIdEsc = escapeForSQL($entityId, $link);
+        $cntWQ = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE actuatorTarget = 'broker' AND entityJson LIKE '%$entityIdEsc%'";
         $cntWR = mysqli_query($link, $cntWQ);
         
         if($cntWR)
         {
             if(mysqli_num_rows($cntWR) == 0)
             {
+                // NEW !! Non fare piu delete su Orion Broker ma su IOT DIRECTORY !!
+
                 //Se nessun widget punta più l'entità allora la marchiamo come cancellata
-                $entityUpdatedAttributes = ['actuatorDeleted' => ["value" => true, "type" => "Boolean"], 'actuatorDeletionDate' => ["value" => $cancelDate, "type" => "String"], 'actuatorCanceller' => ["value" => $username, "type" => "String"]];
+            /*    $entityUpdatedAttributes = ['actuatorDeleted' => ["value" => true, "type" => "Boolean"], 'actuatorDeletionDate' => ["value" => $cancelDate, "type" => "String"], 'actuatorCanceller' => ["value" => $username, "type" => "String"]];
                 $entityUpdatedAttributesJson = json_encode($entityUpdatedAttributes);
 
-                $orionDeleteEntityUrl = $orionBaseUrl. "/v2/entities/" . $entityId . "/attrs";
+                $orionDeleteEntityUrl = $orionBaseUrl. "/v2/entities/" . urlencode($entityId) . "/attrs";
 
                 $orionCallOptions = array(
                     'http' => array(
@@ -127,7 +141,39 @@ if($entityJson != null)
                 catch (Exception $ex) 
                 {
                     $response = "orionDeleteEntityKo";
+                }*/
+
+                $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+                $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+
+                $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+                $accessToken = $tkn->access_token;
+
+                $deviceUrl = "http://www.disit.org/km4city/resource/iot/" . $_SESSION['orgBroker'] . "/" . $_SESSION['loggedOrganization'] . "/" . $widgetName;
+                // . urlencode(json_encode($attributes)) . "&id=" . $id . "&type=" . $type . "&kind=" . $kind . "&contextbroker=" . $contextBroker . "&protocol=" . $protocol . "&format=" . $format . "&mac=&model=&producer=&latitude=43&longitude=11&visibility=private&frequency=1&nodered=yes&k1=" . $k1 . "&k2=" .$k2 . "&token=" . $accessToken . "&username=" . urlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization']
+                $iotDirApiUrl = $iotDirectoryBaseApiUrl . "device.php?action=delete&id=" . $widgetName . "&contextbroker=" . $_SESSION['orgBroker'] . "&uri=" . urlencode($deviceUrl) . "&username=" . urlencode($_SESSION['loggedUsername']) . "&organization=" . $_SESSION['loggedOrganization'] . "&dev_organization=" . $_SESSION['loggedOrganization'] . "&token=" . $accessToken;
+                eventLog("Chiamata IOT Directory API per cancellazione widget: " . $iotDirApiUrl);
+                try
+                {
+                    $iotDirPayload = file_get_contents($iotDirApiUrl);
+
+                    //if(strpos($http_response_header[0], '201 Created') === false)
+                    if(strpos($http_response_header[0], '200') === false)
+                    {
+                        $response = "orionDeleteEntityKo";
+                    }
+                    else
+                    {
+                        mysqli_close($link);
+                        $response = "Ok";
+                    }
                 }
+                catch (Exception $ex)
+                {
+                    $response = "orionDeleteEntityKo";
+                }
+
+
             }
             else
             {
@@ -499,6 +545,7 @@ else
                    $containerName = preg_replace('/\s+/', '+', $dashboardTitle);
                    $appUsr = preg_replace('/\s+/', '+', $username); 
 
+                 //  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteGenerator&appName=' . $notificatorAppName . '&appUsr=' . urlencode($appUsr) . '&generatorOriginalName=' . $generatorOriginalName . '&generatorOriginalType=' . $generatorOriginalType . '&containerName=' . urlencode($containerName);
                    $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $generatorOriginalName . '&generatorOriginalType=' . $generatorOriginalType . '&containerName=' . $containerName;
                    $url = $url.$data;
 
@@ -599,6 +646,7 @@ else
                 $containerName = preg_replace('/\s+/', '+', $dashboardTitle);
                 $appUsr = preg_replace('/\s+/', '+', $username); 
 
+              //  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteGenerator&appName=' . $notificatorAppName . '&appUsr=' . urlencode($appUsr) . '&generatorOriginalName=' . $generatorOriginalName . '&generatorOriginalType=' . $generatorOriginalType . '&containerName=' . urlencode($containerName);
                 $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $generatorOriginalName . '&generatorOriginalType=' . $generatorOriginalType . '&containerName=' . $containerName;
                 $url = $url.$data;
 
