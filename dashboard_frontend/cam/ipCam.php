@@ -14,9 +14,9 @@ $ip = $_REQUEST['IP'];
     function increment() {
         console.log('interval');
       //  document.getElementById('IPcamLink').src = "getIPjpeg.php?t=" + new Date().getTime();
-        document.getElementById('IPcamLink').src = "getIPjpeg.php?t=" + new Date().getTime() + "&ip=" + '<?php echo $_REQUEST['IP'] ;?>';     // GP MOD
+        document.getElementById('IPcamLink').src = "getIPjpeg.php?t=" + new Date().getTime() + "&ip=" + '<?php echo addslashes($_REQUEST['IP']) ;?>';     // GP MOD
     }
-    setInterval(increment, 1000);   // Refresh di cattura immagine
+    setInterval(increment, 3000);   // Refresh di cattura immagine
 </script>
 </body>
 </html>
