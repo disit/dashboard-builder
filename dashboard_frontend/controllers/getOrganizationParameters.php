@@ -65,11 +65,15 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
                         $orgKbUrl = $row['kbUrl'];
                         $orgGpsCentreLatLng = $row['gpsCentreLatLng'];
                         $orgZoomLevel = $row['zoomLevel'];
+                        $orgBroker = $row['broker'];
+                        $orionIP = $row['orionIP'];
                         $response['orgId'] = $orgId;
                         $response['orgName'] = $orgName;
                         $response['orgKbUrl'] = $orgKbUrl;
                         $response['orgGpsCentreLatLng'] = $orgGpsCentreLatLng;
                         $response['orgZoomLevel'] = $orgZoomLevel;
+                        $response['orgBroker'] = $orgBroker;
+                        $response['orionIP'] = $orionIP;
                         $response['detail'] = 'GetOrganizationParameterOK';
                     } else {
                         $response['detail'] = 'GetOrganizationParameterEMPTY';
@@ -81,7 +85,7 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
 
             case "getSpecificOrgParameters":
                 if (isset($_GET['param'])) {
-                    $orgSql = $_GET['param'];
+                    $orgSql = escapeForSQL($_GET['param'], $link);
                     $orgSqlAdd = " WHERE organizationName = '$orgSql';";
                 } else {
                     $orgSql = "";
@@ -100,11 +104,15 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
                         $orgKbUrl = $row['kbUrl'];
                         $orgGpsCentreLatLng = $row['gpsCentreLatLng'];
                         $orgZoomLevel = $row['zoomLevel'];
+                        $orgBroker = $row['broker'];
+                        $orionIP = $row['orionIP'];
                         $response['orgId'] = $orgId;
                         $response['orgName'] = $orgName;
                         $response['orgKbUrl'] = $orgKbUrl;
                         $response['orgGpsCentreLatLng'] = $orgGpsCentreLatLng;
                         $response['orgZoomLevel'] = $orgZoomLevel;
+                        $response['orgBroker'] = $orgBroker;
+                        $response['orionIP'] = $orionIP;
                         $response['detail'] = 'GetOrganizationParameterOK';
                     } else {
                         $response['detail'] = 'GetOrganizationParameterEMPTY';
@@ -122,7 +130,7 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
         {
             case "getSpecificOrgParameters":
                 if (isset($_GET['param'])) {
-                    $orgSql = $_GET['param'];
+                    $orgSql = mysqli_real_escape_string($link, $_GET['param']);
                     $orgSqlAdd = " WHERE organizationName = '$orgSql';";
                 } else {
                     $orgSql = "";
@@ -141,11 +149,15 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
                         $orgKbUrl = $row['kbUrl'];
                         $orgGpsCentreLatLng = $row['gpsCentreLatLng'];
                         $orgZoomLevel = $row['zoomLevel'];
+                        $orgBroker = $row['broker'];
+                        $orionIP = $row['orionIP'];
                         $response['orgId'] = $orgId;
                         $response['orgName'] = $orgName;
                         $response['orgKbUrl'] = $orgKbUrl;
                         $response['orgGpsCentreLatLng'] = $orgGpsCentreLatLng;
                         $response['orgZoomLevel'] = $orgZoomLevel;
+                        $response['orgBroker'] = $orgBroker;
+                        $response['orionIP'] = $orionIP;
                         $response['detail'] = 'GetOrganizationParameterOK';
                     } else {
                         $response['detail'] = 'GetOrganizationParameterEMPTY';
