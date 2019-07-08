@@ -11,16 +11,17 @@ $serviceUri = $result->Service->features[0]->properties->serviceUri;
 $serviceUri_arr =  explode("/", $serviceUri);
 $n = count($serviceUri_arr);
 $value = $serviceUri_arr[$n-1];
-$link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server !!");
+$link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
             mysqli_set_charset($link, 'utf8');
             mysqli_select_db($link, $dbname_processes);
             $process = '';
             $process_list = array();
 
-            $query0 ="SELECT * FROM graph_dataset, process_responsible WHERE graph_dataset.Process_RT='".$value."' AND process_responsible.process_name=graph_dataset.Process_RT";
+            $query0 ="SELECT * FROM process_manager_graph, process_manager_responsible WHERE process_manager_graph.Process_RT='".$value."' AND process_manager_responsible.process_name=process_manager_graph.Process_RT";
             $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
             $total0  = $result0->num_rows;
             $process_st0 = '';
+            $process_path = '';
             if ($total0 > 0) {
                     while ($row0 = mysqli_fetch_assoc($result0)){
                                     $listFile0 = array(
@@ -35,9 +36,37 @@ $link = mysqli_connect($host_processes, $username_processes, $password_processes
                                         "telephone" => $row0['telephone'],
                                         "mail" => $row0['mail'],
                                         "owner"=>$row0['responsible'],
+                                        "Disces_Ip"=>$row0['DISCES_Ip'],
                                     );
+                                $process_path = $row0['process_path'];
                                 array_push($process_list, $listFile0);
                          }
+            }
+            
+$link_disces = mysqli_connect($disces_host, $disces_username, $disces_password) or die("failed to connect to server Disces!!");            
+mysqli_set_charset($link_disces, 'utf8');
+mysqli_select_db($link_disces, $disces_dbname);            
+           // \\/media\\/Trasformazioni\\/Phoenix_ETL\\/Sensors\\/SmartBench\\/Smartbench_RT\\/Ingestion\\/Main.kjb
+            $query1 = "SELECT JOB_NAME, JOB_GROUP FROM quartz.QRTZ_JOB_DETAILS WHERE JOB_DATA LIKE '%".mysqli_real_escape_string($link, $process_path)."%' escape '|'";
+            $result1 = mysqli_query($link_disces, $query1) or die(mysqli_error($link_disces));
+            $total1  = $result1->num_rows;
+            $jobn = '';
+            $jobg = '';
+            if($total1 > 0){
+                    while ($row1 = mysqli_fetch_assoc($result1)){
+                        $jobn = $row1['JOB_NAME'];
+                        $jobg = $row1['JOB_GROUP'];
+                    }
+            }
+            
+            $ip_disc = '';
+            $query_ip = "SELECT distinct IP_ADDRESS FROM quartz.QRTZ_NODES LIMIT 1;";
+            $result_ip = mysqli_query($link_disces, $query_ip) or die(mysqli_error($link_disces));
+             $total_ip  = $result_ip->num_rows;
+            if($total_ip > 0){
+                    while ($row_ip = mysqli_fetch_assoc($result_ip)){
+                        $ip_disc = $row_ip['IP_ADDRESS'];
+                    }
             }
     //
     $list['healthiness'] = $healthiness;
@@ -55,6 +84,11 @@ $link = mysqli_connect($host_processes, $username_processes, $password_processes
             $list['phoenix_table'] = $process_list[0]['phoenix_table'];
             $list['mail'] = $process_list[0]['mail'];
             $list['owner']=$process_list[0]['owner'];
+            $list['disces_ip']=$process_list[0]['Disces_Ip'];
+            $list['disces_data']= $total1;
+            $list['jobName']= $jobn;
+            $list['jobGroup']=$jobg;
+            $list['ip_disc']=$ip_disc;
         }
     //
     ////
