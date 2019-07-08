@@ -53,8 +53,11 @@
     
     $nature = mysqli_real_escape_string($link, $_REQUEST['nature']);
     $sub_nature = mysqli_real_escape_string($link, $_REQUEST['subnature']);
+    $sub_nature = str_replace("/", "_", $sub_nature);
+    $sub_nature = str_replace(".", "_", $sub_nature);
+    $sub_nature = str_replace("\\", '_', $sub_nature);
+    $sub_nature = str_replace(":", "_", $sub_nature);
     $param0 = mysqli_real_escape_string($link, $_REQUEST['param']);
-    //$microAppExtServIcon = $_POST['getIcon'];
     $lastCheck = date("Y-m-d H:i:s");
 
     //controllo param//
@@ -108,7 +111,7 @@
         
         if($_FILES['getIcon']['size'] > 0)
         {
-            if(!move_uploaded_file($_FILES['getIcon']['tmp_name'], $uploadFolder.$filename))  
+            if(!move_uploaded_file($_FILES['getIcon']['tmp_name'], $uploadFolder.$filename))
             {  
                 $queryFail = true;
             }
@@ -119,7 +122,7 @@
         }
         
         $response['result'] = "Ok";
-        $response['url'] = $param;
+        $response['url'] = escapeForHTML($param);
     }
     else
     {
