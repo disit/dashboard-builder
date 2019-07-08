@@ -24,6 +24,10 @@
     { 
         $widgetsConfigJson = $_POST['configuration_widgets'];
         $dashboardId = $_POST['dashboardId'];
+        if (checkVarType($dashboardId, "integer") === false) {
+            eventLog("Returned the following ERROR in saveWidgetsPositions.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+            exit();
+        };
         $widgetsConfigArray = json_decode($widgetsConfigJson, true);
 
         foreach ($widgetsConfigArray as $item) 
@@ -43,7 +47,7 @@
             }
         }
         
-        $q2 = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Config_dashboard.Id = $dashboardId";
+        $q2 = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Config_dashboard.Id = '$dashboardId'";
         $r2 = mysqli_query($link, $q2);
 
         if(!$r2) 
