@@ -146,6 +146,16 @@
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCnt">
                     </div>
+                    <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
+                        <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Map Controls:</div>
+                    
+                    <label class="switch" style=" margin-left: 10px; float: left">
+                            <input type="checkbox" id="togBtn">
+                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black">FilterMap</span><!--END--></div>
+                        </label><!--<button type="button" id="FreezeMap" class="btn cancelBtn" style="margin-top: 10px">FreezeMap</button>-->
+                        <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSUser</button>
+                        <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSOrg</button>
+                    </div>
                     <div id="addWidgetWizardWidgetAvailableMsg" class="col-xs-12 centerWithFlex">
                     </div>
                 </div>
@@ -401,6 +411,35 @@
         </div>
     </div>    
 </div>
+            <?php /*
+                include('../config.php');
+                header("Cache-Control: private, max-age=$cacheControlMaxAge");
+                $link = mysqli_connect($host, $username, $password);
+                mysqli_select_db($link, $dbname);
+
+                    $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where high_level_type='Sensor' and latitude is not null and longitude is not null and latitude<>'' and longitude<>''";
+                    $r = mysqli_query($link, $menuQuery);
+                    if($r)
+                    {
+                        $array=array();
+                        $ii=0;
+                        while($row = mysqli_fetch_assoc($r))
+                        {
+                            $idrow=$row['id'];
+                            $latitude=$row['latitude'];
+                            $longitude=$row['longitude'];
+                            $array[$ii]['id']=$idrow;
+                            $array[$ii]['latitude']=$latitude;
+                            $array[$ii]['longitude']=$longitude;
+                            $ii=$ii+1;
+       }
+       $size = sizeof($array);
+              
+             
+   }
+             * 
+             */
+                ?>
 
 <script type='text/javascript'>
     $(document).ready(function ()
@@ -417,11 +456,11 @@
         var selectedTabIndex = 0;
         var firstTabIndex = 0;
         var tabsQt = 3;
-        var dashTitle = "<?php if (isset($_REQUEST['dashboardTitle'])) {echo $_REQUEST['dashboardTitle'];} else {echo 1;} ?>";
+    //    var dashTitle = "<?php if (isset($_REQUEST['dashboardTitle'])) {echo $_REQUEST['dashboardTitle'];} else {echo 1;} ?>";
         var orgFilter = "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>";
         addWidgetWizardMapMarkers = {};
         currentMarkerId = 0;
-        dashTitleEscaped = dashTitle.replace(/\'/g, "%27");
+    //    dashTitleEscaped = dashTitle.replace(/\'/g, "%27");
         orgId = null;
         orgName = null;
         orgKbUrl = null;
@@ -429,6 +468,13 @@
         orgZoomLevel = null;
         console.log("Entrato in addWidgetWizardInclusionCode.");
         var orionBrokerValueTypes = null;
+        var markersCache = {};
+        var FreezeMap = null;
+        noPOIFlag = 0;
+        poiSubNature = "";
+        poiNature = "";
+        poiNatureArray = [];
+        poiSubNatureArray = [];
 
         // Check LDAP Organization to centre Wizard Map
         $.ajax({
@@ -499,6 +545,466 @@
             actuatorFieldsEmpty: true,
             canProceed: false
         };
+        $('#GPSOrg').click(function(){
+        //    addWidgetWizardMapRef.setView(L.latLng(43.769710, 11.255751), 11);
+            if(FreezeMap) {
+                $('#togBtn').click();
+            }
+            if (orgGpsCentreLatLng != undefined && orgGpsCentreLatLng != null) {
+                if (orgZoomLevel != null && orgZoomLevel != undefined) {
+                    addWidgetWizardMapRef.setView(L.latLng(orgGpsCentreLatLng.split(",")[0].trim(), orgGpsCentreLatLng.split(",")[1].trim()), orgZoomLevel);
+                } else {
+                    addWidgetWizardMapRef.setView(L.latLng(orgGpsCentreLatLng.split(",")[0].trim(), orgGpsCentreLatLng.split(",")[1].trim()), 11);
+                }
+            } else {
+                addWidgetWizardMapRef.setView(L.latLng(43.769710, 11.255751), 11);  // Florence coordinates if no organization available
+            }
+
+        })
+        $('#GPSUser').click(function(){
+            if(FreezeMap) {
+                $('#togBtn').click();
+            }
+            if (navigator.geolocation)
+                navigator.geolocation.getCurrentPosition(showPosition);
+            //navigator.geolocation.watchPosition(showPosition);
+        })
+        function showPosition(position) {
+            
+            var Zoom = addWidgetWizardMapRef.getZoom();
+            addWidgetWizardMapRef=addWidgetWizardMapRef.setView(L.latLng(position.coords.latitude, position.coords.longitude), Zoom);
+        }
+        $('#togBtn').click(function(){
+
+            $.ajax({
+                url: "../controllers/getPOIFilters.php",
+                type: "GET",
+                data: {
+                    org: orgFilter
+                },
+                async: true,
+                dataType: 'json',
+                success: function (data)
+                {
+                    if (data.detail === 'OK_Nature_AND_SubNature') {
+                        poiNatureArray = data.nature;
+                        poiSubNatureArray = data.sub_nature;
+                    } else {
+
+                    }
+                },
+                error: function (data)
+                {
+                    console.log("Error in retrieving POI nature and sub_nature:");
+                    console.log(JSON.stringify(data));
+                }
+            });
+
+           if(FreezeMap){
+               addWidgetWizardMapRef.addControl(addWidgetWizardMapRef.zoomControl);
+               FreezeMap = null;
+               addWidgetWizardMapRef.dragging.enable();
+               addWidgetWizardMapRef.keyboard.enable();
+               addWidgetWizardMapRef.scrollWheelZoom.enable();
+               addWidgetWizardMapRef.doubleClickZoom.enable();
+               //disattivo il sensore che ho selezionato prima di ricreare la tabella, altrimenti si genera in seguito un errore nella selezione degli elementi della tabella
+           //    if(widgetWizardSelectedSingleRow!==null){
+                //    $(widgetWizardSelectedSingleRow).removeClass('selected');
+                //    var delesectedUnit = widgetWizardSelectedRows['row' + $(widgetWizardSelectedSingleRow).attr('data-rowid')].unit;
+                //    delete widgetWizardSelectedRows['row' + $(widgetWizardSelectedSingleRow).attr('data-rowid')];
+                
+               //     widgetWizardSelectedRowsTable.row('[data-rowid=' + $(widgetWizardSelectedSingleRow).attr('data-rowid') + ']').remove().draw(false);
+                
+                    //Aggiornamento unità selezionate
+                //    updateSelectedUnits('remove', delesectedUnit);
+                //    widgetWizardSelectedSingleRow=null;
+           //     }
+                resetFilter();
+               widgetWizardTable.clear().destroy();
+            var oi=document.getElementById('widgetWizardTable_paginate');
+            oi.outerHTML="";
+            $('#widgetWizardTable_paginate').empty();
+            var oi2=document.getElementById('widgetWizardTable_filter');
+            oi2.outerHTML="";
+               $('#widgetWizardTable_filter').empty();
+                 widgetWizardTable = $('#widgetWizardTable').DataTable({
+                 
+            "bLengthChange": false,
+            "bInfo": false,
+            "language": {search: ""},
+            aaSorting: [[0, 'desc']],
+            "processing": true,
+            "serverSide": true,
+            "pageLength": widgetWizardPageLength,
+            "ajax": {
+                async: true, 
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
+                data: {
+                    dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
+                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
+                    filterOrg: orgFilter,
+                    poiFlag: noPOIFlag
+                }
+            },
+            'createdRow': function (row, data, dataIndex) {
+                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-high_level_type', data[0]);
+                $(row).attr('data-nature', data[1]);
+                $(row).attr('data-sub_nature', data[2]);
+                $(row).attr('data-low_level_type', data[3]);
+                $(row).attr('data-unique_name_id', data[4]);
+                $(row).attr('data-instance_uri', data[5]);
+                $(row).attr('data-unit', data[6]);
+                $(row).attr('data-servicetype', data[2]);
+                $(row).attr('data-get_instances', data[14]);
+                $(row).attr('data-sm_based', data[16]);
+                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-selected', 'false');
+                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-latitude', data[18]);
+                $(row).attr('data-longitude', data[19]);
+                $(row).attr('data-organizations', data[17]);
+                $(row).attr('last_date',data[7]);
+                $(row).attr('ownership',data[15]);
+            },
+            "columnDefs": [
+                {
+                    "targets": [5, 11, 12, 14, 16],
+                    "visible": false
+                },
+                {
+                    "targets": 9,
+                    "searchable": true,
+                    "render": function (data, type, row, meta) {
+                        var imageUrl = null;
+                        if (row[9]) {
+                            if (row[9] === 'true') {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
+                            } else {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                            }
+
+                        } else {
+                            imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                        }
+                        return imageUrl;
+                    }
+                },
+                {
+                    "targets": 10,
+                    "searchable": true,
+                    "visible": false
+                },
+            ],
+            initComplete: function () {
+
+                var stopFlag = 1;
+            }
+        });
+
+        $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_paginate").addClass("col-xs-12");
+            $("#widgetWizardTable_paginate").addClass("col-md-4");
+            $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_filter").addClass("col-xs-12");
+            $("#widgetWizardTable_filter").addClass("col-md-3");
+            $("#widgetWizardTable_filter input").attr("placeholder", "Search");
+            $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
+            $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
+               
+           }else{
+               addWidgetWizardMapRef.removeControl(addWidgetWizardMapRef.zoomControl);
+               FreezeMap = true;
+               addWidgetWizardMapRef.dragging.disable();
+               addWidgetWizardMapRef.keyboard.disable();
+               addWidgetWizardMapRef.scrollWheelZoom.disable();
+               addWidgetWizardMapRef.doubleClickZoom.disable();
+               var bounds = addWidgetWizardMapRef.getBounds();
+               var northEastPointLat = bounds._northEast.lat;
+               var northEastPointLat2 = northEastPointLat.toString();
+               var northEastPointLng = bounds._northEast.lng;
+               var northEastPointLng2 = northEastPointLng.toString();
+               var southWestPointLat = bounds._southWest.lat;
+               var southWestPointLat2 = southWestPointLat.toString();
+               var southWestPointLng = bounds._southWest.lng;
+               var southWestPointLng2 = southWestPointLng.toString();
+               resetFilter();
+               widgetWizardTable.clear().destroy();//la mappa viene distrutta e ricreata ad ogni volta che viene azionato il bottone
+            var oi=document.getElementById('widgetWizardTable_paginate');
+            oi.outerHTML="";
+            $('#widgetWizardTable_paginate').empty();
+            var oi2=document.getElementById('widgetWizardTable_filter');
+            oi2.outerHTML="";
+               $('#widgetWizardTable_filter').empty();
+                 widgetWizardTable = $('#widgetWizardTable').DataTable({
+                 
+            "bLengthChange": false,
+            "bInfo": false,
+            "language": {search: ""},
+            aaSorting: [[0, 'desc']],
+            "processing": true,
+            "serverSide": true,
+            "pageLength": widgetWizardPageLength,
+            "ajax": {
+                async: true, 
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
+                data: function(d){
+                    d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
+                    d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>",
+                    d.northEastPointLat = northEastPointLat,
+                    d.northEastPointLng = northEastPointLng,
+                    d.southWestPointLat = southWestPointLat,
+                    d.southWestPointLng = southWestPointLng,
+                    d.filterOrg = orgFilter,
+                    d.poiFlag = getPOIFlag(),
+                    d.poiNature = getPOINature(),
+                    d.poiSubNature = getPOISubNature()
+                }
+            },
+            'createdRow': function (row, data, dataIndex) {
+                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-high_level_type', data[0]);
+                $(row).attr('data-nature', data[1]);
+                $(row).attr('data-sub_nature', data[2]);
+                $(row).attr('data-low_level_type', data[3]);
+                $(row).attr('data-unique_name_id', data[4]);
+                $(row).attr('data-instance_uri', data[5]);
+                $(row).attr('data-unit', data[6]);
+                $(row).attr('data-servicetype', data[2]);
+                $(row).attr('data-get_instances', data[14]);
+                $(row).attr('data-sm_based', data[16]);
+                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-selected', 'false');
+                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-latitude', data[18]);
+                $(row).attr('data-longitude', data[19]);
+                $(row).attr('data-organizations', data[17]);
+                $(row).attr('last_date',data[7]);
+                $(row).attr('ownership',data[15]);
+            },
+            "columnDefs": [
+                {
+                    "targets": [5, 11, 12, 14, 16],
+                    "visible": false
+                },
+                {
+                    "targets": 9,
+                    "searchable": true,
+                    "render": function (data, type, row, meta) {
+                        var imageUrl = null;
+                        if (row[9]) {
+                            if (row[9] === 'true') {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
+                            } else {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                            }
+                        } else {
+                            imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                        }
+                        return imageUrl;
+                    }
+                },
+                {
+                    "targets": 10,
+                    "searchable": true,
+                    "visible": false
+                },
+            ],
+            initComplete: function () {
+
+                var stopFlag = 2;
+
+                $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
+                $("#widgetWizardTable_paginate").addClass("col-xs-12");
+                $("#widgetWizardTable_paginate").addClass("col-md-4");
+                $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
+                $("#widgetWizardTable_filter").addClass("col-xs-12");
+                $("#widgetWizardTable_filter").addClass("col-md-3");
+                $("#widgetWizardTable_filter input").attr("placeholder", "Search");
+                $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
+                $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
+
+
+
+
+                //window.history.pushState({"northEastPointLat":northEastPointLat,"southWestPointLat":southWestPointLat,"northEastPointLng":northEastPointLng,"southWestPointLng":southWestPointLng},"",url);
+                //window.location.href = window.location.href + "&northEastPointLat="+ northEastPointLat + "&southWestPointLat="+ southWestPointLat + "&northEastPointLng="+ northEastPointLng + "&southWestPointLng="+ southWestPointLng;
+                <?php
+                include('../config.php');
+                header("Cache-Control: private, max-age=$cacheControlMaxAge");
+                $link = mysqli_connect($host, $username, $password);
+                mysqli_select_db($link, $dbname);
+            //    echo $_GET['northEastPointLat'];
+                $northEastPointLat= $_GET['northEastPointLat'];
+                $northEastPointLng= $_GET['northEastPointLng'];
+                $southWestPointLat= $_GET['southWestPointLat'];
+                $southWestPointLng= $_GET['southWestPointLng'];
+                $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <='".mysqli_real_escape_string($link,$northEastPointLat)."' and latitude >='".mysqli_real_escape_string($link,$southWestPointLat)."' and longitude <='".mysqli_real_escape_string($link,$northEastPointLng)."' and longitude >='".mysqli_real_escape_string($link,$southWestPointLng)."'";
+                $r = mysqli_query($link, $menuQuery);
+                if($r)
+                {
+                    $array=array();
+                    $ii=0;
+                    while($row = mysqli_fetch_assoc($r))
+                    {
+                        $idrow=$row['id'];
+                        $latitude=$row['latitude'];
+                        $longitude=$row['longitude'];
+                        $array[$ii]['id']=$idrow;
+                        $array[$ii]['latitude']=$latitude;
+                        $array[$ii]['longitude']=$longitude;
+                        $ii=$ii+1;
+                    }
+                    $size = sizeof($array);
+                }
+                ?>
+
+          /*      var search = [];
+                //   search=["Sensor"];
+                search = "";
+                var nOptions = 9;
+
+                globalSqlFilterDI[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
+                if(search.length == nOptions && nOptions == highLevelTypeSelectStartOptions)
+                    search = [];
+                globalSqlFilterDI[0].selectedVals = search;
+
+                if (search != "") {
+                    search = search.join('|');
+                }
+                globalSqlFilterDI[0].value = search;
+                if (search == '' && !globalSqlFilterDI[0].allSelected) {
+                    search = 'oiunqauhalknsufhvnoqwpnvfv';
+                }
+                widgetWizardTable.column(0).search(search, false, false).draw();
+                globalSqlFilterDI[0].value = search;
+                var h = $('#highLevelTypeSelect');
+
+                // Chiamata a funzione per popolare menù multi-select di filtraggio
+                for (var n = 0; n < 9; n++)
+                {
+                    if (n !== 4 && n != 5)
+                    {
+                        populateSelectMenus("high_level_type", search,$('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
+                    }
+                }
+*/
+            }
+        });
+        
+         /*   $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_paginate").addClass("col-xs-12");
+            $("#widgetWizardTable_paginate").addClass("col-md-4");
+            $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
+            $("#widgetWizardTable_filter").addClass("col-xs-12");
+            $("#widgetWizardTable_filter").addClass("col-md-3");
+            $("#widgetWizardTable_filter input").attr("placeholder", "Search");
+            $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
+            $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
+             
+        
+        
+
+               //window.history.pushState({"northEastPointLat":northEastPointLat,"southWestPointLat":southWestPointLat,"northEastPointLng":northEastPointLng,"southWestPointLng":southWestPointLng},"",url);
+               //window.location.href = window.location.href + "&northEastPointLat="+ northEastPointLat + "&southWestPointLat="+ southWestPointLat + "&northEastPointLng="+ northEastPointLng + "&southWestPointLng="+ southWestPointLng;
+               <?php /*
+                include('../config.php');
+                header("Cache-Control: private, max-age=$cacheControlMaxAge");
+                $link = mysqli_connect($host, $username, $password);
+                mysqli_select_db($link, $dbname);
+                echo $_GET['northEastPointLat'];
+                $northEastPointLng= $_GET['northEastPointLng'];
+                $southWestPointLat= $_GET['southWestPointLat'];
+                $southWestPointLng= $_GET['southWestPointLng'];
+                    $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=".mysql_real_escape_string($nordEastPointLat)." and latitude >=".mysql_real_escape_string($southWestPointLat)." and longitude <=".mysql_real_escape_string($nordEastPointLng)." and longitude >=".mysql_real_escape_string($southWestPointLng)."";
+                    $r = mysqli_query($link, $menuQuery);
+                    if($r)
+                    {
+                        $array=array();
+                        $ii=0;
+                        while($row = mysqli_fetch_assoc($r))
+                        {
+                            $idrow=$row['id'];
+                            $latitude=$row['latitude'];
+                            $longitude=$row['longitude'];
+                            $array[$ii]['id']=$idrow;
+                            $array[$ii]['latitude']=$latitude;
+                            $array[$ii]['longitude']=$longitude;
+                            $ii=$ii+1;
+                        }
+                        $size = sizeof($array);
+                    }*/
+                ?>
+                                
+               var search = [];
+            //   search=["Sensor"];
+            //   search = "";
+               var nOptions = 9;
+                                
+               globalSqlFilterDI[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
+               if(search.length == nOptions && nOptions == highLevelTypeSelectStartOptions)
+                   search = [];
+               globalSqlFilterDI[0].selectedVals = search;
+
+               if (search != "") {
+                   search = search.join('|');
+               }
+               globalSqlFilterDI[0].value = search;
+               if (search == '' && !globalSqlFilterDI[0].allSelected) {
+                  search = 'oiunqauhalknsufhvnoqwpnvfv';
+               }
+               widgetWizardTable.column(0).search(search, false, false).draw();
+               globalSqlFilterDI[0].value = search;
+               var h = $('#highLevelTypeSelect');
+
+               // Chiamata a funzione per popolare menù multi-select di filtraggio
+               for (var n = 0; n < 9; n++) 
+               {
+                    if (n !== 4 && n != 5) 
+                    {
+                        populateSelectMenus("high_level_type", search,$('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
+                    }
+                }
+                           */
+           /*     checkTab1Conditions();
+                countSelectedRows(); 
+                var array2 =<?php echo json_encode($array) ?>;
+                console.log(array2);
+                var array3 = [];
+                var es=array2[0]['latitude'];
+                es=parseFloat(es);
+                var index=0;
+                for(var m=0; m < array2.length; m++){
+                    if(((southWestPointLat <= parseFloat(array2[m]['latitude'])) && (parseFloat(array2[m]['latitude']) <= parseFloat(northEastPointLat))) && ((southWestPointLng <= parseFloat(array2[m]['longitude']))&&( parseFloat(array2[m]['longitude']) <= northEastPointLng))){
+                        array3[index]=array2[m]['id'];
+                        index++;
+                        console.log('lat est '+ northEastPointLat);
+                        console.log('lat ovest' + southWestPointLat);
+                        console.log('lat sensor' + array2[m]['latitude']);
+                        console.log('lng est '+ northEastPointLng);
+                        console.log('lng ovest' + southWestPointLng);
+                        console.log('lng sensor' + array2[m]['longitude']);
+                    }else{
+                        var row = $('#widgetWizardTable').find('tr[data-rowid="' + array2[m]['id'] + '"]');
+                        var table = document.getElementById('widgetWizardTable');
+                        var row2 = table.rows[2];
+                        var attr = $(row2).attr('data-rowid');
+                        var length = table.rows.length;
+                        for(var o=2; o<table.rows.length; o++){
+                            var attr=$(table.rows[o]).attr('data-rowid');
+                            if(parseInt(attr)==parseInt(array2[m]['id'])){
+                                table.rows[o].style.display="none";
+                            }
+                        }
+                        var tr=$("#widgetWizardTable tbody tr[data-rowid='" + parseInt(array2[m]['id']) + "']");
+                        //row.style.display="none";//$('tr[data-rowid="' + parseInt(array2[m]['id']) + '"]');
+                        console.log('row '+ row);
+                    }
+                    
+                }
+                console.log(array3.length); */
+            }   
+       })
         
         function updateSelectedUnits(mode, deselectedUnit)
         {
@@ -1607,6 +2113,7 @@
         
         $('#actuatorEntityName').on('input', checkActuatorFieldsEmpty);
         $('#actuatorEntityName').on('input', checkActuatorFieldsSpace);
+    //    $('#actuatorEntityName').on('input', checkActuatorFieldsLength);
         $('#actuatorValueType').on('input', checkActuatorFieldsEmpty);
         $('#actuatorMinBaseValue').on('input', checkActuatorFieldsEmpty);
         $('#actuatorMaxImpulseValue').on('input', checkActuatorFieldsEmpty);
@@ -1686,9 +2193,21 @@
 
         function checkActuatorFieldsSpace()
         {
-            var stopFlag = 1;
             if($('#actuatorEntityName').val().includes(' ')) {
+                $('#wizardTab1MsgCnt').css('color', 'rgb(243, 207, 88)');
                 $('#wizardTab1MsgCnt').html("Some of the new actuator fields are not filled correctly: EMPTY SPACES NOT ALLOWED in Device Name");
+            }
+        }
+
+        function checkActuatorFieldsLength()
+        {
+            var selectedWidgetType = $('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-mainwidget');
+            var id_dash = "<?php if (isset($_REQUEST['dashboardId'])) {echo escapeForJS($_REQUEST['dashboardId']);} else {echo 1;} ?>";
+          //  var deviceIdToBeRegistered = "w_" + $('#actuatorEntityName').val() + "_" + id_dash + ;
+            // estimate the lenght of entity to be registered
+            if($('#actuatorEntityName').val().length + "<?php echo $_SESSION['orgBroker']; ?>".length + "<?php echo $_SESSION['loggedUsername']; ?>".length + selectedWidgetType.length + 10 > 64) {
+                $('#wizardTab1MsgCnt').css('color', 'rgb(243, 207, 88)');
+                $('#wizardTab1MsgCnt').html("Device Name TOO LONG. Please shorten your device name.");
             }
         }
 
@@ -2469,6 +2988,14 @@
             });
 
             var marker = new L.Marker(latlng, {icon: markerIcon});
+            
+	    // GP_TEMP a cosa serve questa aggiunta stud?
+            var latLngKey = latlng.lat + "" + latlng.lng;
+            latLngKey = latLngKey.replace(".", "");
+            latLngKey = latLngKey.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
+            markersCache["" + latLngKey + ""] = marker;
+
+            var uniqueNameId = feature.properties.name;
 
             marker.on('mouseover', function (event) {
                 if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
@@ -2555,6 +3082,10 @@
 
                         //Popup nuovo stile uguali a quelli degli eventi ricreativi
                         popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                            //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                        }
                         popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
@@ -2725,6 +3256,15 @@
                         popupText += '</div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                        }
+
+                        if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                            popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                            popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                        }
 
                         if (serviceProperties.hasOwnProperty('description'))
                         {
@@ -2987,44 +3527,53 @@
 
                         if (hasRealTime)
                         {
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
-                            $('span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
+                            $('#addWidgetWizardMapCnt button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
+                            $('#addWidgetWizardMapCnt button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                            $('#addWidgetWizardMapCnt span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
                         } else
                         {
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
+                            $('#addWidgetWizardMapCnt button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
                         }
 
-                        $('button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
-                        $('button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function () {
+                        $('#addWidgetWizardMapCnt button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#addWidgetWizardMapCnt button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function () {
+			    $('#addWidgetWizardMapCnt div.recreativeEventMapDataContainer').hide();
+                            $('#addWidgetWizardMapCnt div.recreativeEventMapDetailsContainer').show();
+                            $('#addWidgetWizardMapCnt button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
 
-                        $('button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
-                        $('button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function () {
+                        $('#addWidgetWizardMapCnt button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#addWidgetWizardMapCnt button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function () {
+			    $('#addWidgetWizardMapCnt div.recreativeEventMapDataContainer').hide();
+                            $('#addWidgetWizardMapCnt div.recreativeEventMapDescContainer').show();
+                            $('#addWidgetWizardMapCnt button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
 
-                        $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
-                        $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function () {
+                        $('#addWidgetWizardMapCnt button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#addWidgetWizardMapCnt button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function () {
+			    $('#addWidgetWizardMapCnt div.recreativeEventMapDataContainer').hide();
+                            $('#addWidgetWizardMapCnt div.recreativeEventMapContactsContainer').show();
+                            $('#addWidgetWizardMapCnt button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
 
                         if (hasRealTime)
                         {
-                            $('button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                            $('#addWidgetWizardMapCnt button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
                         }
 
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
+                        $('#addWidgetWizardMapCnt table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
+                        $('#addWidgetWizardMapCnt table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
+                        $('#addWidgetWizardMapCnt table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
 
-                        $('table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function () {
+                        $('#addWidgetWizardMapCnt table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function () {
                             $(this).css("outline", "0");
                         });
 
-                        $('input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
-                        $('input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function () {
+                        $('#addWidgetWizardMapCnt input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
+                        $('#addWidgetWizardMapCnt input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function () {
                             if ($(this).attr("data-keepData") === "false")
                             {
                                 $(this).attr("data-keepData", "true");
@@ -3033,6 +3582,554 @@
                                 $(this).attr("data-keepData", "false");
                             }
                         });
+                        //inizio aggiunto berna
+                        $('#addWidgetWizardMapCnt button.lastValueBtn').off('mouseenter');
+                        $('#addWidgetWizardMapCnt button.lastValueBtn').off('mouseleave');
+                        $('#addWidgetWizardMapCnt button.lastValueBtn[data-id="' + latLngId + '"]').hover(function(){
+                            if($(this).attr("data-lastDataClicked") === "false")
+                            {
+                                $(this).css("background", color1);
+                                $(this).css("background", "-webkit-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                $(this).css("background", "background: -o-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                $(this).css("background", "background: -moz-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                $(this).css("background", "background: linear-gradient(to left, " + color1 + ", " + color2 + ")");
+                                $(this).css("font-weight", "bold");
+                            }
+
+                            var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                            var colIndex = $(this).parent().index();
+                            //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
+                            var title = $(this).parents("tr").find("td").eq(0).html();
+
+                            for(var i = 0; i < widgetTargetList.length; i++)
+                            {
+                                $.event.trigger({
+                                    type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                    eventGenerator: $(this),
+                                    targetWidget: widgetTargetList[i],
+                                    value: $(this).attr("data-lastValue"),
+                                    color1: $(this).attr("data-color1"),
+                                    color2: $(this).attr("data-color2"),
+                                    widgetTitle: title
+                                }); 
+                            }
+                        }, 
+                        function(){
+                            if($(this).attr("data-lastDataClicked")=== "false")
+                            {
+                                $(this).css("background", color2);
+                                $(this).css("font-weight", "normal"); 
+                            }
+                            var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+
+                            for(var i = 0; i < widgetTargetList.length; i++)
+                            {
+                                $.event.trigger({
+                                    type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                    eventGenerator: $(this),
+                                    targetWidget: widgetTargetList[i],
+                                    value: $(this).attr("data-lastValue"),
+                                    color1: $(this).attr("data-color1"),
+                                    color2: $(this).attr("data-color2")
+                                }); 
+                            }
+                        });
+                        
+                        //Disabilitiamo i 4Hours se last update più vecchio di 4 ore
+                        if(rtDataAgeSec > 14400)
+                        {
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
+                            //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
+                            if(rtDataAgeSec > 86400)
+                            {
+                                $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
+                                //Disabilitiamo i 7 days se last update più vecchio di 7 days
+                                if(rtDataAgeSec > 604800)
+                                {
+                                    $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
+                                    //Disabilitiamo i 30 days se last update più vecchio di 30 days
+                                    if(rtDataAgeSec > 18144000)
+                                    {
+                                       $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
+                                    }
+                                    else
+                                    {
+                                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                    }
+                                }
+                                else
+                                {
+                                    $('#<?= escapeForJS($_REQUEST['name_w']) ?>_modalLinkOpen button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                                }
+                            }
+                            else
+                            {
+                                $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                            }
+                        }
+                        else
+                        {
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                        }
+
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseenter');
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseleave');
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function(){
+                            if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                            {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
+                            else
+                            {
+                                if($(this).attr("data-timeTrendClicked") === "false")
+                                {
+                                    $(this).css("background", color1);
+                                    $(this).css("background", "-webkit-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("background", "background: -o-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("background", "background: -moz-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("background", "background: linear-gradient(to left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("font-weight", "bold");
+                                }
+
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                //var colIndex = $(this).parent().index();
+                                //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
+                                var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+
+                                for(var i = 0; i < widgetTargetList.length; i++)
+                                {
+                                    $.event.trigger({
+                                        type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title
+                                    }); 
+                                }
+                            }
+                        }, 
+                        function(){
+                            if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                            {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
+                            else
+                            {
+                                if($(this).attr("data-timeTrendClicked")=== "false")
+                                {
+                                    $(this).css("background", color2);
+                                    $(this).css("font-weight", "normal"); 
+                                }
+
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                for(var i = 0; i < widgetTargetList.length; i++)
+                                {
+                                    $.event.trigger({
+                                        type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2")
+                                    }); 
+                                }
+                            }
+                        });
+
+                        $('#addWidgetWizardMapCnt2 button.lastValueBtn[data-id=' + latLngId + ']').off('click');
+                        $('#addWidgetWizardMapCnt2 button.lastValueBtn[data-id=' + latLngId + ']').click(function(event){
+                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').each(function(i){
+                                $(this).css("background", $(this).attr("data-color2"));
+                            });
+                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').css("font-weight", "normal");
+                            $(this).css("background", $(this).attr("data-color1"));
+                            $(this).css("font-weight", "bold");
+                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').attr("data-lastDataClicked", "false");
+                            $(this).attr("data-lastDataClicked", "true");
+                            var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                            widgetTargetList[1]='SensoreViaBolognese_24_widgetSingleContent6353';
+                            var colIndex = $(this).parent().index();
+                            var title = $(this).parents("tr").find("td").eq(0).html();
+
+                            for(var i = 0; i < widgetTargetList.length; i++)
+                            {
+                                $.event.trigger({
+                                    type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                    eventGenerator: $(this),
+                                    targetWidget: widgetTargetList[i],
+                                    value: $(this).attr("data-lastValue"),
+                                    color1: $(this).attr("data-color1"),
+                                    color2: $(this).attr("data-color2"),
+                                    widgetTitle: title,
+                                    field: $(this).attr("data-field"),
+                                    serviceUri: $(this).attr("data-serviceUri"),
+                                    marker: markersCache["" + $(this).attr("data-id") + ""],
+                                    mapRef: addWidgetWizardMapRef,//gisMapRef,
+                                    fake: $(this).attr("data-fake"),
+                                    fakeId: $(this).attr("data-fakeId")
+                                });
+                            }
+                        });
+
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('click');
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn').click(function(event){
+                            if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                            {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
+                            else
+                            {
+                                $('#addWidgetWizardMapCnt2 button.timeTrendBtn').css("background", $(this).attr("data-color2"));
+                                $('#addWidgetWizardMapCnt2 button.timeTrendBtn').css("font-weight", "normal");
+                                $(this).css("background", $(this).attr("data-color1"));
+                                $(this).css("font-weight", "bold");
+                                $('#addWidgetWizardMapCnt2 button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                $(this).attr("data-timeTrendClicked", "true");
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                var colIndex = $(this).parent().index();
+                                var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+                                var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+
+                                var now = new Date();
+                                var lastUpdateDate = new Date(lastUpdateTime);
+                                var diff = parseFloat(Math.abs(now-lastUpdateDate)/1000);
+                                var range = $(this).attr("data-range");
+                                console.log(widgetTargetList[0]);
+
+                                for(var i = 0; i < widgetTargetList.length; i++)
+                                {
+                                    $.event.trigger({
+                                        type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        range: range,
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title,
+                                        field: $(this).attr("data-field"),
+                                        serviceUri: $(this).attr("data-serviceUri"),
+                                        marker: markersCache["" + $(this).attr("data-id") + ""],
+                                        mapRef: addWidgetWizardMapRef,//gisMapRef,
+                                        fake: false
+                                        //fake: $(this).attr("data-fake")
+                                    }); 
+                                }
+
+                                $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                                    if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                    {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                });
+
+                            }
+                        });
+                        
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                            if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                            {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
+                        });
+
+                        addWidgetWizardMapRef.off('popupclose');//gisMapRef.off('popupclose');
+                        addWidgetWizardMapRef.on('popupclose', function(closeEvt) {    // gisMapRef.on('popupclose', function(closeEvt) {
+                            var popupContent = $('<div></div>');
+                            popupContent.html(closeEvt.popup._content);
+                            
+                            if(popupContent.find("button.lastValueBtn").length > 0)
+                            {
+                                var widgetTargetList = popupContent.find("button.lastValueBtn").eq(0).attr("data-targetWidgets").split(',');
+
+                                if(($('#addWidgetWizardMapCnt2 button.lastValueBtn[data-lastDataClicked=true]').length > 0)&&($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false"))
+                                {
+                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                    {
+                                        $.event.trigger({
+                                            type: "restoreOriginalLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2")
+                                        }); 
+                                    } 
+                                }
+
+                                if(($('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-timeTrendClicked=true]').length > 0)&&($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false"))
+                                {
+                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                    {
+                                        $.event.trigger({
+                                            type: "restoreOriginalTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i]
+                                        }); 
+                                    } 
+                                } 
+                            }
+                        });
+
+                        $('#addWidgetWizardMapCnt2 div.leaflet-popup').off('click');
+                        $('#addWidgetWizardMapCnt2 div.leaflet-popup').on('click', function(){
+                            var compLatLngId = $(this).find('input[type=hidden]').val();
+
+                            $('#addWidgetWizardMapCnt2 div.leaflet-popup').css("z-index", "-1");
+                            $(this).css("z-index", "999999");
+
+                            $('#addWidgetWizardMapCnt2 input.gisPopupKeepDataCheck').off('click');
+                            $('#addWidgetWizardMapCnt2 input.gisPopupKeepDataCheck[data-id="' + compLatLngId + '"]').click(function(){
+                            if($(this).attr("data-keepData") === "false")
+                                {
+                                   $(this).attr("data-keepData", "true"); 
+                                }
+                                else
+                                {
+                                   $(this).attr("data-keepData", "false"); 
+                                }
+                            });
+
+                         /*   $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('mouseenter');
+                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('mouseleave');
+                            $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function(){
+                                if($(this).attr("data-lastDataClicked") === "false")
+                                {
+                                    $(this).css("background", $(this).attr('data-color1'));
+                                    $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                    $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                    $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                    $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                    $(this).css("font-weight", "bold");
+                                }
+
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                var colIndex = $(this).parent().index();
+                                //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
+                                var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                for(var i = 0; i < widgetTargetList.length; i++)
+                                {
+                                    $.event.trigger({
+                                        type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title
+                                    }); 
+                                }
+                            }, 
+                            function(){
+                                if($(this).attr("data-lastDataClicked")=== "false")
+                                {
+                                    $(this).css("background", $(this).attr('data-color2'));
+                                    $(this).css("font-weight", "normal"); 
+                                }
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+
+                                for(var i = 0; i < widgetTargetList.length; i++)
+                                {
+                                    $.event.trigger({
+                                        type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2")
+                                    }); 
+                                }
+                            }); */
+
+                          /*  $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseenter');
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseleave');
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function()
+                            {
+                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                                else
+                                {
+                                    if($(this).attr("data-timeTrendClicked") === "false")
+                                    {
+                                        $(this).css("background", $(this).attr('data-color1'));
+                                        $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("font-weight", "bold");
+                                    }
+
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    var colIndex = $(this).parent().index();
+                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
+                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+
+                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                    {
+                                        $.event.trigger({
+                                            type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2"),
+                                            widgetTitle: title
+                                        }); 
+                                    }
+                                }
+                            }, 
+                            function(){
+                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                                else
+                                {
+                                    if($(this).attr("data-timeTrendClicked")=== "false")
+                                    {
+                                        $(this).css("background", $(this).attr('data-color2'));
+                                        $(this).css("font-weight", "normal"); 
+                                    }
+
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                    {
+                                        $.event.trigger({
+                                            type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2")
+                                        }); 
+                                    }
+                                }
+                            });
+
+                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('click');
+                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').click(function(event){
+                                $('#addWidgetWizardMapCnt2 button.lastValueBtn').each(function(i){
+                                    $(this).css("background", $(this).attr("data-color2"));
+                                });
+                                $('#addWidgetWizardMapCnt2 button.lastValueBtn').css("font-weight", "normal");
+                                $(this).css("background", $(this).attr("data-color1"));
+                                $(this).css("font-weight", "bold");
+                                $('#addWidgetWizardMapCnt2 button.lastValueBtn').attr("data-lastDataClicked", "false");
+                                $(this).attr("data-lastDataClicked", "true");
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                widgetTargetList[1]='SensoreViaBolognese_24_widgetSingleContent6353';
+                                var colIndex = $(this).parent().index();
+                                var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                for(var i = 0; i < widgetTargetList.length; i++)
+                                {
+                                    $.event.trigger({
+                                        type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title,
+                                        marker: markersCache["" + $(this).attr("data-id") + ""],
+                                        mapRef: addWidgetWizardMapRef,//gisMapRef,
+                                        field: $(this).attr("data-field"),
+                                        serviceUri: $(this).attr("data-serviceUri"),
+                                        fake: $(this).attr("data-fake"),
+                                        fakeId: $(this).attr("data-fakeId")
+                                    });
+                                }
+                            });
+
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('click');
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn').click(function(event){
+                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                                else
+                                {
+                                    $('#addWidgetWizardMapCnt2 button.timeTrendBtn').each(function(i){
+                                        $(this).css("background", $(this).attr("data-color2"));
+                                    });
+                                    $('#addWidgetWizardMapCnt2 button.timeTrendBtn').css("font-weight", "normal");
+                                    $(this).css("background", $(this).attr("data-color1"));
+                                    $(this).css("font-weight", "bold");
+                                    $('#addWidgetWizardMapCnt2 button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                    $(this).attr("data-timeTrendClicked", "true");
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    var colIndex = $(this).parent().index();
+                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+                                    var lastUpdateTime = $(this).parents('#addWidgetWizardMapCnt2 div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+
+                                    var now = new Date();
+                                    var lastUpdateDate = new Date(lastUpdateTime);
+                                    var diff = parseFloat(Math.abs(now-lastUpdateDate)/1000);
+                                    var range = $(this).attr("data-range");
+
+                                    for(var i = 0; i < widgetTargetList.length; i++)
+                                    {
+                                        $.event.trigger({
+                                            type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            range: range,
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2"),
+                                            widgetTitle: title,
+                                            field: $(this).attr("data-field"),
+                                            serviceUri: $(this).attr("data-serviceUri"),
+                                            marker: markersCache["" + $(this).attr("data-id") + ""],
+                                            mapRef: addWidgetWizardMapRef,//gisMapRef,
+                                            fake: $(this).attr("data-fake"),
+                                            fakeId: $(this).attr("data-fakeId")
+                                        }); 
+                                    }
+                                }
+                            });
+                            
+                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                                {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                            });*/
+                        });
+
+                        $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
+                            if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
+                            {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
+                        });
+                        //aggiunto berna fine
                     },
                     error: function (errorData)
                     {
@@ -3046,8 +4143,8 @@
                         serviceSubclass = serviceSubclass.replace(/_/g, " ");
 
                         popupText = '<h3 class="gisPopupTitle">' + serviceProperties.name + '</h3>' +
-                                '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>' +
-                                '<p><i>Data are limited due to an issue in their retrieval</i></p>';
+                                '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>' //+
+                            //    '<p><i>Data are limited due to an issue in their retrieval</i></p>';
 
                         event.target.bindPopup(popupText, {
                             offset: [15, 0],
@@ -3081,6 +4178,16 @@
             }
          //   }
          //   addWidgetWizardMapMarkers = new_markers;
+        }
+
+        function clearAllMarkers() {
+
+            for (var singleMarkerKey in addWidgetWizardMapMarkers) {
+                //    addWidgetWizardMapMarkers.forEach(function(marker) {
+                    addWidgetWizardMapRef.removeLayer(addWidgetWizardMapMarkers[singleMarkerKey]);
+                    delete addWidgetWizardMapMarkers[singleMarkerKey];
+            }
+
         }
 
         // widgetWizardTable JS LOGIC ************************************************************************
@@ -3322,6 +4429,10 @@
         //Handler del bottone di reset dei filtri
         function resetFilter()
         {
+            noPOIFlag = 0;
+            poiSubNature = "";
+            poiNature = "";
+       //     widgetWizardSelectedSingleRow = null;
             widgetWizardSelectedRows = {};
             choosenWidgetIconName = null;
             $('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-selected', false);
@@ -3344,6 +4455,7 @@
             widgetWizardSelectedRowsTable.search('').draw();
             
             validityConditions = {
+                dashTemplateSelected: true,
                 dashboardTitleOk: false,
                 widgetTypeSelected: false,
                 brokerAndNrRowsTogether: true,
@@ -3510,7 +4622,7 @@
                 }
             ];
             
-            for(n = 0; n < 17; n++) 
+            for(n = 0; n < 19; n++)
             {
                 switch(n)
                 {
@@ -3583,6 +4695,7 @@
             widgetWizardSelectedRowsTable.search('').draw();
             
             validityConditions = {
+                dashTemplateSelected: true,
                 dashboardTitleOk: false,
                 widgetTypeSelected: false,
                 brokerAndNrRowsTogether: true,
@@ -3667,7 +4780,7 @@
             
             selectedValsHighLevelType = selectedValsHighLevelType.join('|');
             
-            for (n = 0; n < 17; n++) 
+            for (n = 0; n < 19; n++)
             {
                 if((n != 4)&&(n != 5)) 
                 {
@@ -3745,6 +4858,26 @@
             ]
         });
 
+        function getPOIFlag () {
+            return noPOIFlag;
+        }
+
+        function getPOINature () {
+            return poiNature;
+        }
+
+        function getPOISubNature () {
+            return poiSubNature;
+        }
+
+        function buildFilterSearchArray (searchString) {
+            if (searchString.includes("|")) {
+                return searchString.split("|");
+            } else {
+                return searchString;
+            }
+        }
+
         //Creazione tabella GUI del wizard
         widgetWizardTable = $('#widgetWizardTable').DataTable({
             "bLengthChange": false,
@@ -3756,11 +4889,13 @@
             "pageLength": widgetWizardPageLength,
             "ajax": {
                 async: true, 
-                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true&northEastPointLat=true",
                 data: {
                     dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
                     dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
-                    organization: "<?= $_SESSION['loggedOrganization'] ?>"
+                    organization: "<?= $_SESSION['loggedOrganization'] ?>",
+		            northEastPointLat: "<?= $_SESSION['northEastPointLat'] ?>",
+                    poiFlag: getPOIFlag()
                 }
             },
             'createdRow': function (row, data, dataIndex) {
@@ -3781,6 +4916,8 @@
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
+                $(row).attr('last_date',data[7]);
+                $(row).attr('ownership',data[15]);
             },
             "columnDefs": [
                 {
@@ -3840,12 +4977,25 @@
                                 
                                 globalSqlFilter[0].selectedVals = search;
 
-                                search = search.join('|');
+                            //    if (search != "") {
+                                    search = search.join('|');
+                             //   }
                                 globalSqlFilter[0].value = search;
                                 if (search == '' && !globalSqlFilter[0].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
-                                widgetWizardTable.column(0).search(search, false, false).draw();
+
+                                // MODIFICA per ORG BUTTON
+                                var hltSelectedFilter = buildFilterSearchArray(globalSqlFilter[0]['value']);
+                            //    if (globalSqlFilterDI[0]['allSelected'] == false && globalSqlFilterDI[0]['value'] != 'POI') {
+                                if (globalSqlFilter[0]['allSelected'] == false && !hltSelectedFilter.includes('POI')) {
+                                    noPOIFlag = 1;
+                                } else {
+                                    noPOIFlag = 0;
+                                }
+                                widgetWizardTable.ajax.reload();
+
+                                widgetWizardTable.column(0).search(search, false, false, true).draw(noPOIFlag);
                                 globalSqlFilter[0].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
@@ -3853,7 +5003,7 @@
                                 {
                                     if (n !== 4 && n != 5) 
                                     {
-                                        populateSelectMenus("high_level_type", search, select, "#highLevelTypeColumnFilter", n, false, true);
+                                        populateSelectMenus("high_level_type", search, select, "#highLevelTypeColumnFilter", n, false, true);	// VERIFICA CON INSPECTOR !
                                     }
                                 }
                                 
@@ -3949,7 +5099,42 @@
                                 if (search == '' && !globalSqlFilter[1].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
-                                widgetWizardTable.column(1).search(search, false, false).draw(); 
+
+                                var poiFlag = false;
+                                var natureQuery = "";
+                                var natureSelectedFilter = buildFilterSearchArray(globalSqlFilter[1]['value']);
+                                if (Array.isArray(natureSelectedFilter)) {
+                                    for (k=0; k < natureSelectedFilter.length; k++) {
+                                        if (poiNatureArray.includes(natureSelectedFilter[k])) {
+                                            poiFlag = true;
+                                            if (natureQuery == "") {
+                                                natureQuery = "'" + natureSelectedFilter[k] + "'";
+                                            } else {
+                                                natureQuery = natureQuery + " OR nature = '" + natureSelectedFilter[k] + "'";
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (poiNatureArray.includes(globalSqlFilter[1]['value'])) {
+                                        poiFlag = true;
+                                        natureQuery = "'" + natureSelectedFilter + "'";
+                                    } else {
+                                        poiFlag = false;
+                                    }
+                                }
+
+                            //    if (globalSqlFilterDI[1]['allSelected'] == false && !poiNatureArray.includes(globalSqlFilterDI[1]['value'])) {
+                                if (globalSqlFilter[1]['allSelected'] == false && poiFlag == false) {
+                                    noPOIFlag = 1;
+                                    poiNature = "";
+                                } else {
+                                    noPOIFlag = 0;
+                                //    poiNature = globalSqlFilterDI[1]['value'];
+                                    poiNature = natureQuery;
+                                }
+                                widgetWizardTable.ajax.reload();
+
+                                widgetWizardTable.column(1).search(search, false, false).draw();
                                 globalSqlFilter[1].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
@@ -4024,6 +5209,50 @@
                                 if (search.charAt(0) == '|') {
                                     search = search.substring(1);
                                 }
+
+                             /*   if (globalSqlFilter[2]['allSelected'] == false && !poiSubNatureArray.includes(globalSqlFilter[2]['value'])) {
+                                    noPOIFlag = 1;
+                                    poiSubNature = "";
+                                } else {
+                                    noPOIFlag = 0;
+                                    poiSubNature = globalSqlFilterDI[2]['value'];
+                                }
+                                widgetWizardTable.ajax.reload();    */
+
+                                var poiFlag = false;
+                                var subnatureQuery = "";
+                                var subnatureSelectedFilter = buildFilterSearchArray(globalSqlFilter[2]['value']);
+                                if (Array.isArray(subnatureSelectedFilter)) {
+                                    for (k=0; k < subnatureSelectedFilter.length; k++) {
+                                        if (poiSubNatureArray.includes(subnatureSelectedFilter[k])) {
+                                            poiFlag = true;
+                                            if (subnatureQuery == "") {
+                                                subnatureQuery = "'" + subnatureSelectedFilter[k] + "'";
+                                            } else {
+                                                subnatureQuery = subnatureQuery + " OR sub_nature = '" + subnatureSelectedFilter[k] + "'";
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (poiSubNatureArray.includes(globalSqlFilter[2]['value'])) {
+                                        poiFlag = true;
+                                        subnatureQuery = "'" + subnatureSelectedFilter + "'";
+                                    } else {
+                                        poiFlag = false;
+                                    }
+                                }
+
+                                //    if (globalSqlFilter[1]['allSelected'] == false && !poiNatureArray.includes(globalSqlFilter[1]['value'])) {
+                                if (globalSqlFilter[2]['allSelected'] == false && poiFlag == false) {
+                                    noPOIFlag = 1;
+                                    poiSubNature = "";
+                                } else {
+                                    noPOIFlag = 0;
+                                    //    poiNature = globalSqlFilter[1]['value'];
+                                    poiSubNature = subnatureQuery;
+                                }
+                                widgetWizardTable.ajax.reload();
+
                                 widgetWizardTable.column(2).search(search, false, false).draw();     // CHANGE
                                 globalSqlFilter[2].value = search;
 
@@ -4518,25 +5747,43 @@
                         uniqueNameId: uniqueNameId,
                         success: function (geoData)
                         {
+                            var LatPos = null;
+                            var LongPos = null;
                             var fatherNode = null;
                             if (geoData.hasOwnProperty("BusStop"))
                             {
                                 fatherNode = geoData.BusStop;
+                                if(!FreezeMap){
+                                    LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
+                                    LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
+                                }
                             } else
                             {
                                 if (geoData.hasOwnProperty("Sensor"))
                                 {
                                     fatherNode = geoData.Sensor;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    }
                                 } else
                                 {
                                     //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
                                     fatherNode = geoData.Service;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Service.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    }
                                 }
                             }
 
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
                             }).addTo(addWidgetWizardMapRef);
+                            if(!FreezeMap){
+                                var Zoom = addWidgetWizardMapRef.getZoom();//serve per mantenere lo zoom della mappa
+                                addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), Zoom);
+                            }
 
                         },
                         error: function (data)
@@ -4546,49 +5793,64 @@
                     });
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "any") {
-                    var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
-                    if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
-                        urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
-                    } else if (orgName != null && orgName != '') {
-                        var baseUrl = orgKbUrl;
-                        urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false";
-                    }
-                    $.ajax({
-                        url: urlKbToCall,
-                        type: "GET",
-                        async: true,
-                        dataType: 'json',
-                        data: {},
-                        uniqueNameId: uniqueNameId,
-                        success: function (geoData)
-                        {
-                            var fatherNode = null;
-                            if (geoData.hasOwnProperty("BusStops"))
-                            {
-                                fatherNode = geoData.BusStops;
-                            } else
-                            {
-                                if (geoData.hasOwnProperty("SensorSites"))
-                                {
-                                    fatherNode = geoData.SensorSites;
-                                } else
-                                {
-                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
-                                    fatherNode = geoData.Services;
-                                }
+                    if ($(this).attr("data-high_level_type") === "MicroApplication" || $(this).attr("data-high_level_type") === "Special Widget") {
+                        if (latitudeWiz != null && latitudeWiz != undefined && longitudeWiz != null && longitudeWiz != undefined) {
+
+                            //    var latlngForMarker = "[" + latitudeWiz + ", "
+
+                            var mapPinImg = '../img/gisMapIcons/generic.png';
+                            var markerIcon = L.icon({
+                                iconUrl: mapPinImg,
+                                iconAnchor: [16, 37]
+                            });
+
+                            var genericMarker = L.marker([latitudeWiz, longitudeWiz], {icon: markerIcon}).addTo(addWidgetWizardMapRef);
+                            //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
+                            $(this).attr('data-selected', 'true');
+                            addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
+                            if (FreezeMap !== true) {
+                                addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
                             }
-
-                            gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
-                                pointToLayer: addWidgetWizardCreateCustomMarker
-                            }).addTo(addWidgetWizardMapRef);
-
-                        },
-                        error: function (data)
-                        {
-                            console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
                         }
-                    });
-                    $(this).attr('data-selected', 'true');
+                    } else {
+                        var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                            urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        } else if (orgName != null && orgName != '') {
+                            var baseUrl = orgKbUrl;
+                            urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        }
+                        $.ajax({
+                            url: urlKbToCall,
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            data: {},
+                            uniqueNameId: uniqueNameId,
+                            success: function (geoData) {
+                                var fatherNode = null;
+                                if (geoData.hasOwnProperty("BusStops")) {
+                                    fatherNode = geoData.BusStops;
+                                } else {
+                                    if (geoData.hasOwnProperty("SensorSites")) {
+                                        fatherNode = geoData.SensorSites;
+                                    } else {
+                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                        fatherNode = geoData.Services;
+                                    }
+                                }
+
+                                gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                    pointToLayer: addWidgetWizardCreateCustomMarker
+                                }).addTo(addWidgetWizardMapRef);
+
+                            },
+                            error: function (data) {
+                                console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                            }
+                        });
+                        $(this).attr('data-selected', 'true');
+                    }
                 } else if (instanceUri === "single_marker") {
                     var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
@@ -4609,25 +5871,44 @@
                         uniqueNameId: uniqueNameId,
                         success: function (geoData)
                         {
+                            var LatPos = null;
+                            var LongPos = null;
                             var fatherNode = null;
                             if (geoData.hasOwnProperty("BusStop"))
                             {
                                 fatherNode = geoData.BusStop;
+                                if(!FreezeMap){
+                                    LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
+                                    LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
+                                }
                             } else
                             {
                                 if (geoData.hasOwnProperty("Sensor"))
                                 {
                                     fatherNode = geoData.Sensor;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    }
                                 } else
                                 {
                                     //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
                                     fatherNode = geoData.Service;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Service.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    }
                                 }
                             }
 
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
                             }).addTo(addWidgetWizardMapRef);
+                            if(!FreezeMap){
+                                var Zoom = addWidgetWizardMapRef.getZoom();
+
+                                addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), Zoom);
+                            }
 
                         },
                         error: function (data)
@@ -4778,9 +6059,9 @@
                     //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
                     $(this).attr('data-selected', 'true');
                     addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
-                /*    if (FreezeMap !== true) {
+                    if (FreezeMap !== true) {
                         addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
-                    }   */
+                    }
                 }
             }
             else
@@ -4789,8 +6070,16 @@
                 $(this).attr('data-selected', 'false');
                 try
                 {
-                    if (instanceUri == "any" || (instanceUri.toLowerCase() == "mypoi" && $(this).attr("data-sub_nature") == "Any")) {
-                        gisLayersOnMap[serviceType].clearLayers();
+                    if (instanceUri != null && instanceUri != undefined) {	// VERIFICA CON INSPECTOR !
+                        if (instanceUri == "any" || (instanceUri.toLowerCase() == "mypoi" && $(this).attr("data-sub_nature") == "Any")) {
+                            if ($(this).attr("data-high_level_type") == "Special Widget") {
+                                clearMarker(currentMarkerId);
+                            } else {
+                                gisLayersOnMap[serviceType].clearLayers();
+                            }
+                        } else {
+                            clearMarker(currentMarkerId);
+                        }
                     } else {
                         clearMarker(currentMarkerId);
                     }
@@ -4815,14 +6104,18 @@
             var fatherGeoJsonNode = null;
             var addWidgetWizardMapDiv = "addWidgetWizardMapCnt";
 
-         /*   $("#link_start_wizard").click(function ()
+            $("#link_start_wizard").click(function ()				// VERIFICA CON INSPECTOR !
             {
                 choosenWidgetIconName = null;
                 widgetWizardSelectedRows = {};
                 widgetWizardSelectedRowsTable.clear().draw(false);
-            });*/
+            });
+            
+            choosenWidgetIconName = null;					// VERIFICA CON INSPECTOR !
+            widgetWizardSelectedRows = {};
+            widgetWizardSelectedRowsTable.clear().draw(false);
 
-            $("#addWidgetWizard").on('shown.bs.modal', function () {
+            $("#addWidgetWizard").on('shown.bs.modal', function () {	// VERIFICA CON INSPECTOR !
                 if($('#dataAndWidgets').is(':visible'))
                 {
                     try
@@ -4966,10 +6259,10 @@
                     url: "../controllers/widgetAndDashboardInstantiator.php",
                     data: {
                         operation: "addWidget",
-                        dashboardId: "<?php if (isset($_REQUEST['dashboardId'])) {echo $_REQUEST['dashboardId'];} else {echo 1;} ?>",
-                        dashboardAuthorName: "<?php if (isset($_REQUEST['dashboardAuthorName'])){echo $_REQUEST['dashboardAuthorName'];} else {echo 1;} ?>",
-                        dashboardEditorName: "<?php if (isset($_REQUEST['dashboardEditorName'])){echo $_REQUEST['dashboardEditorName'];}else{echo 1;} ?>",
-                        dashboardTitle: '<?php if (isset($_REQUEST['dashboardTitle'])){echo $_REQUEST['dashboardTitle'];}else{echo 1;} ?>',
+                        dashboardId: "<?php if (isset($_REQUEST['dashboardId'])) {echo escapeForJS($_REQUEST['dashboardId']);} else {echo 1;} ?>",
+                        dashboardAuthorName: "<?php if (isset($_REQUEST['dashboardAuthorName'])){echo escapeForJS($_REQUEST['dashboardAuthorName']);} else {echo 1;} ?>",
+                        dashboardEditorName: "<?php if (isset($_REQUEST['dashboardEditorName'])){echo escapeForJS($_REQUEST['dashboardEditorName']);}else{echo 1;} ?>",
+                        dashboardTitle: '<?php if (isset($_REQUEST['dashboardTitle'])){echo escapeForJS($_REQUEST['dashboardTitle']);}else{echo 1;} ?>',
                      //   dashboardTitle: dashTitleEscaped,
                         widgetType: choosenWidgetIconName,
                         actuatorTargetWizard: $('#actuatorTargetWizard').val(),
