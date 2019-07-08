@@ -7,6 +7,10 @@
     $response = [];
     
     $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardIdUnderEdit']);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in genDashScr.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     
     //$reqBody = json_decode(file_get_contents('php://input'));
     //$file = fopen("C:\dashboardLog.txt", "w");
@@ -46,7 +50,7 @@
             $fname = "lastDashboardScr." . $ext;
             if(move_uploaded_file($_FILES['dashboardScrInput']['tmp_name'], $uploadFolder.$fname))
             {
-                $q = "UPDATE Dashboard.Config_dashboard SET screenshotFilename = '$fname' WHERE Id = $dashboardId";
+                $q = "UPDATE Dashboard.Config_dashboard SET screenshotFilename = '$fname' WHERE Id = '$dashboardId'";
                 $r = mysqli_query($link, $q);
     
                 if($r)
