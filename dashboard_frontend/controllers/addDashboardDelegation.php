@@ -31,6 +31,10 @@ $response = [];
 if(isset($_SESSION['loggedUsername'])) 
 {
     $dashboardId = $_REQUEST['dashboardId'];
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in addDashboardDelegation.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    }
     $newDelegated = $_REQUEST['newDelegated'];
     
     $ds = ldap_connect($ldapServer, $ldapPort);
@@ -44,7 +48,7 @@ if(isset($_SESSION['loggedUsername']))
         }
         else
         {
-            $q = "SELECT user FROM Dashboard.Config_dashboard WHERE Id = $dashboardId";
+            $q = "SELECT user FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId'";
             $r = mysqli_query($link, $q);
 
             if($r)
@@ -61,7 +65,7 @@ if(isset($_SESSION['loggedUsername']))
                     $accessToken = $tkn->access_token;
                     $_SESSION['refreshToken'] = $tkn->refresh_token;
                     
-                    $callBody = ["usernameDelegated" => $newDelegated, "elementId" => $dashboardId, "elementType" => "DashboardID"];  // GUARDARE SE è NECESSARIO ENCODIZZARE le options del POST
+                    $callBody = ["usernameDelegated" => $newDelegated, "elementId" => $dashboardId, "elementType" => "DashboardID"];
                     // ENCODIZZARE username per username con SPAZI !!!
                     $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($dashboardAuthor) . "/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
 
