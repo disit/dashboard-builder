@@ -34,11 +34,15 @@ session_start();
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
-$sourceDashId = mysqli_real_escape_string($link, $_REQUEST['sourceDashboardId']); 
+$sourceDashId = mysqli_real_escape_string($link, $_REQUEST['sourceDashboardId']);
+if (checkVarType($sourceDashId, "integer") === false) {
+    eventLog("Returned the following ERROR in duplicate_dash.php for sourceDashId = ".$sourceDashId.": ".$sourceDashId." is not an integer as expected. Exit from script.");
+    exit();
+};
 $newDashboardTitle = mysqli_real_escape_string($link, $_REQUEST['newDashboardTitle']);
 $widgetsMap = [];
 
-$query0 = "SELECT Config_dashboard.logoFilename FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = $sourceDashId";
+$query0 = "SELECT Config_dashboard.logoFilename FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = '$sourceDashId'";
 $result0 = mysqli_query($link, $query0);
 
 if($result0)
