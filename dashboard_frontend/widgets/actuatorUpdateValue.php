@@ -71,7 +71,9 @@
         $entityUpdatedAttribute = [$attributeName => ["value" => $value, "type" => $attributeType]];
         $entityUpdatedAttributeJson = json_encode($entityUpdatedAttribute);
 
-        $orionUpdateEntityUrl = $orionBaseUrl. "/v2/entities/" . $entityId . "/attrs";
+    //    $orionUpdateEntityUrl = $orionBaseUrl. "/v2/entities/" . $entityId . "/attrs";
+        $orionUpdateEntityUrl = $_SESSION['orionIP'] . "/v2/entities/" . $entityId . "/attrs";
+        eventLog("Update Actuator Value on ORION BROKER: " . $orionUpdateEntityUrl);
 
         $orionCallOptions = array(
             'http' => array(
