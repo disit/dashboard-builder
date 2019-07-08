@@ -362,9 +362,9 @@ input:checked + .slider .off
     <!-- MODALE HEALTHINESS -->
     <?php
     if(($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")){
-        echo(' <div class="modal fade bd-example-modal-lg" id="healthiness-modal" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-                        <div class="modal-dialog" style="background-color: rgba(108, 135, 147, 1);">
-                            <div class="modal-content" style="background-color: rgba(108, 135, 147, 1);">
+        echo('<div class="modal fade bd-example-modal-lg" id="healthiness-modal" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" style="background-color: rgba(108, 135, 147, 1);">
+                            <div class="modal-content modal-lg" style="background-color: rgba(108, 135, 147, 1);">
                                 <div class="modal-header" style="background-color: #576c75; color: white;"><b>Data sources Details</b></div>           
                             <div role="tabpanel">
                                     <!-- Nav tabs -->
@@ -400,8 +400,10 @@ input:checked + .slider .off
                                                                         <tr>
                                                                             <th class="widgetWizardTitleCell">Value Type</th>
                                                                             <th class="widgetWizardTitleCell">Healthy</th>
-                                                                            <th class="widgetWizardTitleCell">Delay</th>
+                                                                            <th class="widgetWizardTitleCell">Delay (s)</th>
                                                                             <th class="widgetWizardTitleCell">Reason</th>
+                                                                            <th class="widgetWizardTitleCell">Healthiness Criteria</th>
+                                                                            <th class="widgetWizardTitleCell">Refresh Rate (s)</th>
                                                                             <th class="widgetWizardTitleCell">Data type</th>
                                                                             <th class="widgetWizardTitleCell">Unit</th>
                                                                             <th class="widgetWizardTitleCell">Value</th>
@@ -418,6 +420,7 @@ input:checked + .slider .off
                                                             <!-- data graph -->
                                                                     <div class="input-group"><span class="input-group-addon">Process Name Static: </span><input id="processnameStatic" type="text" class="form-control" readonly/></div><br />
                                                                     <div class="input-group"><span class="input-group-addon">Knowledge Base IP: </span><input id="kbIp" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group"><span class="input-group-addon">Disces IP: </span><input id="disces_ip" type="text" class="form-control" readonly/></div><br />
                                                                     <div class="input-group"><span class="input-group-addon">Disces Process file path: </span><input id="processPath" type="text" class="form-control" readonly/></div><br />
                                                                     <div class="input-group"><span class="input-group-addon">Phoenix table: </span><input id="phoenixTable" type="text" class="form-control" readonly/></div><br />
                                                                     <div class="input-group"><span class="input-group-addon">Graph Uri: </span><input id="graph_uri" type="text" class="form-control" readonly/></div><br />
@@ -427,6 +430,11 @@ input:checked + .slider .off
                                                                     <div class="input-group"><span class="input-group-addon">Address: </span><input id="address" type="text" class="form-control" readonly/></div><br />
                                                                     <div class="input-group"><span class="input-group-addon">Mail: </span><input id="mail" type="text" class="form-control" readonly/></div><br />
                                                                     <!-- -->
+                                                                    <div>
+                                                                        <div id="kb_link" style="float: left;"></div><div id="Kbase_link" style="margin-right: 10 px;"></div>
+                                                                        <div id="disces_link" style="float: left;"></div><div id="disces_link" style="padding-right: 10 px;"></div>
+                                                                        <div id="sm_link" style="float: left;"></div><div id="sm_link" style="padding-right: 10 px;"></div>
+                                                                    </div>
                                                             <!-- -->
                                                         </div>
                                         </div>
@@ -552,14 +560,20 @@ input:checked + .slider .off
                                             }
                                             var value_unit_td = "";
                                             var data_type_td = "";
+                                            var healthiness_criteria = "";
+                                            var value_refresh_rate = "";
                                             if (key5[name]){
                                                 value_unit_td = key5[name]['value_unit'];
                                                 data_type_td = key5[name]['data_type'];
+                                                healthiness_criteria= key5[name]['healthiness_criteria'];
+                                                value_refresh_rate = key5[name]['value_refresh_rate'];
                                             }else{
                                                 value_unit_td = "";
                                                 data_type_td = "";
+                                                healthiness_criteria = "";
+                                                value_refresh_rate = "";
                                             }
-                                            $('#healthiness_table tbody').append('<tr><td>'+keys2[y]+'</td><td>'+obj2[y]['healthy']+'</td><td>'+obj2[y]['reason']+'</td><td>'+obj2[y]['delay']+'</td><td>'+data_type_td+'</td><td>'+value_unit_td+'</td><td>'+value_td+'</td></tr>');
+                                            $('#healthiness_table tbody').append('<tr><td>'+keys2[y]+'</td><td>'+obj2[y]['healthy']+'</td><td>'+obj2[y]['delay']+'</td><td>'+obj2[y]['reason']+'</td><td>'+healthiness_criteria+'</td><td>'+value_refresh_rate+'</td><td>'+data_type_td+'</td><td>'+value_unit_td+'</td><td>'+value_td+'</td></tr>');
                                         }
                                         //serviceUri
                                         var process_name_ST = data.process_name_ST;
@@ -572,6 +586,10 @@ input:checked + .slider .off
                                         var address = data.address;
                                         var graph_uri = data.Graph_Uri;
                                         var telephone = data.telephone;
+                                        var disces_ip= data.disces_ip;
+                                        var total_data = data.disces_data;
+                                        //var healthiness = data.healthiness_criteria;
+                                        //var period = data.value_refresh_rate;
                                         $('#processnameStatic').val(process_name_ST);
                                         $('#processPath').val(processPath);
                                         $('#kbIp').val(kbIp);
@@ -582,12 +600,33 @@ input:checked + .slider .off
                                         $('#address').val(address);
                                         $('#graph_uri').val(graph_uri);
                                         $('#telephone').val(telephone);
+                                        $('#disces_ip').val(disces_ip);
+                                        //$('#period').val(period);
+                                       // $('#healthinessCriteria').val(healthiness);
                                         //
+                                        var job_name = data.jobName;
+                                        var job_group = data.jobGroup;
+                                        var disces_ip_test = data.ip_disc;
+                                        var link='http://'+disces_ip_test+'/sce/newJob.php?jobName='+job_name+'&jobGroup='+job_group;
+                                        //TEST//
+                                        var sm = parameters.replace('&format=json','&format=html');
+                                        var link_kb=graph_uri;
+                                        //
+                                        if((total_data > 0)&&($('#disces_link').empty())){
+                                        $('#disces_link').append('<a href="'+link+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Disces</a>');
+                                        }
+                                        if((data.Graph_Uri) && $('#kb_link').empty()){
+                                            $('#kb_link').append('<a href="'+link_kb+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
+                                        }
+                                        if($('#sm_link').empty()){
+                                         $('#sm_link').append('<a href="'+sm+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
+                                     }
+    //
                             }
                          });   
                                //
                         }else{
-                              $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td></tr>');  
+                              $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td></tr>');  
                         } 
                 $('#healthiness-modal').modal('show');
             /*}else{
@@ -620,6 +659,12 @@ input:checked + .slider .off
         $('#processTab').removeClass("active");
         $('#browseTab').removeClass("active");
         $('#uploadTab').addClass("active");
+        $('#disces_link').empty();
+        $('#kb_link').empty();
+        $('#sm_link').empty();
+        $('#disces_ip').val('');
+        //$('#period').val('');
+        //$('#healthinessCriteria').val('');
     });
     
     $(window).resize(function(){
