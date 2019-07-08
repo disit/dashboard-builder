@@ -293,7 +293,7 @@
                             {
                                if(udmPos === 'next')
                                {   
-                                  if((value !== null) && (value !== "") && (value !== undefined))
+                                  if((value !== null) && (value !== "") && (value !== undefined) && !isNaN(value))
                                   {
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").show();
@@ -312,7 +312,7 @@
                                }
                                else
                                {
-                                  if((value !== null) && (value !== "") && (value !== undefined))
+                                  if((value !== null) && (value !== "") && (value !== undefined) && !isNaN(value))
                                   {
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").show();
@@ -333,7 +333,7 @@
                             }
                             else
                             {
-                                if((value !== null) && (value !== "") && (value !== undefined))
+                                if((value !== null) && (value !== "") && (value !== undefined) && !isNaN(value))
                                 {
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("display", "none");
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "100%");
