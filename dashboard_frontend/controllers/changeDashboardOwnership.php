@@ -31,11 +31,15 @@ $response = [];
 if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername']) 
 {
     $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in changeDashboardOwnership.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     $dashboardTitle = mysqli_real_escape_string($link, $_REQUEST['dashboardTitle']);
     $newOwner = mysqli_real_escape_string($link, $_REQUEST['newOwner']);
 
     // Check if $newOwner exists as a valid LDAP user
-    $ldapUsername = "cn=" . $newOwner . "," . $ldapBaseDN;
+    $ldapUsername = "cn=" . ldap_escape($newOwner) . "," . $ldapBaseDN;
 
     $ds = ldap_connect($ldapServer, $ldapPort);
     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -103,7 +107,7 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
 
             if(strpos($http_response_header[0], '200') !== false) 
             {
-                $q = "UPDATE Dashboard.Config_dashboard SET user='$newOwner' WHERE Id = $dashboardId";
+                $q = "UPDATE Dashboard.Config_dashboard SET user='$newOwner' WHERE Id = '$dashboardId'";
                 $r = mysqli_query($link, $q);
                 if($r)
                   $response['detail'] = 'Ok';
