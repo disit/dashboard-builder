@@ -24,9 +24,14 @@
             //IN CORSO - Caso entrata dal tool principale dopo login
             $isAdmin = $_SESSION['loggedRole'];
             $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+            if (checkVarType($dashboardId, "integer") === false) {
+                //     eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. USER = " . $_SESSION['loggedUsername'] . ". Exit from script.");
+                eventLog("Returned the following ERROR in index.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+                exit();
+            };
 
             //Reperimento da DB del dashboardId e dell'id dell'autore della dashboard
-            $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = $dashboardId";
+            $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
             if($result) 
