@@ -136,7 +136,7 @@
                                   if(isset($_GET['pageTitle']))
                                   {
                                   ?>
-                                    document.write("<?php echo $_GET['pageTitle']; ?>");
+                                    document.write("<?php echo escapeForJS($_GET['pageTitle']); ?>");
                                   <?php
                                   }
                                   ?>
@@ -461,15 +461,16 @@
 </html>
 
 <script type='text/javascript'>
-    var microAppLat = null;
-    var microAppLng = null;
     $(document).ready(function ()
     {
+        console.log("Microapplication.");
         var dashboardsList = null;
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         var orgFilter = "<?php echo $_SESSION['loggedOrganization']; ?>";
         var orgLang = "<?php echo $_SESSION['orgLang']; ?>";
         var param = "";
+        microAppLat = null;
+        microAppLng = null;
         if (location.href.includes("AllOrgs")) {
             param = "AllOrgs";
         }
@@ -543,18 +544,18 @@
             $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
         });
         
-        $('#mainMenuCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= $_REQUEST['linkId'] ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mainMenuCnt .mainMenuLink[id=<?= escapeForJS($_REQUEST['linkId']) ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= escapeForJS($_REQUEST['linkId']) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= escapeForJS($_REQUEST['linkId']) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
-        if($('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').length > 0)
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJS($_REQUEST['linkId']) ?>]').length > 0)
         {
-            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').attr('data-fathermenuid');
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJS($_REQUEST['linkId']) ?>]').attr('data-fathermenuid');
             $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
             $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
             $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
             $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
-            $('div.mainMenuSubItemCnt').parents('a[id=<?= $_REQUEST['linkId'] ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJS($_REQUEST['linkId']) ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
         }
             
         $('#color_hf').css("background-color", '#ffffff');
@@ -614,7 +615,7 @@
                title = title.substr(0, 100) + " ...";
             }
 
-             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" data-org="' + record.organizations + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' +
+             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" data-org="' + record.organizations + '" data-lat="' + record.latitude + '" data-lng="' + record.longitude + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' +
                                '<div class="dashboardsListCardInnerDiv">' +
                                '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;">New Tab</button></div>' +
                                   '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span>' +
@@ -784,6 +785,11 @@
                             {
                                 var url = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
                                 var orgFilterSpec = $(this).parents('div.dashboardsListCardDiv').attr('data-org');
+                                if (orgFilterSpec.includes("[") && orgFilterSpec.includes("]")) {
+                                    if (orgFilterSpec.includes(orgFilter)) {
+                                        orgFilterSpec = orgFilter;
+                                    }
+                                }
                             //    var microAppHeaderTitleCnt = $('#headerTitleCnt')[0].firstChild.data + ": " + $(this)[0].parentNode.children[0].firstChild.innerText;
                                 var microAppHeaderTitleCnt = $('#headerTitleCnt')[0].innerText + ": " + $(this)[0].parentNode.children[1].firstChild.innerText;
                                 $('#headerTitleCnt').html(microAppHeaderTitleCnt);
@@ -796,13 +802,16 @@
                                 var defaultLng = "11.256";
                                 var lat = defaultLat;
                                 var lng = defaultLng;
-                                var latLng = "<?= $_SESSION['orgGpsCentreLatLng'] ?>";
-                                if (loggedRole != "Public") {
-                                    lat = (latLng.split(",")[0]).trim();
-                                    lng = (latLng.split(",")[1]).trim();
-                                } else {
-                                    lat = "";
-                                    lng = "";
+
+                                if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat')) {
+                                    if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lat') != '') {
+                                        microAppLat = $(this).parents('div.dashboardsListCardDiv').attr('data-lat');
+                                    }
+                                }
+                                if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != null) {
+                                    if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lng') != '') {
+                                        microAppLng = $(this).parents('div.dashboardsListCardDiv').attr('data-lng');
+                                    }
                                 }
 
                                 $.ajax({
@@ -816,13 +825,19 @@
                                     dataType: 'json',
                                     success: function (data) {
                                         var orgLatLng = data.orgGpsCentreLatLng;
-                                        microAppLat = orgLatLng.split(",")[0].trim();
-                                        microAppLng = orgLatLng.split(",")[1].trim();
+                                        if (microAppLat === null) {
+                                            microAppLat = orgLatLng.split(",")[0].trim();
+                                        }
+                                        if (microAppLng === null) {
+                                            microAppLng = orgLatLng.split(",")[1].trim();
+                                        }
                                         if (orgLang === null || orgLang === undefined) {
                                             orgLang = "";
                                         }
                                     //    $('#iotApplicationsIframe').attr('src', url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang+'&maxDistance=0.3&maxResults=150');
                                         $('#iotApplicationsIframe').attr('src', url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang);
+                                        microAppLat = null;
+                                        microAppLng = null;
                                     },
                                     error: function (errorData) {
                                         console.log("Errore in reperimento parametri Org specifica: ");
@@ -855,15 +870,24 @@
                             var defaultLng = "11.256";
                             var lat = defaultLat;
                             var lng = defaultLng;
-                            var latLng = "<?= $_SESSION['orgGpsCentreLatLng'] ?>";
-                            if (loggedRole != "Public") {
-                                lat = (latLng.split(",")[0]).trim();
-                                lng = (latLng.split(",")[1]).trim();
-                            } else {
-                                lat = "";
-                                lng = "";
+
+                            if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat')) {
+                                if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lat') != '') {
+                                    microAppLat = $(this).parents('div.dashboardsListCardDiv').attr('data-lat');
+                                }
                             }
+                            if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != null) {
+                                if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lng') != '') {
+                                    microAppLng = $(this).parents('div.dashboardsListCardDiv').attr('data-lng');
+                                }
+                            }
+
                             var orgFilterSpec = $(this).parents('div.dashboardsListCardDiv').attr('data-org');
+                            if (orgFilterSpec.includes("[") && orgFilterSpec.includes("]")) {
+                                if (orgFilterSpec.includes(orgFilter)) {
+                                    orgFilterSpec = orgFilter;
+                                }
+                            }
 
                             $.ajax({
                                 url: "../controllers/getOrganizationParameters.php",
@@ -876,13 +900,19 @@
                                 dataType: 'json',
                                 success: function (data) {
                                     var orgLatLng = data.orgGpsCentreLatLng;
-                                    microAppLat = orgLatLng.split(",")[0].trim();
-                                    microAppLng = orgLatLng.split(",")[1].trim();
+                                    if (microAppLat === null) {
+                                        microAppLat = orgLatLng.split(",")[0].trim();
+                                    }
+                                    if (microAppLng === null) {
+                                        microAppLng = orgLatLng.split(",")[1].trim();
+                                    }
                                     if (orgLang === null || orgLang === undefined) {
                                         orgLang = "";
                                     }
                                 //    window.open(url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang+'&maxDistance=0.3&maxResults=150');
                                     window.open(url + '&coordinates='+microAppLat+';'+microAppLng+'&lang='+orgLang);
+                                    microAppLat = null;
+                                    microAppLng = null;
                                 },
                                 error: function (errorData) {
                                     console.log("Errore in reperimento parametri Org specifica: ");
