@@ -366,7 +366,7 @@
               
             case "updateDataLabelsFontSize":  
               $newSize = mysqli_real_escape_string($link, $_REQUEST['newSize']);
-              $query = "UPDATE Dashboard.Config_widget_dashboard SET dataLabelsFontSize = $newSize WHERE name_w = '$widgetName'";
+              $query = "UPDATE Dashboard.Config_widget_dashboard SET dataLabelsFontSize = '$newSize' WHERE name_w = '$widgetName'";
               $result = mysqli_query($link, $query);
 
               if($result) 
