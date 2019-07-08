@@ -28,7 +28,11 @@
     error_reporting(E_ERROR | E_NOTICE);
 
     $lastUsedColors = null;
-    $dashId = $_REQUEST['dashboardId'];
+    $dashId = escapeForSQL($_REQUEST['dashboardId'], $link);
+    if (checkVarType($dashId, "integer") === false) {
+        eventLog("Returned the following ERROR in dashboard_configdash.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     $q = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashId'";
     $r = mysqli_query($link, $q);
 
@@ -204,6 +208,95 @@
     <script src="ol/ol.js"></script>
     <link rel="stylesheet" href="ol/ol.css" />
 </head>
+
+    <style type="text/css">
+        .left{
+            float:left;
+        }
+        .right{
+            float: right;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 82px;
+            height: 20px;
+        }
+
+        .switch input {display:none;}
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #DBDBDB;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: blue;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(62px);
+            -ms-transform: translateX(62px);
+            transform: translateX(62px);
+        }
+
+        /*------ ADDED CSS ---------*/
+        .fixMapon
+        {
+            display: none;
+        }
+
+        .fixMapon, .fixMapoff
+        {
+            color: white;
+            position: absolute;
+            transform: translate(-50%,-50%);
+            top: 50%;
+            left: 50%;
+            font-size: 10px;
+            font-family: Verdana, sans-serif;
+        }
+
+        input:checked+ .slider .on
+        {display: block;}
+
+        input:checked + .slider .off
+        {display: none;}
+
+        /*--------- END --------*/
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;}
+    </style>
 
 <body> 
     <?php include "sessionExpiringPopup.php" ?>
@@ -2190,7 +2283,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "addSeparator",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>,
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                             },
                             type: "POST",
                             async: true,
@@ -2458,7 +2551,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "updateHeaderColor",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>, 
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 newColor: $('#dashboardViewHeaderContainer').attr('data-newBackgroundColor'),
                             },
                             type: "POST",
@@ -2580,7 +2673,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "updateHeaderFontColor",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>, 
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 newColor: $('#dashboardViewHeaderContainer').attr('data-newFontColor'),
                             },
                             type: "POST",
@@ -2684,7 +2777,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "updateAreaColor",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>, 
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 newColor: $('#dashboardViewHeaderContainer').attr('data-newAreaColor'),
                             },
                             type: "POST",
@@ -2789,7 +2882,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "updateFrameColor",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>, 
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 newColor: $('#dashboardViewHeaderContainer').attr('data-newFrameColor'),
                             },
                             type: "POST",
@@ -2938,7 +3031,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "updateTitle",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>, 
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 newTitle: $('#dashboardTitle span').html(),
                                 dashboardTitle: "<?= addslashes($dashboardTitle) ?>"
                             //    dashboardTitle: dashTitleEscaped
@@ -2955,7 +3048,7 @@
                                     $('#modalEditDashboard #currentDashboardTitle').val($("#dashboardTitle span").html());
                                     $('#modal-add-widget #currentDashboardTitle').val($("#dashboardTitle span").html());
                                     $('#modal-modify-widget #currentDashboardTitle').val($("#dashboardTitle span").html());
-                                    history.replaceState(null, null, 'dashboard_configdash.php?dashboardId=<?= $_REQUEST['dashboardId'] ?>&dashboardAuthorName=<?= $dashboardAuthorName ?>&dashboardEditorName=<?= $dashboardEditorName ?>&dashboardTitle=' + encodeURI($('#dashboardTitle span').html()));
+                                    history.replaceState(null, null, 'dashboard_configdash.php?dashboardId=<?= escapeForJS($_REQUEST['dashboardId']) ?>&dashboardAuthorName=<?= $dashboardAuthorName ?>&dashboardEditorName=<?= $dashboardEditorName ?>&dashboardTitle=' + encodeURI($('#dashboardTitle span').html()));
                                     setTimeout(function(){
                                         $('#dashboardTitle span').attr('data-underEdit', 'false');
                                         $('#dashboardTitle span').attr('contenteditable', false);
@@ -3080,7 +3173,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "updateSubtitle",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>, 
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 newSubtitle: $('#dashboardSubtitle span').html(),
                             },
                             type: "POST",
@@ -3388,7 +3481,7 @@
                             action: "getPersonalAppsInputs",
                             notBySession: "true",
                             username: '<?= $dashboardAuthorName ?>',
-                            dashboardId: '<?= $_REQUEST['dashboardId'] ?>',
+                            dashboardId: '<?= escapeForJS($_REQUEST['dashboardId']) ?>',
                         },
                         type: "GET",
                         async: true,
@@ -3463,7 +3556,7 @@
                             url: "../controllers/updateDashboard.php",
                             data: {
                                 action: "updateEmbedList",
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>,
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 newList: $('#authorizedPagesJson').val()
                             },
                             type: "POST",
@@ -3506,7 +3599,7 @@
                     $('#saveHtmlMarkup').parent().css("padding-top", "15px");
                     $('#saveHtmlMarkup').parent().css("padding-bottom", "15px");
                     
-                    var dashboardId = <?= $_REQUEST['dashboardId'] ?>;
+                    var dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
                     var dashboardIdEncoded = window.btoa(dashboardId);
                     $("#dashboardViewLink").attr("href", "../view/index.php?iddasboard=" + dashboardIdEncoded);
                     
@@ -14702,7 +14795,7 @@
                         data: {
                             action: "getDashboardParamsAndWidgetsNR",
                             notBySession: "true",
-                            dashboardId: '<?= $_GET["dashboardId"] ?>',
+                            dashboardId: '<?= escapeForJS($_GET["dashboardId"]) ?>',
                             username: "<?= $dashboardAuthorName ?>"
                         },
                         type: "GET",
@@ -15510,7 +15603,7 @@
                             url: "../controllers/saveWidgetsPositions.php",
                             data: {
                                 configuration_widgets: widgets,
-                                dashboardId: <?= $_REQUEST['dashboardId']?>
+                                dashboardId: <?= escapeforJS($_REQUEST['dashboardId'])?>
                             },
                             type: "POST",
                             async: true,
@@ -15682,7 +15775,7 @@
                         $('#duplicateDashboardLoadingRow').show();
                         
                         var dashboardParams = {};
-                        dashboardParams['sourceDashboardId'] = <?= $_REQUEST['dashboardId'] ?>;
+                        dashboardParams['sourceDashboardId'] = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
                         dashboardParams['sourceDashboardTitle'] = $('#currentDashboardTitle').val();
                         dashboardParams['sourceDashboardAuthorName'] = "<?= $dashboardAuthorName ?>";
                         dashboardParams['newDashboardTitle'] = $('#newDashboardTitle').val();
@@ -15775,7 +15868,7 @@
                             url: "../controllers/deleteWidget.php",
                             data: {
                                 nameWidget: $('#widgetToDelNameHidden').val(),
-                                dashboardId: <?= $_REQUEST['dashboardId'] ?>,
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
                                 dashboardTitle: dashboardParams.title_header,
                             //    dashboardTitle: dashTitleEscaped,
                                 username: "<?= $dashboardEditorName ?>"
@@ -15817,7 +15910,7 @@
                                             url: "../controllers/saveWidgetsPositions.php",
                                             data: {
                                                 configuration_widgets: widgets,
-                                                dashboardId: <?= $_REQUEST['dashboardId']?>
+                                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId'])?>
                                             },
                                             type: "POST",
                                             async: true,
@@ -15944,7 +16037,7 @@
                                 notBySession: "true",
                                 username: "<?= $dashboardAuthorName?>",
                                 widgetName: name_widget_m, 
-                                dashboardId: "<?= $_REQUEST['dashboardId']?>"
+                                dashboardId: "<?= escapeForJS($_REQUEST['dashboardId'])?>"
                             },
                             type: "GET",
                             async: true,
