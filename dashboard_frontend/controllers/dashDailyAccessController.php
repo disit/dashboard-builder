@@ -18,10 +18,14 @@ include '../config.php';
 
 if (!empty($_REQUEST["updateHour"])) {
 
-    $dashId = $_GET['dashId'];
     $link = mysqli_connect($host, $username, $password);
+    $dashId = escapeForSQL($_GET['dashId'], $link);
+    if (checkVarType($dashId, "integer") === false) {
+        eventLog("Returned the following ERROR in dashDailyAccessController.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     mysqli_select_db($link, $dbname);
-    $queryAccess = "SELECT * FROM Dashboard.IdDashDailyAccess WHERE IdDashboard = $dashId ORDER BY date DESC;";
+    $queryAccess = "SELECT * FROM Dashboard.IdDashDailyAccess WHERE IdDashboard = '$dashId' ORDER BY date DESC;";
     $resultAccess = mysqli_query($link, $queryAccess);
     $currentDate = date("Y-m-d");
    // $currentDate = '2018-07-21';
@@ -38,20 +42,20 @@ if (!empty($_REQUEST["updateHour"])) {
             } else {
                 // insert in mysql
                 $queryInsert = "INSERT INTO Dashboard.IdDashDailyAccess " .
-                    "(IdDashboard, name_dashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$nameDash', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nMinutesPerDay = nMinutesPerDay + 1;";
+                    "(IdDashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nMinutesPerDay = nMinutesPerDay + 1;";
                 $resultInsert = mysqli_query($link, $queryInsert);
             }
         } else {
             // insert in mysql
             $queryInsert = "INSERT INTO Dashboard.IdDashDailyAccess " .
-                "(IdDashboard, name_dashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$nameDash', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nMinutesPerDay = nMinutesPerDay + 1;";
+                "(IdDashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nMinutesPerDay = nMinutesPerDay + 1;";
             $resultInsert = mysqli_query($link, $queryInsert);
         }
 
     } else {
         // insert in mysql
         $queryInsert = "INSERT INTO Dashboard.IdDashDailyAccess " .
-            "(IdDashboard, name_dashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$nameDash', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nMinutesPerDay = nMinutesPerDay + 1;";
+            "(IdDashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nMinutesPerDay = nMinutesPerDay + 1;";
         $resultInsert = mysqli_query($link, $queryInsert);
     }
 }
