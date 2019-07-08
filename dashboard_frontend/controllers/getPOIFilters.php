@@ -33,7 +33,7 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
 
     if(isset($_SESSION['refreshToken']))
     {
-        $organization = $_GET['org'];
+        $organization = escapeForSQL($_GET['org'], $link);
 
         $queryNature = "SELECT DISTINCT nature FROM Dashboard.DashboardWizard WHERE high_level_type = 'POI' and organizations LIKE '%" . $organization . "%';";
         $rNature = mysqli_query($link, $queryNature);
