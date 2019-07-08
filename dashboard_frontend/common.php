@@ -69,7 +69,7 @@ function checkLdapOrganization($connection, $userDn, $baseDn)
     }
     
     if (sizeof($orgsArray) > 1) {
-        return "Other";
+        return "DISIT";
     } else {
         return $orgsArray[0];
     }
@@ -213,4 +213,121 @@ function checkDashboardId($link, $id, $user) {
   if($r && mysqli_num_rows($r)>0)
     return true;
   return false;
+}
+
+function escapeForJS($varToBeEscaped) {
+    return addslashes($varToBeEscaped);
+}
+
+function escapeForHTML($varToBeEscaped) {
+    return htmlspecialchars($varToBeEscaped);
+}
+
+function escapeForSQL($varToBeEscaped, $db) {
+    if (is_numeric($varToBeEscaped)) {
+        return $varToBeEscaped;
+    } else {
+        return mysqli_real_escape_string($db, $varToBeEscaped);
+    }
+}
+
+function checkVarType($varToBeChecked, $expectedType) {
+    $filter = "";
+    $validatedVar = "false";
+    if (strcmp($expectedType, 'integer') == 0 || strcmp($expectedType, 'int') == 0) {
+        $validatedVar = filter_var($varToBeChecked, FILTER_VALIDATE_INT);
+    } else if (strcmp($expectedType, 'float') == 0) {
+        $validatedVar = filter_var($varToBeChecked, FILTER_VALIDATE_FLOAT);
+    } else if (strcmp($expectedType, 'boolean') == 0) {
+        $validatedVar = filter_var($varToBeChecked, FILTER_VALIDATE_BOOLEAN);
+    } else if (strcmp($expectedType, 'url') == 0) {
+        $validatedVar = filter_var($varToBeChecked, FILTER_VALIDATE_URL);
+    } else if (strcmp($expectedType, 'ip') == 0) {
+        $validatedVar = filter_var($varToBeChecked, FILTER_VALIDATE_IP);
+    } else if (strcmp($expectedType, 'email') == 0) {
+        $validatedVar = filter_var($varToBeChecked, FILTER_VALIDATE_EMAIL);
+    }
+    return $validatedVar;
+}
+
+function checkWidgetNameInDashboard($link, $widgetName, $dashId) {
+    if (checkVarType($dashId, "integer") === false) {
+        eventLog("Returned the following ERROR in common.php when checking var type for for dashboard_id = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
+        exit();
+    };
+    $query = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = '" . $dashId . "' AND name_w = '" . escapeForSQL($widgetName, $link) . "';";
+    $r = mysqli_query($link, $query);
+
+    if($r)
+    {
+        if(mysqli_num_rows($r) > 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
+function checkAlphaNum($entry) {
+    if (ctype_alnum($entry)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function checkAlphaNumAndSpaces($entry) {
+    if (ctype_alnum(str_replace(' ', '', $entry))) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function eventLog($msgArray)
+{
+    $string="";
+    $logData['event_datetime']='['.date('D Y-m-d h:i:s A').'] [client '.$_SERVER['REMOTE_ADDR'].']';
+    if(is_array($msgArray))
+    {
+        foreach($msgArray as $msg)
+            $string.=$logData['event_datetime']." ".$msg."rn";
+    }
+    else
+    {
+        $string.=$logData['event_datetime']." ".$msgArray."\r\n";
+    }
+
+    $stCurLogFileName='log_'.date('Ymd').'.txt';
+    $fHandler=fopen("../logs/".$stCurLogFileName,'a+');
+    fwrite($fHandler,$string);
+    fclose($fHandler);
+}
+
+function eventLogReq($msgArray)
+{
+    $string="";
+    $logData['event_datetime']='['.date('D Y-m-d h:i:s A').'] [client '.$_SERVER['REMOTE_ADDR'].']';
+    if(is_array($msgArray))
+    {
+        foreach($msgArray as $key => $value) {
+            $string .= $logData['event_datetime'] . " [" . $key . "] = " . $value . "\r\n";
+        }
+    }
+    else
+    {
+        $string.=$logData['event_datetime']." ".$msgArray."\r\n";
+    }
+
+    $stCurLogFileName='log_'.date('Ymd').'.txt';
+    $fHandler=fopen("../logs/".$stCurLogFileName,'a+');
+    fwrite($fHandler,$string);
+    fclose($fHandler);
 }
