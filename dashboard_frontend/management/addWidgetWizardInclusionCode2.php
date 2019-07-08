@@ -152,7 +152,7 @@
                     
                     <label class="switch" style=" margin-left: 10px; float: left">
                             <input type="checkbox" id="togBtn">
-                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black">FreeMap</span><!--END--></div>
+                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black">FilterMap</span><!--END--></div>
                         </label><!--<button type="button" id="FreezeMap" class="btn cancelBtn" style="margin-top: 10px">FreezeMap</button>-->
                         <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSUser</button>
                         <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSOrg</button>
@@ -454,13 +454,13 @@
         var selectedTabIndex = 0;
         var firstTabIndex = 0;
         var tabsQt = 3;
-	var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        console.log('io '+ widgetName);
-        var dashTitle = "<?php if (isset($_REQUEST['dashboardTitle'])) {echo $_REQUEST['dashboardTitle'];} else {echo 1;} ?>";
+	/*    var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        console.log('io '+ widgetName);*/
+     //   var dashTitle = "<?php if (isset($_REQUEST['dashboardTitle'])) {echo $_REQUEST['dashboardTitle'];} else {echo 1;} ?>";
         var orgFilter = "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>";
         addWidgetWizardMapMarkers = {};
         currentMarkerId = 0;
-        dashTitleEscaped = dashTitle.replace(/\'/g, "%27");
+     //   dashTitleEscaped = dashTitle.replace(/\'/g, "%27");
         orgId = null;
         orgName = null;
         orgKbUrl = null;
@@ -546,7 +546,10 @@
             canProceed: false
         };
         $('#GPSOrg').click(function(){
-        //    addWidgetWizardMapRef.setView(L.latLng(43.769710, 11.255751), 11);
+            if(FreezeMap) {
+                $('#togBtn').click();
+            }
+            //    addWidgetWizardMapRef.setView(L.latLng(43.769710, 11.255751), 11);
             if (orgGpsCentreLatLng != undefined && orgGpsCentreLatLng != null) {
                 if (orgZoomLevel != null && orgZoomLevel != undefined) {
                     addWidgetWizardMapRef.setView(L.latLng(orgGpsCentreLatLng.split(",")[0].trim(), orgGpsCentreLatLng.split(",")[1].trim()), orgZoomLevel);
@@ -556,13 +559,14 @@
             } else {
                 addWidgetWizardMapRef.setView(L.latLng(43.769710, 11.255751), 11);  // Florence coordinates if no organization available
             }
-
         })
         $('#GPSUser').click(function(){
-            
-            if(navigator.geolocation)
+            if(FreezeMap) {
+                $('#togBtn').click();
+            }
+            if (navigator.geolocation)
                 navigator.geolocation.getCurrentPosition(showPosition);
-                //navigator.geolocation.watchPosition(showPosition);
+            //navigator.geolocation.watchPosition(showPosition);
         })
         function showPosition(position) {
             
@@ -829,11 +833,12 @@
                 header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 $link = mysqli_connect($host, $username, $password);
                 mysqli_select_db($link, $dbname);
-                echo $_GET['northEastPointLat'];
+            //    echo $_GET['northEastPointLat'];
+                $northEastPointLat= $_GET['northEastPointLat'];
                 $northEastPointLng= $_GET['northEastPointLng'];
                 $southWestPointLat= $_GET['southWestPointLat'];
                 $southWestPointLng= $_GET['southWestPointLng'];
-                $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=".mysqli_real_escape_string($link,$nordEastPointLat)." and latitude >=".mysqli_real_escape_string($link,$southWestPointLat)." and longitude <=".mysqli_real_escape_string($link,$nordEastPointLng)." and longitude >=".mysqli_real_escape_string($link,$southWestPointLng)."";
+                $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <='".mysqli_real_escape_string($link,$northEastPointLat)."' and latitude >='".mysqli_real_escape_string($link,$southWestPointLat)."' and longitude <='".mysqli_real_escape_string($link,$northEastPointLng)."' and longitude >='".mysqli_real_escape_string($link,$southWestPointLng)."'";
                 $r = mysqli_query($link, $menuQuery);
                 if($r)
                 {
@@ -3084,6 +3089,10 @@
 
                         //Popup nuovo stile uguali a quelli degli eventi ricreativi
                         popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                            //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                        }
                         popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
@@ -3254,6 +3263,16 @@
                         popupText += '</div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                        }
+
+                        if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                            popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                            popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                        }
+
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventNameContainer">' + $(this)[0].uniqueNameId + '</div>';
 
                         if (serviceProperties.hasOwnProperty('description'))
@@ -3649,7 +3668,7 @@
                                 }
                                 else
                                 {
-                                    $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpen button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                                    $('#<?= escapeForJS($_REQUEST['name_w']) ?>_modalLinkOpen button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
                                 }
                             }
                             else
@@ -4877,12 +4896,12 @@
             "pageLength": widgetWizardPageLength,
             "ajax": {
                 async: true, 
-                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true&northEastPointLatt=true",
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true&northEastPointLat=true",
                 data: {
                     dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
                     dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
                     organization: "<?= $_SESSION['loggedOrganization'] ?>",
-		            northEastPointLatt: "<?= $_SESSION['northEastPointLat'] ?>",
+		            northEastPointLat: "<?= $_SESSION['northEastPointLat'] ?>",
                     poiFlag: getPOIFlag()
                 }
              /*   data: function(d){
@@ -6316,10 +6335,10 @@
                     url: "../controllers/widgetAndDashboardInstantiator.php",
                     data: {
                         operation: "addWidget",
-                        dashboardId: "<?php if (isset($_REQUEST['dashboardId'])) {echo $_REQUEST['dashboardId'];} else {echo 1;} ?>",
-                        dashboardAuthorName: "<?php if (isset($_REQUEST['dashboardAuthorName'])){echo $_REQUEST['dashboardAuthorName'];} else {echo 1;} ?>",
-                        dashboardEditorName: "<?php if (isset($_REQUEST['dashboardEditorName'])){echo $_REQUEST['dashboardEditorName'];}else{echo 1;} ?>",
-                        dashboardTitle: '<?php if (isset($_REQUEST['dashboardTitle'])){echo $_REQUEST['dashboardTitle'];}else{echo 1;} ?>',
+                        dashboardId: "<?php if (isset($_REQUEST['dashboardId'])) {echo escapeForJS($_REQUEST['dashboardId']);} else {echo 1;} ?>",
+                        dashboardAuthorName: "<?php if (isset($_REQUEST['dashboardAuthorName'])){echo escapeForJS($_REQUEST['dashboardAuthorName']);} else {echo 1;} ?>",
+                        dashboardEditorName: "<?php if (isset($_REQUEST['dashboardEditorName'])){echo escapeForJS($_REQUEST['dashboardEditorName']);}else{echo 1;} ?>",
+                        dashboardTitle: '<?php if (isset($_REQUEST['dashboardTitle'])){echo escapeForJS($_REQUEST['dashboardTitle']);}else{echo 1;} ?>',
                      //   dashboardTitle: dashTitleEscaped,
                         widgetType: choosenWidgetIconName,
                         actuatorTargetWizard: $('#actuatorTargetWizard').val(),
