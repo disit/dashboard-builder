@@ -92,6 +92,10 @@
         if(isset($_GET['dashboardId']) && !empty($_GET['dashboardId']))
         {
             $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
+            if (checkVarType($dashboardId, "integer") === false) {
+                eventLog("Returned the following ERROR in getDashboardData.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+                exit();
+            }
         }
         else 
         {
@@ -109,6 +113,10 @@
         if(isset($_GET['dashboardId']) && !empty($_GET['dashboardId']))
         {
             $dashboardId = mysqli_real_escape_string($link, $_GET['dashboardId']);
+            if (checkVarType($dashboardId, "integer") === false) {
+                eventLog("Returned the following ERROR in getDashboardData.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+                exit();
+            }
         }
         else 
         {
@@ -120,7 +128,7 @@
                  "LEFT JOIN Descriptions AS metrics ON dashboardWidgets.id_metric = metrics.IdMetric " .   
                  "LEFT JOIN NodeRedMetrics AS nrMetrics ON dashboardWidgets.id_metric = nrMetrics.name " . 
                  "LEFT JOIN NodeRedInputs AS nrInputs ON dashboardWidgets.id_metric = nrInputs.name " . 
-                 "WHERE dashboardWidgets.id_dashboard = $dashboardId " .
+                 "WHERE dashboardWidgets.id_dashboard = '$dashboardId' " .
                  "AND dashboardWidgets.canceller IS NULL " .
                  "AND dashboardWidgets.cancelDate IS NULL " . 
                  "ORDER BY dashboardWidgets.n_row, dashboardWidgets.n_column ASC";
@@ -149,7 +157,11 @@
        exit();
     }
     
-    $dashboardId = $_REQUEST['dashboardId'];
+    $dashboardId = escapeForSQL($_REQUEST['dashboardId'], $link);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in getDashboardData.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    }
     $query = "SELECT Dashboard.Config_dashboard.visibility AS visibility, Dashboard.Users.admin AS role, Dashboard.Config_dashboard.user AS username FROM Dashboard.Config_dashboard " .
              "LEFT JOIN Dashboard.Users " .
              "ON Dashboard.Config_dashboard.user = Dashboard.Users.username " .   
@@ -238,7 +250,7 @@
                    {
                         $applicantUsername = $_SESSION['loggedUsername'];
                         //Controlliamo se è l'autore
-                        $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
+                        $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId' AND user = '$applicantUsername'";
                         $permissionResult1 = mysqli_query($link, $permissionQuery1);
                         if($permissionResult1)
                         {
@@ -279,8 +291,8 @@
                        else//Credenziali fornite
                        {
                            //Controllo presenza credenziali fornite su elenco utenti locale
-                           $applicantUsername = $_REQUEST['username'];
-                           $applicantPassword = $_REQUEST['password'];
+                           $applicantUsername = escapeForSQL($_REQUEST['username'], $link);
+                           $applicantPassword = escapeForSQL($_REQUEST['password'], $link);
                            $applicantPasswordMd5 = md5($applicantPassword);
 
                            $query = "SELECT count(*) AS isRegistered FROM Dashboard.Users WHERE username = '$applicantUsername' AND password = '$applicantPasswordMd5'";
@@ -309,7 +321,7 @@
                        if($proceed)
                        {
                             //Controlliamo se è l'autore
-                            $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = $dashboardId AND user = '$applicantUsername'";
+                            $permissionQuery1 = "SELECT count(*) AS isAuthor FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId' AND user = '$applicantUsername'";
                             $permissionResult1 = mysqli_query($link, $permissionQuery1);
                             if($permissionResult1)
                             {
