@@ -74,7 +74,6 @@ if(isset($_SESSION['loggedUsername']))
                 case "12-hour":
                     $startTimeEpoch = time() - 43200;
                     break;
-                
                 case "1-day":
                     $startTimeEpoch = time() - 86400;
                     break;
@@ -98,17 +97,22 @@ if(isset($_SESSION['loggedUsername']))
             $startTimeFormatted = $startDate . "T" . $startTime;
             
             //$todayDate = date("Y-m-d", time()) . "T00:00:00";
-            $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&from=" . $startTimeFormatted;
+            $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . rawurlencode($_REQUEST['variableName']) . "&from=" . $startTimeFormatted;
         }
         else
         {
             if(isset($_REQUEST['']))
             {
-                $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'] . "&motivation=" . urlencode($_REQUEST['motivation']);
+                $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . rawurlencode($_REQUEST['variableName']) . "&last=" . $_REQUEST['last'] . "&motivation=" . rawurlencode($_REQUEST['motivation']) . "&app_name=" . rawurlencode($_REQUEST['appName']);
             }
             else
             {
-                $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'];
+               /* if(isset($_REQUEST['appName'])) {
+                    //   $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'];
+                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . $_REQUEST['variableName'] . "&last=" . $_REQUEST['last'] . "&motivation=" . urlencode($_REQUEST['motivation']) . "&app_name=" . urlencode($_REQUEST['appName']);
+                } else { */
+                    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . rawurlencode($_SESSION['loggedUsername']) . "/data?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&variableName=" . rawurlencode($_REQUEST['variableName']) . "&last=" . rawurlencode($_REQUEST['last']);
+               // }
             }
         }
                     
