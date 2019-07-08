@@ -38,7 +38,7 @@
         }
         else
         {
-            return $original;
+            return "'" . $original . "'";   // CAMBIATO CON SECURITY ENFORCEMENT CONTROLLARE !
         }
     }
        
@@ -416,7 +416,7 @@
 
                 if($_POST['dashboardLogoLinkInput'] != '')
                 {
-                    $logoLink = $_POST['dashboardLogoLinkInput'];
+                    $logoLink = escapeForSQL($_POST['dashboardLogoLinkInput'], $link);
 
                     $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                     (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
@@ -444,7 +444,7 @@
                         {
                             foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
                             {
-                                $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '$selectedUser')";
+                                $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '" . escapeForSQL($selectedUser, $link) . "')";
                                 $result4 = mysqli_query($link, $insertQuery) or die(mysqli_error($link));
                                 if(!$result4)
                                 {
@@ -512,7 +512,7 @@
                          {
                              foreach($_POST['selectedVisibilityUsers'] as $selectedUser)
                              {
-                                 $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '$selectedUser')";
+                                 $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($newDashId, '" . escapeForSQL($selectedUser, $link) . "')";
                                  $result4 = mysqli_query($link, $insertQuery);
                                  if(!$result4)
                                  {
@@ -594,13 +594,23 @@
         session_start();
         
             $id_dashboard = $_REQUEST['dashboardIdUnderEdit'];
+            if (checkVarType($id_dashboard, "integer") === false) {
+                eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard.": ".$id_dashboard." is not an integer as expected. Exit from script.");
+                exit();
+            }
             $dashboardName = $_REQUEST['currentDashboardTitle'];
             $dashboardAuthorName = $_REQUEST['dashboardUser'];
             $dashboardEditor = $_REQUEST['dashboardEditor'];
             $creator = $_REQUEST['dashboardEditor'];
         
             $nextId = 1;
-            $firstFreeRow = $_POST['firstFreeRowInput'];
+            $firstFreeRow = escapeForSQL($_POST['firstFreeRowInput'], $link);
+            if (checkVarType($firstFreeRow, "integer") === false) {
+                if (!is_null($firstFreeRow)) {
+                    eventLog("Returned the following ERROR in process-form.php for dashboard_id = " . $id_dashboard . ": First Free Row (" . $firstFreeRow . ") is not an integer (or NULL) as expected. Exit from script.");
+                    exit();
+                }
+            }
             $selqDbtbMaxSel2 = "SELECT MAX(Id) AS MaxId FROM Dashboard.Config_widget_dashboard";
             $resultMaxSel2 = mysqli_query($link, $selqDbtbMaxSel2);
             if($resultMaxSel2) 
@@ -698,11 +708,11 @@
                 {
                     if($_REQUEST['actuatorTarget'] == 'broker')
                     {
-                        $widgetActuatorType = $_REQUEST['widgetActuatorType'];
+                        $widgetActuatorType = escapeForSQL($_REQUEST['widgetActuatorType'], $link);
                     }
                     else
                     {
-                        $widgetActuatorType = $_REQUEST['widgetActuatorTypePersonalApps'];
+                        $widgetActuatorType = escapeForSQL($_REQUEST['widgetActuatorTypePersonalApps'], $link);
                         $id_metric = str_replace('.', '_', str_replace('-', '_', $_REQUEST['personalAppsInputs']));
                     }
                     
@@ -1487,10 +1497,18 @@
                 {
                     if($_REQUEST['actuatorTarget'] == 'broker')
                     {
-                        $name_widget = preg_replace('/\+/', '', $_REQUEST['entityType']) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
+                        $name_widget = preg_replace('/\+/', '', escapeForSQL($_REQUEST['entityType'], $link)) . "_" . escapeForSQL($id_dashboard, $link) . "_" . $type_widget . $nextId;
+                        $name_widget = str_replace("/", "_", $name_widget);
+                        $name_widget = str_replace(".", "_", $name_widget);
+                        $name_widget = str_replace("\\", '_', $name_widget);
+                        $name_widget = str_replace(":", "_", $name_widget);
                         $newOrionEntity = [];
                         $newOrionEntity['id'] = $name_widget;
-                        $newOrionEntity['type'] = $_REQUEST['entityType'];
+                        $newOrionEntity['type'] = escapeForSQL($_REQUEST['entityType'], $link);
+                        $newOrionEntity['type']  = str_replace("/", "_", $newOrionEntity['type'] );
+                        $newOrionEntity['type']  = str_replace(".", "_", $newOrionEntity['type'] );
+                        $newOrionEntity['type']  = str_replace("\\", '_', $newOrionEntity['type'] );
+                        $newOrionEntity['type']  = str_replace(":", "_", $newOrionEntity['type'] );
                         $newOrionEntity['entityDesc'] = ["type" => "String", "value" => $_REQUEST['entityDesc']];
                         $newOrionEntity['entityCreator'] = ["value" => $creator, "type" => "String"];
                         $newOrionEntity['creationDate'] = ["value" => $creationDate, "type" => "String"];
@@ -1498,17 +1516,25 @@
                         $newOrionEntity['actuatorDeletionDate'] = ["value" => NULL, "type" => "String"];
                         $newOrionEntity['actuatorCanceller'] = ["value" => NULL, "type" => "String"];
                         $newOrionEntity[$_REQUEST['entityAttrName']] = ["type" => $_REQUEST['entityAttrType'], "value" => $_REQUEST['entityAttrStartValue'], "metadata" => ["attrDesc" => ["value" => $_REQUEST['entityAttrDesc'], "type" => "String"]]];
-                        $attributeName = $_REQUEST['entityAttrName'];
+                        $attributeName = escapeForSQL($_REQUEST['entityAttrName'], $link);
                         $newOrionEntityJson = json_encode($newOrionEntity);
                     }
                     else
                     {
-                        $name_widget = preg_replace('/\+/', '', $_REQUEST['personalAppsInputs']) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
+                        $name_widget = preg_replace('/\+/', '', escapeForSQL($_REQUEST['personalAppsInputs'], $link)) . "_" . escapeForSQL($id_dashboard, $link) . "_" . $type_widget . $nextId;
+                        $name_widget = str_replace("/", "_", $name_widget);
+                        $name_widget = str_replace(".", "_", $name_widget);
+                        $name_widget = str_replace("\\", '_', $name_widget);
+                        $name_widget = str_replace(":", "_", $name_widget);
                     }
                 }
                 else
                 {
-                    $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . $id_dashboard . "_" . $type_widget . $nextId;
+                    $name_widget = preg_replace('/\+/', '', $id_metric) . "_" . escapeForSQL($id_dashboard, $link) . "_" . $type_widget . $nextId;
+                    $name_widget = str_replace("/", "_", $name_widget);
+                    $name_widget = str_replace(".", "_", $name_widget);
+                    $name_widget = str_replace("\\", '_', $name_widget);
+                    $name_widget = str_replace(":", "_", $name_widget);
                 }
                 
                 $int_temp_widget = NULL;
@@ -1518,10 +1544,14 @@
 
                     if($_POST['select-IntTemp-Widget'] != "Nessuno") 
                     {
-                        $name_widget = $name_widget . "_" . preg_replace('/ /', '', $_POST['select-IntTemp-Widget']);
+                        $name_widget = $name_widget . "_" . preg_replace('/ /', '', escapeForSQL($_POST['select-IntTemp-Widget'], $link));
+                        $name_widget = str_replace("/", "_", $name_widget);
+                        $name_widget = str_replace(".", "_", $name_widget);
+                        $name_widget = str_replace("\\", '_', $name_widget);
+                        $name_widget = str_replace(":", "_", $name_widget);
                     }
                 }
-                
+
                 //Va messo qui perché serve il nome del widget
                 if(($type_widget == "widgetSelector")||($type_widget == "widgetSelectorWeb"))
                 {
@@ -1679,7 +1709,7 @@
                     //Aggiornamento della lista dei target degli widget events
                     mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
                     
-                    $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '$id_dashboard'";
+                    $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '". escapeForSQL($id_dashboard, $link) . "'";
                     $resultUpdTargetQuery = mysqli_query($link, $updTargetQuery);
                     
                     if($resultUpdTargetQuery)
@@ -1699,7 +1729,7 @@
                               mysqli_close($link);
                               echo '<script type="text/javascript">';
                               echo 'alert("Error while updating widget target lists");';
-                              echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                              echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                               echo '</script>';
                               exit();
                            }
@@ -1713,7 +1743,7 @@
                         mysqli_close($link);
                         echo '<script type="text/javascript">';
                         echo 'alert("Error while updating widget event producers into database");';
-                        echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                        echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                         echo '</script>';
                      }
                 }
@@ -1724,7 +1754,7 @@
                     $scaleY = 1;                    
                     //Aggiornamento della lista dei target degli widget events
                     mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);                    
-                    $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '$id_dashboard'";
+                    $updTargetQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w LIKE '%widgetEvents%' AND id_dashboard = '". escapeForSQL($id_dashboard, $link) . "'";
                     $resultUpdTargetQuery = mysqli_query($link, $updTargetQuery);                    
                     if($resultUpdTargetQuery)
                     {
@@ -1755,7 +1785,7 @@
                               mysqli_close($link);
                               echo '<script type="text/javascript">';
                               echo 'alert("Error while updating widget target lists");';
-                              echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                              echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                               echo '</script>';
                               exit();
                            }
@@ -1768,7 +1798,7 @@
                         mysqli_close($link);
                         echo '<script type="text/javascript">';
                         echo 'alert("Error while updating widget event producers into database");';
-                        echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                        echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                         echo '</script>';
                      }
                      //
@@ -1800,8 +1830,8 @@
                 
                 if(isset($_REQUEST['addWidgetRegisterGen']))
                 {
-                   $notificatorRegistered = $_REQUEST['addWidgetRegisterGen'];
-                   $notificatorEnabled = $_REQUEST['addWidgetRegisterGen'];
+                   $notificatorRegistered = escapeForSQL($_REQUEST['addWidgetRegisterGen'], $link);
+                   $notificatorEnabled = escapeForSQL($_REQUEST['addWidgetRegisterGen'], $link);
                 }
                 else
                 {
@@ -1817,12 +1847,12 @@
                
                 if(isset($_REQUEST['enableFullscreenTab']))
                 {
-                   $enableFullscreenTab = $_REQUEST['enableFullscreenTab'];
+                   $enableFullscreenTab = escapeForSQL($_REQUEST['enableFullscreenTab'], $link);
                 }
                 
                 if(isset($_REQUEST['enableFullscreenModal']))
                 {
-                   $enableFullscreenModal = $_REQUEST['enableFullscreenModal'];
+                   $enableFullscreenModal = escapeForSQL($_REQUEST['enableFullscreenModal'], $link);
                 }
                 
                 $defParamsQuery = "SELECT * FROM Dashboard.Widgets WHERE id_type_widget = '$type_widget'";
@@ -1843,9 +1873,13 @@
                 
                                                 
                     $name_widget = preg_replace('/%20/', 'NBSP', $name_widget);
+                    $name_widget = str_replace("/", "_", $name_widget);
+                    $name_widget = str_replace(".", "_", $name_widget);
+                    $name_widget = str_replace("\\", '_', $name_widget);
+                    $name_widget = str_replace(":", "_", $name_widget);
                 
                     $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily, entityJson, attributeName, creator, creationDate, actuatorTarget, chartColor) " .
-                                 "VALUES($nextId , " . returnManagedStringForDb($name_widget) . ", " . returnManagedNumberForDb($id_dashboard) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb($int_temp_widget) . ", " . returnManagedStringForDb($comune_widget) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb($parameters) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb($styleParameters) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ", " . returnManagedStringForDb($newOrionEntityJson) . ", " . returnManagedStringForDb($attributeName) . ", " . returnManagedStringForDb($creator) . ", " . returnManagedStringForDb($creationDate) . ", " . returnManagedStringForDb($actuatorTarget) . ", " . returnManagedStringForDb($chartColor) . ")";
+                                 "VALUES($nextId , " . returnManagedStringForDb(escapeForSQL($name_widget, $link)) . ", " . returnManagedNumberForDb(escapeForSQL($id_dashboard, $link)) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb(escapeForSQL($int_temp_widget, $link)) . ", " . returnManagedStringForDb(escapeForSQL($comune_widget, $link)) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb(escapeForSQL($parameters, $link)) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb(escapeForSQL($styleParameters, $link)) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ", " . returnManagedStringForDb(escapeForSQL($newOrionEntityJson, $link)) . ", " . returnManagedStringForDb($attributeName) . ", " . returnManagedStringForDb($creator) . ", " . returnManagedStringForDb($creationDate) . ", " . returnManagedStringForDb($actuatorTarget) . ", " . returnManagedStringForDb($chartColor) . ")";
                     
                     $result4 = mysqli_query($link, $insqDbtb3);
                     
@@ -1878,16 +1912,16 @@
                                     
                                     echo '<script type="text/javascript">';
                                     echo 'alert("Orion entity creation was not possibile: please try again");';
-                                    echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                                    echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                                     echo '</script>';
                                     exit();
                                }
                                else
                                {
                                    //Inserimento primo record di attuazione
-                                   $entityId = $name_widget;
+                                   $entityId = escapeForSQL($name_widget , $link);
                                    $actionTime = date('Y-m-d H:i:s');
-                                   $value = $_REQUEST['entityAttrStartValue'];
+                                   $value = escapeForSQL($_REQUEST['entityAttrStartValue'], $link);
                                    $username = $creator;
                                    $ipAddress = $_SERVER['REMOTE_ADDR'];
                                    
@@ -1908,7 +1942,7 @@
 
                                 echo '<script type="text/javascript">';
                                 echo 'alert("Orion entity creation was not possibile: please try again");';
-                                echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                                echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                                 echo '</script>';
                                 exit();
                             }
@@ -1918,17 +1952,17 @@
                         if(($_REQUEST['widgetCategory'] == "actuator")&&($_REQUEST['actuatorTarget'] == 'app'))
                         {
                             $actionTime = date('Y-m-d H:i:s');
-                            $metricToSearch = $_REQUEST['personalAppsInputs'];
+                            $metricToSearch = escapeForSQL($_REQUEST['personalAppsInputs'], $link);
                             
-                            $startValue = $_REQUEST['personalAppsInputsStartValueHidden'];
+                            $startValue = escapeForSQL($_REQUEST['personalAppsInputsStartValueHidden'], $link);
                             
                             $qa = "INSERT INTO Dashboard.ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress, actuationResult, actuationResultTime) " .
-                                  "VALUES ('$name_widget', '$actionTime', '$startValue', '$creator', '0:0:0:0', 'Ok', '$actionTime')";
+                                  "VALUES ('" . escapeForSQL($name_widget, $link) . "', '$actionTime', '$startValue', '" . escapeForSQL($creator, $link) . "', '0:0:0:0', 'Ok', '$actionTime')";
                             
                             $ra = mysqli_query($link, $qa);
                         }
                         
-                        header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard . "&dashboardAuthorName=" . $dashboardAuthorName . "&dashboardEditorName=" . $creator . "&dashboardTitle=" . urlencode($dashboardName));
+                        header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard . "&dashboardAuthorName=" . urlencode($dashboardAuthorName) . "&dashboardEditorName=" . urlencode($creator) . "&dashboardTitle=" . urlencode($dashboardName));
                         
                         if(isset($_REQUEST['addWidgetRegisterGen']))
                         {
@@ -1949,7 +1983,8 @@
                                   $containerUrl = $appUrl . "/view/index.php?iddasboard=" . base64_encode($id_dashboard); 
                               }
                               
-                              $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&url=" . $containerUrl;
+                            //  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . urlencode($appUsr) . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&url=' . urlencode($containerUrl);
+                              $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&url=' . $containerUrl;
                               $url = $url.$data;
                               
                               $options = array(
@@ -2026,7 +2061,8 @@
 
                                              $eventName = preg_replace('/\s+/', '+', $eventName);
 
-                                             $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                            // $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&eventType=' . $eventName . 'thrCnt=1';
+                                             $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . 'thrCnt=1';
                                              $url = $url.$data;
 
                                              $options = array(
@@ -2060,7 +2096,7 @@
                         
                         try 
                         {
-                            $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = $id_dashboard";
+                            $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = '". escapeForSQL($id_dashboard, $link) . "'";
                             $lastEditDateResult = mysqli_query($link, $lastEditDateQuery);
                         } 
                         catch (Exception $ex) 
@@ -2079,7 +2115,7 @@
                         mysqli_close($link);
                         echo '<script type="text/javascript">';
                         echo 'alert("Error: Ripetere inserimento widget");';
-                        echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                        echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                         echo '</script>';
                     }
             }
@@ -2088,7 +2124,7 @@
                 mysqli_close($link);
                 echo '<script type="text/javascript">';
                 echo 'alert("Error: Ripetere inserimento widget");';
-                echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . $dashboardAuthorName . '&dashboardEditorName=' . $creator . '&dashboardTitle=' . urlencode($dashboardName);
+                echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard . '&dashboardAuthorName=' . urlencode($dashboardAuthorName) . '&dashboardEditorName=' . urlencode($creator) . '&dashboardTitle=' . urlencode($dashboardName);
                 echo '</script>';
             }
     } //Fine caso add_widget
@@ -2101,7 +2137,7 @@
         //$dashboardAuthorName = mysqli_real_escape_string($link, $_POST['selectedDashboardAuthorName']);
         
         //Reperimento da DB del dashboardId e dell'id dell'autore della dashboard
-        $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = $dashboardId";
+        $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '". $dashboardId. "';";
         $result = mysqli_query($link, $query);
 
         if($result) 
@@ -2187,7 +2223,11 @@
         {
             $dashboardName2 = $_REQUEST['currentDashboardTitle'];
             $lastEditor = $_REQUEST['dashboardUser'];
-            $id_dashboard2 = $_REQUEST['dashboardIdToEdit']; 
+            $id_dashboard2 = $_REQUEST['dashboardIdToEdit'];
+            if (checkVarType($id_dashboard2, "integer") === false) {
+                eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard2.": ".$id_dashboard2." is not an integer as expected. Exit from script.");
+                exit();
+            }
         }
         else if(isset($_REQUEST['dashboardIdUnderEdit'])&&isset($_REQUEST['dashboardUser']))
         {
@@ -2195,9 +2235,17 @@
             $dashboardAuthor = $_REQUEST['dashboardUser'];
             $lastEditor = $_REQUEST['dashboardEditor'];
             $id_dashboard2 = $_REQUEST['dashboardIdUnderEdit'];
+            if (checkVarType($id_dashboard2, "integer") === false) {
+                eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard2.": ".$id_dashboard2." is not an integer as expected. Exit from script.");
+                exit();
+            }
         }
         
         $widgetIdM = $_REQUEST['widgetIdM'];
+        if (checkVarType($widgetIdM, "integer") === false) {
+            eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard2.": widgetIdM (".$widgetIdM.") is not an integer as expected. Exit from script.");
+            exit();
+        }
         
         if($_REQUEST['widgetCategoryHiddenM'] == "actuator")
         {
@@ -2214,13 +2262,30 @@
         {
             $type_widget_m = mysqli_real_escape_string($link, $_POST['select-widget-m']);
             $name_widget_m = $_POST['inputNameWidgetM'];
+            // CONTROLLA SE ESISTE IL WIDGET o MEGLIO se Appartiene alla Dashboard in uso
+            if (checkWidgetNameInDashboard($link, $name_widget_m, $id_dashboard2) === false) {
+                eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard2.": the widget ".$name_widget_m." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
         }
         
         $title_widget_m = NULL;
         $color_widget_m = mysqli_real_escape_string($link, $_POST['inputColorWidgetM']); 
         $freq_widget_m = NULL; 
-        $col_m = mysqli_real_escape_string($link, $_POST['inputColumn-m']); 
-        $row_m = mysqli_real_escape_string($link, $_POST['inputRows-m']); 
+        $col_m = mysqli_real_escape_string($link, $_POST['inputColumn-m']);
+        if (checkVarType($col_m, "integer") === false) {
+            if (!is_null($col_m)) {
+                eventLog("Returned the following ERROR in process-form.php for dashboard_id = " . $id_dashboard . ": col_m (" . $col_m . ") is not an integer (or NULL) as expected. Exit from script.");
+                exit();
+            }
+        }
+        $row_m = mysqli_real_escape_string($link, $_POST['inputRows-m']);
+        if (checkVarType($row_m, "integer") === false) {
+            if (!is_null($row_m)) {
+                eventLog("Returned the following ERROR in process-form.php for dashboard_id = " . $id_dashboard . ": row_m (" . $row_m . ") is not an integer (or NULL) as expected. Exit from script.");
+                exit();
+            }
+        }
         $color_frame_m = NULL;
         $controlsVisibility = NULL;
         $zoomFactor = NULL; //Lo si edita solo dai controlli grafici, non dal form
@@ -2338,7 +2403,7 @@
               $clockFontM = $_REQUEST['editWidgetClockFont'];
            }
 
-           $styleParametersArrayM = array('clockData' => $clockDataM, 'clockFont' => $clockFontM);
+           $styleParametersArrayM = array('clockData' => escapeForSQL($clockDataM, $link), 'clockFont' => escapeForSQL($clockFontM, $link));
            $styleParametersM = json_encode($styleParametersArrayM);
         }
         
@@ -3187,6 +3252,7 @@
         $inputUdmWidget = NULL;
         if(isset($_POST['inputUdmWidgetM']) && $_POST['inputUdmWidgetM'] != "") 
         {
+            $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmWidgetM']);
             $inputUdmWidget = htmlentities($_POST['inputUdmWidgetM'], ENT_QUOTES|ENT_HTML5);
         }
         
@@ -3218,7 +3284,7 @@
         $hospitalList = NULL;
         if(isset($_POST['hospitalListM']) && ($_POST['hospitalListM'] != '') && (!empty($_POST['hospitalListM']))) 
         {
-            $hospitalList = $_POST['hospitalListM'];
+            $hospitalList = escapeForSQL($_POST['hospitalListM'], $link);
         }
         
         $lastSeries = NULL;
@@ -3316,12 +3382,12 @@
 
         if(isset($_REQUEST['enableFullscreenTabM']))
         {
-           $enableFullscreenTabM = $_REQUEST['enableFullscreenTabM'];
+           $enableFullscreenTabM = escapeForSQL($_REQUEST['enableFullscreenTabM'], $link);
         }
 
         if(isset($_REQUEST['enableFullscreenModalM']))
         {
-           $enableFullscreenModalM = $_REQUEST['enableFullscreenModalM'];
+           $enableFullscreenModalM = escapeForSQL($_REQUEST['enableFullscreenModalM'], $link);
         }
         
         /*Verifichiamo se è già stato registrato o no sul notificatore:
@@ -3329,7 +3395,7 @@
           2) Se già registrato --> ne aggiorniamo validità e titolo (nome generatore sul notificatore)
          */
         
-        $notificatorQuery = "SELECT notificatorRegistered, notificatorEnabled, title_w FROM Dashboard.Config_widget_dashboard WHERE name_w = '$name_widget_m' AND id_dashboard = '$id_dashboard2'";
+        $notificatorQuery = "SELECT notificatorRegistered, notificatorEnabled, title_w FROM Dashboard.Config_widget_dashboard WHERE name_w = '" . escapeForSQL($name_widget_m, $link) . "' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
         $notificatorRs = mysqli_query($link, $notificatorQuery);
         
         if($notificatorRs)
@@ -3345,8 +3411,8 @@
            {
                if(isset($_REQUEST['editWidgetRegisterGen']))
                {
-                  $notificatorRegisteredNew = $_REQUEST['editWidgetRegisterGen'];
-                  $notificatorEnabledNew = $_REQUEST['editWidgetRegisterGen'];
+                  $notificatorRegisteredNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
+                  $notificatorEnabledNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
                }
                else
                {
@@ -3359,7 +3425,7 @@
                $notificatorRegisteredNew = $notificatorRegistered;
                if(isset($_REQUEST['editWidgetRegisterGen']))
                {
-                  $notificatorEnabledNew = $_REQUEST['editWidgetRegisterGen'];
+                  $notificatorEnabledNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
                }
                else
                {
@@ -3370,27 +3436,27 @@
            if($_REQUEST['widgetCategoryHiddenM'] == "viewer")
            {
                $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
-                       . ", title_w = " . returnManagedStringForDb(html_entity_decode($title_widget_m, ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
+                       . ", title_w = " . returnManagedStringForDb(html_entity_decode(escapeForSQL($title_widget_m, $link), ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
                //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
-                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb($parametersM))
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
-                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM)
-                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . ", lastEditor = " . returnManagedStringForDb($lastEditor) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate) . " WHERE Id = '$widgetIdM' AND id_dashboard = $id_dashboard2";
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb(escapeForSQL($styleParametersM, $link))
+                       . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . ", lastEditor = " . returnManagedStringForDb(escapeForSQL($lastEditor, $link)) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate) . " WHERE Id = '$widgetIdM' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
            }
            else
            {
                $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
-                       . ", title_w = " . returnManagedStringForDb(html_entity_decode($title_widget_m, ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
+                       . ", title_w = " . returnManagedStringForDb(html_entity_decode(escapeForSQL($title_widget_m, $link), ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
                //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
-                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb($parametersM))
+                       . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
-                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb($styleParametersM)
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb(escapeForSQL($styleParametersM, $link))
                        . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew)
                        . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily)
-                       . ", lastEditor = " . returnManagedStringForDb($lastEditor) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate)
-                       . " WHERE Id = '$widgetIdM' AND id_dashboard = $id_dashboard2";
+                       . ", lastEditor = " . returnManagedStringForDb(escapeForSQL($lastEditor, $link)) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate)
+                       . " WHERE Id = '$widgetIdM' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
            }
            
            $result7 = mysqli_query($link, $upsqDbtb);
@@ -3399,7 +3465,7 @@
             {
                     try 
                     {
-                        $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = $id_dashboard2";
+                        $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = '" . escapeForSQL($id_dashboard2, $link) . "'";
                         $lastEditDateResult = mysqli_query($link, $lastEditDateQuery);
                     } 
                     catch (Exception $ex) 
@@ -3409,7 +3475,7 @@
                     
                     mysqli_close($link);
                     
-                    header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard2 . "&dashboardAuthorName=" . $dashboardAuthor . "&dashboardEditorName=" . $lastEditor . "&dashboardTitle=" . urlencode($dashboardName2));
+                    header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard2 . "&dashboardAuthorName=" . urlencode($dashboardAuthor) . "&dashboardEditorName=" . urlencode($lastEditor) . "&dashboardTitle=" . urlencode($dashboardName2));
                     
                     //1) Se non registrato e viene richiesto di abilitarlo da GUI --> lo registriamo (con registrazione dei tipi di evento, come in add);
                     if($notificatorRegistered == 'no')
@@ -3433,7 +3499,8 @@
                                 $containerUrl = $appUrl . "/view/index.php?iddasboard=" . base64_encode($id_dashboard2); 
                             }
                             
-                            $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&url=" . $containerUrl;
+                           // $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . urlencode($appUsr) . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&url=' . urlencode($containerUrl);
+                            $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventGenerator&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&url=' . $containerUrl;
                             $url = $url.$data;
 
                             $options = array(
@@ -3510,7 +3577,8 @@
 
                                            $eventName = preg_replace('/\s+/', '+', $eventName);
 
-                                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                           // $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&eventType=' . $eventName . '&thrCnt=1';
+                                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . '&thrCnt=1';
                                            $url = $url.$data;
 
                                            $options = array(
@@ -3576,7 +3644,7 @@
                          }
                          
                          //$data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity . "&setEventsValidityTrue=" . $setEventsValidityTrue;
-                         $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . "&validity=" . $validity. "&url=" . $containerUrl;
+                         $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=setGeneratorValidity&appName=' . $notificatorAppName . '&appUsr=' . $appUsr . '&generatorOriginalName=' . $genOriginalName . '&generatorNewName=' . $genNewName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&validity=' . $validity. '&url=' . $containerUrl;
                          $url = $url.$data;
 
                          $options = array(
@@ -3716,7 +3784,8 @@
                                      if(($eventType["added"]||($eventType["added"]&&$eventType["changed"]))&&(!$eventType["deleted"]))
                                      {
                                         $url = $notificatorUrl;
-                                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $newEventName . "&thrCnt=1";
+                                     //   $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&eventType=' . $newEventName . '&thrCnt=1';
+                                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $newEventName . '&thrCnt=1';
                                         $url = $url.$data;
 
                                         $options = array(
@@ -3743,7 +3812,8 @@
                                         if((!$eventType["deleted"])&&($eventType["changed"]))
                                         {
                                            $url = $notificatorUrl;
-                                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=updateEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&oldEventType=' . $oldEventName . "&newEventType=" . $newEventName;
+                                         //  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=updateEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&oldEventType=' . $oldEventName . '&newEventType=' . $newEventName;
+                                           $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=updateEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&oldEventType=' . $oldEventName . '&newEventType=' . $newEventName;
                                            $url = $url.$data;
 
                                            $options = array(
@@ -3828,6 +3898,7 @@
                                      if(($eventType["deleted"])&&(!$eventType["added"]))//Così scartiamo quelli aggiunti e subito cancellati prima del commit   
                                      {
                                         $url = $notificatorUrl;
+                                      //  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&eventType=' . $eventName;
                                         $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName;
                                         $url = $url.$data;
 
@@ -3854,6 +3925,7 @@
                                else//Se set thresholds è valorizzato a "no" disabilitiamo tutti gli eventi del generatore e cancelliamo notifiche relative a tali eventi
                                {
                                   $url = $notificatorUrl;
+                                //  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName);
                                   $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=deleteAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
                                   $url = $url.$data;
 
@@ -3942,7 +4014,8 @@
 
                                         $eventName = preg_replace('/\s+/', '+', $eventName);
 
-                                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . "&thrCnt=1";
+                                      //  $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName) . '&eventType=' . $eventName . 'thrCnt=1';
+                                        $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=registerEventType&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName . '&eventType=' . $eventName . 'thrCnt=1';
                                         $url = $url.$data;
 
                                         $options = array(
@@ -3970,6 +4043,7 @@
                             //Caso passaggio da generatore abilitato su notificatore a disabilitato su notificatore: ne disabilitiamo tutti gli eventi (e relative notifiche) SENZA CANCELLARLI FISICAMENTE
                             if(($notificatorEnabledNew == "no")&&($notificatorEnabled == "yes"))
                             {
+                            //   $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=disableAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . urlencode($containerName);
                                $data = '?apiUsr=' . $notificatorApiUsr . '&apiPwd=' . $notificatorApiPwd . '&operation=disableAllGeneratorEventTypes&appName=' . $notificatorAppName . '&generatorOriginalName=' . $genOriginalName . '&generatorOriginalType=' . $genOriginalType . '&containerName=' . $containerName;
                                $url = $url.$data;
 
@@ -4005,7 +4079,7 @@
                 mysqli_close($link);
                 echo '<script type="text/javascript">';
                 echo 'alert("Error: repeat update widget: schiantata result7");';
-                echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard2 . '&dashboardAuthorName=' . $dashboardAuthor . '&dashboardEditorName=' . $lastEditor . '&dashboardTitle=' . urlencode($dashboardName2);
+                echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard2 . '&dashboardAuthorName=' . urlencode($dashboardAuthor) . '&dashboardEditorName=' . urlencode($lastEditor) . '&dashboardTitle=' . urlencode($dashboardName2);
                 echo '</script>';
             }
          }
@@ -4014,7 +4088,7 @@
             mysqli_close($link);
             echo '<script type="text/javascript">';
             echo 'alert("Error: repeat update widget");';
-            echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard2 . '&dashboardAuthorName=' . $dashboardAuthor . '&dashboardEditorName=' . $lastEditor . '&dashboardTitle=' . urlencode($dashboardName2);
+            echo 'window.location.href = dashboard_configdash.php?dashboardId=' . $id_dashboard2 . '&dashboardAuthorName=' . urlencode($dashboardAuthor) . '&dashboardEditorName=' . urlencode($lastEditor) . '&dashboardTitle=' . urlencode($dashboardName2);
             echo '</script>';
          }
     } 
@@ -4261,7 +4335,7 @@
                 mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
                 
                 //$file = fopen("C:\dashboardLog.txt", "w");
-                $q1 = "UPDATE Dashboard.Descriptions SET IdMetric = '$responseTimeMetricName', description = 'Response time of " . $_POST['serverTestUrlM'] . "', query = " . returnManagedStringForDb($query1) . ", frequency = '$updateFrequency', description_short = 'Response time of " . $_POST['serverTestUrlM'] . "', sameDataAlarmCount = " . returnManagedNumberForDb($sameDataAlarmCount) . ", oldDataEvalTime = " . returnManagedNumberForDb($oldDataEvalTime) . ", boundToMetric = '$statusMetricName' WHERE Descriptions.boundToMetric IN(SELECT desc2.IdMetric FROM(SELECT desc3.* FROM Dashboard.Descriptions AS desc3 WHERE desc3.id = $metricId) AS desc2) AND Descriptions.processType = 'responseTime' AND Descriptions.process = 'HttpProcess'";
+                $q1 = "UPDATE Dashboard.Descriptions SET IdMetric = '$responseTimeMetricName', description = 'Response time of " . escapeForSQL($_POST['serverTestUrlM'], $link) . "', query = " . returnManagedStringForDb($query1) . ", frequency = '$updateFrequency', description_short = 'Response time of " . escapeForSQL($_POST['serverTestUrlM'], $link) . "', sameDataAlarmCount = " . returnManagedNumberForDb($sameDataAlarmCount) . ", oldDataEvalTime = " . returnManagedNumberForDb($oldDataEvalTime) . ", boundToMetric = '$statusMetricName' WHERE Descriptions.boundToMetric IN(SELECT desc2.IdMetric FROM(SELECT desc3.* FROM Dashboard.Descriptions AS desc3 WHERE desc3.id = $metricId) AS desc2) AND Descriptions.processType = 'responseTime' AND Descriptions.process = 'HttpProcess'";
                 //fwrite($file, "Query1: " . $q1 . "\n");
                 $r1 = mysqli_query($link, $q1);
 
@@ -4362,7 +4436,7 @@
             $metricId = mysqli_real_escape_string($link, $_REQUEST['metricId']);
             $newStatus = mysqli_real_escape_string($link, $_REQUEST['newStatus']);
 
-            $q = "UPDATE Dashboard.Descriptions SET Descriptions.status = '$newStatus' WHERE Descriptions.id = $metricId";
+            $q = "UPDATE Dashboard.Descriptions SET Descriptions.status = '$newStatus' WHERE Descriptions.id = '$metricId'";
             $r = mysqli_query($link, $q);
 
             if($r)
@@ -4386,7 +4460,7 @@
             $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
             $dashboardNewStatus = mysqli_real_escape_string($link, $_REQUEST['newStatus']);
 
-            $q = "UPDATE Dashboard.Config_dashboard SET Config_dashboard.status_dashboard = " . $dashboardNewStatus . " WHERE Config_dashboard.Id = " . $dashboardId;
+            $q = "UPDATE Dashboard.Config_dashboard SET Config_dashboard.status_dashboard = '" . $dashboardNewStatus . "' WHERE Config_dashboard.Id = '" . $dashboardId . "'";
             $r = mysqli_query($link, $q);
             mysqli_close($link);
 
@@ -4466,7 +4540,7 @@
         {
             $id = mysqli_real_escape_string($link, $_POST['id']);
         
-            $q = "DELETE FROM Dashboard.DataSource WHERE intId = $id";
+            $q = "DELETE FROM Dashboard.DataSource WHERE intId = '" . $id . "'";
             $r = mysqli_query($link, $q);
 
             if($r) 
@@ -4498,7 +4572,7 @@
             $number_metrics_widget = mysqli_real_escape_string($link, $_POST['metricsNumber']);
 
             $q = "INSERT INTO Dashboard.Widgets(id_type_widget, source_php_widget, min_row, max_row, min_col, max_col, widgetType, unique_metric, number_metrics_widget) " .
-                 "VALUES('$id_type_widget', '$source_php_widget', $min_row, $max_row, $min_col, $max_col, " . returnManagedStringForDb($widgetType) . ", '$unique_metric', " . returnManagedNumberForDb($number_metrics_widget) . ")";
+                 "VALUES('$id_type_widget', '$source_php_widget', '$min_row', '$max_row', '$min_col', '$max_col', " . returnManagedStringForDb($widgetType) . ", '$unique_metric', " . returnManagedNumberForDb($number_metrics_widget) . ")";
             $r = mysqli_query($link, $q);
 
             if($r) 
@@ -4521,7 +4595,7 @@
         {
             $id = mysqli_real_escape_string($link, $_POST['id']);
         
-            $q = "DELETE FROM Dashboard.Widgets WHERE id = $id";
+            $q = "DELETE FROM Dashboard.Widgets WHERE id = '" . $id . "'";
             $r = mysqli_query($link, $q);
 
             if($r) 
@@ -4553,7 +4627,7 @@
             $unique_metric = mysqli_real_escape_string($link, $_POST['uniqueMetric']);
             $number_metrics_widget = mysqli_real_escape_string($link, $_POST['metricsNumber']);
 
-            $q = "UPDATE Dashboard.Widgets SET id_type_widget = '$id_type_widget', source_php_widget = '$source_php_widget', min_row = $min_row,  max_row = $max_row, min_col = $min_col, max_col = $max_col, widgetType = " . returnManagedStringForDb($widgetType) . ", unique_metric = '$unique_metric', number_metrics_widget = " . returnManagedNumberForDb($number_metrics_widget) . " WHERE id = $id";
+            $q = "UPDATE Dashboard.Widgets SET id_type_widget = '$id_type_widget', source_php_widget = '$source_php_widget', min_row = '$min_row',  max_row = '$max_row', min_col = '$min_col', max_col = '$max_col', widgetType = " . returnManagedStringForDb($widgetType) . ", unique_metric = '$unique_metric', number_metrics_widget = " . returnManagedNumberForDb($number_metrics_widget) . " WHERE id = '$id'";
             $r = mysqli_query($link, $q);
 
             if($r) 
@@ -4574,7 +4648,7 @@
         $zoomFactor = mysqli_real_escape_string($link, $_REQUEST['zoomFactorUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
-        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET zoomFactor = " . returnManagedNumberForDb($zoomFactor) . " WHERE Id = $idWidget";
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET zoomFactor = " . returnManagedNumberForDb($zoomFactor) . " WHERE Id = '" . $idWidget ."'";
         $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
@@ -4595,7 +4669,7 @@
         $scaleX = mysqli_real_escape_string($link, $_REQUEST['scaleXUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
-        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleX = " . returnManagedNumberForDb($scaleX) . " WHERE Id = $idWidget";
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleX = " . returnManagedNumberForDb($scaleX) . " WHERE Id = '" . $idWidget . "'";
         $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
@@ -4616,7 +4690,7 @@
         $scaleY = mysqli_real_escape_string($link, $_REQUEST['scaleYUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
-        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleY = " . returnManagedNumberForDb($scaleY) . " WHERE Id = $idWidget";
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET scaleY = " . returnManagedNumberForDb($scaleY) . " WHERE Id = '" . $idWidget . "'";
         $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
@@ -4637,7 +4711,7 @@
         $width = mysqli_real_escape_string($link, $_REQUEST['widthUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
-        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_columns = " . returnManagedNumberForDb($width) . " WHERE Id = $idWidget";
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_columns = " . returnManagedNumberForDb($width) . " WHERE Id = '" . $idWidget . "'";
         $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
@@ -4658,7 +4732,7 @@
         $height = mysqli_real_escape_string($link, $_REQUEST['heightUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
-        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_rows = " . returnManagedNumberForDb($height) . " WHERE Id = $idWidget";
+        $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET size_rows = " . returnManagedNumberForDb($height) . " WHERE Id = '" . $idWidget . "'";
         $resultQuery = mysqli_query($link, $upsqDbtb);
 
         if($resultQuery) 
@@ -4681,7 +4755,7 @@
             $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
             $updatedSeries = $_REQUEST['updatedLastSeries'];
 
-            $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET lastSeries = " . returnManagedStringForDb($updatedSeries) . " WHERE name_w = $widgetName";
+            $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET lastSeries = " . returnManagedStringForDb(escapeForSQL($updatedSeries, $link)) . " WHERE name_w = '" . $widgetName . "'";
             $resultQuery = mysqli_query($link, $upsqDbtb);
         }
         mysqli_close($link);
@@ -4694,7 +4768,7 @@
         {
             $newStatus = mysqli_real_escape_string($link, $_REQUEST['showHideDashboardHeader']);
             $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            $query = "UPDATE Dashboard.Config_dashboard SET headerVisible = $newStatus WHERE Id = $dashboardId";
+            $query = "UPDATE Dashboard.Config_dashboard SET headerVisible = '$newStatus' WHERE Id = '" . $dashboardId ."'";
             $result = mysqli_query($link, $query);
 
             if($result) 
@@ -4824,10 +4898,12 @@
                 {
                     case "environment.ini":
                         $newActiveEnv = $_REQUEST['activeEnvironment'];
+                        // CONTROLLARE IN SEGUITO
                         $fileOriginalContent["environment"]["value"] = $newActiveEnv;
                         break;
 
                     default:
+                        // CONTROLLARE IN SEGUITO
                         $dataFromForm = json_decode($_REQUEST['data']);
 
                         for($i = 0; $i < count($dataFromForm); $i++)
