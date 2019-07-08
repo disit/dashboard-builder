@@ -30,11 +30,13 @@ session_start();
 error_reporting(E_ALL);
 //set_error_handler("exception_error_handler");
 if (isset($REQUEST["getIcons"])) {
-    
-    $sql_array = $_REQUEST['sqlData'];
+
     $stop_flag = 1;
     
 }
+
+$link = mysqli_connect($host, $username, $password);
+error_reporting(E_ERROR | E_NOTICE);
 
 if (isset($_REQUEST["filterGlobal"])) {
 //if (!empty($_REQUEST["filterGlobal"]) && !empty($_REQUEST["value"])) {
@@ -42,9 +44,12 @@ if (isset($_REQUEST["filterGlobal"])) {
     $sql_where = $_REQUEST['filterGlobal'];
   
     $sql_distinct_field = $_REQUEST['distinctField'];
-    
-    $link = mysqli_connect($host, $username, $password);
-    error_reporting(E_ERROR | E_NOTICE);
+    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership") {
+    //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Force sql_distinct_field = 'high_level_type'");
+        eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Exit from script.");
+    //    $sql_distinct_field = "high_level_type";
+        exit();
+    }
     
     if (strpos($sql_where, "AND") == 1) {
         $sql_where_ok = explode("AND ", $sql_where.trim())[1];
@@ -55,6 +60,8 @@ if (isset($_REQUEST["filterGlobal"])) {
     if (empty($_REQUEST["filterGlobal"])) {
         $sql_where_ok = 1;
     }
+
+  //  $sql_where_escaped = escapeForSQL($sql_where_ok, $link);
         
     $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok." ORDER BY ".$sql_distinct_field." ASC;";
     //  $query = "SELECT * FROM Dashboard.DashboardWizard";
@@ -95,8 +102,20 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     
     $stopFlag = 1;
     $sql_filter_field = $_REQUEST['filterField'];
-    $sql_filter_value = $_REQUEST['value'];
+    if ($sql_filter_field != "high_level_type" && $sql_filter_field != "nature" && $sql_filter_field != "sub_nature" && $sql_filter_field != "low_level_type" && $sql_filter_field != "unit" && $sql_filter_field != "unique_name_id" && $sql_filter_field != "healthiness" && $sql_filter_field != "ownership") {
+      //  eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter_field '".$sql_filter_field."' is not an allowed value. Force sql_filter_field = 'high_level_type'");
+        eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter_field '".$sql_filter_field."' is not an allowed value. Exit from script.");
+      //  $sql_filter_field = "high_level_type";
+        exit();
+    }
+    $sql_filter_value = escapeForSQL($_REQUEST['value'], $link);
     $sql_distinct_field = $_GET['filter'];
+    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership") {
+    //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Force sql_distinct_field = 'high_level_type'");
+        eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Exit from script.");
+    //    $sql_distinct_field = "high_level_type";
+        exit();
+    }
     
     $link = mysqli_connect($host, $username, $password);
     error_reporting(E_ERROR | E_NOTICE);
@@ -138,7 +157,16 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
 if (!empty($_REQUEST["filterDistinct"])) {
 
         $sql_filter = $_GET['filter'];
+        if ($sql_filter != "high_level_type" && $sql_filter != "nature" && $sql_filter != "sub_nature" && $sql_filter != "low_level_type" && $sql_filter != "unit" && $sql_filter != "unique_name_id" && $sql_filter != "healthiness" && $sql_filter != "ownership") {
+        //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter '".$sql_filter."' is not an allowed value. Force sql_filter = 'high_level_type'");
+            eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter '".$sql_filter."' is not an allowed value. Exit from script.");
+        //    $sql_filter = "high_level_type";
+            exit();
+        }
         $org = $_GET['filterOrg'];
+        $link = mysqli_connect($host, $username, $password);
+      //  $sql_filter = escapeForSQL($sql_filter, $link);     // $link OK
+        $org = escapeForSQL($org, $link);
         
         if (strcmp($sql_filter, "High-Level Type") == 0) {
             
@@ -544,52 +572,6 @@ if(isset($_REQUEST['getDashboardWizardData']))
     echo json_encode($result);
 }
 
-if(isset($_REQUEST['getDashboardWizardDataFiltered']))  {
-    
-    if (!empty($_REQUEST["filter"])) {
-        session_start();
-        $sql_filter = $_REQUEST["filter"];
-        
-     //   echo ($sql_filter);
-        
-        $link = mysqli_connect($host, $username, $password);
-        error_reporting(E_ERROR | E_NOTICE);
-
-        $query = "SELECT * FROM Dashboard.DashboardWizard WHERE ".$sql_filter;
-        
-        $rs = mysqli_query($link, $query);
-
-        $result = [];
-
-        if($rs) 
-        {
-            $result['table'] = [];
-            while($row = mysqli_fetch_assoc($rs)) 
-            {
-                array_push($result['table'], $row);
-            }
-
-            //Eliminiamo i duplicati
-            $result = array_unique($result);
-            mysqli_close($link);
-            $result['detail'] = 'Ok';
-
-        } 
-        else 
-        {
-            mysqli_close($link);
-            $result['detail'] = 'Ko';
-        }
-    } else {
-        
-        
-    }
-    
-    echo json_encode($result);
-    $flag = 1;
-    
-}
-
 if(isset($_REQUEST['getDashboardWizardIcons'])) 
 {
     $link = mysqli_connect($host, $username, $password);
@@ -630,7 +612,14 @@ if(isset($_REQUEST['updateWizardIcons']))
     $link = mysqli_connect($host, $username, $password);
     error_reporting(E_ERROR | E_NOTICE);
     $sql_field = $_GET["filterField"];
-    $sql_value = $_GET["filterValue"];
+    if ($sql_field != "high_level_type" && $sql_field != "nature" && $sql_field != "sub_nature" && $sql_field != "low_level_type" && $sql_field != "unit" && $sql_field != "unique_name_id" && $sql_field != "healthiness" && $sql_field != "ownership") {
+     //   eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_field '".$sql_field."' is not an allowed value. Force sql_field = 'high_level_type'");
+        eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_field '".$sql_field."' is not an allowed value. Exit from script.");
+     //   $sql_field = "high_level_type";
+        exit();
+    }
+
+    $sql_value = escapeForSQL($_GET["filterValue"], $link);
     
     $query_out = "SELECT DISTINCT unit FROM Dashboard.DashboardWizard WHERE ".$sql_field ." LIKE '".$sql_value."';";
 
@@ -776,8 +765,8 @@ if(isset($_REQUEST["initWidgetWizard"])) {
         $privateString = "";
         $privatePOIsGraphId = [];
 
-        $dashLoggedUsername = $_GET['dashUsername'];
-        $dashUserRole = $_GET['dashUserRole'];
+        $dashLoggedUsername = $_SESSION['loggedUsername'];
+        $dashUserRole = $_SESSION['loggedRole'];
         
         $ldapUsername = "cn=" . $_SESSION['loggedUsername'] . "," . $ldapBaseDN;
         $ds = ldap_connect($ldapServer, $ldapPort);
