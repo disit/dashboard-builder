@@ -26,6 +26,10 @@ and open the template in the editor.
                     
                     $varA = $_REQUEST['nameDash'];
                     $idDash=$_REQUEST['idDash'];
+                     if (checkVarType($idDash, "integer") === false) {
+                         eventLog("Returned the following ERROR in chatAdd.php for idDash = ".$idDash.": ".$idDash." is not an integer as expected. Exit from script.");
+                         exit();
+                     };
                     $nameGroup=str_replace(" ", "",strtolower($_REQUEST['nameDash']));
                     $idGroup="";
                     
