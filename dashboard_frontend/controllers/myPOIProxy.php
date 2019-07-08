@@ -35,6 +35,12 @@ function udate($format = 'u', $microT) {
 
 if (isset($_GET['myPOIId'])) {
     $myPOIId = $_GET['myPOIId'];
+    if (checkVarType($myPOIId, "integer") === false) {
+        if ($myPOIId !== "All") {
+            eventLog("Returned the following ERROR in myPOIProxy.php for myPOIId = " . $myPOIId . ": " . $myPOIId . " is not an integer as expected. Exit from script.");
+            exit();
+        }
+    };
 } else {
     $myPOIId = "";
 }
@@ -69,9 +75,12 @@ if(isset($_SESSION['refreshToken'])) {
 
     $myKpiDataArray = [];
     if ($myPOIId != "All") {
+      //  $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/" . $myPOIId . "/?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . urlencode($myPOITimeRange) . urlencode($lastValueString);
         $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/" . $myPOIId . "/?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . $myPOITimeRange . $lastValueString;
     } else {
+    //    $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&highLevelType=MyPOI" . urlencode($myPOITimeRange) . urlencode($lastValueString);
         $apiUrl = $personalDataApiBaseUrl . "/v1/poidata/?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&highLevelType=MyPOI" . $myPOITimeRange . $lastValueString;
+   //     $apiUrlDelegated = $personalDataApiBaseUrl . "/v1/poidata/delegated?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . urlencode($myPOITimeRange) . urlencode($lastValueString);
         $apiUrlDelegated = $personalDataApiBaseUrl . "/v1/poidata/delegated?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . $myPOITimeRange . $lastValueString;
         $optionsDelegated = array(
             'http' => array(
