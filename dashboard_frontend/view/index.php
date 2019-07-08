@@ -19,15 +19,19 @@
    
    //Va studiata una soluzione, per ora tolto error reporting
    error_reporting(0);
-   
-   $dashId = base64_decode($_REQUEST['iddasboard']);
-   
    session_start();
+
+   $dashId = escapeForJS(base64_decode($_REQUEST['iddasboard']));
+   if (checkVarType($dashId, "integer") === false) {
+        eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. USER = " . $_SESSION['loggedUsername'] . ". Exit from script.");
+        exit();
+   };
+
 
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     
-    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = $dashId";
+    $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = '$dashId'";
     $queryResult = mysqli_query($link, $query);
     
     if(isset($_REQUEST['embedPolicy']))
@@ -66,6 +70,7 @@
             header("Location: dashboardNotAvailable.php");
             exit();
         }
+
         else
         {
             if(!isset($_SESSION['loggedUsername']))
@@ -281,10 +286,9 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             var firstLoad = true;
             var loggedUserFirstAttempt = true;
             var myGpsActive, myGpsPeriod, myGpsInterval, globalDashboardTitle = null, backOverlayOpacity = null;
-            var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo $_REQUEST['embedPreview'];}else{echo 'false';} ?>";
+            var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo escapeForJS($_REQUEST['embedPreview']);}else{echo 'false';} ?>";
             var loggedUsername = "<?php echo $_SESSION['loggedUsername']; ?>";
 
-            
             $("#chatContainer").css("top", $('#dashboardViewHeaderContainer').height());
             $("#chatContainer").css("left", $(window).width() - $('#chatContainer').width());
             //$("#chatContainer").css("left", $('#dashboardViewHeaderContainer').width() + $('#logos').width() - $('#chatContainer').width());
@@ -364,7 +368,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                             $userId='Id';
                             $link = mysqli_connect($host, $username, $password);
                             mysqli_select_db($link, $dbname);
-                            $query = "SELECT user,name_dashboard FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id =".base64_decode($_REQUEST['iddasboard']);
+                            $query = "SELECT user,name_dashboard FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = '".base64_decode(escapeForSQL($_REQUEST['iddasboard'], $link))."'";
                             $queryResult = mysqli_query($link, $query);
                             $row = mysqli_fetch_array($queryResult);
                             $userPro=$row["user"];
@@ -653,7 +657,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 {
                     if(window.self !== window.top)
                     {
-                        if(('<?php echo $embedPolicy; ?>' === 'auto')||(('<?php echo $embedPolicy; ?>' !== 'auto')&&('<?php echo $embedAutofit; ?>' === 'yes')))
+                        if(('<?php echo escapeForJS($embedPolicy); ?>' === 'auto')||(('<?php echo escapeForJS($embedPolicy); ?>' !== 'auto')&&('<?php echo escapeForJS($embedAutofit); ?>' === 'yes')))
                         {
                             $('#autofitAlert').css("width", $(window).width());
                             $('#autofitAlert').css("height", $(window).height());
@@ -702,7 +706,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 
                 $('body').removeClass("dashboardViewBodyAuth");
                 
-                dashboardId = <?= base64_decode($_GET['iddasboard']) ?>;
+                dashboardId = <?= escapeForJS(base64_decode($_GET['iddasboard'])) ?>;
                 dashboardName = dashboardParams.name_dashboard;
                 dashboardOrg = dashboardParams.organizations;
                 logoFilename = dashboardParams.logoFilename;
@@ -878,14 +882,14 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                else
                {
                     //Controllo mostrare/nascondere header in modalità embedded
-                    if('<?php echo $embedPolicy; ?>' === 'auto')
+                    if('<?php echo escapeForJS($embedPolicy); ?>' === 'auto')
                     {
                         $("#dashboardViewHeaderContainer").hide();
                         $("#dashboardViewHeaderContainer").css("margin-bottom", "0px");
                     }
                     else
                     {
-                        if('<?php echo $showHeaderEmbedded; ?>' === 'no')
+                        if('<?php echo escapeForJS($showHeaderEmbedded); ?>' === 'no')
                         {
                             $("#dashboardViewHeaderContainer").hide();
                             $("#dashboardViewHeaderContainer").css("margin-bottom", "0px");
@@ -958,7 +962,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     {
                         embedWidget = false;
                     }
-                    embedWidgetPolicy = '<?php echo $embedPolicy; ?>';
+                    embedWidgetPolicy = '<?php echo escapeForJS($embedPolicy); ?>';
                     
                     dashboardWidgets[i].time = time;
                     dashboardWidgets[i].embedWidget = embedWidget;
@@ -973,7 +977,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 
                 if(('<?php echo $embeddable; ?>' === 'yes')&&(window.self !== window.top))
                 {
-                    if('<?php echo $embedPolicy; ?>' === 'auto')
+                    if('<?php echo escapeForJS($embedPolicy); ?>' === 'auto')
                     {
                         //Cambia logo se embedded in sito diverso dal dashboard manager
                         if(!document.referrer.includes(window.self.location.host)||((embedPreview === 'true')&&(document.referrer.includes(window.self.location.host))))
@@ -1098,7 +1102,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                         }
                         
                         //Autofit in modalità manuale
-                        if('<?php echo $embedAutofit; ?>' === 'yes')
+                        if('<?php echo escapeForJS($embedAutofit); ?>' === 'yes')
                         {
                             $('#wrapper-dashboard').css("width", $('#wrapper-dashboard').width() - 40);
                             $('#page-wrapper div.container-fluid').css('padding-left', '0px');
@@ -1206,7 +1210,6 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                             type: "POST",
                             data: {
                                 httpRelativeUrl: encodeURI(globalDashboardTitle),
-                                //username: "<?= $_REQUEST['username'] ?>",
                                 dashboardTitle: encodeURI(globalDashboardTitle),
                                 gpsData: JSON.stringify({
                                     latitude: position.coords.latitude,
@@ -1275,7 +1278,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     //Lasciare il vecchio refuso "iddasboard" per non cambiare i link
                     data: 
                     { 
-                        dashboardId: <?= base64_decode($_GET['iddasboard']) ?>,
+                        dashboardId: <?= escapeForJS(base64_decode($_GET['iddasboard'])) ?>,
                         username: $("#username").val(),
                         password: $("#password").val(),
                         loggedUserFirstAttempt: loggedUserFirstAttempt
@@ -1367,7 +1370,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                                         $('#authFormDarkBackground').show();
                                         $('#authFormContainer').show();
                                         $("#authBtn").click(authUser); */
-                                        location.href = "../management/viewLogout.php?dashboardId=<?= $_REQUEST['iddasboard']?>";
+                                        location.href = "../management/viewLogout.php?dashboardId=<?= escapeForJS($_REQUEST['iddasboard'])?>";
                                         break;
 
                                     /*case "Ko": 
@@ -1422,7 +1425,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
 
             $.getJSON('../controllers/dashDailyAccessController.php?updateHour=true',
                 {
-                    dashId: <?= base64_decode($_GET['iddasboard']) ?>
+                    dashId: <?= escapeForJS(base64_decode($_GET['iddasboard'])) ?>
                 },
                 function (data) {
 
