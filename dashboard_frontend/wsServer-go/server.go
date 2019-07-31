@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -143,6 +144,7 @@ func buildAndInit() *WebSocketServer {
 	a = wsServerContent.Sections()
 	wss.serverAddress = a[0].Key("wsServerAddress[" + wss.activeEnv + "]").String()
 	wss.serverPort = a[0].Key("wsServerPort[" + wss.activeEnv + "]").String()
+	wss.validOrigins = a[0].Key("validOrigins[" + wss.activeEnv + "]").String()
 
 	a = ssoFileContent.Sections()
 	wss.clientSecret = a[0].Key("ssoClientSecret[" + wss.activeEnv + "]").String()
@@ -222,7 +224,8 @@ func (manager *ClientManager) start() {
 // handler che fà l'upgrade a websocket, reindirizza i client alla registrazione e lancia le routine di read e write.
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
-	clientIP := FromRequest(r)
+	clientIP, origin := FromRequest(r)
+	validOrigin := strings.Contains(ws.validOrigins, origin)
 	conn, err := (&upgrader).Upgrade(w, r, nil)
 	if err != nil {
 
@@ -230,7 +233,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	client := &WebsocketUser{id: uuid.Must(uuid.NewV4()).String(), socket: conn, send: make(chan []byte), clientIp: clientIP}
+	client := &WebsocketUser{id: uuid.Must(uuid.NewV4()).String(), socket: conn, send: make(chan []byte), clientIp: clientIP, validOrigin: validOrigin}
 	log.Print(client.clientIp)
 	manager.register <- client
 
@@ -553,6 +556,9 @@ loop:
 // funzione per il publish su redis.
 
 func publish(msg []byte, channel string) {
+	if ws.redisEnabled != "yes" {
+		return
+	}
 	if channel == "default" {
 		channel = "newData"
 	}
