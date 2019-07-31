@@ -26,13 +26,14 @@ session_start();
 
 $response = [];
 
-if(!isset($_REQUEST['name'])) {
+$name = filter_input(INPUT_GET, 'name');
+if($name===NULL) {
   exit;
 }
 
-$type = 'basic';
-if(isset($_REQUEST['type'])) {
-  $type = $_REQUEST['type'];
+$type = filter_input(INPUT_GET, 'type', FILTER_SANITIZE_STRING);
+if($type===NULL) {
+  $type = 'basic';
 }
 
 if (isset($_SESSION['refreshToken'])) {
@@ -45,19 +46,21 @@ if (isset($_SESSION['refreshToken'])) {
   $_SESSION['refreshToken'] = $tkn->refresh_token;
   //echo $_SESSION['refreshToken'];
 
-  if($type=='portia')
-    $json = http_get($iotAppApiBaseUrl."/v1/?op=new_portia&name=".urlencode($_REQUEST['name'])."&accessToken=" . $accessToken);
-  else
-    $json = http_get($iotAppApiBaseUrl."/v1/?op=new_nodered&name=".urlencode($_REQUEST['name'])."&type=".urlencode($type)."&accessToken=" . $accessToken);
+  if ($type == 'portia') {
+    $json = http_get($iotAppApiBaseUrl . "/v1/?op=new_portia&name=" . urlencode($name) . "&accessToken=" . $accessToken);
+  } else {
+    $json = http_get($iotAppApiBaseUrl . "/v1/?op=new_nodered&name=" . urlencode($name) . "&type=" . urlencode($type) . "&accessToken=" . $accessToken);
+  }
   if ($json['httpcode'] == 200 && !isset($json['result']["error"])) {
     $response['detail'] = 'Ok';
     $response['result'] = $json['result'];
   } else {
     $response['detail'] = 'Ko';
-    if(isset($json['result']["error"]["error"]))
+    if (isset($json['result']["error"]["error"])) {
       $response['error'] = $json['result']["error"]["error"];
-    else
+    } else {
       $response['error'] = $json['result']["error"];
+    }
   }
 } else {
   $response['detail'] = 'Ko';
@@ -79,8 +82,9 @@ function http_get($url) {
   # Get the response (you can use this for GET)
   $result = file_get_contents($url, false, $context);
   $json_result = json_decode($result, true);
-  if($json_result===null || $json_result===false)
+  if ($json_result === null || $json_result === false) {
     $json_result = json_encode($result, true);
+  }
   //var_dump($http_response_header);
   return array("httpcode" => explode(" ", $http_response_header[0])[1], "result" => $json_result, "url"=>$url);
 }
