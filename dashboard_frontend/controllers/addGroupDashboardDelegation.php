@@ -23,6 +23,8 @@ error_reporting(E_ERROR | E_NOTICE);
 date_default_timezone_set('Europe/Rome');
 
 session_start();
+checkSession('Manager');
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
@@ -30,11 +32,16 @@ $response = [];
 
 if(isset($_SESSION['loggedUsername']))
 {
-    $dashboardId = $_REQUEST['dashboardId'];
+    $dashboardId = escapeForSQL($_REQUEST['dashboardId'], $link);
     if (checkVarType($dashboardId, "integer") === false) {
         eventLog("Returned the following ERROR in addGroupDashboardDelegation.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
         exit();
     }
+    if(!checkDashboardId($link, $dashboardId)) {
+        eventLog("invalid request for updateDashboard.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
+        exit;
+    }
+    
     $newDelegated = $_REQUEST['newDelegated'];
 
     $ds = ldap_connect($ldapServer, $ldapPort);
