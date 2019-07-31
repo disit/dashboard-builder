@@ -237,3 +237,45 @@
 {
     height: 100%;
 }
+
+.footerNavMenu
+{
+    display:inline-block !important
+}
+
+.footerNavTitle
+{
+    margin-top: -10px;
+    margin-bottom: 0px;
+    font-size: 20px;
+}
+
+#footNavMenu {
+    width:100%;
+}
+
+#leftFooterNavMenu {
+    float:left;
+}
+
+#centerFooterNavMenu {
+    margin:0 auto;
+}
+
+#rightFooterNavMenu {
+    float:right;
+}
+
+/* Three image containers (use 25% for four, and 50% for two, etc) */
+.footerNavColumn {
+    float: left;
+    width: 33.33%;
+    padding: 15px;
+}
+
+/* Clear floats after image containers */
+.footerNavRow::after {
+    content: "";
+    clear: both;
+    display: table;
+}
