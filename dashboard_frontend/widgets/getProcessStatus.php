@@ -13,19 +13,35 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+    include '../config.php';
     if(isset($_REQUEST['action']) && !empty($_REQUEST['action'])) 
     {
-        $host = addslashes($_REQUEST['host']);
-        $user = addslashes($_REQUEST['user']);
-        $pass = addslashes($_REQUEST['pass']); 
-        $action = addslashes($_REQUEST['action']);
-        $jobName = addslashes($_REQUEST['jobName']);
-        $dbName = 'quartz';
-        
-        $link = mysqli_connect($host, $user, $pass) or die("Failed to connect to server");
+        $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
+        $dbName = 'Dashboard';
         mysqli_set_charset($link, 'utf8');
         mysqli_select_db($link, $dbName);
-        
+
+        $action = addslashes($_REQUEST['action']);
+        $jobName = mysqli_real_escape_string($link, $_REQUEST['jobName']);
+        $schedulerName = mysqli_real_escape_string($link, $_REQUEST['scheduler']);
+
+        $querySched = "SELECT * FROM Dashboard.Schedulers WHERE name = '$schedulerName'";
+        $resultSched = mysqli_query($link, $querySched) or die(mysqli_error($link));
+        $resultArraySched = array();
+
+        if($resultSched->num_rows > 0) {
+            if ($rowSched = mysqli_fetch_array($resultSched)) {
+                $hostSched = $rowSched['ip'];
+                $userSched = $rowSched['user'];
+                $passSched = $rowSched['pass'];
+            }
+        }
+
+        $dbName = 'quartz';
+        $link = mysqli_connect($hostSched, $userSched, $passSched) or die("Failed to connect to server");
+        mysqli_set_charset($link, 'utf8');
+        mysqli_select_db($link, $dbName);
+
         header("Content-type: application/json");
         
         switch ($action)
