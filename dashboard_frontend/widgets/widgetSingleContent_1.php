@@ -49,15 +49,9 @@
 <script type='text/javascript'>
     $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $name_w2))?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId)  
     {
+        console.log('entro in widgetsinglecontent_1');
         <?php
-            $titlePatterns = array();
-            $titlePatterns[0] = '/_/';
-            $titlePatterns[1] = '/\'/';
-            $replacements = array();
-            $replacements[0] = ' ';
-            $replacements[1] = '&apos;';
-            $title = $title2;
-            $hostfile="config";
+
         ?>
         console.log('entro in widgetsinglecontent_1');               
         var headerHeight = 25;
@@ -132,7 +126,7 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $frame_color_w1 ?>", "<?= $headerFontColor1 ?>", false, null, null, null, null, /*null,*/ null, null, null);
+                <?= str_replace('.', '_', str_replace('-', '_', $name_w2)) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $frame_color_w1 ?>", "<?= $headerFontColor1 ?>", false, null, null, null, null, /*null,*/ null, null, null);
             }
         });
 
