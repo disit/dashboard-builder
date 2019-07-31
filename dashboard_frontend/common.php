@@ -202,21 +202,37 @@ function checkSession($role, $redirect = '') {
   }
 }
 
-function checkDashboardId($link, $id, $user) {
-  if(isset($_SESSION['loggedRole']) && $_SESSION['loggedUsername']=='RootAdmin')
+function checkDashboardId($link, $id, $user = NULL) {
+  if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole']=='RootAdmin')
     return true;
   
   if(!isset($user)) {
     $user = $_SESSION['loggedUsername'];
   }
-  $r = mysqli_query($link, "SELECT Id FROM Dashboard.Config_dashboard WHERE Id = $id AND user='$user'");
+  $r = mysqli_query($link, "SELECT Id FROM Dashboard.Config_dashboard WHERE Id = '$id' AND user='$user'");
   if($r && mysqli_num_rows($r)>0)
     return true;
   return false;
 }
 
+function checkWidgetName($link, $wname, $user = NULL) {
+  if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole']=='RootAdmin')
+    return true;
+  
+  if(!isset($user)) {
+    $user = $_SESSION['loggedUsername'];
+  }
+  $result = mysqli_query($link, "SELECT COUNT(*) FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON w.id_dashboard=d.Id WHERE user='".$_SESSION['loggedUsername']."' and name_w = '$wname'");
+  if(mysqli_fetch_array($result)[0]>0) {
+      return true;
+  }
+  return false;
+}
+
 function escapeForJS($varToBeEscaped) {
-    return addslashes($varToBeEscaped);
+    $varEscaped1 =  preg_replace("/<\\/?script[^>]*>/", "", $varToBeEscaped);
+    $varEescaped = addslashes($varEscaped1);
+    return addslashes($varEescaped);
 }
 
 function escapeForHTML($varToBeEscaped) {
@@ -330,4 +346,93 @@ function eventLogReq($msgArray)
     $fHandler=fopen("../logs/".$stCurLogFileName,'a+');
     fwrite($fHandler,$string);
     fclose($fHandler);
+}
+
+function sanitizeTitle($title)
+{
+    $titlePatterns = array();
+    $titlePatterns[0] = '/_/';
+    $titlePatterns[1] = '/\'/';
+    $replacements = array();
+    $replacements[0] = ' ';
+    $replacements[1] = '&apos;';
+    $title = preg_replace($titlePatterns, $replacements, $title);
+    $new_title =  filter_var(html_entity_decode($title, ENT_QUOTES|ENT_HTML5), FILTER_SANITIZE_STRING);
+    return $new_title;
+}
+
+function sanitizeString($reqParameter) {
+    $sanitizedParam = $reqParameter;
+    if (sanitizePostString($reqParameter) == null) {
+        $sanitizedParam = sanitizeGetString($reqParameter);
+    } else {
+        $sanitizedParam = sanitizePostString($reqParameter);
+    }
+    return $sanitizedParam;
+}
+
+function sanitizeInt($reqParameter) {
+    $sanitizedParam = $reqParameter;
+    if (sanitizePostInt($reqParameter) == null) {
+        $sanitizedParam = sanitizeGetInt($reqParameter);
+    } else {
+        $sanitizedParam = sanitizePostInt($reqParameter);
+    }
+    return $sanitizedParam;
+}
+
+function sanitizeFloat($reqParameter) {
+    $sanitizedParam = $reqParameter;
+    if (sanitizePostFloat($reqParameter) == null) {
+        $sanitizedParam = sanitizeGetFloat($reqParameter);
+    } else {
+        $sanitizedParam = sanitizePostFloat($reqParameter);
+    }
+    return $sanitizedParam;
+}
+
+function sanitizePostString($var) {
+    return filter_input(INPUT_POST, $var, FILTER_SANITIZE_STRING);
+}
+
+function sanitizeGetString($var) {
+    return filter_input(INPUT_GET, $var, FILTER_SANITIZE_STRING);
+}
+
+function sanitizePostInt($var) {
+    return filter_input(INPUT_POST, $var, FILTER_SANITIZE_NUMBER_INT);
+}
+
+function sanitizeGetInt($var) {
+    return filter_input(INPUT_GET, $var, FILTER_SANITIZE_NUMBER_INT);
+}
+
+function sanitizePostFloat($var) {
+    return filter_input(INPUT_POST, $var, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+}
+
+function sanitizeGetFloat($var) {
+    return filter_input(INPUT_GET, $var, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+}
+
+function sanitizeJson($jsonVar) {
+  /*  $titlePatterns = array();
+    $titlePatterns[0] = '/_/';
+    $titlePatterns[1] = '/\'/';
+    $titlePatterns[2] = '/<\/?script>/';
+    $replacements = array();
+    $replacements[0] = ' ';
+    $replacements[1] = '&apos;';
+    $replacements[2] = '';*/
+ //   $jsonVarSanitized = preg_replace($titlePatterns, $replacements, $jsonVar);
+ //   $jsonVarSanitized =  preg_replace('/<\/?script>/', '', $jsonVar);
+    $jsonVarSanitized = strip_tags($jsonVar);
+ //   $jsonVarSanitized = html_entity_decode(filter_var($jsonVar, FILTER_SANITIZE_STRING));
+    return $jsonVarSanitized;
+}
+
+function sanitizeJsonRelaxed($jsonVar) {
+
+    $jsonVarSanitized =  preg_replace("/<\\/?script[^>]*>/", "", $jsonVar);
+    return $jsonVarSanitized;
 }
