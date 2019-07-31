@@ -77,7 +77,6 @@
         var embedWidgetPolicy = 'auto';	
         var headerHeight = 25;
         var needWebSocket = false;
-    //    var loggedRole = "<?php echo $_SESSION['loggedRole'] ?>";
         var loggedOrg = "<?php echo $_SESSION['loggedOrganization'] ?>";
         var orgKbUrl = "<?php echo $_SESSION['orgKbUrl'] ?>";
         var orgCentreGpsCoords = "<?php echo $_SESSION['orgGpsCentreLatLng'] ?>";
@@ -145,7 +144,7 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $frame_color_w1 ?>", "<?= $headerFontColor1 ?>", false, null, null, null, null, null, null);
+                <?= str_replace('.', '_', str_replace('-', '_', $name_w)) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $frame_color_w1 ?>", "<?= $headerFontColor1 ?>", false, null, null, null, null, null, null);
             }
         });
 
@@ -1230,13 +1229,7 @@
                         break;
                 }
 
-              //  if (dashboardOrg != null || dashboardOrg != undefined) {
-
-              //  }
-
-            //    if (loggedRole == "RootAdmin") {
-                    dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
-             //   }
+                dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
 
                 $.ajax({
                  //   url: orgKbUrl + "?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
