@@ -27,6 +27,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad)
     {
+        <?php
+        $link = mysqli_connect($host, $username, $password);
+        if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+            eventLog("Returned the following ERROR in widgetProtezioneCivileFirenze.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+            exit();
+        }
+        ?>
         var content, permalink, idWidget, idDash, idraulicoSrc, idraulicoLoc, temporaliSrc, temporaliLoc, idrogeologicoSrc,
             idrogeologicoLoc, neveSrc, neveLoc, ghiaccioSrc, ghiaccioLoc, ventoSrc, ventoLoc, mareSrc, mareLoc, maxAlarmDeg, descW,
             sizeRowsWidget, styleParameters, genTabFontSize, genTabFontColor, meteoTabFontSize, descWPerc, iconDim, rowHeightPerc,
