@@ -23,7 +23,8 @@
 
    $dashId = escapeForJS(base64_decode($_REQUEST['iddasboard']));
    if (checkVarType($dashId, "integer") === false) {
-        eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. USER = " . $_SESSION['loggedUsername'] . ". Exit from script.");
+   //     eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. USER = " . $_SESSION['loggedUsername'] . ". Exit from script.");
+        eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
         exit();
    };
 
@@ -1473,15 +1474,66 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         <div id="dashboardViewWidgetsContainer" class="gridster">
             <ul id="gridsterUl"></ul>            
         </div>
-        
-        
-        <div id="logos" class="footerLogos">
+
+      <!--  <div class="text-center">
+            <div class="container">
+                    <ul class="menu nav">
+                        <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/49" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Privacy Policy</a></li>
+                        <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/48" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Cookies Policy</a></li>
+                        <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/legal" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Terms and Conditions</a></li>
+                        <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/contact" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Contact us</a></li>
+                    </ul>
+            </div>
+        </div>
+
+        <div id="logos" class="footerLogos">    -->
             <!--<a title="Logout from this dashboard" href="#" class="footerLogo"><i id="viewLogoutBtn" class="fa fa-sign-out"></i></a>-->
-            <a title="Disit" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" /></a>
+       <!--     <div>
+                <a title="Disit" style="height:55px" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" /></a>
+            </div>
             <div id="embedAutoLogoContainer">
                 <a title="Km4City" href="https://www.km4city.org" target="_new"><img id="embedAutoLogo" src="../img/PoweredByKm4City1Line.png" /></a>
             </div>
+        </div>  -->
+        <hr style="height:1px;width:75%;border:none;color:#333;background-color:#333;margin-bottom:-10px;" />
+        <div class="footerNavRow">
+            <div class="footerNavColumn">
+                <!-- empty -->
+            </div>
+            <div class="footerNavColumn">
+                <ul class="menu nav">
+                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/49" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Privacy Policy</a></li>
+                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/48" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Cookies Policy</a></li>
+                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/legal" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Terms and Conditions</a></li>
+                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/contact" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Contact us</a></li>
+                </ul>
+            </div>
+            <div class="footerNavColumn">
+                <div style="width:68%;float:right;">
+                <a title="Disit" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" alt="Mountains" style="width:100%"></a>
+                </div>
+            </div>
         </div>
+
+        <!-- CENTRATURA DEL FOOTER CON I LOGHI -->
+    <!--    <div id="footNavMenu">
+            <div id="leftFooterNavMenu">
+            </div>
+            <div id="centerFooterNavMenu">
+                <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/49" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Privacy Policy</a></li>
+                <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/48" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Cookies Policy</a></li>
+                <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/legal" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Terms and Conditions</a></li>
+                <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/contact" target="_blank" style="color:black;font-weight: bold;margin-right: 20px;" title="">Contact us</a></li>
+            </div>
+            <div id="rightFooterNavMenu">   -->
+                <!--<a title="Logout from this dashboard" href="#" class="footerLogo"><i id="viewLogoutBtn" class="fa fa-sign-out"></i></a>-->
+         <!--       <a title="Disit" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" /></a>
+            </div>
+            <div id="embedAutoLogoContainer">
+                <a title="Km4City" href="https://www.km4city.org" target="_new"><img id="embedAutoLogo" src="../img/PoweredByKm4City1Line.png" /></a>
+            </div>
+        </div>  -->
+
     </div>
     
     <div id="chatContainer" data-status="closed">
