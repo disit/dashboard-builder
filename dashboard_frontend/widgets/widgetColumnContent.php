@@ -31,13 +31,11 @@
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId) 
     {
         <?php
-            $titlePatterns = array();
-            $titlePatterns[0] = '/_/';
-            $titlePatterns[1] = '/\'/';
-            $replacements = array();
-            $replacements[0] = ' ';
-            $replacements[1] = '&apos;';
-            $title = $_REQUEST['title_w'];
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetColumnContent.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
         ?> 
                 
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
@@ -107,7 +105,7 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= $_REQUEST['name_w'] ?>_content").hide();
-                <?= $_REQUEST['name_w'] ?>(true, metricName, "<?= preg_replace($titlePatterns, $replacements, $title) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null);
+                <?= $_REQUEST['name_w'] ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null);
             }
         });
 		
@@ -721,7 +719,7 @@
                 if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                 {
                     metricName = "<?= $_REQUEST['id_metric'] ?>";
-                    widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+                    widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
                     widgetHeaderColor = widgetData.params.frame_color_w;
                     widgetHeaderFontColor = widgetData.params.headerFontColor;
                 }
