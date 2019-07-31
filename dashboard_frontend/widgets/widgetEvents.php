@@ -31,6 +31,11 @@
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetEvents.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
         ?> 
         var scroller, widgetProperties, styleParameters, icon, serviceUri, 
             eventName, eventType, newRow, newIcon, eventContentW, widgetTargetList, backgroundTitleClass, backgroundFieldsClass,
@@ -1578,7 +1583,6 @@
         }
         
         //addLink(widgetName, url, linkElement, divContainer, null);
-        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
         //widgetProperties = getWidgetProperties(widgetName);
         
         $.ajax({
@@ -1612,7 +1616,6 @@
                     }
 
                     $.ajax({
-                       //url: "../widgets/curlProxy.php?url=<?=$serviceMapUrlPrefix?>api/v1/events/?range=month",
                        url: "<?=$serviceMapUrlPrefix?>api/v1/nextPOS/?categories=Event&range=month",
                        type: "GET",
                        async: true,
