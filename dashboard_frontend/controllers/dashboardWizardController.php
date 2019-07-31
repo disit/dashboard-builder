@@ -27,7 +27,7 @@ $ssoEndpoint = $ssoContent["ssoEndpoint"][$genFileContent['environment']['value'
 session_start();
 
 //Te la gestisci in base al grado di gestione d'errore che ti serve
-error_reporting(E_ALL);
+//error_reporting(E_ALL);
 //set_error_handler("exception_error_handler");
 if (isset($REQUEST["getIcons"])) {
 
@@ -36,12 +36,86 @@ if (isset($REQUEST["getIcons"])) {
 }
 
 $link = mysqli_connect($host, $username, $password);
-error_reporting(E_ERROR | E_NOTICE);
+//error_reporting(E_ERROR | E_NOTICE);
+error_reporting(E_ERROR);
 
-if (isset($_REQUEST["filterGlobal"])) {
+// if (isset($_REQUEST["filterGlobal"])) {
+if (isset($_REQUEST["globalSqlFilter"])) {
 //if (!empty($_REQUEST["filterGlobal"]) && !empty($_REQUEST["value"])) {
 
-    $sql_where = $_REQUEST['filterGlobal'];
+    if (isset($_REQUEST["filterGlobal"])) {
+        $sql_where = $_REQUEST['filterGlobal'];
+    } else {
+        $sql_where = "";
+    }
+    $freezeMap = $_REQUEST['freezeMap'];
+ //   $orgFilter = $_REQUEST['orgFilter'];
+  //  $noneSelectedFlagWithGeoFilter = $_REQUEST['noneSelectedFlagWithGeoFilter'];
+
+    $whereString = "";
+    $nActive = $_REQUEST['nActive'];
+    if (checkVarType($nActive, "integer") === false) {
+        //     eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. USER = " . $_SESSION['loggedUsername'] . ". Exit from script.");
+        eventLog("Returned the following ERROR in dashboardWizardController.php for nActive = ".$nActive.": ".$nActive." is not an integer as expected. Exit from script.");
+        exit();
+    };
+    $globalSqlFilter = $_REQUEST['globalSqlFilter'];
+    $n = $_REQUEST['n'];
+    if (checkVarType($n, "integer") === false) {
+        //     eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. USER = " . $_SESSION['loggedUsername'] . ". Exit from script.");
+        eventLog("Returned the following ERROR in dashboardWizardController.php for n = ".$n.": ".$n." is not an integer as expected. Exit from script.");
+        exit();
+    };
+    if (!is_array($globalSqlFilter)) {
+        eventLog("Returned the following ERROR in dashboardWizardController.php: globalSqlFilter is not an array as expected. Exit from script.");
+        exit();
+    }
+    // CHECK IF $globalSqlFilter IS ARRAY ? OR OBJECT ?
+    $orgFilter = $_REQUEST['orgFilter'];
+
+    // FARE QUI COMPOSIZIONE FILTRO GLOBALE STRINGA  GUARDANDO QUALE NON E' FIELD !
+    for ($k = 0; $k < 9; $k++) {
+        if ($k !== 4 && $k != 5) {
+            if (($k != $n || $nActive > 1)) {
+                $str = $globalSqlFilter[$k]['value'];
+                if(is_array($str) && sizeof($str) == 0) {
+                    $str = "";
+                }
+                $auxArray = explode("|", $str);
+                $auxFilterString = "";
+            //    for ($j in auxArray) {
+                foreach($auxArray as $j => $valAuxArray) {
+                    if ($auxArray[$j] != '') {
+                        if ($j != 0 && $auxFilterString != '') {
+                            $auxFilterString = $auxFilterString . " OR " . $globalSqlFilter[$k]['field'] . " = '" . $valAuxArray . "'";
+                        } else {
+                            $auxFilterString = $globalSqlFilter[$k]['field'] . " = '" . $valAuxArray . "'";
+                        }
+                    }
+                }
+
+                if ($auxFilterString != '') {
+                    if ($whereString != '') {
+                        if ($k != 0) {
+                            $whereString = $whereString . " AND (" . $auxFilterString . ")";
+                        } else {
+                            $whereString = $whereString . "(" . $auxFilterString . ")";
+                        }
+                    } else {
+                        $whereString =  "(" . $auxFilterString . ")";
+                    }
+                }
+            }
+        }
+    }
+
+    if ($whereString === "") {
+        //   $whereString = " WHERE organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
+        $whereString = " organizations REGEXP '" . $orgFilter . "'";
+    } else {
+        //   $whereString = " AND organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
+        $whereString = $whereString . " AND organizations REGEXP '" . $orgFilter . "'";
+    }
   
     $sql_distinct_field = $_REQUEST['distinctField'];
     if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership") {
@@ -51,7 +125,7 @@ if (isset($_REQUEST["filterGlobal"])) {
         exit();
     }
     
-    if (strpos($sql_where, "AND") == 1) {
+  /*  if (strpos($sql_where, "AND") == 1) {
         $sql_where_ok = explode("AND ", $sql_where.trim())[1];
     } else {
         $sql_where_ok = $sql_where;
@@ -59,15 +133,35 @@ if (isset($_REQUEST["filterGlobal"])) {
     
     if (empty($_REQUEST["filterGlobal"])) {
         $sql_where_ok = 1;
-    }
+    }*/
 
   //  $sql_where_escaped = escapeForSQL($sql_where_ok, $link);
+    $sql_where_ok = $whereString;
+
+    $wizardColumns = array('high_level_type', 'nature', 'sub_nature', 'low_level_type', 'unit', 'healthiness', 'ownership');
         
     $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok." ORDER BY ".$sql_distinct_field." ASC;";
+
+    if ($freezeMap == "true") {
+        $wizardColId = array_search($sql_distinct_field, $wizardColumns);
+      //  eventLog("Wizard Cols ID for field = " . $sql_distinct_field . ": " . $wizardColId);
+        $newQueryFirst = explode(' AND ('. $wizardColumns[$wizardColId + 1], $query)[0];
+     //   eventLog("New QUERY First: " . $newQueryFirst);
+        $newQuerySecondAux = explode(" AND organizations REGEXP ", $query)[1];
+    //    eventLog("New QUERY Second AUX: " . $newQuerySecondAux);
+        $newQuerySecond = " AND organizations REGEXP " . $newQuerySecondAux;
+    //    eventLog("New QUERY Second: " . $newQuerySecond);
+     //   $queryAlt = $newQueryFirst . $newQuerySecond;
+     //   if ($noneSelectedFlagWithGeoFilter == "false") {
+      //      $query = $queryAlt;
+      //  }
+     //   eventLog("Adapted QUERY WIZARD: " . $query);
+    }
+
     //  $query = "SELECT * FROM Dashboard.DashboardWizard";
     
     //   echo ($query);
-    
+
     
     $rs = mysqli_query($link, $query);
     
@@ -85,7 +179,14 @@ if (isset($_REQUEST["filterGlobal"])) {
         $result = array_unique($result);
         mysqli_close($link);
         $result['detail'] = 'Ok';
-        
+
+    /*    if ($sql_distinct_field == "high_level_type" && $freezeMap == "true") {
+            if (!in_array("POI", $result['table'])) {
+                array_push($result['table'], "POI");
+              //  sort($result['table']);
+            }
+        }*/
+
         echo json_encode($result);
         
     }
@@ -118,7 +219,8 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     }
     
     $link = mysqli_connect($host, $username, $password);
-    error_reporting(E_ERROR | E_NOTICE);
+    //error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
     
     $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_filter_field." LIKE '".$sql_filter_value."' ORDER BY ".$sql_distinct_field." ASC";
     //  $query = "SELECT * FROM Dashboard.DashboardWizard";
@@ -499,7 +601,8 @@ if (!empty($_REQUEST["filterDistinct"])) {
 
 
         $link = mysqli_connect($host, $username, $password);
-        error_reporting(E_ERROR | E_NOTICE);
+        //error_reporting(E_ERROR | E_NOTICE);
+        error_reporting(E_ERROR);
 
         $query = "SELECT DISTINCT ".$sql_filter." FROM Dashboard.DashboardWizard WHERE organizations REGEXP '". $org ."' ORDER BY ".$sql_filter." ASC";
      //   $queryNEW_KO = "SELECT DISTINCT ".$sql_filter." FROM Dashboard.DashboardWizard WHERE " . $whereAll . " ORDER BY ".$sql_filter." ASC";
@@ -542,7 +645,8 @@ if(isset($_REQUEST['getDashboardWizardData']))
     $stop_flag = 1;
     
     $link = mysqli_connect($host, $username, $password);
-    error_reporting(E_ERROR | E_NOTICE);
+    //error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
     
     $query = "SELECT * FROM Dashboard.DashboardWizard";
     $rs = mysqli_query($link, $query);
@@ -575,7 +679,8 @@ if(isset($_REQUEST['getDashboardWizardData']))
 if(isset($_REQUEST['getDashboardWizardIcons'])) 
 {
     $link = mysqli_connect($host, $username, $password);
-    error_reporting(E_ERROR | E_NOTICE);
+    //error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
 
     $query = "SELECT * FROM Dashboard.WidgetsIconsMap";
     $rs = mysqli_query($link, $query);
@@ -610,7 +715,8 @@ if(isset($_REQUEST['filterUnitByIcon']))
 if(isset($_REQUEST['updateWizardIcons']))
 {
     $link = mysqli_connect($host, $username, $password);
-    error_reporting(E_ERROR | E_NOTICE);
+    //error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
     $sql_field = $_GET["filterField"];
     if ($sql_field != "high_level_type" && $sql_field != "nature" && $sql_field != "sub_nature" && $sql_field != "low_level_type" && $sql_field != "unit" && $sql_field != "unique_name_id" && $sql_field != "healthiness" && $sql_field != "ownership") {
      //   eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_field '".$sql_field."' is not an allowed value. Force sql_field = 'high_level_type'");
@@ -719,7 +825,8 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             array( 'db' => 'sm_based',     'dt' => 16 ),
             array( 'db' => 'organizations',     'dt' => 17 ),
             array( 'db' => 'latitude',     'dt' => 18 ),
-            array( 'db' => 'longitude',     'dt' => 19 )
+            array( 'db' => 'longitude',     'dt' => 19 ),
+            array( 'db' => 'microAppExtServIcon',     'dt' => 20 ),        
 
         );
 
