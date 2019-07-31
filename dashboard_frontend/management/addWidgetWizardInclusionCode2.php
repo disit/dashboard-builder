@@ -454,13 +454,9 @@
         var selectedTabIndex = 0;
         var firstTabIndex = 0;
         var tabsQt = 3;
-	/*    var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        console.log('io '+ widgetName);*/
-     //   var dashTitle = "<?php if (isset($_REQUEST['dashboardTitle'])) {echo $_REQUEST['dashboardTitle'];} else {echo 1;} ?>";
         var orgFilter = "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>";
         addWidgetWizardMapMarkers = {};
         currentMarkerId = 0;
-     //   dashTitleEscaped = dashTitle.replace(/\'/g, "%27");
         orgId = null;
         orgName = null;
         orgKbUrl = null;
@@ -665,6 +661,7 @@
                 $(row).attr('data-organizations', data[17]);
                 $(row).attr('last_date',data[7]);
                 $(row).attr('ownership',data[15]);
+                $(row).attr('icon',data[20]);
             },
             "columnDefs": [
                 {
@@ -780,6 +777,7 @@
                 $(row).attr('data-organizations', data[17]);
                 $(row).attr('last_date',data[7]);
                 $(row).attr('ownership',data[15]);
+                $(row).attr('icon',data[20]);
             },
             "columnDefs": [
                 {
@@ -833,7 +831,6 @@
                 header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 $link = mysqli_connect($host, $username, $password);
                 mysqli_select_db($link, $dbname);
-            //    echo $_GET['northEastPointLat'];
                 $northEastPointLat= $_GET['northEastPointLat'];
                 $northEastPointLng= $_GET['northEastPointLng'];
                 $southWestPointLat= $_GET['southWestPointLat'];
@@ -4283,7 +4280,7 @@
             {
                 /*if(fromIconFlag == false) 
                 {*/
-                    var whereString = "";
+                /*    var whereString = "";
 
 
                     // FARE QUI COMPOSIZIONE FILTRO GLOBALE STRINGA  GUARDANDO QUALE NON E' FIELD !
@@ -4291,6 +4288,9 @@
                         if (i !== 4 && i != 5) {
                             if ((i != n || nActive > 1)) {
                                 var str = globalSqlFilterDI[i].value;
+                                if(typeof str == 'object' && str.length == 0) {
+                                    str = "";
+                                }
                                 var auxArray = str.split("|");
                                 var auxFilterString = "";
                                 for (var j in auxArray) {
@@ -4321,7 +4321,7 @@
                      //   whereString = " AND organizations REGEXP '" + orgFilter + "' OR ownership = 'private'";
                         whereString = whereString + " AND organizations REGEXP '" + orgFilter + "'";
                     }
-
+*/
                     $.ajax({
                         url: "../controllers/dashboardWizardController.php",
                         type: "GET",
@@ -4329,8 +4329,12 @@
                         dataType: 'json',
                         data:
                         {
+                            orgFilter: "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>",
+                            globalSqlFilter: globalSqlFilterDI,
+                            nActive: nActive,
+                            n: n,
                             filter: distinctField,
-                            filterGlobal: whereString,
+                            //    filterGlobal: whereString,
                             distinctField: distinctField 
                         },
                         success: function (data)
@@ -4932,6 +4936,7 @@
                 $(row).attr('data-organizations', data[17]);
                 $(row).attr('last_date',data[7]);
                 $(row).attr('ownership',data[15]);
+                $(row).attr('icon',data[20]);
             },
             "columnDefs": [
                 {
@@ -6074,6 +6079,9 @@
                                 gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                     pointToLayer: addWidgetWizardCreateCustomMarker
                                 }).addTo(addWidgetWizardMapRef);
+                                if (FreezeMap !== true) {
+                                    addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
+                                }
 
                             },
                             error: function (data) {
