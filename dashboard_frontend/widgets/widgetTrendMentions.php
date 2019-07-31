@@ -20,6 +20,14 @@
 <script type='text/javascript'>
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad) 
     {
+        <?php
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetTrendMentions.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
+        ?>
+
         var scroller1, scroller2, scrollBottom1, scrollBottom2, contentHeight, trendsNumber, quotesNumber, trendsContentHeight, quotesContentHeight, 
             rowPercHeight, rowPxHeight, fullRowPxHeight, showHeader, timeToReload, actualTab, countdown, timeToClearScroll, titleWidth, fontRatio, fullRowPercHeight, contentPercWidth, iconWidth, contentWidth = null;
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
@@ -32,7 +40,7 @@
         var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
         var headerHeight = 25;
         var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-        
+    //    console.log("Widget Trend Mentions: " + widgetName);
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
             var height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - 23);
@@ -103,7 +111,7 @@
         
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("width", titleWidth + "px");
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
-        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");   
+
         $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
         $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
         
