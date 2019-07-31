@@ -29,6 +29,8 @@ use Jumbojett\OpenIDConnectClient;
 session_start();
 checkSession('Public');
 
+$start_get_data = microtime(true);
+
 $link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
 mysqli_select_db($link, $dbname);
 
@@ -567,6 +569,10 @@ else
         }
         else if($action == "get_dashboards")
         {
+            $time_elapsed_get_data_secs = microtime(true) - $start_get_data;
+        //    eventLog("Init get_data: " . $time_elapsed_get_data_secs ." sec.");
+            $start_get_dashboards = microtime(true);
+            $start = microtime(true);
             $orgFlag = "all";
             if (isset($_GET['param']) && !empty($_GET['param'])) {
                 $orgFlag = $_GET['param'];
@@ -596,6 +602,10 @@ else
 
                     $result = mysqli_query($link, $query);
                     $dashboard_list = array();
+
+                    $time_elapsed_get_data_1query_secs = microtime(true) - $start_get_dashboards;
+                //    eventLog("Init get_dashboards 1st query: " . $time_elapsed_get_data_1query_secs ." sec.");
+                    $start_get_dash_NR = microtime(true);
 
                     if($result)
                     {
@@ -664,6 +674,7 @@ else
                             $row['deleteLbl'] = 'show';
                             $row['editLbl'] = 'show';
                             $row['cloneLbl'] = 'show';
+                            $row['name_dashboard'] = htmlspecialchars($row['name_dashboard']);
 
                             $hasBroker = false;
                             $hasIotApp = false;
@@ -681,9 +692,16 @@ else
                             }
 
                             //Controlla se ha widget verso NodeRED
-                            $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
+                        /*    $dashTypeQ2_b = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
                                           "UNION " .
                                           "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> '' AND NodeRedInputs.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId)";
+                            */
+                            $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics JOIN Dashboard.Config_widget_dashboard ON  NodeRedMetrics.name=id_metric AND id_dashboard = $dashboardId " .
+                                "WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' " .
+                                "UNION " .
+                                "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs " .
+                                "JOIN Dashboard.Config_widget_dashboard ON  NodeRedInputs.name=id_metric AND id_dashboard = $dashboardId " .
+                                "WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> ''";
 
                             $dashTypeR2 = mysqli_query($link, $dashTypeQ2);
 
@@ -701,7 +719,8 @@ else
                             array_push($dashboard_list, $row);
                         }
                     }
-                    
+                    $time_elapsed_get_dashboards_rootadmin_NR_secs = microtime(true) - $start_get_dash_NR;
+                //    eventLog("Duration get_dashboards NR for RootAdmin: " . $time_elapsed_get_dashboards_rootadmin_NR_secs ." sec.");
                     break;
                 
                 //Altri utenti: vedono proprie, quelle con delega, public, editano e cancellano solo le proprie
@@ -881,6 +900,10 @@ else
                         $result = mysqli_query($link, $query);
                         $dashboard_list = array();
 
+                        $time_elapsed_get_data_1query_secs = microtime(true) - $start_get_dashboards;
+                    //    eventLog("Init get_data 1st query: " . $time_elapsed_get_data_1query_secs ." sec.");
+                        $start_get_dash_NR_user = microtime(true);
+
                         if($result) 
                         {
                             while($row = mysqli_fetch_assoc($result)) 
@@ -950,10 +973,17 @@ else
                                 }
 
                                 //Controlla se ha widget verso NodeRED
-                                $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
+                            /*    $dashTypeQ2_b = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
                                               "UNION " .
                                               "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> '' AND NodeRedInputs.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId)";
-                                
+                            */
+                                $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics JOIN Dashboard.Config_widget_dashboard ON  NodeRedMetrics.name=id_metric AND id_dashboard = $dashboardId " .
+                                    "WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' " .
+                                    "UNION " .
+                                    "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs " .
+                                    "JOIN Dashboard.Config_widget_dashboard ON  NodeRedInputs.name=id_metric AND id_dashboard = $dashboardId " .
+                                    "WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> ''";
+
                                 $dashTypeR2 = mysqli_query($link, $dashTypeQ2);
 
                                 if($dashTypeR2)
@@ -1008,6 +1038,8 @@ else
                                      "ORDER BY dashes.name_dashboard ASC";
                            break;*/
                     }
+                    $time_elapsed_get_dashboards_user_NR_secs = microtime(true) - $start_get_dash_NR_user;
+                //    eventLog("Duration get_dashboards NR for user: " . $time_elapsed_get_dashboards_user_NR_secs ." sec.");
                     break;
             }  
             
@@ -1027,6 +1059,9 @@ else
         }
         else if($action == "get_all_dashboards")
         {
+            $time_elapsed_get_data_secs = microtime(true) - $start_get_data;
+        //    eventLog("Init get_data ALL: " . $time_elapsed_get_data_secs ." sec.");
+            $start_get_dashboards = microtime(true);
             $orgFlag = "all";
             if (isset($_GET['param']) && !empty($_GET['param'])) {
                 $orgFlag = $_GET['param'];
@@ -1056,6 +1091,10 @@ else
 
                     $result = mysqli_query($link, $query);
                     $dashboard_list = array();
+
+                    $time_elapsed_get_data_1query_secs = microtime(true) - $start_get_dashboards;
+            //        eventLog("Init get_dashboards ALL 1st query: " . $time_elapsed_get_data_1query_secs ." sec.");
+                    $start_get_dash_NR = microtime(true);
 
                     if($result)
                     {
@@ -1129,9 +1168,16 @@ else
                             }
 
                             //Controlla se ha widget verso NodeRED
-                            $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
+                        /*    $dashTypeQ2_b = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' AND NodeRedMetrics.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId) " .
                                 "UNION " .
                                 "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> '' AND NodeRedInputs.name IN(SELECT distinct(id_metric) FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = $dashboardId)";
+                        */
+                            $dashTypeQ2 = "SELECT distinct(NodeRedMetrics.appId) FROM NodeRedMetrics JOIN Dashboard.Config_widget_dashboard ON  NodeRedMetrics.name=id_metric AND id_dashboard = $dashboardId " .
+                                "WHERE NodeRedMetrics.appId IS NOT NULL AND NodeRedMetrics.appId <> '' " .
+                                "UNION " .
+                                "SELECT distinct(NodeRedInputs.appId) FROM NodeRedInputs " .
+                                "JOIN Dashboard.Config_widget_dashboard ON  NodeRedInputs.name=id_metric AND id_dashboard = $dashboardId " .
+                                "WHERE NodeRedInputs.appId IS NOT NULL AND NodeRedInputs.appId <> ''";
 
                             $dashTypeR2 = mysqli_query($link, $dashTypeQ2);
 
@@ -1150,6 +1196,8 @@ else
                         }
                     }
             $stopFlag = 1;
+            $time_elapsed_get_dashboards_rootadmin_NR_secs = microtime(true) - $start_get_dash_NR;
+        //    eventLog("Duration get_dashboards ALL NR for RootAdmin: " . $time_elapsed_get_dashboards_rootadmin_NR_secs ." sec.");
             mysqli_close($link);
             echo json_encode($dashboard_list);
         }
