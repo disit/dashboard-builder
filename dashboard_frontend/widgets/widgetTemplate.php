@@ -29,13 +29,11 @@
     $(document).ready(function <?= $_GET['name'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
-            $titlePatterns = array();
-            $titlePatterns[0] = '/_/';
-            $titlePatterns[1] = '/\'/';
-            $replacements = array();
-            $replacements[0] = ' ';
-            $replacements[1] = '&apos;';
-            $title = $_GET['title'];
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetTemplate.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
         ?> 
         console.log("ENTRA IN WIDGET TEMPLATE !!!");
         var hostFile = "<?= $_GET['hostFile'] ?>";
@@ -97,7 +95,7 @@
         }
         console.log("ARRIVA IN WIDGETTEMPLATE !!!!");
         addLink(widgetName, url, linkElement, divContainer, null);
-        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+        $("#<?= $_GET['name'] ?>_titleDiv").html("<?= sanitizeTitle($_REQUEST['title_w']) ?>");
         widgetProperties = getWidgetProperties(widgetName);
         
         if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
