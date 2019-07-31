@@ -417,18 +417,18 @@
                 if($_POST['dashboardLogoLinkInput'] != '')
                 {
                     $logoLink = escapeForSQL($_POST['dashboardLogoLinkInput'], $link);
-
+                    // NEW P-TEST: mettere apici a $ncols
                     $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                     (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
                     `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `logoLink`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, last_edit_date) 
-                    VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP)";
+                    VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, returnManagedNumberForDb($nCols), '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$logoLink', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP)";
                 }
                 else
                 {
                     $insqDbtb2 = "INSERT INTO `Dashboard`.`Config_dashboard`
                     (`Id`, `name_dashboard`, `title_header`, `subtitle_header`, `color_header`,
                     `width`, `height`, `num_rows`, `num_columns`, `user`, `status_dashboard`, `creation_date`,`color_background`,`external_frame_color`, `headerFontColor`, `headerFontSize`, `logoFilename`, `widgetsBorders`, `widgetsBordersColor`, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, last_edit_date) 
-                    VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP)";
+                    VALUES (NULL, '$name_dashboard', '$title', '$subtitle', '$color', $width, 0, 0, returnManagedNumberForDb($nCols), '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$filename', '$widgetsBorders', '$widgetsBordersColor', '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP)";
                 }
 
                 mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
@@ -598,10 +598,26 @@
                 eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard.": ".$id_dashboard." is not an integer as expected. Exit from script.");
                 exit();
             }
-            $dashboardName = $_REQUEST['currentDashboardTitle'];
-            $dashboardAuthorName = $_REQUEST['dashboardUser'];
-            $dashboardEditor = $_REQUEST['dashboardEditor'];
-            $creator = $_REQUEST['dashboardEditor'];
+        //    $dashboardName = $_REQUEST['currentDashboardTitle'];
+            if (sanitizePostString('currentDashboardTitle') === null) {       // New pentest COMMON CTR
+                $dashboardName = mysqli_real_escape_string($link, sanitizeGetString('currentDashboardTitle'));
+            } else {
+                $dashboardName = mysqli_real_escape_string($link, sanitizePostString('currentDashboardTitle'));
+            }
+        //    $dashboardAuthorName = $_REQUEST['dashboardUser'];
+            if (sanitizePostString('dashboardUser') === null) {       // New pentest COMMON CTR
+                $dashboardAuthorName = mysqli_real_escape_string($link, sanitizeGetString('dashboardUser'));
+            } else {
+                $dashboardAuthorName = mysqli_real_escape_string($link, sanitizePostString('dashboardUser'));
+            }
+        //    $dashboardEditor = $_REQUEST['dashboardEditor'];
+            if (sanitizePostString('dashboardEditor') === null) {       // New pentest COMMON CTR
+                $dashboardEditor = mysqli_real_escape_string($link, sanitizeGetString('dashboardEditor'));
+            } else {
+                $dashboardEditor = mysqli_real_escape_string($link, sanitizePostString('dashboardEditor'));
+            }
+        //    $creator = $_REQUEST['dashboardEditor'];
+            $creator = $dashboardEditor;
         
             $nextId = 1;
             $firstFreeRow = escapeForSQL($_POST['firstFreeRowInput'], $link);
@@ -689,13 +705,18 @@
                 $rectDim = NULL;
                 $enableFullscreenTab = 'no';
                 $enableFullscreenModal = 'no'; 
-                $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidget']);
+             //   $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidget']);
+                if (sanitizePostString('inputFontFamilyWidget') === null) {       // New pentest COMMON CTR
+                    $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidget'));
+                } else {
+                    $fontFamily = mysqli_real_escape_string($link, sanitizePostString('inputFontFamilyWidget'));
+                }
                 $newOrionEntityJson = NULL;
                 $attributeName = NULL;
                 
                 if(isset($_REQUEST['actuatorTarget']))
                 {
-                    $actuatorTarget = mysqli_real_escape_string($link, $_REQUEST['actuatorTarget']);
+                    $actuatorTarget = mysqli_real_escape_string($link, sanitizePostString('actuatorTarget'));
                 }
                 else
                 {
@@ -708,11 +729,11 @@
                 {
                     if($_REQUEST['actuatorTarget'] == 'broker')
                     {
-                        $widgetActuatorType = escapeForSQL($_REQUEST['widgetActuatorType'], $link);
+                        $widgetActuatorType = escapeForSQL(sanitizePostString('widgetActuatorType'), $link);
                     }
                     else
                     {
-                        $widgetActuatorType = escapeForSQL($_REQUEST['widgetActuatorTypePersonalApps'], $link);
+                        $widgetActuatorType = escapeForSQL(sanitizePostString('widgetActuatorTypePersonalApps'), $link);
                         $id_metric = str_replace('.', '_', str_replace('-', '_', $_REQUEST['personalAppsInputs']));
                     }
                     
@@ -720,31 +741,32 @@
                     
                     if($type_widget == "widgetNumericKeyboard")
                     {
-                        $styleParametersArray = array('displayColor' => $_REQUEST['addKeyboardDisplayColor'], 'displayFontColor' => $_REQUEST['addKeyboardDisplayFontColor'], 'btnColor' => $_REQUEST['addKeyboardBtnColor'], 'btnFontColor' => $_REQUEST['addKeyboardBtnFontColor']);
+                        $styleParametersArray = array('displayColor' => sanitizeString('addKeyboardDisplayColor'), 'displayFontColor' => sanitizeString('addKeyboardDisplayFontColor'), 'btnColor' => sanitizeString('addKeyboardBtnColor'), 'btnFontColor' => sanitizeString('addKeyboardBtnFontColor'));
                         $styleParameters = json_encode($styleParametersArray);
                     }
                     
                     if($type_widget == "widgetGeolocator")
                     {
-                        $styleParametersArray = array('viewMode' => $_REQUEST['addSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['addSwitchButtonRadius'], 'color' => $_REQUEST['addSwitchButtonColor'], 'clickColor' => $_REQUEST['addSwitchButtonClickColor'], 'symbolColor' => $_REQUEST['addSwitchButtonSymbolColor'], 'symbolClickColor' => $_REQUEST['addSwitchButtonSymbolClickColor'], 'neonEffect' => $_REQUEST['addSwitchButtonNeonEffect'], 'textColor' => $_REQUEST['addSwitchButtonTextColor'], 'textClickColor' => $_REQUEST['addSwitchButtonTextClickColor'], 'textFontSize' => $_REQUEST['addSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['addSwitchButtonDisplayFontSize'], 'displayFontColor' => $_REQUEST['addSwitchButtonDisplayFontColor'], 'displayFontClickColor' => $_REQUEST['addSwitchButtonDisplayFontClickColor'], 'displayColor' => $_REQUEST['addSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['addSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['addSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['addSwitchButtonDisplayHeight']);
+                     //   $styleParametersArray = array('viewMode' => $_REQUEST['addSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['addSwitchButtonRadius'], 'color' => $_REQUEST['addSwitchButtonColor'], 'clickColor' => $_REQUEST['addSwitchButtonClickColor'], 'symbolColor' => $_REQUEST['addSwitchButtonSymbolColor'], 'symbolClickColor' => $_REQUEST['addSwitchButtonSymbolClickColor'], 'neonEffect' => $_REQUEST['addSwitchButtonNeonEffect'], 'textColor' => $_REQUEST['addSwitchButtonTextColor'], 'textClickColor' => $_REQUEST['addSwitchButtonTextClickColor'], 'textFontSize' => $_REQUEST['addSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['addSwitchButtonDisplayFontSize'], 'displayFontColor' => $_REQUEST['addSwitchButtonDisplayFontColor'], 'displayFontClickColor' => $_REQUEST['addSwitchButtonDisplayFontClickColor'], 'displayColor' => $_REQUEST['addSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['addSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['addSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['addSwitchButtonDisplayHeight']);
+                        $styleParametersArray = array('viewMode' => sanitizePostString('addSwitchButtonViewMode'), 'buttonRadius' => sanitizePostString('addSwitchButtonRadius'), 'color' => sanitizePostString('addSwitchButtonColor'), 'clickColor' => sanitizePostString('addSwitchButtonClickColor'), 'symbolColor' => sanitizePostString('addSwitchButtonSymbolColor'), 'symbolClickColor' => sanitizePostString('addSwitchButtonSymbolClickColor'), 'neonEffect' => sanitizePostString('addSwitchButtonNeonEffect'), 'textColor' => sanitizePostString('addSwitchButtonTextColor'), 'textClickColor' => sanitizePostString('addSwitchButtonTextClickColor'), 'textFontSize' => sanitizePostInt('addSwitchButtonTextFontSize'), 'displayFontSize' => sanitizePostInt('addSwitchButtonDisplayFontSize'), 'displayFontColor' => sanitizePostString('addSwitchButtonDisplayFontColor'), 'displayFontClickColor' => sanitizePostString('addSwitchButtonDisplayFontClickColor'), 'displayColor' => sanitizePostString('addSwitchButtonDisplayColor'), 'displayRadius' => sanitizePostInt('addSwitchButtonDisplayRadius'), 'displayWidth' => sanitizePostInt('addSwitchButtonDisplayWidth'), 'displayHeight' => sanitizePostInt('addSwitchButtonDisplayHeight'));
                         $styleParameters = json_encode($styleParametersArray);
                     }
                     
                     if($type_widget == "widgetImpulseButton")
                     {
-                        $styleParametersArray = array('viewMode' => $_REQUEST['addSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['addSwitchButtonRadius'], 'color' => $_REQUEST['addSwitchButtonColor'], 'clickColor' => $_REQUEST['addSwitchButtonClickColor'], 'symbolColor' => $_REQUEST['addSwitchButtonSymbolColor'], 'symbolClickColor' => $_REQUEST['addSwitchButtonSymbolClickColor'], 'neonEffect' => $_REQUEST['addSwitchButtonNeonEffect'], 'textColor' => $_REQUEST['addSwitchButtonTextColor'], 'textClickColor' => $_REQUEST['addSwitchButtonTextClickColor'], 'textFontSize' => $_REQUEST['addSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['addSwitchButtonDisplayFontSize'], 'displayFontColor' => $_REQUEST['addSwitchButtonDisplayFontColor'], 'displayFontClickColor' => $_REQUEST['addSwitchButtonDisplayFontClickColor'], 'displayColor' => $_REQUEST['addSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['addSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['addSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['addSwitchButtonDisplayHeight']);
+                        $styleParametersArray = array('viewMode' => sanitizePostString('addSwitchButtonViewMode'), 'buttonRadius' => sanitizePostString('addSwitchButtonRadius'), 'color' => sanitizePostString('addSwitchButtonColor'), 'clickColor' => sanitizePostString('addSwitchButtonClickColor'), 'symbolColor' => sanitizePostString('addSwitchButtonSymbolColor'), 'symbolClickColor' => sanitizePostString('addSwitchButtonSymbolClickColor'), 'neonEffect' => sanitizePostString('addSwitchButtonNeonEffect'), 'textColor' => sanitizePostString('addSwitchButtonTextColor'), 'textClickColor' => sanitizePostString('addSwitchButtonTextClickColor'), 'textFontSize' => sanitizePostInt('addSwitchButtonTextFontSize'), 'displayFontSize' => sanitizePostInt('addSwitchButtonDisplayFontSize'), 'displayFontColor' => sanitizePostString('addSwitchButtonDisplayFontColor'), 'displayFontClickColor' => sanitizePostString('addSwitchButtonDisplayFontClickColor'), 'displayColor' => sanitizePostString('addSwitchButtonDisplayColor'), 'displayRadius' => sanitizePostInt('addSwitchButtonDisplayRadius'), 'displayWidth' => sanitizePostInt('addSwitchButtonDisplayWidth'), 'displayHeight' =>sanitizePostInt('addSwitchButtonDisplayHeight'));
                         $styleParameters = json_encode($styleParametersArray);
                     }
                     
                     if($type_widget == "widgetOnOffButton")
                     {
-                        $styleParametersArray = array('viewMode' => $_REQUEST['addSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['addSwitchButtonRadius'], 'offColor' => $_REQUEST['addSwitchButtonOffColor'], 'onColor' => $_REQUEST['addSwitchButtonOnColor'], 'symbolOffColor' => $_REQUEST['addSwitchButtonSymbolOffColor'], 'symbolOnColor' => $_REQUEST['addSwitchButtonSymbolOnColor'], 'neonEffect' => $_REQUEST['addSwitchButtonNeonEffect'], 'textOffColor' => $_REQUEST['addSwitchButtonTextOffColor'], 'textOnColor' => $_REQUEST['addSwitchButtonTextOnColor'], 'textFontSize' => $_REQUEST['addSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['addSwitchButtonDisplayFontSize'], 'displayOffColor' => $_REQUEST['addSwitchButtonDisplayOffColor'], 'displayOnColor' => $_REQUEST['addSwitchButtonDisplayOnColor'], 'displayColor' => $_REQUEST['addSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['addSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['addSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['addSwitchButtonDisplayHeight']);
+                        $styleParametersArray = array('viewMode' => sanitizePostString('addSwitchButtonViewMode'), 'buttonRadius' => sanitizePostInt('addSwitchButtonRadius'), 'offColor' => sanitizePostString('addSwitchButtonOffColor'), 'onColor' => sanitizePostString('addSwitchButtonOnColor'), 'symbolOffColor' => sanitizePostString('addSwitchButtonSymbolOffColor'), 'symbolOnColor' => sanitizePostString('addSwitchButtonSymbolOnColor'), 'neonEffect' => sanitizePostString('addSwitchButtonNeonEffect'), 'textOffColor' => sanitizePostString('addSwitchButtonTextOffColor'), 'textOnColor' => sanitizePostString('addSwitchButtonTextOnColor'), 'textFontSize' => sanitizePostInt('addSwitchButtonTextFontSize'), 'displayFontSize' => sanitizePostInt('addSwitchButtonDisplayFontSize'), 'displayOffColor' => sanitizePostString('addSwitchButtonDisplayOffColor'), 'displayOnColor' => sanitizePostString('addSwitchButtonDisplayOnColor'), 'displayColor' => sanitizePostString('addSwitchButtonDisplayColor'), 'displayRadius' => sanitizePostInt('addSwitchButtonDisplayRadius'), 'displayWidth' => sanitizePostInt('addSwitchButtonDisplayWidth'), 'displayHeight' => sanitizePostInt('addSwitchButtonDisplayHeight'));
                         $styleParameters = json_encode($styleParametersArray);
                     }
                     
                     if($type_widget == "widgetKnob")
                     {
-                        $styleParametersArray = array('indicatorRadius' => $_REQUEST['addKnobIndicatorRadius'], 'displayRadius' => $_REQUEST['addKnobDisplayRadius'], 'startAngle' => $_REQUEST['addKnobStartAngle'], 'endAngle' => $_REQUEST['addKnobEndAngle'], 'displayColor' => $_REQUEST['addKnobDisplayColor'], 'ticksColor' => $_REQUEST['addKnobTicksColor'], 'labelsFontSize' => $_REQUEST['addKnobLabelsFontSize'], 'labelsFontColor' => $_REQUEST['addKnobLabelsFontColor'], 'increaseValue' => $_REQUEST['addKnobIncreaseValue']);
+                        $styleParametersArray = array('indicatorRadius' => sanitizePostFloat('addKnobIndicatorRadius'), 'displayRadius' => sanitizePostFloat('addKnobDisplayRadius'), 'startAngle' => sanitizePostFloat('addKnobStartAngle'), 'endAngle' => sanitizePostFloat('addKnobEndAngle'), 'displayColor' => sanitizePostString('addKnobDisplayColor'), 'ticksColor' => sanitizePostInt('addKnobTicksColor'), 'labelsFontSize' => sanitizePostInt('addKnobLabelsFontSize'), 'labelsFontColor' => sanitizePostString('addKnobLabelsFontColor'), 'increaseValue' => sanitizePostFloat('addKnobIncreaseValue'));
                         $styleParameters = json_encode($styleParametersArray);
                     }
                 }
@@ -752,31 +774,69 @@
                 {
                     if($_REQUEST['metricsCategory'] === 'app')
                     {
-                        $id_metric = str_replace('.', '_', str_replace('-', '_', mysqli_real_escape_string($link, $_REQUEST['select-metricNR']))); 
-                        $type_widget = mysqli_real_escape_string($link, $_REQUEST['select-widgetNR']);
+                     //   $id_metric = str_replace('.', '_', str_replace('-', '_', mysqli_real_escape_string($link, $_REQUEST['select-metricNR'])));
+                        if (sanitizePostString('select-metricNR') == null) {       // New pentest COMMON CTR
+                            $id_metric = mysqli_real_escape_string($link, sanitizeGetString('select-metricNR'));
+                        } else {
+                            $id_metric = mysqli_real_escape_string($link, sanitizePostString('select-metricNR'));
+                        }
+                    //    $type_widget = mysqli_real_escape_string($link, $_REQUEST['select-widgetNR']);
+                        if (sanitizePostString('select-widgetNR') == null) {       // New pentest COMMON CTR
+                            $type_widget = mysqli_real_escape_string($link, sanitizeGetString('select-widgetNR'));
+                        } else {
+                            $type_widget = mysqli_real_escape_string($link, sanitizePostString('select-widgetNR'));
+                        }
                     }
                     else 
                     {
-                        $id_metric = mysqli_real_escape_string($link, str_replace('.', '_', str_replace('-', '_', $_REQUEST['select-metric']))); 
-                        $type_widget = mysqli_real_escape_string($link, $_REQUEST['select-widget']); 
+                    //    $id_metric = mysqli_real_escape_string($link, str_replace('.', '_', str_replace('-', '_', $_REQUEST['select-metric'])));
+                        if (sanitizePostString('select-metric') === null) {       // New pentest COMMON CTR
+                            $id_metric = mysqli_real_escape_string($link, sanitizeGetString('select-metric'));
+                        } else {
+                            $id_metric = mysqli_real_escape_string($link, sanitizePostString('select-metric'));
+                        }
+                    //    $type_widget = mysqli_real_escape_string($link, $_REQUEST['select-widget']);
+                        if (sanitizePostString('select-widget') === null) {       // New pentest COMMON CTR
+                            $type_widget = mysqli_real_escape_string($link, sanitizeGetString('select-widget'));
+                        } else {
+                            $type_widget = mysqli_real_escape_string($link, sanitizePostString('select-widget'));
+                        }
                     }
                 }
                 
                 if($type_widget == "widgetPrevMeteo")
                 {
-                    $styleParametersArray = array('orientation' => $_REQUEST['orientation'], 'language' => $_REQUEST['language'], 'todayDim' => $_REQUEST['todayDim'], 'backgroundMode' => $_REQUEST['backgroundMode'], 'iconSet' => $_REQUEST['iconSet']);
+                 //   $styleParametersArray = array('orientation' => $_REQUEST['orientation'], 'language' => $_REQUEST['language'], 'todayDim' => $_REQUEST['todayDim'], 'backgroundMode' => $_REQUEST['backgroundMode'], 'iconSet' => $_REQUEST['iconSet']);
+                    $styleParametersArray = array('orientation' => sanitizePostString('orientation'), 'language' => sanitizePostString('language'), 'todayDim' => sanitizePostString('todayDim'), 'backgroundMode' => sanitizePostString('backgroundMode'), 'iconSet' => sanitizePostString('iconSet'));
                     $styleParameters = json_encode($styleParametersArray);
                 }
                 
                 if(($type_widget == "widgetSelector") || ($type_widget == "widgetSelectorNew"))
                 {
-                  $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor']);
+               //   $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor']);
+                    if (sanitizePostString('addGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
+                        $styleParametersArray = array('activeFontColor' => sanitizeGetString('addGisActiveQueriesFontColor'));
+                    } else {
+                        $styleParametersArray = mysqli_real_escape_string($link, sanitizePostString('addGisActiveQueriesFontColor'));
+                    }
                   $styleParameters = json_encode($styleParametersArray);
                 }
                 
                 if($type_widget == "widgetSelectorWeb")
                 {
-                  $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['addGisRectDim']);
+              //    $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['addGisRectDim']);
+              //      $styleParametersArray = array('activeFontColor' => sanitizePostString('addGisActiveQueriesFontColor'), 'rectDim' => sanitizePostString('addGisRectDim'));
+                    if (sanitizePostString('addGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
+                        $activeFontColor = sanitizeGetString('addGisActiveQueriesFontColor');
+                    } else {
+                        $activeFontColor = sanitizePostString('addGisActiveQueriesFontColor');
+                    }
+                    if (sanitizePostString('addGisRectDim') === null) {       // New pentest COMMON CTR
+                        $rectDim = sanitizeGetString('addGisRectDim');
+                    } else {
+                        $rectDim = sanitizePostString('addGisRectDim');
+                    }
+                  $styleParametersArray = array('activeFontColor' => $activeFontColor, 'rectDim' => $rectDim);
                   $styleParameters = json_encode($styleParametersArray);
                 }
                 
@@ -784,12 +844,22 @@
                 {
                   if(isset($_REQUEST['addWidgetClockData']))
                   {
-                     $clockData = $_REQUEST['addWidgetClockData'];
+                  //   $clockData = $_REQUEST['addWidgetClockData'];
+                      if (sanitizePostString('addWidgetClockData') == null) {       // New pentest COMMON CTR
+                          $clockData = mysqli_real_escape_string($link, sanitizeGetString('addWidgetClockData'));
+                      } else {
+                          $clockData = mysqli_real_escape_string($link, sanitizePostString('addWidgetClockData'));
+                      }
                   }
 
                   if(isset($_REQUEST['addWidgetClockFont']))
                   {
-                     $clockFont = $_REQUEST['addWidgetClockFont'];
+                   //  $clockFont = $_REQUEST['addWidgetClockFont'];
+                      if (sanitizePostString('addWidgetClockFont') == null) {       // New pentest COMMON CTR
+                          $clockFont = mysqli_real_escape_string($link, sanitizeGetString('addWidgetClockFont'));
+                      } else {
+                          $clockFont = mysqli_real_escape_string($link, sanitizePostString('addWidgetClockFont'));
+                      }
                   }
                   
                   $styleParametersArray = array('clockData' => $clockData, 'clockFont' => $clockFont);
@@ -800,52 +870,52 @@
                 {
                     if(isset($_POST['showTableFirstCell'])&&($_POST['showTableFirstCell']!=""))
                     {
-                        $showTableFirstCell = mysqli_real_escape_string($link, $_POST['showTableFirstCell']); 
+                        $showTableFirstCell = mysqli_real_escape_string($link, sanitizePostString('showTableFirstCell'));
                     }
 
                     if(isset($_POST['tableFirstCellFontSize'])&&($_POST['tableFirstCellFontSize']!=""))
                     {
-                        $tableFirstCellFontSize = mysqli_real_escape_string($link, $_POST['tableFirstCellFontSize']);
+                        $tableFirstCellFontSize = mysqli_real_escape_string($link, sanitizePostInt('tableFirstCellFontSize'));
                     }
 
                     if(isset($_POST['tableFirstCellFontColor'])&&($_POST['tableFirstCellFontColor']!=""))
                     {
-                        $tableFirstCellFontColor = mysqli_real_escape_string($link, $_POST['tableFirstCellFontColor']); 
+                        $tableFirstCellFontColor = mysqli_real_escape_string($link, sanitizePostString('tableFirstCellFontColor'));
                     }
 
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
-                        $rowsLabelsFontSize = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSize']); 
+                        $rowsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSize'));
                     }
 
                     if(isset($_POST['rowsLabelsFontColor'])&&($_POST['rowsLabelsFontColor']!=""))
                     {
-                        $rowsLabelsFontColor = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColor']); 
+                        $rowsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColor'));
                     }
 
                     if(isset($_POST['colsLabelsFontSize'])&&($_POST['colsLabelsFontSize']!=""))
                     {
-                        $colsLabelsFontSize = mysqli_real_escape_string($link, $_POST['colsLabelsFontSize']);
+                        $colsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSize'));
                     }
 
                     if(isset($_POST['colsLabelsFontColor'])&&($_POST['colsLabelsFontColor']!=""))
                     {
-                        $colsLabelsFontColor = mysqli_real_escape_string($link, $_POST['colsLabelsFontColor']); 
+                        $colsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColor'));
                     }
 
                     if(isset($_POST['rowsLabelsBckColor'])&&($_POST['rowsLabelsBckColor']!=""))
                     {
-                        $rowsLabelsBckColor = mysqli_real_escape_string($link, $_POST['rowsLabelsBckColor']); 
+                        $rowsLabelsBckColor = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsBckColor'));
                     }
                     
                     if(isset($_POST['tableBorders'])&&($_POST['tableBorders']!=""))
                     {
-                        $tableBorders = mysqli_real_escape_string($link, $_POST['tableBorders']);
+                        $tableBorders = mysqli_real_escape_string($link, sanitizePostString('tableBorders'));
                     }
 
                     if(isset($_POST['tableBordersColor'])&&($_POST['tableBordersColor']!=""))
                     {
-                        $tableBordersColor = mysqli_real_escape_string($link, $_POST['tableBordersColor']); 
+                        $tableBordersColor = mysqli_real_escape_string($link, sanitizePostString('tableBordersColor'));
                     }
 
                     $styleParametersArray = array('showTableFirstCell' => $showTableFirstCell, 'tableFirstCellFontSize' => $tableFirstCellFontSize, 'tableFirstCellFontColor' => $tableFirstCellFontColor, 'rowsLabelsFontSize' => $rowsLabelsFontSize, 'rowsLabelsFontColor' => $rowsLabelsFontColor, 'colsLabelsFontSize' => $colsLabelsFontSize, 'colsLabelsFontColor' => $colsLabelsFontColor, 'rowsLabelsBckColor' => $rowsLabelsBckColor, 'colsLabelsBckColor' => $colsLabelsBckColor, 'tableBorders' => $tableBorders, 'tableBordersColor' => $tableBordersColor);
@@ -856,82 +926,82 @@
                 {
                     if(isset($_POST['legendFontSize'])&&($_POST['legendFontSize']!=""))
                     {
-                        $legendFontSize = mysqli_real_escape_string($link, $_POST['legendFontSize']);
+                        $legendFontSize = mysqli_real_escape_string($link, sanitizePostInt('legendFontSize'));
                     }
 
                     if(isset($_POST['legendFontColorPicker'])&&($_POST['legendFontColorPicker']!=""))
                     {
-                        $legendFontColor = mysqli_real_escape_string($link, $_POST['legendFontColorPicker']); 
+                        $legendFontColor = mysqli_real_escape_string($link, sanitizePostString('legendFontColorPicker'));
                     }
 
                     if(isset($_POST['dataLabelsDistance'])&&($_POST['dataLabelsDistance']!=""))
                     {
-                        $dataLabelsDistance = mysqli_real_escape_string($link, $_POST['dataLabelsDistance']);
+                        $dataLabelsDistance = mysqli_real_escape_string($link, sanitizePostFloat('dataLabelsDistance'));
                     }
 
                     if(isset($_POST['dataLabelsDistance1'])&&($_POST['dataLabelsDistance1']!=""))
                     {
-                        $dataLabelsDistance1 = mysqli_real_escape_string($link, $_POST['dataLabelsDistance1']); 
+                        $dataLabelsDistance1 = mysqli_real_escape_string($link, sanitizePostFloat('dataLabelsDistance1'));
                     }
 
                     if(isset($_POST['dataLabelsDistance2'])&&($_POST['dataLabelsDistance2']!=""))
                     {
-                        $dataLabelsDistance2 = mysqli_real_escape_string($link, $_POST['dataLabelsDistance2']); 
+                        $dataLabelsDistance2 = mysqli_real_escape_string($link, sanitizePostFloat('dataLabelsDistance2'));
                     }
 
                     if(isset($_POST['dataLabels'])&&($_POST['dataLabels']!=""))
                     {
-                        $dataLabels = mysqli_real_escape_string($link, $_POST['dataLabels']);
+                        $dataLabels = mysqli_real_escape_string($link, sanitizePostString('dataLabels'));
                     }
 
                     if(isset($_POST['dataLabelsFontSize'])&&($_POST['dataLabelsFontSize']!=""))
                     {
-                        $dataLabelsFontSize = mysqli_real_escape_string($link, $_POST['dataLabelsFontSize']);
+                        $dataLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSize'));
                     }
 
                     if(isset($_POST['dataLabelsFontColor'])&&($_POST['dataLabelsFontColor']!=""))
                     {
-                        $dataLabelsFontColor = mysqli_real_escape_string($link, $_POST['dataLabelsFontColor']); 
+                        $dataLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColor'));
                     }
 
                     if(isset($_POST['innerRadius1'])&&($_POST['innerRadius1']!=""))
                     {
-                        $innerRadius1 = mysqli_real_escape_string($link, $_POST['innerRadius1']); 
+                        $innerRadius1 = mysqli_real_escape_string($link, sanitizePostFloat('innerRadius1'));
                     }
 
                     if(isset($_POST['startAngle'])&&($_POST['startAngle']!=""))
                     {
-                        $startAngle = mysqli_real_escape_string($link, $_POST['startAngle']); 
+                        $startAngle = mysqli_real_escape_string($link, sanitizePostFloat('startAngle'));
                     }
 
                     if(isset($_POST['endAngle'])&&($_POST['endAngle']!=""))
                     {
-                        $endAngle = mysqli_real_escape_string($link, $_POST['endAngle']); 
+                        $endAngle = mysqli_real_escape_string($link, sanitizePostFloat('endAngle'));
                     }
 
                     if(isset($_POST['outerRadius1'])&&($_POST['outerRadius1']!=""))
                     {
-                        $outerRadius1 = mysqli_real_escape_string($link, $_POST['outerRadius1']); 
+                        $outerRadius1 = mysqli_real_escape_string($link, sanitizePostFloat('outerRadius1'));
                     }
 
                     if(isset($_POST['innerRadius2'])&&($_POST['innerRadius2']!=""))
                     {
-                        $innerRadius2 = mysqli_real_escape_string($link, $_POST['innerRadius2']); 
+                        $innerRadius2 = mysqli_real_escape_string($link, sanitizePostFloat('innerRadius2'));
                     }
 
                     if(isset($_POST['centerY'])&&($_POST['centerY']!=""))
                     {
-                        $centerY = mysqli_real_escape_string($link, $_POST['centerY']); 
+                        $centerY = mysqli_real_escape_string($link, sanitizePostFloat('centerY'));
                     }
 
                     if(isset($_POST['colorsSelect1'])&&($_POST['colorsSelect1']!=""))
                     {
-                        $colorsSelect1 = mysqli_real_escape_string($link, $_POST['colorsSelect1']); 
+                        $colorsSelect1 = mysqli_real_escape_string($link, sanitizePostString('colorsSelect1'));
                     }
 
                     if(isset($_POST['colors1'])&&($_POST['colors1']!=""))
                     {
-                        $temp = json_decode($_POST['colors1']);
+                        $temp = json_decode(sanitizeJson($_POST['colors1']));     // SANITIZE QUI ??
                         $colors1 = [];
                         foreach ($temp as $color) 
                         {
@@ -941,12 +1011,12 @@
 
                     if(isset($_POST['colorsSelect2'])&&($_POST['colorsSelect2']!=""))
                     {
-                        $colorsSelect2 = mysqli_real_escape_string($link, $_POST['colorsSelect2']); 
+                        $colorsSelect2 = mysqli_real_escape_string($link, sanitizePostString('colorsSelect2'));
                     }
 
                     if(isset($_POST['colors2'])&&($_POST['colors2']!=""))
                     {
-                        $temp = json_decode($_POST['colors2']);
+                        $temp = json_decode(sanitizeJson($_POST['colors2']));     // SANITIZE QUI ??
                         $colors2 = [];
                         foreach ($temp as $color) 
                         {
@@ -980,77 +1050,77 @@
                 {
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
-                        $rowsLabelsFontSize = $_POST['rowsLabelsFontSize'];
+                        $rowsLabelsFontSize = sanitizePostInt('rowsLabelsFontSize');
                     }
 
                     if(isset($_POST['rowsLabelsFontColor'])&&($_POST['rowsLabelsFontColor']!=""))
                     {
-                        $rowsLabelsFontColor = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColor']); 
+                        $rowsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColor'));
                     }
 
                     if(isset($_POST['colsLabelsFontSize'])&&($_POST['colsLabelsFontSize']!=""))
                     {
-                        $colsLabelsFontSize = mysqli_real_escape_string($link, $_POST['colsLabelsFontSize']); 
+                        $colsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSize'));
                     }
 
                     if(isset($_POST['colsLabelsFontColor'])&&($_POST['colsLabelsFontColor']!=""))
                     {
-                        $colsLabelsFontColor = mysqli_real_escape_string($link, $_POST['colsLabelsFontColor']);
+                        $colsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColor'));
                     }
 
                     if(isset($_POST['dataLabelsFontSize'])&&($_POST['dataLabelsFontSize']!=""))
                     {
-                        $dataLabelsFontSize = mysqli_real_escape_string($link, $_POST['dataLabelsFontSize']);
+                        $dataLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSize'));
                     }
 
                     if(isset($_POST['dataLabelsFontColor'])&&($_POST['dataLabelsFontColor']!=""))
                     {
-                        $dataLabelsFontColor = mysqli_real_escape_string($link, $_POST['dataLabelsFontColor']); 
+                        $dataLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColor'));
                     }
 
                     if(isset($_POST['legendFontSize'])&&($_POST['legendFontSize']!=""))
                     {
-                        $legendFontSize = mysqli_real_escape_string($link, $_POST['legendFontSize']); 
+                        $legendFontSize = mysqli_real_escape_string($link, sanitizePostInt('legendFontSize'));
                     }
 
                     if(isset($_POST['legendFontColor'])&&($_POST['legendFontColor']!=""))
                     {
-                        $legendFontColor = mysqli_real_escape_string($link, $_POST['legendFontColor']); 
+                        $legendFontColor = mysqli_real_escape_string($link, sanitizePostString('legendFontColor'));
                     }
 
                     if(isset($_POST['barsColorsSelect'])&&($_POST['barsColorsSelect']!=""))
                     {
-                        $barsColorsSelect = mysqli_real_escape_string($link, $_POST['barsColorsSelect']); 
+                        $barsColorsSelect = mysqli_real_escape_string($link, sanitizePostString('barsColorsSelect'));
                     }
 
                     if(isset($_POST['chartType'])&&($_POST['chartType']!=""))
                     {
-                        $chartType = mysqli_real_escape_string($link, $_POST['chartType']); 
+                        $chartType = mysqli_real_escape_string($link, sanitizePostString('chartType'));
                     }
 
                     if(isset($_POST['dataLabels'])&&($_POST['dataLabels']!=""))
                     {
-                        $dataLabels = mysqli_real_escape_string($link, $_POST['dataLabels']); 
+                        $dataLabels = mysqli_real_escape_string($link, sanitizePostString('dataLabels'));
                     }
 
                     if(isset($_POST['xAxisDataset'])&&($_POST['xAxisDataset']!=""))
                     {
-                        $xAxisDataset = mysqli_real_escape_string($link, $_POST['xAxisDataset']); 
+                        $xAxisDataset = mysqli_real_escape_string($link, sanitizePostString('xAxisDataset'));
                     }
 
                     if(isset($_POST['lineWidth'])&&($_POST['lineWidth']!=""))
                     {
-                        $lineWidth = mysqli_real_escape_string($link, $_POST['lineWidth']);
+                        $lineWidth = mysqli_real_escape_string($link, sanitizePostInt('lineWidth'));
                     }
 
                     if(isset($_POST['alrLook'])&&($_POST['alrLook']!=""))
                     {
-                        $alrLook = mysqli_real_escape_string($link, $_POST['alrLook']);
+                        $alrLook = mysqli_real_escape_string($link, sanitizePostString('alrLook'));
                     }
 
                     if(isset($_POST['barsColors'])&&($_POST['barsColors']!=""))
                     {
-                        $temp = json_decode($_POST['barsColors']);
+                        $temp = json_decode(sanitizeJson($_POST['barsColors']));      // SANITIZE QUI ??
                         $barsColors = [];
                         foreach ($temp as $color) 
                         {
@@ -1081,62 +1151,62 @@
                 {
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
-                        $rowsLabelsFontSize = $_POST['rowsLabelsFontSize'];
+                        $rowsLabelsFontSize = sanitizePostInt('rowsLabelsFontSize');        // New pentest
                     }
 
                     if(isset($_POST['rowsLabelsFontColor'])&&($_POST['rowsLabelsFontColor']!=""))
                     {
-                        $rowsLabelsFontColor = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColor']); 
+                        $rowsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColor'));     // New pentest
                     }
 
                     if(isset($_POST['colsLabelsFontSize'])&&($_POST['colsLabelsFontSize']!=""))
                     {
-                        $colsLabelsFontSize = mysqli_real_escape_string($link, $_POST['colsLabelsFontSize']); 
+                        $colsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSize'));      // New pentest
                     }
 
                     if(isset($_POST['colsLabelsFontColor'])&&($_POST['colsLabelsFontColor']!=""))
                     {
-                        $colsLabelsFontColor = mysqli_real_escape_string($link, $_POST['colsLabelsFontColor']); 
+                        $colsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColor'));     // New pentest
                     }
 
                     if(isset($_POST['dataLabelsFontSize'])&&($_POST['dataLabelsFontSize']!=""))
                     {
-                        $dataLabelsFontSize = mysqli_real_escape_string($link, $_POST['dataLabelsFontSize']);
+                        $dataLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSize'));      // New pentest
                     }
 
                     if(isset($_POST['dataLabelsFontColor'])&&($_POST['dataLabelsFontColor']!=""))
                     {
-                        $dataLabelsFontColor = mysqli_real_escape_string($link, $_POST['dataLabelsFontColor']); 
+                        $dataLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColor'));     // New pentest
                     }
 
                     if(isset($_POST['legendFontSize'])&&($_POST['legendFontSize']!=""))
                     {
-                        $legendFontSize = mysqli_real_escape_string($link, $_POST['legendFontSize']); 
+                        $legendFontSize = mysqli_real_escape_string($link, sanitizePostInt('legendFontSize'));      // New pentest
                     }
 
                     if(isset($_POST['legendFontColor'])&&($_POST['legendFontColor']!=""))
                     {
-                        $legendFontColor = mysqli_real_escape_string($link, $_POST['legendFontColor']);
+                        $legendFontColor = mysqli_real_escape_string($link, sanitizePostString('legendFontColor'));     // New pentest
                     }
 
                     if(isset($_POST['barsColorsSelect'])&&($_POST['barsColorsSelect']!=""))
                     {
-                        $barsColorsSelect = mysqli_real_escape_string($link, $_POST['barsColorsSelect']); 
+                        $barsColorsSelect = mysqli_real_escape_string($link, sanitizePostString('barsColorsSelect'));       // New pentest
                     }
 
                     if(isset($_POST['chartType'])&&($_POST['chartType']!=""))
                     {
-                        $chartType = mysqli_real_escape_string($link, $_POST['chartType']); 
+                        $chartType = mysqli_real_escape_string($link, sanitizePostString('chartType'));     // New pentest
                     }
 
                     if(isset($_POST['dataLabels'])&&($_POST['dataLabels']!=""))
                     {
-                        $dataLabels = mysqli_real_escape_string($link, $_POST['dataLabels']); 
+                        $dataLabels = mysqli_real_escape_string($link, sanitizePostString('dataLabels'));       // New pentest
                     }
 
                     if(isset($_POST['dataLabelsRotation'])&&($_POST['dataLabelsRotation']!=""))
                     {
-                        $dataLabelsRotation = mysqli_real_escape_string($link, $_POST['dataLabelsRotation']); 
+                        $dataLabelsRotation = mysqli_real_escape_string($link, sanitizePostString('dataLabelsRotation'));       // New pentest
                     }
 
                     $styleParametersArray = array();
@@ -1155,7 +1225,7 @@
 
                     if(isset($_POST['barsColors'])&&($_POST['barsColors']!=""))
                     {
-                        $temp = json_decode($_POST['barsColors']);
+                        $temp = json_decode(sanitizeJson($_POST['barsColors']));  // SANITIZE QUI ??
                         $barsColors = [];
                         foreach ($temp as $color) 
                         {
@@ -1171,77 +1241,77 @@
                 {
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
-                        $rowsLabelsFontSize = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSize']);
+                        $rowsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSize'));
                     }
 
                     if(isset($_POST['rowsLabelsFontColor'])&&($_POST['rowsLabelsFontColor']!=""))
                     {
-                        $rowsLabelsFontColor = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColor']); 
+                        $rowsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColor'));
                     }
 
                     if(isset($_POST['colsLabelsFontSize'])&&($_POST['colsLabelsFontSize']!=""))
                     {
-                        $colsLabelsFontSize = mysqli_real_escape_string($link, $_POST['colsLabelsFontSize']); 
+                        $colsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSize'));
                     }
 
                     if(isset($_POST['colsLabelsFontColor'])&&($_POST['colsLabelsFontColor']!=""))
                     {
-                        $colsLabelsFontColor = mysqli_real_escape_string($link, $_POST['colsLabelsFontColor']); 
+                        $colsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColor'));
                     }
 
                     if(isset($_POST['dataLabelsFontSize'])&&($_POST['dataLabelsFontSize']!=""))
                     {
-                        $dataLabelsFontSize = mysqli_real_escape_string($link, $_POST['dataLabelsFontSize']); 
+                        $dataLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSize'));
                     }
 
                     if(isset($_POST['dataLabelsFontColor'])&&($_POST['dataLabelsFontColor']!=""))
                     {
-                        $dataLabelsFontColor = mysqli_real_escape_string($link, $_POST['dataLabelsFontColor']); 
+                        $dataLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColor'));
                     }
 
                     if(isset($_POST['legendFontSize'])&&($_POST['legendFontSize']!=""))
                     {
-                        $legendFontSize = mysqli_real_escape_string($link, $_POST['legendFontSize']); 
+                        $legendFontSize = mysqli_real_escape_string($link, sanitizePostInt('legendFontSize'));
                     }
 
                     if(isset($_POST['legendFontColor'])&&($_POST['legendFontColor']!=""))
                     {
-                        $legendFontColor = mysqli_real_escape_string($link, $_POST['legendFontColor']); 
+                        $legendFontColor = mysqli_real_escape_string($link, sanitizePostString('legendFontColor'));
                     }
 
                     if(isset($_POST['gridLinesWidth'])&&($_POST['gridLinesWidth']!=""))
                     {
-                        $gridLinesWidth = mysqli_real_escape_string($link, $_POST['gridLinesWidth']); 
+                        $gridLinesWidth = mysqli_real_escape_string($link, sanitizePostInt('gridLinesWidth'));
                     }
 
                     if(isset($_POST['gridLinesColor'])&&($_POST['gridLinesColor']!=""))
                     {
-                        $gridLinesColor = mysqli_real_escape_string($link, $_POST['gridLinesColor']); 
+                        $gridLinesColor = mysqli_real_escape_string($link, sanitizePostString('gridLinesColor'));
                     }
 
                     if(isset($_POST['linesWidth'])&&($_POST['linesWidth']!=""))
                     {
-                        $linesWidth = mysqli_real_escape_string($link, $_POST['linesWidth']); 
+                        $linesWidth = mysqli_real_escape_string($link, sanitizePostInt('linesWidth'));
                     }
 
                     if(isset($_POST['barsColorsSelect'])&&($_POST['barsColorsSelect']!=""))
                     {
-                        $barsColorsSelect = mysqli_real_escape_string($link, $_POST['barsColorsSelect']); 
+                        $barsColorsSelect = mysqli_real_escape_string($link, sanitizePostString('barsColorsSelect'));
                     }
 
                     if(isset($_POST['alrThrLinesWidth'])&&($_POST['alrThrLinesWidth']!=""))
                     {
-                        $alrThrLinesWidth = mysqli_real_escape_string($link, $_POST['alrThrLinesWidth']); 
+                        $alrThrLinesWidth = mysqli_real_escape_string($link,sanitizePostInt('alrThrLinesWidth'));
                     }
 
                     if(isset($_POST['dataLabels'])&&($_POST['dataLabels']!=""))
                     {
-                        $dataLabels = mysqli_real_escape_string($link, $_POST['dataLabels']); 
+                        $dataLabels = mysqli_real_escape_string($link, sanitizePostString('dataLabels'));
                     }
 
                     if(isset($_POST['dataLabelsRotation'])&&($_POST['dataLabelsRotation']!=""))
                     {
-                        $dataLabelsRotation = mysqli_real_escape_string($link, $_POST['dataLabelsRotation']); 
+                        $dataLabelsRotation = mysqli_real_escape_string($link, sanitizePostString('dataLabelsRotation'));   // CTR oppure sanitizePostInt ???
                     }
 
                     $styleParametersArray = array();
@@ -1263,7 +1333,7 @@
 
                     if(isset($_POST['barsColors'])&&($_POST['barsColors']!=""))
                     {
-                        $temp = json_decode($_POST['barsColors']);
+                        $temp = json_decode(sanitizeJson($_POST['barsColors']));      // SANITIZE QUI ?
                         $barsColors = [];
                         foreach ($temp as $color) 
                         {
@@ -1279,57 +1349,57 @@
                 {
                     if(isset($_POST['showTableFirstCell'])&&($_POST['showTableFirstCell']!=""))
                     {
-                        $showTableFirstCell = mysqli_real_escape_string($link, $_POST['showTableFirstCell']); 
+                        $showTableFirstCell = mysqli_real_escape_string($link, sanitizePostString('showTableFirstCell'));      // New pentest
                     }
 
                     if(isset($_POST['tableFirstCellFontSize'])&&($_POST['tableFirstCellFontSize']!=""))
                     {
-                        $tableFirstCellFontSize = mysqli_real_escape_string($link, $_POST['tableFirstCellFontSize']);
+                        $tableFirstCellFontSize = mysqli_real_escape_string($link, sanitizePostInt('tableFirstCellFontSize'));      // New pentest
                     }
 
                     if(isset($_POST['tableFirstCellFontColor'])&&($_POST['tableFirstCellFontColor']!=""))
                     {
-                        $tableFirstCellFontColor = mysqli_real_escape_string($link, $_POST['tableFirstCellFontColor']); 
+                        $tableFirstCellFontColor = mysqli_real_escape_string($link, sanitizePostString('tableFirstCellFontColor'));     // New pentest
                     }
 
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
-                        $rowsLabelsFontSize = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSize']); 
+                        $rowsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSize'));      // New pentest
                     }
 
                     if(isset($_POST['rowsLabelsFontColor'])&&($_POST['rowsLabelsFontColor']!=""))
                     {
-                        $rowsLabelsFontColor = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColor']); 
+                        $rowsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColor'));     // New pentest
                     }
 
                     if(isset($_POST['colsLabelsFontSize'])&&($_POST['colsLabelsFontSize']!=""))
                     {
-                        $colsLabelsFontSize = mysqli_real_escape_string($link, $_POST['colsLabelsFontSize']);
+                        $colsLabelsFontSize = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSize'));      // New pentest
                     }
 
                     if(isset($_POST['colsLabelsFontColor'])&&($_POST['colsLabelsFontColor']!=""))
                     {
-                        $colsLabelsFontColor = mysqli_real_escape_string($link, $_POST['colsLabelsFontColor']); 
+                        $colsLabelsFontColor = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColor'));     // New pentest
                     }
 
                     if(isset($_POST['rowsLabelsBckColor'])&&($_POST['rowsLabelsBckColor']!=""))
                     {
-                        $rowsLabelsBckColor = mysqli_real_escape_string($link, $_POST['rowsLabelsBckColor']); 
+                        $rowsLabelsBckColor = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsBckColor'));      // New pentest
                     }
 
                     if(isset($_POST['colsLabelsBckColor'])&&($_POST['colsLabelsBckColor']!=""))
                     {
-                        $colsLabelsBckColor = mysqli_real_escape_string($link, $_POST['colsLabelsBckColor']);
+                        $colsLabelsBckColor = mysqli_real_escape_string($link, sanitizePostString('colsLabelsBckColor'));       // New pentest
                     }
 
                     if(isset($_POST['tableBorders'])&&($_POST['tableBorders']!=""))
                     {
-                        $tableBorders = mysqli_real_escape_string($link, $_POST['tableBorders']);
+                        $tableBorders = mysqli_real_escape_string($link, sanitizePostString('tableBorders'));       // New pentest
                     }
 
                     if(isset($_POST['tableBordersColor'])&&($_POST['tableBordersColor']!=""))
                     {
-                        $tableBordersColor = mysqli_real_escape_string($link, $_POST['tableBordersColor']); 
+                        $tableBordersColor = mysqli_real_escape_string($link, sanitizePostString('tableBordersColor'));     // New pentest
                     }
 
                     $styleParametersArray = array('showTableFirstCell' => $showTableFirstCell, 'tableFirstCellFontSize' => $tableFirstCellFontSize, 'tableFirstCellFontColor' => $tableFirstCellFontColor, 'rowsLabelsFontSize' => $rowsLabelsFontSize, 'rowsLabelsFontColor' => $rowsLabelsFontColor, 'colsLabelsFontSize' => $colsLabelsFontSize, 'colsLabelsFontColor' => $colsLabelsFontColor, 'rowsLabelsBckColor' => $rowsLabelsBckColor, 'colsLabelsBckColor' => $colsLabelsBckColor, 'tableBorders' => $tableBorders, 'tableBordersColor' => $tableBordersColor);
@@ -1340,17 +1410,17 @@
                 {
                   if(isset($_POST['meteoTabFontSize']) && ($_POST['meteoTabFontSize'] != "") && ($_POST['meteoTabFontSize'] != null))
                   {
-                      $meteoTabFontSize = mysqli_real_escape_string($link, $_POST['meteoTabFontSize']);
+                      $meteoTabFontSize = mysqli_real_escape_string($link, sanitizePostInt('meteoTabFontSize'));    // New pentest COMMON
                   }
 
                   if(isset($_POST['genTabFontSize']) && ($_POST['genTabFontSize'] != "") && ($_POST['genTabFontSize'] != null))
                   {
-                      $genTabFontSize = mysqli_real_escape_string($link, $_POST['genTabFontSize']);
+                      $genTabFontSize = mysqli_real_escape_string($link, sanitizePostInt('genTabFontSize'));    // New pentest COMMON
                   }
 
                   if(isset($_POST['genTabFontColor']) && ($_POST['genTabFontColor'] != "") && ($_POST['genTabFontColor'] != null))
                   {
-                      $genTabFontColor = mysqli_real_escape_string($link, $_POST['genTabFontColor']);
+                      $genTabFontColor = mysqli_real_escape_string($link, sanitizePostString('genTabFontColor'));       // New pentest COMMON
                   }
                   
                   $styleParametersArray = array('meteoTabFontSize' => $meteoTabFontSize, 'genTabFontSize' => $genTabFontSize, 'genTabFontColor' => $genTabFontColor);
@@ -1359,54 +1429,54 @@
 
                 if(isset($_POST['inputHeaderFontColorWidget'])&&($_POST['inputHeaderFontColorWidget']!=""))
                 {
-                    $headerFontColor = mysqli_real_escape_string($link, $_POST['inputHeaderFontColorWidget']);
+                    $headerFontColor = mysqli_real_escape_string($link, sanitizePostString('inputHeaderFontColorWidget'));      // New pentest COMMON
                 }
 
                 if(isset($_POST['inputZoomControlsColor'])&&($_POST['inputZoomControlsColor']!="")&&(($type_widget == 'widgetExternalContent')||($type_widget =="widgetGisWFS")))
                 {
-                    $zoomControlsColor = mysqli_real_escape_string($link, $_POST['inputZoomControlsColor']);
+                    $zoomControlsColor = mysqli_real_escape_string($link, sanitizePostString('inputZoomControlsColor'));    // New pentest COMMON CTR
                 }
 
                 if(isset($_POST['inputControlsPosition'])&&($_POST['inputControlsPosition']!="")&&(($type_widget == 'widgetExternalContent')||($type_widget =="widgetGisWFS")))
                 {
-                    $controlsPosition = mysqli_real_escape_string($link, $_POST['inputControlsPosition']); 
+                    $controlsPosition = mysqli_real_escape_string($link, sanitizePostString('inputControlsPosition'));      // New pentest COMMON CTR
                 }
 
                 if(isset($_POST['inputShowTitle'])&&($_POST['inputShowTitle']!="")/*&&($type_widget == 'widgetExternalContent')*/)
                 {
-                    $showTitle = mysqli_real_escape_string($link, $_POST['inputShowTitle']); 
+                    $showTitle = mysqli_real_escape_string($link, sanitizePostString('inputShowTitle'));    // New pentest COMMON
                 }
 
                 if(isset($_POST['inputControlsVisibility'])&&($_POST['inputControlsVisibility']!="")&&(($type_widget == 'widgetExternalContent')||($type_widget =="widgetGisWFS")))
                 {
-                    $controlsVisibility = mysqli_real_escape_string($link, $_POST['inputControlsVisibility']);
+                    $controlsVisibility = mysqli_real_escape_string($link, sanitizePostString('inputControlsVisibility'));      // New pentest COMMON CTR
                 }
 
                 if(isset($_POST['inputDefaultTab']) && ($_POST['inputDefaultTab'] != "") && ($_POST['inputDefaultTab'] != null))
                 {
-                    $defaultTab = mysqli_real_escape_string($link, $_POST['inputDefaultTab']);
+                    $defaultTab = mysqli_real_escape_string($link, sanitizePostString('inputDefaultTab'));      // New pentest COMMON CTR
                 }
                 
                 //Aggiunta del campo della tabella "config_widget_dashboard" per i messaggi informativi
-                $message_widget = mysqli_real_escape_string($link, $_POST['widgetInfoEditor']);
+                $message_widget = mysqli_real_escape_string($link, sanitizePostString('widgetInfoEditor'));     // New pentest COMMON
 
                 //colore della finestra
                 $frame_color = NULL;
 
                 if(isset($_POST['inputTitleWidget'])&&($_POST['inputTitleWidget']!=""))
                 {
-                    $title_widget = mysqli_real_escape_string($link, $_POST['inputTitleWidget']); 
+                    $title_widget = mysqli_real_escape_string($link, sanitizePostString('inputTitleWidget'));       // New pentest COMMON
                     $title_widget = htmlentities($title_widget, ENT_QUOTES|ENT_HTML5);
                 }
 
                 if(isset($_POST['inputFreqWidget'])&&($_POST['inputFreqWidget']!=""))
                 {
-                    $freq_widget = mysqli_real_escape_string($link, $_POST['inputFreqWidget']); 
+                    $freq_widget = mysqli_real_escape_string($link, sanitizePostInt('inputFreqWidget'));        // New pentest COMMON
                 }
 
                 if(isset($_POST['inputFrameColorWidget'])&&($_POST['inputFrameColorWidget']!=""))
                 {
-                    $frame_color = mysqli_real_escape_string($link, $_POST['inputFrameColorWidget']); 
+                    $frame_color = mysqli_real_escape_string($link, sanitizePostString('inputFrameColorWidget'));       // New pentest COMMON
                 }
 
                //Parametri
@@ -1418,26 +1488,26 @@
                   {
                      if($_POST['alrThrSel'] == "yes")
                      {
-                        $parameters = $_POST['parameters'];
+                      //  $parameters = $_POST['parameters'];     // SANITIZE RELAXED JSON ??
+                        $parameters = sanitizeJsonRelaxed($_POST['parameters']);       // SANITIZE RELAXED JSON ??
                      }
                   }
                   else
                   {
-                     $parameters = $_POST['parameters'];
+                   //  $parameters = $_POST['parameters'];        // SANITIZE JSON ??
+                       $parameters = sanitizeJsonRelaxed($_POST['parameters']);       // SANITIZE RELAXED JSON ??
                   }
                } 
 
                 //Gestione parametri per widget di stato del singolo processo
                 if($id_metric == 'Process')
                 {
-                  $host = $_POST['host'];
-                  $user = $_POST['user'];
-                  $pass = $_POST['pass'];
-                  $schedulerName = $_POST['schedulerName'];
-                  $jobArea = $_POST['jobArea'];
-                  $jobGroup = $_POST['jobGroup'];
-                  $jobName = $_POST['jobName'];
-                  $parametersArray = array('host' => $host, 'user' => $user, 'pass' => $pass, 'schedulerName' => $schedulerName, 'jobArea' => $jobArea, 'jobGroup' => $jobGroup, 'jobName' => $jobName);
+
+                  $schedulerName = sanitizePostString('schedulerName');
+                  $jobArea = sanitizePostString('jobArea');
+                  $jobGroup = sanitizePostString('jobGroup');
+                  $jobName = sanitizePostString('jobName');
+                  $parametersArray = array('schedulerName' => $schedulerName, 'jobArea' => $jobArea, 'jobGroup' => $jobGroup, 'jobName' => $jobName);
                   $parameters = json_encode($parametersArray);
                 }
 		
@@ -1453,7 +1523,7 @@
                             }
                             else
                             {
-                               $url_widget = mysqli_real_escape_string($link, $_POST['inputUrlWidget']);
+                               $url_widget = mysqli_real_escape_string($link, sanitizePostString('inputUrlWidget'));    // New pentest COMMON
                             }
                         }
                         else
@@ -1471,7 +1541,7 @@
                             }
                             else
                             {
-                               $url_widget = mysqli_real_escape_string($link, $_POST['inputUrlWidgetNR']);
+                               $url_widget = mysqli_real_escape_string($link, sanitizePostString('inputUrlWidgetNR'));      // New pentest CTR
                             }
                         }
                     }
@@ -1490,7 +1560,7 @@
                 
                 if(isset($_POST['inputComuneWidget']) && $_POST['inputComuneWidget'] != "") 
                 {
-                    $comune_widget = strtoupper($_POST['inputComuneWidget']);
+                    $comune_widget = strtoupper(sanitizePostString('inputComuneWidget'));
                 } 
                 
                 if($_REQUEST['widgetCategory'] == "actuator")
@@ -1540,11 +1610,11 @@
                 $int_temp_widget = NULL;
                 if(isset($_POST['select-IntTemp-Widget']) && $_POST['select-IntTemp-Widget'] != "") 
                 {
-                    $int_temp_widget = $_POST['select-IntTemp-Widget'];
+                    $int_temp_widget = sanitizePostString('select-IntTemp-Widget');
 
                     if($_POST['select-IntTemp-Widget'] != "Nessuno") 
                     {
-                        $name_widget = $name_widget . "_" . preg_replace('/ /', '', escapeForSQL($_POST['select-IntTemp-Widget'], $link));
+                        $name_widget = $name_widget . "_" . preg_replace('/ /', '', escapeForSQL(sanitizePostString('select-IntTemp-Widget'), $link));
                         $name_widget = str_replace("/", "_", $name_widget);
                         $name_widget = str_replace(".", "_", $name_widget);
                         $name_widget = str_replace("\\", '_', $name_widget);
@@ -1591,7 +1661,12 @@
                 if($type_widget == "widgetButton")
                 {
                    $styleParametersArray = [];
-                   $styleParametersArray["borderRadius"] = $_REQUEST['addWidgetBtnRadius'];
+                 //  $styleParametersArray["borderRadius"] = $_REQUEST['addWidgetBtnRadius'];
+                    if (sanitizePostString('addWidgetBtnRadius') == null) {       // New pentest
+                        $styleParametersArray["borderRadius"] = mysqli_real_escape_string($link, sanitizeGetString('addWidgetBtnRadius'));
+                    } else {
+                        $styleParametersArray["borderRadius"] = mysqli_real_escape_string($link, sanitizePostString('addWidgetBtnRadius'));
+                    }
                    
                    if($_REQUEST['addWidgetBtnImgSelect'] == "yes")
                    {
@@ -1636,7 +1711,12 @@
                       $styleParametersArray["hasImage"] = "no";
                    }
                    
-                   $styleParametersArray["showText"] = $_REQUEST['addWidgetShowButtonText'];
+               //    $styleParametersArray["showText"] = $_REQUEST['addWidgetShowButtonText'];
+                    if (sanitizePostString('addWidgetShowButtonText') == null) {       // New pentest
+                        $styleParametersArray["showText"] = mysqli_real_escape_string($link, sanitizeGetString('addWidgetShowButtonText'));
+                    } else {
+                        $styleParametersArray["showText"] = mysqli_real_escape_string($link, sanitizePostString('addWidgetShowButtonText'));
+                    }
                    
                   $styleParameters = json_encode($styleParametersArray); 
                 }
@@ -1644,26 +1724,26 @@
                 $inputUdmWidget = NULL;
                 if(isset($_POST['inputUdmWidget']) && ($_POST['inputUdmWidget'] != "")) 
                 {
-                    $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmWidget']);
+                    $inputUdmWidget = mysqli_real_escape_string($link, sanitizePostString('inputUdmWidget'));       // New pentest COMMON CTR
                     $inputUdmWidget = htmlentities($inputUdmWidget, ENT_QUOTES|ENT_HTML5);
                 }
                 
                 $inputUdmPosition = NULL;
                 if(isset($_POST['inputUdmPosition']) && ($_POST['inputUdmPosition'] != "")) 
                 {
-                    $inputUdmPosition = mysqli_real_escape_string($link, $_POST['inputUdmPosition']);
+                    $inputUdmPosition = mysqli_real_escape_string($link, sanitizePostString('inputUdmPosition'));       // New pentest COMMON CTR
                 }
 
                 $fontSize = NULL;
                 if(isset($_POST['inputFontSize']) && ($_POST['inputFontSize'] != '') && (!empty($_POST['inputFontSize']))) 
                 {
-                    $fontSize = mysqli_real_escape_string($link, $_POST['inputFontSize']); 
+                    $fontSize = mysqli_real_escape_string($link, sanitizePostInt('inputFontSize'));     // New pentest COMMON
                 }
 
                 $fontColor = NULL;
                 if(isset($_POST['inputFontColor']) && ($_POST['inputFontColor'] != '') && (!empty($_POST['inputFontColor']))) 
                 {
-                    $fontColor = mysqli_real_escape_string($link, $_POST['inputFontColor']);
+                    $fontColor = mysqli_real_escape_string($link, sanitizePostString('inputFontColor'));        // New pentest COMMON
                 }
 
                 $nCol = 1;
@@ -1677,13 +1757,13 @@
                 $viewMode = NULL;
                 if(isset($_POST['addWidgetFirstAidMode']) && ($_POST['addWidgetFirstAidMode'] != '') && (!empty($_POST['addWidgetFirstAidMode']))) 
                 {
-                    $viewMode = mysqli_real_escape_string($link, $_POST['addWidgetFirstAidMode']);
+                    $viewMode = mysqli_real_escape_string($link, sanitizePostString('addWidgetFirstAidMode'));
                 }
                 else
                 {
                     if(isset($_POST['widgetEventsMode'])) 
                     {
-                        $viewMode = mysqli_real_escape_string($link, $_POST['widgetEventsMode']);
+                        $viewMode = mysqli_real_escape_string($link, sanitizePostString('widgetEventsMode'));
                     }
                     else
                     {
@@ -1830,8 +1910,19 @@
                 
                 if(isset($_REQUEST['addWidgetRegisterGen']))
                 {
-                   $notificatorRegistered = escapeForSQL($_REQUEST['addWidgetRegisterGen'], $link);
-                   $notificatorEnabled = escapeForSQL($_REQUEST['addWidgetRegisterGen'], $link);
+                //   $notificatorRegistered = escapeForSQL($_REQUEST['addWidgetRegisterGen'], $link);
+                //   $notificatorEnabled = escapeForSQL($_REQUEST['addWidgetRegisterGen'], $link);
+                    if (sanitizePostString('addWidgetRegisterGen') == null) {       // New pentest
+                        $notificatorRegistered = mysqli_real_escape_string($link, sanitizeGetString('addWidgetRegisterGen'));
+                    } else {
+                        $notificatorRegistered = mysqli_real_escape_string($link, sanitizePostString('addWidgetRegisterGen'));
+                    }
+                    if (sanitizePostString('addWidgetRegisterGen') == null) {       // New pentest
+                        $notificatorEnabled = mysqli_real_escape_string($link, sanitizeGetString('addWidgetRegisterGen'));
+                    } else {
+                        $notificatorEnabled = mysqli_real_escape_string($link, sanitizePostString('addWidgetRegisterGen'));
+                    }
+
                 }
                 else
                 {
@@ -1842,17 +1933,32 @@
                if(($type_widget == 'widgetTrafficEvents') || ($type_widget == 'widgetTrafficEventsNew'))
                {
                   //31/08/2017 - Patch temporanea in attesa di avere tempo di mettere i controlli sul form
-                  $styleParameters = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . $_REQUEST['addWidgetDefaultCategory'] . '"}';
+               //   $styleParameters = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . $_REQUEST['addWidgetDefaultCategory'] . '"}';
+                   if (sanitizePostString('addWidgetDefaultCategory') == null) {       // New pentest
+                       $styleParameters = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . sanitizeGetString('addWidgetDefaultCategory') . '"}';
+                   } else {
+                       $styleParameters = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . sanitizePostString('addWidgetDefaultCategory') . '"}';
+                   }
                }
                
                 if(isset($_REQUEST['enableFullscreenTab']))
                 {
-                   $enableFullscreenTab = escapeForSQL($_REQUEST['enableFullscreenTab'], $link);
+                //   $enableFullscreenTab = escapeForSQL($_REQUEST['enableFullscreenTab'], $link);
+                    if (sanitizePostString('enableFullscreenTab') == null) {       // New pentest
+                        $enableFullscreenTab = mysqli_real_escape_string($link, sanitizeGetString('enableFullscreenTab'));
+                    } else {
+                        $enableFullscreenTab = mysqli_real_escape_string($link, sanitizePostString('enableFullscreenTab'));
+                    }
                 }
                 
                 if(isset($_REQUEST['enableFullscreenModal']))
                 {
-                   $enableFullscreenModal = escapeForSQL($_REQUEST['enableFullscreenModal'], $link);
+                //   $enableFullscreenModal = escapeForSQL($_REQUEST['enableFullscreenModal'], $link);
+                    if (sanitizePostString('enableFullscreenModal') == null) {       // New pentest
+                        $enableFullscreenModal = mysqli_real_escape_string($link, sanitizeGetString('enableFullscreenModal'));
+                    } else {
+                        $enableFullscreenModal = mysqli_real_escape_string($link, sanitizePostString('enableFullscreenModal'));
+                    }
                 }
                 
                 $defParamsQuery = "SELECT * FROM Dashboard.Widgets WHERE id_type_widget = '$type_widget'";
@@ -2231,9 +2337,24 @@
         }
         else if(isset($_REQUEST['dashboardIdUnderEdit'])&&isset($_REQUEST['dashboardUser']))
         {
-            $dashboardName2 = $_REQUEST['currentDashboardTitle'];
+          //  $dashboardName2 = $_REQUEST['currentDashboardTitle'];
+            if (sanitizePostString('currentDashboardTitle') == null) {       // New pentest
+                $dashboardName2 = mysqli_real_escape_string($link, sanitizeGetString('currentDashboardTitle'));
+            } else {
+                $dashboardName2 = mysqli_real_escape_string($link, sanitizePostString('currentDashboardTitle'));
+            }
             $dashboardAuthor = $_REQUEST['dashboardUser'];
-            $lastEditor = $_REQUEST['dashboardEditor'];
+            if (sanitizePostString('dashboardUser') == null) {       // New pentest
+                $dashboardAuthor = mysqli_real_escape_string($link, sanitizeGetString('dashboardUser'));
+            } else {
+                $dashboardAuthor = mysqli_real_escape_string($link, sanitizePostString('dashboardUser'));
+            }
+        //    $lastEditor = $_REQUEST['dashboardEditor'];
+            if (sanitizePostString('dashboardEditor') == null) {       // New pentest
+                $lastEditor = mysqli_real_escape_string($link, sanitizeGetString('dashboardEditor'));
+            } else {
+                $lastEditor = mysqli_real_escape_string($link, sanitizePostString('dashboardEditor'));
+            }
             $id_dashboard2 = $_REQUEST['dashboardIdUnderEdit'];
             if (checkVarType($id_dashboard2, "integer") === false) {
                 eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard2.": ".$id_dashboard2." is not an integer as expected. Exit from script.");
@@ -2260,7 +2381,7 @@
         }
         else
         {
-            $type_widget_m = mysqli_real_escape_string($link, $_POST['select-widget-m']);
+            $type_widget_m = mysqli_real_escape_string($link, sanitizePostString('select-widget-m'));
             $name_widget_m = $_POST['inputNameWidgetM'];
             // CONTROLLA SE ESISTE IL WIDGET o MEGLIO se Appartiene alla Dashboard in uso
             if (checkWidgetNameInDashboard($link, $name_widget_m, $id_dashboard2) === false) {
@@ -2270,16 +2391,16 @@
         }
         
         $title_widget_m = NULL;
-        $color_widget_m = mysqli_real_escape_string($link, $_POST['inputColorWidgetM']); 
+        $color_widget_m = mysqli_real_escape_string($link, sanitizePostString('inputColorWidgetM'));     // New pentest
         $freq_widget_m = NULL; 
-        $col_m = mysqli_real_escape_string($link, $_POST['inputColumn-m']);
+        $col_m = mysqli_real_escape_string($link, sanitizePostInt('inputColumn-m'));     // New pentest
         if (checkVarType($col_m, "integer") === false) {
             if (!is_null($col_m)) {
                 eventLog("Returned the following ERROR in process-form.php for dashboard_id = " . $id_dashboard . ": col_m (" . $col_m . ") is not an integer (or NULL) as expected. Exit from script.");
                 exit();
             }
         }
-        $row_m = mysqli_real_escape_string($link, $_POST['inputRows-m']);
+        $row_m = mysqli_real_escape_string($link, sanitizePostInt('inputRows-m'));   // New pentest
         if (checkVarType($row_m, "integer") === false) {
             if (!is_null($row_m)) {
                 eventLog("Returned the following ERROR in process-form.php for dashboard_id = " . $id_dashboard . ": row_m (" . $row_m . ") is not an integer (or NULL) as expected. Exit from script.");
@@ -2340,7 +2461,12 @@
         $clockFontM = NULL;
         $enableFullscreenTabM = 'no';
         $enableFullscreenModalM = 'no';
-        $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
+    //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
+        if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
+            $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidgetM'));
+        } else {
+            $fontFamily = mysqli_real_escape_string($link, sanitizePostString('inputFontFamilyWidgetM'));
+        }
         
         $lastEditDate = date('Y-m-d H:i:s');
         
@@ -2348,46 +2474,65 @@
         {
             if($type_widget_m == "widgetNumericKeyboard")
             {
-                $styleParametersArrayM = array('displayColor' => $_REQUEST['editKeyboardDisplayColor'], 'displayFontColor' => $_REQUEST['editKeyboardDisplayFontColor'], 'btnColor' => $_REQUEST['editKeyboardBtnColor'], 'btnFontColor' => $_REQUEST['editKeyboardBtnFontColor']);
+                $styleParametersArrayM = array('displayColor' => sanitizeString('editKeyboardDisplayColor'), 'displayFontColor' => sanitizeString('editKeyboardDisplayFontColor'), 'btnColor' => sanitizeString('editKeyboardBtnColor'), 'btnFontColor' => sanitizeString('editKeyboardBtnFontColor'));
             }
             
             if($type_widget_m == "widgetGeolocator")
             {
-                $styleParametersArrayM = array('viewMode' => $_REQUEST['editSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['editSwitchButtonRadius'], 'color' => $_REQUEST['editSwitchButtonColor'], 'clickColor' => $_REQUEST['editSwitchButtonClickColor'], 'symbolColor' => $_REQUEST['editSwitchButtonSymbolColor'],'symbolClickColor' => $_REQUEST['editSwitchButtonSymbolClickColor'], 'neonEffect' => $_REQUEST['editSwitchButtonNeonEffect'], 'textColor' => $_REQUEST['editSwitchButtonTextColor'],'textClickColor' => $_REQUEST['editSwitchButtonTextClickColor'], 'textFontSize' => $_REQUEST['editSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['editSwitchButtonDisplayFontSize'], 'displayFontColor' => $_REQUEST['editSwitchButtonDisplayFontColor'], 'displayFontClickColor' => $_REQUEST['editSwitchButtonDisplayFontClickColor'], 'displayColor' => $_REQUEST['editSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['editSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['editSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['editSwitchButtonDisplayHeight']);
+                //$styleParametersArrayM = array('viewMode' => $_REQUEST['editSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['editSwitchButtonRadius'], 'color' => $_REQUEST['editSwitchButtonColor'], 'clickColor' => $_REQUEST['editSwitchButtonClickColor'], 'symbolColor' => $_REQUEST['editSwitchButtonSymbolColor'],'symbolClickColor' => $_REQUEST['editSwitchButtonSymbolClickColor'], 'neonEffect' => $_REQUEST['editSwitchButtonNeonEffect'], 'textColor' => $_REQUEST['editSwitchButtonTextColor'],'textClickColor' => $_REQUEST['editSwitchButtonTextClickColor'], 'textFontSize' => $_REQUEST['editSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['editSwitchButtonDisplayFontSize'], 'displayFontColor' => $_REQUEST['editSwitchButtonDisplayFontColor'], 'displayFontClickColor' => $_REQUEST['editSwitchButtonDisplayFontClickColor'], 'displayColor' => $_REQUEST['editSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['editSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['editSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['editSwitchButtonDisplayHeight']);
+                $styleParametersArrayM = array('viewMode' => sanitizePostString('editSwitchButtonViewMode'), 'buttonRadius' => sanitizePostString('editSwitchButtonRadius'), 'color' => sanitizePostString('editSwitchButtonColor'), 'clickColor' => sanitizePostString('editSwitchButtonClickColor'), 'symbolColor' => sanitizePostString('editSwitchButtonSymbolColor'),'symbolClickColor' => sanitizePostString('editSwitchButtonSymbolClickColor'), 'neonEffect' => sanitizePostString('editSwitchButtonNeonEffect'), 'textColor' => sanitizePostString('editSwitchButtonTextColor'),'textClickColor' => sanitizePostString('editSwitchButtonTextClickColor'), 'textFontSize' => sanitizePostInt('editSwitchButtonTextFontSize'), 'displayFontSize' => sanitizePostInt('editSwitchButtonDisplayFontSize'), 'displayFontColor' => sanitizePostString('editSwitchButtonDisplayFontColor'), 'displayFontClickColor' => sanitizePostString('editSwitchButtonDisplayFontClickColor'), 'displayColor' => sanitizePostString('editSwitchButtonDisplayColor'), 'displayRadius' => sanitizePostInt('editSwitchButtonDisplayRadius'), 'displayWidth' => sanitizePostInt('editSwitchButtonDisplayWidth'), 'displayHeight' => sanitizePostInt('editSwitchButtonDisplayHeight'));
             }
             
             if($type_widget_m == "widgetImpulseButton")
             {
-                $styleParametersArrayM = array('viewMode' => $_REQUEST['editSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['editSwitchButtonRadius'], 'color' => $_REQUEST['editSwitchButtonColor'], 'clickColor' => $_REQUEST['editSwitchButtonClickColor'], 'symbolColor' => $_REQUEST['editSwitchButtonSymbolColor'],'symbolClickColor' => $_REQUEST['editSwitchButtonSymbolClickColor'], 'neonEffect' => $_REQUEST['editSwitchButtonNeonEffect'], 'textColor' => $_REQUEST['editSwitchButtonTextColor'],'textClickColor' => $_REQUEST['editSwitchButtonTextClickColor'], 'textFontSize' => $_REQUEST['editSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['editSwitchButtonDisplayFontSize'], 'displayFontColor' => $_REQUEST['editSwitchButtonDisplayFontColor'], 'displayFontClickColor' => $_REQUEST['editSwitchButtonDisplayFontClickColor'], 'displayColor' => $_REQUEST['editSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['editSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['editSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['editSwitchButtonDisplayHeight']);
+                $styleParametersArrayM = array('viewMode' => sanitizePostString('editSwitchButtonViewMode'), 'buttonRadius' => sanitizePostString('editSwitchButtonRadius'), 'color' => sanitizePostString('editSwitchButtonColor'), 'clickColor' => sanitizePostString('editSwitchButtonClickColor'), 'symbolColor' => sanitizePostString('editSwitchButtonSymbolColor'),'symbolClickColor' => sanitizePostString('editSwitchButtonSymbolClickColor'), 'neonEffect' => sanitizePostString('editSwitchButtonNeonEffect'), 'textColor' => sanitizePostString('editSwitchButtonTextColor'),'textClickColor' => sanitizePostString('editSwitchButtonTextClickColor'), 'textFontSize' => sanitizePostInt('editSwitchButtonTextFontSize'), 'displayFontSize' => sanitizePostInt('editSwitchButtonDisplayFontSize'), 'displayFontColor' => sanitizePostString('editSwitchButtonDisplayFontColor'), 'displayFontClickColor' => sanitizePostString('editSwitchButtonDisplayFontClickColor'), 'displayColor' => sanitizePostString('editSwitchButtonDisplayColor'), 'displayRadius' => sanitizePostInt('editSwitchButtonDisplayRadius'), 'displayWidth' => sanitizePostInt('editSwitchButtonDisplayWidth'), 'displayHeight' => sanitizePostInt('editSwitchButtonDisplayHeight'));
             }
             
             if($type_widget_m == "widgetOnOffButton")
             {
-                $styleParametersArrayM = array('viewMode' => $_REQUEST['editSwitchButtonViewMode'], 'buttonRadius' => $_REQUEST['editSwitchButtonRadius'], 'offColor' => $_REQUEST['editSwitchButtonOffColor'], 'onColor' => $_REQUEST['editSwitchButtonOnColor'], 'symbolOffColor' => $_REQUEST['editSwitchButtonSymbolOffColor'],'symbolOnColor' => $_REQUEST['editSwitchButtonSymbolOnColor'], 'neonEffect' => $_REQUEST['editSwitchButtonNeonEffect'], 'textOffColor' => $_REQUEST['editSwitchButtonTextOffColor'],'textOnColor' => $_REQUEST['editSwitchButtonTextOnColor'], 'textFontSize' => $_REQUEST['editSwitchButtonTextFontSize'], 'displayFontSize' => $_REQUEST['editSwitchButtonDisplayFontSize'], 'displayOffColor' => $_REQUEST['editSwitchButtonDisplayOffColor'], 'displayOnColor' => $_REQUEST['editSwitchButtonDisplayOnColor'], 'displayColor' => $_REQUEST['editSwitchButtonDisplayColor'], 'displayRadius' => $_REQUEST['editSwitchButtonDisplayRadius'], 'displayWidth' => $_REQUEST['editSwitchButtonDisplayWidth'], 'displayHeight' => $_REQUEST['editSwitchButtonDisplayHeight']);
+                $styleParametersArrayM = array('viewMode' => sanitizePostString('editSwitchButtonViewMode'), 'buttonRadius' => sanitizePostInt('editSwitchButtonRadius'), 'offColor' => sanitizePostString('editSwitchButtonOffColor'), 'onColor' => sanitizePostString('editSwitchButtonOnColor'), 'symbolOffColor' => sanitizePostString('editSwitchButtonSymbolOffColor'),'symbolOnColor' => sanitizePostString('editSwitchButtonSymbolOnColor'), 'neonEffect' => sanitizePostString('editSwitchButtonNeonEffect'), 'textOffColor' => sanitizePostString('editSwitchButtonTextOffColor'),'textOnColor' => sanitizePostString('editSwitchButtonTextOnColor'), 'textFontSize' => sanitizePostInt('editSwitchButtonTextFontSize'), 'displayFontSize' => sanitizePostInt('editSwitchButtonDisplayFontSize'), 'displayOffColor' => sanitizePostString('editSwitchButtonDisplayOffColor'), 'displayOnColor' => sanitizePostString('editSwitchButtonDisplayOnColor'), 'displayColor' => sanitizePostString('editSwitchButtonDisplayColor'), 'displayRadius' => sanitizePostInt('editSwitchButtonDisplayRadius'), 'displayWidth' => sanitizePostInt('editSwitchButtonDisplayWidth'), 'displayHeight' => sanitizePostInt('editSwitchButtonDisplayHeight'));
             }
             
             if($type_widget_m == "widgetKnob")
             {
-                $styleParametersArrayM = array('indicatorRadius' => $_REQUEST['editKnobIndicatorRadius'], 'displayRadius' => $_REQUEST['editKnobDisplayRadius'], 'startAngle' => $_REQUEST['editKnobStartAngle'], 'endAngle' => $_REQUEST['editKnobEndAngle'], 'displayColor' => $_REQUEST['editKnobDisplayColor'], 'ticksColor' => $_REQUEST['editKnobTicksColor'], 'labelsFontSize' => $_REQUEST['editKnobLabelsFontSize'], 'labelsFontColor' => $_REQUEST['editKnobLabelsFontColor'], 'increaseValue' => $_REQUEST['editKnobIncreaseValue']);
+                $styleParametersArrayM = array('indicatorRadius' =>sanitizePostFloat('editKnobIndicatorRadius'), 'displayRadius' => sanitizePostFloat('editKnobDisplayRadius'), 'startAngle' => sanitizePostFloat('editKnobStartAngle'), 'endAngle' => sanitizePostFloat('editKnobEndAngle'), 'displayColor' => sanitizePostString('editKnobDisplayColor'), 'ticksColor' => sanitizePostString('editKnobTicksColor'), 'labelsFontSize' => sanitizePostInt('editKnobLabelsFontSize'), 'labelsFontColor' => sanitizePostString('editKnobLabelsFontColor'), 'increaseValue' => sanitizePostFloat('editKnobIncreaseValue'));
             }
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 
         if($type_widget_m == "widgetPrevMeteo")
         {
-            $styleParametersArrayM = array('orientation' => $_REQUEST['orientationM'], 'language' => $_REQUEST['languageM'], 'todayDim' => $_REQUEST['todayDimM'], 'backgroundMode' => $_REQUEST['backgroundModeM'], 'iconSet' => $_REQUEST['iconSetM']);
+            //$styleParametersArrayM = array('orientation' => $_REQUEST['orientationM'], 'language' => $_REQUEST['languageM'], 'todayDim' => $_REQUEST['todayDimM'], 'backgroundMode' => $_REQUEST['backgroundModeM'], 'iconSet' => $_REQUEST['iconSetM']);
+            $styleParametersArrayM = array('orientation' => sanitizePostString('orientationM'), 'language' => sanitizePostString('languageM'), 'todayDim' => sanitizePostString('todayDimM'), 'backgroundMode' => sanitizePostString('backgroundModeM'), 'iconSet' => sanitizePostString('iconSetM'));
             $styleParametersM = json_encode($styleParametersArrayM);
         }
         
         if(($type_widget_m == "widgetSelector") || ($type_widget_m == "widgetSelectorNew"))
         {
-          $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor']);
+        //  $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor']);
+            if (sanitizePostString('editGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
+                $styleParametersArrayM = array('activeFontColor' => sanitizeGetString('editGisActiveQueriesFontColor'));
+            } else {
+                $styleParametersArrayM = mysqli_real_escape_string($link, sanitizePostString('editGisActiveQueriesFontColor'));
+            }
           $styleParametersM = json_encode($styleParametersArrayM);
         }
         
         if($type_widget_m == "widgetSelectorWeb")
         {
-          $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['editGisRectDim']);
+        //  $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['editGisRectDim']);
+            //      $styleParametersArrayM = array('activeFontColor' => sanitizePostString('editGisActiveQueriesFontColor'), 'rectDim' => sanitizePostString('editGisRectDim'));
+            if (sanitizePostString('editGisActiveQueriesFontColor') == null) {       // New pentest COMMON CTR
+                $activeFontColorM = sanitizeGetString('editGisActiveQueriesFontColor');
+            } else {
+                $activeFontColorM = sanitizePostString('editGisActiveQueriesFontColor');
+            }
+            if (sanitizePostString('editGisRectDim') == null) {       // New pentest COMMON CTR
+                $rectDimM = sanitizeGetString('editGisRectDim');
+            } else {
+                $rectDimM = sanitizePostString('editGisRectDim');
+            }
+            $styleParametersArrayM = array('activeFontColor' => $activeFontColorM, 'rectDim' => $rectDimM);
           $styleParametersM = json_encode($styleParametersArrayM);
         }
         
@@ -2395,12 +2540,22 @@
         {
            if(isset($_REQUEST['editWidgetClockData']))
            {
-              $clockDataM = $_REQUEST['editWidgetClockData'];
+           //   $clockDataM = $_REQUEST['editWidgetClockData'];
+               if (sanitizePostString('editWidgetClockData') == null) {       // New pentest COMMON CTR
+                   $clockDataM = mysqli_real_escape_string($link, sanitizeGetString('editWidgetClockData'));
+               } else {
+                   $clockDataM = mysqli_real_escape_string($link, sanitizePostString('editWidgetClockData'));
+               }
            }
 
            if(isset($_REQUEST['editWidgetClockFont']))
            {
-              $clockFontM = $_REQUEST['editWidgetClockFont'];
+            //  $clockFontM = $_REQUEST['editWidgetClockFont'];
+               if (sanitizePostString('editWidgetClockFont') == null) {       // New pentest COMMON CTR
+                   $clockFontM = mysqli_real_escape_string($link, sanitizeGetString('editWidgetClockFont'));
+               } else {
+                   $clockFontM = mysqli_real_escape_string($link, sanitizePostString('editWidgetClockFont'));
+               }
            }
 
            $styleParametersArrayM = array('clockData' => escapeForSQL($clockDataM, $link), 'clockFont' => escapeForSQL($clockFontM, $link));
@@ -2412,17 +2567,17 @@
          {
            if(isset($_POST['meteoTabFontSizeM']) && ($_POST['meteoTabFontSizeM'] != "") && ($_POST['meteoTabFontSizeM'] != null))
            {
-               $meteoTabFontSize = mysqli_real_escape_string($link, $_POST['meteoTabFontSizeM']);
+               $meteoTabFontSize = mysqli_real_escape_string($link, sanitizePostInt('meteoTabFontSizeM'));
            }
 
            if(isset($_POST['genTabFontSizeM']) && ($_POST['genTabFontSizeM'] != "") && ($_POST['genTabFontSizeM'] != null))
            {
-               $genTabFontSize = mysqli_real_escape_string($link, $_POST['genTabFontSizeM']);
+               $genTabFontSize = mysqli_real_escape_string($link, sanitizePostInt('genTabFontSizeM'));
            }
 
            if(isset($_POST['genTabFontColorM']) && ($_POST['genTabFontColorM'] != "") && ($_POST['genTabFontColorM'] != null))
            {
-               $genTabFontColor = mysqli_real_escape_string($link, $_POST['genTabFontColorM']);
+               $genTabFontColor = mysqli_real_escape_string($link, sanitizePostString('genTabFontColorM'));
            }
 
            $styleParametersArrayM = array('meteoTabFontSize' => $meteoTabFontSize, 'genTabFontSize' => $genTabFontSize, 'genTabFontColor' => $genTabFontColor);
@@ -2433,52 +2588,52 @@
         {
             if(isset($_POST['showTableFirstCellM'])&&($_POST['showTableFirstCellM']!=""))
             {
-                $showTableFirstCellM = mysqli_real_escape_string($link, $_POST['showTableFirstCellM']);
+                $showTableFirstCellM = mysqli_real_escape_string($link, sanitizePostString('showTableFirstCellM'));
             }
 
             if(isset($_POST['tableFirstCellFontSizeM'])&&($_POST['tableFirstCellFontSizeM']!=""))
             {
-                $tableFirstCellFontSizeM = mysqli_real_escape_string($link, $_POST['tableFirstCellFontSizeM']);
+                $tableFirstCellFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('tableFirstCellFontSizeM'));
             }
 
             if(isset($_POST['tableFirstCellFontColorM'])&&($_POST['tableFirstCellFontColorM']!=""))
             {
-                $tableFirstCellFontColorM = mysqli_real_escape_string($link, $_POST['tableFirstCellFontColorM']);
+                $tableFirstCellFontColorM = mysqli_real_escape_string($link, sanitizePostString('tableFirstCellFontColorM'));
             }
 
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
-                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
+                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSizeM'));
             }
 
             if(isset($_POST['rowsLabelsFontColorM'])&&($_POST['rowsLabelsFontColorM']!=""))
             {
-                $rowsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColorM']);
+                $rowsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColorM'));
             }
 
             if(isset($_POST['colsLabelsFontSizeM'])&&($_POST['colsLabelsFontSizeM']!=""))
             {
-                $colsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['colsLabelsFontSizeM']);
+                $colsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSizeM'));
             }
 
             if(isset($_POST['colsLabelsFontColorM'])&&($_POST['colsLabelsFontColorM']!=""))
             {
-                $colsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['colsLabelsFontColorM']);
+                $colsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColorM'));
             }
 
             if(isset($_POST['rowsLabelsBckColorM'])&&($_POST['rowsLabelsBckColorM']!=""))
             {
-                $rowsLabelsBckColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsBckColorM']);
+                $rowsLabelsBckColorM = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsBckColorM'));
             }
             
             if(isset($_POST['tableBordersM'])&&($_POST['tableBordersM']!=""))
             {
-                $tableBordersM = mysqli_real_escape_string($link, $_POST['tableBordersM']);
+                $tableBordersM = mysqli_real_escape_string($link, sanitizePostString('tableBordersM'));
             }
 
             if(isset($_POST['tableBordersColorM'])&&($_POST['tableBordersColorM']!=""))
             {
-                $tableBordersColorM = mysqli_real_escape_string($link, $_POST['tableBordersColorM']);
+                $tableBordersColorM = mysqli_real_escape_string($link, sanitizePostString('tableBordersColorM'));
             }
 
             $styleParametersArrayM = array('showTableFirstCell' => $showTableFirstCellM, 'tableFirstCellFontSize' => $tableFirstCellFontSizeM, 'tableFirstCellFontColor' => $tableFirstCellFontColorM, 'rowsLabelsFontSize' => $rowsLabelsFontSizeM, 'rowsLabelsFontColor' => $rowsLabelsFontColorM, 'colsLabelsFontSize' => $colsLabelsFontSizeM, 'colsLabelsFontColor' => $colsLabelsFontColorM, 'rowsLabelsBckColor' => $rowsLabelsBckColorM, 'colsLabelsBckColor' => $colsLabelsBckColorM, 'tableBorders' => $tableBordersM, 'tableBordersColor' => $tableBordersColorM);
@@ -2489,82 +2644,82 @@
         {
             if(isset($_POST['legendFontSizeM'])&&($_POST['legendFontSizeM']!=""))
             {
-                $legendFontSizeM = mysqli_real_escape_string($link, $_POST['legendFontSizeM']);
+                $legendFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('legendFontSizeM'));
             }
 
             if(isset($_POST['legendFontColorPickerM'])&&($_POST['legendFontColorPickerM']!=""))
             {
-                $legendFontColorM = mysqli_real_escape_string($link, $_POST['legendFontColorPickerM']);
+                $legendFontColorM = mysqli_real_escape_string($link, sanitizePostString('legendFontColorPickerM'));
             }
 
             if(isset($_POST['dataLabelsDistanceM'])&&($_POST['dataLabelsDistanceM']!=""))
             {
-                $dataLabelsDistanceM = mysqli_real_escape_string($link, $_POST['dataLabelsDistanceM']);
+                $dataLabelsDistanceM = mysqli_real_escape_string($link, sanitizePostFloat('dataLabelsDistanceM'));
             }
 
             if(isset($_POST['dataLabelsDistance1M'])&&($_POST['dataLabelsDistance1M']!=""))
             {
-                $dataLabelsDistance1M = mysqli_real_escape_string($link, $_POST['dataLabelsDistance1M']);
+                $dataLabelsDistance1M = mysqli_real_escape_string($link, sanitizePostFloat('dataLabelsDistance1M'));
             }
 
             if(isset($_POST['dataLabelsDistance2M'])&&($_POST['dataLabelsDistance2M']!=""))
             {
-                $dataLabelsDistance2M = mysqli_real_escape_string($link, $_POST['dataLabelsDistance2M']);
+                $dataLabelsDistance2M = mysqli_real_escape_string($link, sanitizePostFloat('dataLabelsDistance2M'));
             }
 
             if(isset($_POST['dataLabelsM'])&&($_POST['dataLabelsM']!=""))
             {
-                $dataLabelsM = mysqli_real_escape_string($link, $_POST['dataLabelsM']);
+                $dataLabelsM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsM'));
             }
 
             if(isset($_POST['dataLabelsFontSizeM'])&&($_POST['dataLabelsFontSizeM']!=""))
             {
-                $dataLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['dataLabelsFontSizeM']);
+                $dataLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSizeM'));
             }
 
             if(isset($_POST['dataLabelsFontColorM'])&&($_POST['dataLabelsFontColorM']!=""))
             {
-                $dataLabelsFontColorM = mysqli_real_escape_string($link, $_POST['dataLabelsFontColorM']);
+                $dataLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColorM'));
             }
 
             if(isset($_POST['innerRadius1M'])&&($_POST['innerRadius1M']!=""))
             {
-                $innerRadius1M = mysqli_real_escape_string($link, $_POST['innerRadius1M']);
+                $innerRadius1M = mysqli_real_escape_string($link, sanitizePostFloat('innerRadius1M'));
             }
 
             if(isset($_POST['startAngleM'])&&($_POST['startAngleM']!=""))
             {
-                $startAngleM = mysqli_real_escape_string($link, $_POST['startAngleM']);
+                $startAngleM = mysqli_real_escape_string($link, sanitizePostFloat('startAngleM'));
             }
 
             if(isset($_POST['endAngleM'])&&($_POST['endAngleM']!=""))
             {
-                $endAngleM = mysqli_real_escape_string($link, $_POST['endAngleM']);
+                $endAngleM = mysqli_real_escape_string($link, sanitizePostFloat('endAngleM'));
             }
 
             if(isset($_POST['centerYM'])&&($_POST['centerYM']!=""))
             {
-                $centerYM = mysqli_real_escape_string($link, $_POST['centerYM']);
+                $centerYM = mysqli_real_escape_string($link, sanitizePostFloat('centerYM'));
             }
 
             if(isset($_POST['outerRadius1M'])&&($_POST['outerRadius1M']!=""))
             {
-                $outerRadius1M = mysqli_real_escape_string($link, $_POST['outerRadius1M']);
+                $outerRadius1M = mysqli_real_escape_string($link, sanitizePostFloat('outerRadius1M'));
             }
 
             if(isset($_POST['innerRadius2M'])&&($_POST['innerRadius2M']!=""))
             {
-                $innerRadius2M = mysqli_real_escape_string($link, $_POST['innerRadius2M']);
+                $innerRadius2M = mysqli_real_escape_string($link, sanitizePostFloat('innerRadius2M'));
             }
 
             if(isset($_POST['colorsSelect1M'])&&($_POST['colorsSelect1M']!=""))
             {
-                $colorsSelect1M = mysqli_real_escape_string($link, $_POST['colorsSelect1M']);
+                $colorsSelect1M = mysqli_real_escape_string($link, sanitizePostString('colorsSelect1M'));
             }
 
             if(isset($_POST['colors1M'])&&($_POST['colors1M']!=""))
             {
-                $temp = json_decode($_POST['colors1M']);
+                $temp = json_decode(sanitizeJson($_POST['colors1M']));        // SANITIZE QUI ?
                 $colors1M = [];
                 foreach ($temp as $color) 
                 {
@@ -2574,12 +2729,12 @@
 
             if(isset($_POST['colorsSelect2M'])&&($_POST['colorsSelect2M']!=""))
             {
-                $colorsSelect2M = $_POST['colorsSelect2M'];
+                $colorsSelect2M = sanitizePostString('colorsSelect2M');
             }
 
             if(isset($_POST['colors2M'])&&($_POST['colors2M']!=""))
             {
-                $temp = json_decode($_POST['colors2M']);
+                $temp = json_decode(sanitizeJson($_POST['colors2M']));        // SANITIZE QUI ??
                 $colors2M = [];
                 foreach ($temp as $color) 
                 {
@@ -2613,72 +2768,72 @@
         {
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
-                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
+                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSizeM'));
             }
 
             if(isset($_POST['rowsLabelsFontColorM'])&&($_POST['rowsLabelsFontColorM']!=""))
             {
-                $rowsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColorM']);
+                $rowsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColorM'));
             }
 
             if(isset($_POST['colsLabelsFontSizeM'])&&($_POST['colsLabelsFontSizeM']!=""))
             {
-                $colsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['colsLabelsFontSizeM']);
+                $colsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSizeM'));
             }
 
             if(isset($_POST['colsLabelsFontColorM'])&&($_POST['colsLabelsFontColorM']!=""))
             {
-                $colsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['colsLabelsFontColorM']);
+                $colsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColorM'));
             }
 
             if(isset($_POST['dataLabelsFontSizeM'])&&($_POST['dataLabelsFontSizeM']!=""))
             {
-                $dataLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['dataLabelsFontSizeM']);
+                $dataLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSizeM'));
             }
 
             if(isset($_POST['dataLabelsFontColorM'])&&($_POST['dataLabelsFontColorM']!=""))
             {
-                $dataLabelsFontColorM = mysqli_real_escape_string($link, $_POST['dataLabelsFontColorM']);
+                $dataLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColorM'));
             }
 
             if(isset($_POST['legendFontSizeM'])&&($_POST['legendFontSizeM']!=""))
             {
-                $legendFontSizeM = mysqli_real_escape_string($link, $_POST['legendFontSizeM']);
+                $legendFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('legendFontSizeM'));
             }
 
             if(isset($_POST['legendFontColorM'])&&($_POST['legendFontColorM']!=""))
             {
-                $legendFontColorM = mysqli_real_escape_string($link, $_POST['legendFontColorM']);
+                $legendFontColorM = mysqli_real_escape_string($link, sanitizePostString('legendFontColorM'));
             }
 
             if(isset($_POST['barsColorsSelectM'])&&($_POST['barsColorsSelectM']!=""))
             {
-                $barsColorsSelectM = mysqli_real_escape_string($link, $_POST['barsColorsSelectM']);
+                $barsColorsSelectM = mysqli_real_escape_string($link, sanitizePostString('barsColorsSelectM'));
             }
 
             if(isset($_POST['chartTypeM'])&&($_POST['chartTypeM']!=""))
             {
-                $chartTypeM = mysqli_real_escape_string($link, $_POST['chartTypeM']);
+                $chartTypeM = mysqli_real_escape_string($link, sanitizePostString('chartTypeM'));
             }
 
             if(isset($_POST['dataLabelsM'])&&($_POST['dataLabelsM']!=""))
             {
-                $dataLabelsM = mysqli_real_escape_string($link, $_POST['dataLabelsM']);
+                $dataLabelsM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsM'));
             }
 
             if(isset($_POST['xAxisDatasetM'])&&($_POST['xAxisDatasetM']!=""))
             {
-                $xAxisDatasetM = $_POST['xAxisDatasetM'];
+                $xAxisDatasetM = sanitizePostString('xAxisDatasetM');
             }
 
             if(isset($_POST['lineWidthM'])&&($_POST['lineWidthM']!=""))
             {
-                $lineWidthM = $_POST['lineWidthM'];
+                $lineWidthM = sanitizePostInt('lineWidthM');
             }
 
             if(isset($_POST['alrLookM'])&&($_POST['alrLookM']!=""))
             {
-                $alrLookM = $_POST['alrLookM'];
+                $alrLookM = sanitizePostString('alrLookM');
             }
 
             $styleParametersArrayM = array();
@@ -2699,7 +2854,7 @@
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
-                $temp = json_decode($_POST['barsColorsM']);
+                $temp = json_decode(sanitizeJson($_POST['barsColorsM']));     // SANITIZE QUI ??
                 $barsColorsM = [];
                 foreach ($temp as $color) 
                 {
@@ -2715,62 +2870,62 @@
         {
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
-                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
+                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSizeM'));     // New pentest
             }
 
             if(isset($_POST['rowsLabelsFontColorM'])&&($_POST['rowsLabelsFontColorM']!=""))
             {
-                $rowsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColorM']);
+                $rowsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColorM'));    // New Pentest
             }
 
             if(isset($_POST['colsLabelsFontSizeM'])&&($_POST['colsLabelsFontSizeM']!=""))
             {
-                $colsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['colsLabelsFontSizeM']);
+                $colsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSizeM'));      // New pentest
             }
 
             if(isset($_POST['colsLabelsFontColorM'])&&($_POST['colsLabelsFontColorM']!=""))
             {
-                $colsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['colsLabelsFontColorM']);
+                $colsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColorM'));    // New pentest
             }
 
             if(isset($_POST['dataLabelsFontSizeM'])&&($_POST['dataLabelsFontSizeM']!=""))
             {
-                $dataLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['dataLabelsFontSizeM']);
+                $dataLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSizeM'));     // New pentest
             }
 
             if(isset($_POST['dataLabelsFontColorM'])&&($_POST['dataLabelsFontColorM']!=""))
             {
-                $dataLabelsFontColorM = mysqli_real_escape_string($link, $_POST['dataLabelsFontColorM']);
+                $dataLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColorM'));    // New pentest
             }
 
             if(isset($_POST['legendFontSizeM'])&&($_POST['legendFontSizeM']!=""))
             {
-                $legendFontSizeM = mysqli_real_escape_string($link, $_POST['legendFontSizeM']);
+                $legendFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('legendFontSizeM'));     // New pentest
             }
 
             if(isset($_POST['legendFontColorM'])&&($_POST['legendFontColorM']!=""))
             {
-                $legendFontColorM = mysqli_real_escape_string($link, $_POST['legendFontColorM']);
+                $legendFontColorM = mysqli_real_escape_string($link, sanitizePostString('legendFontColorM'));    // New pentest
             }
 
             if(isset($_POST['barsColorsSelectM'])&&($_POST['barsColorsSelectM']!=""))
             {
-                $barsColorsSelectM = mysqli_real_escape_string($link, $_POST['barsColorsSelectM']);
+                $barsColorsSelectM = mysqli_real_escape_string($link, sanitizePostString('barsColorsSelectM'));      // New pentest
             }
 
             if(isset($_POST['chartTypeM'])&&($_POST['chartTypeM']!=""))
             {
-                $chartTypeM = mysqli_real_escape_string($link, $_POST['chartTypeM']);
+                $chartTypeM = mysqli_real_escape_string($link, sanitizePostString('chartTypeM'));    // New pentest
             }
 
             if(isset($_POST['dataLabelsM'])&&($_POST['dataLabelsM']!=""))
             {
-                $dataLabelsM = mysqli_real_escape_string($link, $_POST['dataLabelsM']);
+                $dataLabelsM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsM'));      // New pentest
             }
 
             if(isset($_POST['dataLabelsRotationM'])&&($_POST['dataLabelsRotationM']!=""))
             {
-                $dataLabelsRotationM = mysqli_real_escape_string($link, $_POST['dataLabelsRotationM']);
+                $dataLabelsRotationM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsRotationM'));      // New pentest
             }
 
             $styleParametersArrayM = array();
@@ -2789,7 +2944,7 @@
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
-                $temp = json_decode($_POST['barsColorsM']);
+                $temp = json_decode(sanitizeJson($_POST['barsColors']));     // SANITIZE QUI ??
                 $barsColorsM = [];
                 foreach ($temp as $color) 
                 {
@@ -2805,77 +2960,77 @@
         {
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
-                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
+                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSizeM'));
             }
 
             if(isset($_POST['rowsLabelsFontColorM'])&&($_POST['rowsLabelsFontColorM']!=""))
             {
-                $rowsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColorM']);
+                $rowsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColorM'));
             }
 
             if(isset($_POST['colsLabelsFontSizeM'])&&($_POST['colsLabelsFontSizeM']!=""))
             {
-                $colsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['colsLabelsFontSizeM']);
+                $colsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('colsLabelsFontSizeM'));
             }
 
             if(isset($_POST['colsLabelsFontColorM'])&&($_POST['colsLabelsFontColorM']!=""))
             {
-                $colsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['colsLabelsFontColorM']);
+                $colsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColorM'));
             }
 
             if(isset($_POST['dataLabelsFontSizeM'])&&($_POST['dataLabelsFontSizeM']!=""))
             {
-                $dataLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['dataLabelsFontSizeM']);
+                $dataLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('dataLabelsFontSizeM'));
             }
 
             if(isset($_POST['dataLabelsFontColorM'])&&($_POST['dataLabelsFontColorM']!=""))
             {
-                $dataLabelsFontColorM = mysqli_real_escape_string($link, $_POST['dataLabelsFontColorM']);
+                $dataLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsFontColorM'));
             }
 
             if(isset($_POST['legendFontSizeM'])&&($_POST['legendFontSizeM']!=""))
             {
-                $legendFontSizeM = mysqli_real_escape_string($link, $_POST['legendFontSizeM']);
+                $legendFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('legendFontSizeM'));
             }
 
             if(isset($_POST['legendFontColorM'])&&($_POST['legendFontColorM']!=""))
             {
-                $legendFontColorM = mysqli_real_escape_string($link, $_POST['legendFontColorM']);
+                $legendFontColorM = mysqli_real_escape_string($link,sanitizePostString('legendFontColorM'));
             }
 
             if(isset($_POST['gridLinesWidthM'])&&($_POST['gridLinesWidthM']!=""))
             {
-                $gridLinesWidthM = $_POST['gridLinesWidthM'];
+                $gridLinesWidthM = sanitizePostInt('gridLinesWidthM');
             }
 
             if(isset($_POST['gridLinesColorM'])&&($_POST['gridLinesColorM']!=""))
             {
-                $gridLinesColorM = $_POST['gridLinesColorM'];
+                $gridLinesColorM = sanitizePostString('gridLinesColorM');
             }
 
             if(isset($_POST['linesWidthM'])&&($_POST['linesWidthM']!=""))
             {
-                $linesWidthM = $_POST['linesWidthM'];
+                $linesWidthM = sanitizePostInt('linesWidthM');
             }
 
             if(isset($_POST['barsColorsSelectM'])&&($_POST['barsColorsSelectM']!=""))
             {
-                $barsColorsSelectM = mysqli_real_escape_string($link, $_POST['barsColorsSelectM']);
+                $barsColorsSelectM = mysqli_real_escape_string($link, sanitizePostString('barsColorsSelectM'));
             }
 
             if(isset($_POST['alrThrLinesWidthM'])&&($_POST['alrThrLinesWidthM']!=""))
             {
-                $alrThrLinesWidthM = mysqli_real_escape_string($link, $_POST['alrThrLinesWidthM']);
+                $alrThrLinesWidthM = mysqli_real_escape_string($link, sanitizePostInt('alrThrLinesWidthM'));
             }
 
             if(isset($_POST['dataLabelsM'])&&($_POST['dataLabelsM']!=""))
             {
-                $dataLabelsM = mysqli_real_escape_string($link, $_POST['dataLabelsM']);
+                $dataLabelsM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsM'));
             }
 
             if(isset($_POST['dataLabelsRotationM'])&&($_POST['dataLabelsRotationM']!=""))
             {
-                $dataLabelsRotationM = mysqli_real_escape_string($link, $_POST['dataLabelsRotationM']);
+                $dataLabelsRotationM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsRotationM'));     // CTR !!
             }
 
             $styleParametersArrayM = array();
@@ -2897,7 +3052,7 @@
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
-                $temp = json_decode($_POST['barsColorsM']);
+                $temp = json_decode(sanitizeJson($_POST['barsColorsM']));     // SANITIZE QUI ??
                 $barsColorsM = [];
                 foreach ($temp as $color) 
                 {
@@ -2913,57 +3068,57 @@
         {
             if(isset($_POST['showTableFirstCellM'])&&($_POST['showTableFirstCellM']!=""))
             {
-                $showTableFirstCellM = mysqli_real_escape_string($link, $_POST['showTableFirstCellM']);
+                $showTableFirstCellM = mysqli_real_escape_string($link, sanitizePostString('showTableFirstCellM'));    // New pentest
             }
 
             if(isset($_POST['tableFirstCellFontSizeM'])&&($_POST['tableFirstCellFontSizeM']!=""))
             {
-                $tableFirstCellFontSizeM = mysqli_real_escape_string($link, $_POST['tableFirstCellFontSizeM']);
+                $tableFirstCellFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('tableFirstCellFontSizeM'));    // New pentest
             }
 
             if(isset($_POST['tableFirstCellFontColorM'])&&($_POST['tableFirstCellFontColorM']!=""))
             {
-                $tableFirstCellFontColorM = mysqli_real_escape_string($link, $_POST['tableFirstCellFontColorM']);
+                $tableFirstCellFontColorM = mysqli_real_escape_string($link, sanitizePostString('tableFirstCellFontColorM'));      // New pentest
             }
 
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
-                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontSizeM']);
+                $rowsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSizeM'));        // New pentest
             }
 
             if(isset($_POST['rowsLabelsFontColorM'])&&($_POST['rowsLabelsFontColorM']!=""))
             {
-                $rowsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsFontColorM']);
+                $rowsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsFontColorM'));       // New pentest
             }
 
             if(isset($_POST['colsLabelsFontSizeM'])&&($_POST['colsLabelsFontSizeM']!=""))
             {
-                $colsLabelsFontSizeM = mysqli_real_escape_string($link, $_POST['colsLabelsFontSizeM']);
+                $colsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontSizeM'));     // New pentest
             }
 
             if(isset($_POST['colsLabelsFontColorM'])&&($_POST['colsLabelsFontColorM']!=""))
             {
-                $colsLabelsFontColorM = mysqli_real_escape_string($link, $_POST['colsLabelsFontColorM']);
+                $colsLabelsFontColorM = mysqli_real_escape_string($link, sanitizePostString('colsLabelsFontColorM'));       // New pentest
             }
 
             if(isset($_POST['rowsLabelsBckColorM'])&&($_POST['rowsLabelsBckColorM']!=""))
             {
-                $rowsLabelsBckColorM = mysqli_real_escape_string($link, $_POST['rowsLabelsBckColorM']);
+                $rowsLabelsBckColorM = mysqli_real_escape_string($link, sanitizePostString('rowsLabelsBckColorM'));     // New pentest
             }
 
             if(isset($_POST['colsLabelsBckColorM'])&&($_POST['colsLabelsBckColorM']!=""))
             {
-                $colsLabelsBckColorM = mysqli_real_escape_string($link, $_POST['colsLabelsBckColorM']);
+                $colsLabelsBckColorM = mysqli_real_escape_string($link, sanitizePostString('colsLabelsBckColorM'));     // New pentest
             }
 
             if(isset($_POST['tableBordersM'])&&($_POST['tableBordersM']!=""))
             {
-                $tableBordersM = mysqli_real_escape_string($link, $_POST['tableBordersM']);
+                $tableBordersM = mysqli_real_escape_string($link, sanitizePostString('tableBordersM'));     // New pentest
             }
 
             if(isset($_POST['tableBordersColorM'])&&($_POST['tableBordersColorM']!=""))
             {
-                $tableBordersColorM = mysqli_real_escape_string($link, $_POST['tableBordersColorM']);
+                $tableBordersColorM = mysqli_real_escape_string($link, sanitizePostString('tableBordersColorM'));       // New pentest
             }
 
             $styleParametersArrayM = array('showTableFirstCell' => $showTableFirstCellM, 'tableFirstCellFontSize' => $tableFirstCellFontSizeM, 'tableFirstCellFontColor' => $tableFirstCellFontColorM, 'rowsLabelsFontSize' => $rowsLabelsFontSizeM, 'rowsLabelsFontColor' => $rowsLabelsFontColorM, 'colsLabelsFontSize' => $colsLabelsFontSizeM, 'colsLabelsFontColor' => $colsLabelsFontColorM, 'rowsLabelsBckColor' => $rowsLabelsBckColorM, 'colsLabelsBckColor' => $colsLabelsBckColorM, 'tableBorders' => $tableBordersM, 'tableBordersColor' => $tableBordersColorM);
@@ -2972,45 +3127,45 @@
 
         if(isset($_POST['inputHeaderFontColorWidgetM']) && ($_POST['inputHeaderFontColorWidgetM']!=""))
         {
-            $headerFontColorM = mysqli_real_escape_string($link, $_POST['inputHeaderFontColorWidgetM']);
+            $headerFontColorM = mysqli_real_escape_string($link, sanitizePostString('inputHeaderFontColorWidgetM'));    // New pentest COMMON
         }
 
         if(isset($_POST['inputControlsVisibilityM']) && ($_POST['inputControlsVisibilityM']!=""))
         {
-            $controlsVisibility = mysqli_real_escape_string($link, $_POST['inputControlsVisibilityM']);
+            $controlsVisibility = mysqli_real_escape_string($link, sanitizePostString('inputControlsVisibilityM'));     // New pentest COMMON CTR
         }
 
         //MANCA ZOOM FACTOR PERCHE' DEV'ESSERE EDITATO SOLO DAI CONTROLLI GRAFICI, NON DAL FORM
 
         if(isset($_POST['inputControlsPositionM']) && ($_POST['inputControlsPositionM']!=""))
         {
-            $controlsPosition = mysqli_real_escape_string($link, $_POST['inputControlsPositionM']);
+            $controlsPosition = mysqli_real_escape_string($link, sanitizePostString('inputControlsPositionM'));     // New pentest COMMON CTR
         }
 
         if(isset($_POST['inputShowTitleM']) && ($_POST['inputShowTitleM']!=""))
         {
-            $showTitle = mysqli_real_escape_string($link, $_POST['inputShowTitleM']);
+            $showTitle = mysqli_real_escape_string($link, sanitizePostString('inputShowTitleM'));   // New pentest COMMON
         }
 
         if(isset($_POST['inputTitleWidgetM']) && ($_POST['inputTitleWidgetM']!=""))
         {
-            //$title_widget_m = mysqli_real_escape_string($link, $_POST['inputTitleWidgetM']);
-            $title_widget_m = htmlentities($_POST['inputTitleWidgetM'], ENT_QUOTES|ENT_HTML5);
+            $title_widget_m = mysqli_real_escape_string($link, sanitizePostString('inputTitleWidgetM'));
+            $title_widget_m = htmlentities($title_widget_m, ENT_QUOTES|ENT_HTML5);      // New pentest COMMON
         }
 
         if(isset($_POST['inputDefaultTabM']) && ($_POST['inputDefaultTabM']!=""))
         {
-            $inputDefaultTabM = mysqli_real_escape_string($link, $_POST['inputDefaultTabM']);
+            $inputDefaultTabM = mysqli_real_escape_string($link, sanitizePostString('inputDefaultTabM'));
         }
 
         if(isset($_POST['inputFreqWidgetM']) && ($_POST['inputFreqWidgetM']!=""))
         {
-            $freq_widget_m = mysqli_real_escape_string($link, $_POST['inputFreqWidgetM']);
+            $freq_widget_m = mysqli_real_escape_string($link, sanitizePostInt('inputFreqWidgetM'));     // New pentest   COMMON se si mette stringa sanitizePostInt mette 1 OK ?
         }
 
         if(isset($_POST['select-frameColor-Widget-m']) && ($_POST['select-frameColor-Widget-m']!=""))
         {
-            $color_frame_m = mysqli_real_escape_string($link, $_POST['select-frameColor-Widget-m']);
+            $color_frame_m = mysqli_real_escape_string($link, sanitizePostString('select-frameColor-Widget-m'));        // New pentest COMMON
         }
 
         if((isset($_POST['parametersM']))&&($_POST['parametersM'] != ""))
@@ -3019,12 +3174,14 @@
             {
                if($_POST['alrThrSelM'] != "no")
                {
-                  $parametersM = $_POST['parametersM'];
+              //     $parametersM = $_POST['parametersM'];        // SANITIZE RELAXED  JSON ??
+                  $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
                }
             }
             else
             {
-               $parametersM = $_POST['parametersM'];
+             //   $parametersM = $_POST['parametersM'];        // SANITIZE RELAXED  JSON ??
+                $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
                
                //Eliminazione soglie che non sono sull'asse target per widget table
                if(($type_widget_m == 'widgetTable') || ($type_widget_m == 'widgetLineSeries') || ($type_widget_m == "widgetCurvedLineSeries"))
@@ -3173,7 +3330,7 @@
 
         if(isset($_POST['inputFontSizeM']) && ($_POST['inputFontSizeM']!=""))
         {
-            $fontSizeM = mysqli_real_escape_string($link, $_POST['inputFontSizeM']);
+            $fontSizeM = mysqli_real_escape_string($link, sanitizePostInt('inputFontSizeM'));       // New pentest COMMON
         }
         else
         {
@@ -3182,7 +3339,7 @@
 
         if(isset($_POST['inputFontColorM']) && ($_POST['inputFontColorM']!=""))
         {
-            $fontColorM = mysqli_real_escape_string($link, $_POST['inputFontColorM']);
+            $fontColorM = mysqli_real_escape_string($link, sanitizePostString('inputFontColorM'));  // New pentest COMMON
         }
         else
         {
@@ -3192,14 +3349,12 @@
         //Gestione parametri per widget di stato del singolo processo
         if($type_widget_m == 'widgetProcess')
         {
-            $hostM = $_POST['hostM'];
-            $userM = $_POST['userM'];
-            $passM = $_POST['passM'];
-            $schedulerNameM = $_POST['schedulerNameM'];
-            $jobAreaM = $_POST['jobAreaM'];
-            $jobGroupM = $_POST['jobGroupM'];
-            $jobNameM = $_POST['jobNameM'];
-            $parametersArrayM = array('host' => $hostM, 'user' => $userM, 'pass' => $passM, 'schedulerName' => $schedulerNameM, 'jobArea' => $jobAreaM, 'jobGroup' => $jobGroupM, 'jobName' => $jobNameM);
+
+            $schedulerNameM = sanitizePostString('schedulerNameM');
+            $jobAreaM = sanitizePostString('jobAreaM');
+            $jobGroupM = sanitizePostString('jobGroupM');
+            $jobNameM = sanitizePostString('jobNameM');
+            $parametersArrayM = array('schedulerName' => $schedulerNameM, 'jobArea' => $jobAreaM, 'jobGroup' => $jobGroupM, 'jobName' => $jobNameM);
             $parametersM = json_encode($parametersArrayM);
         }
 
@@ -3214,7 +3369,7 @@
 
         if (isset($_POST['inputComuneWidgetM']) && ($_POST['inputComuneWidgetM'] != "") &&($type_widget_m != 'widgetProtezioneCivile' && $type_widget_m != 'widgetProtezioneCivileFirenze'))
         {
-            $comune_widget_m = mysqli_real_escape_string($link, $_POST['inputComuneWidgetM']);
+            $comune_widget_m = mysqli_real_escape_string($link, sanitizePostString('inputComuneWidgetM'));
         }
         else 
         {
@@ -3231,7 +3386,7 @@
                 }
                 else
                 {
-                   $url_m = mysqli_real_escape_string($link, $_POST['urlWidgetM']);
+                   $url_m = mysqli_real_escape_string($link, sanitizePostString('urlWidgetM'));     // New pentest COMMON
                 }                                    
             }
             else
@@ -3252,32 +3407,32 @@
         $inputUdmWidget = NULL;
         if(isset($_POST['inputUdmWidgetM']) && $_POST['inputUdmWidgetM'] != "") 
         {
-            $inputUdmWidget = mysqli_real_escape_string($link, $_POST['inputUdmWidgetM']);
+            $inputUdmWidget = mysqli_real_escape_string($link, sanitizePostString('inputUdmWidgetM'));      // New pentest
             $inputUdmWidget = htmlentities($_POST['inputUdmWidgetM'], ENT_QUOTES|ENT_HTML5);
         }
         
         $inputUdmPosition = NULL;
         if(isset($_POST['inputUdmPositionM']) && ($_POST['inputUdmPositionM'] != "")) 
         {
-            $inputUdmPosition = mysqli_real_escape_string($link, $_POST['inputUdmPositionM']);
+            $inputUdmPosition = mysqli_real_escape_string($link, sanitizePostString('inputUdmPositionM'));
         }
         
         $serviceUri = NULL;
         if(isset($_POST['serviceUriM']) && ($_POST['serviceUriM'] != '') && (!empty($_POST['serviceUriM']))) 
         {
-            $serviceUri = mysqli_real_escape_string($link, $_POST['serviceUriM']);
+            $serviceUri = mysqli_real_escape_string($link, sanitizePostString('serviceUriM'));      // New pentest CTR
         }
 
         $viewMode = NULL;
         if(isset($_POST['editWidgetFirstAidMode']) && ($_POST['editWidgetFirstAidMode'] != '') && (!empty($_POST['editWidgetFirstAidMode']))) 
         {
-            $viewMode = mysqli_real_escape_string($link, $_POST['editWidgetFirstAidMode']);
+            $viewMode = mysqli_real_escape_string($link, sanitizePostString('editWidgetFirstAidMode'));
         }
         else
         {
             if(isset($_POST['widgetEventsModeM'])) 
             {
-                $viewMode = mysqli_real_escape_string($link, $_POST['widgetEventsModeM']);
+                $viewMode = mysqli_real_escape_string($link,sanitizePostString('widgetEventsModeM'));
             }
         }
 
@@ -3292,7 +3447,12 @@
          if(($type_widget_m == 'widgetTrafficEvents') || ($type_widget_m == 'widgetTrafficEventsNew'))
          {
             //31/08/2017 - Patch temporanea in attesa di avere tempo di mettere i controlli sul form
-            $styleParametersM = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . $_REQUEST['editWidgetDefaultCategory'] . '"}';
+         //   $styleParametersM = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . $_REQUEST['editWidgetDefaultCategory'] . '"}';
+             if (sanitizePostString('editWidgetDefaultCategory') == null) {       // New pentest
+                 $styleParametersM = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . sanitizeGetString('editWidgetDefaultCategory') . '"}';
+             } else {
+                 $styleParametersM = '{"choosenOption":"events", "timeUdm":"MINUTE", "time":90, "events":50, "defaultCategory":"' . sanitizePostString('editWidgetDefaultCategory') . '"}';
+             }
          }
          
          if($type_widget_m == "widgetButton")
@@ -3376,18 +3536,33 @@
          // messi qui html element per i vari widget per link in new tab nelle opzioni
         if($type_widget_m == "widgetSingleContent" || $type_widget_m == "widgetTimeTrend" || $type_widget_m == "widgetTimeTrendCompare" || $type_widget_m == "widgetFirstAid")
         {
-            $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
+         //   $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
+            if (sanitizePostString('editWidgetOpenNewTab') == null) {       // New pentest
+                $styleParametersArray["openNewTab"] = mysqli_real_escape_string($link, sanitizeGetString('editWidgetOpenNewTab'));
+            } else {
+                $styleParametersArray["openNewTab"] = mysqli_real_escape_string($link, sanitizePostString('editWidgetOpenNewTab'));
+            }
             $styleParametersM = json_encode($styleParametersArray);
         }
 
         if(isset($_REQUEST['enableFullscreenTabM']))
         {
-           $enableFullscreenTabM = escapeForSQL($_REQUEST['enableFullscreenTabM'], $link);
+        //   $enableFullscreenTabM = escapeForSQL($_REQUEST['enableFullscreenTabM'], $link);
+            if (sanitizePostString('$enableFullscreenTabM') == null) {       // New pentest
+                $enableFullscreenTabM = mysqli_real_escape_string($link, sanitizeGetString('enableFullscreenTabM'));
+            } else {
+                $enableFullscreenTabM = mysqli_real_escape_string($link, sanitizePostString('enableFullscreenTabM'));
+            }
         }
 
         if(isset($_REQUEST['enableFullscreenModalM']))
         {
-           $enableFullscreenModalM = escapeForSQL($_REQUEST['enableFullscreenModalM'], $link);
+        //   $enableFullscreenModalM = escapeForSQL($_REQUEST['enableFullscreenModalM'], $link);
+            if (sanitizePostString('enableFullscreenModalM') == null) {       // New pentest
+                $enableFullscreenModalM = mysqli_real_escape_string($link, sanitizeGetString('enableFullscreenModalM'));
+            } else {
+                $enableFullscreenModalM = mysqli_real_escape_string($link, sanitizePostString('enableFullscreenModalM'));
+            }
         }
         
         /*Verifichiamo se è già stato registrato o no sul notificatore:
@@ -3411,8 +3586,14 @@
            {
                if(isset($_REQUEST['editWidgetRegisterGen']))
                {
-                  $notificatorRegisteredNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
-                  $notificatorEnabledNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
+               //   $notificatorRegisteredNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
+               //   $notificatorEnabledNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
+                   if (sanitizePostString('editWidgetRegisterGen') == null) {       // New pentest COMMON CTR
+                       $notificatorRegisteredNew = mysqli_real_escape_string($link, sanitizeGetString('editWidgetRegisterGen'));
+                   } else {
+                       $notificatorRegisteredNew = mysqli_real_escape_string($link, sanitizePostString('editWidgetRegisterGen'));
+                   }
+                   $notificatorEnabledNew = $notificatorRegisteredNew;
                }
                else
                {
@@ -3425,7 +3606,12 @@
                $notificatorRegisteredNew = $notificatorRegistered;
                if(isset($_REQUEST['editWidgetRegisterGen']))
                {
-                  $notificatorEnabledNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
+               //   $notificatorEnabledNew = escapeForSQL($_REQUEST['editWidgetRegisterGen'], $link);
+                   if (sanitizePostString('editWidgetRegisterGen') == null) {       // New pentest COMMON CTR
+                       $notificatorEnabledNew = mysqli_real_escape_string($link, sanitizeGetString('editWidgetRegisterGen'));
+                   } else {
+                       $notificatorEnabledNew = mysqli_real_escape_string($link, sanitizePostString('editWidgetRegisterGen'));
+                   }
                }
                else
                {
@@ -3618,8 +3804,10 @@
                          $url = $notificatorUrl;
                          $genOriginalName = preg_replace('/\s+/', '+', $genOriginalName);
                          $genNewName = html_entity_decode(preg_replace('/\s+/', '+', $title_widget_m), ENT_HTML5);
-                         $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
-                         $alrThrSelM = preg_replace('/\s+/', '+', $_REQUEST['alrThrSelM']);
+                   //      $genOriginalType = preg_replace('/\s+/', '+', $_REQUEST['metricWidgetM']);
+                         $genOriginalType = preg_replace('/\s+/', '+', sanitizePostString('metricWidgetM'));
+                   //      $alrThrSelM = preg_replace('/\s+/', '+', $_REQUEST['alrThrSelM']);
+                         $alrThrSelM = preg_replace('/\s+/', '+', sanitizePostString('alrThrSelM'));
                          $containerName = preg_replace('/\s+/', '+', $dashboardName2);
                          $appUsr = preg_replace('/\s+/', '+', $lastEditor); 
 
@@ -4904,7 +5092,7 @@
 
                     default:
                         // CONTROLLARE IN SEGUITO
-                        $dataFromForm = json_decode($_REQUEST['data']);
+                        $dataFromForm = json_decode($_REQUEST['data']);     // SANITIZE QUI ??
 
                         for($i = 0; $i < count($dataFromForm); $i++)
                         {
