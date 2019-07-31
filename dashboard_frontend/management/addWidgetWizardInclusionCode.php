@@ -7,7 +7,7 @@
     }
     checkSession('Manager');
 ?>
-
+<link rel="stylesheet" href="../css/style_widgets.css?v=1563354439" type="text/css">
 <ul id="wizardTabsContainer" class="nav nav-tabs nav-justified">
     <li id="aTab" class="active"><a data-toggle="tab" href="#mainFeat" class="dashboardWizardTabTxt">Dashboard features</a></li>
     <li id="bTab"><a href="#dataAndWidgets" data-toggle="no" class="dashboardWizardTabTxt">Data and widgets</a></li> <!-- data-toggle="tab" -->
@@ -1752,7 +1752,7 @@
                 {
                     var localExtCnt = $('<div class="col-xs-4"></div>');
                     var dashInfoLbl = $('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><span class="summaryLbl">Dashboard template and title</span></div>');
-                    var dashTitleCnt = $('<div class="col-xs-12 centerWithFlex widgetTypeDetails">' + $('#inputTitleDashboard').val() + '</div>');
+                    var dashTitleCnt = $('<div class="col-xs-12 centerWithFlex widgetTypeDetails">' + $('#inputTitleDashboard').val().replace(/(<([^>]+)>)/ig,"") + '</div>');
                     var dashIconExtCnt = $('<div class="col-xs-12 centerWithFlex"></div>');
                     var dashIconCnt = $('<div class="singleWidgetIconCnt"></div>');
                     var dashTemplateIconUrl = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"] div.modalAddDashboardWizardChoicePic').css('background-image');
@@ -4274,6 +4274,7 @@
             {
                 /*if(fromIconFlag == false) 
                 {*/
+		/*
                     var whereString = "";
 
 
@@ -4312,6 +4313,7 @@
                      //   whereString = " AND organizations REGEXP '" + orgFilter + "' OR ownership = 'private'";
                         whereString = whereString + " AND organizations REGEXP '" + orgFilter + "'";
                     }
+		    */
 
                     $.ajax({
                         url: "../controllers/dashboardWizardController.php",
@@ -4320,8 +4322,12 @@
                         dataType: 'json',
                         data:
                         {
+                            orgFilter: "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>",
+                            globalSqlFilter: globalSqlFilter,
+                            nActive: nActive,
+                            n: n,
                             filter: distinctField,
-                            filterGlobal: whereString,
+                       //     filterGlobal: whereString,
                             distinctField: distinctField 
                         },
                         success: function (data)
@@ -5997,6 +6003,9 @@
                                 gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                     pointToLayer: addWidgetWizardCreateCustomMarker
                                 }).addTo(addWidgetWizardMapRef);
+                                if (FreezeMap !== true) {
+                                    addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
+                                }
 
                             },
                             error: function (data) {
