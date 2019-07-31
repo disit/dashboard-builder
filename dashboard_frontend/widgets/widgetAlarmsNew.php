@@ -29,6 +29,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         $replacements[0] = ' ';
         $replacements[1] = '&apos;';
         $title = $_REQUEST['title_w'];
+        $link = mysqli_connect($host, $username, $password);
+        if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+            eventLog("Returned the following ERROR in widgetAlarmsNew.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+            exit();
+        }
         ?>
         var timeFontSize, scroller, widgetProperties, styleParameters, icon, serviceUri,
             eventName, eventType, newRow, newIcon, eventContentW, widgetTargetList, backgroundTitleClass,
