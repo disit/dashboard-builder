@@ -99,6 +99,11 @@
       $replacements[0] = ' ';
       $replacements[1] = '&apos;';
       $title = $_REQUEST['title_w'];
+      $link = mysqli_connect($host, $username, $password);
+      if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+           eventLog("Returned the following ERROR in widgetGisWFS.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+           exit();
+      }
       ?> 
                
        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
@@ -508,7 +513,7 @@
        {
            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
        }
-       //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+
        widgetProperties = getWidgetProperties(widgetName);
        
        createFullscreenModal();
