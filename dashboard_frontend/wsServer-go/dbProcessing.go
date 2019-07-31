@@ -1,4 +1,4 @@
-package main
+package main 
 
 import (
 	"database/sql"
@@ -170,17 +170,22 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		user.userType = "actuator"
 		//user.metricName = dat["metricName"].(string) //check
 		user.widgetUniqueName = dat["widgetUniqueName"]
-		if user.widgetUniqueName != "" && user.widgetUniqueName != nil {
-			publish([]byte("subscribe"+user.widgetUniqueName.(string)), "default") //check???
-			mu.Lock()
-			widgetUniqueName := user.widgetUniqueName.(string)
-			ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
-			log.Print("RegisterEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
-			mu.Unlock()
-			response["widgetUniqueName"] = user.widgetUniqueName
-			response["result"] = "Ok"
+		if user.validOrigin {
+			if user.widgetUniqueName != "" && user.widgetUniqueName != nil {
+				publish([]byte("subscribe"+user.widgetUniqueName.(string)), "default") //check???
+				mu.Lock()
+				widgetUniqueName := user.widgetUniqueName.(string)
+				ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
+				log.Print("RegisterEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
+				mu.Unlock()
+				response["widgetUniqueName"] = user.widgetUniqueName
+				response["result"] = "Ok"
+			} else {
+				log.Print("invalid widget unique id:", user.widgetUniqueName)
+				response["result"] = "Ko"
+			}
 		} else {
-			log.Print("invalid widget unique id:", user.widgetUniqueName)
+			log.Print("RegisterEmitter invalid origin")
 			response["result"] = "Ko"
 		}
 		break
@@ -504,7 +509,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		user.metricName = dat["metricName"].(string)
 		user.widgetUniqueName = dat["widgetUniqueName"]
 		publish([]byte("subscribe"+dat["metricName"].(string)), "default")
-		if dat["widgetUniqueName"] != "" && dat["widgetUniqueName"] != nil {
+		if user.validOrigin && dat["widgetUniqueName"] != "" && dat["widgetUniqueName"] != nil {
 
 			/* se la metrica personale su cui insiste il widget e` gia` presentein memoria,
 			il widget viene inserito nella coda degli widget relativi a tale metrica, altrimenti
@@ -535,8 +540,13 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 				mu.Unlock()
 
 			}
+			response["result"] = "Ok"
+		} else {
+			if !user.validOrigin {
+				log.Print("ClientWidgetRegistration invalid origin")
+			}
+			response["result"] = "Ko"
 		}
-		response["result"] = "Ok"
 		break
 
 	case "DelMetric":
