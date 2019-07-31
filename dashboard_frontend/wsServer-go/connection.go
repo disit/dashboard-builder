@@ -73,6 +73,7 @@ type WebSocketServer struct {
 	ldapServer    string
 	ldapPort      string
 	ldapBaseDN    string
+	validOrigins  string
 	clientWidgets map[string][]*WebsocketUser
 }
 
@@ -262,10 +263,11 @@ func isPrivateAddress(address string) (bool, error) {
 }
 
 // FromRequest ritorna il reale IP address dagli http request headers.
-func FromRequest(r *http.Request) string {
+func FromRequest(r *http.Request) (string, string) {
 
 	xRealIP := r.Header.Get("X-Real-Ip")
 	xForwardedFor := r.Header.Get("X-Forwarded-For")
+	origin := r.Header.Get("Origin")
 
 	if xRealIP == "" && xForwardedFor == "" {
 		var remoteIP string
@@ -276,16 +278,16 @@ func FromRequest(r *http.Request) string {
 			remoteIP = r.RemoteAddr
 		}
 
-		return remoteIP
+		return remoteIP, origin
 	}
 
 	for _, address := range strings.Split(xForwardedFor, ",") {
 		address = strings.TrimSpace(address)
 		isPrivate, err := isPrivateAddress(address)
 		if !isPrivate && err == nil {
-			return address
+			return "", address
 		}
 	}
 
-	return xRealIP
+	return "", xRealIP
 }
