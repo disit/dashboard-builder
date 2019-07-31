@@ -22,6 +22,8 @@ require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 
 session_start(); 
+checkSession('Manager');
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
@@ -49,6 +51,10 @@ else
 }
 
 $widgetName = mysqli_real_escape_string($link, $_GET['nameWidget']);
+if(!checkWidgetName($link, $widgetName)) {
+    eventLog("Invalid request for deleteWidget.php $widgetName user: ".$_SESSION['loggedUsername']);
+    exit;
+}
 
 try 
 {
