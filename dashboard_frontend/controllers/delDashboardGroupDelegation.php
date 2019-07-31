@@ -35,6 +35,10 @@ if(isset($_SESSION['loggedUsername']))
         eventLog("Returned the following ERROR in delDashboardGroupDashboardDelegation.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
         exit();
     }
+    if(!checkDashboardId($link, $dashboardId)) {
+        eventLog("invalid request for delDashboardGroupDelegation.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
+        exit;
+    }
     $delegationId = $_REQUEST['delegationId'];
     if (checkVarType($delegationId, "integer") === false) {
         eventLog("Returned the following ERROR in delDashboardGroupDelegation.php for delegationId = ".$delegationId.": ".$delegationId." is not an integer as expected. Exit from script.");
