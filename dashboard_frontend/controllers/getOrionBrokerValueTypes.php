@@ -49,8 +49,6 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
                         $valueType = $row['value_type'];
                         $valueUnitDefault = $row['value_unit_default'];
                         array_push($result, $valueType);
-                     //   $response['valueType'] = $valueType;
-                     //   $response['valueUnitDefault'] = $valueUnitDefault;
                     }
                     $response['valueTypeRows'] = $result;
                     $response['detail'] = 'ValueTypes_OK';
@@ -58,9 +56,7 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
                     $response['detail'] = 'ValueTypeQuery_KO';
                 }
                 break;
-
         }
-
     } else {
         $response['detail'] = 'ValueTypeQuery_KO_User_Not_Auth';
     }
