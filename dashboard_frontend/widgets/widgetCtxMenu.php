@@ -6,7 +6,11 @@
     error_reporting(E_ERROR | E_NOTICE);
     
     $lastUsedColors = null;
-    $dashId = $_REQUEST['id_dashboard'];
+    $dashId = escapeForSQL($_REQUEST['id_dashboard'], $link);
+    if (checkVarType($dashId, "integer") === false) {
+        eventLog("Returned the following ERROR in widgetCtxMenu.php for dashboard_id = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
+        exit();
+    };
     $q = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashId'";
     $r = mysqli_query($link, $q);
 
@@ -14,7 +18,13 @@
     {
         $row = mysqli_fetch_assoc($r);
         $lastUsedColors = json_decode($row['lastUsedColors']);
-    }                     
+    }
+
+    if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $dashId) === false) {
+        eventLog("Returned the following ERROR in widgetCtxMenu.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+        exit();
+    }
+
 ?>
 
 
