@@ -19,6 +19,7 @@
     date_default_timezone_set('Europe/Rome');
 
     session_start();
+    checkSession('AreaManager');
 
     if (isset($_SESSION['loggedOrganization'])){
         $organization = $_SESSION['loggedOrganization'];
@@ -27,7 +28,7 @@
     }
 
     if ($organization != "DISIT" && $organization != "Other") {
-        $organizationArray = "[\'DISIT\', \'Other\', \'" . $organization . "\']";
+        $organizationArray = $organization;
     } else {
         $organizationArray = "[\'DISIT\', \'Other\']";
     }
@@ -51,13 +52,28 @@
 
     $response = NULL;
     
-    $nature = mysqli_real_escape_string($link, $_REQUEST['nature']);
-    $sub_nature = mysqli_real_escape_string($link, $_REQUEST['subnature']);
+ //   $nature = mysqli_real_escape_string($link, $_REQUEST['nature']);
+    if (sanitizePostString('nature') == null) {       // New pentest COMMON CTR
+        $nature = mysqli_real_escape_string($link, sanitizeGetString('nature'));
+    } else {
+        $nature = mysqli_real_escape_string($link, sanitizePostString('nature'));
+    }
+ //   $sub_nature = mysqli_real_escape_string($link, $_REQUEST['subnature']);
+    if (sanitizePostString('subnature') == null) {       // New pentest COMMON CTR
+        $sub_nature = mysqli_real_escape_string($link, sanitizeGetString('subnature'));
+    } else {
+        $sub_nature = mysqli_real_escape_string($link, sanitizePostString('subnature'));
+    }
     $sub_nature = str_replace("/", "_", $sub_nature);
     $sub_nature = str_replace(".", "_", $sub_nature);
     $sub_nature = str_replace("\\", '_', $sub_nature);
     $sub_nature = str_replace(":", "_", $sub_nature);
-    $param0 = mysqli_real_escape_string($link, $_REQUEST['param']);
+  //  $param0 = mysqli_real_escape_string($link, $_REQUEST['param']);
+    if (sanitizePostString('param') == null) {       // New pentest COMMON CTR
+        $param0 = mysqli_real_escape_string($link, sanitizeGetString('param'));
+    } else {
+        $param0 = mysqli_real_escape_string($link, sanitizePostString('param'));
+    }
     $lastCheck = date("Y-m-d H:i:s");
 
     //controllo param//
