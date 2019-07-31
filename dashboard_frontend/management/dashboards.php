@@ -2820,7 +2820,7 @@
         <?php
             if(isset($_GET['newDashId'])&&isset($_GET['newDashAuthor'])&&isset($_GET['newDashTitle']))
             {
-                echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . escapeForJS($_GET['newDashId']) . '&dashboardAuthorName=' . escapeForJS($_GET['newDashAuthor']) . '&dashboardEditorName=' . escapeForJS($_GET['newDashAuthor']) . '&dashboardTitle=' . escapeForJS($_GET['newDashTitle']) . '");';
+                echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . urlencode(filter_input(INPUT_GET, 'newDashId', FILTER_SANITIZE_NUMBER_INT)) . '&dashboardAuthorName=' . urlencode(filter_input(INPUT_GET,'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardEditorName=' . urlencode(filter_input(INPUT_GET,'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardTitle=' . urlencode(filter_input(INPUT_GET,'newDashTitle',FILTER_SANITIZE_STRING)) . '");';
                 echo 'history.replaceState(null, null, "dashboards.php");';
             }
         ?> 
