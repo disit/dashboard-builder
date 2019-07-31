@@ -23,40 +23,40 @@ error_reporting(E_ERROR | E_NOTICE);
 date_default_timezone_set('Europe/Rome');
 
 session_start();
+checkSession('Manager');
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
 $response = [];
 
-if(isset($_SESSION['loggedUsername'])) 
-{
+if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername']) {
     $dashboardId = $_REQUEST['dashboardId'];
     if (checkVarType($dashboardId, "integer") === false) {
         eventLog("Returned the following ERROR in addDashboardDelegation.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
         exit();
     }
+    if(!checkDashboardId($link, $dashboardId)) {
+      eventLog("invalid request for addDashboardDelegation.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
+      exit;
+    }
+    
     $newDelegated = $_REQUEST['newDelegated'];
     
     $ds = ldap_connect($ldapServer, $ldapPort);
     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
     $bind = ldap_bind($ds);
-    if($ds && $bind)
-    {
-        if(checkLdapRole($ds, $newDelegated, "RootAdmin", $ldapBaseDN))
-        {
+    if($ds && $bind) {
+        if(checkLdapRole($ds, $newDelegated, "RootAdmin", $ldapBaseDN)) {
             $response['detail'] = 'RootAdmin';
-        }
-        else
-        {
+        } else {
             $q = "SELECT user FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId'";
             $r = mysqli_query($link, $q);
 
-            if($r)
-            {
+            if($r) {
                 $dashboardAuthor = mysqli_fetch_assoc($r)['user'];
                 
-                if(isset($_SESSION['refreshToken'])) 
-                {
+                if(isset($_SESSION['refreshToken'])) {
                     $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
                     $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
 
@@ -115,4 +115,3 @@ if(isset($_SESSION['loggedUsername']))
     }
     echo json_encode($response);
 }
-  
