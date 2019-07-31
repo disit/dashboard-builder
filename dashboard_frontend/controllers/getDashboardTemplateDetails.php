@@ -18,7 +18,9 @@
     error_reporting(E_ERROR | E_NOTICE);
     date_default_timezone_set('Europe/Rome');
 
-    session_start(); 
+    session_start();
+    checkSession('Manager');
+    
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
 
