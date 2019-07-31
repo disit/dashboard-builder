@@ -17,18 +17,11 @@
 
     include('../config.php');
     include('process-form.php');
-    if(!isset($_SESSION))
-    {
-       session_start();
-    }
+    session_start();
+    checkSession('RootAdmin');
     
     $link = mysqli_connect($host, $username, $password);
-    mysqli_select_db($link, $dbname);
-    
-    if(!isset($_SESSION['loggedRole']))
-    {
-        header("location: ssoLogin.php");
-    }
+    mysqli_select_db($link, $dbname);    
 ?>
 
 <!DOCTYPE html>
