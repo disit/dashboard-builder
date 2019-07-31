@@ -41,7 +41,7 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
     if (checkVarType($dashboardId, "integer") === false) {
         eventLog("Returned the following ERROR in deleteDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
         exit();
-    };
+    }
     $dashboardTitle = mysqli_real_escape_string($link, $_GET['dashboardTitle']);
     $username = mysqli_real_escape_string($link, $_SESSION['loggedUsername']);
     
