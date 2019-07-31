@@ -32,6 +32,7 @@
 // 
 // ############################################################################
 
+include '../config.php';
 // Change these configuration options if needed, see above descriptions for info.
 $enable_jsonp    = false;
 $enable_native   = false;
@@ -47,38 +48,39 @@ $curlCredentialsString = $tvAdminUser.":".$tvAdminPassword;
 
 $url = $_GET['url'];
 
-if ( !$url ) {
-  
+//if ( !$url ) {
+if (strpos($url, $internalTwitterVigilanceHost) === false && strpos($url, $internalTwitterVigilanceRTHost) === false ) {
+
   // Passed url not specified.
-  $contents = 'ERROR: url not specified';
+  $contents = 'ERROR: url not ALLOWED for TV Hosts.';
   $status = array( 'http_code' => 'ERROR' );
-  
+
 } else if ( !preg_match( $valid_url_regex, $url ) ) {
-  
+
   // Passed url doesn't match $valid_url_regex.
   $contents = 'ERROR: invalid url';
   $status = array( 'http_code' => 'ERROR' );
-  
+
 } else {
   $ch = curl_init( $url );
-  
+
   if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
     curl_setopt( $ch, CURLOPT_POST, true );
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $_POST );
   }
-  
-  
+
+
   curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
   curl_setopt( $ch, CURLOPT_HEADER, false );
   curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-  curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY); 
+  curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
   curl_setopt($ch, CURLOPT_USERPWD, $curlCredentialsString);
-  
-  
+
+
   list( $contents ) = preg_split( '/([\r\n][\r\n])\\1/', curl_exec( $ch ), 2 );
-  
+
   $status = curl_getinfo( $ch );
-  
+
   curl_close( $ch );
 }
   
