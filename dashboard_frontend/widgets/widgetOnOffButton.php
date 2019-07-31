@@ -30,7 +30,13 @@
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
-            
+
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetOnOffButton.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
+
             $genFileContent = parse_ini_file("../conf/environment.ini");
             $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
             $env = $genFileContent['environment']['value'];
@@ -85,7 +91,7 @@
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
             metricName = "<?= $_REQUEST['id_metric'] ?>";
-            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+            widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
             widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
             widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>"; 
         }
