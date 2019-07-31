@@ -23,8 +23,16 @@
 <script type='text/javascript'>
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad)
     {
+        <?php
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetButton.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
+        ?>
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
+    //    console.log("Button: " + widgetName);
         var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
         var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
         var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
@@ -35,7 +43,7 @@
         var fontSize = "<?= $_REQUEST['fontSize'] ?>";
         var fontColor = "<?= $_REQUEST['fontColor'] ?>";
         var button = $('#<?= $_REQUEST['name_w'] ?>_button');
-        var buttonText = '<?= $_REQUEST['title_w'] ?>'.replace(/_/g, " ");
+        var buttonText = '<?= sanitizeTitle($_REQUEST['title_w']) ?>'.replace(/_/g, " ");
         var url = "<?= $_REQUEST['link_w'] ?>";
         var hasChangeMetric = false;
         var justClicked = false;
