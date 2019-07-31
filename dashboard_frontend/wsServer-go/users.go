@@ -13,4 +13,5 @@ type WebsocketUser struct {
 	sendingAck       bool
 	msgIdAck		     int64
 	clientIp         string
+  validOrigin      bool
 }
