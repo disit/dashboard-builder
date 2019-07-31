@@ -29,13 +29,11 @@
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)   
     {
         <?php
-            $titlePatterns = array();
-            $titlePatterns[0] = '/_/';
-            $titlePatterns[1] = '/\'/';
-            $replacements = array();
-            $replacements[0] = ' ';
-            $replacements[1] = '&apos;';
-            $title = $_REQUEST['title_w'];
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetPieChart.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
         ?>  
         var defaultColorsArray = ['#ffcc00', '#ff9933', '#ff3300', '#ff3399', '#6666ff', '#0066ff', '#00ccff', '#00ffff', '#00ff00', '#009900'];        
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
@@ -83,7 +81,7 @@
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
             metricName = "<?= $_REQUEST['id_metric'] ?>";
-            widgetTitle = "<?= preg_replace($titlePatterns, $replacements, $title) ?>";
+            widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
             widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
             widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
         }
@@ -892,7 +890,6 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         //addLink(widgetName, url, linkElement, divContainer, null);
-        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
         
         //Nuova versione
         if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
