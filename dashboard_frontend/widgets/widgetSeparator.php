@@ -23,7 +23,7 @@
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
+        var widgetHeaderColor = "<?= sanitizeString('frame_color_w') ?>";
         var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var widgetProperties, separatorHeight, styleParameters= null;
