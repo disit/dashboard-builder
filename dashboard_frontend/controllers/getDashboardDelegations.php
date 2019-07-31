@@ -28,13 +28,18 @@ mysqli_select_db($link, $dbname);
 
 $delegated = [];
 
-if(isset($_SESSION['loggedUsername'])) 
+if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername']) 
 {
     $dashboardId = escapeForSQL($_REQUEST['dashboardId'], $link);
     if (checkVarType($dashboardId, "integer") === false) {
         eventLog("Returned the following ERROR in getDashboardDelegations.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
         exit();
     }
+    if(!checkDashboardId($link, $dashboardId)) {
+        eventLog("invalid request for getDashboardDelegation.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
+        exit;
+    }
+    
     $q = "SELECT user FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId'";
     $r = mysqli_query($link, $q);
         
