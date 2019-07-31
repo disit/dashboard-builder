@@ -91,7 +91,9 @@
         }
     }
 
-    session_start(); 
+    session_start();
+    checkSession('Manager');
+    
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     
@@ -136,14 +138,14 @@
             eventLog("Returned the following ERROR in widgetAndDashboardInstantiator.php for dashboard_id = ".$id_dashboard.": ".$id_dashboard." is not an integer as expected. Exit from script.");
             exit();
         };
-        $dashboardTitle = escapeForSQL($_REQUEST['dashboardTitle'], $link);
-        $dashboardAuthorName = escapeForSQL($_REQUEST['dashboardAuthorName'], $link);
-        $dashboardEditor = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
-        $creator = escapeForSQL($_REQUEST['dashboardEditorName'], $link);
-        $selection = escapeForSQL($_REQUEST['selection'], $link);
-        $mapCenterLat = escapeForSQL($_REQUEST['mapCenterLat'], $link);
-        $mapCenterLng = escapeForSQL($_REQUEST['mapCenterLng'], $link);
-        $mapZoom = escapeForSQL($_REQUEST['mapZoom'], $link);
+        $dashboardTitle = escapeForSQL(sanitizePostString('dashboardTitle'), $link);
+        $dashboardAuthorName = escapeForSQL(sanitizePostString('dashboardAuthorName'), $link);
+        $dashboardEditor = escapeForSQL(sanitizePostString('dashboardEditorName'), $link);
+        $creator = escapeForSQL(sanitizePostString('dashboardEditorName'), $link);
+        $selection = escapeForSQL(sanitizePostString('selection'), $link);
+        $mapCenterLat = escapeForSQL(sanitizePostString('mapCenterLat'), $link);
+        $mapCenterLng = escapeForSQL(sanitizePostString('mapCenterLng'), $link);
+        $mapZoom = escapeForSQL(sanitizePostInt('mapZoom'), $link);
         
         $widgetTypeDbRow = NULL;
         $id_metric = NULL; 
@@ -251,7 +253,7 @@
         $sourceEntityJson = NULL;
         $selectedRowIds = [];
         
-            if($newWidgetType == NULL)
+            if($newWidgetType == NULL || $newWidgetType == "none")
             {
                 //Caso tipo di widget non selezionato: dashboards fully custom vuote, ritorniamo true se add dashboard ma false negli altri casi
                 if($addDashboard)
@@ -1871,7 +1873,7 @@
         $selectedRowIds = [];
         $oldWidgetIdToUpdate = escapeForSQL($_REQUEST['widgetId'], $link);
 
-        if($newWidgetType == NULL)
+        if($newWidgetType == NULL || $newWidgetType == "none")
         {
             //Caso tipo di widget non selezionato: dashboards fully custom vuote, ritorniamo true se add dashboard ma false negli altri casi
             if($addDashboard)
@@ -3510,7 +3512,7 @@
         $sourceEntityJson = NULL;
         $selectedRowIds = [];
 
-        if ($newWidgetType == NULL) {
+        if ($newWidgetType == NULL || $newWidgetType == "none") {
             //Caso tipo di widget non selezionato: dashboards fully custom vuote, ritorniamo true se add dashboard ma false negli altri casi
             if ($addDashboard) {
                 return true;
@@ -3574,7 +3576,7 @@
         case "addDashboard":
             $dashboardAuthorName = $_SESSION['loggedUsername'];
             $dashboardTemplate = mysqli_real_escape_string($link, $_POST['dashboardTemplate']);  
-            $title = mysqli_real_escape_string($link, $_POST['dashboardTitle']);  
+            $title = mysqli_real_escape_string($link, filter_input(INPUT_POST,'dashboardTitle', FILTER_SANITIZE_STRING));
             $widgetType = mysqli_real_escape_string($link, $_REQUEST['widgetType']);  
             $subtitle = "";  
             $color = "rgba(51, 204, 255, 1)";  //E' header color
