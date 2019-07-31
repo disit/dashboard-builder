@@ -1,5 +1,7 @@
 <?php
     include '../config.php';
+    session_start();
+    checkSession('Manager');
     
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
@@ -11,9 +13,10 @@
         eventLog("Returned the following ERROR in genDashScr.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
         exit();
     };
-    
-    //$reqBody = json_decode(file_get_contents('php://input'));
-    //$file = fopen("C:\dashboardLog.txt", "w");
+    if(!checkDashboardId($link, $dashboardId)) {
+        eventLog("invalid request for genDashScr.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
+        exit;
+    }
     
     if($_FILES['dashboardScrInput']['size'] > 0)
     {
