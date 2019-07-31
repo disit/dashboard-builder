@@ -59,6 +59,9 @@
         }
     }
     
+    session_start();
+    checkSession('Manager');
+    
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR | E_NOTICE);
@@ -75,6 +78,11 @@
 
     $action = mysqli_real_escape_string($link, $_REQUEST['action']);
     $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
+
+    if(!checkWidgetName($link, $widgetName)) {
+        eventLog("invalid request for updateWidget.php $widgetName user: ".$_SESSION['loggedUsername']);
+        exit;
+    }
     
     switch($action)
     {
@@ -91,12 +99,12 @@
             {
                 $response['detail'] = 'queryKo';
             }
-	    break;
+        break;
 			
         case "updateHeaderColor":
-	   $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);		
-	   $query = "UPDATE Dashboard.Config_widget_dashboard SET frame_color_w = '$newColor' WHERE name_w = '$widgetName'";
-           $result = mysqli_query($link, $query);
+            $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);		
+            $query = "UPDATE Dashboard.Config_widget_dashboard SET frame_color_w = '$newColor' WHERE name_w = '$widgetName'";
+            $result = mysqli_query($link, $query);
 
             if($result) 
             {
@@ -271,6 +279,7 @@
               
             case "updateInfo":  
               $newInfo = mysqli_real_escape_string($link, $_REQUEST['newInfo']);
+              $newInfo = preg_replace("/<\\/?script[^>]*>/", "", $newInfo);
               $query = "UPDATE Dashboard.Config_widget_dashboard SET infoMessage_w = " . returnManagedStringForDb($newInfo) . " WHERE name_w = '$widgetName'";
               $result = mysqli_query($link, $query);
 
