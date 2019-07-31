@@ -62,7 +62,10 @@
             return false;
         }
     }
-    
+
+    session_start();
+    checkSession('Manager');
+
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR | E_NOTICE);
@@ -78,15 +81,19 @@
     }
 
     $action = mysqli_real_escape_string($link, $_REQUEST['action']);
+    $dashboardId = mysqli_real_escape_string($link, $_REQUEST[$action=='updateAdvancedProperties' ? 'dashboardIdUnderEdit' : 'dashboardId']);
+    if (checkVarType($dashboardId, "integer") === false) {
+        eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
+        exit();
+    };
+    if(!checkDashboardId($link, $dashboardId)) {
+        eventLog("invalid request for updateDashboard.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
+        exit;
+    }      
     
     switch($action)
     {
         case "updateHeaderColor":
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
             
             $query = "UPDATE Dashboard.Config_dashboard SET color_header = '$newColor' WHERE Id = '$dashboardId'";
@@ -104,11 +111,6 @@
             break;
         
         case "updateHeaderFontColor":
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
             
             $query = "UPDATE Dashboard.Config_dashboard SET headerFontColor = '$newColor' WHERE Id = '$dashboardId'";
@@ -126,11 +128,6 @@
             break;
             
         case "updateAreaColor":
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
             
             $query = "UPDATE Dashboard.Config_dashboard SET color_background = '$newColor' WHERE Id = '$dashboardId'";
@@ -148,11 +145,6 @@
             break; 
             
         case "updateFrameColor":
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
             
             $query = "UPDATE Dashboard.Config_dashboard SET external_frame_color = '$newColor' WHERE Id = '$dashboardId'";
@@ -170,11 +162,6 @@
             break;       
             
         case "updateTitle":
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $newTitle = mysqli_real_escape_string($link, $_REQUEST['newTitle']);
             $dashboardTitle = mysqli_real_escape_string($link, $_REQUEST['dashboardTitle']);
 
@@ -286,11 +273,6 @@
             break;
             
         case "updateSubtitle":
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $newSubtitle = mysqli_real_escape_string($link, $_REQUEST['newSubtitle']);
             
             $query = "UPDATE Dashboard.Config_dashboard SET subtitle_header = '$newSubtitle' WHERE Id = '$dashboardId'";
@@ -338,21 +320,10 @@
             break;       
         
         case "updateAdvancedProperties":
-         /*   $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };*/
-            session_start();
             mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
             $queryFail = false;
             $response = array();
 
-            $dashboardId = $_REQUEST['dashboardIdUnderEdit'];
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $dashboardAuthor = $_REQUEST['dashboardUser'];
             $dashboardEditor = $_REQUEST['dashboardEditor'];
             $dashboardTitle = $_REQUEST['currentDashboardTitle'];
@@ -477,6 +448,7 @@
                         }
                         else 
                         {
+                            // NEW P-TEST: mettere apici a $ncols
                             $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = '$dashboardId'";
                             $result = mysqli_query($link, $query);  
 
@@ -498,7 +470,8 @@
                     }
                     else
                     {
-                        $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
+                      //  $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
+                        $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
                         $result = mysqli_query($link, $query);  
 
                          if(!$result)
@@ -612,12 +585,6 @@
             break;  
             
         case "addSeparator":
-            session_start();
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $selqDbtbMaxSel2 = "SELECT `AUTO_INCREMENT` FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Dashboard' AND TABLE_NAME = 'Config_widget_dashboard'";
             $resultMaxSel2 = mysqli_query($link, $selqDbtbMaxSel2);
 
@@ -709,11 +676,6 @@
             break;    
             
         case "updateBackOverlayOpacity":
-            $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
-            if (checkVarType($dashboardId, "integer") === false) {
-                eventLog("Returned the following ERROR in updateDashboard.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
-                exit();
-            };
             $newValue = mysqli_real_escape_string($link, $_REQUEST['newValue']);
             
             $query = "UPDATE Dashboard.Config_dashboard SET backOverlayOpacity = $newValue WHERE Id = '$dashboardId'";
