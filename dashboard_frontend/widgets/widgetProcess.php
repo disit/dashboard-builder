@@ -28,8 +28,13 @@
             $replacements[0] = ' ';
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
+            $link = mysqli_connect($host, $username, $password);
+            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                eventLog("Returned the following ERROR in widgetProcess.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                exit();
+            }
         ?> 
-        
+    //    console.log("widget Process Status.");
         var hostFile = "<?= $_REQUEST['hostFile'] ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
@@ -136,7 +141,7 @@
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
         //addLink(widgetName, url, linkElement, divContainer, null);
-        //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html("<?= preg_replace($titlePatterns, $replacements, $title) ?>");
+
         widgetProperties = getWidgetProperties(widgetName);
         
         if((widgetProperties !== null) && (widgetProperties !== ''))
@@ -155,15 +160,13 @@
                 {
                     var parametri = msg.param.parameters;
                     var contenuto = jQuery.parseJSON(parametri);
-                    host = contenuto.host;
-                    user = contenuto.user;
-                    pass = contenuto.pass;
+                    var scehdulerName = contenuto.schedulerName;
                     jobName = contenuto.jobName;
                     sizeRowsWidget = parseInt(msg.param.size_rows);
 
                     $.ajax({
                         url: "../widgets/getProcessStatus.php",
-                        data: {action: "getSingleStatus", host: host, user: user, pass: pass, jobName: jobName},
+                        data: {action: "getSingleStatus", scheduler: scehdulerName, jobName: jobName},
                         type: "POST",
                         async: true,
                         dataType: 'json',
