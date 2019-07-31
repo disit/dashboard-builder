@@ -28,7 +28,7 @@ mysqli_select_db($link, $dbname);
 
 $response = [];
 
-if(isset($_SESSION['loggedUsername'])) 
+if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername']) 
 {
     $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
     if (checkVarType($dashboardId, "integer") === false) {
