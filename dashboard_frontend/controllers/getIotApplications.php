@@ -38,11 +38,13 @@ if (isset($_SESSION['refreshToken'])) {
   $accessToken = $tkn->access_token;
   $_SESSION['refreshToken'] = $tkn->refresh_token;
   $response['access_token'] = $accessToken;
+  
   $json = http_get($iotAppApiBaseUrl."/v1/?op=list&accessToken=" . $accessToken);
   if ($json['httpcode'] == 200) {
     $response['applications'] = array();
     foreach ($json['result'] as $app) {
       $a = $app;
+      $a['name'] = htmlspecialchars($a['name']);
       if($a['type']!='edge') {
         if($a['type']=='plumber') {
           $a['icon'] = 'dataAnalyticIcon.png';
@@ -71,6 +73,7 @@ if (isset($_SESSION['refreshToken'])) {
       {
           while($row = mysqli_fetch_assoc($r))
           {
+              $row['dashboardName'] = htmlspecialchars($row['dashboardName']);
               array_push($a['dashboards'], $row);
           }         
       }
@@ -81,56 +84,6 @@ if (isset($_SESSION['refreshToken'])) {
     $response['detail'] = 'Ko';
     $response['error'] = $json['result'];
   }
-  /*
-  $json = http_get($ownershipApiBaseUrl."/v1/list/?type=AppID;DAAppID&accessToken=" . $accessToken);
-  //echo json_encode($json);
-
-  if ($json['httpcode'] == 200) {
-    $response['applications'] = array();
-    foreach ($json['result'] as $app) {
-      $a = array();
-      $a['id'] = $app->elementId;
-      $a['title'] = $app->elementName;
-      $a['url'] = $app->elementUrl;
-      $a['type'] = @$app->elementDetails->type ?: 'basic';
-      $a['edgetype'] = @$app->elementDetails->edgegateway_type ?: '';
-      if($a['edgetype']==='') {
-        if($a['type']=='plumber') {
-          $a['icon'] = 'dataAnalyticIcon.png';
-          @$a['iotapps'] = join(',', $app->elementDetails->iotappids);
-        }
-        else
-          $a['icon'] = $a['type']=='basic' ? 'iotAppBasicIcon.png' : 'iotAppAdvIcon.png';
-      } else {
-        $os = explode('_', $a['edgetype']);
-        $os = $os[0];
-        if($os==='win32') 
-          $a['icon'] = 'iotAppBasicPcIcon.png';
-        else if($os=='android')
-          $a['icon'] = 'iotAppBasicMobileIcon.png';
-        else
-          $a['icon'] = 'iotAppBasicRaspberryIcon.png';
-      }
-      $a['created'] = $app->created;
-      $a['username'] = $app->username;
-      $a['dashboards'] = array();
-      //search for connected dashboards
-      $q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName, user as dashboardAuthor FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app->elementId' AND d.deleted='no'";
-      $r = mysqli_query($link, $q);
-      if($r)
-      {
-          while($row = mysqli_fetch_assoc($r))
-          {
-              array_push($a['dashboards'], $row);
-          }         
-      }
-      $response['applications'][] = $a;
-    }
-    $response['detail'] = 'Ok';
-  } else {
-    $response['detail'] = 'Ko';
-    $response['error'] = $json['result'];
-  }*/
 } else {
   $response['detail'] = 'Ko';
   $response['error'] = 'no refresh token';
