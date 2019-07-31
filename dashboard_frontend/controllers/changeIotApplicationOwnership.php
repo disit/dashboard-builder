@@ -28,7 +28,7 @@ mysqli_select_db($link, $dbname);
 
 $response = [];
 
-if(isset($_SESSION['loggedUsername']) && isset($_REQUEST['appId']) && isset($_REQUEST['newOwner']) && isset($_REQUEST['appName'])) 
+if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'] && isset($_REQUEST['appId']) && isset($_REQUEST['newOwner']) && isset($_REQUEST['appName'])) 
 {
     $appId = mysqli_real_escape_string($link, $_REQUEST['appId']);
     $newOwner = mysqli_real_escape_string($link, $_REQUEST['newOwner']);
