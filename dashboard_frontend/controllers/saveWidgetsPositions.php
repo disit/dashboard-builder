@@ -16,7 +16,9 @@
 
     include '../config.php';//Escape
 
-    session_start(); 
+    session_start();
+    checkSession('Manager');
+    
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     
@@ -28,6 +30,11 @@
             eventLog("Returned the following ERROR in saveWidgetsPositions.php for dashboardId = ".$dashboardId.": ".$dashboardId." is not an integer as expected. Exit from script.");
             exit();
         };
+        if(!checkDashboardId($link, $dashboardId)) {
+            eventLog("invalid request for saveWidgetsPositions.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
+            exit;
+        }
+        
         $widgetsConfigArray = json_decode($widgetsConfigJson, true);
 
         foreach ($widgetsConfigArray as $item) 
