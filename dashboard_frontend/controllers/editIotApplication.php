@@ -45,7 +45,7 @@ if (isset($_SESSION['refreshToken'])) {
   $accessToken = $tkn->access_token;
   $_SESSION['refreshToken'] = $tkn->refresh_token;
 
-  $id = $_REQUEST['id'];
+  $id = urlencode($_REQUEST['id']);
   $name = $_REQUEST['name'];
   
   $json = http_get($ownershipApiBaseUrl."/v1/list/?type=AppID;DAAppID&elementId=$id&accessToken=" . $accessToken);
