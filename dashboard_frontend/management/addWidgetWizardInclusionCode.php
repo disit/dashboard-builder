@@ -5978,41 +5978,44 @@
                     var myKPIlng = myKPIParameters.split("__")[1].split(";")[1];    */
                     if (myKPIParameters.includes("datamanager/api/v1/poidata/")) {
                         var myKPIId = myKPIParameters.split("datamanager/api/v1/poidata/")[1];
-                        $.ajax({
-                            url: "../controllers/myPOIProxy.php",
-                            type: "GET",
-                            data: {
-                                myPOIId: myKPIId,
-                            },
-                            async: true,
-                            dataType: 'json',
-                            uniqueNameId: uniqueNameId,
-                            success: function (geoData) {
-                                var fatherNode = null;
-                                if (geoData.hasOwnProperty("BusStop")) {
-                                    fatherNode = geoData.BusStop;
-                                } else {
-                                    if (geoData.hasOwnProperty("Sensor")) {
-                                        fatherNode = geoData.Sensor;
-                                    } else {
-                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
-                                        fatherNode = geoData;
-                                    }
-                                }
-
-                                gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
-                                    pointToLayer: addWidgetWizardCreateCustomMarker
-                                }).addTo(addWidgetWizardMapRef);
-                                if (FreezeMap !== true) {
-                                    addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
-                                }
-
-                            },
-                            error: function (data) {
-                                console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
-                            }
-                        });
+                    } else {
+                        var myKPIId = myKPIParameters;
                     }
+                    $.ajax({
+                        url: "../controllers/myPOIProxy.php",
+                        type: "GET",
+                        data: {
+                            myPOIId: myKPIId,
+                        },
+                        async: true,
+                        dataType: 'json',
+                        uniqueNameId: uniqueNameId,
+                        success: function (geoData) {
+                            var fatherNode = null;
+                            if (geoData.hasOwnProperty("BusStop")) {
+                                fatherNode = geoData.BusStop;
+                            } else {
+                                if (geoData.hasOwnProperty("Sensor")) {
+                                    fatherNode = geoData.Sensor;
+                                } else {
+                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                    fatherNode = geoData;
+                                }
+                            }
+
+                            gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                pointToLayer: addWidgetWizardCreateCustomMarker
+                            }).addTo(addWidgetWizardMapRef);
+                            if (FreezeMap !== true) {
+                                addWidgetWizardMapRef.setView(L.latLng(fatherNode.geometry.coordinates[1], fatherNode.geometry.coordinates[0]), addWidgetWizardMapRef.getZoom());
+                            }
+
+                        },
+                        error: function (data) {
+                            console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                        }
+                    });
+                //    }
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "MyData") {
                     var myDataParameters = $(this).attr('data-parameters');
