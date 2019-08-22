@@ -15,6 +15,11 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
+    if(!isset($_SESSION))
+    {
+        session_start();
+    }
+    checkSession('Public');
 ?>
 <link rel="stylesheet" href="../css/widgetTracker.css">
 <script type='text/javascript'>
@@ -108,6 +113,10 @@
         var newTracks = {};
         var dayString = [];
         var newMapMarkers = {};
+
+        var loggedOrg = "<?php echo $_SESSION['loggedOrganization'] ?>";
+        var orgKbUrl = "<?php echo $_SESSION['orgKbUrl'] ?>";
+        var orgCentreGpsCoords = "<?php echo $_SESSION['orgGpsCentreLatLng'] ?>";
 
         console.log("Entrato in widgetTracker: " + widgetName);
 
@@ -937,6 +946,8 @@
                                 }, 350);
                             }, 1000);*/
 
+                            mapRef.setView([mapMarkers[0][mapMarkers[0].length - 1]._latlng.lat, mapMarkers[0][mapMarkers[0].length - 1]._latlng.lng], 12);
+
                             // DRAW the TRAJECTORY for CURRENT KPI/METRIC
                             trajectory[trackIndex] = [];
                             for(i in mapMarkers[trackIndex]) {
@@ -1207,8 +1218,22 @@
                     $("#" + widgetName + "_content").css("display", "block");
                     
                     mapRef = L.map("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
-                    
-                    mapRef.setView([43.774199, 11.259099], 12);
+
+                    var startLat = 43.774199;
+                    var startLng = 11.259099;
+                    if(orgCentreGpsCoords) {
+                        if(orgCentreGpsCoords != "") {
+                            if (orgCentreGpsCoords.split(", ").length != 1) {
+                                startLat = orgCentreGpsCoords.split(", ")[0];
+                                startLng = orgCentreGpsCoords.split(", ")[1];
+                            } else if (orgCentreGpsCoords.split(",") !== 1) {
+                                startLat = orgCentreGpsCoords.split(",")[0];
+                                startLng = orgCentreGpsCoords.split(",")[1];
+                            }
+                        }
+                    }
+                //    mapRef.setView([43.774199, 11.259099], 12);
+                    mapRef.setView([startLat, startLng], 12);
 
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
