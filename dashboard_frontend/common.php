@@ -68,7 +68,7 @@ function checkLdapOrganization($connection, $userDn, $baseDn)
         }
     }
     
-    if (sizeof($orgsArray) > 1) {
+    if (sizeof($orgsArray) > 1 || sizeof($orgsArray)==0) {
         return "DISIT";
     } else {
         return $orgsArray[0];
@@ -230,7 +230,7 @@ function checkWidgetName($link, $wname, $user = NULL) {
 }
 
 function escapeForJS($varToBeEscaped) {
-    $varEscaped1 =  preg_replace("/<\\/?script[^>]*>/", "", $varToBeEscaped);
+    $varEscaped1 =  preg_replace("/<\\/?script[^>]*>/i", "", $varToBeEscaped);
     $varEescaped = addslashes($varEscaped1);
     return addslashes($varEescaped);
 }
@@ -434,5 +434,11 @@ function sanitizeJson($jsonVar) {
 function sanitizeJsonRelaxed($jsonVar) {
 
     $jsonVarSanitized =  preg_replace("/<\\/?script[^>]*>/", "", $jsonVar);
+    return $jsonVarSanitized;
+}
+
+function sanitizeJsonRelaxed2($jsonVar) {
+    $js =  addslashes(json_encode(json_decode(stripslashes($jsonVar))));
+    $jsonVarSanitized =  preg_replace("/<\\/?script[^>]*>/", "", $js);
     return $jsonVarSanitized;
 }
