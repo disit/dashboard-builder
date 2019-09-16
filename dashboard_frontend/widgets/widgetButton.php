@@ -30,27 +30,27 @@
                 exit();
             }
         ?>
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
     //    console.log("Button: " + widgetName);
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var widgetMainDivName = "<?= $_REQUEST['name_w'] ?>_div";
         var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var color = '<?= $_REQUEST['color_w'] ?>';
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var color = '<?= escapeForJS($_REQUEST['color_w']) ?>';
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
         var button = $('#<?= $_REQUEST['name_w'] ?>_button');
         var buttonText = '<?= sanitizeTitle($_REQUEST['title_w']) ?>'.replace(/_/g, " ");
-        var url = "<?= $_REQUEST['link_w'] ?>";
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
         var hasChangeMetric = false;
         var justClicked = false;
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
+		var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var widgetProperties, buttonHeight, widgetTargetList, originalHeaderColor, originalBorderColor, originalTitle, 
             originalHeaderFontColor, styleParameters, innerWidth, innerHeight, innerTop, innerLeft,
             outerMinDim, innerMinDim, outerBorderRadius, innerBorderRadius, widgetWidthCells, widgetHeightCells,

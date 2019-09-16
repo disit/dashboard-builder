@@ -34,20 +34,20 @@
                 exit();
             }
         ?>
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         var widgetProperties, styleParameters, clockData, clockFont = null;
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
         var headerHeight = 25;
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
+		var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
 		var showHeader = null;
         elToEmpty.css("font-family", "Verdana");
         var firstShowClock = true;

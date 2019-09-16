@@ -39,14 +39,14 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             sizeRowsWidget, styleParameters, genTabFontSize, genTabFontColor, meteoTabFontSize, descWPerc, iconDim, rowHeightPerc,
             height, genTabFontSizeFactor, meteoLegendaFontSizeFactor, showHeader, countdown = null;
         headerHeight = 25;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
             height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
@@ -59,14 +59,14 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").height() - $("#<?= $_REQUEST['name_w'] ?>_logo").height());
             showHeader = true;
         }
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var percHeight = Math.floor(height / $("#<?= $_REQUEST['name_w'] ?>_div").height() * 100);
         var carouselHeight = parseInt(height - 20);
         var carouselPercHeight = Math.floor(carouselHeight / height * 100);
         var loadingFontDim = 13;
         var loadingIconDim = 20;
         var alarmDegs = new Array();
-        var defaultTab = parseInt("<?= $_REQUEST['defaultTab'] ?>");
+        var defaultTab = parseInt("<?= escapeForJS($_REQUEST['defaultTab']) ?>");
         var name = "<?= $_REQUEST['name_w'] ?>";
 
         var widgetProperties = getWidgetProperties(name);
@@ -79,12 +79,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         }
         console.log('Widget Protezione Civile FIRENZE.');
 
-        $("#<?= $_REQUEST['name_w'] ?>_logo").css("background-color", '<?= $_REQUEST['frame_color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_logo").css("background-color", '<?= escapeForJS(escapeForJS($_REQUEST['frame_color_w'])) ?>');
         $('#<?= $_REQUEST['name_w'] ?>_loading').css("height", percHeight + "%");
         $('#<?= $_REQUEST['name_w'] ?>_loading p').css("font-size", loadingFontDim + "px");
         $('#<?= $_REQUEST['name_w'] ?>_loading i').css("font-size", loadingIconDim + "px");
-        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
-        $("#<?= $_REQUEST['name_w'] ?>_content").css("background-color", '<?= $_REQUEST['color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= escapeForJS($_REQUEST['color_w']) ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_content").css("background-color", '<?= escapeForJS($_REQUEST['color_w']) ?>');
 
         if(firstLoad !== false)
         {
@@ -343,7 +343,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             $('#dialog_<?= $_REQUEST['name_w'] ?>').hide();
         });
 
-        var counter = <?= $_REQUEST['frequency_w'] ?>;
+        var counter = <?= sanitizeInt('frequency_w') ?>;
 
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();

@@ -30,16 +30,16 @@
 
         var scroller1, scroller2, scrollBottom1, scrollBottom2, contentHeight, trendsNumber, quotesNumber, trendsContentHeight, quotesContentHeight, 
             rowPercHeight, rowPxHeight, fullRowPxHeight, showHeader, timeToReload, actualTab, countdown, timeToClearScroll, titleWidth, fontRatio, fullRowPercHeight, contentPercWidth, iconWidth, contentWidth = null;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var speed = 140;
-        var defaultTab = parseInt("<?= $_REQUEST['defaultTab'] ?>");
+        var defaultTab = parseInt("<?= escapeForJS($_REQUEST['defaultTab']) ?>");
         actualTab = 1;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
     //    console.log("Widget Trend Mentions: " + widgetName);
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
@@ -54,7 +54,7 @@
             showHeader = true;
         }
         
-        var counter = parseInt('<?= $_REQUEST['frequency_w'] ?>');
+        var counter = parseInt('<?= sanitizeInt('frequency_w') ?>');
         
         function stepDownInterval1()
         {
@@ -97,7 +97,7 @@
             $title = $_REQUEST['title_w'];
         ?>
         
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         
         if(hostFile === "config")
         {
@@ -110,10 +110,10 @@
         }
         
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("width", titleWidth + "px");
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>");
 
-        $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
-        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= escapeForJS($_REQUEST['color_w']) ?>');
         
         
         var loadingFontDim = 13;
@@ -129,10 +129,10 @@
         }
         
         $("#<?= $_REQUEST['name_w'] ?>_content").css("height", height);
-        $("#<?= $_REQUEST['name_w'] ?>_content").css("backgroundColor", '<?= $_REQUEST['color_w'] ?>');
-        $("#<?= $_REQUEST['name_w'] ?>_tabsContainer").css("backgroundColor", '<?= $_REQUEST['color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_content").css("backgroundColor", '<?= escapeForJS($_REQUEST['color_w']) ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_tabsContainer").css("backgroundColor", '<?= escapeForJS($_REQUEST['color_w']) ?>');
         
-        var colore_frame = "<?= $_REQUEST['frame_color_w'] ?>";
+        var colore_frame = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
         
         $("#<?= $_REQUEST['name_w'] ?>_div").css({'background-color':colore_frame});
         $('#<?= $_REQUEST['name_w'] ?>_content').css("overflow-y", "scroll");

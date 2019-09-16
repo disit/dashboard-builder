@@ -43,20 +43,20 @@
             dateContainer, timeContainer, dateTimeFontSize, severityContainer, mapPtrContainer, pinContainer, pinMsgContainer, 
             mapPinImg, eventNameWithCase, eventSeverity, typeId, subtypeId, lastPopup, defaultCategory, widgetParameters = null; 
        
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var speed = 50;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var timeToReload = <?= sanitizeInt('frequency_w') ?>;
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
-        var url = "<?= $_REQUEST['link_w'] ?>";
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var eventsArray = [];
         var eventsOnMaps = {};
         var allIncidentsOnMap = false;
@@ -69,10 +69,10 @@
         var timeSortState = 0;
         var typeSortState = 0;
         var headerHeight = 25;
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-	var showHeader, countdownRef = null;
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
+        var showHeader, countdownRef = null;
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
 		{
@@ -1317,15 +1317,15 @@
 
         
         //Nuova versione
-        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+        if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
         {
-            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+            styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
             defaultCategory = styleParameters.defaultCategory;
         }
         
-        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
         {
-            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+            widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
         }
 
         widgetTargetList = widgetParameters;

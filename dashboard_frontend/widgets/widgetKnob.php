@@ -50,16 +50,16 @@
         ?>
                 
         var headerHeight = 25;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         
         var widgetProperties, styleParameters, metricType, metricName, pattern, udm, widgetParameters, nrInputId,
             sizeRowsWidget, fontSize, metricType, countdownRef, widgetTitle, widgetHeaderColor, 
@@ -89,10 +89,10 @@
             
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
-            metricName = "<?= $_REQUEST['id_metric'] ?>";
+            metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
             widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
-            widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-            widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>"; 
+            widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+            widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>"; 
         }
         else
         {
@@ -1163,8 +1163,8 @@
                                 "widgetName": "<?= $_REQUEST['name_w'] ?>",
                                 "username" : $('#authForm #hiddenUsername').val(),
                                 "value": currentValue,
-                                "endPointPort": "<?= $_REQUEST['endPointPort'] ?>",
-                                "httpRoot": "<?= $_REQUEST['httpRoot'] ?>",
+                                "endPointPort": "<?= escapeForJS($_REQUEST['endPointPort']) ?>",
+                                "httpRoot": "<?= escapeForJS($_REQUEST['httpRoot']) ?>",
                                 "nrInputId": nrInputId
                             },
                             async: true,

@@ -36,33 +36,33 @@
             }
         ?>  
         var defaultColorsArray = ['#ffcc00', '#ff9933', '#ff3300', '#ff3399', '#6666ff', '#0066ff', '#00ccff', '#00ffff', '#00ff00', '#009900'];        
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
         var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var color = '<?= $_REQUEST['color_w'] ?>';
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var color = '<?= escapeForJS($_REQUEST['color_w']) ?>';
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
+        var timeToReload = <?= sanitizeInt('frequency_w') ?>;
         var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, 
             pattern, totValues, shownValues, descriptions, udm, threshold, thresholdEval, stopsArray, 
             delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength, metricName, widgetTitle, countdownRef,
             innerRadius1, widgetParameters, thresholdsJson = null;
         var colors = [];
-	var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var wsRetryActive, wsRetryTime = null;
-        var metricName = "<?= $_REQUEST['id_metric'] ?>";
+        var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
-        var url = "<?= $_REQUEST['link_w'] ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-	var showHeader = null;
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
+        var showHeader = null;
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
 	{
@@ -80,10 +80,10 @@
         
         if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
-            metricName = "<?= $_REQUEST['id_metric'] ?>";
+            metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
             widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
-            widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-            widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+            widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+            widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         }
         else
         {
@@ -686,7 +686,7 @@
 
                     item = $('<div class="legendSingleContainer"></div>');
 
-                    if(('<?= $_REQUEST['infoJson'] ?>' !== 'null')&&('<?= $_REQUEST['infoJson'] ?>' !== ''))
+                    if(('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null')&&('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== ''))
                     {
                         id = label.replace(/\s/g, '_');
                         singleInfo = infoJson.secondAxis[id];
@@ -805,7 +805,7 @@
 
                     item = $('<div class="legendSingleContainer"></div>');
 
-                    if(('<?= $_REQUEST['infoJson'] ?>' !== 'null')&&('<?= $_REQUEST['infoJson'] ?>' !== ''))
+                    if(('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null')&&('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== ''))
                     {
                         id = label.replace(/\s/g, '_');
                         singleInfo = infoJson.firstAxis[id];
@@ -892,14 +892,14 @@
         //addLink(widgetName, url, linkElement, divContainer, null);
         
         //Nuova versione
-        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+        if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
         {
-            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+            styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
         }
         
-        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
         {
-            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+            widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
         }
         
         if(widgetParameters !== null && widgetParameters !== undefined)
@@ -910,15 +910,15 @@
             }
         }
         
-        if(('<?= $_REQUEST['infoJson'] ?>' !== 'null')&&('<?= $_REQUEST['infoJson'] ?>' !== ''))
+        if(('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null')&&('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== ''))
         {
-            infoJson = JSON.parse('<?= $_REQUEST['infoJson'] ?>');
+            infoJson = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>');
         }
         
         $.ajax({
             url: getMetricDataUrl,
             type: "GET",
-            data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+            data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
             async: true,
             dataType: 'json',
             success: function (metricData) 
@@ -950,7 +950,7 @@
 
                             if(metricData.data[0].commit.author.value_perc1 !== null)
                             {
-                                if("<?= $_REQUEST['id_metric'] ?>" === 'SmartDS_Process')
+                                if("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process')
                                 {
                                     shownValues[0] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1*100).toFixed(1));
                                 }
@@ -963,7 +963,7 @@
 
                             if(metricData.data[0].commit.author.value_perc2 !== null)
                             {
-                                if("<?= $_REQUEST['id_metric'] ?>" === 'SmartDS_Process')
+                                if("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process')
                                 {
                                     shownValues[1] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc2*100).toFixed(1));
                                 }
@@ -976,7 +976,7 @@
 
                             if(metricData.data[0].commit.author.value_perc3 !== null)
                             {
-                                if("<?= $_REQUEST['id_metric'] ?>" === 'SmartDS_Process')
+                                if("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process')
                                 {
                                     shownValues[2] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc3*100).toFixed(1));
                                 }

@@ -46,11 +46,11 @@
             typeId, lastPopup, widgetParameters, countdownRef = null;    
     
         var speed = 50;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
         var showHeader, showTitle, timeToReload, fontSize, widgetHeaderFontColor, widgetHeaderColor, widgetContentColor, 
             fontSize, hasTimer = null;        
         var headerHeight = 25;
@@ -1154,14 +1154,14 @@
                 }
                 
                 //Nuova versione
-                if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+                if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
                 {
-                    styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+                    styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
                 }
 
-                if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+                if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
                 {
-                    widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+                    widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
                 }
 
                 widgetTargetList = widgetParameters;

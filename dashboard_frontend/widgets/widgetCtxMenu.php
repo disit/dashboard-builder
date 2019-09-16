@@ -580,7 +580,7 @@
         {
             var chart, chartMin = null;
             
-           if("<?= $_REQUEST['hostFile'] ?>" === 'config')
+           if("<?= escapeForJS($_REQUEST['hostFile']) ?>" === 'config')
 	   {
                $.ajax({
                 url: "../controllers/getWidgetParams.php",
@@ -1907,8 +1907,8 @@
 
                     if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
                     {
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').css('background-color', '<?= $_REQUEST['frame_color_w'] ?>');
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtn').css('color', '<?= $_REQUEST['headerFontColor'] ?>');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').css('background-color', '<?= escapeForJS($_REQUEST['frame_color_w']) ?>');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtn').css('color', '<?= escapeForJS($_REQUEST['headerFontColor']) ?>');
                     }
                     else
                     {

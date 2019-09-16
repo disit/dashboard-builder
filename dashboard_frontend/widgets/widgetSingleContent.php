@@ -29,18 +29,18 @@
         ?>
                 
         var headerHeight = 25;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w']))?>";
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
+        var timeToReload = <?= sanitizeInt('frequency_w') ?>;
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true' ? 'true' : 'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
         var wsRetryActive, wsRetryTime = null;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var styleParameters, metricType, originalMetricType, metricName, pattern, udm, udmPos, threshold, thresholdEval, appId, flowId, nrMetricType,
             delta, deltaPerc, sm_field, sizeRowsWidget, sm_based, rowParameters, fontSize, value, countdownRef, widgetTitle, metricData, widgetHeaderColor, 
             widgetHeaderFontColor, widgetOriginalBorderColor, urlToCall, geoJsonServiceData, showHeader, fontSizeRatio, realFontSize, 
@@ -101,7 +101,7 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, /*null,*/ null, null, null);
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= escapeForJS($_REQUEST['frame_color_w']) ?>", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>", false, null, null, null, null, /*null,*/ null, null, null);
             }
         });
 
@@ -494,7 +494,7 @@
 
                     if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                     {
-                        metricName = "<?= $_REQUEST['id_metric'] ?>";
+                        metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                         widgetTitle = widgetData.params.title_w;
                         widgetHeaderColor = widgetData.params.frame_color_w;
                         widgetHeaderFontColor = widgetData.params.headerFontColor;
@@ -763,7 +763,7 @@
                                 $.ajax({
                                     url: getMetricDataUrl,
                                     type: "GET",
-                                    data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+                                    data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
                                     async: true,
                                     dataType: 'json',
                                     success: function (data) 

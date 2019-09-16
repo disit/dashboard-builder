@@ -36,27 +36,27 @@
                 exit();
             }
         ?>  
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var color = '<?= $_REQUEST['color_w'] ?>';
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var color = '<?= escapeForJS($_REQUEST['color_w']) ?>';
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
+        var timeToReload = <?= sanitizeInt('frequency_w') ?>;
         var widgetProperties = null;
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_table");
-        var url = "<?= $_REQUEST['link_w'] ?>"; 
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>"; 
         var styleParameters, legendHeight, serviceUri, viewMode = null;
         var tableRows = [];
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-		var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
+		var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
 		var showHeader, countdownRef = null;
         console.log("Widget Firts Aid: " + widgetName);
 

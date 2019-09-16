@@ -35,20 +35,20 @@
             }
         ?> 
                 
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";
-        var widgetHeight = "<?= $_REQUEST['size_rows'] ?>";
+        var widgetHeight = "<?= escapeForJS($_REQUEST['size_rows']) ?>";
         var fontSize, fontColor, chartColor, timeToReload, showHeader, hasTimer, showTitle, widgetHeaderColor, widgetContentColor, widgetHeaderFontColor,
             styleParameters, metricType, metricData, pattern, udm, seriesObj, widgetParameters, minGauge, maxGauge, shownValue, plotBands, 
             plotBandObj, paneObj, yObj, solidGaugeObj, chart, alarmSet, labelsObj, labelObj, sizeRows, sizeCols, hasNegativeValues, metricName, widgetTitle, countdownRef, 
             urlToCall, webSocket, openWs, manageIncomingWsMsg, sm_based, rowParameters, sm_field, originalMetricType, openWsConn, wsClosed, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor = null;
-        var metricName = "<?= $_REQUEST['id_metric'] ?>";
+        var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
         var elToEmpty = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
         var wsRetryActive, wsRetryTime = null;
         var pattern = /Percentuale\//;
         var thresholdObject = null;
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var needWebSocket = false;
         
@@ -104,7 +104,7 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, /*null,*/ null, null, null);
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= escapeForJS($_REQUEST['frame_color_w']) ?>", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>", false, /*null,*/ null, null, null);
             }
         });
 		
@@ -802,7 +802,7 @@
 
                 if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                 {
-                    metricName = "<?= $_REQUEST['id_metric'] ?>";
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                     widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
                     widgetHeaderColor = widgetData.params.frame_color_w;
                     widgetHeaderFontColor = widgetData.params.headerFontColor;
@@ -832,14 +832,14 @@
         }
         
         //Nuova versione
-        if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+        if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
         {
-            styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+            styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
         }
         
-        if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+        if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
         {
-            widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+            widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
         }
         
         if(widgetParameters !== null && widgetParameters !== undefined)
@@ -850,8 +850,8 @@
             }
         }
         
-        sizeRows = parseInt("<?= $_REQUEST['size_rows'] ?>");
-        sizeCols = parseInt("<?= $_REQUEST['size_columns'] ?>");
+        sizeRows = parseInt("<?= escapeForJS($_REQUEST['size_rows']) ?>");
+        sizeCols = parseInt("<?= escapeForJS($_REQUEST['size_columns']) ?>");
         
         if(fromGisExternalContent)
         { 
@@ -1087,7 +1087,7 @@
                     $.ajax({
                         url: getMetricDataUrl,
                         type: "GET",
-                        data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+                        data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
                         async: true,
                         dataType: 'json',
                         success: function (data) 

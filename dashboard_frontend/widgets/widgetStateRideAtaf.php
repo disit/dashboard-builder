@@ -38,12 +38,12 @@
             }
         ?>
     
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var headerHeight = 25;
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader, countdown = null;
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
@@ -68,15 +68,15 @@
         }
         
         $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("width", titleWidth + "px");
-        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_titleDiv").css("color", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>");
 
-        $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= $_REQUEST['headerFontColor'] ?>");
-        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_countdownDiv").css("color", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>");
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= escapeForJS($_REQUEST['color_w']) ?>');
         
         var loadingFontDim = 13;
         var loadingIconDim = 20;
         
-        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= $_REQUEST['color_w'] ?>');
+        $("#<?= $_REQUEST['name_w'] ?>_loading").css("background-color", '<?= escapeForJS($_REQUEST['color_w']) ?>');
         $('#<?= $_REQUEST['name_w'] ?>_loading').css("height", height+"px");
         $('#<?= $_REQUEST['name_w'] ?>_loading p').css("font-size", loadingFontDim+"px");
         $('#<?= $_REQUEST['name_w'] ?>_loading i').css("font-size", loadingIconDim+"px");
@@ -100,12 +100,12 @@
         var tabIndex = 0;
         var alarmSet = false;
         
-        var colore_frame = "<?= $_REQUEST['frame_color_w'] ?>";
+        var colore_frame = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
         var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
-        var defaultTab = parseInt("<?= $_REQUEST['defaultTab'] ?>");
+        var defaultTab = parseInt("<?= escapeForJS($_REQUEST['defaultTab']) ?>");
         $("#<?= $_REQUEST['name_w'] ?>_div").css({'background-color':colore_frame});
         
-        var url = "<?= $_REQUEST['link_w'] ?>";
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
         if(url === "null")
         {
             url = null;
@@ -286,8 +286,8 @@
                             $("#<?= $_REQUEST['name_w'] ?>_alarmDiv").addClass("alarmDivActive");
                         }
 
-                        $("#table_<?= $_REQUEST['name_w'] ?>").css({backgroundColor: '<?= $_REQUEST['color_w'] ?>'});
-                        $("#<?= $_REQUEST['name_w'] ?>_date_update").css({backgroundColor: '<?= $_REQUEST['color_w'] ?>'});
+                        $("#table_<?= $_REQUEST['name_w'] ?>").css({backgroundColor: '<?= escapeForJS($_REQUEST['color_w']) ?>'});
+                        $("#<?= $_REQUEST['name_w'] ?>_date_update").css({backgroundColor: '<?= escapeForJS($_REQUEST['color_w']) ?>'});
 
                         $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_intime_value_p").html(valueInOrario + "%");
                         $("#measure_<?= $_REQUEST['name_w'] ?>_ataf_early_value_p").html(valueInAnticipo + "%");
@@ -340,7 +340,7 @@
                             $('#table_<?= $_REQUEST['name_w'] ?>').carousel('cycle');
                         }
 
-                        var counter = <?= $_REQUEST['frequency_w'] ?>;
+                        var counter = <?= sanitizeInt('frequency_w') ?>;
                         
                         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
                             <?= $_REQUEST['name_w'] ?>(false);

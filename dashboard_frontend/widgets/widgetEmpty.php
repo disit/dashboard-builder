@@ -38,17 +38,17 @@
         ?>
                 
         var headerHeight = 25;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w']))?>";
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
+        var timeToReload = <?= sanitizeInt('frequency_w') ?>;
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var styleParameters, metricName, udm, udmPos, appId, flowId, nrMetricType,
             sm_field, sizeRowsWidget, sm_based, rowParameters, fontSize, countdownRef, widgetTitle, widgetHeaderColor, 
             widgetHeaderFontColor, showHeader, widgetParameters, chartColor, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor = null;
@@ -112,7 +112,7 @@
                         showHeader = true;
                     } 
 
-                    metricName = "<?= $_REQUEST['id_metric'] ?>";
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                     widgetTitle = widgetData.params.title_w;
                     widgetHeaderColor = widgetData.params.frame_color_w;
                     widgetHeaderFontColor = widgetData.params.headerFontColor;

@@ -43,26 +43,26 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             queryDescContainerWidth,
             queryDescContainerWidthPerc, pinContainerWidthPerc, defaultOption = null;
 
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var speed = 65;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
-        var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
+        var widgetName = "<?= escapeForJS($_REQUEST['name_w']) ?>";
+        var divContainer = $("#<?= escapeForJS($_REQUEST['name_w']) ?>_mainContainer");
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
-        var url = "<?= $_REQUEST['link_w'] ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true' ? 'true' : 'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
         var headerHeight = 25;
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
         var defaultOptionUsed = false;
         var pinContainerWidth = 40;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         console.log("Selector Widget loaded: " + widgetName);
         globalMapView = false;
 
@@ -312,6 +312,87 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 pinContainer.find("a.gisPinLink").click(function (event) {
                         event.preventDefault();
 
+                        // Cristiano : Dynamic Routing
+                        if($(this).attr("data-query").includes("scenario") && widgetTargetList.length > 0) {     
+                            $(this).parents("div.gisMapPtrContainer").find("span.gisPinHideMsg").hide();
+                            $(this).parents("div.gisMapPtrContainer").find("span.gisPinShowMsg").hide();
+                            if ($(this).attr("data-symbolMode") === 'auto') {
+                                $(this).parents("div.gisMapPtrContainer").find("i.gisPinIcon").show();
+                            }
+                            else {
+                                $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIcon").show();
+                            }
+                            
+                            if ($(this).attr("data-onMap") === "false") {
+                                $(this).attr("data-onMap", "true");
+                                $(this).find("i.gisPinIcon").html("near_me");
+                                $(this).find("i.gisPinIcon").css("color", "white");
+                                $(this).find("i.gisPinIcon").css("text-shadow", "black 2px 2px 4px");
+
+                                $.event.trigger({
+                                    type: "addScenario",
+                                    target: widgetTargetList[0]
+                                });
+                            }
+                            else {
+                                $(this).attr("data-onMap", "false");
+                                if ($(this).attr("data-symbolMode") === 'auto') {
+                                    $(this).find("i.gisPinIcon").html("navigation");
+                                    $(this).find("i.gisPinIcon").css("color", "black");
+                                    $(this).find("i.gisPinIcon").css("text-shadow", "none");
+                                }
+                                else {
+                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
+                                }
+
+                                $.event.trigger({
+                                    type: "removeScenario",
+                                    target: widgetTargetList[0],
+                                });
+                            }
+                        }
+                        if($(this).attr("data-query").includes("whatif") && widgetTargetList.length > 0) {
+                            $(this).parents("div.gisMapPtrContainer").find("span.gisPinHideMsg").hide();
+                            $(this).parents("div.gisMapPtrContainer").find("span.gisPinShowMsg").hide();
+                            if ($(this).attr("data-symbolMode") === 'auto') {
+                                $(this).parents("div.gisMapPtrContainer").find("i.gisPinIcon").show();
+                            }
+                            else {
+                                $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIcon").show();
+                            }
+                            
+                            if ($(this).attr("data-onMap") === "false") {
+                                $(this).attr("data-onMap", "true");
+                                $(this).find("i.gisPinIcon").html("near_me");
+                                $(this).find("i.gisPinIcon").css("color", "white");
+                                $(this).find("i.gisPinIcon").css("text-shadow", "black 2px 2px 4px");
+
+                                $.event.trigger({
+                                    type: "addWhatif",
+                                    target: widgetTargetList[0]
+                                });
+                            }
+                            else {
+                                $(this).attr("data-onMap", "false");
+                                if ($(this).attr("data-symbolMode") === 'auto') {
+                                    $(this).find("i.gisPinIcon").html("navigation");
+                                    $(this).find("i.gisPinIcon").css("color", "black");
+                                    $(this).find("i.gisPinIcon").css("text-shadow", "none");
+                                }
+                                else {
+                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
+                                }
+
+                                $.event.trigger({
+                                    type: "removeWhatif",
+                                    target: widgetTargetList[0],
+                                });
+                            }
+                        }
+                        // end Cristiano
+                        
                         //TrafficRealTimeDetails - Stefano
                         if (($(this).attr("data-query").includes("trafficRTDetails")) && (widgetTargetList.length > 0)) {
 
@@ -426,7 +507,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
 
-                        if ((($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org")) !== true) && (widgetTargetList.length > 0)) {
+                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org")) !== true) && (widgetTargetList.length > 0)) {
 
                             $(this).parents("div.gisMapPtrContainer").find("span.gisPinHideMsg").hide();
                             $(this).parents("div.gisMapPtrContainer").find("span.gisPinShowMsg").hide();

@@ -36,29 +36,29 @@
             }
         ?> 
         console.log("ENTRA IN WIDGET TEMPLATE !!!");
-        var hostFile = "<?= $_GET['hostFile'] ?>";
-        var widgetName = "<?= $_GET['name'] ?>";
+        var hostFile = "<?= escapeForJS($_GET['hostFile']) ?>";
+        var widgetName = "<?= escapeForJS($_GET['name']) ?>";
         var divContainer = $("#<?= $_GET['name'] ?>_content");
-        var widgetContentColor = "<?= $_GET['color'] ?>";
-        var widgetHeaderColor = "<?= $_GET['frame_color'] ?>";
-        var widgetHeaderFontColor = "<?= $_GET['headerFontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_GET['color']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_GET['frame_color']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_GET['headerFontColor']) ?>";
         var nome_wid = "<?= $_GET['name'] ?>_div";
         var linkElement = $('#<?= $_GET['name'] ?>_link_w');
-        var color = '<?= $_GET['color'] ?>';
-        var fontSize = "<?= $_GET['fontSize'] ?>";
-        var fontColor = "<?= $_GET['fontColor'] ?>";
-        var timeToReload = <?= $_GET['freq'] ?>;
+        var color = '<?= escapeForJS($_GET['color']) ?>';
+        var fontSize = "<?= escapeForJS($_GET['fontSize']) ?>";
+        var fontColor = "<?= escapeForJS($_GET['fontColor']) ?>";
+        var timeToReload = <?= escapeForJS($_GET['freq']) ?>;
         var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern, totValues, shownValues, 
             descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength,
             rangeMin, rangeMax, widgetParameters = null;
-        var metricId = "<?= $_GET['metric'] ?>";
+        var metricId = "<?= escapeForJS($_GET['metric']) ?>";
         var elToEmpty = $("#<?= $_GET['name'] ?>_chartContainer");
-        var url = "<?= $_GET['link_w'] ?>";
+        var url = "<?= escapeForJS($_GET['link_w']) ?>";
         var barColors = new Array();
-        var embedWidget = <?= $_GET['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_GET['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_GET['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_GET['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         if(url === "null")
         {
             url = null;

@@ -36,7 +36,7 @@
         ?> 
         //RANGE TEMPORALI GESTIBILI DAL WIDGET: 4/HOUR, 12/HOUR, 1/DAY, 7/DAY, 30/DAY, 365/DAY (IL DRAW CANCELLA DA SOLO IL LOADING)
         var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";  
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var wsRetryActive, wsRetryTime = null;
         var thresholdObject, chartColor, chartRef, styleParameters, metricType, pattern, totValues, shownValues, showTitle, showHeader, hasTimer, timeRange, globalDiagramRange, myKPITimeRange,
             threshold, thresholdEval, delta, deltaPerc, originalMetricType, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, fontSize, fontColor, timeToReload, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
@@ -45,8 +45,8 @@
         var elToEmpty = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
         var seriesData = [];
         var valuesData = [];
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true' ? 'true' : 'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var needWebSocket = false;
     //    var loggedRole = "<?php echo $_SESSION['loggedRole'] ?>";
@@ -117,7 +117,7 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null, false, null);
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= escapeForJS($_REQUEST['frame_color_w']) ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null, false, null);
             }
         });
 
@@ -296,7 +296,7 @@
             if(metricData.data.length > 0)
             {
                 desc = metricData.data[0].commit.author.descrip;
-                metricType = '<?= $_REQUEST['id_metric']?>';
+                metricType = '<?= escapeForJS($_REQUEST['id_metric']) ?>';
                 seriesData = [];
                 valuesData = [];
                 for(var i = 0; i < metricData.data.length; i++) 
@@ -1420,7 +1420,7 @@
                         $.ajax({
                             url: "../widgets/getDataMetricsForTimeTrend.php",
                             data: {
-                                "IdMisura": ['<?= $_REQUEST['id_metric'] ?>'], 
+                                "IdMisura": ['<?= escapeForJS($_REQUEST['id_metric']) ?>'], 
                                 "time": globalDiagramRange, 
                                 "compare": 0
                             },
@@ -1446,7 +1446,7 @@
                                 } else {
                                     localTimeZoneString = localTimeZone;
                                 }
-                                drawDiagram(metricData, globalDiagramRange, '<?= $_REQUEST['id_metric'] ?>', false, localTimeZoneString);
+                                drawDiagram(metricData, globalDiagramRange, '<?= escapeForJS($_REQUEST['id_metric']) ?>', false, localTimeZoneString);
                                 
                                 if(needWebSocket)
                                 {
@@ -1638,7 +1638,7 @@
 
                 if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                 {
-                    metricName = "<?= $_REQUEST['id_metric'] ?>";
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                     widgetTitle = widgetData.params.title_w;
                     widgetHeaderColor = widgetData.params.frame_color_w;
                     widgetHeaderFontColor = widgetData.params.headerFontColor;
@@ -1671,14 +1671,14 @@
                 }
 
                 //Nuova versione
-                if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+                if(('<?= sanitizeJsonRelaxed2('styleParameters') ?>' !== "")&&('<?= sanitizeJsonRelaxed2('styleParameters') ?>' !== "null"))
                 {
-                    styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+                    styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2('styleParameters') ?>');
                 }
 
-                if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+                if('<?= sanitizeJsonRelaxed2('parameters') ?>'.length > 0)
                 {
-                    widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+                    widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2('parameters') ?>');
                 }
 
                 if(widgetParameters !== null && widgetParameters !== undefined)
@@ -1689,7 +1689,7 @@
                     }
                 }
 
-                sizeRowsWidget = parseInt('<?= $_REQUEST['size_rows'] ?>');
+                sizeRowsWidget = parseInt('<?= escapeForJS($_REQUEST['size_rows']) ?>');
 
                 populateWidget(timeRange);
 

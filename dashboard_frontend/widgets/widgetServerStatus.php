@@ -27,20 +27,20 @@ include '../config.php';
         }
         ?>
         var headerHeight = 25;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
         var nome_wid = "<?= $_REQUEST['name_w'] ?>_div";
         var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var color = '<?= $_REQUEST['color_w'] ?>';
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var color = '<?= escapeForJS($_REQUEST['color_w']) ?>';
+        var timeToReload = <?= sanitizeInt('frequency_w') ?>;
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
         var getMetricDataUrl = "../widgets/getDataMetrics.php";
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var widgetProperties, styleParameters, metricType, metricName, pattern, responseMsg, threshold, thresholdEval,
                 delta, deltaPerc, sizeRowsWidget, fontSize, responseCode, metricType, countdownRef, widgetTitle, metricData, widgetHeaderColor,
                 widgetHeaderFontColor, widgetOriginalBorderColor, urlToCall, geoJsonServiceData, showHeader = null;
@@ -57,10 +57,10 @@ include '../config.php';
 
         if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))
         {
-            metricName = "<?= $_REQUEST['id_metric'] ?>";
+            metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
             widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
-            widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-            widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+            widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+            widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         } else
         {
             metricName = metricNameFromDriver;
@@ -124,13 +124,13 @@ include '../config.php';
             {
                 clearInterval(countdownRef);
                 $("#<?= $_REQUEST['name_w'] ?>_content").hide();
-<?= $_REQUEST['name_w'] ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, /*null,*/ null, null, null);
+<?= $_REQUEST['name_w'] ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= escapeForJS(['frame_color_w']) ?>", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>", false, null, null, null, null, /*null,*/ null, null, null);
             }
         });
 
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
         elToEmpty.css("font-family", "Verdana");
-        var url = "<?= $_REQUEST['link_w'] ?>";
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
 
         //Specifiche per questo widget
         var flagNumeric = false;

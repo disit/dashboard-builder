@@ -106,6 +106,18 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
     .slider.round:before {
         border-radius: 50%;}
 </style>
+<!-- 3DMap CORTI -->
+<!--    <script src="https://cdn-webgl.wrld3d.com/wrldjs/dist/latest/wrld.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css" rel="stylesheet" />-->
+<!--    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />-->
+
+    <!-- Bring in the leaflet KML plugin -->
+    <script src="../widgets/layers/KML.js"></script>
+    
+    <!-- Cristiano: Dynamic Routing -->
+    <link rel="stylesheet" href="../css/dynamic_routing/dynamic_routing.css"/>
+    <!-- end Cristiano -->
 
 <script type="text/javascript" src="../js/heatmap/heatmap.js"></script>
 <script type="text/javascript" src="../js/heatmap/leaflet-heatmap.js"></script>
@@ -146,16 +158,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             ?>
 
             var headerHeight = 25;
-            var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+            var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
             var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w']))?>";
-            var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-            var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-            var fontColor = "<?= $_REQUEST['fontColor'] ?>";
-            var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-            var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-            var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+            var mapOptionsDivName = widgetName + "_mapOptions";
+            var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+            var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+            var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
+            var embedWidget = <?= $_REQUEST['embedWidget']=='true' ? 'true':'false' ?>;
+            var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+            var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
             var showHeader = null;
-            var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+            var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
             var styleParameters, metricName, udm, udmPos, appId, flowId, nrMetricType,
                 sm_field, sizeRowsWidget, sm_based, rowParameters, fontSize, countdownRef, widgetTitle, widgetHeaderColor,
                 widgetHeaderFontColor, showHeader, widgetParameters, chartColor, dataLabelsFontSize, dataLabelsFontColor,
@@ -2906,7 +2919,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         query = passedData.query;
                                     }
                                 } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
-                                    query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + passedData.query + "&format=json";
+                                    query = "<?php echo $superServiceMapUrlPrefix; ?>/api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
 
                                     if (pattern.test(passedData.query)) {
@@ -2916,6 +2929,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         //console.log("Service Map selection addition");
                                         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
+                                    //query = "../controllers/superservicemapProxy.php/api/v1?" + query.split('?')[1];
                                 }
                                 if (!query.includes("&maxResults")) {
                                     if (!query.includes("&queryId")) {
@@ -3135,6 +3149,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             pointToLayer: gisPrepareCustomMarker,
                                             onEachFeature: onEachFeature
                                         }).addTo(map.defaultMapRef);
+
+                                        // CORTI - setta markers nella mappa 3D
+//                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
+//                                            pointToLayer: gisPrepareCustomMarker,
+//                                            onEachFeature: onEachFeature
+//                                        }).addTo(map.default3DMapRef);
+
                                     }
 
                                     loadingDiv.empty();
@@ -3213,7 +3234,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                                     gisGeometryLayersOnMap[desc] = [];
                                                                 }
 
-                                                                gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, {}).addTo(map.defaultMapRef));
+                                                                // CORTI - Pane
+                                                                map.defaultMapRef.createPane('ciclePathFeature');
+                                                                map.defaultMapRef.getPane('ciclePathFeature').style.zIndex = 420;
+                                                                    
+                                                                gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, { pane: 'ciclePathFeature' }).addTo(map.defaultMapRef));
                                                                 gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                             }
                                                         },
@@ -3858,6 +3883,633 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                       //  resizeMapView(map.defaultMapRef);
                     }
                 });
+                
+                // Cristiano : Dynamic Routing
+                var scenarioLayer = null;
+                var scenarioControl = null;
+                var drawerControl = null;
+                var geocoderControl = null;
+                var scenarioDrawnItems = null;
+                var scenarioData = new L.geoJSON();
+                scenarioData.type= "FeatureCollection";
+                scenarioData.features = [];
+                $(document).on('addScenario', function (event) {
+                    if (event.target === map.mapName) {
+                        // create scenario layer and add to map
+                        scenarioLayer = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenarioLayer);
+                        // create drawer layer/control and add them to map
+                        scenarioDrawnItems = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenarioDrawnItems);
+                        drawerControl = new L.Control.Draw({
+                            edit: {
+                                featureGroup: scenarioDrawnItems,
+                                edit: false,
+                                remove: false
+                            },
+                            draw: {
+                                circle: {
+                                    metric: 'metric'
+                                },
+                                polyline: false,
+                                polygon: {
+                                    allowIntersection: false,
+                                    showArea: true
+                                }
+                            }
+                        });
+                        map.defaultMapRef.addControl(drawerControl);
+                        
+                        map.defaultMapRef.on('draw:created', function(e) {
+                            var type = e.layerType,
+                                layer = e.layer;
+                            var curGeojson = layer.toGeoJSON();
+                            
+                            if(type === 'marker') {
+                                console.log(type+" created in "+layer._latlng);
+                            }
+                            else if(type === 'circle') {
+                                console.log(type+" created in "+layer._latlng+ "with radius of "+layer.getRadius()+" m");
+                                curGeojson.properties["radius"] = layer.getRadius();
+                            }
+                            else if( type === 'polygon' || type === 'rectangle') {
+                                console.log(type+" created");
+                            }
+                            scenarioData.features.push(curGeojson);
+                            scenarioDrawnItems.addLayer(layer);
+                        });
+                        
+                        // create geocoder control and add to map
+                        var geocoder = L.Control.Geocoder.nominatim();
+                        geocoderControl = L.Control.geocoder({
+                            geocoder: geocoder,
+                            defaultMarkGeocode: false
+                        }).addTo(map.defaultMapRef)
+                          .on('markgeocode', function(e) {
+                              map.defaultMapRef.panTo(e.geocode.center);
+                              map.defaultMapRef.setZoom(18);
+                          });
+                        
+                        // create scenario control and add to map
+                        scenarioControl = L.control({position: 'topleft'});
+                        scenarioControl.onAdd = function (map) {
+                            var div = L.DomUtil.create('div');
+                            
+                            div.innerHTML = '<div id="scenario-div">'+
+                                                '<input id="scenario-name" type="text" placeholder="Scenario name" name="name">'+
+                                                '<span><input id="scenario-visibility" type="checkbox" name="public" value="Public"> Public visibility</span>'+
+                                                '<div>'+
+                                                    '<input type="button" id="scenario-save" value="Save"/>'+
+                                                    '<button id="scenario-cancel" type="button">Cancel</button>'+
+                                                '</div>'+
+                                             '</div>';
+                            // disable interaction of this div with map
+                            if (L.Browser.touch) {
+                                L.DomEvent.disableClickPropagation(div);
+                                L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+                            } else {
+                                L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+                            }
+                            
+                            return div;
+                        };
+                        scenarioControl.addTo(map.defaultMapRef);
+                                                
+                        $("#scenario-save").click(function() {
+                            if( $("#scenario-name").val() !== "" && scenarioData.features.length>0 && $("#scenario-name").val().indexOf("(") == -1 ) {
+                                delete scenarioData.options;
+                                delete scenarioData.layers;
+                                delete scenarioData._initHooksCalled;
+                                delete scenarioData._layers;
+                                scenarioData.scenarioName = $("#scenario-name").val();
+                                scenarioData.isPublic = $("#scenario-visibility").is(':checked');
+
+                                var ajaxData = {
+                                    "method" : "POST",
+                                    "geojson": JSON.stringify(scenarioData)
+                                };
+
+                                $.ajax({
+                                    type: 'GET',
+                                    url: '../controllers/scenarioProxy.php',
+                                    dataType: "json",
+                                    contentType: 'application/json; charset=utf-8',
+                                    async: true,
+                                    data: ajaxData,
+                                    success: function (resp) {
+                                        if(resp == "-1") {
+                                            alert("Scenario name already exists.");
+                                        }
+                                        else if(resp == "-2") {
+                                            alert("You must be logged in in order to create new scenarios.");
+                                        }
+                                        else {
+                                            alert("Scenario '"+$("#scenario-name").val()+"' saved");
+                                            $("#scenario-cancel").trigger("click");
+                                        }
+                                    },
+                                    error: function (errorData) {
+                                        console.log(errorData);
+                                    }
+                                });
+                            }
+                            else if($("#scenario-name").val() === "") {
+                                alert("You must enter a name for the current scenario.")
+                            }
+                            else if(scenarioData.features.length == 0) {
+                                alert("You must add at least one barrier for the current scenario.")
+                            }
+                            else if( $("#scenario-name").val().indexOf("(") > -1 ) {
+                                alert("You cannot enter special char '(' in the current scenario's name.");
+                            }
+                        });
+                        
+                        $("#scenario-cancel").click(function() {
+                            map.defaultMapRef.removeLayer(scenarioDrawnItems);
+                            scenarioDrawnItems = new L.FeatureGroup();
+                            map.defaultMapRef.addLayer(scenarioDrawnItems);
+                            $("#scenario-name").val("");
+                            $("#scenario-visibility").prop('checked', false);
+                            
+                            scenarioData = new L.geoJSON();
+                            scenarioData.type= "FeatureCollection";
+                            scenarioData.features = [];
+                        });
+                    }
+                });
+                        
+                $(document).on('removeScenario', function (event) {
+                    if (event.target === map.mapName) {
+                        map.defaultMapRef.removeLayer(scenarioLayer);
+                        map.defaultMapRef.removeControl(scenarioControl);
+                        map.defaultMapRef.removeControl(geocoderControl);
+                        map.defaultMapRef.removeControl(drawerControl);
+                        map.defaultMapRef.removeLayer(scenarioDrawnItems);
+                    }
+                });
+                
+                var whatifLayer = null;
+                var whatifControl = null;
+                var whatifDrawnItems = null;
+                var lrmControl = null;
+                var vehicle = "car";
+                var waypoints = null;
+                var studioControl = null;
+                $(document).on('addWhatif', function (event) {
+                    if (event.target === map.mapName) {
+                        // create whatif layer and add to map
+                        whatifLayer = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(whatifLayer);
+                        // create what-if drawn items layer
+                        whatifDrawnItems = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(whatifDrawnItems);
+                        // create what-if control and add to map, populate scenarios
+                        whatifControl = L.control({position: 'topright'});
+                        whatifControl.onAdd = function (map) {
+                            var div = L.DomUtil.create('div');
+                            
+                            div.innerHTML = '<div id="selection">'+
+                                                '<input type="radio" name="choice" value="scenario" checked> Select scenario<br>'+
+                                                '<input type="radio" name="choice" value="studio"> Select studio<br>'+
+                                                '<select style="margin-top:6px" class="form-control" id="choice-select"></select>'+
+                                             '</div>'+
+                                             '<div id="options"><span id="vehicles">'+
+                                                '<button class="vehicle-btn selectedvehicle" title="Driving" id="car">'+
+                                                    '<img src="../img/dynamic_routing/car.png" alt="Auto">'+
+                                                '</button>'+
+                                                '<button class="vehicle-btn" title="Walking" id="foot">'+
+                                                    '<img src="../img/dynamic_routing/foot.png" alt="Foot">'+
+                                                '</button>'+
+                                                '<button class="vehicle-btn" title="Cycling" id="bike">'+
+                                                    '<img src="../img/dynamic_routing/bike.png" alt="Bike">'+
+                                                '</button>'+
+                                            '</span></div>';
+                            // disable interaction of this div with map
+                            if (L.Browser.touch) {
+                                L.DomEvent.disableClickPropagation(div);
+                                L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+                            } else {
+                                L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+                            }
+                        
+                            return div;
+                        };
+                        whatifControl.addTo(map.defaultMapRef);
+                        
+                        // populate scenarios select (initially scenario choice is checked)
+                        $.getJSON( '../controllers/scenarioProxy.php?method=GET&opt=name', function( data ) {
+                            $("#choice-select").html("<option selected disabled hidden style='display: none' value=''></option>");
+                            for(var i = 0; i < data.length; i++ )
+                                $("#choice-select").html($("#choice-select").html()+'<option>'+data[i]['name']+'</option>');
+                        });
+                        // checkbox (choice) management
+                        $("input[name='choice']").click(function () {
+                        // reset page:
+                            // Hide routing mode options
+                            $("#options").hide();
+                            // remove lrm
+                            if(lrmControl) {
+                                lrmControl.remove(map);
+                                lrmControl = null;
+                                waypoints = null;
+                            }
+                            // remove previous choice's drawings
+                            map.defaultMapRef.removeLayer(whatifDrawnItems);
+                            // remove previous studio div (if present)
+                            if(studioControl) {
+                                map.defaultMapRef.removeControl(studioControl);
+                                studioControl = null;
+                            }
+                        // end reset 
+                        
+                            // reload select content
+                            var choice = $(this).val();
+                            if( choice == "scenario" ) {
+                                $.getJSON( '../controllers/scenarioProxy.php?method=GET&opt=name', function( data ) {
+                                    $("#choice-select").html("<option selected disabled hidden style='display: none' value=''></option>");
+                                    for(var i = 0; i < data.length; i++ )
+                                        $("#choice-select").html($("#choice-select").html()+'<option>'+data[i]['name']+'</option>');
+                                });
+                            }
+                            else if(choice == "studio") {
+                                $.getJSON( '../controllers/studioProxy.php?method=GET&opt=name', function( data ) {
+                                    $("#choice-select").html("<option selected disabled hidden style='display: none' value=''></option>");
+                                    for(var i = 0; i < data.length; i++ )
+                                        $("#choice-select").html($("#choice-select").html()+'<option>'+data[i]['name']+'</option>');
+                                });
+                            }
+                        });
+                        // when the user chooses a scenario/studio, draw it on the map
+                        $('#choice-select').change(function(){                            
+                            var choice = $('input[name=choice]:checked').val();
+                            
+                            if( choice == "scenario") {
+                                // scenarioName(visibility) -> we take only scenarioName
+                                if($(this).val().indexOf('(') > -1 )
+                                    var selectedScenario = $(this).val().substr(0, $(this).val().indexOf('('));
+                                // for guest visibility is not shown
+                                else    
+                                    var selectedScenario = $(this).val();
+                                
+                                $.getJSON( '../controllers/scenarioProxy.php?method=GET&sel='+selectedScenario, function( selectedScenarioData ) {
+                                    // remove previous choice's drawings
+                                    map.defaultMapRef.removeLayer(whatifDrawnItems);
+                                    whatifDrawnItems = new L.FeatureGroup();
+                                    map.defaultMapRef.addLayer(whatifDrawnItems);
+                                    if(lrmControl)
+                                        lrmControl.remove(map.defaultMapRef); 
+                                    // draw selected scenario (feature collection)
+                                    L.geoJson(selectedScenarioData, {
+                                        onEachFeature: onEachFeature
+                                    });
+                                    function onEachFeature(feature, layer) {
+                                        // radius drawing management
+                                        if(feature.properties.radius != null)
+                                            L.circle(L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]),
+                                                    feature.properties.radius)
+                                            .addTo(whatifDrawnItems);
+                                        else
+                                            whatifDrawnItems.addLayer(layer);
+                                    }
+                                    // centre the map on the first feature
+                                    var firstShapeType = selectedScenarioData.features[0].geometry.type;
+                                    switch(firstShapeType) {
+                                        case 'Polygon':
+                                            map.defaultMapRef.panTo(new L.LatLng(selectedScenarioData.features[0].geometry.coordinates[0][0][1],
+                                                            selectedScenarioData.features[0].geometry.coordinates[0][0][0]));
+                                            break;
+                                        default:
+                                            map.defaultMapRef.panTo(new L.LatLng(selectedScenarioData.features[0].geometry.coordinates[1],
+                                                            selectedScenarioData.features[0].geometry.coordinates[0]));
+                                    }                            
+
+                                    // Show routing mode options and create related event listener
+                                    $("#options").show(); 
+                                    // remove previous click listener (if present)
+                                    $(".vehicle-btn").off("click");
+                                    $('.vehicle-btn').on('click', function(e) {
+                                        // Get clicked button's id
+                                        vehicle = e.currentTarget.id;
+                                        // Change active button
+                                        $('.selectedvehicle').removeClass('selectedvehicle');
+                                        $('#'+vehicle).addClass('selectedvehicle');
+
+                                        // TRICK: Reinit lrmControl, but with previous waypoints, in order to refresh the routing process
+                                        waypoints = lrmControl.getWaypoints();
+                                        if(lrmControl) {
+                                            lrmControl.remove(map);
+                                            lrmControl = null;
+                                        }
+                                        lrmControl = L.Routing.control({
+                                            // Servlet params
+                                            waypoints: waypoints,
+                                            avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
+                                            vehicle: vehicle,
+                                            // end Servlet params
+                                            geocoder: L.Control.Geocoder.nominatim(),
+                                            routeWhileDragging: true,
+                                            reverseWaypoints: true,
+                                            showAlternatives: false,
+                                            createMarker: function(i, wp) {
+                                                var icon = L.icon({ 
+                                                        iconUrl: '../img/dynamic_routing/marker-icon-red.png',
+                                                        shadowUrl: '../img/dynamic_routing/marker-shadow.png',
+                                                        iconAnchor: [12, 41]
+                                                });
+                                                return L.marker(wp.latLng, {
+                                                        draggable: true,
+                                                        icon: icon
+                                                });
+                                            } 
+                                        });
+                                        lrmControl.addTo(map.defaultMapRef);
+                                    });
+
+                                    // Init GH Leaflet Routing Machine 
+                                    lrmControl = L.Routing.control({
+                                        // Servlet params
+                                        waypoints: [],
+                                        avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
+                                        vehicle: vehicle,
+                                        // end Servlet params
+                                        geocoder: L.Control.Geocoder.nominatim(),
+                                        routeWhileDragging: true,
+                                        reverseWaypoints: true,
+                                        showAlternatives: false,
+                                        createMarker: function(i, wp) {
+                                            var icon = L.icon({ 
+                                                    iconUrl: '../img/dynamic_routing/marker-icon-red.png',
+                                                    shadowUrl: '../img/dynamic_routing/marker-shadow.png',
+                                                    iconAnchor: [12, 41]
+                                            });
+                                            return L.marker(wp.latLng, {
+                                                    draggable: true,
+                                                    icon: icon
+                                            });
+                                        } 
+                                    });
+
+                                    lrmControl.on('routesfound', function(e) {  
+                                        if(!studioControl) {
+                                            // add studio div (if not present yet)
+                                            studioControl = L.control({position: 'bottomright'});
+                                            studioControl.onAdd = function (map) {
+                                                var div = L.DomUtil.create('div');
+
+                                                div.innerHTML = '<div id="studio-div">'+
+                                                                    '<input id="studio-name" type="text" placeholder="Studio name" name="name">'+
+                                                                    '<span><input id="studio-visibility" type="checkbox" name="studio-public" value="Public"> Public visibility</span>'+
+                                                                    '<div>'+
+                                                                        '<input type="button" id="studio-save" value="Save"/>'+
+                                                                    '</div>'+
+                                                                 '</div>';
+                                                // disable interaction of this div with map
+                                                if (L.Browser.touch) {
+                                                    L.DomEvent.disableClickPropagation(div);
+                                                    L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+                                                } else {
+                                                    L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+                                                }
+
+                                                return div;
+                                            };
+                                            studioControl.addTo(map.defaultMapRef);
+                                                
+                                            $("#studio-save").click(function() {
+                                                if( $("#studio-name").val() !== "" && $("#studio-name").val().indexOf(":") == -1 ) {
+                                                    var ajaxData = {
+                                                        "method" : "POST",
+                                                        "studioName" : $("#studio-name").val(),
+                                                        "scenarioName" : selectedScenario,
+                                                        "waypoints" : JSON.stringify(lrmControl.getWaypoints()),
+                                                        "vehicle" : vehicle,
+                                                        "public": $("#studio-visibility").is(':checked')
+                                                    };
+
+                                                    $.ajax({
+                                                        type: 'GET',
+                                                        url: '../controllers/studioProxy.php',
+                                                        dataType: "json",
+                                                        contentType: 'application/json; charset=utf-8',
+                                                        async: true,
+                                                        data: ajaxData,
+                                                        success: function (resp) {
+                                                            if(resp == "-1") {
+                                                                alert("Studio name already exists.");
+                                                            }
+                                                            else if(resp == "-2") {
+                                                                alert("You must be logged in in order to create new studios.");
+                                                            }
+                                                            else {
+                                                                alert("Studio '"+$("#studio-name").val()+"' saved");
+                                                            }
+                                                        },
+                                                        error: function (errorData) {
+                                                            console.log(errorData);
+                                                        }
+                                                    });
+                                                }
+                                                else if($("#studio-name").val() === "") {
+                                                    alert("You must enter a name for the current scenario.")
+                                                }
+                                                else if( $("#studio-name").val().indexOf(":") > -1 ) {
+                                                    alert("You cannot enter special char ':' in the current studio's name.");
+                                                }
+                                            });
+                                        }
+                                    });                            
+
+                                    lrmControl.addTo(map.defaultMapRef);
+                                });
+                            }
+                            else if( choice == "studio") {                                
+                                // Hide routing mode options
+                                $("#options").hide();
+                                // hide lrm (if present)
+                                if(lrmControl) {
+                                    lrmControl.remove(map);
+                                    lrmControl = null;
+                                    waypoints = null;
+                                }
+                                // hide previous drawn items
+                                map.defaultMapRef.removeLayer(whatifDrawnItems);
+                                
+                                // retrieve selected studio's data
+                                var selectedStudio = $(this).val();
+                                // studioName:scenarioName(visibility) -> we take only studioName
+                                // for guest visibility is not shown
+                                if(selectedStudio.indexOf(':') > -1 )
+                                    var selectedStudio = selectedStudio.substr(0, selectedStudio.indexOf(':'));
+ 
+                                $.getJSON( '../controllers/studioProxy.php?method=GET&sel='+selectedStudio, function( selectedStudioData ) {
+                                    var scenarioName = selectedStudioData.scenarioName;
+                                    waypoints = selectedStudioData.waypoints;
+                                    vehicle = selectedStudioData.vehicle;
+                                    // get scenario related to the selected studio
+                                    $.getJSON( '../controllers/scenarioProxy.php?method=GET&sel='+scenarioName, function( selectedScenarioData ) {                                        
+                                        // remove previous choice's drawings
+                                        map.defaultMapRef.removeLayer(whatifDrawnItems);
+                                        whatifDrawnItems = new L.FeatureGroup();
+                                        map.defaultMapRef.addLayer(whatifDrawnItems);
+                                        if(lrmControl)
+                                            lrmControl.remove(map.defaultMapRef); 
+                                        
+                                        // draw selected scenario (feature collection)
+                                        L.geoJson(selectedScenarioData, {
+                                            onEachFeature: onEachFeature
+                                        });
+                                        function onEachFeature(feature, layer) {
+                                            // radius drawing management
+                                            if(feature.properties.radius != null)
+                                                L.circle(L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]),
+                                                        feature.properties.radius)
+                                                .addTo(whatifDrawnItems);
+                                            else
+                                                whatifDrawnItems.addLayer(layer);
+                                        }
+                                        // centre the map on the first feature
+                                        var firstShapeType = selectedScenarioData.features[0].geometry.type;
+                                        switch(firstShapeType) {
+                                            case 'Polygon':
+                                                map.defaultMapRef.panTo(new L.LatLng(selectedScenarioData.features[0].geometry.coordinates[0][0][1],
+                                                                selectedScenarioData.features[0].geometry.coordinates[0][0][0]));
+                                                break;
+                                            default:
+                                                map.defaultMapRef.panTo(new L.LatLng(selectedScenarioData.features[0].geometry.coordinates[1],
+                                                                selectedScenarioData.features[0].geometry.coordinates[0]));
+                                        }
+                                        
+                                        // Show routing mode options and create related event listener
+                                        $('.selectedvehicle').removeClass('selectedvehicle');
+                                        $('#'+vehicle).addClass('selectedvehicle');
+                                        $("#options").show(); 
+                                        // remove previous click listener (if present)
+                                        $(".vehicle-btn").off("click");
+                                        $('.vehicle-btn').on('click', function(e) {
+                                            // Get clicked button's id
+                                            vehicle = e.currentTarget.id;
+                                            // Change active button
+                                            $('.selectedvehicle').removeClass('selectedvehicle');
+                                            $('#'+vehicle).addClass('selectedvehicle');
+
+                                            // TRICK: Reinit lrmControl, but with previous waypoints, in order to refresh the routing process
+                                            waypoints = lrmControl.getWaypoints();
+                                            if(lrmControl) {
+                                                lrmControl.remove(map);
+                                                lrmControl = null;
+                                            }
+                                            lrmControl = L.Routing.control({
+                                                // Servlet params
+                                                waypoints: waypoints,
+                                                avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
+                                                vehicle: vehicle,
+                                                // end Servlet params
+                                                geocoder: L.Control.Geocoder.nominatim(),
+                                                routeWhileDragging: true,
+                                                reverseWaypoints: true,
+                                                showAlternatives: false,
+                                                createMarker: function(i, wp) {
+                                                    var icon = L.icon({ 
+                                                            iconUrl: '../img/dynamic_routing/marker-icon-red.png',
+                                                            shadowUrl: '../img/dynamic_routing/marker-shadow.png',
+                                                            iconAnchor: [12, 41]
+                                                    });
+                                                    return L.marker(wp.latLng, {
+                                                            draggable: true,
+                                                            icon: icon
+                                                    });
+                                                } 
+                                            });
+                                            lrmControl.addTo(map.defaultMapRef);
+                                        });
+                                        
+                                        // init lrm with retrieved waypoints and avoid_area
+                                        lrmControl = L.Routing.control({
+                                            // Servlet params
+                                            waypoints: [],
+                                            avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
+                                            vehicle: vehicle,
+                                            // end Servlet params
+                                            geocoder: L.Control.Geocoder.nominatim(),
+                                            routeWhileDragging: true,
+                                            reverseWaypoints: true,
+                                            showAlternatives: false,
+                                            createMarker: function(i, wp) {
+                                                var icon = L.icon({ 
+                                                        iconUrl: '../img/dynamic_routing/marker-icon-red.png',
+                                                        shadowUrl: '../img/dynamic_routing/marker-shadow.png',
+                                                        iconAnchor: [12, 41]
+                                                });
+                                                return L.marker(wp.latLng, {
+                                                        draggable: true,
+                                                        icon: icon
+                                                });
+                                            } 
+                                        });
+                                        lrmControl.addTo(map.defaultMapRef); 
+                                        // add waypoints
+                                        var j = 0;
+                                        waypoints = JSON.parse(waypoints);
+                                        for(var e in waypoints) {
+                                            lrmControl.spliceWaypoints(j++, 1, waypoints[e].latLng);
+                                        }
+                                    });
+                                });
+                            }
+                            
+                            // Function for button creation
+                            function createButton(label, container) {
+                                var btn = L.DomUtil.create('div', '', container);
+                                btn.innerHTML = '<button>'+label+'</button>';
+                                return btn;
+                            }
+
+                            // add a popup <from, to> when the map is clicked
+                            map.defaultMapRef.on('click', function(e) {
+                                if(lrmControl) {
+                                    var container = L.DomUtil.create('div'),
+                                        startBtn = createButton('Start from this location', container),
+                                        destBtn = createButton('Go to this location', container);
+                                    L.DomUtil.setClass(container, "leaflet-fromto-popup");
+
+                                    L.popup()
+                                        .setContent(container)
+                                        .setLatLng(e.latlng)
+                                        .openOn(map.defaultMapRef);
+                                    // replace the first waypoint
+                                    L.DomEvent.on(startBtn, 'click', function() {
+                                        lrmControl.spliceWaypoints(0, 1, e.latlng);
+                                        map.defaultMapRef.closePopup();
+                                    });
+                                    // replace the last waypoint
+                                    L.DomEvent.on(destBtn, 'click', function() {
+                                        lrmControl.spliceWaypoints(lrmControl.getWaypoints().length - 1, 1, e.latlng);
+                                        map.defaultMapRef.closePopup();
+                                    });
+                                }
+                            });
+                        });
+                    }
+                });
+                
+                $(document).on('removeWhatif', function (event) {
+                    if (event.target === map.mapName) {
+                        map.defaultMapRef.removeLayer(whatifLayer);
+                        map.defaultMapRef.removeControl(whatifControl);
+                        map.defaultMapRef.removeLayer(whatifDrawnItems);
+                        if(lrmControl) {
+                            lrmControl.remove(map);
+                            lrmControl = null;
+                            waypoints = null;
+                        }
+                        if(studioControl) {
+                            map.defaultMapRef.removeControl(studioControl);
+                            studioControl = null;
+                        }
+                    }
+                });
+                // end Cristiano
+                
                 $(document).on('addTrafficRealTimeDetails', function (event) {
                     if (event.target === map.mapName) {
                         var so = map.defaultMapRef.getBounds()._southWest;
@@ -3907,6 +4559,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 else {
                                 }
                             });
+                    
+                            // CORTI - zIndex
+                            map.defaultMapRef.createPane('trafficFlow');
+                            map.defaultMapRef.getPane('trafficFlow').style.zIndex = 420;
 
                             var wktLayer = new L.LayerGroup();
                             var roads = null;
@@ -3922,7 +4578,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     weight: 2.5,
                                     opacity: 1,
                                     fillColor: '#AA0000',
-                                    fillOpacity: 1
+                                    fillOpacity: 1,
+                                    pane: 'trafficFlow'		// CORTI
                                 };
 
                                 $.ajax({
@@ -4035,6 +4692,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         var wkt = new Wkt.Wkt();
                                                         wkt.read(wktLine, "newMap");
                                                         obj = wkt.toObject(defaults);
+                                                        obj.options.trafficFlow = true;
                                                         obj.addTo(wktLayer);
                                                         seg.obj = obj;
 
@@ -5099,23 +5757,29 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                            //    if (event.passedData.includes("heatmap.php")) {
                                                    addHeatmapFromClient(false);
 
-                                               } else {                    // NEW HEATMAP  FIRST INSTANTIATION
-                                                //   if (animationFlag === false) {
-                                                       //   var timestampISO = "2019-01-23T20:20:15.000Z";
-                                                       var timestamp = map.testMetadata.metadata.date;
-                                                       var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                       wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
-                                                           layers: 'Snap4City:' + wmsDatasetName,
-                                                           format: 'image/png',
-                                                           crs: L.CRS.EPSG4326,
-                                                           transparent: true,
-                                                           opacity: current_opacity,
-                                                           time: timestampISO,
-                                                           //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                           tiled: true   // TESTARE COME ANTWERP ??
-                                                           //  attribution: "IGN ©"
-                                                       }).addTo(map.defaultMapRef);
-                                                       //    current_opacity = 0.5;
+                                                } else {                    // NEW HEATMAP  FIRST INSTANTIATION
+                                                    // CORTI - Pane
+                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);
+                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;
+                                                    
+                                                    //   if (animationFlag === false) {
+                                                    //   var timestampISO = "2019-01-23T20:20:15.000Z";
+                                                    var timestamp = map.testMetadata.metadata.date;
+                                                    var timestampISO = timestamp.replace(" ", "T") + ".000Z";
+                                                    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                        layers: 'Snap4City:' + wmsDatasetName,
+                                                        format: 'image/png',
+                                                        crs: L.CRS.EPSG4326,
+                                                        transparent: true,
+                                                        opacity: current_opacity,
+                                                        time: timestampISO,
+                                                        //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
+                                                        tiled: true,   // TESTARE COME ANTWERP ??
+                                                                //  attribution: "IGN ©"
+                                                        pane: 'Snap4City:' + wmsDatasetName	// CORTI
+                                                    }).addTo(map.defaultMapRef);
+                        
+                                                    //    current_opacity = 0.5;
 
                                                        // add legend to map
                                                        map.legendHeatmap.addTo(map.defaultMapRef);
@@ -5452,6 +6116,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                             //   }
                                                         } else {                    // NEW HEATMAP
                                                             //   var timestampISO = "2019-01-23T20:20:15.000Z";
+                                                            map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                            map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
                                                             var timestamp = map.testMetadata.metadata.date;
                                                             var timestampISO = timestamp.replace(" ", "T") + ".000Z";
                                                             wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
@@ -5462,8 +6129,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                                 opacity: current_opacity,
                                                                 time: timestampISO,
                                                                 //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                                tiled: true
+                                                                tiled: true,
                                                                 //  attribution: "IGN ©"
+                                                                pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                             }).addTo(map.defaultMapRef);
                                                        //     current_opacity = 0.5;
 
@@ -5551,6 +6219,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                             } else {
                                                 if (animationFlag === false) {
+
+                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
                                                     // NEW HEATMAP
                                                     var timestamp = map.testMetadata.metadata.date;
                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
@@ -5562,8 +6234,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         opacity: current_opacity,
                                                         time: timestampISO,
                                                         //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                        tiled: true
+                                                        tiled: true,
                                                         //  attribution: "IGN ©"
+                                                        pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                     }).addTo(map.defaultMapRef);
 
                                                     // add legend to map
@@ -5603,6 +6276,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     }, 1000);
                                                 } else {
                                                     // ANIMATION WMS HEATMAP
+
+                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
 
                                                     var animationCurrentDayTimestamp = [];
                                                     var animationCurrentDayFwdTimestamp = [];
@@ -5807,7 +6483,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     var overlayOpacity = current_opacity;
 
                                                     // ANIMATED GIF LAYER
-                                                    var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity}).addTo(map.defaultMapRef);
+                                                    var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName}).addTo(map.defaultMapRef);
 
                                                     // add legend to map
                                                     map.legendHeatmap.addTo(map.defaultMapRef);
@@ -6266,9 +6942,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 removeHeatmapColorLegend(i, true);
                                 map.eventsOnMap.splice(i, 1);
                             } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                map.eventsOnMap.splice(i, 1);
-                                removeHeatmap(true);
+                                if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                    map.eventsOnMap.splice(i, 1);
+                                    removeHeatmap(true);
+                                }
                             }
                         }
                     }
@@ -6325,6 +7003,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     enableFullscreenModal = widgetData.params.enableFullscreenModal;
                     enableFullscreenTab = widgetData.params.enableFullscreenTab;
 
+                    if (widgetData.params.infoJson != "yes") {
+                        $('#'+mapOptionsDivName).hide();
+                    }
+
                     if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
                         showHeader = false;
                     }
@@ -6332,7 +7014,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         showHeader = true;
                     }
 
-                    metricName = "<?= $_REQUEST['id_metric'] ?>";
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                     widgetTitle = widgetData.params.title_w;
                     widgetHeaderColor = widgetData.params.frame_color_w;
                     widgetHeaderFontColor = widgetData.params.headerFontColor;
@@ -6430,7 +7112,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
                     }
                     populateWidget();
-                 //   globalMapView = true;
+                    //   globalMapView = true;
+
+                    // parte mappa 3D - CORTI
+                    setTimeout(function () {
+                        map.default3DMapRef = initMapsAndListeners(map);
+                    }, 3000);
+                    // hide fullscreen
+                    $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
+
                 },
                 error: function (errorData) {
 
@@ -7275,6 +7965,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                             var wkt = new Wkt.Wkt();
                                                             wkt.read(wktLine, "newMap");
                                                             obj = wkt.toObject(defaults);
+                                                            obj.options.trafficFlow = true;
                                                             obj.addTo(wktLayer);
                                                             seg.obj = obj;
 
@@ -7618,6 +8309,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                                     }
                                                                     //   }
                                                                 } else {                    // NEW HEATMAP
+
+                                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
                                                                     //   var timestampISO = "2019-01-23T20:20:15.000Z";
                                                                     var timestamp = map.testMetadata.metadata.date;
                                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
@@ -7629,8 +8324,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                                         opacity: current_opacity,
                                                                         time: timestampISO,
                                                                         //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                                        tiled: true
+                                                                        tiled: true,
                                                                         //  attribution: "IGN ©"
+                                                                        pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                                     }).addTo(fullscreendefaultMapRef);
                                                                  //   current_opacity = 0.5;
 
@@ -7718,6 +8414,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     } else {
                                                         if (animationFlag === false) {
                                                             // NEW HEATMAP
+
+                                                            map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                            map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
                                                             var timestamp = map.testMetadata.metadata.date;
                                                             var timestampISO = timestamp.replace(" ", "T") + ".000Z";
                                                             wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
@@ -7728,8 +8428,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                                 opacity: current_opacity,
                                                                 time: timestampISO,
                                                                 //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                                tiled: true
+                                                                tiled: true,
                                                                 //  attribution: "IGN ©"
+                                                                pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                             }).addTo(fullscreendefaultMapRef);
 
                                                             // add legend to map
@@ -7768,6 +8469,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                             }, 1000);
                                                         } else {
                                                             // ANIMATION WMS HEATMAP
+
+                                                            map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                            map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
                                                             var animationCurrentDayTimestamp = [];
                                                             var animationCurrentDayFwdTimestamp = [];
                                                             var animationCurrentDayBckwdTimestamp = [];
@@ -7834,7 +8539,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                             var overlayOpacity = current_opacity;
 
                                                             // ANIMATED GIF LAYER
-                                                            var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity}).addTo(fullscreendefaultMapRef);
+                                                            var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName}).addTo(fullscreendefaultMapRef);
 
                                                             // add legend to map
                                                             map.legendHeatmap.addTo(map.defaultMapRef);
@@ -8294,8 +8999,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             removeHeatmapColorLegend(i, false);
                                             map.eventsOnMap.splice(i, 1);
                                         } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                            map.eventsOnMap.splice(i, 1);
+                                            if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                                map.eventsOnMap.splice(i, 1);
+                                            }
                                         }
                                     }
                                     if (animationFlag === false) {
@@ -8820,6 +9527,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     fullscreendefaultMapRef.addLayer(fullscreenHeatmap);
                                 } else {
                                     if (animationFlag === false) {
+
+                                        map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                        map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
                                         var timestamp = map.testMetadata.metadata.date;
                                         var timestampISO = timestamp.replace(" ", "T") + ".000Z";
                                         wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
@@ -8830,11 +9541,16 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             opacity: current_opacity,
                                             time: timestampISO,
                                             //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                            tiled: true   // TESTARE COME ANTWERP ??
+                                            tiled: true,   // TESTARE COME ANTWERP ??
                                             //  attribution: "IGN ©"
+                                            pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                         }).addTo(fullscreendefaultMapRef);
                                     } else {
                                         // ANIMATION WMS HEATMAP
+
+                                        map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                        map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
                                         var animationCurrentDayTimestamp = [];
                                         var animationCurrentDayFwdTimestamp = [];
                                         var animationCurrentDayBckwdTimestamp = [];
@@ -8901,7 +9617,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         var overlayOpacity = current_opacity;
 
                                         // ANIMATED GIF LAYER
-                                        var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity}).addTo(fullscreendefaultMapRef);
+                                        var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName}).addTo(fullscreendefaultMapRef);
 
                                     /*    // add legend to map
                                         map.legendHeatmap.addTo(map.defaultMapRef);
@@ -8994,10 +9710,415 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen").modal('show');
 
             });
-        }
-    )
-    ;//Fine document ready
-</script>
+
+
+
+
+
+            //// 3D Map - CORTI
+            layersCreated = []; // layers created but not added to map
+            layersAddedToMap = []; // layers already added to map
+
+            function initMapsAndListeners(map) {
+                let map2D = map.defaultMapRef;
+                let map2DName = "<?= $_REQUEST['name_w'] ?>_map";
+                
+//                removeAllLayers(map.default3DMapRef);
+
+                // ready
+            //    map2D.panTo(new L.LatLng(43.769789, 11.255694));
+
+                // load menu
+                getMenuAjaxCall();
+
+                // dragend
+                map2D.on('dragend', function () {
+                });
+
+                // zoomend
+                map2D.on('zoomend', function () {
+                    // add layers with correct zoom
+                    for (var i = 0; i < layersCreated.length; i++) {
+                        addLayerToMapByZoom(layersCreated[i].menu, layersCreated[i].layer, layersCreated[i].subLayerIndex, i);
+                    }
+                });
+
+//                let map3D = load3DMap(map2D);
+//
+//                return map3D;
+            }
+
+            function load3DMap(map2D) {
+
+                //// WRLD
+                var map = L.Wrld.map("3DMap", "9c04ad00edd787920af1a451bdd6553a", {
+                    center: map2D.getCenter(),
+                    zoom: 18
+                });
+
+
+                //// MAPBOX
+//                mapboxgl.accessToken = 'pk.eyJ1IjoiYW5kcmVhY29ydGk5MCIsImEiOiJjanhjN2dndTIwMGhnNDBvNDFkZzN3eHVoIn0.w07jn7vRfAcstoSz2EO5Ew';
+//                var map = new mapboxgl.Map({
+//                    style: 'mapbox://styles/mapbox/light-v10',
+//                    center: map2D.getCenter(),
+//                    zoom: 15.5,
+//                    pitch: 45,
+//                    bearing: -17.6,
+//                    container: '3DMap'
+//                });
+//
+//                map.on('load', function () {
+//                    // Insert the layer beneath any symbol layer.
+//                    var layers = map.getStyle().layers;
+//
+//                    var labelLayerId;
+//                    for (var i = 0; i < layers.length; i++) {
+//                        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+//                            labelLayerId = layers[i].id;
+//                            break;
+//                        }
+//                    }
+//
+//                    map.addLayer({
+//                        'id': '3d-buildings',
+//                        'source': 'composite',
+//                        'source-layer': 'building',
+//                        'filter': ['==', 'extrude', 'true'],
+//                        'type': 'fill-extrusion',
+//                        'minzoom': 15,
+//                        'paint': {
+//                            'fill-extrusion-color': '#aaa',
+//
+//                            // use an 'interpolate' expression to add a smooth transition effect to the
+//                            // buildings as the user zooms in
+//                            'fill-extrusion-height': [
+//                                "interpolate", ["linear"], ["zoom"],
+//                                15, 0,
+//                                15.05, ["get", "height"]
+//                            ],
+//                            'fill-extrusion-base': [
+//                                "interpolate", ["linear"], ["zoom"],
+//                                15, 0,
+//                                15.05, ["get", "min_height"]
+//                            ],
+//                            'fill-extrusion-opacity': .6
+//                        }
+//                    }, labelLayerId);
+//                });
+
+                return map;
+            }
+
+            // CORTI
+            function getMenuAjaxCall() {
+                $.ajax({
+                    url: "../controllers/getWidgetParams.php?widgetName=<?php echo $_REQUEST['name_w']; ?>",
+                    type: "GET",
+                    data: {},
+                    async: true,
+                    dataType: 'json',
+                    success: function (data) {
+                        let parameters = JSON.parse(data.params.parameters);
+                        if (parameters.dropdownMenu) {
+                            parameters.dropdownMenu.reverse().forEach(function (menu) {
+                                let dropdownMenuField = $('#dropdownMenuTemplate').html();
+                                $('#' + menu.header + 'Header').after(dropdownMenuField);
+                            //    let mapOptionsDivName = widgetName + "_mapOptions";
+                                let $item = $('#'+mapOptionsDivName).find('.appendable').first();
+                            //    let $item = $('#mapOptions').find('.appendable').first();
+                                $item.find('a').append(menu.label);
+
+                                // icon
+                                if (menu.external) {
+                                    $item.find('.appendable-icon').addClass('fa-map-pin');
+                                } else {
+                                    $item.find('.appendable-icon').addClass('fa-check');
+                                }
+
+                                // listener
+                                $item.find('a').click(function (evt) {
+                                    // check if layer is removable
+                                    let removeLayer = false;
+                                    if (menu.header !== "checkables") {
+                                    //    removeAllLayers(map.defaultMapRef);
+                                        var layers = [];
+                                        map.defaultMapRef.eachLayer(function(layer) {
+                                            if( layer instanceof L.TileLayer ) {
+                                                layers.push(layer);
+                                                if (layer.options.attribution != null && layer.options.attribution != undefined) {
+                                                    if (layer.options.attribution.includes("&copy;")) {
+                                                        map.defaultMapRef.removeLayer(layer);
+                                                   /* } else if (layer.options.layers.includes("orthomaps:")) {
+                                                        map.defaultMapRef.removeLayer(layer);
+                                                        for(var n = 0; n < layersCreated.length; n++) {
+                                                            if (layersCreated[n].layer.options.layers == layer.options.layers) {
+                                                                layersCreated.splice(n, 1);
+                                                            }
+                                                        }*/
+                                                    }
+                                                } else if (layer.options.pane != null && layer.options.pane != undefined) {
+                                                    if (layer.options.layers != null && layer.options.layers != undefined) {
+                                                        if (layer.options.layers.includes("Snap4CIty:")) {
+                                                            map.defaultMapRef.removeLayer(layer);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                        // removeAllIcons();
+                                        removeTileIcons();
+                                    } else {
+                                        if (!$(evt.target).find('.appendable-icon').hasClass('hidden')) {
+                                            removeLayer = true;
+                                        }
+                                    }
+
+                                    // action
+                                    if (!removeLayer) {
+                                        switch (menu.service) {
+                                            case "tileLayer":
+                                                addTileLayer(evt, menu);
+                                                break;
+                                            case "WMS":
+                                                addLayerWMS(evt, menu);
+                                                break;
+                                            case "KML":
+                                                addLayerKML(evt, menu);
+                                                break;
+                                            case "GeoJSON":
+                                                addLayerGeoJSON(evt, menu);
+                                                break;
+                                            case "SVG":
+                                                addLayerSVG(evt, menu);
+                                                break;
+                                            default:
+                                                console.log("No service selected.");
+                                        }
+
+                                        // icon
+                                        $(evt.target).find('.appendable-icon').removeClass('hidden');
+                                    } else {
+                                        removeLayerById(menu.id, evt);
+                                    }
+
+                                    // avoid dropdown close on click
+                                    evt.stopPropagation();
+                                });
+                            });
+                        }
+                        
+                        // select default map as active
+                    //    $('#mapOptions').find('.appendable-icon').first().removeClass('hidden')
+                        $('#'+mapOptionsDivName).find('.appendable-icon').first().removeClass('hidden')
+                    },
+                    error: function () {
+                        console.log("An error occurred.");
+                    },
+                    complete: function(){
+                    }
+                });
+            }
+
+            function addLayerWMS(evt, menu) {
+                let imageType = 'png';
+                if (menu.imageType) {
+                    imageType = menu.imageType;
+                }
+                for (var subLayerIndex = 0; subLayerIndex < menu.layers.length; subLayerIndex++) {
+                    
+                    // zIndex
+                    map.defaultMapRef.createPane(menu.id + menu.layers[subLayerIndex].name);
+                    if(menu.zIndex){
+                        map.defaultMapRef.getPane(menu.id + menu.layers[subLayerIndex].name).style.zIndex = menu.zIndex;
+                    }
+                    
+                    let layer = L.tileLayer.wms(menu.linkUrl, {
+                        layers: menu.layers[subLayerIndex].name,
+                        format: 'image/' + imageType,
+                        transparent: true,
+                        version: '1.1.0',
+                        attribution: "",
+                        pane: menu.id + menu.layers[subLayerIndex].name
+                    });
+                    if (!arrayContains(layersCreated, layer)) {
+                        layersCreated.push({"menu": menu, "layer": layer, "subLayerIndex": subLayerIndex});
+                    }
+
+                    // check zoom and add to map
+                    addLayerToMapByZoom(menu, layer, subLayerIndex, layersCreated.length - 1);
+                        
+                }
+            }
+
+            function addLayerToMapByZoom(menu, layer, subLayerIndex, i) {
+                let zoom = map.defaultMapRef.getZoom();
+                if ((zoom <= menu.layers[subLayerIndex].maxZoom && zoom >= menu.layers[subLayerIndex].minZoom) || !menu.layers[subLayerIndex].minZoom) {
+              //  if (zoom <= menu.layers[subLayerIndex].maxZoom && zoom >= menu.layers[subLayerIndex].minZoom) {
+                    // check if layer is already on the map
+                    if (!map.defaultMapRef.hasLayer(layer)) {
+                        layer.on('loading', function () {
+                            $('#loadingMenu').removeClass('hidden');
+                        }).on('load', function () {
+                            $('#loadingMenu').addClass('hidden');
+                        }).addTo(map.defaultMapRef);
+                        if (!arrayContains(layersAddedToMap, layer)) {
+                            layersAddedToMap.push({"id": menu.id, "layer": layer});
+                        }
+                    }
+                } else {
+                    map.defaultMapRef.removeLayer(layer);
+                    // remove from array layersAddedToMap
+                    for (var j = 0; j < layersAddedToMap.length; j++) {
+                        if (layersAddedToMap[j].layer.options.layers === layer.options.layers) {
+                            layersAddedToMap.splice(j, 1);
+                            j--;
+                        }
+                    }
+                }
+            }
+
+            function removeLayerById(layerId, evt) {
+                // remove from array layersAddedToMap
+                for (var i = 0; i < layersAddedToMap.length; i++) {
+                    if (layersAddedToMap[i].id === layerId) {
+                        map.defaultMapRef.removeLayer(layersAddedToMap[i].layer);
+                        // remove from array
+                        layersAddedToMap.splice(i, 1);
+                        i--;
+                    }
+                }
+                // remove from array layersCreated
+                for (var j = 0; j < layersCreated.length; j++) {
+                    if (layersCreated[j].menu.id === layerId) {
+                        map.defaultMapRef.removeLayer(layersCreated[j].layer);
+                        // remove from array
+                        layersCreated.splice(j, 1);
+                        j--;
+                    }
+                }
+                if (evt) {
+                    $(evt.target).find('.appendable-icon').addClass('hidden');
+                }
+                $('#loadingMenu').addClass('hidden');
+            }
+
+            function removeAllLayers(map) {
+                map.eachLayer(function (layer) {
+                    map.removeLayer(layer);
+                });
+                layersAddedToMap = [];
+                layersCreated = [];
+
+                // remove icons
+                removeAllIcons();
+            }
+
+            // change tileLayer of the map: light, dark, etc
+            function addTileLayer(evt, menu) {
+                let layer;
+                if (menu.minZoom != undefined && menu.maxZoom != undefined) {       // MOD PANTALEO-CORTI
+                    layer = L.tileLayer(menu.linkUrl, {
+                        attribution: menu.layerAttribution,
+                        apikey: menu.apiKey,
+                        minZoom: menu.minZoom,
+                        maxZoom: menu.maxZoom
+                    }).addTo(map.defaultMapRef);
+                } else {
+                    layer = L.tileLayer(menu.linkUrl, {
+                        attribution: menu.layerAttribution,
+                        apikey: menu.apiKey
+                    }).addTo(map.defaultMapRef);
+                }
+                layersAddedToMap.push({"id": menu.id, "layer": layer});
+                
+                // example of TMS for GeoServer
+//                let layer = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/ambiti_amministrativi_toscana:firenze_sat_here_z17@EPSG%3A900913@jpeg/{z}/{x}/{y}.png', {
+//                  maxZoom: 18,
+//                  tms: true,
+//                  crs: L.CRS.EPSG4326,
+//                  attribution: false
+//                });
+            }
+
+            function addLayerKML(evt, menu) {
+                var kmlLayer = new L.KML(menu.linkUrl, {
+                    async: true
+                });
+                map.defaultMapRef.addLayer(kmlLayer);
+                layersAddedToMap.push({"id": menu.id, "layer": kmlLayer});
+                
+                map.defaultMapRef.kmlLayer.zIndex = 420;
+            }
+
+            function addLayerGeoJSON(evt, menu) {
+                    
+                // zIndex
+                map.defaultMapRef.createPane(menu.id);
+                if(menu.zIndex){
+                    map.defaultMapRef.getPane(menu.id).style.zIndex = menu.zIndex;
+                }
+                    
+                jQuery.getJSON(menu.linkUrl, function (data) {
+                    let layer = L.geoJSON(data, {
+                        pane: menu.id
+                    }).addTo(map.defaultMapRef);
+                    layersAddedToMap.push({"id": menu.id, "layer": layer});
+                });
+            }
+
+            function addLayerSVG(evt, menu) {
+                let imageBounds = [[9.716489, 42.2392816], [12.3529926, 44.47160041252872]];
+                L.imageOverlay(menu.linkUrl, imageBounds).addTo(map.defaultMapRef);
+            }
+
+            function removeAllIcons() {
+                $('.appendable-icon').addClass('hidden');
+            }
+
+            function removeTileIcons() {
+              //  $('.appendable-icon').addClass('hidden');
+                for (n=0; n < $('.appendable-icon').length; n++) {
+                    if($('.appendable-icon')[n].className.includes("fa-map") && !$('.appendable-icon')[n].className.includes("hidden")) {
+                        $('.appendable-icon')[n].className = $('.appendable-icon')[n].className + " hidden";
+                    }
+                }
+            }
+
+            function arrayContains(array, layer) {
+                for (var i = 0; i < array.length; i++) {
+                    if (array[i].layer.options.layers === layer.options.layers) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+        });//Fine document ready
+    </script>
+
+    <style>	<!-- CORTI -->
+    #3DMapContainer{
+        width: 100%;
+        display: none;
+    }
+    #3DMap{
+        width: 100%;
+    }
+    .mapOptions{
+        position: absolute;
+        top: 36px;
+        left: 70px;
+        z-index: 400;
+    }
+    .dropdown-menu .dropdown-header{
+        padding-left: 10px;
+        color: #c3c3c3;
+    }
+    .dropdown-menu .dropdown-item{
+        padding-left: 10px;
+    }
+</style>	<!-- FINE CORTI STYLE -->
 
 <div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
     <div class='ui-widget-content'>
@@ -9045,6 +10166,38 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 <!-- Correzione 1 -->
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map"
                      style="height: 100%; width: 100%;"></div>
+
+                <!-- Layers & 3D CORTI -->
+                <div class="dropdown mapOptions" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li class="dropdown-header hidden">2D / 3D</li>
+                        <li><a class="dropdown-item hidden" href="#" id="2DButton">2D Map</a></li>
+                        <li><a class="dropdown-item hidden" href="#" id="3DButton">3D Map</a></li>
+                        <li role="separator" class="divider hidden"></li>
+                     <!--   <li class="dropdown-header" id="layersHeader">World OrthMaps</li>   -->
+                        <li class="dropdown-header" id="layersHeader">External Providers Open Orthomaps</li>
+                        <li role="separator" class="divider"></li>
+                     <!--   <li class="dropdown-header" id="checkablesHeader">Checkable Layers/Maps</li>    -->
+                        <li class="dropdown-header" id="checkablesHeader">WMS & GeoJSON Orthomaps</li>
+                    </ul>
+                    <template id="dropdownMenuTemplate">
+                        <li class="appendable">
+                            <a class="dropdown-item" href="#">
+                                <i class="fa appendable-icon hidden"></i>
+                            </a>
+                        </li>
+                    </template>
+                </div>
+
+
+                <div id="3DMapContainer" style="height: 500px">
+                    <div id="3DMap" style="height: 500px"></div>
+                </div>	<!-- FINE Layers & 3D CORTI -->
+
             </div>
         </div>
     </div>

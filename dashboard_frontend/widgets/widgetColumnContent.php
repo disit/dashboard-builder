@@ -38,16 +38,16 @@
             }
         ?> 
                 
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var showTitle, hasTimer, showHeader, widgetContentColor, chartColor, widgetHeaderColor, widgetHeaderFontColor, fontSize, fontColor, timeToReload, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData, pattern,  
             udm, delta, rangeMin, rangeMax, widgetParameters, alarmSet, metricName, widgetTitle, countdownRef, urlToCall, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
             geoJsonServiceData, chartRef, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
-        var metricName = "<?= $_REQUEST['id_metric'] ?>";
+        var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
         var barColors = new Array();
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var wsRetryActive, wsRetryTime = null;
         
@@ -105,7 +105,7 @@
             {
                 clearInterval(countdownRef); 
                 $("#<?= $_REQUEST['name_w'] ?>_content").hide();
-                <?= $_REQUEST['name_w'] ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= $_REQUEST['frame_color_w'] ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null);
+                <?= $_REQUEST['name_w'] ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= escapeForJS($_REQUEST['frame_color_w']) ?>", "<?= escapeForJS($_REQUEST['headerFontColor']) ?>", false, null, null, null, null, null, null);
             }
         });
 		
@@ -627,7 +627,7 @@
                                 series: [
                                     {
                                         showInLegend: false,
-                                        name: '<?= $_REQUEST['id_metric'] ?>',
+                                        name: '<?= escapeForJS($_REQUEST['id_metric']) ?>',
                                         color: chartColor,
                                         data: seriesMainData,
                                         pointWidth: 600
@@ -718,7 +718,7 @@
                 
                 if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                 {
-                    metricName = "<?= $_REQUEST['id_metric'] ?>";
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                     widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
                     widgetHeaderColor = widgetData.params.frame_color_w;
                     widgetHeaderFontColor = widgetData.params.headerFontColor;
@@ -748,14 +748,14 @@
                 }
 
                 //Nuova versione
-                if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+                if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
                 {
-                    styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+                    styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
                 }
 
-                if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+                if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
                 {
-                    widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
+                    widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
                 }
 
                 if(widgetParameters !== null && widgetParameters !== undefined)
@@ -948,7 +948,7 @@
                     $.ajax({
                         url: getMetricDataUrl,
                         type: "GET",
-                        data: {"IdMisura": ["<?= $_REQUEST['id_metric'] ?>"]},
+                        data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
                         async: true,
                         dataType: 'json',
                         success: function (data) 

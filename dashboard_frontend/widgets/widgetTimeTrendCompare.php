@@ -35,20 +35,20 @@
             }
         ?> 
                 
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";
         var widgetContentColor, chartColor, showTitle, hasTimer, showHeader, chartRef, widgetHeaderColor, widgetHeaderFontColor, fontSize, fontColor, timeToReload, widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, pattern, totValues, shownValues, 
             descriptions, udm, threshold, thresholdEval, stopsArray, delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
             rangeMin, rangeMax, widgetParameters, sizeRowsWidget, desc, plotLinesArray, chartAxesColor, value, day, dayParts, timeParts, date, maxValue1, maxValue2, nInterval,
             valueAtt, valuePrec, gridLineColor, alarmSet, sm_based, rowParameters, sm_field, plotLineObj, metricName, widgetTitle, countdownRef = null;
         var elToEmpty = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
-        var range = "<?= $_REQUEST['time'] ?>"; 
+        var range = "<?= escapeForJS($_REQUEST['time']) ?>"; 
         var seriesData1 = [];
         var valuesData1 = [];
         var seriesData2 = [];
         var valuesData2 = [];
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true' ? 'true' : 'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         console.log("Widget Time Trend Compare: " + widgetName);
         var unitsWidget = [['millisecond', // unit name
@@ -249,7 +249,7 @@
                 
                 if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                 {
-                    metricName = "<?= $_REQUEST['id_metric'] ?>";
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                     widgetTitle = widgetData.params.title_w;
                     widgetHeaderColor = widgetData.params.frame_color_w;
                     widgetHeaderFontColor = widgetData.params.headerFontColor;
@@ -281,22 +281,14 @@
 
 
                 //Nuova versione
-                if(('<?= $_REQUEST['styleParameters'] ?>' !== "")&&('<?= $_REQUEST['styleParameters'] ?>' !== "null"))
+                if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
                 {
-                    styleParameters = JSON.parse('<?= $_REQUEST['styleParameters'] ?>');
+                    styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
                 }
 
-                if('<?= $_REQUEST['parameters'] ?>'.length > 0)
+                if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
                 {
-                    widgetParameters = JSON.parse('<?= $_REQUEST['parameters'] ?>');
-                }
-
-                if(widgetParameters !== null && widgetParameters !== undefined)
-                {
-                    if(widgetParameters.hasOwnProperty("thresholdObject"))
-                    {
-                       thresholdObject = widgetParameters.thresholdObject; 
-                    }
+                    widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
                 }
 
                 if(widgetParameters !== null && widgetParameters !== undefined)
@@ -307,11 +299,19 @@
                     }
                 }
 
-                sizeRowsWidget = parseInt('<?= $_REQUEST['size_rows'] ?>');
+                if(widgetParameters !== null && widgetParameters !== undefined)
+                {
+                    if(widgetParameters.hasOwnProperty("thresholdObject"))
+                    {
+                       thresholdObject = widgetParameters.thresholdObject; 
+                    }
+                }
+
+                sizeRowsWidget = parseInt('<?= escapeForJS($_REQUEST['size_rows']) ?>');
 
                 $.ajax({
                     url: "../widgets/getDataMetricsForTimeTrend.php",
-                    data: {"IdMisura": [metricName], "time": "<?= $_REQUEST['time'] ?>", "compare": 1},
+                    data: {"IdMisura": [metricName], "time": "<?= escapeForJS($_REQUEST['time']) ?>", "compare": 1},
                     type: "GET",
                     async: true,
                     dataType: 'json',

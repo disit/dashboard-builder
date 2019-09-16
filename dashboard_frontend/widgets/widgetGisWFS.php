@@ -106,22 +106,22 @@
       }
       ?> 
                
-       var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+       var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
        var widgetName = "<?= $_REQUEST['name_w'] ?>";
-       var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-       var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-       var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-       var currentZoom = "<?= $_REQUEST['zoomFactor'] ?>";
-       var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-       var controlsVisibility = "<?= $_REQUEST['controlsVisibility'] ?>";
+       var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+       var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+       var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
+       var currentZoom = "<?= escapeForJS($_REQUEST['zoomFactor']) ?>";
+       var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
+       var controlsVisibility = "<?= escapeForJS($_REQUEST['controlsVisibility']) ?>";
        var wrapperW = $('#<?= $_REQUEST['name_w'] ?>_div').outerWidth();
-       var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-       var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
-       var actuatorAttribute = '<?= $_REQUEST['actuatorAttribute'] ?>';
+       var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+       var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
+       var actuatorAttribute = '<?= escapeForJS($_REQUEST['actuatorAttribute']) ?>';
        var headerHeight = 25;
        var wsRetryActive, wsRetryTime = null;
-       var showTitle = "<?= $_REQUEST['showTitle'] ?>";
-       var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+       var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
+       var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
        var showHeader = null;
        var widgetProperties, styleParameters, topWrapper, height, zoomDisplayTimeout, wrapperH, titleWidth, sourceMapDivCopy, sourceIfram, 
            fullscreenMapRef, fullscreenDefaultMapRef, minLat, minLng, maxLat, maxLng, lat, lng, eventType, eventName, eventStartDate, eventStartTime, eventSeverity,
@@ -1233,7 +1233,7 @@
                                });
                            }*/
                        });
-                       metricName = "<?= $_REQUEST['id_metric'] ?>";
+                       metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                        break;
    
                    case "none":
@@ -1251,7 +1251,7 @@
                       $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
                       $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
    	   
-                      metricName = "<?= $_REQUEST['id_metric'] ?>"; 	
+                      metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>"; 	
                       break;
                }
            }

@@ -41,24 +41,24 @@
             mapPtrContainer, pinContainer, queryDescContainer, activeFontColor, rowHeight, iconSize, queryDescContainerWidth, 
             queryDescContainerWidthPerc, pinContainerWidthPerc, defaultOption = null;    
     
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var speed = 65;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
-        var fontColor = "<?= $_REQUEST['fontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
+        var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
-        var url = "<?= $_REQUEST['link_w'] ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';	
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
         var defaultOptionUsed = false;
         var pinContainerWidth = 40;
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         if(url === "null")
         {
             url = null;

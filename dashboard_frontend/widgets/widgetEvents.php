@@ -46,23 +46,23 @@
             eventProperties = null;    
     
         var eventNames = new Array();
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var speed = 50;
-        var hostFile = "<?= $_REQUEST['hostFile'] ?>";
+        var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_mainContainer");
-        var widgetContentColor = "<?= $_REQUEST['color_w'] ?>";
-        var widgetHeaderColor = "<?= $_REQUEST['frame_color_w'] ?>";
-        var widgetHeaderFontColor = "<?= $_REQUEST['headerFontColor'] ?>";
+        var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
+        var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+        var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
         var linkElement = $('#<?= $_REQUEST['name_w'] ?>_link_w');
-        var fontSize = "<?= $_REQUEST['fontSize'] ?>";
-        var timeToReload = <?= $_REQUEST['frequency_w'] ?>;
+        var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
+        var timeToReload = <?= sanitizeInt('frequency_w') ?>;
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_rollerContainer");
-        var url = "<?= $_REQUEST['link_w'] ?>";
-        var hasTimer = "<?= $_REQUEST['hasTimer'] ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget'] ?>;
-        var embedWidgetPolicy = '<?= $_REQUEST['embedWidgetPolicy'] ?>';
-        var showTitle = "<?= $_REQUEST['showTitle'] ?>";
+        var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
+        var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
+        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
+        var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;        
         var headerHeight = 25;
         

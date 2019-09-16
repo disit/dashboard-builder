@@ -6,6 +6,10 @@ if (checkWidgetNameInDashboard($link, $name_w, $_REQUEST['id_dashboard']) === fa
     eventLog("Returned the following ERROR in widgetHeader.php for the widget ".escapeForHTML($name_w)." is not instantiated or allowed in this dashboard.");
     exit();
 }
+if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer") === false) {
+    eventLog("Returned the following ERROR in widgetHeader.php for the widget ".escapeForHTML($name_w)." is not an alphanum :".$_REQUEST['frequency_w']);
+    exit();  
+}
 ?>
 <div id='<?= $name_w ?>_header' class="widgetHeader">
         <!-- Info button -->		
@@ -87,7 +91,7 @@ if (checkWidgetNameInDashboard($link, $name_w, $_REQUEST['id_dashboard']) === fa
         $('#<?= $name_w ?>_countdownMenu .col-xs-2').css('padding-left', '0px');
         $('#<?= $name_w ?>_countdownMenu .col-xs-2').css('padding-right', '0px');
         
-        if("<?= $_REQUEST['hostFile'] ?>" === "config")
+        if("<?= escapeForJS($_REQUEST['hostFile']) ?>" === "config")
         {
             $('#<?= $name_w ?>_infoBtn').show();
             $('#<?= $name_w ?>_infoBtn').click(function(){
