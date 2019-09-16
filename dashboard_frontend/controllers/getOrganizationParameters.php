@@ -28,7 +28,7 @@ mysqli_select_db($link, $dbname);
 
 $response = [];
 
-if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
+if(isset($_SESSION['loggedUsername']) || @$_SESSION['isPublic'] === true)
 {
 
     if(isset($_SESSION['refreshToken']))
@@ -93,7 +93,7 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
                 }
                 $orgParamsQuery = "SELECT * FROM Dashboard.Organizations" . $orgSqlAdd;
                 $r = mysqli_query($link, $orgParamsQuery);
-                $response['sql'] = $orgParamsQuery;
+                //$response['sql'] = $orgParamsQuery;
 
                 if($r)
                 {
@@ -130,7 +130,7 @@ if(isset($_SESSION['loggedUsername']) || $_SESSION['isPublic'] === true)
         {
             case "getSpecificOrgParameters":
                 if (isset($_GET['param'])) {
-                    $orgSql = mysqli_real_escape_string($link, $_GET['param']);
+                    $orgSql = mysqli_real_escape_string($link, sanitizeGetString('param'));
                     $orgSqlAdd = " WHERE organizationName = '$orgSql';";
                 } else {
                     $orgSql = "";
