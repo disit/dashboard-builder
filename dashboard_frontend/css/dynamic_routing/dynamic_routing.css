@@ -1,0 +1,110 @@
+/* CSS for dynamic routing's dashboards */
+
+/* Scenario creation, studio creation */
+#scenario-div, #studio-div {
+    display: flex;
+    flex-direction: column;
+}
+
+#scenario-name, #studio-name {
+    margin-bottom: 2px;
+}
+
+#scenario-div div, #studio-div div {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 5px;
+}
+
+/* Scenario creation, scenario selection, studio creation */
+#scenario-div, #selection, #studio-div {
+    color: #333333;
+    background-color: white;
+    padding: 10px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background-clip: padding-box;
+}
+
+/* vehicle selection */
+#options {
+    display: none;      /* initially hidden!!! */
+    margin-top: 10px;
+}
+
+.vehicle-btn {
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    background-image: linear-gradient(to bottom, white, #e7e7e7);
+    
+    -webkit-appearance: button;
+    -webkit-writing-mode: horizontal-tb !important;
+    text-rendering: auto;
+    color: buttontext;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: center;
+    align-items: flex-start;
+    cursor: default;
+    background-color: buttonface;
+    box-sizing: border-box;
+    margin: 0em;
+    font: 400 13.3333px Arial;
+    border-width: 2px;
+    border-style: outset;
+    border-color: buttonface;
+    border-image: initial;
+}
+
+.selectedvehicle {
+    background-color: #bbb;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    background-image: linear-gradient(to bottom, #9f9f9f, #e7e7e7);
+}
+
+.vehicle-btn img {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+}
+
+/* from-to navigation popup */
+.leaflet-fromto-popup {
+    margin: 0 auto;
+    text-align: center;
+}
+    
+.leaflet-fromto-popup div button {
+    padding: 4px;
+    margin: 4px;
+    border-radius:4px;
+}
+
+/* GH Leaflet Routing Machine responsive height (?)) */
+
+div.leaflet-top.leaflet-right {
+    height: 90%;
+}
+div.leaflet-routing-container.leaflet-bar.leaflet-control {
+    height: 60%;
+}
+div.leaflet-routing-geocoders {
+    height: 30%;
+}
+div.leaflet-routing-alternatives-container {
+    height: 60%;
+}
+div.leaflet-routing-alt {
+    height: 70%;
+}
+div.leaflet-routing-alt.leaflet-routiing-alt-minimized {
+    height: 30%;
+}
