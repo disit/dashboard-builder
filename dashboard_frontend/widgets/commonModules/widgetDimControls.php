@@ -37,7 +37,7 @@
     $(document).ready(function()
     {
         var currentX, currentY, newX, newY = null;
-        var currentZoom = "<?= $_REQUEST['zoomFactor'] ?>";
+        var currentZoom = "<?= escapeForJS($_REQUEST['zoomFactor']) ?>";
         
         function changeZoom()
         {
@@ -46,7 +46,7 @@
 
              var formData = new FormData();
              formData.set('zoomFactorUpdated', currentZoom);
-             formData.set('idWidget', '<?= $_REQUEST['Id'] ?>');
+             formData.set('idWidget', '<?= escapeForJS($_REQUEST['Id']) ?>');
              $.ajax({
                  url: "process-form.php",
                  data: formData,
@@ -64,7 +64,7 @@
              });  
          }
         
-        if("<?= $_REQUEST['hostFile'] ?>" === "config")
+        if("<?= escapeForJS($_REQUEST['hostFile']) ?>" === "config")
         {
             $('#<?= $_REQUEST['name_w'] ?>_dimControls').show();
             
