@@ -16,7 +16,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
     include('../config.php');
-    include('process-form.php');
     if(!isset($_SESSION))
     {
        session_start();
@@ -116,22 +115,6 @@
                     <div class="row">
                         <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">
                             <script type="text/javascript">
-                              /*  if(location.href.includes("AllOrgs") != false) {
-                                    var divList = document.getElementById('headerTitleCnt');
-                                    var strToAppend = "of All Organizations";
-                                    divList.insertAdjacentHTML('beforeend', strToAppend);
-                                } else {
-                                    var divList = document.getElementById('headerTitleCnt');
-                                //    var strToAppend = "MicroApplications of My Organization (" + "<?php echo $_SESSION['loggedOrganization']; ?>" + ")";
-                                    var isPublicSession = "<?php echo $_SESSION['isPublic'] ?>";
-                                    if (isPublicSession == 1) {
-                                        var strToAppend = "";
-                                    } else {
-                                        var strToAppend = "of My Organization";
-                                    }
-                                    divList.insertAdjacentHTML('beforeend', strToAppend);
-                                }   */
-
                                   <?php
                                   if(isset($_GET['pageTitle']))
                                   {
@@ -177,7 +160,7 @@
                                             </div>
                                         </div>
                                         <?php
-                                        if(($_SESSION['loggedRole']) === 'RootAdmin')
+                                        if((@$_SESSION['loggedRole']) === 'RootAdmin')
                                         {
                                         ?>
                                         <div id="dashboardListsCardsOrgsSort" class="col-xs-6 col-sm-4 col-md-2 dashboardsListMenuItem">
@@ -216,20 +199,8 @@
                                                 </div>
                                             </div>
                                         </div>
-<?php if(!$_SESSION['isPublic']) : ?>                                        
-                                   <!--     <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">
-                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
-                                                New<br>dashboard
-                                            </div>-->
-                                       <!--     <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">    -->
-                                      <!--          <button id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" type="button" class="btn btn-warning">Request new</button> -->
-                                                <!--<i id="link_add_dashboard" data-toggle="modal" data-target="#modal-add-metric" class="fa fa-plus-square"></i>-->
-                                      <!--      </div> -->
-                                     <!--   </div>  -->
-<?php endif; ?>                                        
                                     </div>
-                                    
-                                    
+                                                                        
                                     <table id="list_dashboard" class="table">
                                         <thead class="dashboardsTableHeader">
                                             <tr>
@@ -254,209 +225,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Modale creazione dashboard -->
-        <div class="modal fade" id="modalCreateDashboard" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-              <form id="form-setting-dashboard" class="form-horizontal" name="form-setting-dashboard" role="form" method="post" action="" data-toggle="validator" enctype="multipart/form-data">  
-              <div class="modal-content">
-                <div class="modalHeader centerWithFlex">
-                  Create dashboard
-                </div>
-
-                <div id="addDashboardModalBody" class="modal-body modalBody">
-                    <ul class="nav nav-tabs nav-justified">
-                        <li class="active"><a data-toggle="tab" href="#measuresTab">Measures</a></li>
-                        <li><a data-toggle="tab" href="#headerTab">Header</a></li>
-                        <li><a data-toggle="tab" href="#bodyTab">Body</a></li>
-                        <li><a data-toggle="tab" href="#visibilityTab">Visibility</a></li>
-                        <li><a data-toggle="tab" href="#embeddabilityTab">Embeddability</a></li>
-                    </ul>
-                    
-                    <div class="tab-content">
-                        <!-- Measures tab -->
-                        <div id="measuresTab" class="tab-pane fade in active">
-                            <div class="row">
-                                <div class="col-xs-12 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <select name="inputDashboardViewMode" class="modalInputTxt" id="inputDashboardViewMode" required>
-                                            <option value="fixed">Fixed width dashboard</option>
-                                            <option value="smallResponsive">Responsive on small displays (width < 768px)</option>
-                                            <option value="mediumResponsive">Responsive on small and medium displays (width < 992px)</option>
-                                            <option value="largeResponsive">Responsive on small, medium and large displays (width < 1200px)</option>
-                                            <option value="alwaysResponsive">Always responsive</option>
-                                        </select>
-                                    </div>
-                                    <div class="modalFieldLabelCnt">View mode</div>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-xs-12 col-md-12 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input id="inputWidthDashboard" name="inputWidthDashboard" data-slider-id="inputWidthDashboardSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1" data-slider-value="10"/>
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Width (cells)</div>
-                                </div>
-                                <div class="col-xs-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="pixelWidth" id="pixelWidth" disabled> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Pixel width</div>
-                                </div>
-                                <div class="col-xs-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="percentWidth" id="percentWidth" disabled> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Width (%) on your screen</div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Header tab -->
-                        <div id="headerTab" class="tab-pane fade">
-                            <div class="row">
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="inputTitleDashboard" id="inputTitleDashboard" required> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Title</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="inputSubTitleDashboard" id="inputSubTitleDashboard"> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Subtitle</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <div class="input-group customColorChoice">
-                                            <input type="text" class="modalInputTxt" id="inputColorDashboard" name="inputColorDashboard" value="#5367ce" required>
-                                            <span class="input-group-addon"><i></i></span>
-                                        </div>
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Header color</div>
-                                </div>
-                                <div class="col-xs-12 col-md-2 col-md-offset-2 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input id="headerVisible" name="headerVisible" checked type="checkbox">
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Show header</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input id="headerFontSize" name="headerFontSize" data-slider-id="headerFontSizeSlider" type="text" data-slider-min="1" data-slider-max="36" data-slider-step="1" data-slider-value="28"/>
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Header font size</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <div class="input-group customColorChoice">
-                                            <input type="text" class="modalInputTxt" id="headerFontColor" name="headerFontColor" value="#ffffff">
-                                            <span class="input-group-addon"><i id="color_hf"></i></span>
-                                        </div>
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Header font color</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input id="dashboardLogoInput" name="dashboardLogoInput" type="file" class="filestyle modalInputTxt" data-badge="false" data-input ="true" data-size="nr" data-buttonName="btn-primary" data-buttonText="File">
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Header logo</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <input type="text" class="modalInputTxt" name="dashboardLogoLinkInput" id="dashboardLogoLinkInput"> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Header logo link</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Body tab -->
-                        <div id="bodyTab" class="tab-pane fade">
-                            <div class="row">
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <div class="input-group customColorChoice">
-                                            <input type="text" class="modalInputTxt" id="inputColorBackgroundDashboard" name="inputColorBackgroundDashboard" value="#ffffff" required>
-                                            <span class="input-group-addon"><i></i></span>
-                                        </div> 
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Widgets area color</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <div class="input-group customColorChoice">
-                                            <input type="text" class="modalInputTxt" id="inputExternalColorDashboard" name="inputExternalColorDashboard" value="#ffffff" required>
-                                            <span class="input-group-addon"><i></i></span>
-                                        </div>
-                                    </div>
-                                    <div class="modalFieldLabelCnt">External frame color</div>
-                                </div>
-                                <div class="col-xs-12 col-md-4 col-md-offset-1 modalCell">
-                                    <input id="widgetsBorders" name="widgetsBorders" checked type="checkbox">
-                                    <div class="modalFieldLabelCnt">Widgets borders</div>
-                                </div>
-                                <div class="col-xs-12 col-md-6 col-md-offset-1 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <div class="input-group customColorChoice">
-                                            <input type="text" class="modalInputTxt" id="inputWidgetsBordersColor" name="inputWidgetsBordersColor" value="#dddddd" required>
-                                            <span class="input-group-addon"><i></i></span>
-                                        </div>
-                                    </div>
-                                    <div class="modalFieldLabelCnt">Widgets borders color</div>
-                                </div>
-                            </div>    
-                        </div>
-                        
-                        <!-- Visibility tab -->
-                        <div id="visibilityTab" class="tab-pane fade">
-                            <div class="row">
-                                <div class="col-xs-12 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <select name="inputDashboardVisibility" class="modalInputTxt" id="inputDashboardVisibility" required>
-                                            <option value="author">Dashboard author only</option>
-                                            <option value="restrict">Author and selected users</option>
-                                            <option value="public">Everybody (public)</option>
-                                        </select>
-                                    </div>
-                                    <!--<div class="modalFieldLabelCnt">Permission type</div>-->
-                                </div>
-                                <div class="col-xs-12 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <table id="inputDashboardVisibilityUsersTable"></table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Embeddability tab -->
-                        <div id="embeddabilityTab" class="tab-pane fade">
-                            <div class="row">
-                                <div class="col-xs-12 modalCell">
-                                    <div class="modalFieldCnt">
-                                        <table id="authorizedPagesTable">
-                                            <thead>
-                                                <th>Authorized pages</th>
-                                                <th><i id="addAuthorizedPageBtn" class="fa fa-plus"></i></th>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table> 
-                                    </div>
-                                    <input type="hidden" id="authorizedPagesJson" name="authorizedPagesJson" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                <div id="addDashboardModalFooter" class="modal-footer">
-                  <button type="button" id="addDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-                  <button type="submit" id="addDashboardConfirmBtn" name="addDashboard" class="btn confirmBtn internalLink">Confirm</button>
-                </div>
-              </div>
-            </form>  
-            </div>
-        </div>
+        </div>        
     </body>
 </html>
 
@@ -465,16 +234,16 @@
     {
         console.log("Microapplication.");
         var dashboardsList = null;
-        var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
-        var orgFilter = "<?php echo $_SESSION['loggedOrganization']; ?>";
-        var orgLang = "<?php echo $_SESSION['orgLang']; ?>";
+        var sessionEndTime = "<?php echo @$_SESSION['sessionEndTime']; ?>";
+        var orgFilter = "<?php echo @$_SESSION['loggedOrganization']; ?>";
+        var orgLang = "<?php echo @$_SESSION['orgLang']; ?>";
         var param = "";
         microAppLat = null;
         microAppLng = null;
         if (location.href.includes("AllOrgs")) {
             param = "AllOrgs";
         }
-        var loggedRole = "<?= ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) ?>";
+        var loggedRole = "<?= (@$_SESSION['isPublic'] ? 'Public' : @$_SESSION['loggedRole']) ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
 

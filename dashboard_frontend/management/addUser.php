@@ -55,6 +55,8 @@
 
    //Corpo dell'API
    session_start(); 
+   checkSession('RootAdmin');
+   
    $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
    mysqli_select_db($link, $dbname);
    

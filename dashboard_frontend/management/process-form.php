@@ -338,6 +338,8 @@
     else if(isset($_REQUEST['addDashboard']))
     {
         session_start();
+        checkSession('Manager');
+        
         $name_dashboard = mysqli_real_escape_string($link, $_POST['inputTitleDashboard']); 
         $title = mysqli_real_escape_string($link, $_POST['inputTitleDashboard']);  
         $subtitle = mysqli_real_escape_string($link, $_POST['inputSubTitleDashboard']);  
@@ -592,7 +594,8 @@
     else if(isset($_REQUEST['add_widget'])) 
     {
         session_start();
-        
+        checkSession('Manager');
+                
             $id_dashboard = $_REQUEST['dashboardIdUnderEdit'];
             if (checkVarType($id_dashboard, "integer") === false) {
                 eventLog("Returned the following ERROR in process-form.php for dashboard_id = ".$id_dashboard.": ".$id_dashboard." is not an integer as expected. Exit from script.");
@@ -2237,6 +2240,8 @@
     else if(isset($_REQUEST['openDashboardToEdit']))
     {
         session_start();
+        checkSession('Manager');
+        
         $isAdmin = $_SESSION['loggedRole'];
         $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
         //$dashboardName = mysqli_real_escape_string($link, $_POST['selectedDashboardName']);
@@ -2324,7 +2329,8 @@
     else if(isset($_REQUEST['modify_widget'])) 
     {
         session_start();
-        
+        checkSession('Manager');
+                
         if(isset($_REQUEST['dashboardIdToEdit'])&&isset($_REQUEST['currentDashboardTitle'])&&isset($_REQUEST['dashboardUser']))
         {
             $dashboardName2 = $_REQUEST['currentDashboardTitle'];
@@ -4283,6 +4289,8 @@
     else if(isset($_REQUEST['addMetricType'])) 
     {
         session_start();
+        checkSession('ToolAdmin');
+        
         if(isset($_SESSION['loggedRole']))
         {
             $metricName = mysqli_real_escape_string($link, $_POST['metricName']); 
@@ -4413,6 +4421,7 @@
     else if(isset($_REQUEST['editMetricType']))
     {
         session_start();
+        checkSession('ToolAdmin');
         
         if(isset($_SESSION['loggedRole']))
         {
@@ -4580,6 +4589,8 @@
     else if(isset($_REQUEST['deleteMetric']))//Escape 
     {
         session_start();
+        checkSession('ToolAdmin');
+                
         mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
         
         if(isset($_SESSION['loggedRole']))
@@ -4619,6 +4630,8 @@
     else if(isset($_REQUEST['updateMetricStatus']))
     {
         session_start();
+        checkSession('ToolAdmin');
+        
         if(isset($_SESSION['loggedRole']))
         {
             $metricId = mysqli_real_escape_string($link, $_REQUEST['metricId']);
@@ -4642,7 +4655,8 @@
     else if(isset($_REQUEST['modify_status_dashboard']))
     {
         session_start();
-        
+        checkSession('Manager');
+                
         if(isset($_SESSION['loggedRole']))
         {
             $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
@@ -4665,7 +4679,8 @@
     else if(isset($_POST['addDs'])) 
     {
         session_start();
-
+        checkSession('RootAdmin');
+        
         if(isset($_SESSION['loggedRole']))
         {
             $Id = mysqli_real_escape_string($link, $_POST['name']);
@@ -4693,6 +4708,7 @@
     else if(isset($_REQUEST['updateDs'])) 
     {
         session_start();
+        checkSession('RootAdmin');
 
         if(isset($_SESSION['loggedRole']))
         {
@@ -4723,6 +4739,7 @@
     else if(isset($_POST['delDs']))
     {
         session_start();
+        checkSession('RootAdmin');
 
         if(isset($_SESSION['loggedRole']))
         {
@@ -4746,6 +4763,7 @@
     else if(isset($_POST['addWidgetType']))
     {
         session_start();
+        checkSession('RootAdmin');
 
         if(isset($_SESSION['loggedRole']))
         {
@@ -4778,6 +4796,7 @@
     else if(isset($_POST['delWidgetType']))
     {
         session_start();
+        checkSession('RootAdmin');
 
         if(isset($_SESSION['loggedRole']))
         {
@@ -4801,6 +4820,7 @@
     else if(isset($_REQUEST['editWidgetType']))
     {
         session_start();
+        checkSession('RootAdmin');
 
         if(isset($_SESSION['loggedRole']))
         {
@@ -4833,6 +4853,8 @@
     elseif(isset($_REQUEST['zoomFactorUpdated'])) //Escape
     {
         session_start();
+        checkSession('Manager');
+        
         $zoomFactor = mysqli_real_escape_string($link, $_REQUEST['zoomFactorUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
@@ -4854,6 +4876,8 @@
     elseif(isset($_REQUEST['scaleXUpdated'])) //Escape
     {
         session_start();
+        checkSession('Manager');
+        
         $scaleX = mysqli_real_escape_string($link, $_REQUEST['scaleXUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
@@ -4875,6 +4899,8 @@
     elseif(isset($_REQUEST['scaleYUpdated'])) //Escape
     {
         session_start();
+        checkSession('Manager');
+        
         $scaleY = mysqli_real_escape_string($link, $_REQUEST['scaleYUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
@@ -4896,6 +4922,8 @@
     elseif(isset($_REQUEST['widthUpdated'])) //Escape
     {
         session_start();
+        checkSession('Manager');
+        
         $width = mysqli_real_escape_string($link, $_REQUEST['widthUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
@@ -4917,6 +4945,8 @@
     elseif(isset($_REQUEST['heightUpdated']))
     {
         session_start();
+        checkSession('Manager');
+        
         $height = mysqli_real_escape_string($link, $_REQUEST['heightUpdated']);
         $idWidget = mysqli_real_escape_string($link, $_REQUEST['idWidget']);
         
@@ -4951,7 +4981,8 @@
     elseif(isset($_REQUEST['showHideDashboardHeader'])) 
     {
         session_start();
-        
+        checkSession('Manager');
+                
         if(isset($_SESSION['loggedRole']))
         {
             $newStatus = mysqli_real_escape_string($link, $_REQUEST['showHideDashboardHeader']);

@@ -21,6 +21,8 @@ include '../config.php';
    error_reporting(E_ERROR | E_NOTICE);
    
    session_start(); 
+   checkSession('AreaManager');
+   
    $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
    mysqli_select_db($link, $dbname);
    

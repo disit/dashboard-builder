@@ -372,6 +372,7 @@
         </div>
         <!-- Fine del container-fluid -->
         
+<?php if(!$_SESSION['isPublic']) : ?>
         <!-- Modale wizard -->
         <div class="modal fade" id="addWidgetWizard" tabindex="-1" role="dialog" aria-labelledby="addWidgetWizardLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -758,9 +759,7 @@
             </div>
         </div>
         <!-- Fine modale gestione IOT Apps dashboard -->
-
-       
-
+<?php endif; ?>
     </body>
 </html>
 
@@ -848,7 +847,7 @@
         var loggedRole = "<?= ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) ?>";
         var loggedType = "<?= @$_SESSION['loggedType'] ?: '' ?>";
         var usr = "<?= @$_SESSION['loggedUsername'] ?: '' ?>";
-        var org = "<?= $_SESSION['loggedOrganization'] ?>";
+        var org = "<?= @$_SESSION['loggedOrganization'] ?>";
         var userVisibilitySet = null;
         var authorizedPages = [];
 
@@ -1073,7 +1072,7 @@
                 data:{
                     action: "get_group_for_ou",
                     ou: ouname,
-                    token : "<?= $_SESSION['refreshToken'] ?>"
+                    token : "<?= @$_SESSION['refreshToken'] ?>"
                 },
                 type: "POST",
                 async: true,
@@ -2836,7 +2835,7 @@
                 url: "../api/ldap.php",
                 data:{
                     action: "get_all_ou",
-                    token : "<?= $_SESSION['refreshToken'] ?>"
+                    token : "<?= @$_SESSION['refreshToken'] ?>"
                 },
                 type: "POST",
                 async: false,
@@ -2869,7 +2868,7 @@
                 data:{
                     action: "get_logged_ou",
                     username: usr,
-                    token : "<?= $_SESSION['refreshToken'] ?>"
+                    token : "<?= @$_SESSION['refreshToken'] ?>"
                 },
                 type: "POST",
                 async: false,

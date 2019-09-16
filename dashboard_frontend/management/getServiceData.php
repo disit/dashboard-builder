@@ -1,15 +1,111 @@
 <?php
 include '../config.php';
+require '../sso/autoload.php';
+use Jumbojett\OpenIDConnectClient;
+session_start();
+
+$link = mysqli_connect($host, $username, $password);
+//error_reporting(E_ALL);
+mysqli_select_db($link, $dbname);
+
+/*
+if(isset($_SESSION['refreshToken'])) 
+        {
+                echo($_SESSION['refreshToken']);
+        }else{
+            echo('NO REFRESH TOKEN');
+        }
+        
+if(isset($_SESSION['loggedUsername'])) 
+        {
+                echo($_SESSION['loggedUsername']);
+        }else{
+            echo('NO LOGGED USERNAME');
+        }
+ */
+$allowedElementIDs = [];
+$allowedElementCouples = [];
+$genFileContent = parse_ini_file("../conf/environment.ini");
+$genFileContent = parse_ini_file("../conf/environment.ini");
+$personalDataFileContent = parse_ini_file("../conf/personalData.ini");
+$env = $genFileContent['environment']['value'];
+
+$username_own= $_SESSION['loggedUsername'];
+
+            $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+            $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+            //
+            $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+            $accessToken = $tkn->access_token;
+            $_SESSION['refreshToken'] = $tkn->refresh_token;
+
 /* @var $value type */
 $value               = $_REQUEST['service'];
 $type                = $_REQUEST['type'];
+$data_get_instances  = $_REQUEST['data_get_instances'];
 $list                = array();
 $role_session_active = $_REQUEST['role_session_active'];
 if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin")) {
-    if ($type == 'Sensor') {
+//if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin")|| ($role_session_active == "AreaManager")) {
+       //
+    $vars = "";
+    $url_ownership = "";
+    $payload_own = "";
+        /** Calcoli su $data_get_instances **/
+        if (strpos($data_get_instances, 'iot') !== false) {
+             //echo 'data_get_instances_TRUE';
+            $pieces = explode("/iot/", $data_get_instances);
+            $end_url= $pieces[1];
+            $arr_url = explode("/", $end_url);
+            $l_arr = count($arr_url);
+            $url_ownership = "";
+            //$accessToken=getAccessToken($token_endpoint, $username_own, $password_own, $client_id);
+                        if($l_arr == 3){
+                            $url_ownership='http://'.$iot_device_ownership.'/ownership-api/v1/list/?elementId='.$arr_url[0].':'.$arr_url[1].':'.$arr_url[2].'&type=IOTID&accessToken='.$accessToken;
+                        }else{
+                            $url_ownership='http://'.$iot_device_ownership.'/ownership-api/v1/list/?elementId=DISIT:'.$arr_url[0].':'.$arr_url[1].'&type=IOTID&accessToken='.$accessToken;
+                        }
+             //print_r($url_ownership);
+                        $payload_own = file_get_contents($url_ownership);
+                        $var_own = json_decode($payload_own, true);
+                        //$vars = $var_own[0];
+                        if(isset($var_own[0])){
+                            $vars = $var_own[0];
+                        }else{
+                            $vars = "";
+                        }
+                        //print_r($vars);
+        }
+        //
+        /** Fine Calcoli su $data_get_instances **/
+    
+    
+    if($type == 'From Dashboard to IOT Device'){
+        /*QUERY*/
+        //$link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
+        $link_dash = mysqli_connect($host, $username, $password) or die("failed to connect to server Processes !!");
+        mysqli_set_charset($link_dash, 'utf8');
+        mysqli_select_db($link_dash, $dbname);
+        $query_dash = "SELECT id_dashboard FROM Config_widget_dashboard WHERE id_metric = '".$value."'";
+        $result_dash = mysqli_query($link_dash, $query_dash) or die(mysqli_error($link_dash));
+        
+        $total1 = $result_dash->num_rows;
+        //print_r($total1);
+        $name_dashboard= array();
+        if ($total1 > 0) {
+            while ($row1 = mysqli_fetch_assoc($result_dash)) {
+                $name_dashboard['name'] = $row1['id_dashboard'];
+            }
+        }else{
+            $name_dashboard['name'] = 'no';
+        }
+        //echo $name_dashboard;
+        echo json_encode($name_dashboard);
+        /*******/
+    } else if (($type == 'Sensor')||($type == 'Sensor-Actuator')) {
         $payload = file_get_contents($value);
         $result  = json_decode($payload);
-        //$list = array();
+        //print_r($result);
         
         $healthiness = $result->healthiness;
         if (property_exists($result, 'Service')) {
@@ -31,12 +127,20 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
         $total0       = $result0->num_rows;
         $process_st0  = '';
         $process_path = '';
+        $graph_uri = $serviceUri;
         if ($total0 > 0) {
             while ($row0 = mysqli_fetch_assoc($result0)) {
+                /***/
+                if (($row0['Graph_Uri'] !== null)||($row0['Graph_Uri'] !== 'undefined')){
+                            $graph_uri = $row0['Graph_Uri'];
+                        }else{
+                            $graph_uri = $serviceUri;
+                 }
+                /***/
                 $listFile0    = array(
                     "process_name_ST" => $row0['Process_ST'],
                     "KB_Ip" => $row0['KB_Ip'],
-                    "Graph_Uri" => $row0['Graph_Uri'],
+                    "Graph_Uri" => $graph_uri,
                     "phoenix_table" => $row0['phoenix_table'],
                     "process_path" => $row0['process_path'],
                     "process_type" => $row0['process_type'],
@@ -77,6 +181,8 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
             }
         }
         //
+        $ip_disc = 'disces.snap4city.org';
+        //
         $list['healthiness'] = $healthiness;
         $list['realtime']    = $result->realtime;
         if (property_exists($result, 'Service')) {
@@ -87,7 +193,8 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
         if (count($process_list) > 0) {
             $list['process_name_ST'] = $process_list[0]['process_name_ST'];
             $list['KB_Ip']           = $process_list[0]['KB_Ip'];
-            $list['Graph_Uri']       = $process_list[0]['Graph_Uri'];
+            //$list['Graph_Uri']       = $process_list[0]['Graph_Uri'];
+            $list['Graph_Uri'] = $graph_uri;
             $list['process_path']    = $process_list[0]['process_path'];
             $list['process_type']    = $process_list[0]['process_type'];
             $list['licence']         = $process_list[0]['licence'];
@@ -102,6 +209,28 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
             $list['jobGroup']        = $jobg;
             $list['ip_disc']         = $ip_disc;
             $list['dataSource']      = '';
+            $list['url_ownership'] = $url_ownership;
+            $list['ownership_content']=$vars;
+        }else{
+            $list['process_name_ST'] = '';
+            $list['KB_Ip']           = '';
+            $list['Graph_Uri']       = $graph_uri;
+            $list['process_path']    = '';
+            $list['process_type']    = '';
+            $list['licence']         = '';
+            $list['webpage']         = '';
+            $list['telephone']       = '';
+            $list['phoenix_table']   = '';
+            $list['mail']            = '';
+            $list['owner']           = '';
+            $list['disces_ip']       = '';
+            $list['disces_data']     = $total1;
+            $list['jobName']         = $jobn;
+            $list['jobGroup']        = $jobg;
+            $list['ip_disc']         = $ip_disc;
+            $list['dataSource']      = '';
+            $list['url_ownership'] = $url_ownership;
+            $list['ownership_content']=$vars;
         }
         //
         ////
@@ -114,7 +243,7 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
         mysqli_select_db($link, $dbname_processes);
         $process      = '';
         $process_list = array();
-        $query0       = "SELECT dataSource, query FROM dashboard.descriptions WHERE IdMetric='" . mysqli_real_escape_string($link, $value) . "'";
+        $query0       = "SELECT dataSource, query FROM Descriptions WHERE IdMetric='" . mysqli_real_escape_string($link, $value) . "'";
         $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
         $total0     = $result0->num_rows;
         $dataSource = "";
@@ -188,6 +317,7 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
                     $ip_disc = $row_ip['IP_ADDRESS'];
                 }
             }
+            $ip_disc = 'disces.snap4city.org';
             //
             //
             //$list['process_name_ST'] = $graph_uri;
@@ -209,6 +339,8 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
                 $list['jobGroup']        = $jobg;
                 $list['ip_disc']         = $ip_disc;
                 $list['dataSource']      = '';
+                $list['url_ownership'] = $url_ownership;
+                $list['ownership_content']=$vars;
             }
             //
             ////
@@ -221,7 +353,8 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
         mysqli_select_db($link, $dbname_processes);
         $process      = '';
         $process_list = array();
-        $query0       = "SELECT dataSource, query FROM dashboard.descriptions WHERE IdMetric='" . mysqli_real_escape_string($link, $value) . "'";
+        $query0       = "SELECT dataSource, query FROM Descriptions WHERE IdMetric='" . mysqli_real_escape_string($link, $value) . "'";
+        echo ($query0);
         $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
         $total0     = $result0->num_rows;
         $dataSource = "";
@@ -233,6 +366,7 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
                 $query_des  = $row['query'];
                 //print_r($row);
                 if (($query_des !== null) || ($query_des !== "")) {
+                    echo('NON ESISTE');
                     exit;
                 }
                 $pieces = explode("'", $query_des);
@@ -251,7 +385,6 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
                 $graph_uri0   = $av[0]->graph;
                 $graph_uri    = $graph_uri0->value;
                 print_r($json_sparql);
-                //
                 //
                 //
                 $query0 = "SELECT * FROM process_manager_graph WHERE process_manager_graph.Graph_Uri='" . $graph_uri . "' LIMIT 1";
@@ -304,6 +437,7 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
                     }
                 }
                 //
+                $ip_disc = 'disces.snap4city.org';
                 //
                 //$list['process_name_ST'] = $graph_uri;
                 if (count($process_list) > 0) {
@@ -324,6 +458,8 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
                     $list['jobGroup']        = $jobg;
                     $list['ip_disc']         = $ip_disc;
                     $list['dataSource']      = '';
+                    $list['url_ownership'] = $url_ownership;
+                    $list['ownership_content']=$vars;
                 }
                 //
                 ////
@@ -347,6 +483,8 @@ if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin
             $list['jobGroup']        = '';
             $list['ip_disc']         = '';
             $list['dataSource']      = '';
+            $list['url_ownership'] = $url_ownership;
+            $list['ownership_content']=$vars;
             echo json_encode($list);
         }
     } else {

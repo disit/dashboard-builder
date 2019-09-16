@@ -15,7 +15,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
     include('../config.php');
-    include('process-form.php');
     session_start();
     
     checkSession('Public');
@@ -226,30 +225,30 @@
             $('#iframePagemainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
         });
 
-        $('#mainMenuCnt .mainMenuLink[id=<?= escapeForJs($_REQUEST['linkId']) ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= escapeForJs($_REQUEST['linkId']) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= escapeForJs($_REQUEST['linkId']) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mainMenuCnt .mainMenuLink[id=<?= escapeForJS(sanitizeGetString('linkId')) ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= escapeForJS(sanitizeGetString('linkId')) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= escapeForJS(sanitizeGetString('linkId')) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
-        if($('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJs($_REQUEST['linkId']) ?>]').length > 0)
+        if($('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJS(sanitizeGetString('linkId')) ?>]').length > 0)
         {
-            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJs($_REQUEST['linkId']) ?>]').attr('data-fathermenuid');
+            var fatherMenuId = $('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJS(sanitizeGetString('linkId')) ?>]').attr('data-fathermenuid');
             $("#" + fatherMenuId).attr('data-submenuVisible', 'true');
             $('#mainMenuCnt a.mainMenuSubItemLink[data-fatherMenuId=' + fatherMenuId + ']').show();
             $("#" + fatherMenuId).find('.submenuIndicator').removeClass('fa-caret-down');
             $("#" + fatherMenuId).find('.submenuIndicator').addClass('fa-caret-up');
-            $('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJs($_REQUEST['linkId']) ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
+            $('div.mainMenuSubItemCnt').parents('a[id=<?= escapeForJS(sanitizeGetString('linkId')) ?>]').find('div.mainMenuSubItemCnt').addClass("subMenuItemCntActive");
         }
 
         // NEW PENTEST: mettere escapeForJS per $_REQUEST['pageTitle'] ?
-        $('#headerTitleCnt').html(decodeURI("<?= sanitizeGetString($_REQUEST['pageTitle']) ?>"));
+        $('#headerTitleCnt').html(decodeURI("<?= sanitizeGetString('pageTitle') ?>"));
         
-        if('<?= escapeForJs($_REQUEST['linkUrl'])?>' === 'myAnnotationsOnServicesAndData')
+        if('<?= escapeForJS(sanitizeGetString('linkUrl'))?>' === 'myAnnotationsOnServicesAndData')
         {
             $('#iframeApp').attr('src', '../api/personalAnnotationsSecureLoad.php');
         }
         else
         {
-            $('#iframeApp').attr('src', '<?= escapeForJs($_REQUEST['linkUrl'])?>');
+            $('#iframeApp').attr('src', '<?= escapeForJS(sanitizeGetString('linkUrl'))?>');
         }
         
         $("#link_start_wizard2").click(function()

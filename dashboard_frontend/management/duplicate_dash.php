@@ -31,6 +31,8 @@ function returnManagedStringForDb($original)
 }
 
 session_start();
+checkSession('Manager');
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
@@ -39,7 +41,7 @@ if (checkVarType($sourceDashId, "integer") === false) {
     eventLog("Returned the following ERROR in duplicate_dash.php for sourceDashId = ".$sourceDashId.": ".$sourceDashId." is not an integer as expected. Exit from script.");
     exit();
 };
-$newDashboardTitle = mysqli_real_escape_string($link, $_REQUEST['newDashboardTitle']);
+$newDashboardTitle = mysqli_real_escape_string($link, filter_input(INPUT_POST,'newDashboardTitle', FILTER_SANITIZE_STRING));
 $widgetsMap = [];
 
 $query0 = "SELECT Config_dashboard.logoFilename FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = '$sourceDashId'";
