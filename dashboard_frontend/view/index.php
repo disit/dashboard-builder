@@ -268,6 +268,20 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <!--OpenLayers -->
     <script src="ol/ol.js"></script>
     <link rel="stylesheet" href="ol/ol.css" />
+    
+<!-- Cristiano : Dynamic Routing -->
+    <!--- Leaflet.drawer plugin -->
+    <script src="../js/dynamic_routing/leaflet.draw.js"></script>
+    <script src="../js/dynamic_routing/Leaflet.draw.drag-src.js"></script>
+    <link rel="stylesheet" href="../css/dynamic_routing/leaflet.draw.css"/>
+    <!-- Leaflet Control Geocoder -->
+    <link rel="stylesheet" href="../css/dynamic_routing/Control.Geocoder.css" />
+    <script src="../js/dynamic_routing/Control.Geocoder.js"></script>
+    <!-- GH Leaflet Routing Machine plugin -->
+    <link rel="stylesheet" href="../css/dynamic_routing/leaflet-routing-machine.css" />
+  <!--  <script src="../js/dynamic_routing/leaflet-routing-machine.js"></script>    -->
+    <script src="../js/dynamic_routing/corslite.min.js"></script>
+<!-- End Cristiano -->
 
     <script type='text/javascript'>
         var array_metrics = new Array();
@@ -289,6 +303,27 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             var myGpsActive, myGpsPeriod, myGpsInterval, globalDashboardTitle = null, backOverlayOpacity = null;
             var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo escapeForJS($_REQUEST['embedPreview']);}else{echo 'false';} ?>";
             var loggedUsername = "<?php echo $_SESSION['loggedUsername']; ?>";
+
+            $.ajax({
+                url: "../controllers/dashOrganizationProxy.php",
+                data: {
+                    dashId: <?php echo $dashId ?>,
+                },
+                type: "GET",
+                async: true,
+                dataType: 'json',
+                success: function (data) {
+                    if (data.params.organizations == "Antwerp" || data.params.organizations == "Helsinki") {
+                        $('<script/>',{type:'text/javascript', src:'../js/dynamic_routing/leaflet-routing-machine-AntHel.js'}).appendTo('head');
+                    } else {
+                        $('<script/>',{type:'text/javascript', src:'../js/dynamic_routing/leaflet-routing-machine.js'}).appendTo('head');
+                    }
+                },
+                error: function (errorData) {
+                    console.log("Errore in reperimento Organizzaztion della dashboard di id = " + <?php echo $dashId ?> + "; ");
+                    console.log(JSON.stringify(errorData));
+                }
+            });
 
             $("#chatContainer").css("top", $('#dashboardViewHeaderContainer').height());
             $("#chatContainer").css("left", $(window).width() - $('#chatContainer').width());
@@ -1532,6 +1567,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 <div class="col-xs-12" id="loginFormTitle" style="margin-top: 15px">
                    Restricted access dashboard
                 </div>
+<?php /*              
                 <form id="authForm" class="form-signin" role="form" method="post" action="">
                     <div class="col-xs-12" id="loginFormBody">
                         <div class="col-xs-12 modalCell">
@@ -1555,7 +1591,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     <button type="reset" id="loginCancelBtn" class="btn cancelBtn" data-dismiss="modal">Reset</button>
                     <button type="button" id="authBtn" name="login" class="btn confirmBtn internalLink">Login</button>
                 </div>
-                </form>
+                </form>*/?>
             </div>
         </div>
     </div> 
