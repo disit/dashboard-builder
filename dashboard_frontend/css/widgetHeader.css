@@ -103,3 +103,31 @@
     background-color: #f3cf58 !important;
     cursor: pointer;
 }
+
+.timeControlsContainer
+{
+  /*  width: 80px;
+    position: absolute;*/
+    width: 10%;
+    display: inline-block;
+}
+
+.timeControlsBtnCnt
+{
+    font-size: 14px;
+    width: 50%;
+   /* text-align: center;   */
+}
+
+.timControlsPrevBtn
+{
+    float: left;
+    text-align: right;
+}
+
+.timControlsNextBtn
+{
+    float: right;
+    text-align: left;
+}
+

@@ -69,6 +69,20 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
             </div>
         </div>
 
+    <!-- Prev e Next Buttons -->
+    <div id="<?= $name_w ?>_timeControlsContainer" class="timeControlsContainer" style="display:none;">
+        <div id="<?= $name_w ?>_prevButton" class="timeControlsBtnCnt col-xs-2 timControlsPrevBtn" data-active="false" style="color:white; padding-left:5px;">
+            <div id="<?= $name_w ?>_timeTrendPrevBtn">
+                <i class="fa fa-arrow-circle-left" style="cursor:pointer;"></i>
+            </div>
+        </div>
+        <div id="<?= $name_w ?>_nextButton" class="timeControlsBtnCnt col-xs-2 timControlNextBtn" data-active="false" style="color:white;">
+            <div id="<?= $name_w ?>_timeTrendNextBtn">
+                <i class="fa fa-arrow-circle-right" style="cursor:pointer;"></i>
+            </div>
+        </div>
+    </div>
+
 	<div id="<?= $name_w ?>_buttonsDiv">
 	   <div class="singleBtnContainer"><a class="iconFullscreenModal" href="#" data-toggle="tooltip" title="Fullscreen popup"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></a></div>
 	   <div class="singleBtnContainer"><a class="iconFullscreenTab" href="#" data-toggle="tooltip" title="Fullscreen new tab"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a></div>
@@ -78,6 +92,45 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
 <script type='text/javascript'>
     $(document).ready(function()
     {
+    //    console.log("Widget Header of : " + "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>");
+
+        if ("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['type_w'])) ?>" == "widgetTimeTrend") {
+         //   var widgetHeader = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header');
+         //   var titleDiv = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv');
+         //   var newControlPrevNext = $('<div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_timeControlsContainer" class="timeControlsContainer"></div>');
+         //   var prevBtn = $('<div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton" class="timeControlsBtnCnt col-xs-2 timControlsPrevBtn" data-active="false" style="color:white; padding-left:5px;">'
+         //       +'<div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_timeTrendPrevBtn">'
+         //           +'<i class="fa fa-arrow-circle-left" style="cursor:pointer;"></i>'
+         //       +'</div></div>');
+
+        //    newControlPrevNext.append(prevBtn);
+
+         /*   var selectTimeMenu = $('<div class="custom-select" style="display: inline; width:34%;">'
+                +'<select>'+
+                +'<option value="0">Select car:</option>'
+                +'<option value="1">1 H</option>'
+                +'<option value="2">12 H</option>'
+                +'<option value="3">1 D</option>'
+                +'<option value="4">1 W</option>'
+                +'<option value="5">1 M</option>'
+                +'</select>'
+                +'</div>');
+
+            newControlPrevNext.append(selectTimeMenu);  */
+
+         //   var nextBtn = $('<div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton" class="timeControlsBtnCnt col-xs-2 timControlNextBtn" data-active="false" style="color:white;">'
+         //       +'<div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_timeTrendNextBtn">'
+         //           +'<i class="fa fa-arrow-circle-right" style="cursor:pointer;"></i>'
+         //       +'</div></div>');
+
+         //   newControlPrevNext.append(nextBtn);
+         //   titleDiv.css("width", "80%");
+         //   widgetHeader.append(newControlPrevNext);
+
+            $("#<?= $name_w ?>_timeControlsContainer").show();
+
+        }
+
         var ckEditorContent = null;
         $("#<?= $name_w ?>_titleDiv").html("<?= filter_var(html_entity_decode($_REQUEST['title_w'], ENT_QUOTES|ENT_HTML5), FILTER_SANITIZE_STRING) ?>");
         

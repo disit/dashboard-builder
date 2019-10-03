@@ -467,7 +467,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                             /*if (<?php echo!isset($_SESSION['loggedUsername']); ?>){
                                   $('#chatBtn').attr('style', 'display: float');
                                   $('#chatIframeB').attr('src', 'http:\\www.google.it');
-                            } else */if('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'!='id'){
+                            } else */if('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'=='id'){
                                 $('#chatIframeB').attr('style', 'height: 0px');
                                 $('#chatIframe').attr('src', '<?php echo $chatBaseUrl; ?>/channel/<?php echo $existChat; ?>/?layout=embedded');
                                 //
@@ -477,12 +477,12 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                                     }else{
                                 $('#chatBtnNew').attr('style', 'display: float;color:red');
                                 }
-                            }else if ('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'=='id'){
+                            }else if ('<?php echo $existChat; ?>'!='No'&&'<?php echo $idChat; ?>'!='id'){
                                   
                                 $('#chatIframeB').attr('style', 'height: 100px');
                                 $('#chatIframeB').attr('src', 'chatFrame.php?nameChat=<?php echo $existChat; ?>&idDash=<?php echo base64_decode($_REQUEST['iddasboard']); ?>&idChat=<?php echo $idChat; ?>&idUserChat=<?php echo $userId; ?>');
                                 $('#chatIframe').attr('src', '<?php echo $chatBaseUrl; ?>/channel/<?php echo $existChat; ?>/?layout=embedded');
-                                //$('#chatBtn').attr('style', 'display: float');
+                                $('#chatBtn').attr('style', 'display: float');
                                 
                                 }else if ('<?php echo $error; ?>'!='no'){
                                     console.log('Chat Error: <?php echo $error; ?>');
@@ -1796,7 +1796,7 @@ $nameDash = $row['name_dashboard'];
         $rowAcc = mysqli_fetch_array($resultAccess);
         if ($rowAcc['date'] === $currentDate) {     // CHECK ON LAST DATE
         // $dashboardWidgets = [];
-            $queryUpdate = "UPDATE Dashboard.IdDashDailyAccess SET nAccessPerDay = nAccessPerDay + 1 WHERE IdDashboard = $dashId;";
+            $queryUpdate = "UPDATE Dashboard.IdDashDailyAccess SET nAccessPerDay = nAccessPerDay + 1 WHERE IdDashboard = $dashId AND date = '$currentDate';";
             $resultUpdate = mysqli_query($link, $queryUpdate);
 
         } else {

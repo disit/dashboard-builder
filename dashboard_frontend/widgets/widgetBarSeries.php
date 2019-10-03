@@ -596,109 +596,90 @@
 
                     var tickPositions = this.xAxis[0].tickPositions;
 
-                    for (var i = 0; i < tickPositions.length; i++)
-                    {
-                        if(i < tickPositions.length - 1)
-                        {
-                            x0 = this.xAxis[0].toPixels(tickPositions[parseInt(i)]);
-                            x1 = this.xAxis[0].toPixels(tickPositions[parseInt(i+1)]);
-                            l = Math.abs(x1 - x0);
-                        }
-                        else
-                        {
-                            x0 = this.xAxis[0].toPixels(tickPositions[parseInt(i)]);
-                            x1 = x0 + l;
-                        }
+                    if(tickPositions) {
+                        for (var i = 0; i < tickPositions.length; i++) {
+                            if (i < tickPositions.length - 1) {
+                                x0 = this.xAxis[0].toPixels(tickPositions[parseInt(i)]);
+                                x1 = this.xAxis[0].toPixels(tickPositions[parseInt(i + 1)]);
+                                l = Math.abs(x1 - x0);
+                            } else {
+                                x0 = this.xAxis[0].toPixels(tickPositions[parseInt(i)]);
+                                x1 = x0 + l;
+                            }
 
-                        halfL = l / 2;
-                        margin = l * 0.1;
+                            halfL = l / 2;
+                            margin = l * 0.1;
 
-                        x0 = x0 - halfL + margin;
-                        x1 = x1 - halfL - margin;
+                            x0 = x0 - halfL + margin;
+                            x1 = x1 - halfL - margin;
 
-                        if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                        {
-                            console.log("THR: " + thresholdsJson);
-                            
-                            thresholdObject = thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries;
-                            if(thresholdObject.length > 0)
-                            {
-                                //console.log("Soglie applicabili: " + JSON.stringify(thresholdObject));
+                            if ((thresholdsJson !== null) && (thresholdsJson !== undefined) && (thresholdsJson !== 'undefined') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                console.log("THR: " + thresholdsJson);
 
-                                for(var j = 0; j < thresholdObject.length; j++)
-                                {
-                                    yVal = thresholdObject[j].max;
+                                thresholdObject = thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries;
+                                if (thresholdObject.length > 0) {
+                                    //console.log("Soglie applicabili: " + JSON.stringify(thresholdObject));
 
-                                    yPix = this.yAxis[0].toPixels(yVal);//Funziona bene: traduci così i valor reali delle soglie!!!
-                                    
-                                    this.renderer.path(['M',x0,yPix,'L',x1,yPix])
-                                    .attr({
-                                        'stroke-width': 1,
-                                        'stroke-linecap' : 'square',
-                                        'stroke-dasharray' : '6,3', 
-                                        stroke: thresholdObject[j].color,
-                                        id: 'thr' + i + j,
-                                        zIndex: 4
-                                    }).add();
+                                    for (var j = 0; j < thresholdObject.length; j++) {
+                                        yVal = thresholdObject[j].max;
 
-                                    //Calcolo empirico della larghezza di ogni label: una parola di 4 caratteri è larga 30px, quindi ogni carattere 7.5px
-                                    if(thresholdObject[j].desc !== "")
-                                    {
-                                        labelText = thresholdObject[j].desc;
+                                        yPix = this.yAxis[0].toPixels(yVal);//Funziona bene: traduci così i valor reali delle soglie!!!
+
+                                        this.renderer.path(['M', x0, yPix, 'L', x1, yPix])
+                                            .attr({
+                                                'stroke-width': 1,
+                                                'stroke-linecap': 'square',
+                                                'stroke-dasharray': '6,3',
+                                                stroke: thresholdObject[j].color,
+                                                id: 'thr' + i + j,
+                                                zIndex: 4
+                                            }).add();
+
+                                        //Calcolo empirico della larghezza di ogni label: una parola di 4 caratteri è larga 30px, quindi ogni carattere 7.5px
+                                        if (thresholdObject[j].desc !== "") {
+                                            labelText = thresholdObject[j].desc;
+                                        } else {
+                                            labelText = thresholdObject[j].max;
+                                        }
+
+                                        labelL = 7.5 * labelText.length;
+                                        halfLabelL = labelL / 2;
+
+                                        //Algoritmo empirico per il calcolo della posizione della label in base alla sua larghezza
+                                        if (labelText.length <= 4) {
+                                            labelY = yPix + labelL + 6;
+                                        } else if (labelText.length <= 6) {
+                                            labelY = yPix + labelL + 3;
+                                        } else if (labelText.length <= 7) {
+                                            labelY = yPix + labelL + 1;
+                                        } else {
+                                            labelY = yPix + labelL - 8;
+                                        }
+
+                                        labelX = x0 - 5;
+
+                                        labelObj = this.renderer.label(labelText, labelX, labelY, 'rect', labelX, labelY, false, true)
+                                            .css({
+                                                color: 'black',
+                                                fontFamily: 'Montserrat',
+                                                fontSize: 10 + "px",
+                                                fontWeight: 'bold',
+                                                fontStyle: 'italic',
+                                                "textOutline": "1px 1px contrast",
+                                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                            }).attr({
+                                                stroke: thresholdObject[j].color,
+                                                fill: thresholdObject[j].color,
+                                                zIndex: 3,
+                                                rotation: 270
+                                            }).add();
                                     }
-                                    else
-                                    {
-                                        labelText = thresholdObject[j].max;
-                                    }
-
-                                    labelL = 7.5*labelText.length;
-                                    halfLabelL = labelL / 2;
-
-                                    //Algoritmo empirico per il calcolo della posizione della label in base alla sua larghezza
-                                    if(labelText.length <= 4)
-                                    {
-                                        labelY = yPix + labelL + 6;
-                                    }
-                                    else if(labelText.length <= 6)
-                                    {
-                                        labelY = yPix + labelL + 3;
-                                    }
-                                    else if(labelText.length <= 7)
-                                    {
-                                        labelY = yPix + labelL + 1;
-                                    }
-                                    else
-                                    {
-                                        labelY = yPix + labelL - 8;
-                                    }
-
-                                    labelX = x0 - 5;
-
-                                    labelObj = this.renderer.label(labelText, labelX, labelY, 'rect', labelX, labelY, false, true)
-                                    .css({
-                                        color: 'black',
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 10 + "px",
-                                        fontWeight: 'bold',
-                                        fontStyle: 'italic',
-                                        "textOutline": "1px 1px contrast",
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                                    }).attr({
-                                        stroke: thresholdObject[j].color,
-                                        fill: thresholdObject[j].color,
-                                        zIndex: 3,
-                                        rotation: 270
-                                    }).add();
+                                } else {
+                                    //console.log("Nessuna soglia, vettore esistente ma vuoto (bug)");
                                 }
+                            } else {
+                                //console.log("Nessuna soglia, thresholdsJson nullo");
                             }
-                            else
-                            {
-                                //console.log("Nessuna soglia, vettore esistente ma vuoto (bug)");
-                            }
-                        }
-                        else
-                        {
-                            //console.log("Nessuna soglia, thresholdsJson nullo");
                         }
                     }
                     break;
@@ -1279,7 +1260,7 @@
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
-            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
+            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>No Data Available</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
     </div>	

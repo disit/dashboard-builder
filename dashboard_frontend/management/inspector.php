@@ -45,7 +45,7 @@ $lastUsedColors = json_decode($row['lastUsedColors']);
 }   */
 
 ?>
-    <!DOCTYPE HTML>
+   <!DOCTYPE HTML>
     <html>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -399,12 +399,12 @@ include "../widgets/widgetTimeTrend_1.php";
         <!-- Fine dei modali -->
         <!-- MODALE HEALTHINESS -->
         <?php
-//if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")|| ($_SESSION['loggedRole'] == "AreaManager")) {
-if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
+//if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager")) {
+    if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
     echo ('<div class="modal fade bd-example-modal-lg" id="healthiness-modal" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
                         <div class="modal-dialog modal-lg" style="background-color: rgba(108, 135, 147, 1);">
                             <div class="modal-content modal-lg" style="background-color: rgba(108, 135, 147, 1);">
-                                <div class="modal-header" style="background-color: #576c75; color: white;"><b>Data sources Details</b></div>           
+                                <div class="modal-header" style="background-color: #576c75; color: white;"><b>Data sources Details</b></div>          
                             <div role="tabpanel">
                                     <!-- Nav tabs -->
                                     <ul class="nav nav-tabs" role="tablist" style="background-color: rgba(108, 135, 147, 1);">
@@ -471,7 +471,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                         <div role="tabpanel" class="tab-pane" id="processTab">
                                                         <div class="modal-body">
                                                             <!-- data graph -->
-                                                                    <div class="input-group"><span class="input-group-addon">Process Name Static: </span><input id="processnameStatic" type="text" class="form-control" readonly/></div><br />
+                                                                    <div class="input-group etl_sensor"><span class="input-group-addon">Process Name Static: </span><input id="processnameStatic" type="text" class="form-control" readonly/></div><br />
                                                                     <div class="input-group"><span class="input-group-addon">Knowledge Base IP: </span><input id="kbIp" type="text" class="form-control" readonly/></div><br />
                                                                     <div class="input-group etl_sensor"><span class="input-group-addon">Disces IP: </span><input id="disces_ip" type="text" class="form-control" readonly/></div><br class="etl_sensor"/>
                                                                     <div class="input-group etl_sensor"><span class="input-group-addon">Disces Process file path: </span><input id="processPath" type="text" class="form-control" readonly/></div><br class="etl_sensor" />
@@ -483,7 +483,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
 
                                                                     <div>
                                                                         <span  id="kb_link" style="float: left;"></span><span id="Kbase_link" style="margin-right: 10 px;"></span>
-                                                                        <span  id="disces_link" style="float: left;"></span><span id="disces_link" style="padding-right: 10 px;"></span>
+                                                                        <span  id="disces_link" style="float: left;" class="etl_sensor"></span><span id="disces_link" style="padding-right: 10 px;"></span>
                                                                         <span  id="iotDir_link" style="float: left;"></span><span id="iotDir_link" style="padding-right: 10 px;"></span>
                                                                     </div>
                                                             <!-- -->
@@ -493,6 +493,11 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                                         <div class="modal-body">
                                                             <!-- data graph -->
                                                             <div id="inspector_image"></div>
+                                                            <form id="form_img" enctype="multipart/form-data" action="loadSensorImage.php" method="POST" accept-charset="UTF-8" target="uploadframe">
+                                                            <input id="id_row" type="text" name="id_row" hidden></input>
+                                                            <div id="upload_image">
+                                                            </div>
+                                                            </form>
                                                             <!-- -->
                                                         </div>
                                                    </div>
@@ -518,6 +523,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
     //nothing
 }
 ?>
+<iframe width="0" height="0" border="0" name="uploadframe" id="uploadframe" hidden></iframe>
             <!-- -->
             <script type='text/javascript'>
                 if ($(window).width() < 1200) {
@@ -568,6 +574,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                     var ownership = $(this).parent().parent().attr('ownership');
                     var icon = $(this).parent().parent().attr('icon');
                     var id_row = $(this).parent().parent().attr('data-rowid');
+                    var last_check = $(this).parent().parent().get(0).children[9].innerText;
                     var data_source = "";
                     //https://iot-app.snap4city.org/nodered/nrxe49k
 
@@ -579,20 +586,24 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                     $('#data_unit').val(data_unit);
                     $('#last_date').val(last_date);
                     $('#ownership').val(ownership);
+                    //$('#id_row').val(data_unique_name_id);
+                    $('#id_row').val(id_row);
                     if (data_latitude) {
                         $('#gps').val(data_latitude + ', ' + data_longitude);
                     }
                     $('#last_value').val(data_last_value);
                     $('#data-low_level_type').val(data_low_level_type);
                     $('#organization').val(data_organizations);
-                    // $('#data-get_instances').val(data_get_instances);
-                    //console.log('high_level: '+high_level);
-                    $('#healthiness-modal').modal('show');
-                    //alert(parameters);
+
                     //CONTROLLI SUL TIPO
                     $('#tab3').hide();
-                    var check_para = parameters.includes('http');
+                    //
+                    if((parameters !== null)&&(typeof parameters !== 'undefined')){
+                        if(parameters.includes('http')){
+                                var check_para = parameters.includes('http');
+                          }
                     var sm = parameters.replace('&format=json', '&format=html');
+                    }
                     //***//
                     switch (high_level) {
                         case 'Complex Event', 'wfs':
@@ -683,12 +694,13 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                         case 'Sensor':
                             $('#tab3').show();
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
-                            $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
+                            
                             if ((parameters.includes("iot")) || (name_Subnature.includes("IoT")) || (name_Nature.includes("IOT")) ){
                                 $('#data_source').val("IoT");
                                 $(".iot_sensor").show();
                                 $(".etl_sensor").hide();
-                                var iot_sensor_ip = "<?=$iot_sensor ?>";
+                                var iot_sensor_ip = "<?=$iot_sensor
+?>";
                                 var url_iot = "http://" + iot_sensor_ip + "/dashboardSmartCity/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
                                 //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
                             } else {
@@ -704,7 +716,8 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                 $('#data_source').val("IoT");
                                  $(".iot_sensor").show();
                                 $(".etl_sensor").hide();
-                                var iot_sensor_ip = "<?=$iot_sensor ?>";
+                                var iot_sensor_ip = "<?=$iot_sensor
+?>";
                                 var url_iot = "http://" + iot_sensor_ip + "/dashboardSmartCity/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
                                 //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
                             } else {
@@ -748,7 +761,8 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                             break;
                     }
                     //***//
-                    var iot_device = "<?=$iot_device ?>";
+                    var iot_device = "<?=$iot_device
+?>";
                     //
                     switch (name_Nature) {
                         case 'From Dashboard to IOT Device':
@@ -756,43 +770,49 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                             $('#iot_link').html('<a href="'+iot_device+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
-                            //$('#kb_link').html('<a href="" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
+                            $('#disces_link').empty();
+                            $(".etl_sensor").hide();
                             break;
                         case 'From IOT Device to KB':
                             //
                             $('#iot_link').html('<a href="'+iot_device+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
-                            //$('#kb_link').html('<a href="" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
-                            //
+                            $('#disces_link').empty();
+                            $(".etl_sensor").hide();
                             break;
                         case 'From Dashboard to IOT App':
                             var das = function_dashboard(parameters);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
+                            $(".etl_sensor").hide();
                             break;
                         case 'From IOT Application to Dashboard':
                             var das = function_dashboard(parameters);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
+                            $('#disces_link').empty();
                             break;
                         case 'From IOT App to Dashboard':
                             var das = function_dashboard(parameters);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
+                            $('#disces_link').empty();
                             break;
                          case 'From IOT App to IOT Device':
                             var das = function_dashboard(parameters);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="'+iot_device+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
+                            $('#disces_link').empty();
                             break;
                     }
                     //***//
-                    if ((check_para) || (high_level === 'KPI') || (high_level === 'Special Widget')) {
+                    
+                   // if ((check_para) || (high_level === 'KPI') || (high_level === 'Special Widget')) {
                         //***//
                         //***//http://
                         var url_parameters = parameters + '&healthiness=true';
-                        var role_session_active = "<?= $_SESSION['loggedRole']; ?>";
+                        var role_session_active = "<?=$_SESSION['loggedRole']; ?>";
                         $.ajax({
                             async: true,
                             type: 'POST',
@@ -804,47 +824,91 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                 service: url_parameters,
                                 value: data_unique_name_id,
                                 data_get_instances: data_get_instances,
-                                role_session_active: role_session_active
+                                role_session_active: role_session_active,
+                                id_row: id_row
                             },
                             success: function(data) {
                                 /*DECODIFICARE data.healthiness*/
-                                if ((high_level === 'Sensor')||(high_level === 'Sensor-Actuator')) {
+                                if ((high_level === 'Sensor')||(high_level === 'Sensor-Actuator')||(high_level === 'KPI')) {
                                     var json_data = JSON.stringify(data.healthiness);
                                     var value_td = "";
                                     var obj = Object.values(data);
-                                    var obj2 = Object.values(data.healthiness);
-                                    var keys2 = Object.keys(data.healthiness);
+                                    var obj2 = "";
+                                    var keys2 = "";
                                     var key3 = "";
-                                    var key4 = Object.values(data.Service.features[0]);
-                                    var key5 = (key4[2].realtimeAttributes);
-                                    if(typeof data.realtime.results !== "undefined" ){
-                                             if (typeof data.realtime.results.bindings !== "undefined") {
-                                                     key3 = Object.values(data.realtime.results.bindings);
-                                                     //
-                                                        if (key3[0][name]) {
-                                                            value_td = key3[0][name]['value'];
-                                                        } else {
-                                                            value_td = "";
-                                                        }
-                                                     //
-                                             }else{
-                                                     key3 = data.realtime.results;
-                                                     //
-                                                        if (key3[0][name]) {
-                                                            value_td = key3[0][name]['value'];
-                                                        } else {
-                                                            value_td = "";
-                                                        }
-                                                     //
-                                             }
-                                     }else{
-                                          //key3 = data.realtime.results;
-                                          key3 = "";
-                                     }
-                                     
+                                    var key4 = "";
+                                    var key5 = "";                                                                                  
+                                    var key_icon0 = JSON.stringify(data.icon);
+                                    var key_icon = key_icon0;
+                                    if (key_icon !== undefined){
+                                            var res = key_icon.replace('"', '');
+                                        }else{
+                                            var res = "";
+                                        }
+                                    var res1 = res.replace('"', '');
+                                    var key_icon = res1;
+                                        
+                                    if(key_icon.includes(".")){
+                                        $('#inspector_image').html('<img src="../img/sensorImages/'+id_row+'/'+key_icon+'" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
+                                    }else{
+                                        $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
+                                    }
+                              if(high_level !== 'KPI'){
+                                        if(data.healthiness !== null){
+                                                          obj2 = Object.values(data.healthiness);
+                                                          keys2 = Object.keys(data.healthiness);
+                                                     }
+
+                                                     if(data.Service !== null){
+                                                          key4 = Object.values(data.Service.features[0]);
+                                                          key5 = (key4[2].realtimeAttributes);
+                                                    }
+
+                                        if((data.realtime !== null)){
+                                                if(typeof data.realtime.results !== "undefined" ){
+                                                         if (typeof data.realtime.results.bindings !== "undefined") {
+                                                             if ((Object.values(data.realtime.results.bindings).length >0)&&(Object.values(data.realtime.results.bindings)!== null)){
+                                                                 key3 = Object.values(data.realtime.results.bindings);
+                                                             }else{
+                                                                 key3 = "";
+                                                             }
+                                                                 //
+                                                                    if (key3[0][name]) {
+                                                                        value_td = key3[0][name]['value'];
+                                                                    } else {
+                                                                        value_td = "";
+                                                                    }
+                                                                 //
+                                                         }else{
+                                                                 key3 = data.realtime.results;
+                                                                 //
+                                                                    if (key3[0][name]) {
+                                                                        value_td = key3[0][name]['value'];
+                                                                    } else {
+                                                                        value_td = "";
+                                                                    }
+                                                                 //
+                                                         }
+                                                     }else{
+                                                             key3 = "";
+                                                         }
+                                           }else{
+                                                //key3 = data.realtime.results;
+                                                key3 = "";
+                                           }
+                                 }else{
+                                     key3 = "";
+                                     $('#data_source').val(dataSource);
+                                    if (data.Graph_Uri === "") {
+                                        $('#tab3').hide();
+                                    } else {
+                                        $('#tab3').show();
+                                    }
+                                 }
+                                    
                                     var fromTime ='';
                                     var toTime = '';
-                                    console.log(last_date);
+
                                     if ((last_date !=="")&&(last_date !== null)&&(typeof last_date !== "undefined")){
                                         toTime =last_date.replace(" ","T");
                                         fromTime = new Date(last_date);
@@ -861,7 +925,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                 var phoenixTable = data.phoenix_table;
                                 var owner = data.owner;
                                 var licence = data.licence;
-                                var address = data.address;
+                                var address = data.webpage;
                                 var graph_uri = data.Graph_Uri;
                                 var telephone = data.telephone;
                                 var disces_ip = data.disces_ip;
@@ -869,6 +933,10 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                 var dataSource = data.dataSource;
                                 var ownership_content = data.ownership_content;
                                 //var healthiness = data.healthiness_criteria;
+                                var organization = data.organization;
+                                var device_id = data.device_id;
+                                var broker = data.broker;
+                                
                                 //var period = data.value_refresh_rate;
                                 $('#processnameStatic').val(process_name_ST);
                                 $('#processPath').val(processPath);
@@ -882,25 +950,21 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                 $('#telephone').val(telephone);
                                 $('#disces_ip').val(disces_ip);
                                 //$('#period').val(period);
-                                if (high_level === 'KPI') {
-                                    $('#data_source').val(dataSource);
-                                    if (data.Graph_Uri === "") {
-                                        $('#tab3').hide();
-                                    } else {
-                                        $('#tab3').show();
-                                    }
-                                }
                                 // $('#healthinessCriteria').val(healthiness);
-                                if((ownership_content !== "")&&(ownership_content !== null)){
-                                    $('#iotDevice').val(ownership_content.elementId);
-                                    $('#iotBroker').val(ownership_content.elementDetails.contextbroker);
-                                    $('#owner').val(ownership_content.username);
-                                }
+                                //if((ownership_content !== "")&&(ownership_content !== null)){
+                                $('#iotDevice').val(device_id);
+                                $('#iotBroker').val(broker);
+                                    //$('#owner').val(ownership_content.username);
+                                //}
                                 //
                                 var job_name = data.jobName;
                                 var job_group = data.jobGroup;
                                 var disces_ip_test = data.ip_disc;
-                                var link = 'http://' + disces_ip_test + '/sce/newJob.php?jobName=' + job_name + '&jobGroup=' + job_group;
+                                if((job_name !=="")||(job_group !=="")){
+                                        var link = 'http://' + disces_ip_test + '/sce/newJob.php?jobName=' + job_name + '&jobGroup=' + job_group;
+                                }else{
+                                        var link = 'http://' + disces_ip_test + '/sce/';
+                                }
                                 
                                 $('#job_name').val(job_name);
                                     for (var y = 0; y < obj2.length; y++) {
@@ -930,6 +994,12 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                                         
                                         $('#healthiness_table tbody').append('<tr><td>' + keys2[y] + '</td><td>' + obj2[y]['healthy'] + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>'+time_trend_link+'</td></tr>');
                                     }
+                                    //UPLOAD IMAGE//upload_image
+                                    //upload_image
+                                  if(role_session_active === 'RootAdmin'){
+                                        $('#upload_image').html('<div id="uplaod" class="input-group mb-3"><div class="input-group iot_sensor"><div class="input-group-prepend"><span class="input-group-text" id="inputGroup-sizing-default">Upload</span></div><input type="file" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="uploadField" name="uploadField"/><div class="input-group-append"><button class="btn btn-primary uploadImageClass" role="button" id="upload_command" style="margin-right: 10px;">Upload Image</button></div></div></div>');
+                                    }
+                                    ///////
                                 }
                                 
                                 //TEST//
@@ -948,17 +1018,69 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                             }
                         });
                         //
-                    } else {
-                        $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td></tr>');
-                    }
-
+                  //  } else {
+                   //     $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td></tr>');
+                   // }
+                    $('#healthiness-modal').modal('show');
                 });
 
-                $(document).on('click', '#modify_healthness', function() {
-                    alert('modify healthiness');
+                $(document).on('click','#upload_command', function(){
+                //
+                var uploadField = $('#uploadField').val();
+                //
+                var name = uploadField.split(".")[1];
+                //
+                if((name === 'jpeg') ||(name === 'jpg') ||(name === 'png')||(name === 'gif')){
+                                    
+                //var name = a.split(".")[0];
+                setTimeout( function() {
+                                        $('#healthiness-modal').modal('hide');
+                                        $('#healthiness_table tbody').empty();
+                                            $('#processnameStatic').val('');
+                                            $('#kbIp').val('');
+                                            $('#phoenixTable').val('');
+                                            $('#graph_uri').val('');
+                                            $('#mail').val('');
+                                            $('#licence').val('');
+                                            $('#owner').val('');
+                                            $('#address').val('');
+                                            $('#processPath').val('');
+                                            $('#tab5').removeClass("active");
+                                            $('#tab4').removeClass("active");
+                                            $('#tab2').removeClass("active");
+                                            $('#tab3').removeClass("active");
+                                            $('#tab1').addClass("active");
+                                            $('#imageTab').removeClass("active");
+                                            $('#ownerTab').removeClass("active");
+                                            $('#processTab').removeClass("active");
+                                            $('#browseTab').removeClass("active");
+                                            $('#uploadTab').addClass("active");
+                                            $('#disces_link').empty();
+                                            $('#kb_link').empty();
+                                            $('#sm_link').empty();
+                                            $('#disces_ip').val('');
+                                            $('#organization').val('');
+                                            $('#inspector_image').empty();
+                                            $('#upload_image').empty();
+                                            $('#ms_link').empty();
+                                            $('#iot_link').empty();
+                                            $('#pd_link').empty();
+                                            $('#job_name').empty();
+                                            $('#dash_link').empty();
+                                            $('#time_trand_link').empty();
+                                            $('#iotDevice').empty();
+                                            $('#iotBroker').empty();
+                                            $('#owner').empty();
+                                            $('#id_row').val('');
+                                            alert('Image uploaded');
+                                    }, 1000);
+                            }else{
+                               alert('Error: File is not. an Image');
+                            }
                 });
-
-                $(document).on('click', '.cancelView', function() {
+                
+                //$(document).on('click', '.cancelView', function() {
+                $('#healthiness-modal').on('hidden.bs.modal', function () {
                     $('#healthiness_table tbody').empty();
                     $('#processnameStatic').val('');
                     $('#kbIp').val('');
@@ -985,6 +1107,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                     $('#disces_ip').val('');
                     $('#organization').val('');
                     $('#inspector_image').empty();
+                    $('#upload_image').empty();
                     $('#ms_link').empty();
                     $('#iot_link').empty();
                     $('#pd_link').empty();
@@ -994,6 +1117,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                     $('#iotDevice').empty();
                     $('#iotBroker').empty();
                     $('#owner').empty();
+                    $('#id_row').val('');
                     //$('#healthinessCriteria').val('');
                 });
 
@@ -1042,7 +1166,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                     
                 });
                 
-       
+      
        function addZero(i) {
                     if (i < 10) {
                       i = "0" + i;
@@ -1050,7 +1174,7 @@ if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "Too
                     return i;
                   }
                   
-                                                   
+                                                  
        function function_dashboard(value_name) {
                       var value_name2 = value_name;
                       console.log('value_name2  '+ value_name2);

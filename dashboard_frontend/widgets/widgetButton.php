@@ -55,7 +55,9 @@
             originalHeaderFontColor, styleParameters, innerWidth, innerHeight, innerTop, innerLeft,
             outerMinDim, innerMinDim, outerBorderRadius, innerBorderRadius, widgetWidthCells, widgetHeightCells,
             minDim, minDimCells, minDimName, showHeader, buttonPercentWidth, buttonPercentHeight, target = null;
-		
+
+        console.log("Entrato in widgetButton --> " + widgetName);
+
 		$("#" + widgetName + "_countdownContainerDiv").hide();
 		
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
@@ -449,20 +451,20 @@
             });
         }
         //Fine definizioni di funzione 
-        
+
         setWidgetLayout(hostFile, "<?= $_REQUEST['name_w'] ?>", widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, hasTimer);
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
-        
+
         $("#" + widgetName + "_button").focus(function(){
            $(this).css("outline", "none");
         });
-        
+
         widgetProperties = getWidgetProperties(widgetName);
         if((widgetProperties !== null) && (widgetProperties !== 'undefined'))
         {
            widgetTargetList = JSON.parse(widgetProperties.param.parameters);
-           styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters); 
+           styleParameters = jQuery.parseJSON(widgetProperties.param.styleParameters);
            widgetWidthCells = parseInt(widgetProperties.param.size_columns);
            widgetHeightCells = parseInt(widgetProperties.param.size_rows);
            outerBorderRadius = parseInt(styleParameters.borderRadius);
@@ -477,19 +479,26 @@
                     }
                 }
            }
-           
-           populateWidget();  
+
+           if (styleParameters.shadow) {
+               if (styleParameters.shadow != "yes") {
+                   $("#<?= $_REQUEST['name_w'] ?>_buttonBefore").css("display", "none");
+                   $("#<?= $_REQUEST['name_w'] ?>_button").css("box-shadow", "none");
+                   $("#<?= $_REQUEST['name_w'] ?>_buttonAfter").css("box-shadow", "none");
+               }
+           }
+           populateWidget();
         }
-        
+
         $('#<?= $_REQUEST['name_w'] ?>_content').css('background-color', 'transparent');
         $('#<?= $_REQUEST['name_w'] ?> .pcPhoto').hide();
-        
+
         $(document).off('resizeHighchart_' + widgetName);
-        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        $(document).on('resizeHighchart_' + widgetName, function(event)
         {
             showHeader = event.showHeader;
         });
-        
+
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();
         });

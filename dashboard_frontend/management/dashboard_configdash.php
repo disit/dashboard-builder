@@ -2135,6 +2135,15 @@
                         }
                     });
                 }
+
+                function isJson(str) {
+                    try {
+                        JSON.parse(str);
+                    } catch (e) {
+                        return false;
+                    }
+                    return true;
+                }
                 
                 $(document).ready(function ()
                 { 
@@ -2162,7 +2171,7 @@
                     var choosenWidgetType = null;
                     var mainWidget, targetWidget, unit, icon, mono_multi, widgetCategory = null;
                     var dashTitleEscaped = null;
-                    
+
                     $('#dashBckCnt').css("height", ($(window).height() - $('#dashboardViewHeaderContainer').height()) + "px");
                     var changeMetricSelectedRows = {};
                     var firstRowId = null;
@@ -7407,8 +7416,7 @@
                             $('#inputTitleWidget').prop('required', true);
                             
                             //Opzioni menu aggiunta widget
-                            switch(widgetSelectElement.val())
-                            {
+                            switch(widgetSelectElement.val()) {
                                 case "widgetSpeedLimit":
                                     $("label[for='inputComuneWidget']").css("display", "");
                                     $("#bckColorLabel").html("Background color");
@@ -7445,61 +7453,58 @@
 
                                     //Parametri specifici del widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    
+
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="speedLimitEntityId" class="col-md-2 control-label">Entity ID</label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="speedLimitEntityId" class="form-control" id="speedLimitEntityId"/>');
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     newLabel = $('<label for="speedLimitAttributeName" class="col-md-2 control-label">Attribute name</label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="speedLimitAttributeName" class="form-control" id="speedLimitAttributeName"/>');
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="speedLimitUpdateTime" class="col-md-2 control-label">Update time(s)</label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="speedLimitUpdateTime" class="form-control" id="speedLimitUpdateTime" value="2"/>');
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     var currentParams = {
                                         entityId: null,
                                         attributeName: null,
                                         updateTime: 2
                                     };
-                                    
+
                                     $("#parameters").val(JSON.stringify(currentParams));
-                                    
-                                    $('#specificWidgetPropertiesDiv #speedLimitEntityId').on('input',function(e)
-                                    {
+
+                                    $('#specificWidgetPropertiesDiv #speedLimitEntityId').on('input', function (e) {
                                         currentParams.entityId = $('#specificWidgetPropertiesDiv #speedLimitEntityId').val()
                                         $("#parameters").val(JSON.stringify(currentParams));
                                     });
-                                    
-                                    $('#specificWidgetPropertiesDiv #speedLimitAttributeName').on('input',function(e)
-                                    {
+
+                                    $('#specificWidgetPropertiesDiv #speedLimitAttributeName').on('input', function (e) {
                                         currentParams.attributeName = $('#specificWidgetPropertiesDiv #speedLimitAttributeName').val()
                                         $("#parameters").val(JSON.stringify(currentParams));
                                     });
-                                    
-                                    $('#specificWidgetPropertiesDiv #speedLimitUpdateTime').on('input',function(e)
-                                    {
+
+                                    $('#specificWidgetPropertiesDiv #speedLimitUpdateTime').on('input', function (e) {
                                         currentParams.updateTime = $('#specificWidgetPropertiesDiv #speedLimitUpdateTime').val()
                                         $("#parameters").val(JSON.stringify(currentParams));
                                     });
-                                    break; 
-                                
+                                    break;
+
                                 case "widgetLightBulb":
                                     $("label[for='inputComuneWidget']").css("display", "");
                                     $("#bckColorLabel").html("Background color");
@@ -7536,7 +7541,7 @@
 
                                     //Parametri specifici del widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    
+
                                     newFormRow = $('<div class="row"></div>');
                                     newLabel = $('<label for="trafficLightEntityId" class="col-md-2 control-label">Entity ID</label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
@@ -7545,8 +7550,7 @@
                                         entityId: null
                                     };
                                     $("#parameters").val(JSON.stringify(currentParams));
-                                    newControl.on('input',function(e)
-                                    {
+                                    newControl.on('input', function (e) {
                                         currentParams.entityId = newControl.val()
                                         $("#parameters").val(JSON.stringify(currentParams));
                                     });
@@ -7554,8 +7558,8 @@
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    break; 
-                                    
+                                    break;
+
                                 case "widgetTrafficLight":
                                     $("label[for='inputComuneWidget']").css("display", "");
                                     $("#bckColorLabel").html("Background color");
@@ -7592,7 +7596,7 @@
 
                                     //Parametri specifici del widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    
+
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     newLabel = $('<label for="trafficLightEntityId" class="col-md-2 control-label">Entity ID</label>');
@@ -7601,14 +7605,14 @@
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     newLabel = $('<label for="trafficLightAttributeName" class="col-md-2 control-label">Attribute name</label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="trafficLightAttributeName" class="form-control" id="trafficLightAttributeName"/>');
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     newLabel = $('<label for="trafficLightUpdateTime" class="col-md-2 control-label">Update time(s)</label>');
@@ -7617,34 +7621,31 @@
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     var currentParams = {
                                         entityId: null,
                                         attributeName: null,
                                         updateTime: 2
                                     };
                                     $("#parameters").val(JSON.stringify(currentParams));
-                                    
-                                    $('#specificWidgetPropertiesDiv #trafficLightEntityId').on('input',function(e)
-                                    {
+
+                                    $('#specificWidgetPropertiesDiv #trafficLightEntityId').on('input', function (e) {
                                         currentParams.entityId = $('#specificWidgetPropertiesDiv #trafficLightEntityId').val();
                                         $("#parameters").val(JSON.stringify(currentParams));
                                     });
-                                    
-                                    $('#specificWidgetPropertiesDiv #trafficLightAttributeName').on('input',function(e)
-                                    {
+
+                                    $('#specificWidgetPropertiesDiv #trafficLightAttributeName').on('input', function (e) {
                                         currentParams.attributeName = $('#specificWidgetPropertiesDiv #trafficLightAttributeName').val();
                                         $("#parameters").val(JSON.stringify(currentParams));
                                     });
-                                    
-                                    $('#specificWidgetPropertiesDiv #trafficLightUpdateTime').on('input',function(e)
-                                    {
+
+                                    $('#specificWidgetPropertiesDiv #trafficLightUpdateTime').on('input', function (e) {
                                         currentParams.updateTime = $('#specificWidgetPropertiesDiv #trafficLightUpdateTime').val();
                                         $("#parameters").val(JSON.stringify(currentParams));
                                     });
-                                    break; 
-                                
-                               case "widgetServerStatus":
+                                    break;
+
+                                case "widgetServerStatus":
                                     $("label[for='inputComuneWidget']").css("display", "");
                                     $("#bckColorLabel").html("Background color");
                                     $('#link_help_modal-add-widget').css("display", "");
@@ -7681,302 +7682,317 @@
 
                                     //Parametri specifici del widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    
+
                                     addWidgetServerStatusNotificatorAndThresholdFields();
-                                    break; 
-                                
-                               case "widgetSelectorWeb":
-                                $('#inputTitleWidget').val('');
-                                $('#inputUrlWidget').val('none');
-                                $("#titleLabel").html("Title");
-                                $("#bckColorLabel").html("Background color");
-                                $('#inputFontSize').val("16");
-                                $('#inputFontSize').attr('disabled', false);
-                                $('#inputFontSize').prop('required', true);
-                                $('#inputFontColor').val("#000000");
-                                $('#inputFontColor').attr('disabled', false);
-                                $('#inputFontColor').prop('required', true);
-                                $('#widgetFontColor').css("background-color", "#000000");
-                                $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                $('#link_help_modal-add-widget').css("display", "");
-                                $('#inputFrameColorWidget').attr('disabled', false);
-                                $('#inputFrameColorWidget').val('#eeeeee');
-                                $('#inputFrameColorWidget').prop('required', false);
-                                $('#select-IntTemp-Widget').val(-1);
-                                $('#select-IntTemp-Widget').attr('disabled', true);
-                                $('#select-IntTemp-Widget').prop('required', false);
-                                $('#inputFreqWidget').attr('disabled', true);
-                                $('#inputFreqWidget').val("");
-                                $('#inputFreqWidget').prop('required', false);
-                                $('#inputHeaderFontColorWidget').attr('disabled', false);
-                                $('#inputHeaderFontColorWidget').prop('required', true);
-                                $('#inputHeaderFontColorWidget').val("#000000");
-                                $('#widgetHeaderFontColor').css("background-color", "#000000");
-                                $('#inputUdmWidget').prop("required", false);
-                                $('#inputUdmWidget').attr("disabled", true);
-                                $('#inputUdmPosition').prop("required", false);
-                                $('#inputUdmPosition').attr("disabled", true);
-                                $('#addWidgetFirstAidHospital').attr("disabled", true);
-                                $('#addWidgetFirstAidHospital').prop("required", false);
-                                $('#addWidgetFirstAidHospital').val(-1);
-                                $('#inputFirstAidRow').hide();
+                                    break;
 
-                                //Parametri specifici del widget
-                                $('#specificWidgetPropertiesDiv .row').remove();
+                                case "widgetSelectorWeb":
+                                    $('#inputTitleWidget').val('');
+                                    $('#inputUrlWidget').val('none');
+                                    $("#titleLabel").html("Title");
+                                    $("#bckColorLabel").html("Background color");
+                                    $('#inputFontSize').val("16");
+                                    $('#inputFontSize').attr('disabled', false);
+                                    $('#inputFontSize').prop('required', true);
+                                    $('#inputFontColor').val("#000000");
+                                    $('#inputFontColor').attr('disabled', false);
+                                    $('#inputFontColor').prop('required', true);
+                                    $('#widgetFontColor').css("background-color", "#000000");
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+                                    $('#link_help_modal-add-widget').css("display", "");
+                                    $('#inputFrameColorWidget').attr('disabled', false);
+                                    $('#inputFrameColorWidget').val('#eeeeee');
+                                    $('#inputFrameColorWidget').prop('required', false);
+                                    $('#select-IntTemp-Widget').val(-1);
+                                    $('#select-IntTemp-Widget').attr('disabled', true);
+                                    $('#select-IntTemp-Widget').prop('required', false);
+                                    $('#inputFreqWidget').attr('disabled', true);
+                                    $('#inputFreqWidget').val("");
+                                    $('#inputFreqWidget').prop('required', false);
+                                    $('#inputHeaderFontColorWidget').attr('disabled', false);
+                                    $('#inputHeaderFontColorWidget').prop('required', true);
+                                    $('#inputHeaderFontColorWidget').val("#000000");
+                                    $('#widgetHeaderFontColor').css("background-color", "#000000");
+                                    $('#inputUdmWidget').prop("required", false);
+                                    $('#inputUdmWidget').attr("disabled", true);
+                                    $('#inputUdmPosition').prop("required", false);
+                                    $('#inputUdmPosition').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').prop("required", false);
+                                    $('#addWidgetFirstAidHospital').val(-1);
+                                    $('#inputFirstAidRow').hide();
 
-                                //Rimozione eventuali campi del subform general per widget process
-                                removeWidgetProcessGeneralFields("addWidget");
-                                
-                                var addGisParameters = {
-                                    queries: [],
-                                    targets: []
-                                };
-                                setAddGisParameters(addGisParameters);
-                                $("#parameters").val(JSON.stringify(addGisParameters));
-                                
-                                //Target widgets geolocation
-                                newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
-                                newInnerDiv = $('<div class="col-md-4"></div>');
-                                newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
+                                    //Parametri specifici del widget
+                                    $('#specificWidgetPropertiesDiv .row').remove();
 
-                                var widgetId, widgetTitle = null;
-                                var widgetsNumber = 0;
-                                var targetsJson = [];
+                                    //Rimozione eventuali campi del subform general per widget process
+                                    removeWidgetProcessGeneralFields("addWidget");
 
-                                $("li.gs_w").each(function(){
-                                    //if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "selectorWebTarget"))
-                                  if($(this).hasAttribute("id")){
-                                    if(($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "selectorWebTarget"))||($(this).attr("id").includes("GisWFS")&&($(this).find("div.widget").attr("data-role") === "selectorWebTarget")))
-                                    {
-                                      widgetId = $(this).attr("id");
-                                      widgetTitle = $(this).find("div.titleDiv").html();
-                                      newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                      widgetsNumber++;
+                                    var addGisParameters = {
+                                        queries: [],
+                                        targets: []
+                                    };
+                                    setAddGisParameters(addGisParameters);
+                                    $("#parameters").val(JSON.stringify(addGisParameters));
+
+                                    //Target widgets geolocation
+                                    newFormRow = $('<div class="row"></div>');
+                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                    newInnerDiv = $('<div class="col-md-4"></div>');
+                                    newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
+
+                                    var widgetId, widgetTitle = null;
+                                    var widgetsNumber = 0;
+                                    var targetsJson = [];
+
+                                    $("li.gs_w").each(function () {
+                                        //if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "selectorWebTarget"))
+                                        if ($(this).hasAttribute("id")) {
+                                            if (($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "selectorWebTarget")) || ($(this).attr("id").includes("GisWFS") && ($(this).find("div.widget").attr("data-role") === "selectorWebTarget"))) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
+                                        }
+                                    });
+
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
                                     }
-                                   }
-                                });
 
-                                if(widgetsNumber > 0)
-                                {
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+
+                                    if (widgetsNumber > 0) {
+                                        $('#addGisGeolocationWidgets').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto"
+                                        });
+
+                                        $('#addGisGeolocationWidgets').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                addGisParameters.targets = [];
+                                            } else {
+                                                addGisParameters.targets = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(addGisParameters));
+                                        });
+                                    }
+
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="addGisRectDim" class="col-md-2 control-label">Rows height</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    var newControl = $('<input id="addGisRectDim" name="addGisRectDim" data-slider-ticks="[1, 2, 3, 4]" data-slider-id="addGisRectDimSlider" type="text" data-slider-min="1" data-slider-max="4" data-slider-step="1" data-slider-value="1"/>');
+                                    newInnerDiv.append(newControl);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+
+                                    $('#addGisRectDim').bootstrapSlider({
+                                        ticks_labels: ["small", "mid", "large", "fit"],
+                                        value: 4,
+                                        tooltip: 'hide',
+                                        formatter: function (value) {
+                                            switch (value) {
+                                                case 1:
+                                                    return "25px";
+                                                    break;
+
+                                                case 2:
+                                                    return "50px";
+                                                    break;
+
+                                                case 3:
+                                                    return "75px";
+                                                    break;
+
+                                                case 4:
+                                                    return "Rectangles fit widget's height";
+                                                    break;
+                                            }
+                                        }
+                                    });
+
+                                    //Colore testo quando picker attivo
+                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                    newInnerDiv = $('<div class="col-md-4"></div>');
+                                    var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
+                                    newInnerDiv.append(newColorPicker);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+
+                                    $('#addGisActiveQueriesFontColorContainer').colorpicker({
+                                        format: "rgba",
+                                        color: "#000000"
+                                    });
+
+                                    //Modalità Icon/Text
+                                  /*  newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
+                                    newSelect.append('<option value="yes">Icon Only</option>');
+                                    newSelect.append('<option value="no">Text Description</option>');
                                     newInnerDiv.append(newSelect);
-                                }
-                                else
-                                {
-                                    newInnerDiv.append("None");
-                                }
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newSelect.val(styleParameters.shadow);
+                                    $("#specificParamsM").append(newFormRow);
+                                    newLabel.show();
+                                    newInnerDiv.show();*/
 
-                                newFormRow.append(newLabel);
-                                newFormRow.append(newInnerDiv);
-                                $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    //Nuova riga
+                                    //Contenitore per tabella delle query
+                                    var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
+                                    var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selectorWeb' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Link</td><td>Color1</td><td>Color2</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                    addGisQueryTableContainer.append(addGisQueryTable);
+                                    $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
+                                    $("#addGisQueryTable i.fa-plus").click(addGisQuery);
+                                    break;
 
-                                if(widgetsNumber > 0)
-                                {
-                                    $('#addGisGeolocationWidgets').selectpicker({
-                                       actionsBox: true, 
-                                       width: "auto"
+
+                                case "widgetSelector":
+                                    $('#inputTitleWidget').val('');
+                                    $('#inputUrlWidget').val('none');
+                                    $("#titleLabel").html("Title");
+                                    $("#bckColorLabel").html("Background color");
+                                    $('#inputFontSize').val("16");
+                                    $('#inputFontSize').attr('disabled', false);
+                                    $('#inputFontSize').prop('required', true);
+                                    $('#inputFontColor').val("#000000");
+                                    $('#inputFontColor').attr('disabled', false);
+                                    $('#inputFontColor').prop('required', true);
+                                    $('#widgetFontColor').css("background-color", "#000000");
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+                                    $('#link_help_modal-add-widget').css("display", "");
+                                    $('#inputFrameColorWidget').attr('disabled', false);
+                                    $('#inputFrameColorWidget').val('#eeeeee');
+                                    $('#inputFrameColorWidget').prop('required', false);
+                                    $('#select-IntTemp-Widget').val(-1);
+                                    $('#select-IntTemp-Widget').attr('disabled', true);
+                                    $('#select-IntTemp-Widget').prop('required', false);
+                                    $('#inputFreqWidget').attr('disabled', true);
+                                    $('#inputFreqWidget').val("");
+                                    $('#inputFreqWidget').prop('required', false);
+                                    $('#inputHeaderFontColorWidget').attr('disabled', false);
+                                    $('#inputHeaderFontColorWidget').prop('required', true);
+                                    $('#inputHeaderFontColorWidget').val("#000000");
+                                    $('#widgetHeaderFontColor').css("background-color", "#000000");
+                                    $('#inputUdmWidget').prop("required", false);
+                                    $('#inputUdmWidget').attr("disabled", true);
+                                    $('#inputUdmPosition').prop("required", false);
+                                    $('#inputUdmPosition').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').prop("required", false);
+                                    $('#addWidgetFirstAidHospital').val(-1);
+                                    $('#inputFirstAidRow').hide();
+
+                                    //Parametri specifici del widget
+                                    $('#specificWidgetPropertiesDiv .row').remove();
+
+                                    //Rimozione eventuali campi del subform general per widget process
+                                    removeWidgetProcessGeneralFields("addWidget");
+
+                                    var addGisParameters = {
+                                        queries: [],
+                                        targets: []
+                                    };
+                                    setAddGisParameters(addGisParameters);
+                                    $("#parameters").val(JSON.stringify(addGisParameters));
+
+                                    //Target widgets geolocation
+                                    newFormRow = $('<div class="row"></div>');
+                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                    newInnerDiv = $('<div class="col-md-4"></div>');
+                                    newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
+
+                                    var widgetId, widgetTitle = null;
+                                    var widgetsNumber = 0;
+                                    var targetsJson = [];
+
+                                    $("li.gs_w").each(function () {
+                                        //if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "gisTarget"))
+                                        if (($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) || ($(this).attr("id").includes("GisWFS") && ($(this).find("div.widget").attr("data-role") === "gisTarget"))) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            widgetsNumber++;
+                                        }
                                     });
 
-                                    $('#addGisGeolocationWidgets').on('changed.bs.select', function (e) 
-                                    {
-                                        if($(this).val() === null)
-                                        {
-                                            addGisParameters.targets = [];
-                                        }
-                                        else
-                                        {
-                                            addGisParameters.targets = $(this).val();
-                                        }
-                                        $("#parameters").val(JSON.stringify(addGisParameters));
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
+                                    }
+
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+
+                                    if (widgetsNumber > 0) {
+                                        $('#addGisGeolocationWidgets').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto"
+                                        });
+
+                                        $('#addGisGeolocationWidgets').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                addGisParameters.targets = [];
+                                            } else {
+                                                addGisParameters.targets = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(addGisParameters));
+                                        });
+                                    }
+
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+
+                                    //Colore testo quando picker attivo
+                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                    newInnerDiv = $('<div class="col-md-4"></div>');
+                                    var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
+                                    newInnerDiv.append(newColorPicker);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+
+                                    $('#addGisActiveQueriesFontColorContainer').colorpicker({
+                                        format: "rgba",
+                                        color: "#000000"
                                     });
-                                }
-                                
-                                newFormRow = $('<div class="row"></div>');
-                                $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                newLabel = $('<label for="addGisRectDim" class="col-md-2 control-label">Rows height</label>');
-                                newInnerDiv = $('<div class="col-md-3"></div>');
-                                var newControl = $('<input id="addGisRectDim" name="addGisRectDim" data-slider-ticks="[1, 2, 3, 4]" data-slider-id="addGisRectDimSlider" type="text" data-slider-min="1" data-slider-max="4" data-slider-step="1" data-slider-value="1"/>');
-                                newInnerDiv.append(newControl);
-                                newFormRow.append(newLabel);
-                                newFormRow.append(newInnerDiv);
-                                
-                                $('#addGisRectDim').bootstrapSlider({
-                                    ticks_labels: ["small", "mid", "large", "fit"],
-                                    value: 4,
-                                    tooltip: 'hide',
-                                    formatter: function(value) {
-                                       switch(value)
-                                       {
-                                            case 1:
-                                               return "25px";
-                                               break;
-                                               
-                                            case 2:
-                                                return "50px";
-                                                break;
-                                                
-                                            case 3:
-                                                return "75px";
-                                                break;
-                                                
-                                            case 4:
-                                                return "Rectangles fit widget's height";
-                                                break;    
-                                       }
-                                    }
-                                });
-                                
-                                //Colore testo quando picker attivo
-                                newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
-                                newInnerDiv = $('<div class="col-md-4"></div>');
-                                var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
-                                newInnerDiv.append(newColorPicker);
-                                newFormRow.append(newLabel);
-                                newFormRow.append(newInnerDiv);
-                                
-                                $('#addGisActiveQueriesFontColorContainer').colorpicker({
-                                    format: "rgba",
-                                    color: "#000000"
-                                });
-                                
-                                //Nuova riga
-                                //Contenitore per tabella delle query
-                                var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selectorWeb' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Link</td><td>Color1</td><td>Color2</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
-                                addGisQueryTableContainer.append(addGisQueryTable);
-                                $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
-                                $("#addGisQueryTable i.fa-plus").click(addGisQuery);
-                                break; 
-                                
-                                
-                               case "widgetSelector":
-                                $('#inputTitleWidget').val('');
-                                $('#inputUrlWidget').val('none');
-                                $("#titleLabel").html("Title");
-                                $("#bckColorLabel").html("Background color");
-                                $('#inputFontSize').val("16");
-                                $('#inputFontSize').attr('disabled', false);
-                                $('#inputFontSize').prop('required', true);
-                                $('#inputFontColor').val("#000000");
-                                $('#inputFontColor').attr('disabled', false);
-                                $('#inputFontColor').prop('required', true);
-                                $('#widgetFontColor').css("background-color", "#000000");
-                                $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                $('#link_help_modal-add-widget').css("display", "");
-                                $('#inputFrameColorWidget').attr('disabled', false);
-                                $('#inputFrameColorWidget').val('#eeeeee');
-                                $('#inputFrameColorWidget').prop('required', false);
-                                $('#select-IntTemp-Widget').val(-1);
-                                $('#select-IntTemp-Widget').attr('disabled', true);
-                                $('#select-IntTemp-Widget').prop('required', false);
-                                $('#inputFreqWidget').attr('disabled', true);
-                                $('#inputFreqWidget').val("");
-                                $('#inputFreqWidget').prop('required', false);
-                                $('#inputHeaderFontColorWidget').attr('disabled', false);
-                                $('#inputHeaderFontColorWidget').prop('required', true);
-                                $('#inputHeaderFontColorWidget').val("#000000");
-                                $('#widgetHeaderFontColor').css("background-color", "#000000");
-                                $('#inputUdmWidget').prop("required", false);
-                                $('#inputUdmWidget').attr("disabled", true);
-                                $('#inputUdmPosition').prop("required", false);
-                                $('#inputUdmPosition').attr("disabled", true);
-                                $('#addWidgetFirstAidHospital').attr("disabled", true);
-                                $('#addWidgetFirstAidHospital').prop("required", false);
-                                $('#addWidgetFirstAidHospital').val(-1);
-                                $('#inputFirstAidRow').hide();
 
-                                //Parametri specifici del widget
-                                $('#specificWidgetPropertiesDiv .row').remove();
-
-                                //Rimozione eventuali campi del subform general per widget process
-                                removeWidgetProcessGeneralFields("addWidget");
-                                
-                                var addGisParameters = {
-                                    queries: [],
-                                    targets: []
-                                };
-                                setAddGisParameters(addGisParameters);
-                                $("#parameters").val(JSON.stringify(addGisParameters));
-                                
-                                //Target widgets geolocation
-                                newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
-                                newInnerDiv = $('<div class="col-md-4"></div>');
-                                newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
-
-                                var widgetId, widgetTitle = null;
-                                var widgetsNumber = 0;
-                                var targetsJson = [];
-
-                                $("li.gs_w").each(function(){
-                                    //if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "gisTarget"))
-                                    if(($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "gisTarget"))||($(this).attr("id").includes("GisWFS")&&($(this).find("div.widget").attr("data-role") === "gisTarget")))
-                                    {
-                                      widgetId = $(this).attr("id");
-                                      widgetTitle = $(this).find("div.titleDiv").html();
-                                      newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                      widgetsNumber++;
-                                    }
-                                });
-
-                                if(widgetsNumber > 0)
-                                {
+                                    //Modalità Icon/Text
+                                 /*   newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
+                                    newSelect.append('<option value="yes">Icon Only</option>');
+                                    newSelect.append('<option value="no">Text Description</option>');
                                     newInnerDiv.append(newSelect);
-                                }
-                                else
-                                {
-                                    newInnerDiv.append("None");
-                                }
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newSelect.val(styleParameters.shadow);
+                                    $("#specificParamsM").append(newFormRow);
+                                    newLabel.show();
+                                    newInnerDiv.show();*/
 
-                                newFormRow.append(newLabel);
-                                newFormRow.append(newInnerDiv);
-                                $("#specificWidgetPropertiesDiv").append(newFormRow);
-
-                                if(widgetsNumber > 0)
-                                {
-                                    $('#addGisGeolocationWidgets').selectpicker({
-                                       actionsBox: true, 
-                                       width: "auto"
-                                    });
-
-                                    $('#addGisGeolocationWidgets').on('changed.bs.select', function (e) 
-                                    {
-                                        if($(this).val() === null)
-                                        {
-                                            addGisParameters.targets = [];
-                                        }
-                                        else
-                                        {
-                                            addGisParameters.targets = $(this).val();
-                                        }
-                                        $("#parameters").val(JSON.stringify(addGisParameters));
-                                    });
-                                }
-                                
-                                newFormRow = $('<div class="row"></div>');
-                                $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                
-                                //Colore testo quando picker attivo
-                                newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
-                                newInnerDiv = $('<div class="col-md-4"></div>');
-                                var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
-                                newInnerDiv.append(newColorPicker);
-                                newFormRow.append(newLabel);
-                                newFormRow.append(newInnerDiv);
-                                
-                                $('#addGisActiveQueriesFontColorContainer').colorpicker({
-                                    format: "rgba",
-                                    color: "#000000"
-                                });
-                                
-                                //Nuova riga
-                                //Contenitore per tabella delle query
-                                var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
-                                addGisQueryTableContainer.append(addGisQueryTable);
-                                $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
-                                $("#addGisQueryTable i.fa-plus").click(addGisQuery);
-                                break;
+                                    //Nuova riga
+                                    //Contenitore per tabella delle query
+                                    var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
+                                    var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                    addGisQueryTableContainer.append(addGisQueryTable);
+                                    $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
+                                    $("#addGisQueryTable i.fa-plus").click(addGisQuery);
+                                    break;
 
                                 case "widgetSelectorNew":
                                     $('#inputTitleWidget').val('');
@@ -7990,7 +8006,10 @@
                                     $('#inputFontColor').attr('disabled', false);
                                     $('#inputFontColor').prop('required', true);
                                     $('#widgetFontColor').css("background-color", "#000000");
-                                    $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
                                     $('#link_help_modal-add-widget').css("display", "");
                                     $('#inputFrameColorWidget').attr('disabled', false);
                                     $('#inputFrameColorWidget').val('#eeeeee');
@@ -8048,8 +8067,7 @@
 
                                     if (widgetsNumber > 0) {
                                         newInnerDiv.append(newSelect);
-                                    }
-                                    else {
+                                    } else {
                                         newInnerDiv.append("None");
                                     }
 
@@ -8067,8 +8085,7 @@
                                         $('#addGisGeolocationWidgets').on('changed.bs.select', function (e) {
                                             if ($(this).val() === null) {
                                                 addGisParameters.targets = [];
-                                            }
-                                            else {
+                                            } else {
                                                 addGisParameters.targets = $(this).val();
                                             }
                                             $("#parameters").val(JSON.stringify(addGisParameters));
@@ -8091,6 +8108,20 @@
                                         color: "#000000"
                                     });
 
+                                    //Modalità Icon/Text
+                                 /*   newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
+                                    newSelect.append('<option value="yes">Icon Only</option>');
+                                    newSelect.append('<option value="no">Text Description</option>');
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newSelect.val(styleParameters.shadow);
+                                    $("#specificParamsM").append(newFormRow);
+                                    newLabel.show();
+                                    newInnerDiv.show();*/
+
                                     //Nuova riga
                                     //Contenitore per tabella delle query
                                     var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
@@ -8100,74 +8131,77 @@
                                     $("#addGisQueryTable i.fa-plus").click(addGisQuery);
                                     break;
 
-                               case "widgetClock":
-                                 $('#inputUrlWidget').val('none');
-                                 $("#titleLabel").html("Title");
-                                 $("#bckColorLabel").html("Background color");
-                                 $('#inputFontSize').val(16);
-                                 $('#inputFontSize').attr('disabled', false);
-                                 $('#inputFontSize').prop('required', true);
-                                 $('#inputFontColor').val("#000000");
-                                 $('#widgetFontColor').css("background-color", "#000000");
-                                 $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                 $('#link_help_modal-add-widget').css("display", "");
-                                 $('#inputFrameColorWidget').attr('disabled', false);
-                                 $('#inputFrameColorWidget').val('#eeeeee');
-                                 $('#inputFrameColorWidget').prop('required', false);
-                                 $('#select-IntTemp-Widget').attr('disabled', true);
-                                 $('#select-IntTemp-Widget').prop('required', false);
-                                 $('#inputFreqWidget').attr('disabled', true);
-                                 $('#inputFreqWidget').val('');
-                                 $('#inputFreqWidget').prop('required', false);
-                                 $('#inputHeaderFontColorWidget').attr('disabled', false);
-                                 $('#inputHeaderFontColorWidget').prop('required', true);
-                                 $('#inputHeaderFontColorWidget').val("#000000");
-                                 $('#widgetHeaderFontColor').css("background-color", "#000000");
-                                 $('#inputUdmWidget').prop("required", false);
-                                 $('#inputUdmWidget').attr("disabled", true);
-                                 $('#inputUdmPosition').prop("required", false);
-                                 $('#inputUdmPosition').attr("disabled", true);
-                                 $('#inputUdmWidget').val("");
-                                 $("#inputUdmPosition").val(-1);
-                                 $('#addWidgetFirstAidHospital').attr("disabled", true);
-                                 $('#addWidgetFirstAidHospital').prop("required", false);
-                                 $('#addWidgetFirstAidHospital').val(-1);
-                                 $('#inputFirstAidRow').hide();
+                                case "widgetClock":
+                                    $('#inputUrlWidget').val('none');
+                                    $("#titleLabel").html("Title");
+                                    $("#bckColorLabel").html("Background color");
+                                    $('#inputFontSize').val(16);
+                                    $('#inputFontSize').attr('disabled', false);
+                                    $('#inputFontSize').prop('required', true);
+                                    $('#inputFontColor').val("#000000");
+                                    $('#widgetFontColor').css("background-color", "#000000");
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+                                    $('#link_help_modal-add-widget').css("display", "");
+                                    $('#inputFrameColorWidget').attr('disabled', false);
+                                    $('#inputFrameColorWidget').val('#eeeeee');
+                                    $('#inputFrameColorWidget').prop('required', false);
+                                    $('#select-IntTemp-Widget').attr('disabled', true);
+                                    $('#select-IntTemp-Widget').prop('required', false);
+                                    $('#inputFreqWidget').attr('disabled', true);
+                                    $('#inputFreqWidget').val('');
+                                    $('#inputFreqWidget').prop('required', false);
+                                    $('#inputHeaderFontColorWidget').attr('disabled', false);
+                                    $('#inputHeaderFontColorWidget').prop('required', true);
+                                    $('#inputHeaderFontColorWidget').val("#000000");
+                                    $('#widgetHeaderFontColor').css("background-color", "#000000");
+                                    $('#inputUdmWidget').prop("required", false);
+                                    $('#inputUdmWidget').attr("disabled", true);
+                                    $('#inputUdmPosition').prop("required", false);
+                                    $('#inputUdmPosition').attr("disabled", true);
+                                    $('#inputUdmWidget').val("");
+                                    $("#inputUdmPosition").val(-1);
+                                    $('#addWidgetFirstAidHospital').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').prop("required", false);
+                                    $('#addWidgetFirstAidHospital').val(-1);
+                                    $('#inputFirstAidRow').hide();
 
-                                 //Parametri specifici del widget
-                                 $('#specificWidgetPropertiesDiv .row').remove();
+                                    //Parametri specifici del widget
+                                    $('#specificWidgetPropertiesDiv .row').remove();
 
-                                 //Rimozione eventuali campi del subform general per widget process
-                                 removeWidgetProcessGeneralFields("addWidget");
-                                 var newFormRow, newLabel, newInnerDiv, newSelect, newInput = null;
-                                 
-                                 //Nuova riga
-                                 //Clock data e clock font type
-                                 newFormRow = $('<div class="row"></div>');
-                                 newLabel = $('<label for="addWidgetClockData" class="col-md-2 control-label">Shown data</label>');
-                                 newInnerDiv = $('<div class="col-md-3"></div>');
-                                 newSelect = $('<select name="addWidgetClockData" class="form-control" id="addWidgetClockData"></select>');
-                                 newSelect.append('<option value="date">Date</option>');
-                                 newSelect.append('<option value="time">Time</option>');
-                                 newSelect.append('<option value="dateTime">Date and time</option>');
-                                 newSelect.val("dateTime");
-                                 newInnerDiv.append(newSelect);
-                                 newFormRow.append(newLabel);
-                                 newFormRow.append(newInnerDiv);
-                                 
-                                 newLabel = $('<label for="addWidgetClockFont" class="col-md-2 control-label">Font type</label>');
-                                 newInnerDiv = $('<div class="col-md-3"></div>');
-                                 newSelect = $('<select name="addWidgetClockFont" class="form-control" id="addWidgetClockFont"></select>');
-                                 newSelect.append('<option value="normal">Normal</option>');
-                                 newSelect.append('<option value="lcd">LCD like</option>');
-                                 newInnerDiv.append(newSelect);
-                                 newFormRow.append(newLabel);
-                                 newFormRow.append(newInnerDiv);
-                                 
-                                 $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                 break;
-                               
-                               case "widgetNetworkAnalysis":
+                                    //Rimozione eventuali campi del subform general per widget process
+                                    removeWidgetProcessGeneralFields("addWidget");
+                                    var newFormRow, newLabel, newInnerDiv, newSelect, newInput = null;
+
+                                    //Nuova riga
+                                    //Clock data e clock font type
+                                    newFormRow = $('<div class="row"></div>');
+                                    newLabel = $('<label for="addWidgetClockData" class="col-md-2 control-label">Shown data</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select name="addWidgetClockData" class="form-control" id="addWidgetClockData"></select>');
+                                    newSelect.append('<option value="date">Date</option>');
+                                    newSelect.append('<option value="time">Time</option>');
+                                    newSelect.append('<option value="dateTime">Date and time</option>');
+                                    newSelect.val("dateTime");
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+
+                                    newLabel = $('<label for="addWidgetClockFont" class="col-md-2 control-label">Font type</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select name="addWidgetClockFont" class="form-control" id="addWidgetClockFont"></select>');
+                                    newSelect.append('<option value="normal">Normal</option>');
+                                    newSelect.append('<option value="lcd">LCD like</option>');
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    break;
+
+                                case "widgetNetworkAnalysis":
                                     $('#inputTitleWidget').val('');
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
@@ -8207,8 +8241,9 @@
 
                                     //Visualizzazione campi specifici per questo widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
@@ -8220,53 +8255,44 @@
                                     var widgetsNumber = 0;
                                     var targetsJson = [];
 
-                                    $("li.gs_w").each(function(){
-                                       if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "map"))
-                                       {
-                                          widgetId = $(this).attr("id");
-                                          widgetTitle = $(this).find("div.titleDiv").html();
-                                          newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                          widgetsNumber++;
-                                       }
+                                    $("li.gs_w").each(function () {
+                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            widgetsNumber++;
+                                        }
                                     });
 
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newInnerDiv.append(newSelect);
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
                                     }
-                                    else
-                                    {
-                                       newInnerDiv.append("None");
-                                    }
-                                    
+
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     newLabel.show();
                                     newInnerDiv.show();
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       $('#addWidgetGeolocationWidgets').selectpicker({
-                                          actionsBox: true, 
-                                          width: "auto"
-                                       });
-                                       
-                                       $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) 
-                                       {
-                                          if($(this).val() === null)
-                                          {
-                                             targetsJson = [];
-                                          }
-                                          else
-                                          {
-                                             targetsJson = $(this).val();
-                                          }
-                                          $("#parameters").val(JSON.stringify(targetsJson));
-                                       });
+
+                                    if (widgetsNumber > 0) {
+                                        $('#addWidgetGeolocationWidgets').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto"
+                                        });
+
+                                        $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                targetsJson = [];
+                                            } else {
+                                                targetsJson = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(targetsJson));
+                                        });
                                     }
-                                    break;  
-                               
+                                    break;
+
                                 case "widgetResources":
                                     $('#inputTitleWidget').val('');
                                     $('#inputUrlWidget').val('none');
@@ -8307,8 +8333,9 @@
 
                                     //Visualizzazione campi specifici per questo widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
@@ -8320,50 +8347,41 @@
                                     var widgetsNumber = 0;
                                     var targetsJson = [];
 
-                                    $("li.gs_w").each(function(){
-                                       if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "map"))
-                                       {
-                                          widgetId = $(this).attr("id");
-                                          widgetTitle = $(this).find("div.titleDiv").html();
-                                          newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                          widgetsNumber++;
-                                       }
+                                    $("li.gs_w").each(function () {
+                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            widgetsNumber++;
+                                        }
                                     });
 
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newInnerDiv.append(newSelect);
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
                                     }
-                                    else
-                                    {
-                                       newInnerDiv.append("None");
-                                    }
-                                    
+
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     newLabel.show();
                                     newInnerDiv.show();
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       $('#addWidgetGeolocationWidgets').selectpicker({
-                                          actionsBox: true, 
-                                          width: "auto"
-                                       });
-                                       
-                                       $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) 
-                                       {
-                                          if($(this).val() === null)
-                                          {
-                                             targetsJson = [];
-                                          }
-                                          else
-                                          {
-                                             targetsJson = $(this).val();
-                                          }
-                                          $("#parameters").val(JSON.stringify(targetsJson));
-                                       });
+
+                                    if (widgetsNumber > 0) {
+                                        $('#addWidgetGeolocationWidgets').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto"
+                                        });
+
+                                        $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                targetsJson = [];
+                                            } else {
+                                                targetsJson = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(targetsJson));
+                                        });
                                     }
                                     break;
 
@@ -8432,8 +8450,7 @@
 
                                     if (widgetsNumber > 0) {
                                         newInnerDiv.append(newSelect);
-                                    }
-                                    else {
+                                    } else {
                                         newInnerDiv.append("None");
                                     }
 
@@ -8453,16 +8470,15 @@
                                         $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) {
                                             if ($(this).val() === null) {
                                                 targetsJson = [];
-                                            }
-                                            else {
+                                            } else {
                                                 targetsJson = $(this).val();
                                             }
                                             $("#parameters").val(JSON.stringify(targetsJson));
                                         });
                                     }
                                     break;
-                                
-                                 case "widgetEvacuationPlans":
+
+                                case "widgetEvacuationPlans":
                                     $('#inputTitleWidget').val('');
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
@@ -8502,95 +8518,86 @@
 
                                     //Visualizzazione campi specifici per questo widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
-                                    
+
                                     var widgetId, widgetTitle = null;
                                     var widgetsNumber = 0;
                                     //JSON degli eventi da mostrare su ogni widget target di questo widget events: privo di eventi all'inizio
                                     var targetEventsJson = {};
-                                    
-                                    $("li.gs_w").each(function()
-                                    {
-                                       if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "map"))
-                                       {
-                                          widgetId = $(this).attr("id");
-                                          widgetTitle = $(this).find("div.titleDiv").html();
-                                          newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                          targetEventsJson[widgetId] = new Array(); 
-                                          widgetsNumber++;
-                                       }
+
+                                    $("li.gs_w").each(function () {
+                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            targetEventsJson[widgetId] = new Array();
+                                            widgetsNumber++;
+                                        }
                                     });
-                                    
+
                                     $("#parameters").val(JSON.stringify(targetEventsJson));
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newInnerDiv.append(newSelect);
+
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
                                     }
-                                    else
-                                    {
-                                       newInnerDiv.append("None");
-                                    }
-                                    
+
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     newLabel.show();
                                     newInnerDiv.show();
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newSelect.show();
-                                       newSelect.val(-1);
-                                       newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
-                                       newInnerDiv = $('<div class="col-md-3"></div>');
-                                       var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
-                                       
-                                       eventTypeSelect.append('<option value="approved">Approved</option>');
-                                       eventTypeSelect.append('<option value="closed">Closed</option>');
-                                       eventTypeSelect.append('<option value="in_progress">In progress</option>');
-                                       eventTypeSelect.append('<option value="proposed">Proposed</option>');
-                                       eventTypeSelect.append('<option value="rejected">Rejected</option>');
-                                       
-                                       eventTypeSelect.val(-1);
-                                       newFormRow.append(newLabel);
-                                       newInnerDiv.append(eventTypeSelect);
-                                       newFormRow.append(newInnerDiv);
-                                       newLabel.hide();
-                                       newInnerDiv.hide();
-                                       
-                                       $('#addWidgetEventTypes').selectpicker({
-                                          actionsBox: true, 
-                                          width: "auto"
-                                       });
-                                       
-                                       $('#addWidgetEventTypes').on('changed.bs.select', function (e) 
-                                       {
-                                          if($(this).val() === null)
-                                          {
-                                             targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
-                                          }
-                                          else
-                                          {
-                                             targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
-                                          }
-                                          $("#parameters").val(JSON.stringify(targetEventsJson));
-                                       });
-                                       
-                                       $("#addWidgetGeolocationWidgets").change(function(){
-                                          newLabel.show();
-                                          newInnerDiv.show();
-                                          $('#addWidgetEventTypes').selectpicker('val', targetEventsJson[$("#addWidgetGeolocationWidgets").val()]);
-                                       });
+
+                                    if (widgetsNumber > 0) {
+                                        newSelect.show();
+                                        newSelect.val(-1);
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
+
+                                        eventTypeSelect.append('<option value="approved">Approved</option>');
+                                        eventTypeSelect.append('<option value="closed">Closed</option>');
+                                        eventTypeSelect.append('<option value="in_progress">In progress</option>');
+                                        eventTypeSelect.append('<option value="proposed">Proposed</option>');
+                                        eventTypeSelect.append('<option value="rejected">Rejected</option>');
+
+                                        eventTypeSelect.val(-1);
+                                        newFormRow.append(newLabel);
+                                        newInnerDiv.append(eventTypeSelect);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.hide();
+                                        newInnerDiv.hide();
+
+                                        $('#addWidgetEventTypes').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto"
+                                        });
+
+                                        $('#addWidgetEventTypes').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
+                                            } else {
+                                                targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(targetEventsJson));
+                                        });
+
+                                        $("#addWidgetGeolocationWidgets").change(function () {
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            $('#addWidgetEventTypes').selectpicker('val', targetEventsJson[$("#addWidgetGeolocationWidgets").val()]);
+                                        });
                                     }
                                     break;
 
@@ -8665,8 +8672,7 @@
 
                                     if (widgetsNumber > 0) {
                                         newInnerDiv.append(newSelect);
-                                    }
-                                    else {
+                                    } else {
                                         newInnerDiv.append("None");
                                     }
 
@@ -8705,8 +8711,7 @@
                                         $('#addWidgetEventTypes').on('changed.bs.select', function (e) {
                                             if ($(this).val() === null) {
                                                 targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
-                                            }
-                                            else {
+                                            } else {
                                                 targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
                                             }
                                             $("#parameters").val(JSON.stringify(targetEventsJson));
@@ -8720,7 +8725,7 @@
                                     }
                                     break;
 
-				case "widgetOperatorEventsList":
+                                case "widgetOperatorEventsList":
                                     $('#inputTitleWidget').val('');
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
@@ -8760,114 +8765,96 @@
 
                                     //Visualizzazione campi specifici per questo widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-3 control-label">Available geolocation widgets</label>');
                                     newInnerDiv = $('<div class="col-md-5"></div>');
                                     newSelect = $('<select class="selectpicker form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets" multiple></select>');
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="addWidgetPanToWidgets" class="col-md-3 control-label">Available autopan widgets</label>');
                                     var newInnerDiv2 = $('<div class="col-md-5"></div>');
                                     var newSelect2 = $('<select class="selectpicker form-control" id="addWidgetPanToWidgets" name="addWidgetPanToWidgets" multiple></select>');
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv2);
-                                    
+
                                     var widgetId, widgetTitle = null;
                                     var widgetsNumber = 0, panToWidgetsNumber = 0;
                                     var operatorEventsParameters = {
                                         targetEventsJson: [],
                                         targetPanToJson: []
                                     };
-                                    
-                                    $("li.gs_w").each(function()
-                                    {
-                                       if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "map"))
-                                       {
-                                          widgetId = $(this).attr("id");
-                                          widgetTitle = $(this).find("div.titleDiv").html();
-                                          newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                          widgetsNumber++;
-                                       }
-                                       
-                                       if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") !== "link")&&($(this).find("div.widget").attr("data-role") !== "selectorWebTarget"))
-                                       {
-                                          widgetId = $(this).attr("id");
-                                          widgetTitle = $(this).find("div.titleDiv").html();
-                                          newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                          panToWidgetsNumber++;
-                                       }
+
+                                    $("li.gs_w").each(function () {
+                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            widgetsNumber++;
+                                        }
+
+                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") !== "link") && ($(this).find("div.widget").attr("data-role") !== "selectorWebTarget")) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            panToWidgetsNumber++;
+                                        }
                                     });
-                                    
+
                                     $("#parameters").val(JSON.stringify(operatorEventsParameters));
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newInnerDiv.append(newSelect);
+
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
                                     }
-                                    else
-                                    {
-                                       newInnerDiv.append("None");
+
+                                    if (panToWidgetsNumber > 0) {
+                                        newInnerDiv2.append(newSelect2);
+                                    } else {
+                                        newInnerDiv2.append("None");
                                     }
-                                    
-                                    if(panToWidgetsNumber > 0)
-                                    {
-                                       newInnerDiv2.append(newSelect2);
-                                    }
-                                    else
-                                    {
-                                       newInnerDiv2.append("None");
-                                    }
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
+
+                                    if (widgetsNumber > 0) {
                                         $('#addWidgetGeolocationWidgets').selectpicker({
-                                          actionsBox: true, 
-                                          width: "auto"
+                                            actionsBox: true,
+                                            width: "auto"
                                         });
-									   
-                                       $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) 
-                                       {
-                                          if($(this).val() === null)
-                                          {
-                                             operatorEventsParameters.targetEventsJson = [];
-                                          }
-                                          else
-                                          {
-                                             operatorEventsParameters.targetEventsJson = $(this).val();
-                                          }
-                                          $("#parameters").val(JSON.stringify(operatorEventsParameters));
-                                       });
+
+                                        $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                operatorEventsParameters.targetEventsJson = [];
+                                            } else {
+                                                operatorEventsParameters.targetEventsJson = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(operatorEventsParameters));
+                                        });
                                     }
-                                    
-                                    if(panToWidgetsNumber > 0)
-                                    {
+
+                                    if (panToWidgetsNumber > 0) {
                                         $('#addWidgetPanToWidgets').selectpicker({
-                                          actionsBox: true, 
-                                          width: "auto"
+                                            actionsBox: true,
+                                            width: "auto"
                                         });
-									   
-                                       $('#addWidgetPanToWidgets').on('changed.bs.select', function (e) 
-                                       {
-                                          if($(this).val() === null)
-                                          {
-                                             operatorEventsParameters.targetPanToJson = [];
-                                          }
-                                          else
-                                          {
-                                             operatorEventsParameters.targetPanToJson = $(this).val();
-                                          }
-                                          $("#parameters").val(JSON.stringify(operatorEventsParameters));
-                                       });
+
+                                        $('#addWidgetPanToWidgets').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                operatorEventsParameters.targetPanToJson = [];
+                                            } else {
+                                                operatorEventsParameters.targetPanToJson = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(operatorEventsParameters));
+                                        });
                                     }
                                     break;
 
@@ -8961,15 +8948,13 @@
 
                                     if (widgetsNumber > 0) {
                                         newInnerDiv.append(newSelect);
-                                    }
-                                    else {
+                                    } else {
                                         newInnerDiv.append("None");
                                     }
 
                                     if (panToWidgetsNumber > 0) {
                                         newInnerDiv2.append(newSelect2);
-                                    }
-                                    else {
+                                    } else {
                                         newInnerDiv2.append("None");
                                     }
 
@@ -8983,8 +8968,7 @@
                                         $('#addWidgetGeolocationWidgets').on('changed.bs.select', function (e) {
                                             if ($(this).val() === null) {
                                                 operatorEventsParameters.targetEventsJson = [];
-                                            }
-                                            else {
+                                            } else {
                                                 operatorEventsParameters.targetEventsJson = $(this).val();
                                             }
                                             $("#parameters").val(JSON.stringify(operatorEventsParameters));
@@ -9001,16 +8985,15 @@
                                         $('#addWidgetPanToWidgets').on('changed.bs.select', function (e) {
                                             if ($(this).val() === null) {
                                                 operatorEventsParameters.targetPanToJson = [];
-                                            }
-                                            else {
+                                            } else {
                                                 operatorEventsParameters.targetPanToJson = $(this).val();
                                             }
                                             $("#parameters").val(JSON.stringify(operatorEventsParameters));
                                         });
                                     }
                                     break;
-                               
-                                 case "widgetAlarms":
+
+                                case "widgetAlarms":
                                     $('#inputTitleWidget').val('');
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
@@ -9050,93 +9033,83 @@
 
                                     //Visualizzazione campi specifici per questo widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
-                                    
+
                                     var widgetId, widgetTitle = null;
                                     var widgetsNumber = 0;
                                     //JSON degli eventi da mostrare su ogni widget target di questo widget events: privo di eventi all'inizio
                                     var targetEventsJson = {};
-                                    
-                                    $("li.gs_w").each(function()
-                                    {
-                                       if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "map"))
-                                       {
-                                          widgetId = $(this).attr("id");
-                                          widgetTitle = $(this).find("div.titleDiv").html();
-                                          newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                          targetEventsJson[widgetId] = new Array(); 
-                                          widgetsNumber++;
-                                       }
+
+                                    $("li.gs_w").each(function () {
+                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            targetEventsJson[widgetId] = new Array();
+                                            widgetsNumber++;
+                                        }
                                     });
-                                    
+
                                     $("#parameters").val(JSON.stringify(targetEventsJson));
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newInnerDiv.append(newSelect);
+
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
                                     }
-                                    else
-                                    {
-                                       newInnerDiv.append("None");
-                                    }
-                                    
+
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     newLabel.show();
                                     newInnerDiv.show();
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newSelect.show();
-                                       newSelect.val(-1);
-                                       newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
-                                       newInnerDiv = $('<div class="col-md-3"></div>');
-                                       var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
-                                       for(var key in alarmTypes)
-                                       {
-                                          eventTypeSelect.append('<option value="' + key + '">' + alarmTypes[key].desc + '</option>');
-                                       }
-                                       
-                                       eventTypeSelect.val(-1);
-                                       newFormRow.append(newLabel);
-                                       newInnerDiv.append(eventTypeSelect);
-                                       newFormRow.append(newInnerDiv);
-                                       newLabel.hide();
-                                       newInnerDiv.hide();
-                                       
-                                       $('#addWidgetEventTypes').selectpicker({
-                                          actionsBox: true, 
-                                          width: "auto"
-                                       });
-                                       
-                                       $('#addWidgetEventTypes').on('changed.bs.select', function (e) 
-                                       {
-                                          if($(this).val() === null)
-                                          {
-                                             targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
-                                          }
-                                          else
-                                          {
-                                             targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
-                                          }
-                                          $("#parameters").val(JSON.stringify(targetEventsJson));
-                                       });
-                                       
-                                       $("#addWidgetGeolocationWidgets").change(function(){
-                                          newLabel.show();
-                                          newInnerDiv.show();
-                                          $('#addWidgetEventTypes').selectpicker('val', targetEventsJson[$("#addWidgetGeolocationWidgets").val()]);
-                                       });
+
+                                    if (widgetsNumber > 0) {
+                                        newSelect.show();
+                                        newSelect.val(-1);
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
+                                        for (var key in alarmTypes) {
+                                            eventTypeSelect.append('<option value="' + key + '">' + alarmTypes[key].desc + '</option>');
+                                        }
+
+                                        eventTypeSelect.val(-1);
+                                        newFormRow.append(newLabel);
+                                        newInnerDiv.append(eventTypeSelect);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.hide();
+                                        newInnerDiv.hide();
+
+                                        $('#addWidgetEventTypes').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto"
+                                        });
+
+                                        $('#addWidgetEventTypes').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
+                                            } else {
+                                                targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(targetEventsJson));
+                                        });
+
+                                        $("#addWidgetGeolocationWidgets").change(function () {
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            $('#addWidgetEventTypes').selectpicker('val', targetEventsJson[$("#addWidgetGeolocationWidgets").val()]);
+                                        });
                                     }
                                     break;
 
@@ -9211,8 +9184,7 @@
 
                                     if (widgetsNumber > 0) {
                                         newInnerDiv.append(newSelect);
-                                    }
-                                    else {
+                                    } else {
                                         newInnerDiv.append("None");
                                     }
 
@@ -9248,8 +9220,7 @@
                                         $('#addWidgetEventTypes').on('changed.bs.select', function (e) {
                                             if ($(this).val() === null) {
                                                 targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
-                                            }
-                                            else {
+                                            } else {
                                                 targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
                                             }
                                             $("#parameters").val(JSON.stringify(targetEventsJson));
@@ -9262,8 +9233,8 @@
                                         });
                                     }
                                     break;
-                               
-                                 case "widgetTrafficEvents":
+
+                                case "widgetTrafficEvents":
                                     $('#inputTitleWidget').val('');
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').attr('disabled', true);
@@ -9303,12 +9274,13 @@
 
                                     //Visualizzazione campi specifici per questo widget
                                     $('#specificWidgetPropertiesDiv .row').remove();
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="addWidgetDefaultCategory" class="col-md-2 control-label">Default category</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetDefaultCategory" name="addWidgetDefaultCategory"></select>');
@@ -9321,93 +9293,82 @@
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    
+
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
-                                    
+
                                     var widgetId, widgetTitle = null;
                                     var widgetsNumber = 0;
                                     //JSON degli eventi da mostrare su ogni widget target di questo widget events: privo di eventi all'inizio
                                     var targetEventsJson = {};
-                                    
-                                    $("li.gs_w").each(function()
-                                    {
-                                       if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "map"))
-                                       {
-                                          widgetId = $(this).attr("id");
-                                          widgetTitle = $(this).find("div.titleDiv").html();
-                                          newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                          targetEventsJson[widgetId] = new Array(); 
-                                          widgetsNumber++;
-                                       }
+
+                                    $("li.gs_w").each(function () {
+                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                            widgetId = $(this).attr("id");
+                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                            targetEventsJson[widgetId] = new Array();
+                                            widgetsNumber++;
+                                        }
                                     });
-                                    
+
                                     $("#parameters").val(JSON.stringify(targetEventsJson));
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newInnerDiv.append(newSelect);
+
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
                                     }
-                                    else
-                                    {
-                                       newInnerDiv.append("None");
-                                    }
-                                    
+
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     newLabel.show();
                                     newInnerDiv.show();
-                                    
-                                    if(widgetsNumber > 0)
-                                    {
-                                       newSelect.show();
-                                       newSelect.val(-1);
-                                       newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
-                                       newInnerDiv = $('<div class="col-md-3"></div>');
-                                       var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
-                                       var eventTypeNum = null;
-                                       for(var key in trafficEventTypes)
-                                       {
-                                          eventTypeNum = key.replace("type", "");
-                                          eventTypeSelect.append('<option value="' + eventTypeNum + '">' + trafficEventTypes[key].desc + '</option>');
-                                       }
-                                       eventTypeSelect.val(-1);
-                                       newFormRow.append(newLabel);
-                                       newInnerDiv.append(eventTypeSelect);
-                                       newFormRow.append(newInnerDiv);
-                                       newLabel.hide();
-                                       newInnerDiv.hide();
-                                       
-                                       $('#addWidgetEventTypes').selectpicker({
-                                          actionsBox: true, 
-                                          width: "auto"
-                                       });
-                                       
-                                       $('#addWidgetEventTypes').on('changed.bs.select', function (e) 
-                                       {
-                                          if($(this).val() === null)
-                                          {
-                                             targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
-                                          }
-                                          else
-                                          {
-                                             targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
-                                          }
-                                          $("#parameters").val(JSON.stringify(targetEventsJson));
-                                       });
-                                       
-                                       $("#addWidgetGeolocationWidgets").change(function(){
-                                          newLabel.show();
-                                          newInnerDiv.show();
-                                          $('#addWidgetEventTypes').selectpicker('val', targetEventsJson[$("#addWidgetGeolocationWidgets").val()]);
-                                       });
+
+                                    if (widgetsNumber > 0) {
+                                        newSelect.show();
+                                        newSelect.val(-1);
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
+                                        var eventTypeNum = null;
+                                        for (var key in trafficEventTypes) {
+                                            eventTypeNum = key.replace("type", "");
+                                            eventTypeSelect.append('<option value="' + eventTypeNum + '">' + trafficEventTypes[key].desc + '</option>');
+                                        }
+                                        eventTypeSelect.val(-1);
+                                        newFormRow.append(newLabel);
+                                        newInnerDiv.append(eventTypeSelect);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.hide();
+                                        newInnerDiv.hide();
+
+                                        $('#addWidgetEventTypes').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto"
+                                        });
+
+                                        $('#addWidgetEventTypes').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
+                                            } else {
+                                                targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(targetEventsJson));
+                                        });
+
+                                        $("#addWidgetGeolocationWidgets").change(function () {
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            $('#addWidgetEventTypes').selectpicker('val', targetEventsJson[$("#addWidgetGeolocationWidgets").val()]);
+                                        });
                                     }
                                     break;
 
@@ -9499,8 +9460,7 @@
 
                                     if (widgetsNumber > 0) {
                                         newInnerDiv.append(newSelect);
-                                    }
-                                    else {
+                                    } else {
                                         newInnerDiv.append("None");
                                     }
 
@@ -9537,8 +9497,7 @@
                                         $('#addWidgetEventTypes').on('changed.bs.select', function (e) {
                                             if ($(this).val() === null) {
                                                 targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = [];
-                                            }
-                                            else {
+                                            } else {
                                                 targetEventsJson[$("#addWidgetGeolocationWidgets").val()] = $(this).val();
                                             }
                                             $("#parameters").val(JSON.stringify(targetEventsJson));
@@ -9551,12 +9510,12 @@
                                         });
                                     }
                                     break;
-      
-                                 case "widgetFirstAid":
+
+                                case "widgetFirstAid":
                                     var currentParams, i, k, currentFieldIndex, currentSeriesIndex = null;
                                     var thrTables1 = new Array();
                                     var thrTables2 = new Array();
-                                    
+
                                     $("#titleLabel").html("Title");
                                     $("#bckColorLabel").html("Background color");
                                     $('#inputFontSize').val("10");
@@ -9564,7 +9523,10 @@
                                     $('#inputFontSize').prop('required', true);
                                     $('#inputFontColor').val("#000000");
                                     $('#widgetFontColor').css("background-color", "#000000");
-                                    $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
                                     $('#link_help_modal-add-widget').css("display", "");
                                     $('#inputUdmWidget').attr('disabled', false);
                                     $('#inputFrameColorWidget').attr('disabled', false);
@@ -9587,18 +9549,19 @@
                                     $('#addWidgetFirstAidHospital').attr("disabled", false);
                                     $('#addWidgetFirstAidHospital').prop("required", true);
                                     $('#addWidgetFirstAidHospital').val(-1);
-                                    
+
                                     //Proprietà specifiche del widget
                                     //RIMOZIONE CAMPI PER TUTTI GLI ALTRI WIDGET
                                     $('#specificWidgetPropertiesDiv .row').remove();
 
                                     //Visualizzazione campi specifici per questo widget
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     newLabel = $('<label for="addWidgetFirstAidMode" class="col-md-2 control-label">Visualization mode</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetFirstAidMode" name="addWidgetFirstAidMode" required></select>');
@@ -9612,117 +9575,112 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     var hospitalSelect = '<label for="addWidgetFirstAidHospital" class="col-md-2 control-label">First aid</label>' +
-                                    '<div class="col-md-3">' +
+                                        '<div class="col-md-3">' +
                                         '<div class="input-group">' +
-                                            '<select name="addWidgetFirstAidHospital" class="form-control" id="addWidgetFirstAidHospital">' + 
-                                            '</select>' +
+                                        '<select name="addWidgetFirstAidHospital" class="form-control" id="addWidgetFirstAidHospital">' +
+                                        '</select>' +
                                         '</div>' +
-                                    '</div>';
-                            
+                                        '</div>';
+
                                     var multipleHospitalSelect = '<label for="addWidgetFirstAidHospitals" class="col-md-2 control-label">First aids</label>' +
-                                            '<div class="col-md-3">' +
-                                                '<div class="input-group">' +
-                                                    '<select name="addWidgetFirstAidHospitals" class="form-control" id="addWidgetFirstAidHospitals" multiple>' + 
-                                                    '</select>' +
-                                                '</div>' +
-                                            '</div>';
-                                    
+                                        '<div class="col-md-3">' +
+                                        '<div class="input-group">' +
+                                        '<select name="addWidgetFirstAidHospitals" class="form-control" id="addWidgetFirstAidHospitals" multiple>' +
+                                        '</select>' +
+                                        '</div>' +
+                                        '</div>';
+
                                     newFormRow.append(hospitalSelect);
                                     $('label[for=addWidgetFirstAidHospital]').show();
                                     $('#addWidgetFirstAidHospital').parent().parent().show();
-                                    
+
                                     newFormRow.append(multipleHospitalSelect);
                                     $('label[for=addWidgetFirstAidHospitals]').hide();
                                     $('#addWidgetFirstAidHospitals').parent().parent().hide();
-                                    
-                                    var hospitalName, hospitalUrl = null;
-                                    
-                                    for(var i = 0; i < hospitalList.Services.features.length; i++)
-                                    {
-                                       hospitalName = hospitalList.Services.features[i].properties.name;
-                                       hospitalUrl = hospitalList.Services.features[i].properties.serviceUri;
-                                       
-                                       hospitalName = hospitalName.replace("PRONTO SOCCORSO", "PS");
-                                       hospitalName = hospitalName.replace("PRIMO INTERVENTO", "PI");
-                                       hospitalName = hospitalName.replace("AZIENDA OSPEDALIERA", "AO");
-                                       hospitalName = hospitalName.replace("PRESIDIO OSPEDALIERO", "PO");
-                                       hospitalName = hospitalName.replace("ISTITUTO DI PUBBLICA ASSISTENZA", "IPA");
-                                       hospitalName = hospitalName.replace("ASSOCIAZIONE DI PUBBLICA ASSISTENZA", "APA");
-                                       hospitalName = hospitalName.replace("OSPEDALE DI", "");
-                                       hospitalName = hospitalName.replace("OSPEDALE DEL", "");
-                                       hospitalName = hospitalName.replace("OSPEDALE DELL'", "");
-                                       hospitalName = hospitalName.replace("OSPEDALE DELLA", "");
-                                       hospitalName = hospitalName.replace("DELL'OSPEDALE", "");
-                                       hospitalName = hospitalName.replace("OSPEDALE", "");
-                                       hospitalName = hospitalName.replace("ITALIANA", "");
 
-                                       if($("#addWidgetFirstAidHospital").find('option[value="' + hospitalUrl + '"]').length <= 0)
-                                       {
-                                          $("#addWidgetFirstAidHospital").append('<option value="' + hospitalUrl + '">' + hospitalName + '</option>');
-                                       }
-                                       
-                                       if($("#addWidgetFirstAidHospitals").find('option[value="' + hospitalUrl + '"]').length <= 0)
-                                       {
-                                          $("#addWidgetFirstAidHospitals").append('<option value="' + hospitalUrl + '">' + hospitalName + '</option>');
-                                       }
+                                    var hospitalName, hospitalUrl = null;
+
+                                    for (var i = 0; i < hospitalList.Services.features.length; i++) {
+                                        hospitalName = hospitalList.Services.features[i].properties.name;
+                                        hospitalUrl = hospitalList.Services.features[i].properties.serviceUri;
+
+                                        hospitalName = hospitalName.replace("PRONTO SOCCORSO", "PS");
+                                        hospitalName = hospitalName.replace("PRIMO INTERVENTO", "PI");
+                                        hospitalName = hospitalName.replace("AZIENDA OSPEDALIERA", "AO");
+                                        hospitalName = hospitalName.replace("PRESIDIO OSPEDALIERO", "PO");
+                                        hospitalName = hospitalName.replace("ISTITUTO DI PUBBLICA ASSISTENZA", "IPA");
+                                        hospitalName = hospitalName.replace("ASSOCIAZIONE DI PUBBLICA ASSISTENZA", "APA");
+                                        hospitalName = hospitalName.replace("OSPEDALE DI", "");
+                                        hospitalName = hospitalName.replace("OSPEDALE DEL", "");
+                                        hospitalName = hospitalName.replace("OSPEDALE DELL'", "");
+                                        hospitalName = hospitalName.replace("OSPEDALE DELLA", "");
+                                        hospitalName = hospitalName.replace("DELL'OSPEDALE", "");
+                                        hospitalName = hospitalName.replace("OSPEDALE", "");
+                                        hospitalName = hospitalName.replace("ITALIANA", "");
+
+                                        if ($("#addWidgetFirstAidHospital").find('option[value="' + hospitalUrl + '"]').length <= 0) {
+                                            $("#addWidgetFirstAidHospital").append('<option value="' + hospitalUrl + '">' + hospitalName + '</option>');
+                                        }
+
+                                        if ($("#addWidgetFirstAidHospitals").find('option[value="' + hospitalUrl + '"]').length <= 0) {
+                                            $("#addWidgetFirstAidHospitals").append('<option value="' + hospitalUrl + '">' + hospitalName + '</option>');
+                                        }
                                     }
 
                                     $("#serviceUri").val($("#addWidgetFirstAidHospital").val());
-                                    
-                                    var series = {  
-                                       "firstAxis":{  
-                                          "desc":"Priority",
-                                          "labels":[  
-                                             "Red code",
-                                             "Yellow code",
-                                             "Green code",
-                                             "Blue code",
-                                             "White code"
-                                          ]
-                                       },
-                                       "secondAxis":{  
-                                          "desc":"Status",
-                                          "labels":[  
-                                             "Totals"
-                                          ],
-                                          "series":[]
-                                       }
+
+                                    var series = {
+                                        "firstAxis": {
+                                            "desc": "Priority",
+                                            "labels": [
+                                                "Red code",
+                                                "Yellow code",
+                                                "Green code",
+                                                "Blue code",
+                                                "White code"
+                                            ]
+                                        },
+                                        "secondAxis": {
+                                            "desc": "Status",
+                                            "labels": [
+                                                "Totals"
+                                            ],
+                                            "series": []
+                                        }
                                     };
-                                    
-                                    $("#addWidgetFirstAidMode").change(function()
-                                    {
-                                       $("#infoMainSelect").val(-1);
-                                       
-                                       switch($(this).val())
-                                       {
-                                          case "singleSummary": 
+
+                                    $("#addWidgetFirstAidMode").change(function () {
+                                        $("#infoMainSelect").val(-1);
+
+                                        switch ($(this).val()) {
+                                            case "singleSummary":
                                                 $("#serviceUri").val($("#addWidgetFirstAidHospital").val());
                                                 $('label[for=addWidgetFirstAidHospitals]').hide();
                                                 $('#addWidgetFirstAidHospitals').parent().parent().hide();
                                                 $('label[for=addWidgetFirstAidHospital]').show();
                                                 $('#addWidgetFirstAidHospital').parent().parent().show();
-                                                series = {  
-                                                   "firstAxis":{  
-                                                      "desc":"Priority",
-                                                      "labels":[  
-                                                         "Red code",
-                                                         "Yellow code",
-                                                         "Green code",
-                                                         "Blue code",
-                                                         "White code"
-                                                      ]
-                                                   },
-                                                   "secondAxis":{  
-                                                      "desc":"Status",
-                                                      "labels":[
-                                                         "Totals"
-                                                      ],
-                                                      "series":[]
-                                                   }
+                                                series = {
+                                                    "firstAxis": {
+                                                        "desc": "Priority",
+                                                        "labels": [
+                                                            "Red code",
+                                                            "Yellow code",
+                                                            "Green code",
+                                                            "Blue code",
+                                                            "White code"
+                                                        ]
+                                                    },
+                                                    "secondAxis": {
+                                                        "desc": "Status",
+                                                        "labels": [
+                                                            "Totals"
+                                                        ],
+                                                        "series": []
+                                                    }
                                                 };
-                                                
+
                                                 $('label[for="alrAxisSel"]').hide();
                                                 $("#alrAxisSel").hide();
                                                 $('label[for="alrFieldSel"]').hide();
@@ -9734,65 +9692,65 @@
                                                 $("#alrThrSel").val("no");
                                                 $("#alrThrSel").attr("disabled", false);
                                                 $("#alrThrSel").prop("required", true);
-                                                
+
                                                 $("#showTableFirstCell").val(-1);
                                                 $("#showTableFirstCell").prop("required", false);
                                                 $("#showTableFirstCell").attr("disabled", true);
 
                                                 $("#tableFirstCellFontSize").val("");
                                                 $("#tableFirstCellFontSize").prop("required", false);
-                                                $("#tableFirstCellFontSize").attr("disabled", true);	
+                                                $("#tableFirstCellFontSize").attr("disabled", true);
 
-                                                $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker("setValue","#eeeeee");
+                                                $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker("setValue", "#eeeeee");
                                                 $("#tableFirstCellFontColor").val("");
                                                 $("#tableFirstCellFontColor").prop("required", false);
-                                                $("#tableFirstCellFontColor").attr("disabled", true);	
+                                                $("#tableFirstCellFontColor").attr("disabled", true);
 
                                                 $("#rowsLabelsFontSize").val("");
                                                 $("#rowsLabelsFontSize").prop("required", false);
-                                                $("#rowsLabelsFontSize").attr("disabled", true);	
+                                                $("#rowsLabelsFontSize").attr("disabled", true);
 
-                                                $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue","#eeeeee");
+                                                $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue", "#eeeeee");
                                                 $("#rowsLabelsFontColor").val("");
                                                 $("#rowsLabelsFontColor").prop("required", false);
                                                 $("#rowsLabelsFontColor").attr("disabled", true);
 
-                                                $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker("setValue","#eeeeee");
+                                                $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker("setValue", "#eeeeee");
                                                 $("#rowsLabelsBckColor").val("");
                                                 $("#rowsLabelsBckColor").prop("required", false);
                                                 $("#rowsLabelsBckColor").attr("disabled", true);
                                                 break;
-                                                
-                                          case "singleDetails":
+
+                                            case "singleDetails":
                                                 $("#serviceUri").val($("#addWidgetFirstAidHospital").val());
                                                 $('label[for=addWidgetFirstAidHospitals]').hide();
                                                 $('#addWidgetFirstAidHospitals').parent().parent().hide();
                                                 $('label[for=addWidgetFirstAidHospital]').show();
                                                 $('#addWidgetFirstAidHospital').parent().parent().show();
-                                                series = {  
-                                                   "firstAxis":{  
-                                                      "desc":"Priority",
-                                                      "labels":[  
-                                                         "Red code",
-                                                         "Yellow code",
-                                                         "Green code",
-                                                         "Blue code",
-                                                         "White code"
-                                                      ]
-                                                   },
-                                                   "secondAxis":{  
-                                                      "desc":"Status",
-                                                      "labels":[  
-                                                         "Addressed",
-                                                         "Waiting",
-                                                         "In visit",
-                                                         "In observation",
-                                                         "Totals"
-                                                      ],
-                                                      "series":[]
-                                                   }
+                                                series = {
+                                                    "firstAxis": {
+                                                        "desc": "Priority",
+                                                        "labels": [
+                                                            "Red code",
+                                                            "Yellow code",
+                                                            "Green code",
+                                                            "Blue code",
+                                                            "White code"
+                                                        ]
+                                                    },
+                                                    "secondAxis": {
+                                                        "desc": "Status",
+                                                        "labels": [
+                                                            "Addressed",
+                                                            "Waiting",
+                                                            "In visit",
+                                                            "In observation",
+                                                            "Totals"
+                                                        ],
+                                                        "series": []
+                                                    }
                                                 };
-                                                
+
                                                 $('label[for="alrAxisSel"]').hide();
                                                 $("#alrAxisSel").hide();
                                                 $('label[for="alrFieldSel"]').hide();
@@ -9805,73 +9763,72 @@
                                                 $("#alrThrSel").val("no");
                                                 $("#alrThrSel").attr("disabled", false);
                                                 $("#alrThrSel").prop("required", true);
-                                                
+
                                                 $("#showTableFirstCell").val("yes");
                                                 $("#showTableFirstCell").prop("required", true);
                                                 $("#showTableFirstCell").attr("disabled", false);
 
                                                 $("#tableFirstCellFontSize").val("10");
                                                 $("#tableFirstCellFontSize").prop("required", true);
-                                                $("#tableFirstCellFontSize").attr("disabled", false);	
+                                                $("#tableFirstCellFontSize").attr("disabled", false);
 
-                                                $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker("setValue","#000000");
+                                                $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker("setValue", "#000000");
                                                 $("#tableFirstCellFontColor").val("#000000");
                                                 $("#tableFirstCellFontColor").prop("required", true);
-                                                $("#tableFirstCellFontColor").attr("disabled", false);	
+                                                $("#tableFirstCellFontColor").attr("disabled", false);
 
                                                 $("#rowsLabelsFontSize").val("10");
                                                 $("#rowsLabelsFontSize").prop("required", true);
-                                                $("#rowsLabelsFontSize").attr("disabled", false);	
+                                                $("#rowsLabelsFontSize").attr("disabled", false);
 
-                                                $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue","#000000");
+                                                $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue", "#000000");
                                                 $("#rowsLabelsFontColor").val("#000000");
                                                 $("#rowsLabelsFontColor").prop("required", true);
                                                 $("#rowsLabelsFontColor").attr("disabled", false);
 
-                                                $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker("setValue","#FFFFFF");
+                                                $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker("setValue", "#FFFFFF");
                                                 $("#rowsLabelsBckColor").val("#FFFFFF");
                                                 $("#rowsLabelsBckColor").prop("required", true);
                                                 $("#rowsLabelsBckColor").attr("disabled", false);
-                                                break;      
-                                          
-                                          case "hospitalsOverview":
+                                                break;
+
+                                            case "hospitalsOverview":
                                                 $("#serviceUri").val("");
                                                 $('label[for=addWidgetFirstAidHospital]').hide();
                                                 $('#addWidgetFirstAidHospital').parent().parent().hide();
                                                 $('label[for=addWidgetFirstAidHospitals]').show();
                                                 $('#addWidgetFirstAidHospitals').parent().parent().show();
                                                 $('#addWidgetFirstAidHospitals').selectpicker({
-                                                   actionsBox: true, 
-                                                   width: "auto"
+                                                    actionsBox: true,
+                                                    width: "auto"
                                                 });
-                                                
-                                                series = {  
-                                                   "firstAxis":{  
-                                                      "desc":"Priority",
-                                                      "labels":[  
-                                                         "Red code",
-                                                         "Yellow code",
-                                                         "Green code",
-                                                         "Blue code",
-                                                         "White code"
-                                                      ]
-                                                   },
-                                                   "secondAxis":{  
-                                                      "desc":"Hospital",
-                                                      "labels":[],
-                                                      "series":[]
-                                                   }
+
+                                                series = {
+                                                    "firstAxis": {
+                                                        "desc": "Priority",
+                                                        "labels": [
+                                                            "Red code",
+                                                            "Yellow code",
+                                                            "Green code",
+                                                            "Blue code",
+                                                            "White code"
+                                                        ]
+                                                    },
+                                                    "secondAxis": {
+                                                        "desc": "Hospital",
+                                                        "labels": [],
+                                                        "series": []
+                                                    }
                                                 };
-                                                
-                                                $('#addWidgetFirstAidHospitals').on('changed.bs.select', function (e) 
-                                                {
-                                                   $("#hospitalList").val(JSON.stringify($(this).val()));
-                                                   
-                                                   var labelsString = $('button[data-id="addWidgetFirstAidHospitals"] span').eq(0).html().replace(/  /g, " ");
-                                                   var labels = labelsString.split(", ");
-                                                   series.secondAxis.labels = labels;
+
+                                                $('#addWidgetFirstAidHospitals').on('changed.bs.select', function (e) {
+                                                    $("#hospitalList").val(JSON.stringify($(this).val()));
+
+                                                    var labelsString = $('button[data-id="addWidgetFirstAidHospitals"] span').eq(0).html().replace(/  /g, " ");
+                                                    var labels = labelsString.split(", ");
+                                                    series.secondAxis.labels = labels;
                                                 });
-                                                
+
                                                 $('label[for="alrAxisSel"]').hide();
                                                 $("#alrAxisSel").hide();
                                                 $('label[for="alrFieldSel"]').hide();
@@ -9883,67 +9840,66 @@
                                                 $("#addWidgetRangeTableContainer").hide();
                                                 $("#alrThrSel").val("no");
                                                 $("#alrThrSel").attr("disabled", true);
-                                                
+
                                                 $("#showTableFirstCell").val("yes");
                                                 $("#showTableFirstCell").prop("required", true);
                                                 $("#showTableFirstCell").attr("disabled", false);
 
                                                 $("#tableFirstCellFontSize").val("10");
                                                 $("#tableFirstCellFontSize").prop("required", true);
-                                                $("#tableFirstCellFontSize").attr("disabled", false);	
+                                                $("#tableFirstCellFontSize").attr("disabled", false);
 
-                                                $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker("setValue","#000000");
+                                                $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker("setValue", "#000000");
                                                 $("#tableFirstCellFontColor").val("#000000");
                                                 $("#tableFirstCellFontColor").prop("required", true);
-                                                $("#tableFirstCellFontColor").attr("disabled", false);	
+                                                $("#tableFirstCellFontColor").attr("disabled", false);
 
                                                 $("#rowsLabelsFontSize").val("10");
                                                 $("#rowsLabelsFontSize").prop("required", true);
-                                                $("#rowsLabelsFontSize").attr("disabled", false);	
+                                                $("#rowsLabelsFontSize").attr("disabled", false);
 
-                                                $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue","#000000");
+                                                $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue", "#000000");
                                                 $("#rowsLabelsFontColor").val("#000000");
                                                 $("#rowsLabelsFontColor").prop("required", true);
                                                 $("#rowsLabelsFontColor").attr("disabled", false);
 
-                                                $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker("setValue","#FFFFFF");
+                                                $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker("setValue", "#FFFFFF");
                                                 $("#rowsLabelsBckColor").val("#FFFFFF");
                                                 $("#rowsLabelsBckColor").prop("required", true);
                                                 $("#rowsLabelsBckColor").attr("disabled", false);
-                                                
-                                             break;
-                                       }
-                                       
-                                       //Distruzione thr tables
-                                       thrTables1 = new Array();
-                                       thrTables2 = new Array();
 
-                                       //Funzione di settaggio dei globals per il file dashboard_configdash.js
-                                       setGlobals(null, thrTables1, thrTables2, series, $('#select-widget').val());
+                                                break;
+                                        }
 
-                                       //Costruzione THRTables vuote
-                                       buildEmptyThrTables();
+                                        //Distruzione thr tables
+                                        thrTables1 = new Array();
+                                        thrTables2 = new Array();
+
+                                        //Funzione di settaggio dei globals per il file dashboard_configdash.js
+                                        setGlobals(null, thrTables1, thrTables2, series, $('#select-widget').val());
+
+                                        //Costruzione THRTables vuote
+                                        buildEmptyThrTables();
                                     });
 
-                                    $("#addWidgetFirstAidHospital").change(function()
-                                    {
-                                       $("#serviceUri").val($(this).val());
+                                    $("#addWidgetFirstAidHospital").change(function () {
+                                        $("#serviceUri").val($(this).val());
                                     });
-                                    
+
                                     //Funzione di settaggio dei globals per il file dashboard_configdash.js
                                     setGlobals(null, thrTables1, thrTables2, series, $('#select-widget').val());
-                                    
+
                                     //Costruzione THRTables vuote
                                     buildEmptyThrTables();
-                                    
+
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
-                                    
+
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    
+
                                     //Select show first cell
                                     newLabel = $('<label for="showTableFirstCell" class="col-md-2 control-label">Show first cell</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -9960,7 +9916,7 @@
                                     $("#showTableFirstCell").val(-1);
                                     $("#showTableFirstCell").prop("required", false);
                                     $("#showTableFirstCell").attr("disabled", true);
-                                    
+
                                     //Nuova riga
                                     //First cell font size
                                     newFormRow = $('<div class="row"></div>');
@@ -9977,7 +9933,7 @@
                                     $("#tableFirstCellFontSize").val("");
                                     $("#tableFirstCellFontSize").prop("required", false);
                                     $("#tableFirstCellFontSize").attr("disabled", true);
-                                    
+
                                     //First cell font color
                                     newLabel = $('<label for="tableFirstCellFontColor" class="col-md-2 control-label">First cell font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -9990,12 +9946,15 @@
                                     $('#tableFirstCellFontColorContainer').show();
                                     $('#tableFirstCellFontColor').show();
                                     $("#widgetFirstCellFontColor").css('display', 'block');
-                                    $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker({color: "#eeeeee", format: "rgba"});
+                                    $("#widgetFirstCellFontColor").parent().parent().parent().colorpicker({
+                                        color: "#eeeeee",
+                                        format: "rgba"
+                                    });
                                     $("#tableFirstCellFontColor").val("");
                                     $("#tableFirstCellFontColor").prop("required", false);
                                     $("#tableFirstCellFontColor").attr("disabled", true);
-                                    
-                                    
+
+
                                     //Nuova riga
                                     //Rows labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10012,7 +9971,7 @@
                                     $("#rowsLabelsFontSize").val("");
                                     $("#rowsLabelsFontSize").prop("required", false);
                                     $("#rowsLabelsFontSize").attr("disabled", true);
-                                    
+
                                     //Rows labels font color
                                     newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">Rows labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10025,12 +9984,15 @@
                                     $('#rowsLabelsFontColorContainer').show();
                                     $('#rowsLabelsFontColor').show();
                                     $("#widgetRowsLabelsFontColor").css('display', 'block');
-                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({color: "#eeeeee", format: "rgba"});
-                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue","#eeeeee");
+                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#eeeeee",
+                                        format: "rgba"
+                                    });
+                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue", "#eeeeee");
                                     $("#rowsLabelsFontColor").val("");
                                     $("#rowsLabelsFontColor").prop("required", false);
                                     $("#rowsLabelsFontColor").attr("disabled", true);
-                                    
+
                                     //Nuova riga
                                     //Cols labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10044,7 +10006,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Cols labels font color
                                     newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Cols labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10057,8 +10019,11 @@
                                     $('#colsLabelsFontColorContainer').show();
                                     $('#colsLabelsFontColor').show();
                                     $("#widgetColsLabelsFontColor").css('display', 'block');
-                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Rows labels background color
                                     newFormRow = $('<div class="row"></div>');
@@ -10074,13 +10039,16 @@
                                     $('#rowsLabelsBckColorContainer').show();
                                     $('#rowsLabelsBckColor').show();
                                     $("#widgetRowsLabelsBckColor").css('display', 'block');
-                                    $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker({color: "#FFFFFF", format: "rgba"});
+                                    $("#widgetRowsLabelsBckColor").parent().parent().parent().colorpicker({
+                                        color: "#FFFFFF",
+                                        format: "rgba"
+                                    });
                                     $("#rowsLabelsBckColor").val("");
-                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue","#eeeeee");
+                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker("setValue", "#eeeeee");
                                     $("#rowsLabelsFontColor").val("");
                                     $("#rowsLabelsBckColor").prop("required", false);
                                     $("#rowsLabelsBckColor").attr("disabled", true);
-                                    
+
                                     //Nuova riga
                                     //Table borders
                                     newFormRow = $('<div class="row"></div>');
@@ -10097,7 +10065,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Table borders color
                                     newLabel = $('<label for="tableBordersColor" class="col-md-2 control-label">Table borders color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10110,8 +10078,11 @@
                                     $('#tableBordersColorContainer').show();
                                     $('#tableBordersColor').show();
                                     $("#widgetTableBordersColor").css('display', 'block');
-                                    $("#widgetTableBordersColor").parent().parent().parent().colorpicker({color: "#EEEEEE", format: "rgba"});
-                                    
+                                    $("#widgetTableBordersColor").parent().parent().parent().colorpicker({
+                                        color: "#EEEEEE",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Set thresholds
                                     newFormRow = $('<div class="row"></div>');
@@ -10128,10 +10099,10 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
                                     $('#alrThrSel').change(alrThrSelListener);
-                                    
+
                                     //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
                                     newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
                                     newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
@@ -10145,7 +10116,7 @@
                                     newLabel.hide();
                                     newInnerDiv.hide();
                                     newSelect.hide();
-                                    
+
                                     //Nuova riga
                                     //Threshold field select
                                     newFormRow = $('<div class="row"></div>');
@@ -10159,23 +10130,24 @@
                                     newLabel.hide();
                                     newInnerDiv.hide();
                                     newSelect.hide();
-                                    
+
                                     //Contenitore per tabella delle soglie
                                     addWidgetRangeTableContainer = $('<div id="addWidgetRangeTableContainer" class="row rowCenterContent"></div>');
                                     $("#specificWidgetPropertiesDiv").append(addWidgetRangeTableContainer);
-                                    addWidgetRangeTableContainer.hide(); 
-                                    
+                                    addWidgetRangeTableContainer.hide();
+
                                     removeWidgetProcessGeneralFields("addWidget");
-                                 break;
-      
-      
-                                 case "widgetRadarSeries":    
-                                    var currentParams, i, k, currentFieldIndex, currentSeriesIndex, row, cell, descName = null;
+                                    break;
+
+
+                                case "widgetRadarSeries":
+                                    var currentParams, i, k, currentFieldIndex, currentSeriesIndex, row, cell,
+                                        descName = null;
                                     var metricId = $('#select-metric').val();
                                     var metricData = getMetricData(metricId);
                                     var seriesString = metricData.data[0].commit.author.series;
                                     var series = jQuery.parseJSON(seriesString);
-                                    
+
                                     //Costruzione THRTable vuota
                                     var thrTable = $("<table class='thrRangeTableRadar table table-bordered'></table>");
                                     row = $('<tr></tr>');
@@ -10185,31 +10157,27 @@
                                     row.append(cell);
                                     cell = $('<td>Short description</td>');
                                     row.append(cell);
-                                    
+
                                     //Colonne per i limiti sup di ogni campo
-                                    for(var i in series.firstAxis.labels)
-                                    {
-                                        if(series.firstAxis.labels[i].length > 8)
-                                        {
-                                            descName = series.firstAxis.labels[i].substr(0,8) + "...";
-                                        }
-                                        else
-                                        {
+                                    for (var i in series.firstAxis.labels) {
+                                        if (series.firstAxis.labels[i].length > 8) {
+                                            descName = series.firstAxis.labels[i].substr(0, 8) + "...";
+                                        } else {
                                             descName = series.firstAxis.labels[i];
                                         }
 
                                         cell = $('<td class="boundDesc"><b>' + descName + '</b><br/>limit</td>');
                                         row.append(cell);
                                     }
-                                    
+
                                     thrTable.append(row);
-                                    
+
                                     //Funzione di settaggio dei globals per il file dashboard_configdash.js
                                     setGlobalsRadar(null, thrTable, series, $('#select-widget').val());
-                                    
+
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
-                                    
+
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
@@ -10219,7 +10187,10 @@
                                     $('#inputFontSize').prop('required', true);
                                     $('#inputFontColor').val("#000000");
                                     $('#widgetFontColor').css("background-color", "#000000");
-                                    $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
                                     $('#link_help_modal-add-widget').css("display", "");
                                     $('#inputUdmWidget').attr('disabled', false);
                                     $('#inputFrameColorWidget').attr('disabled', false);
@@ -10242,8 +10213,8 @@
                                     $('#addWidgetFirstAidHospital').prop("required", false);
                                     $('#addWidgetFirstAidHospital').val(-1);
                                     $('#inputFirstAidRow').hide();
-                                    
-                                    
+
+
                                     //Proprietà specifiche del widget
                                     //RIMOZIONE CAMPI PER TUTTI GLI ALTRI WIDGET
                                     $('#specificWidgetPropertiesDiv .row').remove();
@@ -10252,8 +10223,9 @@
                                     removeWidgetProcessGeneralFields("addWidget");
 
                                     //Visualizzazione campi specifici per questo widget
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //Rows labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10267,7 +10239,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Rows labels font color
                                     newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">X-Axis labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10280,8 +10252,11 @@
                                     $('#rowsLabelsFontColorContainer').show();
                                     $('#rowsLabelsFontColor').show();
                                     $("#widgetRowsLabelsFontColor").css('display', 'block');
-                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Cols labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10295,7 +10270,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Cols labels font color
                                     newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Y-Axis labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10308,8 +10283,11 @@
                                     $('#colsLabelsFontColorContainer').show();
                                     $('#colsLabelsFontColor').show();
                                     $("#widgetColsLabelsFontColor").css('display', 'block');
-                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Data labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10323,7 +10301,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Data labels font color
                                     newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10336,8 +10314,11 @@
                                     $('#dataLabelsFontColorContainer').show();
                                     $('#dataLabelsFontColor').show();
                                     $("#widgetDataLabelsFontColor").css('display', 'block');
-                                    $("#widgetDataLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetDataLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Legend font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10351,7 +10332,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Legend font color
                                     newLabel = $('<label for="legendFontColor" class="col-md-2 control-label">Legend font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10364,8 +10345,11 @@
                                     $('#legendFontColorContainer').show();
                                     $('#legendFontColor').show();
                                     $("#widgetLegendFontColor").css('display', 'block');
-                                    $("#widgetLegendFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetLegendFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Grid lines width
                                     newFormRow = $('<div class="row"></div>');
@@ -10379,7 +10363,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Grid lines color
                                     newLabel = $('<label for="gridLinesColor" class="col-md-2 control-label">Grid lines color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10392,8 +10376,11 @@
                                     $('#gridLinesColorContainer').show();
                                     $('#gridLinesColor').show();
                                     $("#widgetGridLinesColor").css('display', 'block');
-                                    $("#widgetGridLinesColor").parent().parent().parent().colorpicker({color: "#e6e6e6", format: "rgba"});
-                                    
+                                    $("#widgetGridLinesColor").parent().parent().parent().colorpicker({
+                                        color: "#e6e6e6",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Lines width
                                     newFormRow = $('<div class="row"></div>');
@@ -10407,7 +10394,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Lines colors
                                     newLabel = $('<label for="barsColorsSelect" class="col-md-2 control-label">Lines colors</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10420,7 +10407,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Contenitore per tabella dei colori
                                     barsColorsTableContainer = $('<div id="barsColorsTableContainer" class="row rowCenterContent"></div>');
                                     $("#specificWidgetPropertiesDiv").append(barsColorsTableContainer);
@@ -10431,39 +10418,36 @@
                                     var defaultColorsArray = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
                                     var colorsArray = new Array();
 
-                                    function updateWidgetBarSeriesColors(e, params)
-                                    {
-                                        var newColor = $(this).colorpicker('getValue');
-                                        var index = parseInt($(this).parents('tr').index() - 1);
-                                        colorsArray[index] = newColor;
-                                        $("#barsColors").val(JSON.stringify(colorsArray));
-                                    }
+                                function updateWidgetBarSeriesColors(e, params) {
+                                    var newColor = $(this).colorpicker('getValue');
+                                    var index = parseInt($(this).parents('tr').index() - 1);
+                                    colorsArray[index] = newColor;
+                                    $("#barsColors").val(JSON.stringify(colorsArray));
+                                }
 
                                     colorsTable = $("<table id ='colorsTable' class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
-                                    for(var i in series.secondAxis.labels)
-                                    {
+                                    for (var i in series.secondAxis.labels) {
                                         newRow = $('<tr></tr>');
                                         newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
                                         newRow.append(newCell);
                                         newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                         newRow.append(newCell);
-                                        newRow.find('div.colorPicker').colorpicker({color: defaultColorsArray[i%10], format: "rgba"});
-                                        newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors); 
-                                        colorsArray.push(defaultColorsArray[i%10]);
+                                        newRow.find('div.colorPicker').colorpicker({
+                                            color: defaultColorsArray[i % 10],
+                                            format: "rgba"
+                                        });
+                                        newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors);
+                                        colorsArray.push(defaultColorsArray[i % 10]);
                                         colorsTable.append(newRow);
                                     }
 
                                     $("#barsColors").val(JSON.stringify(colorsArray));
                                     $('#barsColorsTableContainer').append(colorsTable);
 
-                                    $('#barsColorsSelect').change(function () 
-                                    {
-                                        if($('#barsColorsSelect').val() === "manual")
-                                        {
+                                    $('#barsColorsSelect').change(function () {
+                                        if ($('#barsColorsSelect').val() === "manual") {
                                             $('#barsColorsTableContainer').show();
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             $('#barsColorsTableContainer').hide();
                                         }
                                     });
@@ -10486,7 +10470,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Thresholds lines width
                                     newLabel = $('<label for="alrThrLinesWidth" class="col-md-2 control-label">Thresholds lines width</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10497,34 +10481,35 @@
                                     newLabel.hide();
                                     newInnerDiv.hide();
                                     newInput.hide();
-                                    
+
                                     //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
                                     $('#alrThrSel').change(alrThrSelListenerRadar);
-                                    
+
                                     //Contenitore per tabella delle soglie
                                     addWidgetRangeTableContainer = $('<div id="addWidgetRangeTableContainer" class="row  thrRangeTableRadarContainer"></div>');  //rowCenterContent
                                     $("#specificWidgetPropertiesDiv").append(addWidgetRangeTableContainer);
                                     addWidgetRangeTableContainer.hide();
                                     break;
-        
-                                case "widgetLineSeries": case "widgetCurvedLineSeries":
+
+                                case "widgetLineSeries":
+                                case "widgetCurvedLineSeries":
                                     var currentParams, i, k, currentFieldIndex, currentSeriesIndex = null;
                                     var metricId = $('#select-metric').val();
                                     var metricData = getMetricData(metricId);
                                     var seriesString = metricData.data[0].commit.author.series;
                                     var series = jQuery.parseJSON(seriesString);
                                     var thrTables1 = new Array();
-                                    var thrTables2 = new Array(); 
-                                    
+                                    var thrTables2 = new Array();
+
                                     //Funzione di settaggio dei globals per il file dashboard_configdash.js
                                     setGlobals(null, thrTables1, thrTables2, series, $('#select-widget').val());
-                                    
+
                                     //Costruzione THRTables vuote
                                     buildEmptyThrTables();
-                                    
+
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
-                                        
+
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
@@ -10534,7 +10519,10 @@
                                     $('#inputFontSize').prop('required', true);
                                     $('#inputFontColor').val("#000000");
                                     $('#widgetFontColor').css("background-color", "#000000");
-                                    $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
                                     $('#link_help_modal-add-widget').css("display", "");
                                     $('#inputUdmWidget').attr('disabled', false);
                                     $('#inputFrameColorWidget').attr('disabled', false);
@@ -10566,8 +10554,9 @@
                                     removeWidgetProcessGeneralFields("addWidget");
 
                                     //Visualizzazione campi specifici per questo widget
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //X-Axis dataset
                                     newFormRow = $('<div class="row"></div>');
@@ -10583,7 +10572,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Line width
                                     newLabel = $('<label for="lineWidth" class="col-md-2 control-label">Line width</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10594,7 +10583,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Nuova riga
                                     //X-Axis labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10608,7 +10597,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //X-Axis labels font color
                                     newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">X-Axis labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10621,8 +10610,11 @@
                                     $('#rowsLabelsFontColorContainer').show();
                                     $('#rowsLabelsFontColor').show();
                                     $("#widgetRowsLabelsFontColor").css('display', 'block');
-                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Y-Axis labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10636,7 +10628,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Y-Axis labels font color
                                     newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Y-Axis labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10649,8 +10641,11 @@
                                     $('#colsLabelsFontColorContainer').show();
                                     $('#colsLabelsFontColor').show();
                                     $("#widgetColsLabelsFontColor").css('display', 'block');
-                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Data labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10664,7 +10659,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Data labels font color
                                     newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10677,8 +10672,11 @@
                                     $('#dataLabelsFontColorContainer').show();
                                     $('#dataLabelsFontColor').show();
                                     $("#widgetDataLabelsFontColor").css('display', 'block');
-                                    $("#widgetDataLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetDataLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Legend font size
                                     newFormRow = $('<div class="row"></div>');
@@ -10692,7 +10690,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Legend font color
                                     newLabel = $('<label for="legendFontColor" class="col-md-2 control-label">Legend font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10705,8 +10703,11 @@
                                     $('#legendFontColorContainer').show();
                                     $('#legendFontColor').show();
                                     $("#widgetLegendFontColor").css('display', 'block');
-                                    $("#widgetLegendFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetLegendFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Lines colors
                                     newFormRow = $('<div class="row"></div>');
@@ -10722,7 +10723,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Chart type
                                     newLabel = $('<label for="chartType" class="col-md-2 control-label">Chart type</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -10737,7 +10738,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Nuova riga
                                     //Data labels
                                     newFormRow = $('<div class="row"></div>');
@@ -10755,7 +10756,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Contenitore per tabella dei colori
                                     barsColorsTableContainer = $('<div id="barsColorsTableContainer" class="row rowCenterContent"></div>');
                                     $("#specificWidgetPropertiesDiv").append(barsColorsTableContainer);
@@ -10765,77 +10766,70 @@
                                     var colorsTable, newRow, newCell = null;
                                     var defaultColorsArray = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
                                     var colorsArray = new Array();
-                                    
-                                    function updateXAxisSelect()
-                                    {
-                                        var colorsTarget = null;
-                                        colorsTable.find('tr').remove();
-                                        colorsTable.append("<tr><td>Series</td><td>Color</td></tr>");
-                                        
-                                        $('#alrAxisSel').empty();
-                                    
-                                        if($("#xAxisDataset").val() === series.firstAxis.desc)
-                                        {
-                                            //Grafico non trasposto
-                                            colorsTarget = series.secondAxis.labels;
-                                            $('#alrAxisSel').append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
-                                        }
-                                        else
-                                        {
-                                            //Grafico trasposto
-                                            colorsTarget = series.firstAxis.labels;
-                                            $('#alrAxisSel').append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
-                                        }
-                                        
-                                        alrAxisSelListener();
 
-                                        for(var i in colorsTarget)
-                                        {
-                                            newRow = $('<tr></tr>');
-                                            newCell = $('<td>' + colorsTarget[i] + '</td>');
-                                            newRow.append(newCell);
-                                            newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                                            newRow.append(newCell);
-                                            newRow.find('div.colorPicker').colorpicker({color: defaultColorsArray[i%10], format: "rgba"});
-                                            newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors); 
-                                            colorsArray.push(defaultColorsArray[i%10]);
-                                            colorsTable.append(newRow);
-                                        }
-                                        $('label[for="alrFieldSel"]').hide();
-                                        $('#alrFieldSel').hide();
-                                        $('#alrFieldSel').parent().hide();
-                                        $('label[for="alrAxisSel"]').hide();
-                                        $('#alrAxisSel').hide();
-                                        $('#alrAxisSel').parent().hide();
-                                        $('#alrThrSel').val("no");
+                                function updateXAxisSelect() {
+                                    var colorsTarget = null;
+                                    colorsTable.find('tr').remove();
+                                    colorsTable.append("<tr><td>Series</td><td>Color</td></tr>");
+
+                                    $('#alrAxisSel').empty();
+
+                                    if ($("#xAxisDataset").val() === series.firstAxis.desc) {
+                                        //Grafico non trasposto
+                                        colorsTarget = series.secondAxis.labels;
+                                        $('#alrAxisSel').append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                    } else {
+                                        //Grafico trasposto
+                                        colorsTarget = series.firstAxis.labels;
+                                        $('#alrAxisSel').append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
                                     }
-            
-                                    function updateWidgetBarSeriesColors(e, params)
-                                    {
-                                        var newColor = $(this).colorpicker('getValue');
-                                        var index = parseInt($(this).parents('tr').index() - 1);
-                                        colorsArray[index] = newColor;
-                                        $("#barsColors").val(JSON.stringify(colorsArray));
+
+                                    alrAxisSelListener();
+
+                                    for (var i in colorsTarget) {
+                                        newRow = $('<tr></tr>');
+                                        newCell = $('<td>' + colorsTarget[i] + '</td>');
+                                        newRow.append(newCell);
+                                        newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                        newRow.append(newCell);
+                                        newRow.find('div.colorPicker').colorpicker({
+                                            color: defaultColorsArray[i % 10],
+                                            format: "rgba"
+                                        });
+                                        newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors);
+                                        colorsArray.push(defaultColorsArray[i % 10]);
+                                        colorsTable.append(newRow);
                                     }
-                                    
+                                    $('label[for="alrFieldSel"]').hide();
+                                    $('#alrFieldSel').hide();
+                                    $('#alrFieldSel').parent().hide();
+                                    $('label[for="alrAxisSel"]').hide();
+                                    $('#alrAxisSel').hide();
+                                    $('#alrAxisSel').parent().hide();
+                                    $('#alrThrSel').val("no");
+                                }
+
+                                function updateWidgetBarSeriesColors(e, params) {
+                                    var newColor = $(this).colorpicker('getValue');
+                                    var index = parseInt($(this).parents('tr').index() - 1);
+                                    colorsArray[index] = newColor;
+                                    $("#barsColors").val(JSON.stringify(colorsArray));
+                                }
+
                                     $("#xAxisDataset").off();
                                     $("#xAxisDataset").on("change", updateXAxisSelect);
 
                                     colorsTable = $("<table id ='colorsTable' class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
-                                    
+
                                     updateXAxisSelect();
 
                                     $("#barsColors").val(JSON.stringify(colorsArray));
                                     $('#barsColorsTableContainer').append(colorsTable);
 
-                                    $('#barsColorsSelect').change(function() 
-                                    {
-                                        if($('#barsColorsSelect').val() === "manual")
-                                        {
+                                    $('#barsColorsSelect').change(function () {
+                                        if ($('#barsColorsSelect').val() === "manual") {
                                             $('#barsColorsTableContainer').show();
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             $('#barsColorsTableContainer').hide();
                                         }
                                     });
@@ -10857,20 +10851,17 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
                                     $('#alrThrSel').change(alrThrSelListener);
-                                    
+
                                     //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
                                     newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
                                     newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
-                                    if($("#xAxisDataset").val() === series.firstAxis.desc)
-                                    {
+                                    if ($("#xAxisDataset").val() === series.firstAxis.desc) {
                                         //No trasposizione
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         //Trasposizione
                                         newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
                                     }
@@ -10883,7 +10874,7 @@
                                     newLabel.hide();
                                     newInnerDiv.hide();
                                     newSelect.hide();
-                                    
+
                                     //Nuova riga
                                     //Threshold field select
                                     newFormRow = $('<div class="row"></div>');
@@ -10897,7 +10888,7 @@
                                     newLabel.hide();
                                     newInnerDiv.hide();
                                     newSelect.hide();
-                                    
+
                                     //Threshold look&feel
                                     newLabel = $('<label for="alrLook" class="col-md-2 control-label">Thresholds look&feel</label>');
                                     newSelect = $('<select class="form-control" id="alrLook" name="alrLook">');
@@ -10912,13 +10903,13 @@
                                     newLabel.hide();
                                     newInnerDiv.hide();
                                     newSelect.hide();
-                                    
+
                                     //Contenitore per tabella delle soglie
                                     addWidgetRangeTableContainer = $('<div id="addWidgetRangeTableContainer" class="row rowCenterContent"></div>');
                                     $("#specificWidgetPropertiesDiv").append(addWidgetRangeTableContainer);
                                     addWidgetRangeTableContainer.hide();
                                     break;
-        
+
                                 case "widgetScatterSeries":
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
@@ -10929,7 +10920,10 @@
                                     $('#inputFontSize').prop('required', true);
                                     $('#inputFontColor').val("#000000");
                                     $('#widgetFontColor').css("background-color", "#000000");
-                                    $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
                                     $('#link_help_modal-add-widget').css("display", "");
                                     $('#inputUdmWidget').attr('disabled', false);
                                     $('#inputFrameColorWidget').attr('disabled', false);
@@ -10950,7 +10944,7 @@
                                     $('#addWidgetFirstAidHospital').prop("required", false);
                                     $('#addWidgetFirstAidHospital').val(-1);
                                     $('#inputFirstAidRow').hide();
-                                    
+
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
 
@@ -10972,7 +10966,8 @@
                                     setGlobals(currentParams, thrTables1, thrTables2, series, $('#select-widget').val());
 
                                     removeWidgetProcessGeneralFields("addWidget");
-                                    removeWidgetTableListeners("addWidget");  removeWidgetBarSeriesListeners("addWidget");
+                                    removeWidgetTableListeners("addWidget");
+                                    removeWidgetBarSeriesListeners("addWidget");
 
                                     //Visualizzazione campi specifici per questo widget
                                     $("label[for='rowsLabelsFontSize']").parent().show();
@@ -10983,7 +10978,10 @@
                                     $("#rowsLabelsFontColor").show();
                                     //Questa falla con css sennò la mostra inline e non viene colorato!
                                     $("#widgetRowsLabelsFontColor").css('display', 'block');
-                                    $("#widgetRowsLabelsFontColor").parent().parent().colorpicker({color: '#000000', format: "rgba"});
+                                    $("#widgetRowsLabelsFontColor").parent().parent().colorpicker({
+                                        color: '#000000',
+                                        format: "rgba"
+                                    });
 
                                     $("label[for='colsLabelsFontSize']").parent().show();
                                     $("label[for='colsLabelsFontSize']").show();
@@ -10993,7 +10991,10 @@
                                     $("#colsLabelsFontColor").show();
                                     //Questa falla con css sennò la mostra inline e non viene colorato!
                                     $("#widgetColsLabelsFontColor").css('display', 'block');
-                                    $("#widgetColsLabelsFontColor").parent().parent().colorpicker({color: '#000000', format: "rgba"});
+                                    $("#widgetColsLabelsFontColor").parent().parent().colorpicker({
+                                        color: '#000000',
+                                        format: "rgba"
+                                    });
 
                                     $("label[for='dataLabelsFontSize']").parent().show();
                                     $("label[for='dataLabelsFontSize']").show();
@@ -11003,7 +11004,10 @@
                                     $("#dataLabelsFontColor").show();
                                     //Questa falla con css sennò la mostra inline e non viene colorato!
                                     $("#widgetDataLabelsFontColor").css('display', 'block');
-                                    $("#widgetDataLabelsFontColor").parent().parent().colorpicker({color: '#000000', format: "rgba"});
+                                    $("#widgetDataLabelsFontColor").parent().parent().colorpicker({
+                                        color: '#000000',
+                                        format: "rgba"
+                                    });
 
                                     $("label[for='legendFontSize']").parent().show();
                                     $("label[for='legendFontSize']").show();
@@ -11013,7 +11017,10 @@
                                     $("#legendFontColor").show();
                                     //Questa falla con css sennò la mostra inline e non viene colorato!
                                     $("#widgetLegendFontColor").css('display', 'block');
-                                    $("#widgetLegendFontColor").parent().parent().colorpicker({color: '#000000', format: "rgba"});
+                                    $("#widgetLegendFontColor").parent().parent().colorpicker({
+                                        color: '#000000',
+                                        format: "rgba"
+                                    });
 
                                     $("label[for='barsColorsSelect']").html("Markers colors");
                                     $("label[for='barsColorsSelect']").parent().show();
@@ -11024,18 +11031,18 @@
                                     $("label[for='chartType']").show();
                                     $("#chartType").val("horizontal");
                                     $("#chartType").show();
-                                    
+
                                     $("label[for='dataLabels']").parent().show();
                                     $("label[for='dataLabels']").show();
                                     $("#dataLabels").val("value");
                                     $("#dataLabels").show();
-                                    
+
                                     $("label[for='dataLabelsRotation']").show();
                                     $("#dataLabelsRotation").val("horizontal");
                                     $("#dataLabelsRotation").show();
-                                    
+
                                     $("#xAxisDataset").off();
-                                    
+
                                     $("#xAxisDataset").prop('required', false);
                                     $("#lineWidth").prop('required', false);
                                     $("#alrLook").prop('required', false);
@@ -11045,25 +11052,26 @@
                                     var defaultColorsArray = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
                                     var colorsArray = new Array();
 
-                                    function updateWidgetBarSeriesColors(e, params)
-                                    {
-                                        var newColor = $(this).colorpicker('getValue');
-                                        var index = parseInt($(this).parents('tr').index() - 1);
-                                        colorsArray[index] = newColor;
-                                        $("#barsColors").val(JSON.stringify(colorsArray));
-                                    }
+                                function updateWidgetBarSeriesColors(e, params) {
+                                    var newColor = $(this).colorpicker('getValue');
+                                    var index = parseInt($(this).parents('tr').index() - 1);
+                                    colorsArray[index] = newColor;
+                                    $("#barsColors").val(JSON.stringify(colorsArray));
+                                }
 
                                     colorsTable = $("<table id ='colorsTable' class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
-                                    for(var i in series.secondAxis.labels)
-                                    {
+                                    for (var i in series.secondAxis.labels) {
                                         newRow = $('<tr></tr>');
                                         newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
                                         newRow.append(newCell);
                                         newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                         newRow.append(newCell);
-                                        newRow.find('div.colorPicker').colorpicker({color: defaultColorsArray[i%10], format: "rgba"});
-                                        newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors); 
-                                        colorsArray.push(defaultColorsArray[i%10]);
+                                        newRow.find('div.colorPicker').colorpicker({
+                                            color: defaultColorsArray[i % 10],
+                                            format: "rgba"
+                                        });
+                                        newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors);
+                                        colorsArray.push(defaultColorsArray[i % 10]);
                                         colorsTable.append(newRow);
                                     }
 
@@ -11071,14 +11079,10 @@
 
                                     $('#barsColorsTableContainer').append(colorsTable);
 
-                                    $('#barsColorsSelect').change(function () 
-                                    {
-                                        if($('#barsColorsSelect').val() === "manual")
-                                        {
+                                    $('#barsColorsSelect').change(function () {
+                                        if ($('#barsColorsSelect').val() === "manual") {
                                             $('#barsColorsTableContainer').show();
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             $('#barsColorsTableContainer').hide();
                                         }
                                     });
@@ -11106,25 +11110,31 @@
                                     $('#alrFieldSel').change(alrFieldSelListener);
                                     //Fine proprietà specifiche del widget
                                     break;
-        
+
                                 case "widgetBarSeries":
                                     var currentParams, i, k, currentFieldIndex, currentSeriesIndex = null;
                                     var metricId = $('#select-metric').val();
                                     var metricData = getMetricData(metricId);
-                                    var seriesString = metricData.data[0].commit.author.series;
-                                    var series = jQuery.parseJSON(seriesString);
+                                    if (metricData.data.length != 0) {
+                                        var seriesString = metricData.data[0].commit.author.series;
+                                        var series = jQuery.parseJSON(seriesString);
+                                    } else {
+                                        var seriesString = "";
+                                        var series = null;
+                                    }
+
                                     var thrTables1 = new Array();
                                     var thrTables2 = new Array();
-                                    
+
                                     //Funzione di settaggio dei globals per il file dashboard_configdash.js
                                     setGlobals(null, thrTables1, thrTables2, series, $('#select-widget').val());
-                                    
+
                                     //Costruzione THRTables vuote
                                     buildEmptyThrTables();
-                                    
+
                                     //Rimozione eventuali campi del subform general per widget process
                                     removeWidgetProcessGeneralFields("addWidget");
-                                    
+
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
                                     $("#titleLabel").html("Title");
@@ -11134,7 +11144,10 @@
                                     $('#inputFontSize').prop('required', true);
                                     $('#inputFontColor').val("#000000");
                                     $('#widgetFontColor').css("background-color", "#000000");
-                                    $("#widgetFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
                                     $('#link_help_modal-add-widget').css("display", "");
                                     $('#inputUdmWidget').attr('disabled', false);
                                     $('#inputFrameColorWidget').attr('disabled', false);
@@ -11166,8 +11179,9 @@
                                     removeWidgetProcessGeneralFields("addWidget");
 
                                     //Visualizzazione campi specifici per questo widget
-                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
-                                    
+                                    var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
                                     //Nuova riga
                                     //Rows labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -11181,7 +11195,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Rows labels font color
                                     newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">Rows labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -11194,8 +11208,11 @@
                                     $('#rowsLabelsFontColorContainer').show();
                                     $('#rowsLabelsFontColor').show();
                                     $("#widgetRowsLabelsFontColor").css('display', 'block');
-                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Cols labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -11209,7 +11226,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Cols labels font color
                                     newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Cols labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -11222,8 +11239,11 @@
                                     $('#colsLabelsFontColorContainer').show();
                                     $('#colsLabelsFontColor').show();
                                     $("#widgetColsLabelsFontColor").css('display', 'block');
-                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Data labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -11237,7 +11257,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Data labels font color
                                     newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -11250,8 +11270,11 @@
                                     $('#dataLabelsFontColorContainer').show();
                                     $('#dataLabelsFontColor').show();
                                     $("#widgetDataLabelsFontColor").css('display', 'block');
-                                    $("#widgetDataLabelsFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetDataLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Legend font size
                                     newFormRow = $('<div class="row"></div>');
@@ -11265,7 +11288,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newInput.show();
-                                    
+
                                     //Legend font color
                                     newLabel = $('<label for="legendFontColor" class="col-md-2 control-label">Legend font color</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -11278,8 +11301,11 @@
                                     $('#legendFontColorContainer').show();
                                     $('#legendFontColor').show();
                                     $("#widgetLegendFontColor").css('display', 'block');
-                                    $("#widgetLegendFontColor").parent().parent().parent().colorpicker({color: "#000000", format: "rgba"});
-                                    
+                                    $("#widgetLegendFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
                                     //Nuova riga
                                     //Bars colors
                                     newFormRow = $('<div class="row"></div>');
@@ -11295,7 +11321,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Chart type
                                     newLabel = $('<label for="chartType" class="col-md-2 control-label">Chart type</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -11311,7 +11337,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Nuova riga
                                     //Data labels
                                     newFormRow = $('<div class="row"></div>');
@@ -11329,7 +11355,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Data labels rotation
                                     newLabel = $('<label for="dataLabelsRotation" class="col-md-2 control-label">Data labels rotation</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
@@ -11344,7 +11370,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
-                                    
+
                                     //Contenitore per tabella dei colori
                                     barsColorsTableContainer = $('<div id="barsColorsTableContainer" class="row rowCenterContent"></div>');
                                     $("#specificWidgetPropertiesDiv").append(barsColorsTableContainer);
@@ -11355,26 +11381,29 @@
                                     var defaultColorsArray = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
                                     var colorsArray = new Array();
 
-                                    function updateWidgetBarSeriesColors(e, params)
-                                    {
-                                        var newColor = $(this).colorpicker('getValue');
-                                        var index = parseInt($(this).parents('tr').index() - 1);
-                                        colorsArray[index] = newColor;
-                                        $("#barsColors").val(JSON.stringify(colorsArray));
-                                    }
+                                function updateWidgetBarSeriesColors(e, params) {
+                                    var newColor = $(this).colorpicker('getValue');
+                                    var index = parseInt($(this).parents('tr').index() - 1);
+                                    colorsArray[index] = newColor;
+                                    $("#barsColors").val(JSON.stringify(colorsArray));
+                                }
 
                                     colorsTable = $("<table id ='colorsTable' class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
-                                    for(var i in series.secondAxis.labels)
-                                    {
-                                        newRow = $('<tr></tr>');
-                                        newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
-                                        newRow.append(newCell);
-                                        newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                                        newRow.append(newCell);
-                                        newRow.find('div.colorPicker').colorpicker({color: defaultColorsArray[i%10], format: "rgba"});
-                                        newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors); 
-                                        colorsArray.push(defaultColorsArray[i%10]);
-                                        colorsTable.append(newRow);
+                                    if (series) {
+                                        for (var i in series.secondAxis.labels) {
+                                            newRow = $('<tr></tr>');
+                                            newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                            newRow.append(newCell);
+                                            newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                            newRow.append(newCell);
+                                            newRow.find('div.colorPicker').colorpicker({
+                                                color: defaultColorsArray[i % 10],
+                                                format: "rgba"
+                                            });
+                                            newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors);
+                                            colorsArray.push(defaultColorsArray[i % 10]);
+                                            colorsTable.append(newRow);
+                                        }
                                     }
 
                                     $("#barsColors").val(JSON.stringify(colorsArray));
@@ -11416,7 +11445,9 @@
                                     //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
                                     newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
                                     newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
-                                    newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                    if (series) {
+                                        newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                    }
                                     newSelect.val(-1);
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInnerDiv.append(newSelect);
@@ -12316,6 +12347,9 @@
                                           $("#parameters").val(JSON.stringify(targetsJson));
                                        });
                                     }
+                                    
+                                    
+                                    
                                     break;
 
                                 case "widgetSingleContent":
@@ -18334,9 +18368,11 @@
                                         currentParams = parameters;
                                     }
 
-                                    if(infoJsonRaw !== null)
+                                    if(isJson(infoJsonRaw))
                                     {
-                                        infoJson = JSON.parse(infoJsonRaw);
+                                        if (JSON.parse(infoJsonRaw) != null) {
+                                            infoJson = JSON.parse(infoJsonRaw);
+                                        }
                                     }
                                     
                                     for(var i = 0; i < data['metrics_prop'].length; i++) 
@@ -18784,7 +18820,21 @@
                                                 format: "rgba",
                                             });
                                         }
-                                        
+
+                                        //Modalità Icon/Text
+                                    /*    newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
+                                        newSelect.append('<option value="yes">Icon Only</option>');
+                                        newSelect.append('<option value="no">Text Description</option>');
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newSelect.val(styleParameters.shadow);
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel.show();
+                                        newInnerDiv.show();*/
+
                                         //Nuova riga
                                         //Contenitore per tabella delle query
                                         var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
@@ -19141,7 +19191,21 @@
                                                 format: "rgba",
                                             });
                                         }
-                                        
+
+                                        //Modalità Icon/Text
+                                     /*   newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
+                                        newSelect.append('<option value="yes">Icon Only</option>');
+                                        newSelect.append('<option value="no">Text Description</option>');
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newSelect.val(styleParameters.shadow);
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel.show();
+                                        newInnerDiv.show();*/
+
                                         //Nuova riga
                                         //Contenitore per tabella delle query
                                         var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
@@ -19504,6 +19568,20 @@
                                                     format: "rgba",
                                                 });
                                             }
+
+                                            //Modalità Icon/Text
+                                        /*    newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                            newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
+                                            newSelect.append('<option value="yes">Icon Only</option>');
+                                            newSelect.append('<option value="no">Text Description</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newSelect.val(styleParameters.shadow);
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel.show();
+                                            newInnerDiv.show();*/
 
                                             //Nuova riga
                                             //Contenitore per tabella delle query
@@ -23280,8 +23358,13 @@
                                     case "widgetBarSeries":
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        var seriesString = metricData.data[0].commit.author.series;
-                                        var series = jQuery.parseJSON(seriesString);
+                                        if (metricData.data.length != 0) {
+                                            var seriesString = metricData.data[0].commit.author.series;
+                                            var series = jQuery.parseJSON(seriesString);
+                                        } else {
+                                            var seriesString = "";
+                                            var series = null;
+                                        }
                                         var thrTables1 = new Array();
                                         var thrTables2 = new Array();
                                         var thrSeries,i, j, k, min, max, color, newTableRow, newTableCell, currentFieldIndex, currentSeriesIndex, colorsTable, newRow, newCell, newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer, barsColorsTableContainerM = null;
@@ -23555,27 +23638,31 @@
                                         }
                                         
                                         colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
-                                        for(var i in series.secondAxis.labels)
-                                        {
-                                            newRow = $('<tr></tr>');
-                                            newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
-                                            newRow.append(newCell);
-                                            newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                                            newRow.append(newCell);
-                                            //Se l'attuale impostazione è per colori automatici, costruiamo JSON e tabella GUI con impostazioni di default, altrimenti con colori da DB
-                                            if(styleParameters.barsColorsSelect === 'auto')
-                                            {
-                                                newRow.find('div.colorPicker').colorpicker({color: defaultColorsArray[i%10], format: "rgba"});
-                                                colorsArray.push(defaultColorsArray[i%10]);
+                                        if (series) {
+                                            for (var i in series.secondAxis.labels) {
+                                                newRow = $('<tr></tr>');
+                                                newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                newRow.append(newCell);
+                                                newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                newRow.append(newCell);
+                                                //Se l'attuale impostazione è per colori automatici, costruiamo JSON e tabella GUI con impostazioni di default, altrimenti con colori da DB
+                                                if (styleParameters.barsColorsSelect === 'auto') {
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: defaultColorsArray[i % 10],
+                                                        format: "rgba"
+                                                    });
+                                                    colorsArray.push(defaultColorsArray[i % 10]);
+                                                } else {
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: styleParameters.barsColors[i],
+                                                        format: "rgba"
+                                                    });
+                                                    colorsArray.push(styleParameters.barsColors[i]);
+                                                }
+
+                                                newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColorsM);
+                                                colorsTable.append(newRow);
                                             }
-                                            else
-                                            {
-                                                newRow.find('div.colorPicker').colorpicker({color: styleParameters.barsColors[i], format: "rgba"});
-                                                colorsArray.push(styleParameters.barsColors[i]);
-                                            }
-                                            
-                                            newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColorsM); 
-                                            colorsTable.append(newRow);
                                         }
                                         
                                         $("#barsColorsM").val(JSON.stringify(colorsArray));
@@ -23611,7 +23698,9 @@
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
                                         newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
-                                        newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                        if (series) {
+                                            newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                        }
                                         newSelect.val(-1);
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInnerDiv.append(newSelect);
@@ -24678,6 +24767,19 @@
                                         newFormRow.append(newInnerDiv);
                                         newSelect.val(styleParameters.openNewTab);
 
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+
+                                        newLabel = $('<label for="editWidgetShadow" class="col-md-2 control-label">View Button Shadow</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select name="editWidgetShadow" class="form-control" id="editWidgetShadow"></select>');
+                                        newSelect.append('<option value="yes">Yes</option>');
+                                        newSelect.append('<option value="no">No</option>');
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newSelect.val(styleParameters.shadow);
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel.show();
                                         newInnerDiv.show();

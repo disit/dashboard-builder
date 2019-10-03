@@ -42,4 +42,9 @@
       $response['detail'] = 'Ko';
     }
 
+
+    $response['geoServerUrl'] = $geoServerUrl;
+    $response['heatmapUrl'] = $heatmapUrl;
+
+
     echo json_encode($response);

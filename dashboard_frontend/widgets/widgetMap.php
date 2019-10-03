@@ -106,11 +106,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
     .slider.round:before {
         border-radius: 50%;}
 </style>
-<!-- 3DMap CORTI -->
-<!--    <script src="https://cdn-webgl.wrld3d.com/wrldjs/dist/latest/wrld.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css" rel="stylesheet" />-->
-<!--    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />-->
 
     <!-- Bring in the leaflet KML plugin -->
     <script src="../widgets/layers/KML.js"></script>
@@ -173,7 +168,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 sm_field, sizeRowsWidget, sm_based, rowParameters, fontSize, countdownRef, widgetTitle, widgetHeaderColor,
                 widgetHeaderFontColor, showHeader, widgetParameters, chartColor, dataLabelsFontSize, dataLabelsFontColor,
                 chartLabelsFontSize, chartLabelsFontColor, titleWidth, enableFullscreenModal,
-                enableFullscreenTab, shownPolyGroup = null;
+                enableFullscreenTab, shownPolyGroup, geoServerUrl, heatmapUrl = null;
             var eventsOnMap = [];
             var addMode = null;
             heatmapMetricName = "";
@@ -4812,7 +4807,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
 
                             $.ajax({
-                                url: "https://heatmap.snap4city.org/getColorMap.php?metricName=" + map.testMetadata.metadata.metricName,
+                                url: heatmapUrl + "getColorMap.php?metricName=" + map.testMetadata.metadata.metricName,
+                            //    url: "https://heatmap.snap4city.org/getColorMap.php?metricName=" + map.testMetadata.metadata.metricName,
                                 type: "GET",
                                 async: false,
                                 dataType: 'json',
@@ -5419,7 +5415,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 var pointAndClickCoord = e.latlng;
                                 var pointAndClickLat = pointAndClickCoord.lat.toFixed(5);
                                 var pointAndClickLng = pointAndClickCoord.lng.toFixed(5);
-                                var pointAndClickApiUrl = "https://heatmap.snap4city.org/interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
+                        //        var pointAndClickApiUrl = "https://heatmap.snap4city.org/interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
+                                var pointAndClickApiUrl = heatmapUrl + "interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
                                 $.ajax({
                                     url: pointAndClickApiUrl,
                                     async: true,
@@ -5672,7 +5669,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                    //    var datasetNameAux = baseQuery.split("https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=")[1];
                                    var datasetNameAux = baseQuery.split("WMS&layers=")[1];
                                    wmsDatasetName = datasetNameAux.split("&metricName=")[0];
-                                   query = 'https://heatmap.snap4city.org/heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                               //    query = 'https://heatmap.snap4city.org/heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                                   query = heatmapUrl + 'heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
                                }
 
                                heatmapData = null;
@@ -5766,7 +5764,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     //   var timestampISO = "2019-01-23T20:20:15.000Z";
                                                     var timestamp = map.testMetadata.metadata.date;
                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                    wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
                                                         layers: 'Snap4City:' + wmsDatasetName,
                                                         format: 'image/png',
                                                         crs: L.CRS.EPSG4326,
@@ -5971,7 +5970,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 //    var datasetNameAux = baseQuery.split("https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=")[1];
                                 var datasetNameAux = event.passedData.split("WMS&layers=")[1];
                                 wmsDatasetName = datasetNameAux.split("&metricName=")[0];
-                                query = 'https://heatmap.snap4city.org/heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                             //   query = 'https://heatmap.snap4city.org/heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                                query = heatmapUrl + 'heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
                             }
 
                             heatmapData = null;
@@ -6038,7 +6038,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
 
 
-                                                let dataQuery = "https://heatmap.snap4city.org/data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
+                                            //    let dataQuery = "https://heatmap.snap4city.org/data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
+                                                let dataQuery = heatmapUrl + "data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
 
                                                 $.ajax({
                                                     url: dataQuery,
@@ -6121,7 +6122,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                                             var timestamp = map.testMetadata.metadata.date;
                                                             var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                            wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                        //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                            wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
                                                                 layers: 'Snap4City:' + wmsDatasetName,
                                                                 format: 'image/png',
                                                                 crs: L.CRS.EPSG4326,
@@ -6226,7 +6228,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     // NEW HEATMAP
                                                     var timestamp = map.testMetadata.metadata.date;
                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                    wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
                                                         layers: 'Snap4City:' + wmsDatasetName,
                                                         format: 'image/png',
                                                         crs: L.CRS.EPSG4326,
@@ -6337,7 +6340,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                                     var bboxJson = {};
                                                     $.ajax({
-                                                        url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                                    //    url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                                        url: heatmapUrl + "bbox.php?layer=" + map.testMetadata.metadata.mapName,
                                                         type: "GET",
                                                         async: false,
                                                         dataType: 'json',
@@ -6478,7 +6482,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     var upEastLon = parseFloat(bboxJson['maxx']);
                                                     var bottomWestLat = parseFloat(bboxJson['miny']);
                                                     var bottomWestLon = parseFloat(bboxJson['minx']);
-                                                    var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                //    var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                    var imageUrl = geoServerUrl + 'geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
                                                     var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
                                                     var overlayOpacity = current_opacity;
 
@@ -7002,6 +7007,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     addMode = widgetData.params.viewMode;
                     enableFullscreenModal = widgetData.params.enableFullscreenModal;
                     enableFullscreenTab = widgetData.params.enableFullscreenTab;
+                    geoServerUrl = widgetData.geoServerUrl;
+                    heatmapUrl = widgetData.heatmapUrl;
 
                     if (widgetData.params.infoJson != "yes") {
                         $('#'+mapOptionsDivName).hide();
@@ -8087,7 +8094,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         var pointAndClickCoord = e.latlng;
                                         var pointAndClickLat = pointAndClickCoord.lat.toFixed(5);
                                         var pointAndClickLng = pointAndClickCoord.lng.toFixed(5);
-                                        var pointAndClickApiUrl = "https://heatmap.snap4city.org/interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
+                                    //    var pointAndClickApiUrl = "https://heatmap.snap4city.org/interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
+                                        var pointAndClickApiUrl = heatmapUrl + "interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
                                         $.ajax({
                                             url: pointAndClickApiUrl,
                                             async: true,
@@ -8231,7 +8239,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
 
 
-                                                        let dataQuery = "https://heatmap.snap4city.org/data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
+                                                    //    let dataQuery = "https://heatmap.snap4city.org/data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
+                                                        let dataQuery = heatmapUrl + "data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
 
                                                         $.ajax({
                                                             url: dataQuery,
@@ -8316,7 +8325,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                                     //   var timestampISO = "2019-01-23T20:20:15.000Z";
                                                                     var timestamp = map.testMetadata.metadata.date;
                                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                                    wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                                //    wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                                    wmsLayerFullscreen = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
                                                                         layers: 'Snap4City:' + wmsDatasetName,
                                                                         format: 'image/png',
                                                                         crs: L.CRS.EPSG4326,
@@ -8420,7 +8430,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                                             var timestamp = map.testMetadata.metadata.date;
                                                             var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                            wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                        //    wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                            wmsLayerFullscreen = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
                                                                 layers: 'Snap4City:' + wmsDatasetName,
                                                                 format: 'image/png',
                                                                 crs: L.CRS.EPSG4326,
@@ -8517,7 +8528,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                                             var bboxJson = {};
                                                             $.ajax({
-                                                                url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                                            //    url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                                                url: heatmapUrl + "bbox.php?layer=" + map.testMetadata.metadata.mapName,
                                                                 type: "GET",
                                                                 async: false,
                                                                 dataType: 'json',
@@ -8534,7 +8546,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                             var upEastLon = parseFloat(bboxJson['maxx']);
                                                             var bottomWestLat = parseFloat(bboxJson['miny']);
                                                             var bottomWestLon = parseFloat(bboxJson['minx']);
-                                                            var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                        //    var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                            var imageUrl = geoServerUrl + 'geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
                                                             var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
                                                             var overlayOpacity = current_opacity;
 
@@ -9533,7 +9546,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                         var timestamp = map.testMetadata.metadata.date;
                                         var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                        wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                    //    wmsLayerFullscreen = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                        wmsLayerFullscreen = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
                                             layers: 'Snap4City:' + wmsDatasetName,
                                             format: 'image/png',
                                             crs: L.CRS.EPSG4326,
@@ -9595,7 +9609,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                         var bboxJson = {};
                                         $.ajax({
-                                            url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                        //    url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                            url: heatmapUrl + "bbox.php?layer=" + map.testMetadata.metadata.mapName,
                                             type: "GET",
                                             async: false,
                                             dataType: 'json',
@@ -9612,7 +9627,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         var upEastLon = parseFloat(bboxJson['maxx']);
                                         var bottomWestLat = parseFloat(bboxJson['miny']);
                                         var bottomWestLon = parseFloat(bboxJson['minx']);
-                                        var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                    //    var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                        var imageUrl = geoServerUrl + 'geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
                                         var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
                                         var overlayOpacity = current_opacity;
 

@@ -90,6 +90,8 @@ session_start();
         }
 
         function addUser($nameIns, $personalDataApiBaseUrl, $ssoClientId, $ssoClientSecret) {
+            $nameIns = str_replace(' ', '%20', $nameIns);
+            $nameIns = str_replace(' ', '%20', $nameIns);
             $checkUser = true;
             $checkPublicDash = isPublic($_REQUEST['idDash'], $nameIns, $personalDataApiBaseUrl, $ssoClientId, $ssoClientSecret);
 

@@ -36,7 +36,7 @@ if (!empty($_REQUEST["updateHour"])) {
             $rowAcc = mysqli_fetch_array($resultAccess);
             if ($rowAcc['date'] === $currentDate) {     // CHECK ON LAST DATE
                 // $dashboardWidgets = [];
-                $queryUpdate = "UPDATE Dashboard.IdDashDailyAccess SET nMinutesPerDay = nMinutesPerDay + 1 WHERE IdDashboard = $dashId;";
+                $queryUpdate = "UPDATE Dashboard.IdDashDailyAccess SET nMinutesPerDay = nMinutesPerDay + 1 WHERE IdDashboard = $dashId AND date = '$currentDate';";
                 $resultUpdate = mysqli_query($link, $queryUpdate);
 
             } else {

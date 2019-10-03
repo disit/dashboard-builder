@@ -98,4 +98,37 @@ if(isset($_SESSION['refreshToken'])) {
 
     echo $myKpiDataJson;
 
+} else {
+
+    $genFileContent = parse_ini_file("../conf/environment.ini");
+    $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
+    $env = $genFileContent['environment']['value'];
+
+    $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
+
+    $myKpiDataArray = [];
+    if ($action == "getDistinctDays") {
+        $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/values/dates?sourceRequest=dashboardmanager";
+    } else {
+        //    $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . urlencode($myKpiTimeRange) . urlencode($lastValueString);
+        $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager" . $myKpiTimeRange . $lastValueString;
+    }
+
+    $options = array(
+        'http' => array(
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'GET',
+            'timeout' => 30,
+            'ignore_errors' => true
+        )
+    );
+
+    $context = stream_context_create($options);
+    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
+
+    $myKpiData = json_decode($myKpiDataJson);
+
+    echo $myKpiDataJson;
+
+
 }

@@ -2078,7 +2078,7 @@
         <?php
             if(isset($_GET['newDashId'])&&isset($_GET['newDashAuthor'])&&isset($_GET['newDashTitle']))
             {
-                echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . escapeForJS($_GET['newDashId']) . '&dashboardAuthorName=' . escapeForJS($_GET['newDashAuthor']) . '&dashboardEditorName=' . escapeForJS($_GET['newDashAuthor']) . '&dashboardTitle=' . escapeForJS($_GET['newDashTitle']) . '");';
+                echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . $_GET['newDashId'] . '&dashboardAuthorName=' . $_GET['newDashAuthor'] . '&dashboardEditorName=' . $_GET['newDashAuthor'] . '&dashboardTitle=' . $_GET['newDashTitle'] . '");';
                 echo 'history.replaceState(null, null, "dashboards.php");';
             }
         ?> 

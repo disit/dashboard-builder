@@ -48,7 +48,7 @@ var gisDefaultColors = [
     }
 ];    
 
-console.log('dashboard_configdash.js');
+//console.log('dashboard_configdash.js');
 
 function setAddGisParameters(addGisParametersAtt)
 {
@@ -3733,125 +3733,107 @@ function buildThrTablesForEditWidgetSimple()
 function buildThrTablesForEditWidget()
 {
     var min, max, color, desc = null;
-    for(i = 0; i < series.firstAxis.labels.length; i++)
-    {
-        if($("#select-widget-m").val() !== "widgetFirstAid")
-        {
-           thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
-        }
-        else
-        {
-           thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
-        }
-        
-        if(currentParams !== null)
-        {
-            if(currentParams.thresholdObject.target === currentParams.thresholdObject.firstAxis.desc)
-            {
-                for(j = 0; j < currentParams.thresholdObject.firstAxis.fields.length; j++)
-                {
-                    if(series.firstAxis.labels[i] === currentParams.thresholdObject.firstAxis.fields[j].fieldName)
-                    {
-                        thrSeries = currentParams.thresholdObject.firstAxis.fields[j].thrSeries;
-                        for(k = 0; k < thrSeries.length; k++)
-                        {
-                            min = parseInt(thrSeries[k].min);
-                            max = parseInt(thrSeries[k].max);
-                            
-                            if($("#select-widget-m").val() !== "widgetFirstAid")
-                            {
-                               color = thrSeries[k].color;
-                               desc = thrSeries[k].desc;
+    if(series) {
+        for (i = 0; i < series.firstAxis.labels.length; i++) {
+            if ($("#select-widget-m").val() !== "widgetFirstAid") {
+                thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+            } else {
+                thrTables1[series.firstAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Short description</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+            }
+
+            if (currentParams !== null) {
+                if (currentParams.thresholdObject.target === currentParams.thresholdObject.firstAxis.desc) {
+                    for (j = 0; j < currentParams.thresholdObject.firstAxis.fields.length; j++) {
+                        if (series.firstAxis.labels[i] === currentParams.thresholdObject.firstAxis.fields[j].fieldName) {
+                            thrSeries = currentParams.thresholdObject.firstAxis.fields[j].thrSeries;
+                            for (k = 0; k < thrSeries.length; k++) {
+                                min = parseInt(thrSeries[k].min);
+                                max = parseInt(thrSeries[k].max);
+
+                                if ($("#select-widget-m").val() !== "widgetFirstAid") {
+                                    color = thrSeries[k].color;
+                                    desc = thrSeries[k].desc;
+                                }
+
+                                //Aggiunta a tabella
+                                newTableRow = $('<tr></tr>');
+                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="min">' + min + '</a></td>');
+                                newTableRow.append(newTableCell);
+
+                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="max">' + max + '</a></td>');
+                                newTableRow.append(newTableCell);
+
+                                if ($("#select-widget-m").val() !== "widgetFirstAid") {
+                                    newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                    newTableRow.append(newTableCell);
+                                    newTableRow.find('div.colorPicker').colorpicker({color: color, format: "rgba"});
+                                    newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxisM);
+                                }
+
+                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="desc">' + desc + '</a></td>');
+                                newTableRow.append(newTableCell);
+
+                                newTableCell = $('<td><a href="#" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+                                newTableRow.append(newTableCell);
+                                thrTables1[series.firstAxis.labels[i]].append(newTableRow);
                             }
-
-                            //Aggiunta a tabella
-                            newTableRow = $('<tr></tr>');
-                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="min">' + min + '</a></td>');
-                            newTableRow.append(newTableCell);
-
-                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="max">' + max + '</a></td>');
-                            newTableRow.append(newTableCell);
-                            
-                            if($("#select-widget-m").val() !== "widgetFirstAid")
-                            {
-                               newTableCell = $('<td><div class="input-group colorPicker" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                               newTableRow.append(newTableCell);
-                               newTableRow.find('div.colorPicker').colorpicker({color: color, format: "rgba"});
-                               newTableRow.find('div.colorPicker').on('hidePicker', updateParamsFirstAxisM);
-                            }
-                            
-                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '" data-param="desc">' + desc + '</a></td>');
-                            newTableRow.append(newTableCell);
-
-                            newTableCell = $('<td><a href="#" data-axis="firstAxis" data-field="' + j + '" data-series="' + k + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-                            newTableRow.append(newTableCell);
-                            thrTables1[series.firstAxis.labels[i]].append(newTableRow);
                         }
                     }
                 }
             }
         }
-    }
 
-    for(var i = 0; i < series.secondAxis.labels.length; i++)
-    {
-        if($("#select-widget-m").val() !== "widgetFirstAid")
-        {
-           thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
-        }
-        else
-        {
-           thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>"); 
-        }
-      
-        if(currentParams !== null)
-        {
-            if(currentParams.thresholdObject.target === currentParams.thresholdObject.secondAxis.desc)
-            {
-                for(j = 0; j < currentParams.thresholdObject.secondAxis.fields.length; j++)
-                {
-                    if(series.secondAxis.labels[i] === currentParams.thresholdObject.secondAxis.fields[j].fieldName)
-                    {
-                        thrSeries = currentParams.thresholdObject.secondAxis.fields[j].thrSeries;
-                        for(k = 0; k < thrSeries.length; k++)
-                        {
-                            min = parseInt(thrSeries[k].min);
-                            max = parseInt(thrSeries[k].max);
-                            if($("#select-widget-m").val() !== "widgetFirstAid")
-                            {
-                               color = thrSeries[k].color;
-                               desc = thrSeries[k].desc;
+        for (var i = 0; i < series.secondAxis.labels.length; i++) {
+            if ($("#select-widget-m").val() !== "widgetFirstAid") {
+                thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td>Short description</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+            } else {
+                thrTables2[series.secondAxis.labels[i]] = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Range min</td><td>Range max</td><td>Range color</td><td><a><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+            }
+
+            if (currentParams !== null) {
+                if (currentParams.thresholdObject.target === currentParams.thresholdObject.secondAxis.desc) {
+                    for (j = 0; j < currentParams.thresholdObject.secondAxis.fields.length; j++) {
+                        if (series.secondAxis.labels[i] === currentParams.thresholdObject.secondAxis.fields[j].fieldName) {
+                            thrSeries = currentParams.thresholdObject.secondAxis.fields[j].thrSeries;
+                            for (k = 0; k < thrSeries.length; k++) {
+                                min = parseInt(thrSeries[k].min);
+                                max = parseInt(thrSeries[k].max);
+                                if ($("#select-widget-m").val() !== "widgetFirstAid") {
+                                    color = thrSeries[k].color;
+                                    desc = thrSeries[k].desc;
+                                }
+
+                                //Aggiunta a tabella
+                                newTableRow = $('<tr></tr>');
+
+                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="min">' + min + '</a></td>');
+                                newTableRow.append(newTableCell);
+
+                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="max">' + max + '</a></td>');
+                                newTableRow.append(newTableCell);
+
+                                if ($("#select-widget-m").val() !== "widgetFirstAid") {
+                                    newTableCell = $('<td><div class="input-group colorPicker" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                    newTableRow.find('div.colorPicker').colorpicker({color: color, format: "rgba"});
+                                    newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSecondAxisM);
+                                    newTableRow.append(newTableCell);
+                                }
+
+                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="desc">' + desc + '</a></td>');
+                                newTableRow.append(newTableCell);
+
+                                newTableCell = $('<td><a data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+                                newTableRow.append(newTableCell);
+
+                                thrTables2[series.secondAxis.labels[i]].append(newTableRow);
                             }
-
-                            //Aggiunta a tabella
-                            newTableRow = $('<tr></tr>');
-                            
-                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="min">' + min + '</a></td>');
-                            newTableRow.append(newTableCell);
-                            
-                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="max">' + max + '</a></td>');
-                            newTableRow.append(newTableCell);
-                            
-                            if($("#select-widget-m").val() !== "widgetFirstAid")
-                            {
-                              newTableCell = $('<td><div class="input-group colorPicker" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="color"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                              newTableRow.find('div.colorPicker').colorpicker({color: color, format: "rgba"});
-                              newTableRow.find('div.colorPicker').on('hidePicker', updateParamsSecondAxisM);
-                              newTableRow.append(newTableCell);
-                            }
-                            
-                            newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '" data-param="desc">' + desc + '</a></td>');
-                            newTableRow.append(newTableCell);
-
-                            newTableCell = $('<td><a data-axis="secondAxis" data-field="' + j + '" data-series="' + k + '"><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
-                            newTableRow.append(newTableCell);
-                            
-                            thrTables2[series.secondAxis.labels[i]].append(newTableRow);
                         }
                     }
                 }
             }
         }
+    } else {
+        var stopFlag = 1;
     }
 }
 

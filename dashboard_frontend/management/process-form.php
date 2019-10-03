@@ -1720,6 +1720,9 @@
                     } else {
                         $styleParametersArray["showText"] = mysqli_real_escape_string($link, sanitizePostString('addWidgetShowButtonText'));
                     }
+
+                    $styleParametersArray["openNewTab"] = "yes";
+                    $styleParametersArray["shadow"] = "no";
                    
                   $styleParameters = json_encode($styleParametersArray); 
                 }
@@ -3536,6 +3539,7 @@
             
             $styleParametersArray["showText"] = $_REQUEST['editWidgetShowButtonText'];
             $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
+            $styleParametersArray["shadow"] = $_REQUEST['editWidgetShadow'];
             $styleParametersM = json_encode($styleParametersArray); 
          }
 
