@@ -57,15 +57,11 @@ $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $lastCheck = str_replace("T", " ", $start_scritp_time_string[0]);
 
-$genFileContent = parse_ini_file("../conf/environment.ini");
-$personalDataFileContent = parse_ini_file("../conf/personalData.ini");
-$env = $genFileContent['environment']['value'];
-
-$host_pd= $personalDataFileContent["host_PD"][$env];
-$token_endpoint= $personalDataFileContent["token_endpoint_PD"][$env];
-$client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environment']['value']];
-$username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
-$password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
+$host_pd= $host_PD;
+$token_endpoint= $token_endpoint_PD;
+$client_id= $client_id_PD;
+$username= $usernamePD;
+$password= $passwordPD;
 
 
 //$high_level_type_KPI = "MyKPI";
