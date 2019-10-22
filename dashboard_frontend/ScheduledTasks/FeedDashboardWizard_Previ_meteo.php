@@ -50,8 +50,6 @@ $healthiness = "true";
 $last_value = "";
 $ownership = "public";
 
-$baseKm4CityUri = "http://www.disit.org/km4city/resource/";
-
 $s = "";
 $a = "";
 $dt = "";

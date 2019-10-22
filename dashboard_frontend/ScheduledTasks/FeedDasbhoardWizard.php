@@ -45,14 +45,13 @@ $sm_based = "";
 $parameters = "";
 $healthiness = "";
 $ownership = "public";
-//$organizations = "[\'DISIT\', \'Firenze\']";
+
 $organizations = "[\'DISIT\', \'Firenze\', \'Toscana\', \'Other\']";
 
 $s = "";
 $a = "";
 $dt = "";
 
-//$queryAscapiEtlDecoded = "select distinct ?s ?a ?n ?dt ?serviceType ?ow ?org ?lat ?lon {{ " .
 $queryAscapiEtlDecoded = "select distinct ?s ?a ?dt ?serviceType ?ow ?org ?lat ?lon {{ " .
     "?s km4c:hasAttribute ?a. " .
     "?a km4c:data_type ?dt. " .
@@ -204,7 +203,7 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
         $kb_based = "yes";
         $sm_based = "yes";
 
-        $parameters = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $s . "&format=json";      // CAMBIARE CON API NUOVE DI PIERO QUANDO E' PRONTA LA GET
+        $parameters = $graphURI . "api/v1/?serviceUri=" . $s . "&format=json";
 
         if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
             $sm_based = "yes";

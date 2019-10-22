@@ -50,8 +50,6 @@ $healthiness = "";
 $ownership = "";
 $organizations = "DISIT";
 
-// $baseKm4CityUri = "http://www.disit.org/km4city/resource/";
-
 $s = "";
 $a = "";
 $dt = "";
@@ -159,7 +157,7 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
             $kb_based = "yes";
             $sm_based = "no";
 
-            $parameters = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $s . "&format=json";     // CAMBIARE CON API NUOVE DI PIERO QUANDO E' PRONTA LA GET
+            $parameters = $graphURI . "api/v1/?serviceUri=" . $s . "&format=json";     // CAMBIARE CON API NUOVE DI PIERO QUANDO E' PRONTA LA GET
             //  $healthiness = "na";
             if ($ownership != "private") {
                 $ownership = "public";

@@ -91,7 +91,6 @@ $accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
 $test = "yes";
 if ($test === "yes") {
     $queryApiPersonalKPI = $host_pd.":8080/datamanager/api/v1/kpidata/?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&highLevelType=MyKPI";
-  //  $queryApiPersonalKPI = $host_pd.":8080/datamanager/api/v1/poidata/?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&highLevelType=MyKPI";
 }
 $queryPersonalKPIRresults = file_get_contents($queryApiPersonalKPI);
 $resKPIArray = json_decode($queryPersonalKPIRresults, true);
@@ -101,7 +100,6 @@ foreach ($resKPIArray as $resKPIRecord) {
     $count++;
     if ($resKPIRecord['latitude'] == "" && $resKPIRecord['longitude'] == "") {
 
-     //   $parameters_KPI = $resKPIRecord['id'] . "__" . $resKPIRecord['latitude'] . ";" . $resKPIRecord['longitude'];
         $parameters_KPI = $resKPIRecord['id'];
         $querySearchGeolocatedKPI = $host_pd.":8080/datamanager/api/v1/poidata/" . $resKPIRecord['id'] . "/?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . "&last=0";
         $geolocatedKPIRresults = file_get_contents($querySearchGeolocatedKPI);
@@ -128,13 +126,8 @@ foreach ($resKPIArray as $resKPIRecord) {
     if ($get_instances_KPI == "") {
         $get_instances_KPI = $parameters_KPI;
     }
-  /*  if (strpos($get_instances_KPI, 'datamanager/api/v1/poidata') !== false) {
-        $unit_KPI = $resKPIRecord['dataType'] . "-geo";
-        $kpiId = explode("datamanager/api/v1/poidata/", $get_instances_KPI)[1];
-    } else {    */
-        $unit_KPI = $resKPIRecord['dataType'] . "-mykpi";
-        $kpiId = $get_instances_KPI;
-   // }
+    $unit_KPI = $resKPIRecord['dataType'] . "-mykpi";
+    $kpiId = $get_instances_KPI;
     $last_date_KPI_millis = $resKPIRecord['lastDate'];
     $last_date_KPI = date("Y-m-d H:i:s",$last_date_KPI_millis/1000);
 
@@ -333,13 +326,8 @@ foreach ($resMyDataArray as $resMyDataRecord) {
     if ($get_instances_MyData == "") {
         $get_instances_MyData = $parameters_MyData;
     }
-  /*  if (strpos($get_instances_MyData, 'datamanager/api/v1/poidata') !== false) {
-        $unit_MyData = $resKPIRecord['dataType'] . "-geo";
-        $kpiId = explode("datamanager/api/v1/poidata/", $get_instances_MyData)[1];
-    } else {    */
-        $unit_MyData = $resKPIRecord['dataType'] . "-mykpi";
-        $kpiId = $get_instances_MyData;
-  //  }
+    $unit_MyData = $resKPIRecord['dataType'] . "-mykpi";
+    $kpiId = $get_instances_MyData;
     $last_date_MyData_millis = $resMyDataRecord['lastDate'];
     $last_date_MyData = date("Y-m-d H:i:s",$last_date_MyData_millis/1000);
 
@@ -458,9 +446,6 @@ foreach ($resArray as $resRecord) {
     }
 
 }
-
-// Eventualmente eseguire da qui HealthinessCheck.php ?
-// include 'HealthinessCheck.php';
 
 $queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
 $rs = mysqli_query($link, $queryMaxId);

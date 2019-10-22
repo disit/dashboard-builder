@@ -89,10 +89,6 @@ $sm_based = "";
 $parameters = "";
 $healthiness = "";
 $ownership = "";
-//$organizations = "[\'DISIT\', \'Firenze\']";
-//$organizations = "DISIT";
-
-// $baseKm4CityUri = "http://www.disit.org/km4city/resource/";
 
 $s = "";
 $a = "";
@@ -169,7 +165,7 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
     $saved_direct = "direct";
     $kb_based = "yes";
     $sm_based = "yes";
-    $parameters = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=".$s."&format=json";
+    $parameters = $graphURI . "api/v1/?serviceUri=".$s."&format=json";
 
     if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
         $insertGeneralServiceQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','', '$unique_name_id', '$instance_uri', '$get_instances', 'sensor_map', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', 'true', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';";

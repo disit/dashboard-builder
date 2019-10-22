@@ -68,7 +68,7 @@ $queryAscapiEtlDecoded = "select distinct ?s ?a ?n ?dt ?serviceType ?ow ?org ?la
     "?sType rdfs:subClassOf ?sCategory. " .
     "?sCategory rdfs:subClassOf km4c:Service. " .
     "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType) " .
-    "MINUS{?s a km4c:IoTSensor} MINUS {?s a km4c:IoTActuator}}}";
+    "MINUS{?s a sosa:Sensor} MINUS {?s a sosa:Actuator}}}";
 
 $queryAscapiEtl = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
@@ -91,14 +91,14 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
 
     $dt = $resArrayEtl['results']['bindings'][$key]['dt']['value'];   // $n --> serviceName
     $serviceType = $resArrayEtl['results']['bindings'][$key]['serviceType']['value'];   // $n --> serviceName
-  //  $unique_name_id = explode($baseKm4CityUri, $s)[1];
+
     if ($n && $n != '') {
         $unique_name_id = $n;
     } else {
         $unique_name_id = explode($baseKm4CityUri, $s)[1];
     }
- //   $ownership = $resArrayEtl['results']['bindings'][$key]['ow']['value']; // $ow --> ownership
-    $organizationFromKb = $resArrayEtl['results']['bindings'][$key]['org']['value']; // $org --> organization NEW 10 GENNAIO 2019 !!
+
+    $organizationFromKb = $resArrayEtl['results']['bindings'][$key]['org']['value'];
     if (strcmp($organizationFromKb, "Helsinki") == 0) {
         $organizations = $organizationHelsTemplate;
         $kbUrl = $kbUrlHelsinki;
@@ -143,10 +143,8 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
 
         }
 
-        if ($low_level_type != "source" && $low_level_type != "dateObserved" && $low_level_type != "dateObservedFrom" && $low_level_type != "dateObservedTo") {
-        } else {
-            echo("SKIPPED ". $low_level_type ." for DEVICE: ". $unique_name_id ."\n");
-        }
+        $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';";
+        mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';");
 
         $serviceChangeBuffer["last"] = $unique_name_id;
 

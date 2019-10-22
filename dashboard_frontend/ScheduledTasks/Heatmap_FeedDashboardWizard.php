@@ -22,21 +22,6 @@ function udate($format = 'u', $microT) {
     return date(preg_replace('`(?<!\\\\)u`', $milliseconds, $format), $timestamp);
 }
 
-/*function getAccessToken($token_endpoint, $username, $password, $client_id){
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL,$token_endpoint);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS,
-        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $curl_response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($curl_response)->access_token;
-
-}*/
-
 include '../config.php';
 
 error_reporting(E_ERROR);
@@ -52,9 +37,6 @@ $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
 echo("Starting Heatmap_FeedDashboardWizard SCRIPT at: ".$start_time_ok."\n");
 
-/*$startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
-$start_scritp_time = $startTime->format('c');
-$start_scritp_time_string = explode("+", $start_scritp_time);*/
 $lastCheck = str_replace("T", " ", $start_scritp_time_string[0]);
 
 $genFileContent = parse_ini_file("../conf/environment.ini");
@@ -88,7 +70,7 @@ $ownership = "";
 //$lastCheck = "";
 $organizations = "";
 
-$queryHeatmapAPI = "https://heatmap.snap4city.org/maps-completed.php";
+$queryHeatmapAPI = $heatmapUrl . "maps-completed.php";
 
 $queryHeatmapResults = file_get_contents($queryHeatmapAPI);
 $heatmapResultsArray = json_decode($queryHeatmapResults, true);
@@ -97,7 +79,7 @@ foreach ($heatmapResultsArray as $heatmapName) {
 
     $count++;
 
-    $queryMetadataAPI = "https://heatmap.snap4city.org/heatmap-metadata.php?dataset=" . $heatmapName;
+    $queryMetadataAPI = $heatmapUrl . "heatmap-metadata.php?dataset=" . $heatmapName;
     $queryMetadataResults = file_get_contents($queryMetadataAPI);
     $metadataResultsArray = json_decode($queryMetadataResults, true);
 
@@ -125,7 +107,7 @@ foreach ($heatmapResultsArray as $heatmapName) {
     $unique_name_id = $metadata['metadata']['mapName'];
     $low_level_type = $metadata['metadata']['metricName'];
     $last_date = $metadata['metadata']['date'];
-    $get_instances = "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=" . $unique_name_id;
+    $get_instances = $geoServerUrl . "geoserver/Snap4City/wms?service=WMS&layers=" . $unique_name_id;
     $parameters = $get_instances;
     $ownership = "public";
 

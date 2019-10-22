@@ -38,7 +38,7 @@ $offset = $current_dateTimeZone->getOffset($startTime);
 $start_scritp_time = $startTime->format('c');
 //$start_scritp_time_string = explode("+", $start_scritp_time);
 //$start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
-$start_time_ok = str_replace("T", " ", $start_scritp_time);    // VIEW GMT OFFSET !
+$start_time_ok = str_replace("T", " ", $start_scritp_time);
 echo("Starting HealthinessCheck SCRIPT at: ".$start_time_ok."\n");
 
 $link = mysqli_connect($host, $username, $password);
@@ -64,9 +64,6 @@ if ($rs) {
     $count = 0;
     try {
         while ($row = mysqli_fetch_assoc($rs)) {
-            if (strpos($row['unique_name_id'], 'fmi-105406') !== false || strpos($row['unique_name_id'], '37377') !== false) {
-                $stopFlag = 1;
-            }
             $high_level_type = $row['high_level_type'];
             $nature = $row['nature'];
             $sub_nature = $row['sub_nature'];
@@ -88,7 +85,7 @@ if ($rs) {
                     } else {
                         $sUri = $row['get_instances'];
                     }
-                    $url = "http://www.disit.org/superservicemap/api/v1/?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
                     $instance_uri = "single_marker";
                 } else if ($row['nature'] != 'IoTDevice' && $sub_nature != "First Aid Data") {
                     if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
@@ -96,10 +93,10 @@ if ($rs) {
                     } else {
                         $sUri = $row['get_instances'];
                     }
-                    $url = "http://www.disit.org/superservicemap/api/v1/?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
                     $instance_uri = "any + status";
                 } else if ($sub_nature === "First Aid Data") {
-                    $url = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $row['parameters'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $row['parameters'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
                 }
 
                 $response = file_get_contents($url);
@@ -159,7 +156,7 @@ if ($rs) {
                                 $updateTimeU = new DateTime("now", $current_dateTimeZone);
                                 $offset = $current_dateTimeZone->getOffset($updateTimeU);
                                 $update_scritp_timeU = $updateTimeU->format('c');
-                                $update_time_okU = str_replace("T", " ", $update_scritp_timeU);    // VIEW GMT OFFSET !
+                                $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
                                 echo("             Udpating : ". $key . " at: ".$update_time_okU."\n");
                                 $query_update = "UPDATE DashboardWizard SET last_date= '" . substr($last_date, 0,strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';";
                             }
@@ -244,7 +241,7 @@ if ($rs) {
                                         $updateTimeU = new DateTime("now", $current_dateTimeZone);
                                         $offset = $current_dateTimeZone->getOffset($updateTimeU);
                                         $update_scritp_timeU = $updateTimeU->format('c');
-                                        $update_time_okU = str_replace("T", " ", $update_scritp_timeU);    // VIEW GMT OFFSET !
+                                        $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
                                         echo("             Udpating : " . $key . " at: " . $update_time_okU . "\n");
                                         $query_update = "UPDATE DashboardWizard SET healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';";
                                         mysqli_query($link, $query_update);
