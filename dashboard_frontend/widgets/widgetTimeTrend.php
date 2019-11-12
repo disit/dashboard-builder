@@ -1444,19 +1444,8 @@
                         break;
                 }
 
-                if (dashboardOrg != null || dashboardOrg != undefined) {
-
-                }
-
-            //    if (loggedRole == "RootAdmin") {
-                    dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
-             //   }
-
                 $.ajax({
-                 //   url: orgKbUrl + "?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
-                 //   url: dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&valueName=" + fromGisExternalContentField,
-                    url: dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + fromGisExternalContentField,
-                  //  url: "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
+                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + fromGisExternalContentField,
                     type: "GET",
                     data: {},
                     async: true,
@@ -1939,7 +1928,7 @@
              //   if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
                     let urlKBToBeCalled = "";
                     let field = "";
-                    let dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
+                    let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
                     if (fromGisExternalContent) {
                         // urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&valueName=" + fromGisExternalContentField;
                         urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri);
@@ -1953,7 +1942,7 @@
                     if(rowParameters != null) {
                         if (rowParameters.includes("https:")) {
                             $.ajax({
-                                url: urlKBToBeCalled,
+                                url: "<?=$superServiceMapProxy?>" + urlKBToBeCalled,
                                 type: "GET",
                                 data: {},
                                 async: true,
@@ -2030,7 +2019,7 @@
             //    if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
                     let urlKBToBeCalled = "";
                     let field = "";
-                    let dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
+                    let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
                     if (fromGisExternalContent) {
                         // urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&valueName=" + fromGisExternalContentField;
                         urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri);
@@ -2044,7 +2033,7 @@
                     if(rowParameters != null) {
                         if (rowParameters.includes("https:")) {
                             $.ajax({
-                                url: urlKBToBeCalled,
+                                url: "<?=$superServiceMapProxy?>" + urlKBToBeCalled,
                                 type: "GET",
                                 data: {},
                                 async: true,
@@ -2126,15 +2115,15 @@
                     if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
                         let urlKBToBeCalled = "";
                         let field = "";
-                        let dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
+                        let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
+                        //let dashboardOrgKbUrl = "https://servicemap.disit.org/WebAppGrafo/api/v1/";
                         if (fromGisExternalContent) {
                             // urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&valueName=" + fromGisExternalContentField;
-                            urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri);
+                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri);
                             field = fromGisExternalContentField;
-
                         } else {
                             //  urlKBToBeCalled = rowParameters + "&" + "&valueName=" + sm_field;
-                            urlKBToBeCalled = widgetData.params.rowParameters;
+                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + widgetData.params.rowParameters;
                             field = widgetData.params.sm_field;
                         }
                         $.ajax({

@@ -29,13 +29,31 @@ if(isset($_SESSION['refreshToken'])) {
     $_SESSION['refreshToken'] = $tkn->refresh_token;
 }
 session_write_close();
-$uri = $_SERVER['REQUEST_URI'];
-$p = strpos($uri,'superservicemapProxy.php');
-$x =  substr($uri, $p+strlen('superservicemapProxy.php'));
-if(substr($x,0,7)=='/api/v1') {
-  $apiUrl = "https://www.disit.org/superservicemap" . $x;
-  //$apiUrl = "https://www.disit.org/ServiceMap" . $x;
 
+if(isset($_GET['url'])) {
+  //TBD validate url
+  $apiUrl=$_GET['url'];
+} else {
+  $uri = $_SERVER['REQUEST_URI'];
+  $p = strpos($uri,'superservicemapProxy.php/');
+  $x =  substr($uri, $p+strlen('superservicemapProxy.php/'));
+  if(substr($x,0,6)=='api/v1') {
+    $apiUrl = $superServiceMapUrlPrefix . $x;
+  } else   if(substr($x,0,7)=='/api/v1') {
+    $apiUrl = $superServiceMapUrlPrefix . $x;
+  } else if(substr($x,0,7)=='http://' || substr($x,0,8)=='https://') {
+    //TBD validate url
+    $apiUrl=$x;
+  }  else if(substr($x,0,6)=='http:/') {
+    //TBD validate url
+    $apiUrl="http://".substr($x,6);
+  } else if(substr($x,0,7)=='https:/') {
+    //TBD validate url
+    $apiUrl="https://".substr($x,7);
+  }
+}
+
+if(isset($apiUrl)) {
   $options = array(
       'http' => array(
           'method' => 'GET',

@@ -258,11 +258,42 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             function gisPrepareCustomMarker(feature, latlng) {
-                var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
-                var markerIcon = L.icon({
-                    iconUrl: mapPinImg,
-                    iconAnchor: [16, 37]
-                });
+             //   if (map.eventsOnMap[0].iconTextMode != "icon") {
+                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                    var markerIcon = L.icon({
+                        iconUrl: mapPinImg,
+                        iconAnchor: [16, 37]
+                    });
+             /*   } else {
+                    // CHIAMATA AJAX PER REPERIRE IL COLORE DI DEFAULT
+
+                    var iconSvgSettings = {
+                        mapIconUrl: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
+                            '\t<svg id="gocciaSvg" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
+                            '\t <g id="Layer_goccia2">\n' +
+                            '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
+                            '\t </g>\n' +
+                            '\t</svg>\n' +
+                            '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
+                            '</div>'
+                    }
+
+                    var markerIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
+                            '\t<svg id="gocciaSvg" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
+                            '\t <g id="Layer_goccia2">\n' +
+                            '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
+                            '\t </g>\n' +
+                            '\t</svg>\n' +
+                            '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
+                            '</div>',
+                    //    html: L.Util.template(iconSvgSettings.mapIconUrl),
+                     //   iconSize: [30, 42],
+                        //iconAnchor: [15, 42]
+                        iconAnchor: [16, 37]
+                    });
+                }*/
 
                 var marker = new L.Marker(latlng, {icon: markerIcon});
 
@@ -273,19 +304,68 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 markersCache["" + latLngKey + ""] = marker;
 
                 marker.on('mouseover', function (event) {
-                    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
-                    var hoverIcon = L.icon({
-                        iconUrl: hoverImg
-                    });
+                 //   if (map.eventsOnMap[0].iconTextMode != "icon") {
+                        var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                        var hoverIcon = L.icon({
+                            iconUrl: hoverImg
+                        });
+                /*    } else {
+
+                        var iconSvgSettings = {
+                            mapIconUrl: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
+                                '\t<svg id="gocciaSvg" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
+                                '\t <g id="Layer_goccia2">\n' +
+                                '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
+                                '\t </g>\n' +
+                                '\t</svg>\n' +
+                                '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
+                                '</div>'
+                        }
+
+                        // CHIAMATA AJAX PER REPERIRE IL COLORE DI DEFAULT
+                        var hoverIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
+                                '\t<svg id="gocciaSvg_over" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
+                                '\t <g id="Layer_goccia2">\n' +
+                                '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#ffffff" stroke="#d85b49" stroke-width="3"/>\n' +
+                                '\t </g>\n' +
+                                '\t</svg>\n' +
+                                '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
+                                '</div>',
+                         //   html: L.Util.template(iconSvgSettings.mapIconUrl),
+                            //   iconSize: [30, 42],
+                            //iconAnchor: [15, 42]
+                            iconAnchor: [16, 37]
+                        });
+                    }*/
                     event.target.setIcon(hoverIcon);
                 });
 
                 marker.on('mouseout', function (event) {
-                    var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
-                    var outIcon = L.icon({
-                        iconUrl: outImg
-                    });
-                    event.target.setIcon(outIcon);
+                //    if (map.eventsOnMap[0].iconTextMode != "icon") {
+                        var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                        var outIcon = L.icon({
+                            iconUrl: outImg
+                        });
+                        event.target.setIcon(outIcon);
+                /*    } else {
+                        var markerIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
+                                '\t<svg id="gocciaSvg_out" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
+                                '\t <g id="Layer_goccia2">\n' +
+                                '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
+                                '\t </g>\n' +
+                                '\t</svg>\n' +
+                                '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:px; width: 22px; height: 22px;">\n' +
+                                '</div>',
+                            //   iconSize: [30, 42],
+                            //iconAnchor: [15, 42]
+                           // iconAnchor: [0, 0]
+                        });
+                        event.target.setIcon(outIcon);
+                    }*/
                 });
 
                 marker.on('click', function (event) {
@@ -302,7 +382,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         fakeId = feature.id;
                     }
                     else {
-                        urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
                         fake = false;
                     }
 
@@ -1360,7 +1440,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         fakeId = feature.id;
                     }
                     else {
-                        urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
                         fake = false;
                     }
 
@@ -2840,6 +2920,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             var queryType = passedData.queryType;
                             var desc = passedData.desc;
                             var display = passedData.display;
+                            if (desc == "") {
+                                desc = query;
+                            }
 
                             var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
@@ -2853,9 +2936,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
                             loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
-                            var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
-                            var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
-                            var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            if (desc == query) {
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            } else {
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            }
 
                             loadingDiv.css("background", color1);
                             loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
@@ -2914,9 +3003,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         query = passedData.query;
                                     }
                                 } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
-                                    query = "<?php echo $superServiceMapUrlPrefix; ?>/api/v1/?serviceUri=" + passedData.query + "&format=json";
+                                    query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
-
                                     if (pattern.test(passedData.query)) {
                                         //console.log("Service Map selection substitution");
                                         query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
@@ -2924,7 +3012,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         //console.log("Service Map selection addition");
                                         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
-                                    //query = "../controllers/superservicemapProxy.php/api/v1?" + query.split('?')[1];
+                                    query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                 }
                                 if (!query.includes("&maxResults")) {
                                     if (!query.includes("&queryId")) {
@@ -2943,7 +3031,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     dataForApi = "All";
                                     query = passedData.query;
                                 }
-
                             }
                             else
                             {
@@ -3133,6 +3220,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         dataObj.color2 = passedData.color2;
                                         dataObj.queryType = passedData.queryType;
                                         dataObj.display = passedData.display;
+                                        dataObj.iconTextMode = passedData.iconTextMode;
 
                                     //    map.eventsOnMap.push(dataObj);
                                     }
@@ -3203,7 +3291,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
 
                                                     $.ajax({
-                                                        url: "<?php echo $superServiceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
+                                                        url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
                                                         type: "GET",
                                                         data: {},
                                                         async: true,
@@ -6702,12 +6790,16 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         var desc = passedData.desc;
                         var display = passedData.display;
 
+                        if (desc == "") {
+                            desc = passedData.query;
+                        }
+
                         if (stopGeometryAjax.hasOwnProperty(desc)) {
                             stopGeometryAjax[desc] = true;
                         }
 
                         if (display !== 'geometries') {
-                            if (gisLayersOnMap[desc] !== "loadError") {
+                            if (gisLayersOnMap[desc] && gisLayersOnMap[desc] !== "loadError") {
                                 map.defaultMapRef.removeLayer(gisLayersOnMap[desc]);
 
                                 if (gisGeometryLayersOnMap.hasOwnProperty(desc)) {
@@ -6735,6 +6827,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         delete gisGeometryTankForFullscreen[desc];
 
                         for (i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                            if(!map.eventsOnMap[i]) continue;
                             if ((map.eventsOnMap[i].eventType === 'selectorEvent') && (map.eventsOnMap[i].desc === desc)) {
                                 map.eventsOnMap.splice(i, 1);
                             }
@@ -7295,13 +7388,14 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             query = map.eventsOnMap[i].query;
                                         }
                                     } else if (map.eventsOnMap[i].query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
-                                        query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + map.eventsOnMap[i].query + "&format=json";
+                                        query = "<?=$superServiceMapProxy ?>api/v1/?serviceUri=" + map.eventsOnMap[i].query + "&format=json";
                                     } else {
                                         if (pattern.test(query)) {
                                             query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
                                         } else {
                                             query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                         }
+                                        query = "<?=$superServiceMapProxy ?>"+query;
                                     }
                                 }
                                 else if(queryType === "MyPOI") {
@@ -7477,7 +7571,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
 
                                                         $.ajax({
-                                                            url: "<?php echo $superServiceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
+                                                            url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
                                                             type: "GET",
                                                             data: {},
                                                             async: true,

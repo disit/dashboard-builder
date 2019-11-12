@@ -2976,10 +2976,14 @@
         //Funzione che prepara icone custom su mappa in base a quelle di ServiceMap
         function addWidgetWizardCreateCustomMarker(feature, latlng) {
 
-            if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
+            if (feature.properties.serviceType == null) {
                 var mapPinImg = '../img/gisMapIcons/generic.png';
             } else {
-                var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
+                    var mapPinImg = '../img/gisMapIcons/generic.png';
+                } else {
+                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                }
             }
             
             var markerIcon = L.icon({
@@ -2998,10 +3002,14 @@
             var uniqueNameId = feature.properties.name;
 
             marker.on('mouseover', function (event) {
-                if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
-                    var hoverImg = '../img/gisMapIcons/over/generic_over.png';
+                if (feature.properties.serviceType == null) {
+                    var mapPinImg = '../img/gisMapIcons/over/generic_over.png';
                 } else {
-                    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                    if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
+                        var hoverImg = '../img/gisMapIcons/over/generic_over.png';
+                    } else {
+                        var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                    }
                 }
                 var hoverIcon = L.icon({
                     iconUrl: hoverImg
@@ -3010,11 +3018,16 @@
             });
 
             marker.on('mouseout', function (event) {
-                if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
-                    var outImg = '../img/gisMapIcons/generic.png';
+                if (feature.properties.serviceType == null) {
+                    var mapPinImg = '../img/gisMapIcons/generic.png';
                 } else {
-                    var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                    if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
+                        var outImg = '../img/gisMapIcons/generic.png';
+                    } else {
+                        var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                    }
                 }
+
                 var outIcon = L.icon({
                     iconUrl: outImg
                 });
@@ -3034,8 +3047,7 @@
                     fakeId = feature.id;
                 } else
                 {
-                  //  urlToCall = "<?php echo $serviceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";
-                    urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
+                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
                     fake = false;
                 }
 
@@ -5812,9 +5824,9 @@
             if(showFlag == true)
             {
                 if(instanceUri === "any + status") {
-                    var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=http://www.disit.org/km4city/resource/" + uniqueNameId + "&format=json&realtime=false&fullCount=false";
+                    var urlKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=http://www.disit.org/km4city/resource/" + uniqueNameId + "&format=json&realtime=false&fullCount=false";
                     if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
-                        urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                        urlKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     } else {
                         if (orgName != null && orgName != '') {
                             var baseUrl = orgKbUrl;
@@ -5822,7 +5834,7 @@
                         }
                     }
                     $.ajax({
-                        url: urlKbToCall,
+                        url: "<?= $superServiceMapProxy ?>" + urlKbToCall,
                         type: "GET",
                         async: true,
                         dataType: 'json',
@@ -5898,13 +5910,13 @@
                     } else {
                         var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
                         if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
-                            urlKbToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                            urlKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
                         } else if (orgName != null && orgName != '') {
                             var baseUrl = orgKbUrl;
                             urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
                         }
                         $.ajax({
-                            url: urlKbToCall,
+                            url: "<?= $superServiceMapProxy ?>" + urlKbToCall,
                             type: "GET",
                             async: true,
                             dataType: 'json',
@@ -5936,16 +5948,16 @@
                 } else if (instanceUri === "single_marker") {
                     var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
-                        urlSensorKbToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                        urlSensorKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     } else {
                         if (orgName != null && orgName != '') {
                             var baseUrl = orgKbUrl;
                             urlSensorKbToCall = baseUrl + "?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                         }
                     }
-                    urlSensorKbToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    urlSensorKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     $.ajax({
-                        url: urlSensorKbToCall,
+                        url: "<?= $superServiceMapProxy ?>" + urlSensorKbToCall,
                         type: "GET",
                         async: true,
                         dataType: 'json',

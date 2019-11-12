@@ -1229,12 +1229,8 @@
                         break;
                 }
 
-                dashboardOrgKbUrl = "https://www.disit.org/superservicemap/api/v1/";
-
                 $.ajax({
-                 //   url: orgKbUrl + "?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
-                    url: dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&valueName=" + fromGisExternalContentField,
-                  //  url: "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&" + serviceMapTimeRange,
+                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&valueName=" + fromGisExternalContentField,
                     type: "GET",
                     data: {},
                     async: true,

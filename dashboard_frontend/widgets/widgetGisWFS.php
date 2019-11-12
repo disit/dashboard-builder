@@ -2365,7 +2365,7 @@
                         //console.log('NON Include');
                         //////notihng///
                         //console.log('proprieta:');
-                        var uriToLoad = 'https://www.disit.org/superservicemap/api/v1/?serviceUri='+proprieta.serviceUri+'&format=json';
+                        var uriToLoad = '<?=$superServiceMapProxy ?>api/v1/?serviceUri='+proprieta.serviceUri+'&format=json';
                         //console.log(uriToLoad);
                         /////////////////
                         /*

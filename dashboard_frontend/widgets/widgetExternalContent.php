@@ -452,8 +452,7 @@
                 }
                 else
                 {
-                  //  urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json";
-                    urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
                     fake = false;
                 }
                 
@@ -1622,8 +1621,7 @@
                 }
                 else
                 {
-                  //  urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json";
-                    urlToCall = "<?php echo $superServiceMapUrlPrefix; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
                     fake = false;
                 }
                 
@@ -3519,6 +3517,9 @@
                             var queryType = event.queryType;
                             var apiUrl = "";
                             var dataForApi = "";
+                            if (event.desc == "") {
+                                event.desc = event.query;
+                            }
 
                             //alert("Query type: " + queryType);
 
@@ -3536,9 +3537,15 @@
                             loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
                             loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
-                            var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + event.desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
-                            var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + event.desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
-                            var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + event.desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            if (event.desc == event.query) {
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b></b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b></b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b></b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            } else {
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + event.desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + event.desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + event.desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            }
 
                             loadingDiv.css("background", event.color1);
                             loadingDiv.css("background", "-webkit-linear-gradient(left top, " + event.color1 + ", " + event.color2 + ")");
@@ -3581,15 +3588,14 @@
                                         query = event.query;
                                     }
                                 } else if (event.query.includes("/iot/") && !event.query.includes("/api/v1/")) {
-                                    query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + event.query + "&format=json";
+                                    query = "<?=$superServiceMapProxy ?>api/v1/?serviceUri=" + event.query + "&format=json";
                                 } else {
-
                                     if (pattern.test(event.query)) {
                                         //console.log("Service Map selection substitution");
-                                        query = event.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                        query = "<?=$superServiceMapProxy ?>"+event.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
                                     } else {
                                         //console.log("Service Map selection addition");
-                                        query = event.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                        query = "<?=$superServiceMapProxy ?>"+event.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
                                 }
                                 if (!query.includes("&maxResults")) {
@@ -3629,7 +3635,6 @@
                                 apiUrl = query + "&geometry=true&fullCount=false";
                             }
 
-                        //    if (queryType === "Sensor" && query.includes("%2525")) {
                             if (query.includes("%2525") && !query.includes("%252525")) {
                                 let queryPart1 = query.split("/resource/")[0];
                                 let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
@@ -3821,7 +3826,7 @@
                                                     //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
 
                                                     $.ajax({
-                                                        url: "<?php echo $superServiceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
+                                                        url: "<?= $superServiceMapProxy; ?>/api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
                                                         type: "GET",
                                                         data: {},
                                                         async: true,
@@ -3904,6 +3909,11 @@
                         $(document).off('removeLayerFromGis_' + widgetName);
                         $(document).on('removeLayerFromGis_' + widgetName, function(event) 
                         {
+
+                            if (event.desc == "") {
+                                event.desc = event.query;
+                            }
+
                             if(stopGeometryAjax.hasOwnProperty(event.desc))
                             {
                                 stopGeometryAjax[event.desc] = true;
@@ -4742,7 +4752,7 @@
                             for(var i in gisGeometryServiceUriToShowFullscreen[desc])
                             {
                                 $.ajax({
-                                    url: "<?php echo $superServiceMapUrlPrefix; ?>" + "/api/v1/?serviceUri=" + gisGeometryServiceUriToShowFullscreen[desc][i],
+                                    url: "<?= $superServiceMapProxy; ?>/api/v1/?serviceUri=" + gisGeometryServiceUriToShowFullscreen[desc][i],
                                     type: "GET",
                                     data: {},
                                     async: true,
