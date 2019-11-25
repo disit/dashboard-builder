@@ -32,19 +32,31 @@
          "WHERE name_w = '$widgetName'";
     $r = mysqli_query($link, $q);
 
-    if($r)
-    {
+    if($r && mysqli_num_rows($r)>0) {
         $response['params'] = mysqli_fetch_assoc($r);       
         $response['detail'] = 'Ok';
-    }
-    else
-    {
-      $response['detail'] = 'Ko';
-    }
+    } else { //check if it is from datainspector
+        $q = "SELECT * FROM Dashboard.DataInspector " . 
+             "LEFT JOIN Dashboard.Widgets " .    
+             "ON DataInspector.type_w = Widgets.id_type_widget " .   
+             "WHERE name_w = '$widgetName'";
+        $r = mysqli_query($link, $q);
 
+        if($r && mysqli_num_rows($r)>0) {
+            $response['params'] = mysqli_fetch_assoc($r);       
+            $response['detail'] = 'Ok';
+        }
+        else {
+            $response['detail'] = 'Ko';
+        }
+    }
 
     $response['geoServerUrl'] = $geoServerUrl;
     $response['heatmapUrl'] = $heatmapUrl;
 
+	// MS> Use defaults for geo server and heatmap URLs if necessary
+	if($response['geoServerUrl'] == null) $response['geoServerUrl'] = "https://wmsserver.snap4city.org/";
+  if($response['heatmapUrl'] == null) $response['heatmapUrl'] = "https://heatmap.snap4city.org/";
+	// <MS
 
     echo json_encode($response);
