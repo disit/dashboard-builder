@@ -1,4 +1,4 @@
-package main 
+package main
 
 import (
 	"database/sql"
@@ -20,6 +20,8 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 	response["msgType"] = dat["msgType"]
 	switch dat["msgType"] {
 	case "AddEmitter":
+		//sender: nodered
+		//receiver: wsServer
 		/* esempio messaggio
 		   { msgType: 'AddEmitter',
 		     name: 'NR_89ba9b5e_c16348',
@@ -161,6 +163,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		}
 		break
 	case "RegisterEmitter":
+		//not used?
 		/* esempio messaggio
 		   { msgType: 'RegisterEmitter',
 			 widgetUniqueName: '...'
@@ -190,6 +193,59 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		}
 		break
 	case "SendToEmitter":
+		// sender: dashboard
+		// receiver: wsServer
+		var username string
+		var role string
+		var idDashboard string
+		var creator string
+		var err error
+
+		//check widgetUniqueName
+		widgetUniqueName := dat["widgetUniqueName"]
+
+		if !user.validOrigin {
+			log.Print("SendEmitter ", widgetUniqueName, " invalid origin")
+			response["result"] = "Ko"
+			break
+		}
+
+		err = db.QueryRow("SELECT id_dashboard, creator FROM "+dashboard+".Config_widget_dashboard wd join "+dashboard+".Config_dashboard d ON wd.id_dashboard=d.Id where name_w= ? and deleted='no';", widgetUniqueName).Scan(&idDashboard, &creator)
+		if err != nil {
+			log.Print("SendToEmitter failed widget ", widgetUniqueName)
+			response["result"] = "Ko"
+			break
+		}
+		log.Print("widget ", widgetUniqueName, " -> dashboard:", idDashboard, " creator:", creator)
+		if idDashboard == "" || creator == "" {
+			log.Print("SendToEmitter invalid widget ", widgetUniqueName)
+			response["result"] = "Ko"
+			break
+		}
+
+		//check access token if dashboard
+		if strings.Contains(ws.requireToken, "dashboard") {
+			if dat["accessToken"] == nil {
+				log.Print("SendToEmitter require accessToken")
+				response["result"] = "Ko"
+				break
+			}
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
+			if err != nil {
+				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
+			}
+			if err != nil {
+				log.Print("invalid token ", err)
+				response["result"] = "Ko"
+				break
+			}
+			log.Print("SendToEmitter user: ", username, " role: ", role)
+		}
+
+		//dashboard pubblica?
+
+		//se privata l'utente può accederci?
+
 		/* salva il dato ricevuto in tabella ActuatorsAppsValues*/
 
 		ipAddress := user.clientIp
@@ -249,6 +305,10 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		}
 		break
 	case "DataToEmitterAck":
+		//sender: nodered
+		//receiver: wsServer
+		//nodered acknowledges the receipt of a DataToEmitter message
+
 		msgId := (int64)(dat["msgId"].(float64))
 		if msgId != user.msgIdAck {
 			log.Print("ack of invalid msg: waiting ", user.msgIdAck, " arrived ", msgId)
@@ -424,6 +484,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		}
 		break
 	case "AddMetricData":
+		//sender: nodered
 		newMessage := &Message{
 			MsgType:    "newNRMetricData",
 			MetricName: dat["metricName"].(string),
@@ -504,12 +565,19 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		break
 
 	case "ClientWidgetRegistration":
-
+		//sender: dashboard
+		//receiver: wsServer
 		user.userType = dat["userType"].(string)
 		user.metricName = dat["metricName"].(string)
 		user.widgetUniqueName = dat["widgetUniqueName"]
 		publish([]byte("subscribe"+dat["metricName"].(string)), "default")
-		if user.validOrigin && dat["widgetUniqueName"] != "" && dat["widgetUniqueName"] != nil {
+		if !user.validOrigin {
+			log.Print("ClientWidgetRegistration invalid origin")
+			response["result"] = "Ko"
+			break
+		}
+
+		if dat["widgetUniqueName"] != "" && dat["widgetUniqueName"] != nil {
 
 			/* se la metrica personale su cui insiste il widget e` gia` presentein memoria,
 			il widget viene inserito nella coda degli widget relativi a tale metrica, altrimenti
@@ -542,10 +610,6 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			}
 			response["result"] = "Ok"
 		} else {
-			if !user.validOrigin {
-				log.Print("ClientWidgetRegistration invalid origin")
-			}
-			response["result"] = "Ko"
 		}
 		break
 

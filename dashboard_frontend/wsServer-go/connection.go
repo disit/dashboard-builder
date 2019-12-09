@@ -74,6 +74,7 @@ type WebSocketServer struct {
 	ldapPort      string
 	ldapBaseDN    string
 	validOrigins  string
+	requireToken  string
 	clientWidgets map[string][]*WebsocketUser
 }
 
@@ -169,25 +170,39 @@ func checkToken(accessToken string, clientID string) (string, string, error) {
 		return "", "", err
 	}
 
-	verifier := provider.Verifier(&oidc.Config{ClientID: clientID})
+	verifier := provider.Verifier(&oidc.Config{SkipClientIDCheck:true})
 	idToken, err := verifier.Verify(ctx, accessToken)
 	if err != nil {
 		log.Print(err)
 		return "", "", err
 	}
-	var data map[string]interface{}
-	if err := idToken.Claims(&data); err != nil {
+	var claims map[string]interface{}
+	if err := idToken.Claims(&claims); err != nil {
 		return "", "", err
+	}
+	if claims["aud"]!=nil {
+		if claims["aud"]!=clientID {
+			log.Print("checkToken 'aud' claim is '",claims["aud"],"' expected ", clientID)
+			return "", "", errors.New("'aud' claim is not valid")
+		}
+	} else {
+		if claims["azp"] == nil {
+			log.Print("checkToken aud and azp claims missing")
+			return "", "", errors.New("missing 'aud' and 'azp' claims")
+		} else if claims["azp"]!=clientID {
+			log.Print("checkToken azp claim is '",claims["aud"],"' expected ", clientID)
+			return "", "", errors.New("'azp' claim is not valid")
+		}
 	}
 	var role string
 	var username string
-	if data["username"] != nil {
-		username = data["username"].(string)
-	} else if data["preferred_username"] != nil {
-		username = data["preferred_username"].(string)
+	if claims["username"] != nil {
+		username = claims["username"].(string)
+	} else if claims["preferred_username"] != nil {
+		username = claims["preferred_username"].(string)
 	}
-	log.Print(data)
-	roles, ok := data["roles"].([]interface{})
+	log.Print(claims)
+	roles, ok := claims["roles"].([]interface{})
 	if ok {
 		for _, value := range roles {
 			if value == "RootAdmin" {
@@ -285,9 +300,9 @@ func FromRequest(r *http.Request) (string, string) {
 		address = strings.TrimSpace(address)
 		isPrivate, err := isPrivateAddress(address)
 		if !isPrivate && err == nil {
-			return "", address
+			return address, origin
 		}
 	}
 
-	return "", xRealIP
+	return xRealIP, origin
 }

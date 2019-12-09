@@ -132,6 +132,7 @@ func buildAndInit() *WebSocketServer {
 
 	a := envFileContent.Sections()
 	wss.activeEnv = a[0].Key("environment[value]").String()
+	log.Print("active env: ",wss.activeEnv)
 
 	a = genFileContent.Sections()
 	wss.dbhost = a[0].Key("host[" + wss.activeEnv + "]").String()
@@ -145,12 +146,14 @@ func buildAndInit() *WebSocketServer {
 	wss.serverAddress = a[0].Key("wsServerAddress[" + wss.activeEnv + "]").String()
 	wss.serverPort = a[0].Key("wsServerPort[" + wss.activeEnv + "]").String()
 	wss.validOrigins = a[0].Key("validOrigins[" + wss.activeEnv + "]").String()
+	wss.requireToken = a[0].Key("requireToken[" + wss.activeEnv + "]").String()
 
 	a = ssoFileContent.Sections()
 	wss.clientSecret = a[0].Key("ssoClientSecret[" + wss.activeEnv + "]").String()
 	wss.clientID = a[0].Key("ssoClientId[" + wss.activeEnv + "]").String()
 	wss.ssoHost = a[0].Key("ssoHost[" + wss.activeEnv + "]").String()
 	wss.ssoIssuer = a[0].Key("ssoIssuer[" + wss.activeEnv + "]").String()
+	log.Print("sso: issuer ", wss.ssoIssuer)
 
 	a = redisServerContent.Sections()
 	wss.redisEnabled = a[0].Key("redisEnabled[" + wss.activeEnv + "]").String()
@@ -225,7 +228,10 @@ func (manager *ClientManager) start() {
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	clientIP, origin := FromRequest(r)
-	validOrigin := strings.Contains(ws.validOrigins, origin)
+	validOrigin := origin != "" && strings.Contains(ws.validOrigins, origin)
+	if !validOrigin {
+		log.Print("invalid origin \"", origin, "\"")
+	}
 	conn, err := (&upgrader).Upgrade(w, r, nil)
 	if err != nil {
 
