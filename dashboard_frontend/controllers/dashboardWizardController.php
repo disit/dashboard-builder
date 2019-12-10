@@ -74,7 +74,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     $orgFilter = $_REQUEST['orgFilter'];
 
     // FARE QUI COMPOSIZIONE FILTRO GLOBALE STRINGA  GUARDANDO QUALE NON E' FIELD !
-    for ($k = 0; $k < 9; $k++) {
+    for ($k = 0; $k < sizeof($_REQUEST['globalSqlFilter']); $k++) {
         if ($k !== 4 && $k != 5) {
             if (($k != $n || $nActive > 1)) {
                 $str = $globalSqlFilter[$k]['value'];
@@ -118,7 +118,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     }
   
     $sql_distinct_field = $_REQUEST['distinctField'];
-    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership") {
+    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership" && $sql_distinct_field != "value_unit") {
     //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Force sql_distinct_field = 'high_level_type'");
         eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Exit from script.");
     //    $sql_distinct_field = "high_level_type";
@@ -138,7 +138,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
   //  $sql_where_escaped = escapeForSQL($sql_where_ok, $link);
     $sql_where_ok = $whereString;
 
-    $wizardColumns = array('high_level_type', 'nature', 'sub_nature', 'low_level_type', 'unit', 'healthiness', 'ownership');
+    $wizardColumns = array('high_level_type', 'nature', 'sub_nature', 'low_level_type', 'unit', 'healthiness', 'ownership', 'value_unit');
         
     $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok." ORDER BY ".$sql_distinct_field." ASC;";
 
@@ -203,7 +203,7 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     
     $stopFlag = 1;
     $sql_filter_field = $_REQUEST['filterField'];
-    if ($sql_filter_field != "high_level_type" && $sql_filter_field != "nature" && $sql_filter_field != "sub_nature" && $sql_filter_field != "low_level_type" && $sql_filter_field != "unit" && $sql_filter_field != "unique_name_id" && $sql_filter_field != "healthiness" && $sql_filter_field != "ownership") {
+    if ($sql_filter_field != "high_level_type" && $sql_filter_field != "nature" && $sql_filter_field != "sub_nature" && $sql_filter_field != "low_level_type" && $sql_filter_field != "unit" && $sql_filter_field != "unique_name_id" && $sql_filter_field != "healthiness" && $sql_filter_field != "ownership" && $sql_filter_field != "value_unit") {
       //  eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter_field '".$sql_filter_field."' is not an allowed value. Force sql_filter_field = 'high_level_type'");
         eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter_field '".$sql_filter_field."' is not an allowed value. Exit from script.");
       //  $sql_filter_field = "high_level_type";
@@ -211,7 +211,7 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     }
     $sql_filter_value = escapeForSQL($_REQUEST['value'], $link);
     $sql_distinct_field = $_GET['filter'];
-    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership") {
+    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership" && $sql_distinct_field != "value_unit") {
     //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Force sql_distinct_field = 'high_level_type'");
         eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Exit from script.");
     //    $sql_distinct_field = "high_level_type";
@@ -259,7 +259,7 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
 if (!empty($_REQUEST["filterDistinct"])) {
 
         $sql_filter = $_GET['filter'];
-        if ($sql_filter != "high_level_type" && $sql_filter != "nature" && $sql_filter != "sub_nature" && $sql_filter != "low_level_type" && $sql_filter != "unit" && $sql_filter != "unique_name_id" && $sql_filter != "healthiness" && $sql_filter != "ownership") {
+        if ($sql_filter != "high_level_type" && $sql_filter != "nature" && $sql_filter != "sub_nature" && $sql_filter != "low_level_type" && $sql_filter != "unit" && $sql_filter != "unique_name_id" && $sql_filter != "healthiness" && $sql_filter != "ownership" && $sql_filter != "value_unit") {
         //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter '".$sql_filter."' is not an allowed value. Force sql_filter = 'high_level_type'");
             eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter '".$sql_filter."' is not an allowed value. Exit from script.");
         //    $sql_filter = "high_level_type";
@@ -310,7 +310,16 @@ if (!empty($_REQUEST["filterDistinct"])) {
             
             $sql_filter = "healthiness";
             
-        }   /* else if (strcmp($sql_filter, "Widgets") == 0) {
+        } else if (strcmp($sql_filter, "ownership") == 0) {
+
+            $sql_filter = "ownership";
+
+        } else if (strcmp($sql_filter, "value_unit") == 0) {
+
+            $sql_filter = "value_unit";
+
+        }
+        /* else if (strcmp($sql_filter, "Widgets") == 0) {
             
             $sql_filter = "icon1";
             
@@ -333,123 +342,6 @@ if (!empty($_REQUEST["filterDistinct"])) {
         }   */
         
      //   echo ($sql_filter);
-/*
-        // GESTIONE DELEGHE DA ALTRE ORGANIZATIONS  ***************************************************
-        $dashLoggedUsername = $_SESSION['loggedUsername'];
-        $dashUserRole = $_SESSION['loggedRole'];
-        $organizationName = $_SESSION['loggedOrganization'];
-
-
-        // RECUPERA IL REFRESH TOKEN PER CHIAMATA API OWNERSHIP E DELEGATION
-        if (isset($_SESSION['refreshToken'])) {
-            $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
-            $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
-
-            $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-
-            $accessToken = $tkn->access_token;
-            $_SESSION['refreshToken'] = $tkn->refresh_token;
-        }
-
-        $queryDelegated = $personalDataApiBaseUrl . "/v1/username/".$dashLoggedUsername."/delegated?sourceRequest=dashboardwizard&accessToken=" . $accessToken;
-        $queryDelegatedResults = file_get_contents($queryDelegated);
-
-        //$file = fopen("C:\dashboardLog.txt", "w");
-        //fwrite($file, "queryDelegatedResults: " . $queryDelegatedResults . "\n");
-
-        if(trim($queryDelegatedResults) != "")
-        {
-            $resDelegatedArray = json_decode($queryDelegatedResults, true);
-            foreach($resDelegatedArray as $delegatedRecord)
-            {
-                if(!in_array($delegatedRecord['elementId'], $allowedElementIDs, true)) {
-                    //   $allowedElements[] = $delegatedRecord;
-                    if ($delegatedRecord['elementType'] != "DashboardID" && $delegatedRecord['elementType'] != "MyKPI" && $delegatedRecord['elementType'] != "MyPOI" && $delegatedRecord['elementType'] != "MyData") {
-                        array_push($delegatedElements, $delegatedRecord);
-                        $allowedElementCouples[] = array($delegatedRecord['elementId'], $delegatedRecord['elementType'], $delegatedRecord['variableName'], $delegatedRecord['motivation'], "Delegated");
-                        array_push($allowedElementIDs, $delegatedRecord['elementId']);
-                    }
-                }
-            }
-        }
-
-        $whereAll = "(organizations LIKE '%" . $organizationName . "%' AND ownership = 'public'";
-        //  $whereAll = "(sub_nature = 'sdfsdfsdfsdf'";      // PER DEBUG PRIVATE DATA
-
-        if(trim($queryDelegatedResults) != "")
-        {
-            // COSTRUZIONE FILTRI AGGIUNTIVI QUERY PER ETL E PERSONAL_DATA
-            foreach($allowedElementCouples as $allowedRecord) {
-                if ($allowedRecord[1] === 'ServiceGraphID') {
-                    $privatePOIrecord = [];
-                    $queryServiceTypeFromGraphId = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-                    $queryServiceTypeResults = file_get_contents($queryServiceTypeFromGraphId);
-                    $resServiceTypeArray = json_decode($queryServiceTypeResults, true);
-                    if (empty($resServiceTypeArray['results']['bindings'])) {
-                        $queryServiceTypeFromGraphId2 = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=SELECT+%3Fa+%3Ftype+WHERE+%7Bgraph+%3C".$allowedRecord[0]."%3E+%7B%3Fs+a+%3Ftype+FILTER%28%3Ftype%21%3Dkm4c%3ARegularService+%26%26+%3Ftype%21%3Dkm4c%3AService+%26%26+%3Ftype%21%3Dkm4c%3ADigitalLocation+%26%26+%3Ftype%21%3Dkm4c%3ATransverseService+%26%26+%3Ftype%21%3Dgtfs%3AStop+%26%26+%3Ftype%21%3Dkm4c%3ARoad%29%7D+optional%7B%3C".$allowedRecord[0]."%3E+km4c%3Aavailability+%3Fa.%7D%7D+group+by+%3Ftype+%3Fa&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-                        $queryServiceTypeResults2 = file_get_contents($queryServiceTypeFromGraphId2);
-                        $resServiceTypeArray = json_decode($queryServiceTypeResults2, true);
-                    }
-                    foreach($resServiceTypeArray['results']['bindings'] as $serviceTypeRecord) {
-                        //    if ($constraint != 'oiunqauhalknsufhvnoqwpnvfv') {
-                        $whereAll = $whereAll . " OR sub_nature = '" . explode('http://www.disit.org/km4city/schema#', $serviceTypeRecord['type']['value'])[1] . "'";
-                        //    }
-                        array_push($privatePOIrecord, $allowedRecord[0]);
-                        array_push($privatePOIrecord, $serviceTypeRecord['type']['value']);
-
-                        array_push($privatePOIsGraphId, $privatePOIrecord);
-                    }
-                }  else if ($allowedRecord[1] === 'ServiceURI') {
-                    if (strpos($allowedRecord[0], $allowedRecord[2]) !== false) {
-                        $whereAll = $whereAll . " OR (get_instances = '" . str_replace("/".$allowedRecord[2],'',$allowedRecord[0]) . "' AND low_level_type = '". $allowedRecord[2] ."')";
-                    } else {
-                        $whereAll = $whereAll . " OR get_instances = '" . $allowedRecord[0] . "'";
-                    }
-                } else if ($allowedRecord[1] === 'AppID' OR $allowedRecord[1] === 'AppId') {
-                    if (sizeof($allowedRecord) > 3) {   // DELEGATED !!
-                        $whereAll = $whereAll . " OR (get_instances = '" . $allowedRecord[0]. "' AND low_level_type = '". $allowedRecord[3] ."')";
-                    } else {
-                        $whereAll = $whereAll . " OR get_instances = '" . $allowedRecord[0]. "'";
-                    }
-                } else if ($allowedRecord[1] === 'IOTID') {
-                    if (sizeof($allowedRecord) > 3) {   // DELEGATED !!
-                        $whereAll = $whereAll . " OR (unique_name_id = '" . $allowedRecord[0]. "' AND low_level_type = '". $allowedRecord[3] ."')";
-                    } else {
-                        $whereAll = $whereAll . " OR unique_name_id = '" . $allowedRecord[0]. "'";
-                    }
-                } else if ($allowedRecord[1] === 'MyKPI') {
-                    if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
-                    } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyKPI' AND unique_name_id = '" . $allowedRecord[2] . "'";
-                    }
-                } else if ($allowedRecord[1] === 'MyPOI') {
-                    if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
-                    } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyPOI' AND unique_name_id = '" . $allowedRecord[2] . "'";
-                    }
-                } else if ($allowedRecord[1] === 'MyData') {
-                    if (sizeof($allowedRecord) > 3) {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND unique_name_id = '" . $allowedRecord[2] . "' AND low_level_type = '" . $allowedRecord[3] . "')";
-                    } else {
-                        $whereAll = $whereAll . " OR (high_level_type = 'MyData' AND unique_name_id = '" . $allowedRecord[2] . "'";
-                    }
-                }
-            }
-        }
-
-        if ($myPOIQueryString === "") {
-            $myPOIQueryString = " AND (high_level_type != 'MyPOI' AND nature != 'Any' AND sub_nature != 'Any')";
-        }
-
-        $whereAll = $whereAll.$whereAllUsers . $myPOIQueryString;
-        $whereAll = $whereAll.")";
-
-        // FINE GESTIONE DELEGHE DA ALTRE ORGANIZATIONS  ***********************************************
-        */
-
-
 
         // GESTIONE COMPLETA DELEGHE DA ALTRE ORGANIZATIONS ********************************************
 
@@ -822,11 +714,11 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             array( 'db' => 'lastCheck',     'dt' => 13 ),
             array( 'db' => 'get_instances',     'dt' => 14 ),
             array( 'db' => 'ownership',     'dt' => 15 ),
-            array( 'db' => 'sm_based',     'dt' => 16 ),
+            array( 'db' => 'value_unit',     'dt' => 16 ),
             array( 'db' => 'organizations',     'dt' => 17 ),
             array( 'db' => 'latitude',     'dt' => 18 ),
             array( 'db' => 'longitude',     'dt' => 19 ),
-            array( 'db' => 'microAppExtServIcon',     'dt' => 20 ),        
+            array( 'db' => 'sm_based',     'dt' => 20 )
 
         );
 
@@ -1001,7 +893,9 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             {
                 if(!in_array($delegatedRecord['elementId'], $allowedElementIDs, true)) {
                  //   $allowedElements[] = $delegatedRecord;
-                    if ($delegatedRecord['elementType'] != "DashboardID" && $delegatedRecord['elementType'] != "MyKPI" && $delegatedRecord['elementType'] != "MyPOI" && $delegatedRecord['elementType'] != "MyData") {
+                //    if ($delegatedRecord['elementType'] != "DashboardID" && $delegatedRecord['elementType'] != "MyKPI" && $delegatedRecord['elementType'] != "MyPOI" && $delegatedRecord['elementType'] != "MyData") {
+                    // GP-MOD-2019 DELEGHE A MyKPI, MyPOI ecc POSSIBILI
+                    if ($delegatedRecord['elementType'] != "DashboardID") {
                         array_push($delegatedElements, $delegatedRecord);
                         $allowedElementCouples[] = array($delegatedRecord['elementId'], $delegatedRecord['elementType'], $delegatedRecord['variableName'], $delegatedRecord['motivation'], "Delegated");
                         array_push($allowedElementIDs, $delegatedRecord['elementId']);
@@ -1010,7 +904,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             }
         }
 
-
+/*
         // NEW DELEGATED ANONYMOUS PER ORG !
         if (isset($_SESSION["loggedOrganization"])) {
             $ldapBaseDnOrg = "ou=". $_SESSION["loggedOrganization"] .",dc=foo,dc=example,dc=org";
@@ -1055,7 +949,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                 }
             }
         }
-
+*/
 
         // Call MyKPI API
         $queryMyKPI = $personalDataApiBaseUrl . "/v1/kpidata/?sourceRequest=dashboardwizard&accessToken=" . $accessToken . "&highLevelType=MyKPI";

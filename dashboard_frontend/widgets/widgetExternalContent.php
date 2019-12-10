@@ -3574,8 +3574,7 @@
 
                             var pattern = new RegExp(re1+re2+re3+re4+re5+re6+re7+re8+re9, ["i"]);
 
-                            if(queryType === "Default")
-                            {
+                            if(queryType === "Default") {
                                 if (event.query.includes("datamanager/api/v1/poidata/")) {
                                     if (event.desc != "My POI") {
                                         myPOIId = event.query.split("datamanager/api/v1/poidata/")[1];
@@ -3603,8 +3602,9 @@
                                         query = query + "&maxResults=0";
                                     }
                                 }
-                            }
-                            else if(queryType === "MyPOI") {
+                            } else if(queryType === "Sensor") {
+                                query = "<?=$superServiceMapProxy ?>" + event.query;
+                            } else if(queryType === "MyPOI") {
                                 if (event.desc != "My POI") {
                                     myPOIId = event.query.split("datamanager/api/v1/poidata/")[1];
                                     apiUrl = "../controllers/myPOIProxy.php";
@@ -3616,9 +3616,7 @@
                                     query = event.query;
                                 }
 
-                            }
-                            else
-                            {
+                            } else {
                                 query = event.query;
                             }
 

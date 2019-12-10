@@ -100,6 +100,40 @@
                 $response['detail'] = 'queryKo';
             }
         break;
+		
+		// MS> Persist widget content status at page load (displayed vs collapsed)
+		case "updateContentVisibility":		
+			$showContent = mysqli_real_escape_string($link, $_REQUEST['showContent']);
+            $query = "UPDATE Dashboard.Config_widget_dashboard SET showContent = '$showContent' WHERE name_w = '$widgetName'";
+            $result = mysqli_query($link, $query);
+            
+			if($result) 
+            {
+                $response['detail'] = 'Ok';
+            }
+            else
+            {
+                $response['detail'] = 'queryKo';
+            }
+        	break;
+		// <MS
+		
+		// MS> Persist possibility for users (viewers) to collapse widget content
+		case "updateCollapsibility":		
+			$collapsibility = mysqli_real_escape_string($link, $_REQUEST['collapsibility']);
+            $query = "UPDATE Dashboard.Config_widget_dashboard SET collapseAllowed = '$collapsibility' WHERE name_w = '$widgetName'";
+            $result = mysqli_query($link, $query);
+            
+			if($result) 
+            {
+                $response['detail'] = 'Ok';
+            }
+            else
+            {
+                $response['detail'] = 'queryKo';
+            }
+        	break;	
+		// <MS	
 			
         case "updateHeaderColor":
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);		

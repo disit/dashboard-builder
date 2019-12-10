@@ -19,6 +19,7 @@ var loadingIconDim = 20;
 var widgetHeaderHeight = 25;
 var getParametersWidgetUrl = "../widgets/getParametersWidgets.php";
 var getMetricDataUrl = "../widgets/getDataMetrics.php";
+var getIconsPoolUrl = "../widgets/getIconsPool.php"
 
 
 //Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout
@@ -499,4 +500,91 @@ function compareJsonElementsByKeyValues(key, order='asc') {
                 (comparison * -1) : comparison
         );
     };
+}
+
+function getIconsPool() {
+
+    var properties = null;
+
+    $.ajax({
+        url: getIconsPoolUrl,
+        type: "GET",
+        data: {
+            "action": "getAll"
+        },
+        async: false,
+        dataType: 'json',
+        success: function (data)
+        {
+            properties = data;
+        },
+        error: function(errorData)
+        {
+            console.log("Errore in caricamento proprietà 'IconsPool (All)'");
+            console.log(JSON.stringify(errorData));
+        }
+    });
+    return properties;
+
+}
+
+function getSuggestedIconsPool(hlt, nat, subNat) {
+
+    var properties = null;
+
+    $.ajax({
+        url: getIconsPoolUrl,
+        type: "GET",
+        data: {
+            "action": "getSuggested",
+            "highLevelType" : hlt,
+            "nature": nat,
+            "subNature": subNat
+        },
+        async: false,
+        dataType: 'json',
+        success: function (data)
+        {
+            properties = data;
+        },
+        error: function(errorData)
+        {
+            console.log("Errore in caricamento proprietà 'IconsPool (Suggested)'");
+            console.log(JSON.stringify(errorData));
+        }
+    });
+    return properties;
+
+}
+
+function UrlExists(url)
+{
+    var http = new XMLHttpRequest();
+    http.open('HEAD', url, false);
+    http.send();
+    return http.status!=404;
+}
+
+// MS> Enforce status flag of widget content (displayed vs collapsed)
+function setWidgetContentVisibility(widgetName, showContent) {
+		if(showContent === "no") {
+			$("#"+widgetName).css(
+				"height", 
+				(  parseInt($("#"+widgetName).prop("offsetHeight")) - parseInt($("#"+widgetName+"_content").prop("offsetHeight")) ) + "px" 
+			);	
+			$("#" + widgetName + "_content").hide(); 
+		}
+		else {
+			$("#" + widgetName + "_content").show(); 
+		}			
+}
+// <MS
+
+function UrlExists(url)
+{
+    var http = new XMLHttpRequest();
+    http.open('HEAD', url, false);
+    http.send();
+    var res = http.status!=404
+    return res;
 }

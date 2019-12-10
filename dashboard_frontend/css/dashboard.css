@@ -3520,3 +3520,18 @@ tr.iotAppsTableRow:nth-child(even)
     display: flex;
     justify-content: center;
 }
+
+.newPinContainer
+{
+    position: relative;
+    width:32px; height: 32px;
+}
+
+.innerImg
+{
+    position: absolute;
+    top:4px;
+    left:5px;
+    width: 22px;
+    height: 22px;
+}

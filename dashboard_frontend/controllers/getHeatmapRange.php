@@ -40,5 +40,10 @@ if (isset($_GET['metricName'])) {
         $response['detail'] = 'Ko';
     }
 
-    echo json_encode($response);
+    $json_encode_response = json_encode($response);
+    if (!$json_encode_response) {
+        echo json_encode($response,JSON_INVALID_UTF8_IGNORE);
+    } else {
+        echo $json_encode_response;
+    }
 }

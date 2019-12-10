@@ -241,6 +241,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             var records_per_page = 1;
             var wmsLayer = null;
             var wmsLayerFullscreen = null;
+            var iconsFileBuffer = [];
 
             function onEachFeature(feature, layer) {
                 //console.log(layer);
@@ -258,27 +259,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             function gisPrepareCustomMarker(feature, latlng) {
-             //   if (map.eventsOnMap[0].iconTextMode != "icon") {
+                if (feature.properties.pinattr != "pin") {
                     var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                     var markerIcon = L.icon({
                         iconUrl: mapPinImg,
                         iconAnchor: [16, 37]
                     });
-             /*   } else {
-                    // CHIAMATA AJAX PER REPERIRE IL COLORE DI DEFAULT
+                } else {
 
-                    var iconSvgSettings = {
-                        mapIconUrl: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
-                            '\t<svg id="gocciaSvg" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
-                            '\t <g id="Layer_goccia2">\n' +
-                            '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
-                            '\t </g>\n' +
-                            '\t</svg>\n' +
-                            '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
-                            '</div>'
-                    }
-
-                    var markerIcon = L.divIcon({
+                 /*   var markerIcon = L.divIcon({
                         className: 'custom-div-icon',
                         html: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
                             '\t<svg id="gocciaSvg" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
@@ -292,8 +281,48 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                      //   iconSize: [30, 42],
                         //iconAnchor: [15, 42]
                         iconAnchor: [16, 37]
+                    }); */
+
+                    var pinColor = feature.properties.symbolcolor;
+                    if (pinColor.includes("#")) {
+                        pinColor = pinColor.split("#")[1];
+                    }
+                //    var newIconPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                    var newIconPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+
+                    if (iconsFileBuffer[newIconPath] == null) {
+                        if (!UrlExists(newIconPath)) {
+                            iconsFileBuffer[newIconPath] = false;
+                            newIconPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                            if (!UrlExists(newIconPath)) {
+                                iconsFileBuffer[newIconPath] = false;
+                                newIconPath = '../img/outputPngIcons/pin-generico.png';
+                            } else {
+                                iconsFileBuffer[newIconPath] = true;
+                            }
+                        } else {
+                            iconsFileBuffer[newIconPath] = true;
+                        }
+                    } else {
+                        if (iconsFileBuffer[newIconPath] === false) {
+                            if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png'] === false) {
+                                newIconPath = '../img/outputPngIcons/pin-generico.png';
+                            } else {
+                                newIconPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                            }
+                        } else {
+                            newIconPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                        }
+                    }
+                 //   iconsFileBuffer.push(newIconPath);
+
+                 //   var mapPinImg = '../img/gisMapIconsNew/Accommodation.png';
+                    var markerIcon = L.icon({
+                        iconUrl: newIconPath,
+                        iconAnchor: [16, 37]
                     });
-                }*/
+
+                }
 
                 var marker = new L.Marker(latlng, {icon: markerIcon});
 
@@ -304,68 +333,118 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 markersCache["" + latLngKey + ""] = marker;
 
                 marker.on('mouseover', function (event) {
-                 //   if (map.eventsOnMap[0].iconTextMode != "icon") {
+                    if (feature.properties.pinattr != "pin") {
                         var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
                         var hoverIcon = L.icon({
                             iconUrl: hoverImg
                         });
-                /*    } else {
-
-                        var iconSvgSettings = {
-                            mapIconUrl: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
-                                '\t<svg id="gocciaSvg" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
-                                '\t <g id="Layer_goccia2">\n' +
-                                '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
-                                '\t </g>\n' +
-                                '\t</svg>\n' +
-                                '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
-                                '</div>'
-                        }
+                        event.target.setIcon(hoverIcon);
+                    } else {
 
                         // CHIAMATA AJAX PER REPERIRE IL COLORE DI DEFAULT
-                        var hoverIcon = L.divIcon({
-                            className: 'custom-div-icon',
-                            html: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
-                                '\t<svg id="gocciaSvg_over" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
-                                '\t <g id="Layer_goccia2">\n' +
-                                '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#ffffff" stroke="#d85b49" stroke-width="3"/>\n' +
-                                '\t </g>\n' +
-                                '\t</svg>\n' +
-                                '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
-                                '</div>',
-                         //   html: L.Util.template(iconSvgSettings.mapIconUrl),
-                            //   iconSize: [30, 42],
-                            //iconAnchor: [15, 42]
+
+                    /*   $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "white");
+                       $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';  */
+
+                    /*   $(event.target.getElement()).find('path').attr("fill", "white");
+                       $(event.target.getElement()).find('img')[0].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
+                    */
+
+                    //    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                        var newIconOverPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '-over_' + widgetName.split("_widget")[1] + '.png';
+
+                    /*    if (!UrlExists(newIconOverPath)) {
+                            newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
+                            if (!UrlExists(newIconOverPath)) {
+                                newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                            }
+                        }*/
+
+                        if (iconsFileBuffer[newIconOverPath] == null) {
+                            if (!UrlExists(newIconOverPath)) {
+                                iconsFileBuffer[newIconOverPath] = false;
+                                newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
+                                if (!UrlExists(newIconOverPath)) {
+                                    iconsFileBuffer[newIconOverPath] = false;
+                                    newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                } else {
+                                    iconsFileBuffer[newIconOverPath] = true;
+                                }
+                            } else {
+                                iconsFileBuffer[newIconOverPath] = true;
+                            }
+                        } else {
+                            if (iconsFileBuffer[newIconOverPath] === false) {
+                                if (iconsFileBuffer['../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png'] === false) {
+                                    newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                } else {
+                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
+                                }
+                            } else {
+                                newIconOverPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '-over_' + widgetName.split("_widget")[1] + '.png';
+                            }
+                        }
+
+                        var hoverIcon = L.icon({
+                            iconUrl: newIconOverPath,
                             iconAnchor: [16, 37]
                         });
-                    }*/
-                    event.target.setIcon(hoverIcon);
+                        event.target.setIcon(hoverIcon);
+
+                    }
+                //    console.log("Mouse Over");
                 });
 
                 marker.on('mouseout', function (event) {
-                //    if (map.eventsOnMap[0].iconTextMode != "icon") {
+                    if (feature.properties.pinattr != "pin") {
                         var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                         var outIcon = L.icon({
                             iconUrl: outImg
                         });
                         event.target.setIcon(outIcon);
-                /*    } else {
-                        var markerIcon = L.divIcon({
-                            className: 'custom-div-icon',
-                            html: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
-                                '\t<svg id="gocciaSvg_out" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
-                                '\t <g id="Layer_goccia2">\n' +
-                                '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
-                                '\t </g>\n' +
-                                '\t</svg>\n' +
-                                '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:px; width: 22px; height: 22px;">\n' +
-                                '</div>',
-                            //   iconSize: [30, 42],
-                            //iconAnchor: [15, 42]
-                           // iconAnchor: [0, 0]
+                    } else {
+
+                        var pinColor = feature.properties.symbolcolor;
+                        if (pinColor.includes("#")) {
+                            pinColor = pinColor.split("#")[1];
+                        }
+                        var newIconOutPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+
+                        if (iconsFileBuffer[newIconOutPath] == null) {
+                            if (!UrlExists(newIconOutPath)) {
+                                iconsFileBuffer[newIconOutPath] = false;
+                                newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                                if (!UrlExists(newIconOutPath)) {
+                                    iconsFileBuffer[newIconOutPath] = false;
+                                    newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                } else {
+                                    iconsFileBuffer[newIconOutPath] = true;
+                                }
+                            } else {
+                                iconsFileBuffer[newIconOutPath] = true;
+                            }
+                        } else {
+                            if (iconsFileBuffer[newIconOutPath] === false) {
+                                if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png'] === false) {
+                                    newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                } else {
+                                    newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                                }
+                            } else {
+                                newIconOutPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                            }
+                        }
+
+                        var outIcon = L.icon({
+                            iconUrl: newIconOutPath
                         });
                         event.target.setIcon(outIcon);
-                    }*/
+
+                    //    $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "#2192c3");
+                    //    $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
+                        
+                    }
+                //    console.log("Mouse OUT");
                 });
 
                 marker.on('click', function (event) {
@@ -376,6 +455,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 = null;
                     var urlToCall, fake, fakeId = null;
 
+                //    alert("CLICK!");
+                    
                     if (feature.properties.fake === 'true') {
                         urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + feature.id;
                         fake = true;
@@ -2923,6 +3004,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             if (desc == "") {
                                 desc = query;
                             }
+                            var pinattr = passedData.pinattr;
+                            var pincolor = passedData.pincolor;
+                            var symbolcolor = passedData.symbolcolor;
 
                             var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
@@ -3019,8 +3103,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         query = query + "&maxResults=0";
                                     }
                                 }
-                            }
-                            else if(queryType === "MyPOI") {
+                            } else if(queryType === "Sensor") {
+                                query = "<?= $superServiceMapProxy ?>" + passedData.query;
+                            } else if(queryType === "MyPOI") {
                                 if (passedData.desc != "My POI") {
                                     myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
                                     apiUrl = "../controllers/myPOIProxy.php";
@@ -3031,9 +3116,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     dataForApi = "All";
                                     query = passedData.query;
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 query = passedData.query;
                             }
 
@@ -3208,6 +3291,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
                                         fatherGeoJsonNode.features[i].properties.color1 = color1;
                                         fatherGeoJsonNode.features[i].properties.color2 = color2;
+                                        fatherGeoJsonNode.features[i].properties.pinattr = passedData.pinattr;
+                                        fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
+                                        fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
 
                                         dataObj.lat = fatherGeoJsonNode.features[i].geometry.coordinates[1];
                                         dataObj.lng = fatherGeoJsonNode.features[i].geometry.coordinates[0];

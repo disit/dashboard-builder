@@ -1781,7 +1781,11 @@
                                                 
                                             case "LdapKo":
                                                 errorMsg = "LDAP error";
-                                                break;     
+                                                break;
+
+                                            case "Username_not_recognized":
+                                                errorMsg = "Invalid Username (not recognized)";
+                                                break;
                                         }
                                         
                                         $('#newDelegation').val('');

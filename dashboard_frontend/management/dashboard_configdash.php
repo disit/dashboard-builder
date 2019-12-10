@@ -223,6 +223,33 @@
 <!-- End Cristiano -->
  <!--   <script src="../js/elasticWizard/elasticsearch.js"></script>
     <script src="../js/elasticWizard/jquery.elastic-datatables.js"></script>    -->
+
+    <!-- fontIconPicker v3.1.1 core CSS -->
+    <!--  <link rel="stylesheet" type="text/css" href="../css/jquery.fonticonpicker.min.css">
+      <!-- required default theme -->
+    <!-- <link rel="stylesheet" type="text/css" href="../css/jquery.fonticonpicker.grey.min.css">
+     <!-- fontIconPicker v3.1.1 scripts -->
+    <!--  <script type="text/javascript" src="../js/jquery.fonticonpicker.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="../css/jquery.fonticonpicker.bootstrap.min.css">
+      <link rel="stylesheet" type="text/css" href="../css/jquery.fonticonpicker.darkgrey.min.css">
+      <link rel="stylesheet" type="text/css" href="../css/inverted-theme/jquery.fonticonpicker.inverted.min.css">   -->
+
+      <script type="text/javascript" src="https://unpkg.com/@fonticonpicker/fonticonpicker/dist/js/jquery.fonticonpicker.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="https://unpkg.com/@fonticonpicker/fonticonpicker@3.1.1/dist/css/base/jquery.fonticonpicker.min.css">
+
+      <!-- default grey-theme -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@fonticonpicker/fonticonpicker@3.0.0-alpha.0/dist/css/themes/grey-theme/jquery.fonticonpicker.grey.min.css">
+
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@fonticonpicker/fonticonpicker@3.0.0-alpha.0/dist/css/themes/bootstrap-theme/jquery.fonticonpicker.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@fonticonpicker/fonticonpicker@3.0.0-alpha.0/dist/css/themes/dark-grey-theme/jquery.fonticonpicker.darkgrey.min.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@fonticonpicker/fonticonpicker@3.0.0-alpha.0/dist/css/themes/inverted-theme/jquery.fonticonpicker.inverted.min.css">
+
+	<!-- MS> WidgetSelectorTech is based on Fancytree -->	
+	<link href="../js/skin-win8/ui.fancytree.css" rel="stylesheet">
+	<script src="../js/fancytree/jquery.fancytree.ui-deps.js"></script>
+	<script src="../js/fancytree/jquery.fancytree.js"></script>
+	<!-- <MS -->
+
 </head>
 
     <style type="text/css">
@@ -7834,7 +7861,7 @@
                                     });
 
                                     //Modalità Icon/Text
-                                  /*  newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                /*    newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
                                     newSelect.append('<option value="yes">Icon Only</option>');
@@ -7842,7 +7869,7 @@
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    newSelect.val(styleParameters.shadow);
+                                    newSelect.val(styleParameters.iconText);
                                     $("#specificParamsM").append(newFormRow);
                                     newLabel.show();
                                     newInnerDiv.show();*/
@@ -7920,12 +7947,14 @@
                                     var targetsJson = [];
 
                                     $("li.gs_w").each(function () {
-                                        //if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "gisTarget"))
-                                        if (($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) || ($(this).attr("id").includes("GisWFS") && ($(this).find("div.widget").attr("data-role") === "gisTarget"))) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            //if($(this).attr("id").includes("ExternalContent")&&($(this).find("div.widget").attr("data-role") === "gisTarget"))
+                                            if (($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) || ($(this).attr("id").includes("GisWFS") && ($(this).find("div.widget").attr("data-role") === "gisTarget"))) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -7980,7 +8009,7 @@
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    newSelect.val(styleParameters.shadow);
+                                    newSelect.val(styleParameters.iconText);
                                     $("#specificParamsM").append(newFormRow);
                                     newLabel.show();
                                     newInnerDiv.show();*/
@@ -8057,11 +8086,13 @@
                                     var targetsJson = [];
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -8108,8 +8139,8 @@
                                         color: "#000000"
                                     });
 
-                                    //Modalità Icon/Text
-                                 /*   newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                    //Modalità Icon/Text SelectorNew
+                                    newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
                                     newSelect.append('<option value="yes">Icon Only</option>');
@@ -8117,15 +8148,140 @@
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
-                                    newSelect.val(styleParameters.shadow);
+                                    newSelect.val(styleParameters.iconText);
                                     $("#specificParamsM").append(newFormRow);
                                     newLabel.show();
-                                    newInnerDiv.show();*/
+                                    newInnerDiv.show();
 
                                     //Nuova riga
                                     //Contenitore per tabella delle query
                                     var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                    var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                    var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                    addGisQueryTableContainer.append(addGisQueryTable);
+                                    $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
+                                    $("#addGisQueryTable i.fa-plus").click(addGisQuery);
+                                    break;
+
+                                case "widgetSelectorTech":
+                                    $('#inputTitleWidget').val('');
+                                    $('#inputUrlWidget').val('none');
+                                    $("#titleLabel").html("Title");
+                                    $("#bckColorLabel").html("Background color");
+                                    $('#inputFontSize').val("16");
+                                    $('#inputFontSize').attr('disabled', false);
+                                    $('#inputFontSize').prop('required', true);
+                                    $('#inputFontColor').val("#000000");
+                                    $('#inputFontColor').attr('disabled', false);
+                                    $('#inputFontColor').prop('required', true);
+                                    $('#widgetFontColor').css("background-color", "#000000");
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+                                    $('#link_help_modal-add-widget').css("display", "");
+                                    $('#inputFrameColorWidget').attr('disabled', false);
+                                    $('#inputFrameColorWidget').val('#eeeeee');
+                                    $('#inputFrameColorWidget').prop('required', false);
+                                    $('#select-IntTemp-Widget').val(-1);
+                                    $('#select-IntTemp-Widget').attr('disabled', true);
+                                    $('#select-IntTemp-Widget').prop('required', false);
+                                    $('#inputFreqWidget').attr('disabled', true);
+                                    $('#inputFreqWidget').val("");
+                                    $('#inputFreqWidget').prop('required', false);
+                                    $('#inputHeaderFontColorWidget').attr('disabled', false);
+                                    $('#inputHeaderFontColorWidget').prop('required', true);
+                                    $('#inputHeaderFontColorWidget').val("#000000");
+                                    $('#widgetHeaderFontColor').css("background-color", "#000000");
+                                    $('#inputUdmWidget').prop("required", false);
+                                    $('#inputUdmWidget').attr("disabled", true);
+                                    $('#inputUdmPosition').prop("required", false);
+                                    $('#inputUdmPosition').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').prop("required", false);
+                                    $('#addWidgetFirstAidHospital').val(-1);
+                                    $('#inputFirstAidRow').hide();
+
+                                    //Parametri specifici del widget
+                                    $('#specificWidgetPropertiesDiv .row').remove();
+
+                                    //Rimozione eventuali campi del subform general per widget process
+                                    removeWidgetProcessGeneralFields("addWidget");
+
+                                    var addGisParameters = {
+                                        queries: [],
+                                        targets: []
+                                    };
+                                    setAddGisParameters(addGisParameters);
+                                    $("#parameters").val(JSON.stringify(addGisParameters));
+
+                                    //Target widgets geolocation
+                                    newFormRow = $('<div class="row"></div>');
+                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                    newInnerDiv = $('<div class="col-md-4"></div>');
+                                    newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
+
+                                    var widgetId, widgetTitle = null;
+                                    var widgetsNumber = 0;
+                                    var targetsJson = [];
+
+                                    $("li.gs_w").each(function () {
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
+                                        }
+                                    });
+
+                                    if (widgetsNumber > 0) {
+                                        newInnerDiv.append(newSelect);
+                                    } else {
+                                        newInnerDiv.append("None");
+                                    }
+
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+
+                                    if (widgetsNumber > 0) {
+                                        $('#addGisGeolocationWidgets').selectpicker({
+                                            actionsBox: true,
+                                            width: "auto",
+                                            size: "auto"
+                                        });
+
+                                        $('#addGisGeolocationWidgets').on('changed.bs.select', function (e) {
+                                            if ($(this).val() === null) {
+                                                addGisParameters.targets = [];
+                                            } else {
+                                                addGisParameters.targets = $(this).val();
+                                            }
+                                            $("#parameters").val(JSON.stringify(addGisParameters));
+                                        });
+                                    }
+
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+
+                                    //Colore testo quando picker attivo
+                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                    newInnerDiv = $('<div class="col-md-4"></div>');
+                                    var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
+                                    newInnerDiv.append(newColorPicker);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+
+                                    $('#addGisActiveQueriesFontColorContainer').colorpicker({
+                                        format: "rgba",
+                                        color: "#000000"
+                                    });
+
+                                    //Nuova riga
+                                    //Contenitore per tabella delle query
+                                    var addGisQueryTableContainer = $('<div id="addGisQueryTableContainer" class="row rowCenterContent"></div>');
+                                    var addGisQueryTable = $("<table id='addGisQueryTable' data-widgetType='selectorTech' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                     addGisQueryTableContainer.append(addGisQueryTable);
                                     $("#specificWidgetPropertiesDiv").append(addGisQueryTableContainer);
                                     $("#addGisQueryTable i.fa-plus").click(addGisQuery);
@@ -8256,11 +8412,13 @@
                                     var targetsJson = [];
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -8348,11 +8506,13 @@
                                     var targetsJson = [];
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -8440,11 +8600,13 @@
                                     var targetsJson = [];
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -8536,12 +8698,14 @@
                                     var targetEventsJson = {};
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            targetEventsJson[widgetId] = new Array();
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                targetEventsJson[widgetId] = new Array();
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -8659,12 +8823,14 @@
                                     var targetEventsJson = {};
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            targetEventsJson[widgetId] = new Array();
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                targetEventsJson[widgetId] = new Array();
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -8796,18 +8962,20 @@
                                     };
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            widgetsNumber++;
-                                        }
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
 
-                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") !== "link") && ($(this).find("div.widget").attr("data-role") !== "selectorWebTarget")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            panToWidgetsNumber++;
+                                            if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") !== "link") && ($(this).find("div.widget").attr("data-role") !== "selectorWebTarget")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                panToWidgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -8929,18 +9097,20 @@
                                     };
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            widgetsNumber++;
-                                        }
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                widgetsNumber++;
+                                            }
 
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            panToWidgetsNumber++;
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                panToWidgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -9051,12 +9221,14 @@
                                     var targetEventsJson = {};
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            targetEventsJson[widgetId] = new Array();
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                targetEventsJson[widgetId] = new Array();
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -9171,12 +9343,14 @@
                                     var targetEventsJson = {};
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            targetEventsJson[widgetId] = new Array();
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                targetEventsJson[widgetId] = new Array();
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -9309,12 +9483,14 @@
                                     var targetEventsJson = {};
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            targetEventsJson[widgetId] = new Array();
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") === "map")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                targetEventsJson[widgetId] = new Array();
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -9447,12 +9623,14 @@
                                     var targetEventsJson = {};
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            targetEventsJson[widgetId] = new Array();
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                targetEventsJson[widgetId] = new Array();
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -13523,12 +13701,14 @@
                                     var targetEventsJson = {};
 
                                     $("li.gs_w").each(function () {
-                                        if ($(this).attr("id").includes("widgetMap")) {
-                                            widgetId = $(this).attr("id");
-                                            widgetTitle = $(this).find("div.titleDiv").html();
-                                            newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                            targetEventsJson[widgetId] = new Array();
-                                            widgetsNumber++;
+                                        if ($(this).attr("id") != null) {
+                                            if ($(this).attr("id").includes("widgetMap")) {
+                                                widgetId = $(this).attr("id");
+                                                widgetTitle = $(this).find("div.titleDiv").html();
+                                                newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                targetEventsJson[widgetId] = new Array();
+                                                widgetsNumber++;
+                                            }
                                         }
                                     });
 
@@ -15646,7 +15826,7 @@
                     $('#link_save_configuration').click(function () {  
                         $('#saveDashboardModal').modal('show');
                         
-                        var gridster_actual = $(".gridster ul").gridster().data('gridster');
+						var gridster_actual = $(".gridster ul").not(".ui-fancytree ul").gridster().data('gridster');
                         var widgets = JSON.stringify(gridster_actual.serialize());
 
                         $.ajax({
@@ -15953,7 +16133,7 @@
                                     gridster.remove_widget($('li[id=' + $('#widgetToDelNameHidden').val() + ']'));
                                     
                                     setTimeout(function(){
-                                        var gridster_actual = $(".gridster ul").gridster().data('gridster');
+                                        var gridster_actual = $(".gridster ul").not(".ui-fancytree ul").gridster().data('gridster');
                                         var widgets = JSON.stringify(gridster_actual.serialize());
 
                                         $.ajax({
@@ -16097,7 +16277,7 @@
                                 var entityJson = JSON.parse(data.entityJson);
                                 var attributeName = data.attributeName;
                                 var widgetTypeM = data.type_widget;
-                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb") {
+                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech") {
                                     $("#specificParamsM").css("width", "100%");
                                 }
                                 var paramsRaw = data['param_w'];
@@ -18830,7 +19010,7 @@
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
-                                        newSelect.val(styleParameters.shadow);
+                                        newSelect.val(styleParameters.iconText);
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel.show();
                                         newInnerDiv.show();*/
@@ -19201,7 +19381,7 @@
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
-                                        newSelect.val(styleParameters.shadow);
+                                        newSelect.val(styleParameters.iconText);
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel.show();
                                         newInnerDiv.show();*/
@@ -19456,6 +19636,11 @@
                                             if (styleParamsRaw !== null) {
                                                 styleParameters = JSON.parse(styleParamsRaw);
                                             }
+                                            $('div.modalContentWidgetForm').css("width", "120%");
+                                            $('div.modalContentWidgetForm').css("left", "50%");
+                                            $('div.modalContentWidgetForm').css("margin-left", "-60%");
+                                            $('div.wellCustomFooter').css("width", "100%");
+                                            $('div.wellCustom2right').css("width", $('div.wellCustom2right').width() * 1.5);
                                             $('#link_help_modal-add-widget-m').css("display", "");
                                             $('#inputTitleWidgetM').attr('disabled', false);
                                             $("label[for='inputTitleWidgetM']").html("Title");
@@ -19508,12 +19693,14 @@
                                             newSelect = $('<select name="editGisGeolocationWidgets" class="form-control" id="editGisGeolocationWidgets" multiple></select>');
 
                                             $("li.gs_w").each(function () {
-                                            //    if ($(this).attr("id").includes("widgetMap") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
+                                                if ($(this).attr("id") != null) {
+                                                    //    if ($(this).attr("id").includes("widgetMap") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -19552,7 +19739,7 @@
 
                                             //Colore testo quando picker attivo
                                             newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
-                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
                                             var newColorPicker = $('<div id="editGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="editGisActiveQueriesFontColor" name="editGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                             newInnerDiv.append(newColorPicker);
                                             newFormRow.append(newLabel);
@@ -19569,32 +19756,56 @@
                                                 });
                                             }
 
-                                            //Modalità Icon/Text
-                                        /*    newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
-                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                            //Modalità Icon/Text SelectorNew
+                                            newLabel = $('<label for="iconTextMode" class="col-md-1 control-label">Icon/Text Mode</label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
                                             newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
-                                            newSelect.append('<option value="yes">Icon Only</option>');
-                                            newSelect.append('<option value="no">Text Description</option>');
+                                            newSelect.append('<option value="Icon Only">Icon Only</option>');
+                                            newSelect.append('<option value="Text Description">Text Description</option>');
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
-                                            newSelect.val(styleParameters.shadow);
+                                            newSelect.val(styleParameters.iconText);
                                             $("#specificParamsM").append(newFormRow);
                                             newLabel.show();
-                                            newInnerDiv.show();*/
+                                            newInnerDiv.show();
+
+                                            // Map Pins Icon
+                                        /*    newTableCell = $('<td><select data-param="mapPinIcon" class="form-control"></select></td>');
+                                            newTableCell.find('select').append('<option value="old">Old</option>');
+                                            newTableCell.find('select').append('<option value="new">New</option>');
+                                            newTableRow.append(newTableCell);
+                                            newTableCell.find('select').val(editGisParameters.queries[i].mapPinIcon);
+                                            newTableCell.find('select').on('change', editGisUpdateParams);*/
+
+                                            //Modalità Icon/Text SelectorNew
+                                            newLabel = $('<label for="mapPinIcon" class="col-md-1 control-label">Map Pin Icon</label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newSelect = $('<select name="mapPinIcon" class="form-control" id="mapPinIcon"></select>');
+                                            newSelect.append('<option value="Square Icon">Square Icon</option>');
+                                            newSelect.append('<option value="Pin Icon">Pin Icon</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newSelect.val(styleParameters.mapPinIcon);
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel.show();
+                                            newInnerDiv.show();
 
                                             //Nuova riga
                                             //Contenitore per tabella delle query
                                             var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selector' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:120px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Map Icon color (only for Pin Icon)</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                             editGisQueryTableContainer.append(editGisQueryTable);
                                             $("#specificParamsM").append(editGisQueryTableContainer);
 
                                             editGisParameters.queries.sort(compareJsonElementsByKeyValues('rowOrder'));
-                                            
+                                            var allIcons = getIconsPool();
+
                                             for (var i = 0; i < editGisParameters.queries.length; i++) {
                                                 newTableRow = $('<tr></tr>');
 
+                                                // Default CELL
                                                 if (editGisParameters.queries[i].defaultOption === false) {
                                                     newTableCell = $('<td><input data-param="queryDefaultOption" type="checkbox"/></td>');
                                                 }
@@ -19613,6 +19824,7 @@
                                                 newTableRow.append(newTableCell);
                                                 newTableCell.find('input').change(editGisUpdateParams);
 
+                                                // Symbol mode CELL
                                                 if (editGisParameters.queries[i].symbolMode === 'man') {
                                                     newTableCell = $('<td><input data-param="queryIconOption" type="checkbox"/></td>');
                                                 }
@@ -19630,6 +19842,7 @@
 
                                                 newTableRow.append(newTableCell);
 
+                                                // Symbol choice CELL
                                                 newTableCell = $('<td></td>');
                                                 var imgMaxSize = $('<input type="hidden" name="MAX_FILE_SIZE" value="1000000" />');
                                                 newTableCell.append(imgMaxSize);
@@ -19640,12 +19853,84 @@
                                                 newControl.filestyle({
                                                     input: false,
                                                     buttonText: "",
-                                                    buttonName: "btn-primary",
+                                                    buttonName: "btn-primary custom_pic",
                                                     size: "sm",
                                                     disabled: false,
                                                     badge: false
                                                 });
 
+                                                var highLevelType = "";
+                                                var nature = "";
+                                                var subNature = "";
+
+                                                if (editGisParameters.queries[i].high_level_type) {
+                                                    highLevelType = editGisParameters.queries[i].high_level_type.replace(/\s+/g, '');
+                                                }
+                                                if (editGisParameters.queries[i].nature) {
+                                                    nature = editGisParameters.queries[i].nature.replace(/\s+/g, '');
+                                                }
+
+                                                if (editGisParameters.queries[i].sub_nature) {
+                                                    subNature = editGisParameters.queries[i].sub_nature.replace(/\s+/g, '');
+                                                }
+
+                                                if((highLevelType || nature || subNature) && styleParameters.iconText == "Icon Only") {
+                                                    var suggestedIconsList = getSuggestedIconsPool(highLevelType, nature, subNature);
+                                                } else {
+                                                //    var suggestedIconsList = allIcons;
+                                                    var suggestedIconsList = "";
+                                                }
+                                                
+                                                if(styleParameters.iconText == "Icon Only") {
+                                                    var iconPoolDataset = '{"SUGGESTED Icons": ["';
+                                                    var iconPoolString = '<select name="Selector_poolBtn_' + i + '" id="Selector_poolBtn_poolBtn_' + i + '"><optgroup label="SUGGESTED Icons">';
+                                                    var resultingSuggested = "";
+                                                    if(suggestedIconsList.suggestedIconList) {
+                                                        if (suggestedIconsList.suggestedIconList instanceof Array === false) {
+                                                            resultingSuggested = Object.keys(suggestedIconsList.suggestedIconList).map(function(key) {
+                                                                return suggestedIconsList.suggestedIconList[key];
+                                                            });
+
+                                                        } else {
+                                                            resultingSuggested = suggestedIconsList.suggestedIconList;
+                                                        }
+                                                        for (k = 0; k < resultingSuggested.length; k++) {
+                                                            if (UrlExists("../img/widgetSelectorIconsPool" + resultingSuggested[k] + ".svg")) {
+                                                                iconPoolString = iconPoolString + '<option value="' + resultingSuggested[k] + '">' + resultingSuggested[k] + '</option>';
+                                                                if (k == 0) {
+                                                                    iconPoolDataset = iconPoolDataset + resultingSuggested[k];
+                                                                } else {
+                                                                    iconPoolDataset = iconPoolDataset + '", "' + resultingSuggested[k];
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    iconPoolDataset = iconPoolDataset + '"], "ALL Icons": ["';
+                                                    iconPoolString = iconPoolString + '</optgroup><optgroup label="ALL Icons">';
+
+                                                    for(k=0; k < allIcons.allIconList.length; k++) {
+                                                        iconPoolString = iconPoolString + '<option value="' + allIcons.allIconList[k] + '">' + allIcons.allIconList[k] + '</option>';
+                                                        if (k == 0) {
+                                                            iconPoolDataset = iconPoolDataset + allIcons.allIconList[k];
+                                                        } else {
+                                                            iconPoolDataset = iconPoolDataset + '", "' + allIcons.allIconList[k];
+                                                        }
+                                                    }
+
+                                                    iconPoolDataset = iconPoolDataset + '"]}';
+                                                    var iconPoolDatasetJSON = JSON.parse(iconPoolDataset);
+                                                    iconPoolString = iconPoolString + '</optgroup></select>';
+
+                                                    var newControl2 = $('<input data-param="iconPoolImg" id="Selector_poolBtn_' + i + '" class="poolBtn" title="Choose Image from Our Icons Pool !"><input type="hidden" name="iconPoolSelected" id="' + widgetId + '_poolInput_' + i + '"></input>');
+
+                                                    newTableCell.append(newControl2);
+                                                    newTableRow.append(newTableCell);
+                                                    newTableCell.find('input').change(editGisUpdateParams);
+                                                    
+                                                }
+                                            
+                                                
                                                 newTableRow.find('input[type=file]').change(function () {
                                                     var localRowRef = $(this).parents('tr');
                                                     var file = this.files[0];
@@ -19667,16 +19952,97 @@
                                                     }
                                                 });
 
-                                                newTableCell = $('<td><i class="material-icons selectorMenuDefaultIcon" style="font-size: 34px; display: block;">navigation</i><div class="selectorMenuCustomIcon">None</div></td>');
+                                                // Symbo preview CELL
+                                            //    if (styleParameters.iconText != "Icon Only") {
+                                                    newTableCell = $('<td><i class="material-icons selectorMenuDefaultIcon" style="font-size: 34px; display: block;">navigation</i><div id = "' + data.name_widget + '_opts_poolIcon_' + i + '" class = "_opts_poolIcon_"><img></div><div class="selectorMenuCustomIcon">None</div></td>');
+                                            /*    } else {
+                                                    // CLASSIFICAZIONE ICONE
+                                                    newTableCell = $('<td></td>');
+                                                }   */
                                                 newTableRow.append(newTableCell);
 
                                                 if (editGisParameters.queries[i].symbolMode === 'auto') {
-                                                    newTableRow.find('div.bootstrap-filestyle').hide();
-                                                    newTableRow.find('div.selectorMenuCustomIcon').hide();
-                                                    newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                    if (styleParameters.iconText != "Icon Only") {
+                                                        newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                     //   $(this).parents('tr').find('div.bootstrap-filestyle').hide();
+                                                        newTableRow.find('label.custom_pic').hide();
+                                                        // SOSTITUIRE SOPRA CON :
+                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                        $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                        newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                        newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                    } else {
+                                                        //$(this).parents('tr').find('div.bootstrap-filestyle').hide();
+                                                        newTableRow.find('label.custom_pic').hide();
+                                                        newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                        let iconPath = "";
+                                                        if (editGisParameters.queries[i].iconPoolImg) {
+                                                            newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                            newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                            newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                            newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", editGisParameters.queries[i].iconPoolImg);
+                                                            newTableRow.find('#' + data.name_widget + '_poolIcon_' + i).children(0).attr("data-iconblack", editGisParameters.queries[i].iconPoolImg);
+                                                            var iconWhitePathAuto = editGisParameters.queries[i].iconPoolImg.split(".svg")[0] + "-white.svg";
+                                                            newTableRow.find('#' + data.name_widget + '_poolIcon_' + i).children(0).attr("data-iconwhite", iconWhitePathAuto);
+                                                            newTableRow.find('#' + data.name_widget + '_poolIcon' + i).show();
+                                                        } else {
+                                                            if (nature) {
+                                                                if (subNature) {
+                                                                    //    iconPath = "../img/widgetSelectorIconsPool/subnature/"+ editGisParameters.queries[i].nature + "/" + editGisParameters.queries[i].nature + "_" + editGisParameters.queries[i].sub_nature + ".svg";
+                                                                    iconPath = "../img/widgetSelectorIconsPool/subnature/" + nature + "_" + subNature + ".svg";
+                                                                } else {
+                                                                    iconPath = "../img/widgetSelectorIconsPool/nature/" + nature + ".svg";
+                                                                }
+                                                                if (UrlExists(iconPath)) {
+                                                                    $(this).parents('tr').find('div.icons-selector').show();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", iconPath);
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).show();
+                                                                } else {
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                                    $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                                    newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                                }
+                                                            } else if (highLevelType) {
+                                                                iconPath = "../img/widgetSelectorIconsPool/hlt/" + highLevelType + ".svg";
+                                                                if (UrlExists(iconPath)) {
+                                                                    $(this).parents('tr').find('div.icons-selector').show();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", iconPath);
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).show();
+                                                                } else {
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                                    $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                                    newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                                }
+                                                            } else if (editGisParameters.queries[i].iconPoolImg) {
+                                                                newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", editGisParameters.queries[i].iconPoolImg);
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).show();
+                                                            } else {
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                                //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                                $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                                newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                                newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                                 else {
-                                                    newTableRow.find('div.bootstrap-filestyle').show();
+                                                  //  newTableRow.find('div.bootstrap-filestyle').show();
+                                                    newTableRow.find('label.custom_pic').show();
+                                                //    newTableRow.find('label.pool_ic_btn').hide();
+                                                    // SOSTITUIRE SOPRA CON :
+                                                //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                    $(this).parents('tr').find('div.icons-selector').css("display", "none");
                                                     newTableRow.find('i.selectorMenuDefaultIcon').hide();
                                                     newTableRow.find('div.selectorMenuCustomIcon').show();
                                                     newTableRow.find('div.selectorMenuCustomIcon').css("width", "52px");
@@ -19686,19 +20052,43 @@
                                                     newTableRow.find('div.selectorMenuCustomIcon').css("background-size", "contain");
                                                     newTableRow.find('div.selectorMenuCustomIcon').css("background-repeat", "no-repeat");
                                                     newTableRow.find('div.selectorMenuCustomIcon').css("background-position", "center center");
+                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
                                                 }
 
+                                                $('.poolBtn').off('click');
+                                                $('.poolBtn').on('click', function()
+                                                {
+                                               //     alert("EVVIVA!");
+                                                    // APRI MODALE E FAI SCEGLIERE ICONE DA NUOVO POOL
+                                                 //   getIconsPool
+                                                });
+                                                
                                                 newTableRow.find('input[data-param=queryIconOption]').change(function () {
                                                     var index = parseInt($(this).parents('tr').index() - 1);
                                                     if ($(this).prop('checked')) {
-                                                        $(this).parents('tr').find('div.bootstrap-filestyle').hide();
+                                                     //   $(this).parents('tr').find('div.bootstrap-filestyle').hide();
+                                                        $(this).parents('tr').find('label.custom_pic').hide();
                                                         $(this).parents('tr').find('div.selectorMenuCustomIcon').hide();
-                                                        $(this).parents('tr').find('i.selectorMenuDefaultIcon').show();
+                                                        $(this).parents('tr').find('div.icons-selector').show();
+                                                        if($(this).parents('tr').find('div._opts_poolIcon_').children(0).attr("src") != null) {
+                                                            $(this).parents('tr').find('div._opts_poolIcon_').show();
+                                                         //   $(this).parents('tr').find('label.pool_ic_btn').show();
+                                                        } else {
+                                                            $(this).parents('tr').find('i.selectorMenuDefaultIcon').show();
+                                                        }
                                                         editGisParameters.queries[index].symbolMode = "auto";
                                                     }
                                                     else {
-                                                        $(this).parents('tr').find('div.bootstrap-filestyle').show();
-                                                        $(this).parents('tr').find('i.selectorMenuDefaultIcon').hide();
+                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                        $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                    //    $(this).parents('tr').find('div.bootstrap-filestyle').show();
+                                                        $(this).parents('tr').find('label.custom_pic').show();
+                                                    //    $(this).parents('tr').find('label.pool_ic_btn').hide();
+                                                        if($(this).parents('tr').find('div._opts_poolIcon_').children(0).attr("src") != null) {
+                                                            $(this).parents('tr').find('div._opts_poolIcon_').hide();
+                                                        } else {
+                                                            $(this).parents('tr').find('i.selectorMenuDefaultIcon').hide();
+                                                        }
                                                         $(this).parents('tr').find('div.selectorMenuCustomIcon').show();
                                                         $(this).parents('tr').find('div.selectorMenuCustomIcon').css("width", $(this).parents('tr').find('div.selectorMenuCustomIcon').parents('td').width() + "px");
                                                         $(this).parents('tr').find('div.selectorMenuCustomIcon').css("height", $(this).parents('tr').find('div.selectorMenuCustomIcon').parents('td').height() + "px");
@@ -19708,6 +20098,16 @@
                                                     $('#parametersM').val(JSON.stringify(editGisParameters));
                                                 });
 
+                                                // Symbol color CELL
+                                                newTableCell = $('<td><div class="input-group colorPicker" data-param="symbolColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                newTableRow.append(newTableCell);
+                                                newTableRow.find('div.colorPicker').colorpicker({
+                                                    color: editGisParameters.queries[i].symbolColor,
+                                                    format: "rgba"
+                                                });
+                                                newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
+
+                                                // Description CELL
                                                 newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="queryDesc"></a></td>');
                                                 newTableCell.find('a').editable({
                                                     emptytext: "Empty",
@@ -19758,10 +20158,12 @@
                                                 newTableRow.append(newTableCell);
 
                                                 $("li.gs_w").each(function () {
-                                                    if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend"))) {
-                                                        widgetId = $(this).attr("id");
-                                                        widgetTitle = $(this).find("div.titleDiv").html();
-                                                        newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                    if ($(this).attr("id") != null) {
+                                                        if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend"))) {
+                                                            widgetId = $(this).attr("id");
+                                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                                            newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        }
                                                     }
                                                 });
 
@@ -19781,6 +20183,15 @@
                                                 newTableRow.append(newTableCell);
                                                 newTableCell.find('select').val(editGisParameters.queries[i].display);
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
+
+                                                // New Map Pin Color
+                                                newTableCell = $('<td><select data-param="newMapPinColor" class="form-control"></select></td>');
+                                                newTableCell.find('select').append('<option value="Default">Default</option>');
+                                                newTableCell.find('select').append('<option value="SymbolColor">Symbol Color</option>');
+                                                newTableRow.append(newTableCell);
+                                                newTableCell.find('select').val(editGisParameters.queries[i].newMapPinColor);
+                                                newTableCell.find('select').on('change', editGisUpdateParams);
+
 
                                                 var rowOrder = editGisParameters.queries[i].rowOrder;
                                             /*    if (rowOrder != null && rowOrder != null) {
@@ -19813,11 +20224,625 @@
                                                 newTableRow.find('a.toBeEdited').on('save', editGisUpdateParams);
 
                                                 $("#editGisQueryTable").append(newTableRow);
+
+                                                var svgs = [ '/hlt/ComplexEvent', '/hlt/Dashboard-IOTApp', '/hlt/ExternalService', '/hlt/Heatmap',
+                                                    '/hlt/KPI', '/hlt/MicroApplication', '/hlt/MyData', '/hlt/MyKPI', '/hlt/MyPersonalData', '/hlt/MyPOI',
+                                                    '/hlt/POI', '/hlt/Sensor', '/hlt/Sensor-Actuator', '/hlt/SpecialTool', '/hlt/SpecialWidget',
+                                                    '/hlt/wfs' ];
+
+                                            //    if(editGisParameters.queries[i].high_level_type || editGisParameters.queries[i].nature || editGisParameters.queries[i].sub_nature) {
+                                                    $( '#Selector_poolBtn_' + i ).fontIconPicker({
+                                                        //  $('.poolBtn').fontIconPicker({
+                                                    //    source: svgs,
+                                                        source: iconPoolDatasetJSON,
+                                                        theme: 'fip-bootstrap',
+                                                    //    appendTo: 'self',
+                                                        iconGenerator: function (item, flipBoxTitle, index) {
+                                                            return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:40px"></i>';
+                                            // LAST WORKING OK!
+                                                    //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
+                                                            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
+                                                            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="C:/Apache24/htdocs/dashboardSmartCity/img/widgetSelectorIconsPool/hlt/' + item + '.svg"></use></svg></i>';
+                                                        }
+                                                    })
+                                                        .on('change', function () {
+                                                            var item = $(this).val(),
+                                                                liveView = $('#figura'),
+                                                                liveTitle = liveView.find('h3'),
+                                                                liveImage = liveView.find('img');
+                                                            if ('' === item) {liveTitle.html('Please Select…');
+                                                                //liveImage.attr( 'src', 'lib/svgs/placeholder.png' );
+                                                                return;
+                                                            }
+                                                            liveTitle.html(item.split('-').join(' '));
+                                                            liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
+                                                        });
+                                            //    }
                                             }
 
                                             $("#editGisQueryTable i.fa-plus").click(addGisQueryM);
                                             break;
 
+                                        case "widgetSelectorTech":
+                                            var imgMaxSizeM, newControlM = null;
+                                            if (styleParamsRaw !== null) {
+                                                styleParameters = JSON.parse(styleParamsRaw);
+                                            }
+                                            $('#link_help_modal-add-widget-m').css("display", "");
+                                            $('#inputTitleWidgetM').attr('disabled', false);
+                                            $("label[for='inputTitleWidgetM']").html("Title");
+                                            $("label[for='inputColorWidgetM']").html("Background color");
+                                            $('#inputColorWidgetM').attr('disabled', false);
+                                            $('#inputColorWidgetM').prop('required', true);
+                                            $('#inputFontSizeM').prop('required', true);
+                                            $('#inputFontSizeM').prop('disabled', false);
+                                            $('#inputFontColorM').prop('required', true);
+                                            $('#inputFontColorM').prop('disabled', false);
+                                            $('#widgetFontColorM').css("background-color", data['fontColor']);
+                                            $('#select-frameColor-Widget-m').attr('disabled', false);
+                                            $('#select-frameColor-Widget-m').prop('required', true);
+                                            $('#select-frameColor-Widget-m').val('');
+                                            $('#select-IntTemp-Widget-m').val(-1);
+                                            $('#select-IntTemp-Widget-m').prop('disabled', true);
+                                            $('#select-IntTemp-Widget-m').prop('required', false);
+                                            $('#inputFreqWidgetM').prop('disabled', true);
+                                            $('#inputFreqWidgetM').prop('required', false);
+                                            $('#inputFreqWidgetM').val("");
+                                            $('#urlWidgetM').attr('disabled', true);
+                                            $('#inputHeaderFontColorWidgetM').attr('disabled', false);
+                                            $('#inputHeaderFontColorWidgetM').prop('required', true);
+                                            $('#inputUdmWidgetM').prop("required", false);
+                                            $('#inputUdmWidgetM').attr("disabled", true);
+                                            $('#inputUdmWidgetM').val("");
+                                            $('#inputUdmPositionM').prop("required", false);
+                                            $('#inputUdmPositionM').attr("disabled", true);
+                                            $('#inputUdmPositionM').val(-1);
+
+                                            //Rimozione eventuali campi del subform general per widget process
+                                            removeWidgetProcessGeneralFields("editWidget");
+                                            var widgetsNumber = 0;
+
+                                            //Parametri specifici del widget
+                                            $('#specificParamsM .row').remove();
+                                            var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                                editGisParameters,
+                                                widgetId, widgetTitle, newTableRow, newTableCell = null;
+
+                                            var editGisParameters = currentParams;
+                                            $("#parametersM").val(JSON.stringify(editGisParameters));
+                                            setEditGisParameters(editGisParameters);
+
+                                            //Target widgets geolocation
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newSelect = $('<select name="editGisGeolocationWidgets" class="form-control" id="editGisGeolocationWidgets" multiple></select>');
+
+                                            $("li.gs_w").each(function () {
+                                                if ($(this).attr("id") != null) {
+                                                    //    if ($(this).attr("id").includes("widgetMap") && ($(this).find("div.widget").attr("data-role") === "gisTarget")) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
+                                                }
+                                            });
+
+                                            if (widgetsNumber > 0) {
+                                                newInnerDiv.append(newSelect);
+                                            }
+                                            else {
+                                                newInnerDiv.append("None");
+                                            }
+
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            if (widgetsNumber > 0) {
+                                                $('#editGisGeolocationWidgets').selectpicker({
+                                                    actionsBox: true,
+                                                    width: "auto",
+                                                    size: "auto"
+                                                });
+
+                                                $('#editGisGeolocationWidgets').selectpicker('val', editGisParameters.targets);
+
+                                                $('#editGisGeolocationWidgets').on('changed.bs.select', function (e) {
+                                                    if ($(this).val() === null) {
+                                                        editGisParameters.targets = [];
+                                                    }
+                                                    else {
+                                                        editGisParameters.targets = $(this).val();
+                                                    }
+                                                    $("#parametersM").val(JSON.stringify(editGisParameters));
+                                                });
+                                            }
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+   
+                                            //Colore testo quando picker attivo
+                                            /*newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            var newColorPicker = $('<div id="editGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="editGisActiveQueriesFontColor" name="editGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
+                                            newInnerDiv.append(newColorPicker);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+   
+                                            if (styleParameters != null) {
+                                                $('#editGisActiveQueriesFontColorContainer').colorpicker({
+                                                    format: "rgba",
+                                                    color: styleParameters.activeFontColor
+                                                });
+                                            } else {
+                                                $('#editGisActiveQueriesFontColorContainer').colorpicker({
+                                                    format: "rgba",
+                                                });
+                                            }*/
+   
+                                            //Modalità Icon/Text SelectorNew
+                                            /*newLabel = $('<label for="iconTextMode" class="col-md-2 control-label">Icon/Text Mode</label>');
+                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                            newSelect = $('<select name="iconTextMode" class="form-control" id="iconTextMode"></select>');
+                                            newSelect.append('<option value="Icon Only">Icon Only</option>');
+                                            newSelect.append('<option value="Text Description">Text Description</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newSelect.val(styleParameters.iconText);
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel.show();
+                                            newInnerDiv.show();*/
+   
+                                            //Nuova riga
+                                            //Contenitore per tabella delle query 
+                                            var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
+                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorTech' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            editGisQueryTableContainer.append(editGisQueryTable); 
+                                            $("#specificParamsM").append(editGisQueryTableContainer); 
+   
+                                            editGisParameters.queries.sort(compareJsonElementsByKeyValues('rowOrder'));
+                                            var allIcons = []; //var allIcons = getIconsPool();
+  
+                                            for (var i = 0; i < editGisParameters.queries.length; i++) { 
+                                                newTableRow = $('<tr></tr>'); 
+  
+                                                if (editGisParameters.queries[i].defaultOption === false) {
+                                                    newTableCell = $('<td><input data-param="queryDefaultOption" type="checkbox"/></td>');
+                                                }
+                                                else {
+                                                    newTableCell = $('<td><input data-param="queryDefaultOption" type="checkbox" checked/></td>');
+                                                }
+  
+                                                newTableCell.find('input').bootstrapToggle({
+                                                    on: 'Yes',
+                                                    off: 'No',
+                                                    size: 'small',
+                                                    onstyle: 'warning',
+                                                    offstyle: 'primary'
+                                                });
+  
+                                                newTableRow.append(newTableCell); 
+                                                newTableCell.find('input').change(editGisUpdateParams);
+  
+                                                if (editGisParameters.queries[i].symbolMode === 'man') {
+                                                    newTableCell = $('<td><input data-param="queryIconOption" type="checkbox"/></td>');
+                                                }
+                                                else {
+                                                    newTableCell = $('<td><input data-param="queryIconOption" type="checkbox" checked/></td>');
+                                                }
+      
+                                                newTableCell.find('input').bootstrapToggle({
+                                                    on: 'Auto',
+                                                    off: 'Man',
+                                                    size: 'small',
+                                                    onstyle: 'primary',
+                                                    offstyle: 'warning'
+                                                });
+  
+                                                newTableRow.append(newTableCell); 
+ 
+                                                newTableCell = $('<td></td>');
+                                                var imgMaxSize = $('<input type="hidden" name="MAX_FILE_SIZE" value="1000000" />');
+                                                newTableCell.append(imgMaxSize);
+                                                var newControl = $('<input type="file" class="form-control" name="editSelectorLogos[]">');
+                                                newTableCell.append(newControl);
+                                                newTableRow.append(newTableCell); 
+  
+                                                newControl.filestyle({
+                                                    input: false,
+                                                    buttonText: "",
+                                                    buttonName: "btn-primary custom_pic",
+                                                    size: "sm",
+                                                    disabled: false,
+                                                    badge: false
+                                                });
+  
+                                                var highLevelType = "";
+                                                var nature = "";
+                                                var subNature = "";
+  
+                                                if (editGisParameters.queries[i].high_level_type) {
+                                                    highLevelType = editGisParameters.queries[i].high_level_type.replace(/\s+/g, '');
+                                                }
+                                                if (editGisParameters.queries[i].nature) {
+                                                    nature = editGisParameters.queries[i].nature.replace(/\s+/g, '');
+                                                }
+   
+                                                if (editGisParameters.queries[i].sub_nature) {
+                                                    subNature = editGisParameters.queries[i].sub_nature.replace(/\s+/g, '');
+                                                }
+   
+                                                if((highLevelType || nature || subNature) && styleParameters.iconText == "Icon Only") {
+                                                    var suggestedIconsList = getSuggestedIconsPool(highLevelType, nature, subNature);
+                                                } else {
+                                                //    var suggestedIconsList = allIcons;
+                                                    var suggestedIconsList = "";
+                                                }
+                                                
+                                                if(styleParameters.iconText == "Icon Only") {
+                                                    var iconPoolDataset = '{"SUGGESTED Icons": ["';
+                                                    var iconPoolString = '<select name="Selector_poolBtn_' + i + '" id="Selector_poolBtn_poolBtn_' + i + '"><optgroup label="SUGGESTED Icons">';
+                                                    var resultingSuggested = "";
+                                                    if(suggestedIconsList.suggestedIconList) {
+                                                        if (suggestedIconsList.suggestedIconList instanceof Array === false) {
+                                                            resultingSuggested = Object.keys(suggestedIconsList.suggestedIconList).map(function(key) {
+                                                                return suggestedIconsList.suggestedIconList[key];
+                                                            });
+  
+                                                        } else {
+                                                            resultingSuggested = suggestedIconsList.suggestedIconList;
+                                                        }
+                                                        for (k = 0; k < resultingSuggested.length; k++) {
+                                                            if (UrlExists("../img/widgetSelectorIconsPool" + resultingSuggested[k] + ".svg")) {
+                                                                iconPoolString = iconPoolString + '<option value="' + resultingSuggested[k] + '">' + resultingSuggested[k] + '</option>';
+                                                                if (k == 0) {
+                                                                    iconPoolDataset = iconPoolDataset + resultingSuggested[k];
+                                                                } else {
+                                                                    iconPoolDataset = iconPoolDataset + '", "' + resultingSuggested[k];
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+   
+                                                    iconPoolDataset = iconPoolDataset + '"], "ALL Icons": ["';
+                                                    iconPoolString = iconPoolString + '</optgroup><optgroup label="ALL Icons">';
+  
+                                                    for(k=0; k < allIcons.allIconList.length; k++) {
+                                                        iconPoolString = iconPoolString + '<option value="' + allIcons.allIconList[k] + '">' + allIcons.allIconList[k] + '</option>';
+                                                        if (k == 0) {
+                                                            iconPoolDataset = iconPoolDataset + allIcons.allIconList[k];
+                                                        } else {
+                                                            iconPoolDataset = iconPoolDataset + '", "' + allIcons.allIconList[k];
+                                                        }
+                                                    }
+   
+                                                    iconPoolDataset = iconPoolDataset + '"]}';
+                                                    var iconPoolDatasetJSON = JSON.parse(iconPoolDataset);
+                                                    iconPoolString = iconPoolString + '</optgroup></select>';
+  
+                                                    var newControl2 = $('<input data-param="iconPoolImg" id="Selector_poolBtn_' + i + '" class="poolBtn" title="Choose Image from Our Icons Pool !"><input type="hidden" name="iconPoolSelected" id="' + widgetId + '_poolInput_' + i + '"></input>');
+  
+                                                    newTableCell.append(newControl2);
+                                                    newTableRow.append(newTableCell);
+                                                    newTableCell.find('input').change(editGisUpdateParams);
+                                                    
+                                                }
+                                            
+                                                
+                                                newTableRow.find('input[type=file]').change(function () {
+                                                    var localRowRef = $(this).parents('tr');
+                                                    var file = this.files[0];
+                                                    var imagefile = file.type;
+                                                    var match = ["image/jpeg", "image/png", "image/jpg", "image/svg+xml"];
+                                                    if (!((imagefile === match[0]) || (imagefile === match[1]) || (imagefile === match[2]) || (imagefile === match[3]))) {
+                                                        return false;
+                                                    }
+                                                    else {
+                                                        var reader = new FileReader();
+                                                        reader.onload = function (event) {
+                                                            localRowRef.find('div.selectorMenuCustomIcon').html("");
+                                                            localRowRef.find('div.selectorMenuCustomIcon').css("background", "url(" + event.target.result + ")");
+                                                            localRowRef.find('div.selectorMenuCustomIcon').css("background-size", "contain");
+                                                            localRowRef.find('div.selectorMenuCustomIcon').css("background-repeat", "no-repeat");
+                                                            localRowRef.find('div.selectorMenuCustomIcon').css("background-position", "center center");
+                                                        };
+                                                        reader.readAsDataURL(this.files[0]);
+                                                    }
+                                                });
+      
+                                            //    if (styleParameters.iconText != "Icon Only") {
+                                                    newTableCell = $('<td><i class="material-icons selectorMenuDefaultIcon" style="font-size: 34px; display: block;">navigation</i><div id = "' + data.name_widget + '_opts_poolIcon_' + i + '" class = "_opts_poolIcon_"><img></div><div class="selectorMenuCustomIcon">None</div></td>');
+                                            /*    } else {
+                                                    // CLASSIFICAZIONE ICONE
+                                                    newTableCell = $('<td></td>');
+                                                }   */
+                                                newTableRow.append(newTableCell); 
+   
+                                                if (editGisParameters.queries[i].symbolMode === 'auto') {
+                                                    if (styleParameters.iconText != "Icon Only") {
+                                                        newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                     //   $(this).parents('tr').find('div.bootstrap-filestyle').hide();
+                                                        newTableRow.find('label.custom_pic').hide();
+                                                        // SOSTITUIRE SOPRA CON :
+                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                        $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                        newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                        newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                    } else {
+                                                        //$(this).parents('tr').find('div.bootstrap-filestyle').hide();
+                                                        newTableRow.find('label.custom_pic').hide();
+                                                        newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                        let iconPath = "";
+                                                        if (editGisParameters.queries[i].iconPoolImg) {
+                                                            newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                            newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                            newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                            newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", editGisParameters.queries[i].iconPoolImg);
+                                                            newTableRow.find('#' + data.name_widget + '_poolIcon_' + i).children(0).attr("data-iconblack", editGisParameters.queries[i].iconPoolImg);
+                                                            var iconWhitePathAuto = editGisParameters.queries[i].iconPoolImg.split(".svg")[0] + "-white.svg";
+                                                            newTableRow.find('#' + data.name_widget + '_poolIcon_' + i).children(0).attr("data-iconwhite", iconWhitePathAuto);
+                                                            newTableRow.find('#' + data.name_widget + '_poolIcon' + i).show();
+                                                        } else {
+                                                            if (nature) {
+                                                                if (subNature) {
+                                                                    //    iconPath = "../img/widgetSelectorIconsPool/subnature/"+ editGisParameters.queries[i].nature + "/" + editGisParameters.queries[i].nature + "_" + editGisParameters.queries[i].sub_nature + ".svg";
+                                                                    iconPath = "../img/widgetSelectorIconsPool/subnature/" + nature + "_" + subNature + ".svg";
+                                                                } else {
+                                                                    iconPath = "../img/widgetSelectorIconsPool/nature/" + nature + ".svg";
+                                                                }
+                                                                if (UrlExists(iconPath)) {
+                                                                    $(this).parents('tr').find('div.icons-selector').show();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", iconPath);
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).show();
+                                                                } else {
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                                    $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                                    newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                                }
+                                                            } else if (highLevelType) {
+                                                                iconPath = "../img/widgetSelectorIconsPool/hlt/" + highLevelType + ".svg";
+                                                                if (UrlExists(iconPath)) {
+                                                                    $(this).parents('tr').find('div.icons-selector').show();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", iconPath);
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).show();
+                                                                } else {
+                                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                                    $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                                    newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                                    newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                                }
+                                                            } else if (editGisParameters.queries[i].iconPoolImg) {
+                                                                newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", editGisParameters.queries[i].iconPoolImg);
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).show();
+                                                            } else {
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                                //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                                $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                                newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                                newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                else {
+                                                  //  newTableRow.find('div.bootstrap-filestyle').show();
+                                                    newTableRow.find('label.custom_pic').show();
+                                                //    newTableRow.find('label.pool_ic_btn').hide();
+                                                    // SOSTITUIRE SOPRA CON :
+                                                //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                    $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                    newTableRow.find('i.selectorMenuDefaultIcon').hide();
+                                                    newTableRow.find('div.selectorMenuCustomIcon').show();
+                                                    newTableRow.find('div.selectorMenuCustomIcon').css("width", "52px");
+                                                    newTableRow.find('div.selectorMenuCustomIcon').css("height", "33px");
+                                                    newTableRow.find('div.selectorMenuCustomIcon').html("");
+                                                    newTableRow.find('div.selectorMenuCustomIcon').css("background", "url(" + editGisParameters.queries[i].symbolFile + ")");
+                                                    newTableRow.find('div.selectorMenuCustomIcon').css("background-size", "contain");
+                                                    newTableRow.find('div.selectorMenuCustomIcon').css("background-repeat", "no-repeat");
+                                                    newTableRow.find('div.selectorMenuCustomIcon').css("background-position", "center center");
+                                                    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                }
+     
+                                                $('.poolBtn').off('click');
+                                                $('.poolBtn').on('click', function()
+                                                {
+                                               //     alert("EVVIVA!");
+                                                    // APRI MODALE E FAI SCEGLIERE ICONE DA NUOVO POOL
+                                                 //   getIconsPool
+                                                });
+                                                
+                                                newTableRow.find('input[data-param=queryIconOption]').change(function () {
+                                                    var index = parseInt($(this).parents('tr').index() - 1);
+                                                    if ($(this).prop('checked')) {
+                                                     //   $(this).parents('tr').find('div.bootstrap-filestyle').hide();
+                                                        $(this).parents('tr').find('label.custom_pic').hide();
+                                                        $(this).parents('tr').find('div.selectorMenuCustomIcon').hide();
+                                                        $(this).parents('tr').find('div.icons-selector').show();
+                                                        if($(this).parents('tr').find('div._opts_poolIcon_').children(0).attr("src") != null) {
+                                                            $(this).parents('tr').find('div._opts_poolIcon_').show();
+                                                         //   $(this).parents('tr').find('label.pool_ic_btn').show();
+                                                        } else {
+                                                            $(this).parents('tr').find('i.selectorMenuDefaultIcon').show();
+                                                        }
+                                                        editGisParameters.queries[index].symbolMode = "auto";
+                                                    }
+                                                    else {
+                                                    //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                        $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                    //    $(this).parents('tr').find('div.bootstrap-filestyle').show();
+                                                        $(this).parents('tr').find('label.custom_pic').show();
+                                                    //    $(this).parents('tr').find('label.pool_ic_btn').hide();
+                                                        if($(this).parents('tr').find('div._opts_poolIcon_').children(0).attr("src") != null) {
+                                                            $(this).parents('tr').find('div._opts_poolIcon_').hide();
+                                                        } else {
+                                                            $(this).parents('tr').find('i.selectorMenuDefaultIcon').hide();
+                                                        }
+                                                        $(this).parents('tr').find('div.selectorMenuCustomIcon').show();
+                                                        $(this).parents('tr').find('div.selectorMenuCustomIcon').css("width", $(this).parents('tr').find('div.selectorMenuCustomIcon').parents('td').width() + "px");
+                                                        $(this).parents('tr').find('div.selectorMenuCustomIcon').css("height", $(this).parents('tr').find('div.selectorMenuCustomIcon').parents('td').height() + "px");
+                                                        editGisParameters.queries[index].symbolMode = "man";
+                                                    }
+  
+                                                    $('#parametersM').val(JSON.stringify(editGisParameters));
+                                                });
+    
+                                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="queryDesc"></a></td>');
+                                                newTableCell.find('a').editable({
+                                                    emptytext: "Empty",
+                                                    display: function (value, response) {
+                                                        if (value.length > 16) {
+                                                            $(this).html(value.substring(0, 13) + "...");
+                                                        }
+                                                        else {
+                                                            $(this).html(value);
+                                                        }
+                                                    },
+                                                    value: editGisParameters.queries[i].desc
+                                                });
+                                                newTableRow.append(newTableCell); 
+    
+                                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="queryUrl"></td>');
+                                                newTableCell.find('a').editable({
+                                                    emptytext: "Empty",
+                                                    display: function (value, response) {
+                                                        if (value.length > 10) {
+                                                            $(this).html(value.substring(0, 10) + "...");
+                                                        }
+                                                        else {
+                                                            $(this).html(value);
+                                                        }
+                                                    },
+                                                    value: editGisParameters.queries[i].query
+                                                });
+                                                newTableRow.append(newTableCell); 
+   
+                                                newTableCell = $('<td><div class="input-group colorPicker" data-param="color1"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                newTableRow.append(newTableCell); 
+                                                newTableRow.find('div.colorPicker').colorpicker({
+                                                    color: editGisParameters.queries[i].color1,
+                                                    format: "rgba"
+                                                });
+                                                newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
+    
+                                                newTableCell = $('<td><div class="input-group colorPicker" data-param="color2"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                newTableRow.append(newTableCell); 
+                                                newTableRow.find('div.colorPicker').colorpicker({
+                                                    color: editGisParameters.queries[i].color2,
+                                                    format: "rgba"
+                                                });
+                                                newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
+  
+                                                newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
+                                                newTableRow.append(newTableCell); 
+  
+                                                $("li.gs_w").each(function () {
+                                                    if ($(this).attr("id") != null) {
+                                                        if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend"))) {
+                                                            widgetId = $(this).attr("id");
+                                                            widgetTitle = $(this).find("div.titleDiv").html();
+                                                            newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        }
+                                                    }
+                                                });
+  
+   
+                                                newTableRow.find('select').selectpicker({
+                                                    actionsBox: true,
+                                                    width: 110,
+                                                    size: "auto"
+                                                });
+                                                newTableRow.find('select').on('changed.bs.select', editGisUpdateParams);
+                                                newTableRow.find('select').selectpicker('val', editGisParameters.queries[i].targets);
+
+                                                newTableCell = $('<td><select data-param="display" class="form-control"></select></td>');
+                                                newTableCell.find('select').append('<option value="pins">Pins</option>');
+                                                newTableCell.find('select').append('<option value="geometries">Geometries</option>');
+                                                newTableCell.find('select').append('<option value="all">Pins and geometries</option>');
+                                                newTableRow.append(newTableCell); 
+                                                newTableCell.find('select').val(editGisParameters.queries[i].display);
+                                                newTableCell.find('select').on('change', editGisUpdateParams);
+
+                                                var rowOrder = editGisParameters.queries[i].rowOrder;
+                                            /*    if (rowOrder != null && rowOrder != null) {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
+                                                } else {
+                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
+                                                }
+                                                newTableRow.append(newTableCell); 
+                                                newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
+ 
+                                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
+                                                newTableCell.find('a').editable({
+                                                    emptytext: "Empty",
+                                                    display: function (value, response) {
+                                                        if (value.length > 10) {
+                                                            $(this).html(value.substring(0, 10) + "...");
+                                                        }
+                                                        else {
+                                                            $(this).html(value);
+                                                        }
+                                                    },
+                                                    value: editGisParameters.queries[i].rowOrder
+                                                });
+
+                                                newTableRow.append(newTableCell);     
+
+                                                newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+                                                newTableCell.find('i').click(delGisQueryM);
+                                                newTableRow.append(newTableCell);       
+                                                newTableRow.find('a.toBeEdited').on('save', editGisUpdateParams);
+       
+                                                $("#editGisQueryTable").append(newTableRow); 
+ 
+                                                var svgs = [ '/hlt/ComplexEvent', '/hlt/Dashboard-IOTApp', '/hlt/ExternalService', '/hlt/Heatmap',
+                                                    '/hlt/KPI', '/hlt/MicroApplication', '/hlt/MyData', '/hlt/MyKPI', '/hlt/MyPersonalData', '/hlt/MyPOI',
+                                                    '/hlt/POI', '/hlt/Sensor', '/hlt/Sensor-Actuator', '/hlt/SpecialTool', '/hlt/SpecialWidget',
+                                                    '/hlt/wfs' ];
+    
+                                            //    if(editGisParameters.queries[i].high_level_type || editGisParameters.queries[i].nature || editGisParameters.queries[i].sub_nature) {
+                                                    $( '#Selector_poolBtn_' + i ).fontIconPicker({
+                                                        //  $('.poolBtn').fontIconPicker({
+                                                    //    source: svgs,
+                                                        source: iconPoolDatasetJSON,
+                                                        theme: 'fip-bootstrap',
+                                                    //    appendTo: 'self',
+                                                        iconGenerator: function (item, flipBoxTitle, index) {
+                                                            return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:56px"></i>';
+                                            // LAST WORKING OK!
+                                                    //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
+                                                            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
+                                                            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="C:/Apache24/htdocs/dashboardSmartCity/img/widgetSelectorIconsPool/hlt/' + item + '.svg"></use></svg></i>';
+                                                        }
+                                                    })
+                                                        .on('change', function () {
+                                                            var item = $(this).val(),
+                                                                liveView = $('#figura'),
+                                                                liveTitle = liveView.find('h3'),
+                                                                liveImage = liveView.find('img');
+                                                            if ('' === item) {liveTitle.html('Please Select…');
+                                                                //liveImage.attr( 'src', 'lib/svgs/placeholder.png' );
+                                                                return;
+                                                            }
+                                                            liveTitle.html(item.split('-').join(' '));
+                                                            liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
+                                                        });
+                                            //    }
+                                            }
+                                            $("#editGisQueryTable i.fa-plus").click(addGisQueryM);										
+                                            break;									
                                     case "widgetClock":
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
@@ -20146,11 +21171,13 @@
                                             //console.log($("#parametersM").val());
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
+                                                if ($(this).attr("id") != null) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -20369,11 +21396,13 @@
                                             $("#parametersM").val(JSON.stringify(targetEventsJson));
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
+                                                if ($(this).attr("id") != null) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -20654,18 +21683,20 @@
                                             $("#parametersM").val(JSON.stringify(operatorEventsParametersM));
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
-                                                }
+                                                if ($(this).attr("id") != null) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
 
-                                                if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") !== "link") && ($(this).find("div.widget").attr("data-role") !== "selectorWebTarget")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    panToWidgetsNumber++;
+                                                    if ($(this).attr("id").includes("ExternalContent") && ($(this).find("div.widget").attr("data-role") !== "link") && ($(this).find("div.widget").attr("data-role") !== "selectorWebTarget")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect2.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        panToWidgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -20910,11 +21941,13 @@
                                             $("#parametersM").val(JSON.stringify(targetEventsJson));
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
+                                                if ($(this).attr("id") != null) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -20989,11 +22022,13 @@
                                             $("#parametersM").val(JSON.stringify(targetEventsJson));
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
+                                                if ($(this).attr("id") != null) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -21270,11 +22305,13 @@
                                             $("#parametersM").val(JSON.stringify(targetEventsJson));
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
+                                                if ($(this).attr("id") != null) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -26162,11 +27199,13 @@
                                             $("#parametersM").val(JSON.stringify(targetEventsJson));
 
                                             $("li.gs_w").each(function () {
-                                                if ($(this).attr("id").includes("widgetMap")) {
-                                                    widgetId = $(this).attr("id");
-                                                    widgetTitle = $(this).find("div.titleDiv").html();
-                                                    newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-                                                    widgetsNumber++;
+                                                if ($(this).attr("id") != null) {
+                                                    if ($(this).attr("id").includes("widgetMap")) {
+                                                        widgetId = $(this).attr("id");
+                                                        widgetTitle = $(this).find("div.titleDiv").html();
+                                                        newSelect.append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                                                        widgetsNumber++;
+                                                    }
                                                 }
                                             });
 
@@ -28718,7 +29757,7 @@
                         gridster.remove_widget($('li[id=' + $('#widgetToDelNameHidden').val() + ']'));
 
                         setTimeout(function(){
-                            var gridster_actual = $(".gridster ul").gridster().data('gridster');
+                            var gridster_actual = $(".gridster ul").not(".ui-fancytree ul").gridster().data('gridster');
                             var widgets = JSON.stringify(gridster_actual.serialize());
 
                             $.ajax({
@@ -28797,4 +29836,4 @@
         </script>	
     </body>
 </html>
-       
+

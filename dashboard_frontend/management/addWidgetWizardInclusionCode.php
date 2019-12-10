@@ -70,6 +70,7 @@
                         $dataTypeSelection = $row['dataTypeSelection'];
                         $healthinessSelection = $row['healthinessSelection'];
                         $ownershipSelection = $row['ownershipSelection'];
+                        $valueUnitSelection = $row['valueUnitSelection'];
                         $highLevelTypeVisible = $row['highLevelTypeVisible'];
                         $natureVisible = $row['natureVisible'];
                         $subnatureVisible = $row['subnatureVisible'];
@@ -81,6 +82,7 @@
                         $healthinessVisible = $row['healthinessVisible'];
                         $lastCheckVisible = $row['lastCheckVisible'];
                         $ownershipVisible = $row['ownershipVisible'];
+                        $valueUnitVisible = $row['valueUnitVisible'];
                         $hasActuators = $row['hasActuators'];
                         
                         if($widgetType == 'any')
@@ -99,7 +101,7 @@
                             }
                         }
 
-                        $newItem = '<div class="col-xs-10 col-sm-4 col-md-3 modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
+                        $newItem = '<div class="col-xs-10 col-sm-4 col-md-3 modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-valueUnitVisible = "' . $valueUnitVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-valueUnitSel="' . $valueUnitSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
                                         <div class="col-xs-12 modalAddDashboardWizardChoicePic" style="background-image: url(' . $templateIcon . ')"> 
 
                                         </div>
@@ -261,10 +263,11 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="Last Check"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><div id="ownershipColumnFilter"></th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><div id="valueUnitColumnFilter"></th>
                                 <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations"></th>
                                 <?php } ?>
+
                             </tr>  
                             <tr>  
                                 <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
@@ -283,10 +286,11 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
                                 <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
                                 <?php } ?>
+
                             </tr>  
                         </thead>
                     </table>
@@ -315,6 +319,7 @@
                                     <li><a href="#" class="small" data-value="option9" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="healthiness"/>&nbsp;Healthiness</a></li>
                                     <li><a href="#" class="small" data-value="option10" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="lastCheck"/>&nbsp;Last check</a></li>
                                     <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="ownership"/>&nbsp;Ownership</a></li>
+                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_unit"/>&nbsp;Value Unit</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -358,6 +363,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
                                 <!--<th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>-->
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
                             </tr>  
                         </thead>
@@ -586,8 +592,9 @@
                 dataType: 'json',
                 success: function (data)
                 {
-                    if (data.detail === 'OK_Nature_AND_SubNature') {
+                    if (data.detail === 'All Queries OK!') {
                         poiNatureArray = data.nature;
+                    //    populateSelectMenus("nature", data.nature.join('|'), natureSelect, "#natureColumnFilter", 1, false, false);
                         poiSubNatureArray = data.sub_nature;
                     } else {
 
@@ -657,7 +664,7 @@
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
                 $(row).attr('data-get_instances', data[14]);
-                $(row).attr('data-sm_based', data[16]);
+                $(row).attr('data-sm_based', data[20]);
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
@@ -665,11 +672,12 @@
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
                 $(row).attr('last_date',data[7]);
+                $(row).attr('data-valueUnit',data[16]);
                 $(row).attr('ownership',data[15]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16],
+                    "targets": [5, 11, 12, 14],
                     "visible": false
                 },
                 {
@@ -737,7 +745,7 @@
             oi2.outerHTML="";
                $('#widgetWizardTable_filter').empty();
                  widgetWizardTable = $('#widgetWizardTable').DataTable({
-                 
+
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
@@ -746,7 +754,7 @@
             "serverSide": true,
             "pageLength": widgetWizardPageLength,
             "ajax": {
-                async: true, 
+                async: true,
                 url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
                 data: function(d){
                     d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
@@ -772,7 +780,7 @@
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
                 $(row).attr('data-get_instances', data[14]);
-                $(row).attr('data-sm_based', data[16]);
+                $(row).attr('data-sm_based', data[20]);
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
@@ -780,11 +788,12 @@
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
                 $(row).attr('last_date',data[7]);
+                $(row).attr('data-valueUnit',data[16]);
                 $(row).attr('ownership',data[15]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16],
+                    "targets": [5, 11, 12, 14],
                     "visible": false
                 },
                 {
@@ -1056,7 +1065,7 @@
             $('#widgetWizardTableSelectedRowsCounter').html('Selected rows: ' + currentSelectedRowsCounter);
         }
         
-        function checkTab1Conditions()
+        function checkTab1Conditions(wizardSelectedRowsObj)
         {
             if((!location.href.includes("dashboard_configdash"))&&(choosenDashboardTemplateName === 'fullyCustom'))
             {
@@ -1284,10 +1293,19 @@
                             //Data viewer: bastano widget type selezionato e righe selezionate
                             if(validityConditions.atLeastOneRowSelected)
                             {
-                                $('#addWidgetWizardNextBtn').removeClass('disabled');
-                                $('#cTab a').attr("data-toggle", "tab");
-                                $('#wizardTab1MsgCnt').css('color', 'white');
-                                $('#wizardTab1MsgCnt').html("Selection is OK");
+                               /* if ($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" && ObjectSize(wizardSelectedRowsObj) > 1) {
+                                   // if ((wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[Object.keys(wizardSelectedRowsObj).length -1]].value_unit == wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[0]].value_unit)) {
+                                        // OK
+                                 //   } else {
+                                        // custom check if widgetBarSeries: check if current selected rows has the same value_unit of first selected row. If not, mark current selected row as incompatible
+                                        updateBarSeriesWidgetSelectedRows(wizardSelectedRowsObj, Object.keys(wizardSelectedRowsObj)[0]);
+                                 //   }
+                                } else {*/
+                                    $('#addWidgetWizardNextBtn').removeClass('disabled');
+                                    $('#cTab a').attr("data-toggle", "tab");
+                                    $('#wizardTab1MsgCnt').css('color', 'white');
+                                    $('#wizardTab1MsgCnt').html("Selection is OK");
+                              //  }
                             }
                             else
                             {
@@ -2287,6 +2305,25 @@
                 $('#wizardNotCompatibleRowsAlert').hide();
             }
         }
+
+        function updateBarSeriesWidgetSelectedRows (obj, keyComp) {
+            Object.keys(obj).forEach(key => {
+                let item = obj[key];
+                //if (item.value_unit != (obj[keyComp].value_unit) || item.low_level_type != (obj[keyComp].low_level_type)) {   // Controlla se diversa unità di misura o tipo di metrica
+                if (item.value_unit != (obj[keyComp].value_unit)) {    // Controlla se diversa unità di misura (OK metriche diverse ma con stessa unità di misura)
+                    widgetWizardSelectedRows[key].widgetCompatible = false;
+                    $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css("background-color", "#ffb3b3");
+                }
+            });
+         /*   for(var item in obj) {
+                if (obj.hasOwnProperty(property)) {
+                    if (item.value_unit != (key)) {
+                        widgetWizardSelectedRows[key].widgetCompatible = false;
+                        $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css("background-color", "#ffb3b3");
+                    }
+                }
+            }*/
+        }
         
         function updateIconsFromSelectedRows()
         {
@@ -2344,6 +2381,31 @@
                 updateIcons(unitSelectSnapshot);
             }
         }
+
+        function deselectAllIcons() {
+
+            $('.addWidgetWizardIconClickClass').each(function (j)
+            {
+                var count = 0;
+
+            //    if($(this).attr('data-selected') === 'true') {
+
+                    validityConditions.widgetTypeSelected = false;
+                    $('#addWidgetWizardWidgetAvailableMsg').html("");
+                    $(this).attr('data-selected', 'false');
+                    $(this).css('border', 'none');
+
+                    choosenWidgetIconName = null;
+
+                    $('#widgetWizardActuatorFieldsRow').hide();
+
+                    wasSelected = true;
+
+             //   }
+
+            });
+
+        }
         
         //Specifiche per caso widget wizard
         var unitSelect = null;
@@ -2354,6 +2416,7 @@
         var unitSelectStartOptions = 0;
         var healthinessSelectStartOptions = 0;
         var ownershipSelectStartOptions = 0;
+        var valueUnitSelectStartOptions = 0;
 
         var globalSqlFilter = [
             {
@@ -2418,6 +2481,13 @@
                 "active": "false",
                 "selectedVals": [],
                 "allSelected": true
+            },
+            {
+                "field": "value_unit",
+                "value": "",
+                "active": "false",
+                "selectedVals": [],
+                "allSelected": true
             }
         ];
 
@@ -2453,7 +2523,7 @@
             globalSqlFilter[0].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++)
+            for (var n = 0; n < globalSqlFilter.length; n++)
             {
                 if (n !== 4 && n != 5)
                 {
@@ -2497,7 +2567,7 @@
             globalSqlFilter[1].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilter.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("nature", search, $('#natureSelect'), "#natureColumnFilter", n, false, true);
                 }
@@ -2543,7 +2613,7 @@
             globalSqlFilter[2].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilter.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("sub_nature", search, $('#subnatureSelect'), "#subnatureColumnFilter", n, false, true);
                 }
@@ -2586,7 +2656,7 @@
             globalSqlFilter[3].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilter.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("low_level_type", search, $('#lowLevelTypeSelect'), "#lowLevelTypeColumnFilter", n, false, true);
                 }
@@ -2628,7 +2698,7 @@
             globalSqlFilter[6].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilter.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("unit", search, $('#unitSelect'), "#unitColumnFilter", n, false, true);
                 }
@@ -2671,7 +2741,7 @@
             globalSqlFilter[7].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilter.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("healthiness", search, $('#healthinessSelect'), "#healthinessColumnFilter", n, false, true);
                 }
@@ -2714,12 +2784,49 @@
             globalSqlFilter[8].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilter.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("ownership", search, $('#ownershipSelect'), "#ownershipColumnFilter", n, false, true);
                 }
             }
             
+            checkTab1Conditions();
+            countSelectedRows();
+        }
+
+        function applyValueUnitFilter()
+        {
+
+            var search = [];
+            $.each($('#valueUnitSelect option:selected'), function () {
+                search.push($(this).val());
+
+            });
+            var nOptions = 0;
+            $.each($('#valueUnitSelect option'), function () {
+                nOptions++;
+            });
+
+            globalSqlFilter[9].allSelected = (search.length == nOptions);
+            if (search.length == nOptions)
+                search = [];
+            globalSqlFilter[9].selectedVals = search;
+            search = search.join('|');
+
+            globalSqlFilter[9].value = search;
+            if (search == '' && !globalSqlFilter[9].allSelected) {
+                search = 'oiunqauhalknsufhvnoqwpnvfv';
+            }
+            widgetWizardTable.column(20).search(search, false, false).draw();
+            globalSqlFilter[9].value = search;
+
+            // Chiamata a funzione per popolare menù multi-select di filtraggio
+            for (var n = 0; n < globalSqlFilter.length; n++) {
+                if (n !== 4 && n != 5) {
+                    populateSelectMenus("value_unit", search, $('#valueUnitSelect'), "#valueUnitColumnFilter", n, false, true);
+                }
+            }
+
             checkTab1Conditions();
             countSelectedRows();
         }
@@ -2922,7 +3029,7 @@
                     }
                     
                     // Chiamata a funzione per popolare menù multi-select di filtraggio
-                    for(var n = 0; n < 9; n++) 
+                    for(var n = 0; n < globalSqlFilter.length; n++)
                     {
                         if(n !== 4 && n != 5) 
                         {
@@ -3046,7 +3153,7 @@
                     fakeId = feature.id;
                 } else
                 {
-                    urlToCall = "<?= echo $superServiceMapProxy ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
+                    urlToCall = "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
                     fake = false;
                 }
 
@@ -3915,221 +4022,6 @@
                                 }
                             });
 
-                         /*   $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('mouseenter');
-                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('mouseleave');
-                            $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function(){
-                                if($(this).attr("data-lastDataClicked") === "false")
-                                {
-                                    $(this).css("background", $(this).attr('data-color1'));
-                                    $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("font-weight", "bold");
-                                }
-
-                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                var colIndex = $(this).parent().index();
-                                //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
-                                var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                for(var i = 0; i < widgetTargetList.length; i++)
-                                {
-                                    $.event.trigger({
-                                        type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        value: $(this).attr("data-lastValue"),
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2"),
-                                        widgetTitle: title
-                                    }); 
-                                }
-                            }, 
-                            function(){
-                                if($(this).attr("data-lastDataClicked")=== "false")
-                                {
-                                    $(this).css("background", $(this).attr('data-color2'));
-                                    $(this).css("font-weight", "normal"); 
-                                }
-                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-
-                                for(var i = 0; i < widgetTargetList.length; i++)
-                                {
-                                    $.event.trigger({
-                                        type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        value: $(this).attr("data-lastValue"),
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2")
-                                    }); 
-                                }
-                            }); */
-
-                          /*  $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseenter');
-                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('mouseleave');
-                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function()
-                            {
-                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
-                                {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                                else
-                                {
-                                    if($(this).attr("data-timeTrendClicked") === "false")
-                                    {
-                                        $(this).css("background", $(this).attr('data-color1'));
-                                        $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("font-weight", "bold");
-                                    }
-
-                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                    var colIndex = $(this).parent().index();
-                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
-                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-
-                                    for(var i = 0; i < widgetTargetList.length; i++)
-                                    {
-                                        $.event.trigger({
-                                            type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            value: $(this).attr("data-lastValue"),
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2"),
-                                            widgetTitle: title
-                                        }); 
-                                    }
-                                }
-                            }, 
-                            function(){
-                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
-                                {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                                else
-                                {
-                                    if($(this).attr("data-timeTrendClicked")=== "false")
-                                    {
-                                        $(this).css("background", $(this).attr('data-color2'));
-                                        $(this).css("font-weight", "normal"); 
-                                    }
-
-                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                    for(var i = 0; i < widgetTargetList.length; i++)
-                                    {
-                                        $.event.trigger({
-                                            type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            value: $(this).attr("data-lastValue"),
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2")
-                                        }); 
-                                    }
-                                }
-                            });
-
-                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').off('click');
-                            $('#addWidgetWizardMapCnt2 button.lastValueBtn').click(function(event){
-                                $('#addWidgetWizardMapCnt2 button.lastValueBtn').each(function(i){
-                                    $(this).css("background", $(this).attr("data-color2"));
-                                });
-                                $('#addWidgetWizardMapCnt2 button.lastValueBtn').css("font-weight", "normal");
-                                $(this).css("background", $(this).attr("data-color1"));
-                                $(this).css("font-weight", "bold");
-                                $('#addWidgetWizardMapCnt2 button.lastValueBtn').attr("data-lastDataClicked", "false");
-                                $(this).attr("data-lastDataClicked", "true");
-                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                widgetTargetList[1]='SensoreViaBolognese_24_widgetSingleContent6353';
-                                var colIndex = $(this).parent().index();
-                                var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                for(var i = 0; i < widgetTargetList.length; i++)
-                                {
-                                    $.event.trigger({
-                                        type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        value: $(this).attr("data-lastValue"),
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2"),
-                                        widgetTitle: title,
-                                        marker: markersCache["" + $(this).attr("data-id") + ""],
-                                        mapRef: addWidgetWizardMapRef,//gisMapRef,
-                                        field: $(this).attr("data-field"),
-                                        serviceUri: $(this).attr("data-serviceUri"),
-                                        fake: $(this).attr("data-fake"),
-                                        fakeId: $(this).attr("data-fakeId")
-                                    });
-                                }
-                            });
-
-                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn').off('click');
-                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn').click(function(event){
-                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
-                                {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                                else
-                                {
-                                    $('#addWidgetWizardMapCnt2 button.timeTrendBtn').each(function(i){
-                                        $(this).css("background", $(this).attr("data-color2"));
-                                    });
-                                    $('#addWidgetWizardMapCnt2 button.timeTrendBtn').css("font-weight", "normal");
-                                    $(this).css("background", $(this).attr("data-color1"));
-                                    $(this).css("font-weight", "bold");
-                                    $('#addWidgetWizardMapCnt2 button.timeTrendBtn').attr("data-timeTrendClicked", "false");
-                                    $(this).attr("data-timeTrendClicked", "true");
-                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                    var colIndex = $(this).parent().index();
-                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-                                    var lastUpdateTime = $(this).parents('#addWidgetWizardMapCnt2 div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
-
-                                    var now = new Date();
-                                    var lastUpdateDate = new Date(lastUpdateTime);
-                                    var diff = parseFloat(Math.abs(now-lastUpdateDate)/1000);
-                                    var range = $(this).attr("data-range");
-
-                                    for(var i = 0; i < widgetTargetList.length; i++)
-                                    {
-                                        $.event.trigger({
-                                            type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            range: range,
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2"),
-                                            widgetTitle: title,
-                                            field: $(this).attr("data-field"),
-                                            serviceUri: $(this).attr("data-serviceUri"),
-                                            marker: markersCache["" + $(this).attr("data-id") + ""],
-                                            mapRef: addWidgetWizardMapRef,//gisMapRef,
-                                            fake: $(this).attr("data-fake"),
-                                            fakeId: $(this).attr("data-fakeId")
-                                        }); 
-                                    }
-                                }
-                            });
-                            
-                            $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
-                                if(isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html()))||($(this).attr("data-disabled") === "true"))
-                                {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                            });*/
                         });
 
                         $('#addWidgetWizardMapCnt2 button.timeTrendBtn[data-id="' + latLngId + '"]').each(function(i){
@@ -4224,6 +4116,8 @@
                 var idx = 9;
             } else if ($(this).attr('data-fieldTitle') === "lastCheck") {
                 var idx = 13;
+            } else if ($(this).attr('data-fieldTitle') === "value_unit") {
+                var idx = 16;
             } else if ($(this).attr('data-fieldTitle') === "ownership") {
                 var idx = 15;
             }
@@ -4270,6 +4164,8 @@
                 distinctField = "healthiness";
             } else if (n == 8) {
                 distinctField = "ownership";
+            } else if (n == 9) {
+                distinctField = "value_unit";
             }
 
             var nActive = 0;
@@ -4359,6 +4255,8 @@
                                 select = $("#healthinessSelect");
                             } else if (distinctField === "ownership") {
                                 select = $("#ownershipSelect");
+                            } else if (distinctField === "value_unit") {
+                                select = $("#valueUnitSelect");
                             }
 
                             for (var x = 0; x < data.table.length; x++) 
@@ -4446,6 +4344,7 @@
         //Handler del bottone di reset dei filtri
         function resetFilter()
         {
+        //    $('.addWidgetWizardIconClickClass[data-selected=true]').css('border', 'none');
             noPOIFlag = 0;
             poiSubNature = "";
             poiNature = "";
@@ -4484,6 +4383,8 @@
             {
                 addWidgetWizardMapRef.removeLayer(gisLayersOnMap[layerKey]);
             }
+            clearAllMarkers();
+            deselectAllIcons();
             
             var selectedValsHighLevelType = [];
             var allSelectedHighLevelType = true;
@@ -4512,6 +4413,10 @@
             var selectedValsOwnership = [];
             var allSelectedOwnership = true;
             var searchValueOwnership = "";
+
+            var selectedValsValueUnit = [];
+            var allSelectedValueUnit = true;
+            var searchValueValueUnit = "";
             
             //Questo if distingue il caso in cui stiamo agendo sui template di dashboard
             if(!location.href.includes("dashboard_configdash.php"))
@@ -4570,6 +4475,14 @@
                     selectedValsOwnership = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-ownershipsel').split('|');
                     allSelectedOwnership = false;
                     searchValueOwnership = selectedValsOwnership.join('|');
+                }
+
+                //Gestione del preset valueUnit da template dashboard
+                if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valueUnitsel') !== 'any')
+                {
+                    selectedValsValueUnit = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valueUnitsel').split('|');
+                    allSelectedValueUnit = false;
+                    searchValueValueUnit = selectedValsValueUnit.join('|');
                 }
             }
             
@@ -4636,6 +4549,13 @@
                     "active": "false",
                     "selectedVals": selectedValsOwnership,
                     "allSelected": allSelectedOwnership
+                },
+                {
+                    "field": "value_unit",
+                    "value": searchValueValueUnit,
+                    "active": "false",
+                    "selectedVals": selectedValsValueUnit,
+                    "allSelected": allSelectedValueUnit
                 }
             ];
             
@@ -4665,11 +4585,16 @@
                         
                     case 9:
                         widgetWizardTable.column(n).search(searchValueHealth, true, false); 
-                        break;    
-                        
+                        break;
+
+                    case 16:
+                        widgetWizardTable.column(n).search(searchValueValueUnit, true, false);
+                        break;
+
                     case 15:
                         widgetWizardTable.column(n).search(searchValueOwnership, true, false); 
-                        break;    
+                        break;
+
                         
                     default://Ci cadono anche 4 e 5
                         break;
@@ -4678,7 +4603,7 @@
             
             widgetWizardTable.draw();
 
-            for(var n = 0; n < 9; n++) 
+            for(var n = 0; n < globalSqlFilter.length; n++)
             {
                 if (n !== 4 && n != 5) 
                 {
@@ -4692,6 +4617,7 @@
         
         function resetFilterForced()
         {
+        //    $('.addWidgetWizardIconClickClass[data-selected=true]').css('border', 'none');
             widgetWizardSelectedRows = {};
             choosenWidgetIconName = null;
             $('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-selected', false);
@@ -4724,6 +4650,8 @@
             {
                 addWidgetWizardMapRef.removeLayer(gisLayersOnMap[layerKey]);
             }
+            clearAllMarkers();
+            deselectAllIcons();
             
             var selectedValsHighLevelType = [];
             var allSelectedHighLevelType = true;
@@ -4792,6 +4720,13 @@
                     "active": "false",
                     "selectedVals": [],
                     "allSelected": true
+                },
+                {
+                    "field": "value_unit",
+                    "value": "",
+                    "active": "false",
+                    "selectedVals": [],
+                    "allSelected": true
                 }
             ];
             
@@ -4807,7 +4742,7 @@
             
             widgetWizardTable.draw();
 
-            for(var n = 0; n < 9; n++) 
+            for(var n = 0; n < globalSqlFilter.length; n++)
             {
                 if (n !== 4 && n != 5) 
                 {
@@ -4830,8 +4765,8 @@
             "pageLength": 8,
             aaSorting: [[0, 'desc']],
             "createdRow": function (row, data, index) {
-                $(row).attr('data-rowId', data[11]);
-                $(row).attr('data-widgetCompatible', data[12]);
+                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-widgetCompatible', data[13]);
 
                 $(row).find('.widgetWizardSelectedRowsDelBtn').click(function ()
                 {
@@ -4857,7 +4792,16 @@
                     checkBrokerAndNrRowsTogether();
                     checkTab1Conditions();
                     countSelectedRows();
-                    updateWidgetCompatibleRows();
+                    if ($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" && ObjectSize(widgetWizardSelectedRows) > 1) {
+                        // if ((wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[Object.keys(wizardSelectedRowsObj).length -1]].value_unit == wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[0]].value_unit)) {
+                        // OK
+                        //   } else {
+                        // custom check if widgetBarSeries: check if current selected rows has the same value_unit of first selected row. If not, mark current selected row as incompatible
+                        updateBarSeriesWidgetSelectedRows(widgetWizardSelectedRows, Object.keys(widgetWizardSelectedRows)[0]);
+                        //   }
+                    } else {
+                        updateWidgetCompatibleRows();
+                    }
                     
                     updateSelectedUnits('remove', delesectedUnit);
                     
@@ -4866,7 +4810,7 @@
             },
             "columnDefs": [
                 {
-                    "targets": 11,
+                    "targets": 12,
                     "searchable": false,
                     "render": function (data, type, row, meta) {
                         return '<i class="fa fa-close widgetWizardSelectedRowsDelBtn"></i>';
@@ -4926,7 +4870,7 @@
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
                 $(row).attr('data-get_instances', data[14]);
-                $(row).attr('data-sm_based', data[16]);
+                $(row).attr('data-sm_based', data[20]);
                 $(row).attr('data-parameters', data[11]);
                 $(row).attr('data-selected', 'false');
                 $(row).attr('data-last_value', data[8]);
@@ -4934,11 +4878,12 @@
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
                 $(row).attr('last_date',data[7]);
+                $(row).attr('data-valueUnit',data[16]);
                 $(row).attr('ownership',data[15]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16],
+                    "targets": [5, 11, 12, 14],
                     "visible": false
                 },
                 {
@@ -5016,7 +4961,7 @@
                                 globalSqlFilter[0].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) 
+                                for (var n = 0; n < globalSqlFilter.length; n++)
                                 {
                                     if (n !== 4 && n != 5) 
                                     {
@@ -5155,7 +5100,7 @@
                                 globalSqlFilter[1].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilter.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("nature", search, select, "#natureColumnFilter", n, false, true);
                                     }
@@ -5274,7 +5219,7 @@
                                 globalSqlFilter[2].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilter.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("sub_nature", search, select, "#subnatureColumnFilter", n, false, true);
                                     }
@@ -5349,7 +5294,7 @@
                                 globalSqlFilter[3].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilter.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("low_level_type", search, select, "#lowLevelTypeColumnFilter", n, false, true);
                                     }
@@ -5426,7 +5371,7 @@
                                 globalSqlFilter[6].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilter.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("unit", search, select, "#unitColumnFilter", n, false, true);
                                     }
@@ -5496,7 +5441,7 @@
                                 globalSqlFilter[7].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilter.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("healthiness", search, select, "#healthinessColumnFilter", n, false, true);
                                     }
@@ -5573,7 +5518,7 @@
                                 globalSqlFilter[8].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilter.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("ownership", search, select, "#ownershipColumnFilter", n, false, true);
                                     }
@@ -5613,6 +5558,79 @@
                             });
 
                 });
+
+                // VALUE_UNIT
+                this.api().columns([16]).every(function ()
+                {
+                    var select = $('<select id="valueUnitSelect" style="color: black;" multiple="multiple"></select>')
+                        .appendTo($("#valueUnitColumnFilter"))
+                        .on('change', function () {
+                            /*widgetWizardSelectedRows = {};
+                            widgetWizardSelectedRowsTable.clear().draw(false);
+                            validityConditions.atLeastOneRowSelected = false;
+                            checkTab1Conditions();
+                            countSelectedRows();*/
+
+                            var search = [];
+                            $.each($('#valueUnitSelect option:selected'), function () {
+                                search.push($(this).val());
+
+                            });
+                            var nOptions = 0;
+                            $.each($('#valueUnitSelect option'), function () {
+                                nOptions++;
+                            });
+
+                            globalSqlFilter[9].allSelected = (search.length == nOptions && nOptions == valueUnitSelectStartOptions);
+                            if (search.length == nOptions && nOptions == valueUnitSelectStartOptions)
+                                search = [];
+                            globalSqlFilter[9].selectedVals = search;
+                            search = search.join('|');
+
+                            globalSqlFilter[9].value = search;
+                            if (search == '' && !globalSqlFilter[9].allSelected) {
+                                search = 'oiunqauhalknsufhvnoqwpnvfv';
+                            }
+                            widgetWizardTable.column(16).search(search, false, false).draw();
+                            globalSqlFilter[9].value = search;
+
+                            // Chiamata a funzione per popolare menù multi-select di filtraggio
+                            for (var n = 0; n < globalSqlFilter.length; n++) {
+                                if (n !== 4 && n != 5) {
+                                    populateSelectMenus("value_unit", search, select, "#valueUnitColumnFilter", n, false, true);
+                                }
+                            }
+
+                            checkTab1Conditions();
+                            countSelectedRows();
+
+                        });
+
+                    valueUnitSelectStartOptions = 0;
+                    $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
+                        {
+                            filter: "value_unit",
+                            filterOrg: orgFilter,
+                            ajax: 'true'
+                        },
+                        function (data) {
+                            var options = '';
+                            var attrib = '';
+                            for (var x = 0; x < data.table.length; x++) {
+                                options = '<option value="' + data.table[x].value_unit + '" selected="selected">' + data.table[x].value_unit + '</option>';         // CHANGE
+                                //    options = '<option value="' + attrib + '" selected="selected">' + attrib + '</option>';         // CHANGE
+                                select.append(options);
+                                valueUnitSelectStartOptions++;
+                            }
+                            unitSelect = $('#valueUnitSelect').multiselect({
+                                maxHeight: 165,
+                                includeSelectAllOption: true,
+                                // enableFiltering: true
+                            }).multiselect('selectAll', true).multiselect('updateButtonText');
+                        });
+
+                });
+
             }
         });
         
@@ -5689,9 +5707,10 @@
                     parameters: $(this).attr('data-parameters'),
                     widgetCompatible: true,
                     get_instances: $(this).attr('data-get_instances'),
-                    last_value: $(this).attr('data-last_value')
+                    last_value: $(this).attr('data-last_value'),
+                    value_unit: $(this).attr('data-valueunit')
                 };
-                
+
                 widgetWizardSelectedRowsTable.row.add([
                     $(this).find('td').eq(0).html(),
                     $(this).find('td').eq(1).html(),
@@ -5704,6 +5723,7 @@
                     $(this).find('td').eq(8).html(),
                     $(this).find('td').eq(9).html(),
                     $(this).find('td').eq(10).html(),
+                    $(this).find('td').eq(11).html(),
                     $(this).attr('data-rowid'),
                     true
                 ]).draw(false);
@@ -5715,7 +5735,7 @@
             countSelectedRows();
             checkBrokerAndNrRowsTogether();
             checkAtLeastOneRowSelected();
-            checkTab1Conditions();
+            checkTab1Conditions(widgetWizardSelectedRows);
             
             //Aggiunta/rimozione pins su mappa
             var bounds = addWidgetWizardMapRef.getBounds();
@@ -6114,7 +6134,16 @@
             }
 
             updateIconsFromSelectedRows();
-            updateWidgetCompatibleRows();
+            if ($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" && ObjectSize(widgetWizardSelectedRows) > 1) {
+                // if ((wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[Object.keys(wizardSelectedRowsObj).length -1]].value_unit == wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[0]].value_unit)) {
+                // OK
+                //   } else {
+                // custom check if widgetBarSeries: check if current selected rows has the same value_unit of first selected row. If not, mark current selected row as incompatible
+                updateBarSeriesWidgetSelectedRows(widgetWizardSelectedRows, Object.keys(widgetWizardSelectedRows)[0]);
+                //   }
+            } else {
+                updateWidgetCompatibleRows();
+            }
         });
 
         //Flusso main ************************************************************************
@@ -6507,7 +6536,16 @@
                     {
                         widgetWizardTable.column(13).visible(false);
                     }
-                    
+
+                    if($(this).attr("data-valueUnitVisible") === 'true')
+                    {
+                        widgetWizardTable.column(16).visible(true);
+                    }
+                    else
+                    {
+                        widgetWizardTable.column(16).visible(false);
+                    }
+
                     if($(this).attr("data-ownershipVisible") === 'true')
                     {
                         widgetWizardTable.column(15).visible(true);

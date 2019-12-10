@@ -48,7 +48,7 @@ var gisDefaultColors = [
     }
 ];    
 
-//console.log('dashboard_configdash.js');
+console.log('dashboard_configdash.js');
 
 function setAddGisParameters(addGisParametersAtt)
 {
@@ -237,7 +237,7 @@ function addGisQuery()
    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#addGisQueryTable tr").length - 1)%7].color2, format: "rgba"});
    newTableRow.find('div.colorPicker').on('hidePicker', addGisUpdateParams);
    
-   if($('#addGisQueryTable').attr('data-widgetType') === 'selector')
+   if($('#addGisQueryTable').attr('data-widgetType') === 'selector' || $('#addGisQueryTable').attr('data-widgetType') === 'selectorNew' || $('#addGisQueryTable').attr('data-widgetType') === 'selectorTech')
    {
         newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
         newTableRow.append(newTableCell);
@@ -305,7 +305,7 @@ function addGisQuery()
 function addGisQueryM()
 {
    var newTableRow, newTableCell, newQueryObj, widgetId, widgetTitle = null;
-
+   var allIcons = getIconsPool();
    //Gestione caso nessuna soglia pregressa: costruiamo l'object literal per i parametri
    if(editGisParametersLocal === null)
    {
@@ -388,7 +388,83 @@ function addGisQueryM()
        disabled: false,
        badge: false
    });
-   
+
+    if($('#editGisQueryTable').attr('data-widgetType') === 'selectorNew') {
+       // GP LAST ICONTEXT3 START
+       /*   var highLevelType = "";
+          var nature = "";
+          var subNature = "";
+
+          if (editGisParametersLocal.queries[i].high_level_type) {
+              highLevelType = editGisParametersLocal.queries[i].high_level_type.replace(/\s+/g, '');
+          }
+          if (editGisParametersLocal.queries[i].nature) {
+              nature = editGisParametersLocal.queries[i].nature.replace(/\s+/g, '');
+          }
+
+          if (editGisParametersLocal.queries[i].sub_nature) {
+              subNature = editGisParametersLocal.queries[i].sub_nature.replace(/\s+/g, '');
+          }*/
+
+       //  if((highLevelType || nature || subNature) && styleParameters.iconText == "Icon Only") {
+       //  var suggestedIconsList = getSuggestedIconsPool("highLevelType", nature, subNature);
+       var suggestedIconList = "";
+       //   } else {
+       //    var suggestedIconsList = allIcons;
+       //      var suggestedIconsList = "";
+       //   }
+
+       //   if(styleParameters.iconText == "Icon Only") {
+       var iconPoolDataset = '{"SUGGESTED Icons": ["';
+       var iconPoolString = '<select name="Selector_poolBtn_' + i + '" id="Selector_poolBtn_poolBtn_' + i + '"><optgroup label="SUGGESTED Icons">';
+       var resultingSuggested = "";
+       /*    if(suggestedIconsList.suggestedIconList) {
+               if (suggestedIconsList.suggestedIconList instanceof Array === false) {
+                   resultingSuggested = Object.keys(suggestedIconsList.suggestedIconList).map(function(key) {
+                       return suggestedIconsList.suggestedIconList[key];
+                   });
+
+               } else {
+                   resultingSuggested = suggestedIconsList.suggestedIconList;
+               }
+               for (k = 0; k < resultingSuggested.length; k++) {
+                   if (UrlExists("../img/widgetSelectorIconsPool" + resultingSuggested[k] + ".svg")) {
+                       iconPoolString = iconPoolString + '<option value="' + resultingSuggested[k] + '">' + resultingSuggested[k] + '</option>';
+                       if (k == 0) {
+                           iconPoolDataset = iconPoolDataset + resultingSuggested[k];
+                       } else {
+                           iconPoolDataset = iconPoolDataset + '", "' + resultingSuggested[k];
+                       }
+                   }
+               }
+           }*/
+
+       iconPoolDataset = iconPoolDataset + '"], "ALL Icons": ["';
+       iconPoolString = iconPoolString + '</optgroup><optgroup label="ALL Icons">';
+
+       for (k = 0; k < allIcons.allIconList.length; k++) {
+           iconPoolString = iconPoolString + '<option value="' + allIcons.allIconList[k] + '">' + allIcons.allIconList[k] + '</option>';
+           if (k == 0) {
+               iconPoolDataset = iconPoolDataset + allIcons.allIconList[k];
+           } else {
+               iconPoolDataset = iconPoolDataset + '", "' + allIcons.allIconList[k];
+           }
+       }
+
+       iconPoolDataset = iconPoolDataset + '"]}';
+       var iconPoolDatasetJSON = JSON.parse(iconPoolDataset);
+       iconPoolString = iconPoolString + '</optgroup></select>';
+
+       var newControl2 = $('<input data-param="iconPoolImg" id="Selector_poolBtn_' + i + '" class="poolBtn" title="Choose Image from Our Icons Pool !"><input type="hidden" name="iconPoolSelected" id="' + widgetId + '_poolInput_' + i + '"></input>');
+
+       newTableCell.append(newControl2);
+       newTableRow.append(newTableCell);
+       newTableCell.find('input').change(editGisUpdateParams);
+
+       //  }
+       // GP LAST ICONTEXT3 END
+   }
+
    newTableRow.find('div.bootstrap-filestyle').hide();
    
     newControl.change(function() 
@@ -437,7 +513,19 @@ function addGisQueryM()
        }
        $('#parametersM').val(JSON.stringify(editGisParametersLocal));
    });
-   
+
+    if($('#editGisQueryTable').attr('data-widgetType') === 'selectorNew') {
+        // GP LAST ICONTEXT2 START
+        newTableCell = $('<td><div class="input-group colorPicker" data-param="symbolColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+        newTableRow.append(newTableCell);
+        newTableRow.find('div.colorPicker').colorpicker({
+            color: null,
+            format: "rgba"
+        });
+        newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+        // GP LAST ICONTEXT2 END
+    }
+
    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="queryDesc"></a></td>');
    newTableCell.find('a').editable({
        emptytext: "Empty",
@@ -473,39 +561,51 @@ function addGisQueryM()
    newTableCell = $('<td><div class="input-group colorPicker" data-param="color1"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
    newTableRow.append(newTableCell);
    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color1, format: "rgba"});
-   newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams); 
+   newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
    
    newTableCell = $('<td><div class="input-group colorPicker" data-param="color2"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
    newTableRow.append(newTableCell);
    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color2, format: "rgba"});
-   newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
+   newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
    
-   if($('#editGisQueryTable').attr('data-widgetType') === 'selector')
+   if($('#editGisQueryTable').attr('data-widgetType') === 'selector' || $('#editGisQueryTable').attr('data-widgetType') === 'selectorNew' || $('#editGisQueryTable').attr('data-widgetType') === 'selectorTech')
    {
         newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
         newTableRow.append(newTableCell);
-
-         $("li.gs_w").each(function(){
-             if(($(this).attr("id").includes("BarContent"))||($(this).attr("id").includes("ColumnContent"))||($(this).attr("id").includes("GaugeChart"))||($(this).attr("id").includes("PieChart"))||($(this).attr("id").includes("SingleContent"))||($(this).attr("id").includes("Speedometer"))||($(this).attr("id").includes("TimeTrend")))
-             {
-               widgetId = $(this).attr("id");
-               widgetTitle = $(this).find("div.titleDiv").html();
-               newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
-             }
-         });                               
+        if ($(this).attr("id") != null) {
+            $("li.gs_w").each(function () {
+                if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend"))) {
+                    widgetId = $(this).attr("id");
+                    widgetTitle = $(this).find("div.titleDiv").html();
+                    newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
+                }
+            });
+        }
 
         newTableRow.find('select').selectpicker({
                                             actionsBox: true, 
                                             width: 110
                                          });
-        newTableRow.find('select').on('changed.bs.select', editGisUpdateParams);  
+        newTableRow.find('select').on('changed.bs.select', editGisParametersLocal);
         
         newTableCell = $('<td><select data-param="display" class="form-control"></select></td>');
         newTableCell.find('select').append('<option value="pins">Pins</option>');
         newTableCell.find('select').append('<option value="geometries">Geometries</option>');
         newTableCell.find('select').append('<option value="all">Pins and geometries</option>');
         newTableRow.append(newTableCell);
-        newTableCell.find('select').on('change', editGisUpdateParams);
+        newTableCell.find('select').on('change', editGisParametersLocal);
+
+       if($('#editGisQueryTable').attr('data-widgetType') === 'selectorNew') {
+           // New Map Pin Color
+           newTableCell = $('<td><select data-param="newMapPinColor" class="form-control"></select></td>');
+           newTableCell.find('select').append('<option value="Default">Default</option>');
+           newTableCell.find('select').append('<option value="SymbolColor">Symbol Color</option>');
+           newTableRow.append(newTableCell);
+         //  newTableCell.find('select').val(editGisParametersLocal.queries[rowIndex].newMapPinColor);
+           newTableCell.find('select').on('change', editGisParametersLocal);
+
+         //  newTableRow.append(newTableCell);
+       }
 
        var rowOrderM = newQueryObj.rowOrder;
        /*    if (rowOrder != null && rowOrder != null) {
@@ -531,6 +631,7 @@ function addGisQueryM()
        });
 
        newTableRow.append(newTableCell);
+
    }
 
    if($('#editGisQueryTable').attr('data-widgetType') === 'selectorWeb') {
@@ -563,9 +664,44 @@ function addGisQueryM()
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
    newTableCell.find('i').click(delGisQueryM);
    newTableRow.append(newTableCell);
-   newTableRow.find('a.toBeEdited').on('save', editGisUpdateParams);
+   newTableRow.find('a.toBeEdited').on('save', editGisParametersLocal);
   
-   $("#editGisQueryTable").append(newTableRow);    
+   $("#editGisQueryTable").append(newTableRow);
+   // GP LAST ICONTEXT START
+    var svgs = [ '/hlt/ComplexEvent', '/hlt/Dashboard-IOTApp', '/hlt/ExternalService', '/hlt/Heatmap',
+        '/hlt/KPI', '/hlt/MicroApplication', '/hlt/MyData', '/hlt/MyKPI', '/hlt/MyPersonalData', '/hlt/MyPOI',
+        '/hlt/POI', '/hlt/Sensor', '/hlt/Sensor-Actuator', '/hlt/SpecialTool', '/hlt/SpecialWidget',
+        '/hlt/wfs' ];
+
+//    if(editGisParametersLocal.queries[i].high_level_type || editGisParametersLocal.queries[i].nature || editGisParametersLocal.queries[i].sub_nature) {
+    $( '#Selector_poolBtn_' + i ).fontIconPicker({
+        //  $('.poolBtn').fontIconPicker({
+        //    source: svgs,
+        source: iconPoolDatasetJSON,
+        theme: 'fip-bootstrap',
+        //    appendTo: 'self',
+        iconGenerator: function (item, flipBoxTitle, index) {
+            return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:56px"></i>';
+// LAST WORKING OK!
+            //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
+            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
+            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="C:/Apache24/htdocs/dashboardSmartCity/img/widgetSelectorIconsPool/hlt/' + item + '.svg"></use></svg></i>';
+        }
+    })
+        .on('change', function () {
+            var item = $(this).val(),
+                liveView = $('#figura'),
+                liveTitle = liveView.find('h3'),
+                liveImage = liveView.find('img');
+            if ('' === item) {liveTitle.html('Please Select…');
+                //liveImage.attr( 'src', 'lib/svgs/placeholder.png' );
+                return;
+            }
+            liveTitle.html(item.split('-').join(' '));
+            liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
+        });
+    //    }
+    // GP LAST ICONTEXT END
    $('#parametersM').val(JSON.stringify(editGisParametersLocal));
 }
 
@@ -685,7 +821,24 @@ function editGisUpdateParams(e, params)
           editGisParametersLocal.queries[rowIndex].rowOrder = newValue;
           break;
 
-       default:
+      case 'iconPoolImg':
+           //   newValue = $(this).val();
+           newValue = "../img/widgetSelectorIconsPool" + $(this).val() + ".svg";
+           editGisParametersLocal.queries[rowIndex].iconPoolImg = newValue;
+           break;
+
+      case 'symbolColor':
+           //   newValue = $(this).val();
+           newValue = $(this).colorpicker('getValue');
+           editGisParametersLocal.queries[rowIndex].symbolColor = newValue;
+           break;
+
+       case 'newMapPinColor':
+           newValue = $(this).val();
+           editGisParametersLocal.queries[rowIndex].newMapPinColor = newValue;
+           break;
+
+      default:
            break;
    }
    

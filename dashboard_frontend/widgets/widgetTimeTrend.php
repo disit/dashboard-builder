@@ -1678,7 +1678,7 @@
 
                         $.ajax({
                         //    url: rowParameters + "&" + serviceMapTimeRange + "&valueName=" + sm_field,
-                            url: rowParameters + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + sm_field,
+                            url: "<?= $superServiceMapProxy ?>" + rowParameters + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + sm_field,
                             type: "GET",
                             data: {},
                             async: true,

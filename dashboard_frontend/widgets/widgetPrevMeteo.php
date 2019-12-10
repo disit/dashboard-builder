@@ -54,6 +54,8 @@
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var showTitle = '<?= escapeForJS($_REQUEST['showTitle']) ?>';
+
+        console.log("PrevMeteo Widget loaded: " + widgetName);
         
         var monthsNames = [
             {

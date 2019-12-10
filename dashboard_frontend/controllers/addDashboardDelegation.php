@@ -92,7 +92,11 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername']) {
                         }
                         else
                         {
-                            $response['detail'] = 'ApiCallKo';
+                            if (strpos($callResult, "not recognized") !== false) {
+                                $response['detail'] = 'Username_not_recognized';
+                            } else {
+                                $response['detail'] = 'ApiCallKo';
+                            }
                             $response['detail2'] = $http_response_header[0];
                         }
                     }

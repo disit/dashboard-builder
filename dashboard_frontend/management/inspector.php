@@ -399,8 +399,8 @@ include "../widgets/widgetTimeTrend_1.php";
         <!-- Fine dei modali -->
         <!-- MODALE HEALTHINESS -->
         <?php
-//if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager")) {
-    if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
+//if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "Manager")) {
+  if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
     echo ('<div class="modal fade bd-example-modal-lg" id="healthiness-modal" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
                         <div class="modal-dialog modal-lg" style="background-color: rgba(108, 135, 147, 1);">
                             <div class="modal-content modal-lg" style="background-color: rgba(108, 135, 147, 1);">
@@ -412,11 +412,13 @@ include "../widgets/widgetTimeTrend_1.php";
                                         </li>
                                         <li role="presentation" id="tab2"><a href="#browseTab" aria-controls="browseTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Values</a>
                                         </li>
+                                        <li role="presentation" id="tab6"><a href="#HealthinessTab" aria-controls="healthTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Healthiness</a>
+                                        </li>
                                         <li role="presentation" id="tab3"><a href="#processTab" aria-controls="processTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Process</a>
                                         </li>
                                         <li role="presentation" id="tab4"><a href="#imageTab" aria-controls="imageTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Image</a>
                                         </li>
-                                        <li role="presentation" id="tab5"><a href="#ownerTab" aria-controls="ownerTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Ownership</a>
+                                        <li role="presentation" id="tab5"><a href="#ownerTab" aria-controls="ownerTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Licensing</a>
                                         </li>
                                     </ul>
                                     <!-- Tab panes -->
@@ -438,7 +440,20 @@ include "../widgets/widgetTimeTrend_1.php";
                                                                 <span id="time_trand_link" ></span>
                                                                 <span id="dash_link"></span>
                                                                 <span id="pd_link" ></span>
+                                                                <span id="arcgis_link" ></span>
+                                                                <span id="heatmap_link" ></span>
                                                             </div>
+                                                    </div>
+                                          </div>
+                                          <div role="tabpanel" class="tab-pane" id="HealthinessTab">
+                                                    <div class="modal-body">
+                                                            <div class="input-group"><span class="input-group-addon">Healthiness Criteria: </span><input id="healthiness_c" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Delay: </span><input id="delay" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Type: </span><input id="v_type" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Period: </span><input id="period" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Last Check: </span><input id="last_check_health" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Status 1:</span><span class="input-group-addon"><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_1"></i></span><input id="Status_h" type="text" class="form-control" value="" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Status 2:</span><span class="input-group-addon"><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_h" type="text" class="form-control" value="" readonly/></div>
                                                     </div>
                                           </div>
                                         <div role="tabpanel" class="tab-pane" id="browseTab">
@@ -573,7 +588,8 @@ include "../widgets/widgetTimeTrend_1.php";
                     var last_date = $(this).parent().parent().attr('last_date');
                     var ownership = $(this).parent().parent().attr('ownership');
                     var icon = $(this).parent().parent().attr('icon');
-                    var id_row = $(this).parent().parent().attr('data-rowid');
+                    //var id_row = $(this).parent().parent().attr('data-rowid');
+                    var id_row = $(this).parent().parent().attr('data-unique_name_id');
                     var last_check = $(this).parent().parent().get(0).children[9].innerText;
                     var data_source = "";
                     //https://iot-app.snap4city.org/nodered/nrxe49k
@@ -631,6 +647,7 @@ include "../widgets/widgetTimeTrend_1.php";
                         case 'POI':
                             $(".etl_sensor").hide();
                             $(".iot_sensor").hide();
+                            $(".sensor_own").hide();
                             $('#data_source').val('Datagate or Loaded by Triples (ETL)');
                             var icon = '../img/dataInspectorIcons/data-inspector.png';
                             //$('#pd_link').append('<a href="'+pd_external_link+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to '+high_level+'</a>');
@@ -639,6 +656,7 @@ include "../widgets/widgetTimeTrend_1.php";
                         case 'KPI':
                             $(".etl_sensor").show();
                             $(".iot_sensor").hide();
+                            $(".sensor_own").show();
                             $('#tab3').show();
                             $('#data_source').val('Km4cityRTData');
                             $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
@@ -647,11 +665,12 @@ include "../widgets/widgetTimeTrend_1.php";
                         case 'MyKPI':
                             $(".etl_sensor").hide();
                             $(".iot_sensor").hide();
+                            $(".sensor_own").show();
                             var dataTypeMyKpi = data_unit.split('-');
                             $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                             if (parameters.includes('datamanager/api/v1/poidata/')) {
                                 var param2 = parameters.split('datamanager/api/v1/poidata/');
-                                $('#data_source').val(param2[1]);
+                                //$('#data_source').val(param2[1]);
                                 var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + param2[1] + "&operation=values&dataType=" + dataTypeMyKpi[0];
                                 $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                             } else {
@@ -663,11 +682,12 @@ include "../widgets/widgetTimeTrend_1.php";
                         case 'MyData':
                             $(".etl_sensor").hide();
                             $(".iot_sensor").hide();
+                            $(".sensor_own").hide();
                             var dataTypeMyKpi = data_unit.split('-');
                             $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                             if (parameters.includes('datamanager/api/v1/poidata/')) {
                                 var param2 = parameters.split('datamanager/api/v1/poidata/');
-                                $('#data_source').val(param2[1]);
+                                //$('#data_source').val(param2[1]);
                                 var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + param2[1] + "&operation=values&dataType=" + dataTypeMyKpi[0];
                                 $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                             } else {
@@ -679,10 +699,11 @@ include "../widgets/widgetTimeTrend_1.php";
                         case 'MyPOI':
                             $(".etl_sensor").hide();
                             $(".iot_sensor").hide();
+                            $(".sensor_own").hide();
                             $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                             if (parameters.includes('datamanager/api/v1/poidata/')) {
                                 var param2 = parameters.split('datamanager/api/v1/poidata/');
-                                $('#data_source').val(param2[1]);
+                                //$('#data_source').val(param2[1]);
                                 var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + param2[1] + "&operation=values&dataType=integer";
                                 $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                             } else {
@@ -699,10 +720,12 @@ include "../widgets/widgetTimeTrend_1.php";
                                 $('#data_source').val("IoT");
                                 $(".iot_sensor").show();
                                 $(".etl_sensor").hide();
+                                $(".sensor_own").show();
                                 var iot_sensor_ip = "<?=$iot_sensor
 ?>";
-                                var url_iot = "http://" + iot_sensor_ip + "/dashboardSmartCity/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                                var url_iot = "" + iot_sensor_ip + "/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
                                 //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
+                                $('#iot_link').html('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directory</a>');
                             } else {
                                 $('#data_source').val("ETL");
                                 $(".etl_sensor").show();
@@ -754,7 +777,7 @@ include "../widgets/widgetTimeTrend_1.php";
                             break;
                         case 'Dashboard-IOT App':
                             $('#data_source').val(name_Nature);
-                            var das = function_dashboard(parameters);
+                            var das = function_dashboard(id_row);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                             $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
@@ -766,12 +789,13 @@ include "../widgets/widgetTimeTrend_1.php";
                     //
                     switch (name_Nature) {
                         case 'From Dashboard to IOT Device':
-                            var das = function_dashboard(parameters);
+                            var das = function_dashboard(id_row);
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                             $('#iot_link').html('<a href="'+iot_device+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                             $('#disces_link').empty();
                             $(".etl_sensor").hide();
+                            $(".sensor_own").hide();
                             break;
                         case 'From IOT Device to KB':
                             //
@@ -779,31 +803,36 @@ include "../widgets/widgetTimeTrend_1.php";
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                             $('#disces_link').empty();
                             $(".etl_sensor").hide();
+                            $(".sensor_own").hide();
                             break;
                         case 'From Dashboard to IOT App':
-                            var das = function_dashboard(parameters);
+                            var das = function_dashboard(id_row);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                             $(".etl_sensor").hide();
+                            $(".sensor_own").hide();
                             break;
                         case 'From IOT Application to Dashboard':
-                            var das = function_dashboard(parameters);
+                            var das = function_dashboard(id_row);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                             $('#disces_link').empty();
+                            $(".sensor_own").hide();
                             break;
                         case 'From IOT App to Dashboard':
-                            var das = function_dashboard(parameters);
+                            var das = function_dashboard(id_row);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="' +das+ '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                             $('#disces_link').empty();
+                            $(".sensor_own").hide();
                             break;
                          case 'From IOT App to IOT Device':
-                            var das = function_dashboard(parameters);
+                            var das = function_dashboard(id_row);
                             $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                             $('#dash_link').html('<a href="'+iot_device+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                             $('#disces_link').empty();
+                            $(".sensor_own").hide();
                             break;
                     }
                     //***//
@@ -813,6 +842,7 @@ include "../widgets/widgetTimeTrend_1.php";
                         //***//http://
                         var url_parameters = parameters + '&healthiness=true';
                         var role_session_active = "<?=$_SESSION['loggedRole']; ?>";
+                        var ds = $('#data_source').val();
                         $.ajax({
                             async: true,
                             type: 'POST',
@@ -824,12 +854,12 @@ include "../widgets/widgetTimeTrend_1.php";
                                 service: url_parameters,
                                 value: data_unique_name_id,
                                 data_get_instances: data_get_instances,
-                                role_session_active: role_session_active,
-                                id_row: id_row
+                                id_row: id_row,
+                                data_source: ds
                             },
                             success: function(data) {
                                 /*DECODIFICARE data.healthiness*/
-                                if ((high_level === 'Sensor')||(high_level === 'Sensor-Actuator')||(high_level === 'KPI')) {
+                                if ((high_level === 'Sensor')||(high_level === 'Sensor-Actuator')||(high_level === 'KPI')||(high_level === 'MyPOI')||(high_level === 'MyKPI')) {
                                     var json_data = JSON.stringify(data.healthiness);
                                     var value_td = "";
                                     var obj = Object.values(data);
@@ -837,7 +867,8 @@ include "../widgets/widgetTimeTrend_1.php";
                                     var keys2 = "";
                                     var key3 = "";
                                     var key4 = "";
-                                    var key5 = "";                                                                                  
+                                    var key5 = ""; 
+                                    var measured_time = "";
                                     var key_icon0 = JSON.stringify(data.icon);
                                     var key_icon = key_icon0;
                                     if (key_icon !== undefined){
@@ -853,15 +884,17 @@ include "../widgets/widgetTimeTrend_1.php";
                                     }else{
                                         $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                                     }
-                              if(high_level !== 'KPI'){
+                              if((high_level !== 'KPI')&&(high_level !== 'MyKPI')&&(high_level !== 'MyPOI')){
                                         if(data.healthiness !== null){
                                                           obj2 = Object.values(data.healthiness);
                                                           keys2 = Object.keys(data.healthiness);
                                                      }
 
                                                      if(data.Service !== null){
-                                                          key4 = Object.values(data.Service.features[0]);
-                                                          key5 = (key4[2].realtimeAttributes);
+                                                            if(data.Service.features){
+                                                             key4 = Object.values(data.Service.features[0]);
+                                                             key5 = (key4[2].realtimeAttributes);
+                                                         }
                                                     }
 
                                         if((data.realtime !== null)){
@@ -878,6 +911,9 @@ include "../widgets/widgetTimeTrend_1.php";
                                                                     } else {
                                                                         value_td = "";
                                                                     }
+                                                                    if(key3[0]['measuredTime']['value']){
+                                                                        measured_time = key3[0]['measuredTime']['value'];
+                                                                    }
                                                                  //
                                                          }else{
                                                                  key3 = data.realtime.results;
@@ -886,6 +922,9 @@ include "../widgets/widgetTimeTrend_1.php";
                                                                         value_td = key3[0][name]['value'];
                                                                     } else {
                                                                         value_td = "";
+                                                                    }
+                                                                    if(key3[0]['measuredTime']['value']){
+                                                                        measured_time = key3[0]['measuredTime']['value'];
                                                                     }
                                                                  //
                                                          }
@@ -915,6 +954,15 @@ include "../widgets/widgetTimeTrend_1.php";
                                         var date = fromTime.getFullYear()+'-'+fromTime.getMonth()+'-'+fromTime.getDate();
                                         var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
                                         fromTime= date+'T'+time;
+                                }else{
+                                    //toTime =last_date.replace(" ","T");
+                                    //measured_time
+                                        toTime =measured_time.replace(" ","T");
+                                        fromTime = new Date(measured_time);
+                                        var date = fromTime.getFullYear()+'-'+fromTime.getMonth()+'-'+fromTime.getDate();
+                                        var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
+                                        fromTime= date+'T'+time;
+                                        //SETTARE IL FORMATO//
                                 }
                                 
                                 //serviceUri
@@ -932,7 +980,8 @@ include "../widgets/widgetTimeTrend_1.php";
                                 var total_data = data.disces_data;
                                 var dataSource = data.dataSource;
                                 var ownership_content = data.ownership_content;
-                                //var healthiness = data.healthiness_criteria;
+                                var healthiness = data.HealthinessCriteria;
+                                var period = data.period;
                                 var organization = data.organization;
                                 var device_id = data.device_id;
                                 var broker = data.broker;
@@ -949,6 +998,9 @@ include "../widgets/widgetTimeTrend_1.php";
                                 $('#graph_uri').val(graph_uri);
                                 $('#telephone').val(telephone);
                                 $('#disces_ip').val(disces_ip);
+                                if((high_level === 'MyKPI')||(high_level === 'MyPOI')){
+                                $('#data_source').val(dataSource);
+                                }
                                 //$('#period').val(period);
                                 // $('#healthinessCriteria').val(healthiness);
                                 //if((ownership_content !== "")&&(ownership_content !== null)){
@@ -956,6 +1008,9 @@ include "../widgets/widgetTimeTrend_1.php";
                                 $('#iotBroker').val(broker);
                                     //$('#owner').val(ownership_content.username);
                                 //}
+                                if(organization !==""){
+                                    $('#organization').val(organization);
+                                }
                                 //
                                 var job_name = data.jobName;
                                 var job_group = data.jobGroup;
@@ -974,16 +1029,21 @@ include "../widgets/widgetTimeTrend_1.php";
                                         var data_type_td = "";
                                         var healthiness_criteria = "";
                                         var value_refresh_rate = "";
+                                        var dealy = "";
+                                        var healt_value = "";
+                                        
                                         if (key5[name]) {
                                             value_unit_td = key5[name]['value_unit'];
                                             data_type_td = key5[name]['data_type'];
                                             healthiness_criteria = key5[name]['healthiness_criteria'];
                                             value_refresh_rate = key5[name]['value_refresh_rate'];
+                                            healt_value = obj2[y]['healthy'];
                                         } else {
                                             value_unit_td = "";
                                             data_type_td = "";
                                             healthiness_criteria = "";
                                             value_refresh_rate = "";
+                                            healt_value = "";
                                         }
                                         
                                         var time_trend_link = "";
@@ -991,12 +1051,27 @@ include "../widgets/widgetTimeTrend_1.php";
                                             //time_trend_link = '<a href="https://www.snap4city.org/sensor-validate/index.php?serviceUri='+data_get_instances+'&fromTime='+fromTime+'&toTime='+toTime+'&metric='+keys2[y]+'" target= "_blank" role="button" class="btn btn-xs editDashBtnCard">VIEW</a>';
                                             time_trend_link = '<a type="button" class="viewDashBtn" href="https://www.snap4city.org/sensor-validate/index.php?serviceUri='+data_get_instances+'&fromTime='+fromTime+'&toTime='+toTime+'&metric='+keys2[y]+'" target= "_blank"> VIEW </a>';
                                         }
-                                        
-                                        $('#healthiness_table tbody').append('<tr><td>' + keys2[y] + '</td><td>' + obj2[y]['healthy'] + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>'+time_trend_link+'</td></tr>');
+                                        dealy = obj2[y]['delay'];
+                                        $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + obj2[y]['healthy'] + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>'+time_trend_link+'</td></tr>');
                                     }
+                                            $('#healthiness_c').val(healthiness_criteria);
+                                            $('#period').val(value_refresh_rate);
+                                            $('#v_type').val(value_td);
+                                            //$('#attr_type').val(data_type_td);
+                                            $('#delay').val(dealy);
+                                            $('#last_check_health').val(measured_time);
+                                            $('#Status_h').val(healt_value);
+                                            var col_h = $('#Status_h').val();
+                                            if(col_h ==='true'){
+                                                $('#status_1').css('color','#33cc33');
+                                             }else if (col_h ==='false'){
+                                                $('#status_1').css('color','red');
+                                            }else{
+                                                $('#status_1').css('color','black');
+                                            }
                                     //UPLOAD IMAGE//upload_image
                                     //upload_image
-                                  if(role_session_active === 'RootAdmin'){
+                                    if(role_session_active === 'RootAdmin'){
                                         $('#upload_image').html('<div id="uplaod" class="input-group mb-3"><div class="input-group iot_sensor"><div class="input-group-prepend"><span class="input-group-text" id="inputGroup-sizing-default">Upload</span></div><input type="file" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="uploadField" name="uploadField"/><div class="input-group-append"><button class="btn btn-primary uploadImageClass" role="button" id="upload_command" style="margin-right: 10px;">Upload Image</button></div></div></div>');
                                     }
                                     ///////
@@ -1014,14 +1089,27 @@ include "../widgets/widgetTimeTrend_1.php";
                                     $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Disces</a>');
                                 }
                                     $('#kb_link').html('<a href="' + link_kb + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
+                                    //$('#kb_link').html('<a href="' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
                                 //
                             }
                         });
+                        if(high_level === 'wfs'){
+                            if($('#data_source').val()===''){
+                                     $('#data_source').val(parameters);
+                           }
+                                     $('#arcgis_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ArcGIS</a>');
+                                
+                        }
+                        if(high_level==='Heatmap'){
+                        var heatmap_manger = "<?=$resource_manager; ?>";
+                                $('#heatmap_link').html('<a href="'+ heatmap_manger +'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Heatmap</a>');
+                        }
                         //
                   //  } else {
                    //     $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td></tr>');
                    // }
                     $('#healthiness-modal').modal('show');
+
                 });
 
                 $(document).on('click','#upload_command', function(){
@@ -1045,6 +1133,7 @@ include "../widgets/widgetTimeTrend_1.php";
                                             $('#owner').val('');
                                             $('#address').val('');
                                             $('#processPath').val('');
+                                            $('#tab6').removeClass("active");
                                             $('#tab5').removeClass("active");
                                             $('#tab4').removeClass("active");
                                             $('#tab2').removeClass("active");
@@ -1053,6 +1142,7 @@ include "../widgets/widgetTimeTrend_1.php";
                                             $('#imageTab').removeClass("active");
                                             $('#ownerTab').removeClass("active");
                                             $('#processTab').removeClass("active");
+                                            $('#HealthinessTab').removeClass("active");
                                             $('#browseTab').removeClass("active");
                                             $('#uploadTab').addClass("active");
                                             $('#disces_link').empty();
@@ -1072,6 +1162,16 @@ include "../widgets/widgetTimeTrend_1.php";
                                             $('#iotBroker').empty();
                                             $('#owner').empty();
                                             $('#id_row').val('');
+                                            $('#arcgis_link').empty();
+                                            $('#heatmap_link').empty();
+                                            $('#healthiness_c').val('');
+                                            $('#period').val('');
+                                            $('#v_type').val('');
+                                            //$('#attr_type').val('');
+                                            $('#delay').val('');
+                                            $('#last_check_health').val('');
+                                            $('#status_1').css('color','black');
+                                            $('#Status_h').val('');
                                             alert('Image uploaded');
                                     }, 1000);
                             }else{
@@ -1091,6 +1191,7 @@ include "../widgets/widgetTimeTrend_1.php";
                     $('#owner').val('');
                     $('#address').val('');
                     $('#processPath').val('');
+                    $('#tab6').removeClass("active");
                     $('#tab5').removeClass("active");
                     $('#tab4').removeClass("active");
                     $('#tab2').removeClass("active");
@@ -1098,6 +1199,7 @@ include "../widgets/widgetTimeTrend_1.php";
                     $('#tab1').addClass("active");
                     $('#imageTab').removeClass("active");
                     $('#ownerTab').removeClass("active");
+                    $('#HealthinessTab').removeClass("active");
                     $('#processTab').removeClass("active");
                     $('#browseTab').removeClass("active");
                     $('#uploadTab').addClass("active");
@@ -1118,7 +1220,17 @@ include "../widgets/widgetTimeTrend_1.php";
                     $('#iotBroker').empty();
                     $('#owner').empty();
                     $('#id_row').val('');
+                    $('#arcgis_link').empty();
+                    $('#heatmap_link').empty();
                     //$('#healthinessCriteria').val('');
+                    $('#healthiness_c').val('');
+                    $('#period').val('');
+                    $('#v_type').val('');
+                    //$('#attr_type').val('');
+                    $('#delay').val('');
+                    $('#last_check_health').val('');
+                    $('#status_1').css('color','black');
+                    $('#Status_h').val('');
                 });
 
                 $(window).resize(function() {
@@ -1191,14 +1303,13 @@ include "../widgets/widgetTimeTrend_1.php";
                                 }
                             $.ajax({
                                 async: false,
-                                type: 'POST',
+                                type: 'GET',
                                 //url: url_parameters,
                                 dataType: 'json',
                                 url: 'getServiceData.php',
                                 data: {
                                         type: 'From Dashboard to IOT Device',
-                                        service:name_wid,
-                                        role_session_active: '<?= $_SESSION['loggedRole']; ?>'
+                                        service:name_wid
                                 },
                                 success: function(data) {
                                     //var json_data = JSON.stringify(data.name);

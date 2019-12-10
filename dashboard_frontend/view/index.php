@@ -283,6 +283,12 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <script src="../js/dynamic_routing/corslite.min.js"></script>
 <!-- End Cristiano -->
 
+	<!-- MS> WidgetSelectorTech is based on Fancytree -->	
+	<link href="../js/skin-win8/ui.fancytree.css" rel="stylesheet">
+	<script src="../js/fancytree/jquery.fancytree.ui-deps.js"></script>
+	<script src="../js/fancytree/jquery.fancytree.js"></script>
+	<!-- <MS -->
+
     <script type='text/javascript'>
         var array_metrics = new Array();
         var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardId, dashboardName, dashboardOrg, dashboardOrgKbUrl, logoFilename, logoLink,

@@ -1050,7 +1050,7 @@
                     {
                         case 'yes':
                             $.ajax({
-                                url: rowParameters,
+                                url: "<?= $superServiceMapProxy?>"+rowParameters,
                                 type: "GET",
                                 data: {},
                                 async: true,

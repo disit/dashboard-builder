@@ -14,7 +14,7 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
 <div id='<?= $name_w ?>_header' class="widgetHeader">
         <!-- Info button -->		
 	<div id="<?= $name_w ?>_infoButtonDiv" class="infoButtonContainer">
-	   <a id ="<?= $name_w ?>_infoBtn" href="#" class="info_source"><i id="source_<?= $name_w ?>" class="source_button fa fa-info-circle"></i></a>
+	   <a id ="<?= $name_w ?>_infoBtn" href="#" class="info_source"><i id="source_<?= $name_w ?>" class="source_button fa fa-info-circle" style="display:none"></i></a>
 	   <i class="material-icons gisDriverPin" data-onMap="false">navigation</i>
 	</div>
 	
@@ -92,7 +92,9 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
 <script type='text/javascript'>
     $(document).ready(function()
     {
-    //    console.log("Widget Header of : " + "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>");
+     //   console.log("Widget Header of : " + "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>");
+        $('#<?= $name_w ?>_infoBtn').hide();
+        $('#source_<?= $name_w ?>').hide();
 
         if ("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['type_w'])) ?>" == "widgetTimeTrend") {
          //   var widgetHeader = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header');
@@ -146,6 +148,7 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
         
         if("<?= escapeForJS($_REQUEST['hostFile']) ?>" === "config")
         {
+            $('#source_<?= $name_w ?>').show();
             $('#<?= $name_w ?>_infoBtn').show();
             $('#<?= $name_w ?>_infoBtn').click(function(){
                 $('#widgetInfoModal .modalHeader').html("<?= $title_w ?>");
@@ -622,9 +625,12 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
                     if((data.info_mess === null)||(data.info_mess.trim() === '')||(data.info_mess.trim() === undefined))
                     {
                         $('#<?= $name_w ?>_infoBtn').hide();
+                    //    console.log("Info Button NOT shown for widget <?= $name_w ?>: ");
                     }
                     else
                     {
+                    //    console.log("Info Button shown for widget <?= $name_w ?>: " + data.info_mess);
+                        $('#source_<?= $name_w ?>').show();
                         $('#<?= $name_w ?>_infoBtn').show();
                         $('#<?= $name_w ?>_infoBtn').click(function(){
                             $('#widgetInfoModal .modalHeader .col-xs-10').html("<?= $title_w ?>");

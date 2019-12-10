@@ -39,6 +39,20 @@
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
             <div class="col-xs-10 fullCtxMenuTxt">Hide header</div>
 	</div>
+	<!-- MS> Entries for content visibility at page load, hide/show dimension controls, and allow/deny users (viewers) to collapse widget content -->
+	<div class="row fullCtxMenuRow contentVisibility" data-selected="false" data-index="0.5">
+            <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
+            <div class="col-xs-10 fullCtxMenuTxt">Hide content</div>
+	</div>
+	<div class="row fullCtxMenuRow dimControlsVisibility" data-selected="false" data-index="0.6">
+            <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
+            <div class="col-xs-10 fullCtxMenuTxt">Hide dim ctrl</div>
+	</div>
+	<div class="row fullCtxMenuRow userCollapsible" data-selected="false" data-index="0.7">
+            <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
+            <div class="col-xs-10 fullCtxMenuTxt">Allow collapse</div>
+	</div>
+	<!-- <MS -->
 	<div class="row fullCtxMenuRow headerColorRow hasSubmenu" data-selected="false" data-index="1" data-boundTo="<?= $_REQUEST['name_w'] ?>_headerColorSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
             <div class="col-xs-10 fullCtxMenuTxt">Header color</div>
@@ -615,6 +629,10 @@
                     var hasCartesianPlane = widgetData.params.hasCartesianPlane;
                     var chartAxesColor = widgetData.params.chartAxesColor;
                     var hasChangeMetric = widgetData.params.hasChangeMetric;
+					// MS>
+					var isCollapsible = widgetData.params.isCollapsible;
+					var collapseAllowed = widgetData.params.collapseAllowed;
+					// <MS
                     var timeRangeDisplayed, timeRangeTick, timeRangeSlider = null;
 
                     if(hasAddMode === 'no')
@@ -1708,36 +1726,57 @@
                         }
                     });
                     
-                    //Mostra/nascondi header
-                    $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility').click(function(){
-                        var contentHeight, showTitle, showHeader = null;
-                        if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
-                        {
-                            $('#<?= $_REQUEST['name_w'] ?>_header').hide();
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').removeClass('fa-eye-slash');
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').addClass('fa-eye');
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuTxt').html('Show header');
-                            contentHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
-                            showTitle = 'no';
-                            showHeader = false;
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').css('background-color', 'rgba(51, 64, 69, 0.7)');
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtn').css('color', 'white');
-                        }
-                        else
-                        {
-                            $('#<?= $_REQUEST['name_w'] ?>_header').show();
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').removeClass('fa-eye');
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuTxt').html('Hide header');
-                            contentHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - $("#<?= $_REQUEST['name_w'] ?>_header").prop("offsetHeight"));
-                            showTitle = 'yes';
-                            showHeader = true;
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').css('background-color', $('#<?= $_REQUEST['name_w'] ?>_header').css('background-color'));
-                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtn').css('color', $('#<?= $_REQUEST['name_w'] ?>_header').css('color'));
-                        }
-
-                        $("#<?= $_REQUEST['name_w'] ?>_content").css("height", contentHeight + 'px');
+                    //Mostra/nascondi header					
+					var fullHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight")); // MS> See below
+                    $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility').off('click'); 
+                    $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility').click(function(){ 
+                        var contentHeight, showTitle, showHeader = null; 
+                        
+						// MS> Slightly edited to manage with super-container redim at content collapse
+						
+						if($('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'))
+                        { 
+                            if(!$('#<?= $_REQUEST['name_w'] ?>_content').is(':visible')) $("#<?= $_REQUEST['name_w'] ?>").css(
+									"height", 
+									(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) - parseInt($("#<?= $_REQUEST['name_w'] ?>_header").prop("offsetHeight")) ) + "px" 
+							);	
+							$('#<?= $_REQUEST['name_w'] ?>_header').hide();
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').removeClass('fa-eye-slash'); 
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').addClass('fa-eye'); 
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuTxt').html('Show header'); 
+                            contentHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight")); 
+							if(contentHeight > fullHeight) fullHeight = contentHeight;
+                            showTitle = 'no'; 
+                            showHeader = false; 
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').css('background-color', 'rgba(51, 64, 69, 0.7)'); 
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtn').css('color', 'white'); 
+                        } 
+                        else 
+                        { 
+                            $('#<?= $_REQUEST['name_w'] ?>_header').show(); 
+							if(!$('#<?= $_REQUEST['name_w'] ?>_content').is(':visible')) $("#<?= $_REQUEST['name_w'] ?>").css(
+									"height", 
+									(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) + parseInt($("#<?= $_REQUEST['name_w'] ?>_header").prop("offsetHeight")) ) + "px" 
+							);
+							if($('#<?= $_REQUEST['name_w'] ?>_content').is(':visible') && $('#<?= $_REQUEST['name_w'] ?>_header').is(':visible') && fullHeight > 0 && parseInt($("#<?= $_REQUEST['name_w'] ?>").css("height")) < fullHeight ) {
+								$("#<?= $_REQUEST['name_w'] ?>").css(
+									"height", 
+									fullHeight + "px" 
+								);		
+							}	
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').removeClass('fa-eye'); 
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash'); 
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuTxt').html('Hide header'); 
+                            contentHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight") - $("#<?= $_REQUEST['name_w'] ?>_header").prop("offsetHeight")); 
+                            showTitle = 'yes'; 
+                            showHeader = true; 
+							$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').css('background-color', $('#<?= $_REQUEST['name_w'] ?>_header').css('background-color'));
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtn').css('color', $('#<?= $_REQUEST['name_w'] ?>_titleDiv').css('color'));
+                        } 
+ 
+                        if(contentHeight > 0) $("#<?= $_REQUEST['name_w'] ?>_content").css("height", contentHeight + 'px');
+ 
+						// <MS
 
                         //Innesco di evento cambio altezza diagramma per gli widgets Highcharts
                         $.event.trigger({
@@ -1801,7 +1840,242 @@
                                     }
                             });
                     });
-                    
+					
+					// MS> Dismiss/Resume dimension controls
+
+					//Mostra/nascondi dimension controls
+                    $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility').off('click');
+					$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
+                    $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility').click(function(){
+                        var contentHeight, showTitle, showHeader = null;
+                        if($('#<?= $_REQUEST['name_w'] ?>_dimControls').is(':visible'))
+                        {
+                            $('#<?= $_REQUEST['name_w'] ?>_dimControls').hide();
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility .fullCtxMenuIcon i').removeClass('fa-eye-slash');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility .fullCtxMenuIcon i').addClass('fa-eye');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility .fullCtxMenuTxt').html('Show dim ctrl');                            
+                        }
+                        else
+                        {
+                            $('#<?= $_REQUEST['name_w'] ?>_dimControls').show();
+							$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility .fullCtxMenuIcon i').removeClass('fa-eye');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .dimControlsVisibility .fullCtxMenuTxt').html('Hide dim ctrl');                            
+                        }
+                    });
+
+					// <MS Dismiss/Resume dimension controls
+                    		
+
+					// MS> What if the widget content is collapsible or not	
+										
+					if(isCollapsible === "yes") { 
+					
+						// MS> Collapse/display widget content at page load	
+	
+						// Mostra/nascondi contenuto in edit
+						
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility').off('click');
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility').click(function(){			
+							
+							var showContent = null;						
+							if($('#<?= $_REQUEST['name_w'] ?>_content').is(':visible'))
+							{
+								$("#<?= $_REQUEST['name_w'] ?>").css(
+									"height", 
+									(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) - parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px" 
+								);								
+								$('#<?= $_REQUEST['name_w'] ?>_content').hide();
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').removeClass('fa-eye-slash');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Show content');
+								showContent = 'no';
+							}
+							else
+							{
+								$('#<?= $_REQUEST['name_w'] ?>_content').show();
+								$("#<?= $_REQUEST['name_w'] ?>").css(
+									"height", 
+									(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) + ( parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) - parseInt($("#<?= $_REQUEST['name_w'] ?>_header").prop("offsetHeight")))  ) + "px" 
+								);		
+								console.log("content visible: "+$('#<?= $_REQUEST['name_w'] ?>_content').is(':visible'));
+								console.log("header visible: "+$('#<?= $_REQUEST['name_w'] ?>_header').is(':visible'));
+								console.log("fullHeight: "+fullHeight);
+								console.log("super container height: "+$("#<?= $_REQUEST['name_w'] ?>").css("height"));
+								
+								
+								if($('#<?= $_REQUEST['name_w'] ?>_content').is(':visible') && $('#<?= $_REQUEST['name_w'] ?>_header').is(':visible') && fullHeight > 0 && parseInt($("#<?= $_REQUEST['name_w'] ?>").css("height")) < fullHeight ) {
+									$("#<?= $_REQUEST['name_w'] ?>").css(
+										"height", 
+										fullHeight + "px" 
+									);		
+								}									
+								$("#<?= $_REQUEST['name_w'] ?>_content").css(
+									"height", 
+									(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) - parseInt($("#<?= $_REQUEST['name_w'] ?>_header").prop("offsetHeight"))  ) + "px" 
+								);
+								console.log("Container height set to "+(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) + parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px");
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').removeClass('fa-eye');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Hide content');
+								showContent = 'yes';
+							}
+							
+							// Aggiorna parametro su DB
+							$.ajax({
+								url: "../controllers/updateWidget.php",
+								data: {
+										action: "updateContentVisibility",
+										widgetName: "<?= $_REQUEST['name_w'] ?>", 
+										showContent: showContent
+								},
+								type: "POST",
+								async: true,
+								dataType: 'json',
+								success: function(data) 
+								{
+										if(data.detail !== 'Ok')
+										{
+												if($('#<?= $_REQUEST['name_w'] ?>_content').is(':visible'))
+												{
+														$("#<?= $_REQUEST['name_w'] ?>").css(
+															"height", 
+															(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) - parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px" 
+														);	
+														$('#<?= $_REQUEST['name_w'] ?>_content').hide();
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').removeClass('fa-eye-slash');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Show content');
+												}
+												else
+												{
+														$('#<?= $_REQUEST['name_w'] ?>_content').show();
+														$("#<?= $_REQUEST['name_w'] ?>").css(
+															"height", 
+															(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) + parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px" 
+														);
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').removeClass('fa-eye');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Hide content');
+												}
+
+										}
+								},
+									error: function(errorData)
+									{
+										if($('#<?= $_REQUEST['name_w'] ?>_content').is(':visible'))
+										{
+											$("#<?= $_REQUEST['name_w'] ?>").css(
+												"height", 
+												(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) - parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px" 
+											);	
+											$('#<?= $_REQUEST['name_w'] ?>_content').hide();
+											$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').removeClass('fa-eye-slash');
+											$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye');
+											$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Show content');
+										}
+										else
+										{
+											$('#<?= $_REQUEST['name_w'] ?>_content').show();
+											$("#<?= $_REQUEST['name_w'] ?>").css(
+												"height", 
+												(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) + parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px" 
+											);															
+											$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').removeClass('fa-eye');
+											$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
+											$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Hide content');
+										}
+									}
+							});
+
+						});
+						// <MS Collapse/display widget content at page load	
+						
+						// MS> Allow/Deny user (viewer) to collapse widget content
+
+						// Rendi/non rendere collassabile dall'utente
+						
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible').off('click');
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible').click(function(){			
+							
+							var collapsible = null;						
+							if(collapseAllowed === "yes")
+							{
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').removeClass('fa-times');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-check');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Allow collapse');
+								collapseAllowed = 'no';
+							}
+							else
+							{
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').removeClass('fa-check');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-times');
+								$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Deny collapse');
+								collapseAllowed = 'yes';
+							}
+							
+							// Aggiorna parametro su DB
+							$.ajax({
+								url: "../controllers/updateWidget.php",
+								data: {
+										action: "updateCollapsibility",
+										widgetName: "<?= $_REQUEST['name_w'] ?>", 
+										collapsibility: collapseAllowed
+								},
+								type: "POST",
+								async: true,
+								dataType: 'json',
+								success: function(data) 
+								{
+										if(data.detail !== 'Ok')
+										{
+												if(collapseAllowed === "yes")
+												{
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').removeClass('fa-times');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-check');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Allow collapse');
+														collapseAllowed = "no";
+												}
+												else
+												{
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').removeClass('fa-check');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-times');
+														$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Deny collapse');
+														collapseAllowed = 'yes';
+												}
+
+										}
+								},
+									error: function(errorData)
+									{
+											if(collapseAllowed === "yes")
+											{
+													$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').removeClass('fa-times');
+													$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-check');
+													$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Allow collapse');
+													collapseAllowed = "no";
+											}
+											else
+											{
+													$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').removeClass('fa-check');
+													$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-times');
+													$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Deny collapse');
+													collapseAllowed = 'yes';
+											}
+									}
+							});
+
+						});
+						// <MS Allow/Deny user (viewer) to collapse widget content
+						
+					}
+					else { 
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility').hide();
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible').hide();
+					}
+
+					// <MS What if the widget content is collapsible or not
+					
                     //Apertura di submenu (qualsiasi)
                     $("#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .hasSubmenu").click(function()
                     {
@@ -1947,6 +2221,30 @@
                             $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuIcon i').addClass('fa-eye');
                             $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .headerVisibility .fullCtxMenuTxt').html('Show header');
                     }
+					
+					// MS> Display correct icon at page load for new entries in context menu
+					if($('#<?= $_REQUEST['name_w'] ?>_content').is(':visible'))
+                    {
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Hide content');
+                    }
+                    else
+                    {
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuIcon i').addClass('fa-eye');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .contentVisibility .fullCtxMenuTxt').html('Show content');
+                    }
+					
+					if(collapseAllowed === "yes")
+                    {
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-times');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Deny collapse');
+                    }
+                    else
+                    {
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuIcon i').addClass('fa-check');
+                            $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .userCollapsible .fullCtxMenuTxt').html('Allow collapse');
+                    }
+					// <MS
 
                     //Effetto hover su righe menu
                     $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu .fullCtxMenuRow').hover(function(){
@@ -2296,7 +2594,55 @@
             }
             else
             {
-                $('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu').remove();
+				$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenu').remove();
+				
+				// MS> If widget content is collapsible by users, display appropriate controls
+				$.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData) 
+                {
+					if(widgetData.params.collapseAllowed === "yes") { 
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').show();
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').css("background","transparent");
+						if($('#<?= $_REQUEST['name_w'] ?>_content').is(':visible')) {
+							$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').children().removeClass("fa-caret-square-o-down");
+							$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').children().addClass("fa-caret-square-o-up");
+						}
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtn').css('color', $('#<?= $_REQUEST['name_w'] ?>_titleDiv').css('color'));
+						$('#<?= $_REQUEST['name_w'] ?>_widgetCtxMenuBtnCnt').children().click(function (e) {
+							if($(this).hasClass("fa-caret-square-o-down")) {
+								$(this).removeClass("fa-caret-square-o-down");
+								$(this).addClass("fa-caret-square-o-up");
+								$('#<?= $_REQUEST['name_w'] ?>_content').show();
+								$("#<?= $_REQUEST['name_w'] ?>").css(
+									"height", 
+									(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) + parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px" 
+								);	
+							}
+							else {
+								$(this).removeClass("fa-caret-square-o-up");
+								$(this).addClass("fa-caret-square-o-down");
+								$("#<?= $_REQUEST['name_w'] ?>").css(
+									"height", 
+									(  parseInt($("#<?= $_REQUEST['name_w'] ?>").prop("offsetHeight")) - parseInt($("#<?= $_REQUEST['name_w'] ?>_content").prop("offsetHeight")) ) + "px" 
+								);	
+								$('#<?= $_REQUEST['name_w'] ?>_content').hide();
+							}
+						});					
+					}
+				},
+                error: function(errorData)
+                {
+            
+                }});
+				// <MS
+
             }
 	});
 </script>

@@ -814,19 +814,47 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
                 
-                if(($type_widget == "widgetSelector") || ($type_widget == "widgetSelectorNew"))
+                if($type_widget == "widgetSelectorNew")
                 {
+                    if (sanitizePostString('iconTextMode') === null) {
+                        $iconText = sanitizeGetString('iconTextMode');
+                    } else {
+                        $iconText = sanitizePostString('iconTextMode');
+                    }
+
+                    if (sanitizePostString('mapPinIcon') === null) {
+                        $mapPinIcon = sanitizeGetString('mapPinIcon');
+                    } else {
+                        $mapPinIcon = sanitizePostString('mapPinIcon');
+                    }
+
                //   $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor']);
+                    if (sanitizePostString('addGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
+                        $styleParametersArray = array('activeFontColor' => sanitizeGetString('addGisActiveQueriesFontColor'), 'iconText' => $iconText, 'mapPinIcon' => $mapPinIcon);
+                    } else {
+                        $styleParametersArray = array('activeFontColor' => sanitizePostString('addGisActiveQueriesFontColor'), 'iconText' => $iconText, 'mapPinIcon' => $mapPinIcon);
+                    }
+                    $styleParameters = json_encode($styleParametersArray);
+                }
+
+                if(($type_widget == "widgetSelector") || ($type_widget == "widgetSelectorTech"))
+                {
+                    //   $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor']);
                     if (sanitizePostString('addGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
                         $styleParametersArray = array('activeFontColor' => sanitizeGetString('addGisActiveQueriesFontColor'));
                     } else {
                         $styleParametersArray = mysqli_real_escape_string($link, sanitizePostString('addGisActiveQueriesFontColor'));
                     }
-                  $styleParameters = json_encode($styleParametersArray);
+                    $styleParameters = json_encode($styleParametersArray);
                 }
                 
                 if($type_widget == "widgetSelectorWeb")
                 {
+                    if (sanitizePostString('iconTextMode') === null) {
+                        $iconText = sanitizeGetString('iconTextMode');
+                    } else {
+                        $iconText = sanitizePostString('iconTextMode');
+                    }
               //    $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['addGisRectDim']);
               //      $styleParametersArray = array('activeFontColor' => sanitizePostString('addGisActiveQueriesFontColor'), 'rectDim' => sanitizePostString('addGisRectDim'));
                     if (sanitizePostString('addGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
@@ -839,7 +867,7 @@
                     } else {
                         $rectDim = sanitizePostString('addGisRectDim');
                     }
-                  $styleParametersArray = array('activeFontColor' => $activeFontColor, 'rectDim' => $rectDim);
+                  $styleParametersArray = array('activeFontColor' => $activeFontColor, 'rectDim' => $rectDim, 'iconText' => $iconText);
                   $styleParameters = json_encode($styleParametersArray);
                 }
                 
@@ -2515,8 +2543,31 @@
             $styleParametersArrayM = array('orientation' => sanitizePostString('orientationM'), 'language' => sanitizePostString('languageM'), 'todayDim' => sanitizePostString('todayDimM'), 'backgroundMode' => sanitizePostString('backgroundModeM'), 'iconSet' => sanitizePostString('iconSetM'));
             $styleParametersM = json_encode($styleParametersArrayM);
         }
-        
-        if(($type_widget_m == "widgetSelector") || ($type_widget_m == "widgetSelectorNew"))
+
+        if(($type_widget_m == "widgetSelectorNew"))
+        {
+            if (sanitizePostString('iconTextMode') === null) {
+                $iconText = sanitizeGetString('iconTextMode');
+            } else {
+                $iconText = sanitizePostString('iconTextMode');
+            }
+            //   $styleParametersArray = array('activeFontColor' => $_REQUEST['addGisActiveQueriesFontColor']);
+
+            if (sanitizePostString('mapPinIcon') === null) {
+                $mapPinIcon = sanitizeGetString('mapPinIcon');
+            } else {
+                $mapPinIcon = sanitizePostString('mapPinIcon');
+            }
+
+            if (sanitizePostString('editGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
+                $styleParametersArrayM = array('activeFontColor' => sanitizeGetString('editGisActiveQueriesFontColor'), 'iconText' => $iconText, 'mapPinIcon' => $mapPinIcon);
+            } else {
+                $styleParametersArrayM = array('activeFontColor' => sanitizePostString('editGisActiveQueriesFontColor'), 'iconText' => $iconText, 'mapPinIcon' => $mapPinIcon);
+            }
+            $styleParametersM = json_encode($styleParametersArrayM);
+        }
+
+        if(($type_widget_m == "widgetSelector") || ($type_widget_m == "widgetSelectorTech"))
         {
         //  $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor']);
             if (sanitizePostString('editGisActiveQueriesFontColor') === null) {       // New pentest COMMON CTR
@@ -2529,6 +2580,11 @@
         
         if($type_widget_m == "widgetSelectorWeb")
         {
+            if (sanitizePostString('iconTextMode') === null) {
+                $iconText = sanitizeGetString('iconTextMode');
+            } else {
+                $iconText = sanitizePostString('iconTextMode');
+            }
         //  $styleParametersArrayM = array('activeFontColor' => $_REQUEST['editGisActiveQueriesFontColor'], 'rectDim' => $_REQUEST['editGisRectDim']);
             //      $styleParametersArrayM = array('activeFontColor' => sanitizePostString('editGisActiveQueriesFontColor'), 'rectDim' => sanitizePostString('editGisRectDim'));
             if (sanitizePostString('editGisActiveQueriesFontColor') == null) {       // New pentest COMMON CTR
@@ -2541,7 +2597,7 @@
             } else {
                 $rectDimM = sanitizePostString('editGisRectDim');
             }
-            $styleParametersArrayM = array('activeFontColor' => $activeFontColorM, 'rectDim' => $rectDimM);
+            $styleParametersArrayM = array('activeFontColor' => $activeFontColorM, 'rectDim' => $rectDimM, 'iconText' => $iconText);
           $styleParametersM = json_encode($styleParametersArrayM);
         }
         
@@ -3227,7 +3283,7 @@
                }
                else
                {
-                   if(($type_widget_m == 'widgetSelector')||($type_widget_m == 'widgetSelectorWeb')||($type_widget_m == "widgetSelectorNew"))
+                   if(($type_widget_m == 'widgetSelector')||($type_widget_m == 'widgetSelectorWeb')||($type_widget_m == "widgetSelectorNew")||($type_widget_m == "widgetSelectorTech"))
                    {
                         if(!is_dir("../img/widgetSelectorImages"))
                         {
@@ -3298,6 +3354,9 @@
                                     {
                                         array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
                                         unset($parametersSelectorArray->queries[$i]->symbolFile);
+                                     /*   if ($parametersSelectorArray->queries[$i]->iconPoolImg == '') {
+                                            unset($parametersSelectorArray->queries[$i]->iconPoolImg);
+                                        }*/
                                     }
                                 }
                                 
@@ -3558,7 +3617,7 @@
         if(isset($_REQUEST['enableFullscreenTabM']))
         {
         //   $enableFullscreenTabM = escapeForSQL($_REQUEST['enableFullscreenTabM'], $link);
-            if (sanitizePostString('$enableFullscreenTabM') == null) {       // New pentest
+            if (sanitizePostString('enableFullscreenTabM') == null) {       // New pentest
                 $enableFullscreenTabM = mysqli_real_escape_string($link, sanitizeGetString('enableFullscreenTabM'));
             } else {
                 $enableFullscreenTabM = mysqli_real_escape_string($link, sanitizePostString('enableFullscreenTabM'));
