@@ -5,11 +5,22 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
     //Sovrascrive l'originaria
     function completeWidget()
     {
+        include '../config.php';
+        $link = mysqli_connect($host, $username, $password);
+        mysqli_select_db($link, $dbname);
+
         $myQuery = null;
         $myDesc = null;
         $myQueryType = null;
         $defaultColors1 = ["#ffdb4d", "#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900"];
         $defaultColors2 = ["#fff5cc", "#ffe0b3", "#ffcccc", "#99ffff", "#99e6ff", "#adebad", "#80ff80"];
+        $myIconText = null;
+        $high_level_type = null;
+        $nature = null;
+        $sub_nature = null;
+       // $mapPinIcon = null;
+        $newMapPinColor = "#959595";
+     //   $defaultPinColor = "#959595";
         
         if($this->widgetTypeDbRow['mono_multi'] == 'Mono')
         {
@@ -72,17 +83,44 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         $myQueryType = "Default";
                         break;
                 }
-                
-                $newQueryObj = ["color1" => $defaultColors1[$count%7], 
-                                "color2" => $defaultColors2[$count%7], 
-                                "defaultOption" => false, 
-                                "desc" => $myDesc, 
-                                "display" => "pins", 
-                                //La selection è di default, tanto poi il widget la sovrascrive con quella dell'area visibile.
-                                "query" => $myQuery, 
-                                "queryType" => $myQueryType,
-                                "symbolMode" => "auto", 
-                                "targets" => "[]",];
+
+                $high_level_type = $selectedRow['high_level_type'];
+                $nature = $selectedRow['nature'];
+                $sub_nature = $selectedRow['sub_nature'];
+
+                if ($sub_nature != null) {
+                    $query = "SELECT * FROM Dashboard.DefaultNatureColors WHERE nature = '" . escapeForSQL($nature) . "' AND sub_nature = '" . escapeForSQL($sub_nature) . "';";
+                } else {
+                    $query = "SELECT * FROM Dashboard.DefaultNatureColors WHERE nature = '" . escapeForSQL($nature) . "';";
+                }
+                $result = mysqli_query($link, $query);
+
+                if ($result) {
+                    if (mysqli_num_rows($result) > 0) {
+                        while($row = mysqli_fetch_array($result)) {
+                            if ($row['defaultColor'] != null && $row['defaultColor'] !== "") {
+                                $newMapPinColor = $row['defaultColor'];
+                            }
+                        }
+                    }
+                }
+
+                $newQueryObj = ["color1" => $defaultColors1[$count%7],
+                    "color2" => $defaultColors2[$count%7],
+                    "defaultOption" => false,
+                    "desc" => $myDesc,
+                    "display" => "pins",
+                    "high_level_type" => $high_level_type,
+                    "nature" => $nature,
+                    "sub_nature" => $sub_nature,
+                    "iconText" => $myIconText,
+                    "newMapPinColor" => $newMapPinColor,
+                 //   "mapPinIcon" => $mapPinIcon,
+                    //La selection è di default, tanto poi il widget la sovrascrive con quella dell'area visibile.
+                    "query" => $myQuery,
+                    "queryType" => $myQueryType,
+                    "symbolMode" => "auto",
+                    "targets" => "[]",];
 
                 array_push($selectorParameters->queries, $newQueryObj);
                 $count++;

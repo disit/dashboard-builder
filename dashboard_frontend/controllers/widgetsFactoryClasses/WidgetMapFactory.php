@@ -82,7 +82,7 @@ class WidgetMapFactory extends aGenericWidgetFactory
             }
             else
             {
-                if($this->startParams->link_w == 'gisTarget' || $this->startParams->link_w == null)
+                if($this->startParams->link_w == 'gisTarget' || $this->startParams->link_w == 'none' || $this->startParams->link_w == null)
                 {
                     $this->startParams->parameters = "{\"latLng\":[" . $this->mapCenterLat . "," . $this->mapCenterLng . "],\"zoom\":" . $this->mapZoom . "}"; 
                 }
