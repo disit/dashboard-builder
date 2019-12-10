@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 184.3 184.3" style="enable-background:new 0 0 184.3 184.3;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;}
+	.st1{fill:none;stroke:#FFFFFF;stroke-width:5.5155;stroke-linecap:round;stroke-miterlimit:10;}
+	.st2{fill:#E2E2E4;stroke:#FFFFFF;stroke-width:5.5155;stroke-linecap:round;stroke-miterlimit:10;}
+	.st3{fill:#E2E2E4;stroke:#FFFFFF;stroke-width:7.1701;stroke-linecap:round;stroke-miterlimit:10;}
+</style>
+<g id="Layer_x0020_1">
+	<g id="_2664752546768">
+		<path class="st0" d="M30.5,158.8v-38.2h28.4v6.4H38.2v8.5h19.2v6.4H38.2v10.4h21.3v6.4H30.5z M100.5,158.8h-8.3l-3.3-8.6H73.6
+			l-3.2,8.6h-8.2l14.9-38.2h8.2L100.5,158.8z M86.4,143.7l-5.3-14.1l-5.2,14.1H86.4z M135.4,154c1.9,1.4,3.9,2.5,6.2,3.3l-2.8,5.5
+			c-1.1-0.3-2.3-0.8-3.4-1.5c-0.2-0.1-1.9-1.2-5.1-3.4c-2.5,1-5.3,1.6-8.3,1.6c-5.9,0-10.5-1.7-13.8-5.2s-5-8.3-5-14.6
+			c0-6.2,1.7-11.1,5-14.6s7.9-5.2,13.6-5.2c5.6,0,10.1,1.7,13.4,5.2s5,8.3,5,14.6c0,3.3-0.5,6.2-1.5,8.7
+			C138,150.4,136.9,152.3,135.4,154z M129.3,149.7c1-1.2,1.7-2.6,2.2-4.3s0.7-3.5,0.7-5.7c0-4.4-1-7.7-2.9-9.9
+			c-1.9-2.2-4.5-3.3-7.6-3.3c-3.2,0-5.7,1.1-7.7,3.3c-1.9,2.2-2.9,5.5-2.9,9.9c0,4.5,1,7.8,2.9,10.1c2,2.2,4.4,3.3,7.5,3.3
+			c1.1,0,2.1-0.2,3.1-0.6c-1.5-1-3.1-1.8-4.8-2.4l2.2-4.5C124.5,146.6,126.9,147.9,129.3,149.7z M146,158.8v-38.2h7.7v38.2H146z"/>
+	</g>
+</g>
+<g>
+	<g>
+		<polyline class="st1" points="30.5,26.2 30.5,111.6 153.7,110.5 		"/>
+		<g>
+			<ellipse class="st2" cx="81.1" cy="51.7" rx="4.4" ry="4.4"/>
+			<ellipse class="st3" cx="114.1" cy="51.7" rx="10.1" ry="10.2"/>
+			<ellipse class="st2" cx="81.1" cy="91.5" rx="4.4" ry="4.4"/>
+			<ellipse class="st2" cx="48.1" cy="51.7" rx="7.8" ry="7.8"/>
+			<ellipse class="st2" cx="114.1" cy="91.5" rx="7.8" ry="7.8"/>
+		</g>
+	</g>
+</g>
+<ellipse class="st2" cx="48.1" cy="91.5" rx="4.4" ry="4.4"/>
+</svg>

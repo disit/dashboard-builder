@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 184.3 184.3" style="enable-background:new 0 0 184.3 184.3;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#FFFFFF;stroke-width:5.5155;stroke-linecap:round;stroke-miterlimit:10;}
+	.st1{fill:#E2E2E4;stroke:#FFFFFF;stroke-width:5.5155;stroke-linecap:round;stroke-miterlimit:10;}
+	.st2{fill:#E2E2E4;stroke:#FFFFFF;stroke-width:7.1701;stroke-linecap:round;stroke-miterlimit:10;}
+	.st3{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
+</style>
+<g>
+	<g>
+		<polyline class="st0" points="30.5,26.2 30.5,111.6 89,110.5 		"/>
+		<g>
+			<ellipse class="st1" cx="81.1" cy="51.7" rx="4.4" ry="4.4"/>
+			<ellipse class="st2" cx="114.1" cy="51.7" rx="10.1" ry="10.2"/>
+			<ellipse class="st1" cx="81.1" cy="91.5" rx="4.4" ry="4.4"/>
+			<ellipse class="st1" cx="48.1" cy="51.7" rx="7.8" ry="7.8"/>
+		</g>
+	</g>
+</g>
+<ellipse class="st1" cx="48.1" cy="91.5" rx="4.4" ry="4.4"/>
+<path class="st3" d="M145.3,107.1c-5.9,0-10.6,4.7-10.6,10.6h5.3c0-2.9,2.4-5.3,5.3-5.3s5.3,2.4,5.3,5.3c0,2.9-2.4,5.3-5.3,5.3
+	h-37.1v5.3h37.1c5.8,0,10.6-4.8,10.6-10.6C155.9,111.8,151.1,107.1,145.3,107.1z"/>
+<path class="st3" d="M134.5,133.6h-31.6v5.3h31.6c2.9,0,5.3,2.4,5.3,5.3v0.1c0,2.8-2.3,5.2-5.1,5.2v5.3c5.7,0,10.4-4.6,10.4-10.4
+	v-0.2C145.1,138.3,140.4,133.6,134.5,133.6z"/>
+<rect x="92.4" y="123" class="st3" width="10.6" height="5.3"/>
+<path class="st3" d="M118.8,96.6c-5.8,0-10.4,4.7-10.4,10.4v0.7h5.3V107c0-2.8,2.3-5.1,5.1-5.1c2.8,0,5.1,2.3,5.1,5.1v0.1
+	c0,2.9-2.4,5.3-5.3,5.3h-21v5.3h21c5.9,0,10.6-4.8,10.6-10.6V107C129.2,101.2,124.5,96.6,118.8,96.6z"/>
+</svg>
