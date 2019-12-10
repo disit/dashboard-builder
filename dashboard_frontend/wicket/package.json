@@ -81,6 +81,6 @@
     "karma-phantomjs-launcher": "^1.0.1",
     "leaflet-providers": "git://github.com/leaflet-extras/leaflet-providers#master",
     "mocha": "*",
-    "uglify-js": "2.4.x"
+    "uglify-js": "3.7.x"
   }
 }
