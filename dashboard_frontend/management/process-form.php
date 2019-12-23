@@ -2993,6 +2993,19 @@
                 $dataLabelsRotationM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsRotationM'));      // New pentest
             }
 
+            if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
+            {
+                $deviceLabels = [];
+                $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_0'));     // New pentest
+                array_push($deviceLabels, $label);
+                $k = 1;
+                while (isset($_POST['deviceLabelsM_'.$k])&&($_POST['deviceLabelsM_'.$k]!="")) {
+                    $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_'.$k));     // New pentest
+                    array_push($deviceLabels, $label);
+                    $k++;
+                }
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
@@ -3006,10 +3019,11 @@
             $styleParametersArrayM['chartType'] = $chartTypeM;
             $styleParametersArrayM['dataLabels'] = $dataLabelsM;
             $styleParametersArrayM['dataLabelsRotation'] = $dataLabelsRotationM;
+            $styleParametersArrayM['editDeviceLabels'] = $deviceLabels;
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
-                $temp = json_decode(sanitizeJson($_POST['barsColors']));     // SANITIZE QUI ??
+                $temp = json_decode(sanitizeJson($_POST['barsColorsM']));     // SANITIZE QUI ??
                 $barsColorsM = [];
                 foreach ($temp as $color) 
                 {

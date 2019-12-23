@@ -588,3 +588,279 @@ function UrlExists(url)
     var res = http.status!=404
     return res;
 }
+
+function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callback) {
+
+    if (timeRange == null) {
+        timeRange = "";
+    }
+
+    $.ajax({
+        url: smUrl,
+        type: "GET",
+        data: {},
+        async: syncFlag,
+        dataType: 'json',
+        success: function(originalData)
+        {
+            let extractedData = {};
+          //  let endFlag = false;
+            if (originalData.realtime) {
+                if (originalData.realtime.results) {
+                    extractedData = originalData.realtime.results.bindings[0][metric[i].metricType];
+                    extractedData.metricType = metric[i].metricType;
+                    extractedData.metricName = metric[i].metricName;
+                    let fatherNode = null;
+
+                    if (originalData.hasOwnProperty("Sensor"))
+                    {
+                        fatherNode = originalData.Sensor;
+                    } else
+                    {
+                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                        fatherNode = originalData.Service;
+                    }
+
+                    if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
+                        extractedData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                    }
+                    extractedData.measuredTime = originalData.realtime.results.bindings[0].measuredTime.value;
+                    callback(extractedData);
+                } else {
+                    callback(undefined);
+                }
+            } else {
+                callback(undefined);
+            }
+        },
+        error: function (data)
+        {
+         //   showWidgetContent(widgetName);
+          //  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+          //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+            console.log("Errore in scaricamento dati da Service Map");
+            console.log(JSON.stringify(data));
+        }
+    });
+
+}
+
+function getMyKPIValues(metricId, i, timeRange, lastValue, callback) {
+
+    if (timeRange == null) {
+        timeRange = "";
+    }
+
+    $.ajax({
+        url: "../controllers/myKpiProxy.php",
+        type: "GET",
+        data: {
+            myKpiId: metricId[i].metricId,
+            timeRange: timeRange,
+            lastValue: lastValue,
+            action: "getValueUnit"
+        },
+        async: true,
+        dataType: 'json',
+        success: function(data) {
+            let extractedData = {};
+         //   var convertedData = convertDataFromMyKpiToDm(data);
+            extractedData.value = data[0].value;
+            extractedData.metricId = metricId[i].metricId;
+            extractedData.metricType = metricId[i].metricType;
+            if (metricId[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                extractedData.metricName = metricId[i].metricName + "_" + metricId[i].metricId.split("datamanager/api/v1/poidata/")[1];
+            } else {
+                extractedData.metricName = metricId[i].metricName + "_" + metricId[i].metricId;
+            }
+            extractedData.measuredTime = new Date(data[0].dataTime).toUTCString();
+            if(data[0].valueUnit != null) {
+                extractedData.metricValueUnit = data[0].valueUnit;
+            }
+            callback(extractedData);
+            //callback(data);
+        },
+        error: function (data) {
+            console.log("Errore!");
+            console.log(JSON.stringify(data));
+        }
+    });
+
+}
+
+
+function convertDataFromMyKpiToDm(originalData)
+{
+    var singleOriginalData, singleData, convertedDate = null;
+    var convertedData = {
+        data: []
+    };
+
+    for(var i = 0; i < originalData.length; i++)
+    {
+        singleData = {
+            commit: {
+                author: {
+                    IdMetric_data: null, //Si può lasciare null, non viene usato dal widget
+                    computationDate: null,
+                    value_perc1: null, //Non lo useremo mai
+                    value: null,
+                    descrip: null, //Mettici il nome della metrica splittato
+                    threshold: null, //Si può lasciare null, non viene usato dal widget
+                    thresholdEval: null //Si può lasciare null, non viene usato dal widget
+                },
+                range_dates: 0//Si può lasciare null, non viene usato dal widget
+            }
+        };
+
+        singleOriginalData = originalData[i];
+
+        convertedDate = new Date(singleOriginalData.dataTime); //2001-11-23 03:08:46
+        convertedDate = convertedDate.getFullYear() + "-" + parseInt(convertedDate.getMonth() + 1) + "-" + convertedDate.getDate() + " " + convertedDate.getHours() + ":" + convertedDate.getMinutes() + ":" + convertedDate.getSeconds();
+
+        singleData.commit.author.computationDate = convertedDate;
+
+        if(!isNaN(parseFloat(singleOriginalData.value)))
+        {
+            singleData.commit.author.value = parseFloat(singleOriginalData.value);
+        }
+        else
+        {
+            singleData.commit.author.value = singleOriginalData.value;
+        }
+
+        convertedData.data.push(singleData);
+    }
+
+    return convertedData;
+}
+
+function ObjectSize(obj)
+{
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+}
+
+function serializeSensorDataForBarSeries(dataArrayMap, labels1, labels2) {
+    var jsonObj = {};
+    jsonObj.firstAxis = {};
+    jsonObj.secondAxis = {};
+    var desc1 = "";
+    var desc2 = "device";
+    var series = [];
+
+    jsonObj.firstAxis.desc = desc1;
+    jsonObj.firstAxis.labels = labels1;
+
+    for(i = 0; i < labels2.length; i++) {
+        let seriesArray = [];
+        for(j = 0; j < labels1.length; j++) {
+                let metricIdx = findWithAttr(dataArrayMap[labels2[i]], labels1[j]);
+                if (metricIdx != -1) {
+                    if (dataArrayMap[labels2[i]][metricIdx].value != '') {
+                        seriesArray.push(parseFloat(parseFloat(dataArrayMap[labels2[i]][metricIdx].value).toFixed(2)));
+                    } else {
+                        seriesArray.push("");
+                    }
+                } else {
+                    seriesArray.push("");
+                }
+        }
+        series.push(seriesArray);
+    }
+
+    jsonObj.secondAxis.desc = desc2;
+    jsonObj.secondAxis.labels = labels2;
+    jsonObj.secondAxis.series = series;
+   // var outJson = JSON.stringify(jsonObj);
+    return jsonObj;
+}
+
+function objectContains(obj, keyProp) {
+
+    let res = false;
+    for (n = 0; n < obj.length; n ++) {
+        if (obj[n].metricType == keyProp) {
+            res = true;
+        }
+    }
+    return res;
+
+}
+
+function buildBarSeriesArrayMap(dataArray) {
+
+    var dataArrayMap = dataArray.reduce((acc, {metricName, metricType, value}) => {
+        (acc[metricName] || (acc[metricName] = [])).push({metricType, value})
+        return acc
+    }, {});
+
+    return dataArrayMap;
+
+}
+
+function buildBarSeriesArrayMap2(dataArray) {
+
+    var dataArrayMap = dataArray.reduce((acc, {metricType, metricName, value}) => {
+        (acc[metricType] || (acc[metricType] = [])).push({metricName, value})
+        return acc
+    }, {});
+
+    return dataArrayMap;
+
+}
+
+function getDeviceLabelsForBarSeries(dataArray) {
+
+    let deviceLabels = [];
+    for(n = 0; n < dataArray.length; n++) {
+
+        if (!deviceLabels.includes(dataArray[n].metricName)) {
+            if (dataArray[n].metricHighLevelType == "Sensor") {
+                deviceLabels.push(dataArray[n].metricName);
+            } else if (dataArray[n].metricHighLevelType == "MyKPI") {
+                deviceLabels.push(dataArray[n].metricName + "_" + dataArray[n].metricId);
+            }
+        }
+    }
+    return deviceLabels;
+
+}
+
+function getMetricLabelsForBarSeries(dataArray) {
+
+    let metricLabels = [];
+    for(n = 0; n < dataArray.length; n++) {
+
+        if (!metricLabels.includes(dataArray[n].metricType)) {
+            metricLabels.push(dataArray[n].metricType);
+        }
+    }
+    return metricLabels;
+
+}
+
+function findWithAttr(array, attr) {
+    for(var i = 0; i < array.length; i += 1) {
+        if(array[i]['metricType'] === attr) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/*function getMyKpiLabelsForBarSeries(dataArray) {
+
+    let deviceLabels = [];
+    for(n = 0; n < dataArray.length; n++) {
+
+        if (!deviceLabels.includes(dataArray[n].metricName)) {
+            deviceLabels.push(dataArray[n].metricName + "_" + dataArray[n].metricId);
+        }
+    }
+    return deviceLabels;
+
+}*/

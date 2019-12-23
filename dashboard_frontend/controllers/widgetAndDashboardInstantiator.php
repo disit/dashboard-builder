@@ -1354,6 +1354,9 @@
 
                                 //Costruzione titolo widget
                                 $title_w = "External content";
+                                if (strpos($type_w, "widgetBarSeries") !== false) {
+                                    $title_w = "Bar Series";
+                                }
                                 $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 
                                 $creator = $_SESSION['loggedUsername'];
@@ -3001,6 +3004,9 @@
 
                             //Costruzione titolo widget
                             $title_w = "External content";
+                            if (strpos($type_w, "widgetBarSeries") !== false) {
+                                $title_w = "Bar Series";
+                            }
                             $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 
                             $creator = $_SESSION['loggedUsername'];

@@ -148,10 +148,11 @@
         
         
         case "Sensor":
-            $smUrl = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
+         /*   $smUrl = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
             if (isset($_SESSION['orgKbUrl'])) {
                 $smUrl = $orgKbUrl . $dataOrigin->serviceUri . "&format=json";
-            }
+            }*/
+            $smUrl = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $dataOrigin->metricId . "&format=json";
             $metricType = "Float";
             
             if(isset($_REQUEST['timeRange']))

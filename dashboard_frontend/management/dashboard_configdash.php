@@ -16284,6 +16284,7 @@
                                 var styleParamsRaw = data['styleParameters'];
                                 var serviceUri = data['serviceUri'];
                                 var viewMode = data['viewMode'];
+                                var rowParams = data['rowParams'];
                                 
                                 var parameters, styleParameters, currentParams, infoJson = null;
                                 
@@ -24399,14 +24400,63 @@
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
+                                            var seriesDataArray = [];
                                             var seriesString = "";
                                             var series = null;
+                                            var rowParamsArray = JSON.parse(rowParams);
+                                            if (serviceUri) {
+                                                series = jQuery.parseJSON(serviceUri);
+                                            } else {
+                                                for (var i = 0; i < rowParamsArray.length; i++) {
+                                                    let smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParamsArray[i].metricId.split("serviceUri=")[1];
+                                                    getSmartCitySensorValues(rowParamsArray, i, smUrl, null, false, function (extractedData) {
+
+                                                        if (extractedData) {
+                                                            seriesDataArray.push(extractedData);
+                                                        } else {
+                                                            console.log("Dati Smart City non presenti");
+                                                            seriesDataArray.push(undefined);
+                                                        }
+                                                        //if (endFlag === true) {
+                                                        // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                                        if (rowParamsArray.length === seriesDataArray.length) {
+                                                            let stopFlag = 1;
+                                                            // DO FINAL SERIALIZATION
+                                                            metricLabels = getMetricLabelsForBarSeries(rowParamsArray);
+                                                            deviceLabels = getDeviceLabelsForBarSeries(rowParamsArray);
+                                                            let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                                            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
+
+                                                        }
+
+                                                    });
+                                                }
+                                            }
                                         }
                                         var thrTables1 = new Array();
                                         var thrTables2 = new Array();
                                         var thrSeries,i, j, k, min, max, color, newTableRow, newTableCell, currentFieldIndex, currentSeriesIndex, colorsTable, newRow, newCell, newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer, barsColorsTableContainerM = null;
                                         var defaultColorsArray = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
                                         var colorsArray = new Array();
+                                        var metricLabels = [];
+                                        var deviceLabels = [];
+
+                                        if (rowParamsArray) {
+                                            if (!serviceUri) {
+                                                // Caso New BarSeries primo istanziamento
+                                                for (n = 0; n < rowParamsArray.length; n++) {
+                                                    if (!metricLabels.includes(rowParamsArray[n].metricType)) {
+                                                        metricLabels.push(rowParamsArray[n].metricType);
+                                                    }
+
+                                                    if (!deviceLabels.includes(rowParamsArray[n].metricName)) {
+                                                        deviceLabels.push(rowParamsArray[n].metricName);
+                                                    }
+                                                }
+                                            } else {
+                                                deviceLabels = series.secondAxis.labels;
+                                            }
+                                        }
                                         
                                         //Funzione di settaggio dei globals per il file dashboard_configdash.js
                                         setGlobals(currentParams, thrTables1, thrTables2, series, $('#select-widget-m').val());
@@ -24713,8 +24763,31 @@
                                         else
                                         {
                                             $('#barsColorsTableContainerM').hide();
-                                        } 
-                                        
+                                        }
+
+                                        // Nuove righe (labels per i devices)
+                                        for (var n = 0; n < deviceLabels.length; n++) {
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Device #' + (n+1).toString() + ' Label</label>');
+                                            newInnerDiv = $('<div class="col-md-7"></div>');
+                                            var placeholderStr = "";
+                                            if (styleParameters.editDeviceLabels != null) {
+                                                placeholderStr = styleParameters.editDeviceLabels[n];
+                                            } else {
+                                                placeholderStr = deviceLabels[n];
+                                            }
+                                        //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" placeholder="' + placeholderStr + '">');
+                                            newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" value = "' + placeholderStr + '">');
+                                        //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM" required placeholder="' + deviceLabels[n] + '">');
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            newInput.show();
+                                        }
+
                                         //Codice di creazione soglie
                                         //Nuova riga
                                         //Set thresholds
@@ -24731,7 +24804,7 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
-                                        
+
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
                                         newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
@@ -27800,6 +27873,181 @@
 
 
                                             break;
+
+                                        /*
+                                        case "widget3DMap":
+                                            //Rimozione eventuali campi del subform general per widget process
+                                            removeWidgetProcessGeneralFields("editWidget");
+
+                                            var gisTargetCenterParametersM = null;
+                                            $('#urlWidgetM').attr('disabled', false);
+                                            $('#urlWidgetM').prop('required', true);
+                                            $("#titleLabelM").html("Title");
+                                            $("#bckColorLabelM").html("Background color");
+                                            $('#inputColorWidgetM').val("");
+                                            $('#inputColorWidgetM').attr('disabled', false);
+                                            $('#inputColorWidgetM').attr('required', true);
+                                            $('#color_widget_M').css("background-color", "#eeeeee");
+                                            $('#inputFontSizeM').val("");
+                                            $('#inputFontSizeM').attr('disabled', true);
+                                            $('#inputFontColorM').val("");
+                                            $('#inputFontColorM').attr('disabled', true);
+                                            $('#widgetFontColorM').css("background-color", "#eeeeee");
+                                            $('#link_help_modal-add-widgetM').css("display", "");
+                                            $('#inputFrameColorWidgetM').attr('disabled', false);
+                                            $('#inputFrameColorWidgetM').val('#eeeeee');
+                                            $('#inputFrameColorWidgetM').prop('required', false);
+                                            $('#select-IntTemp-Widget-m').val(-1);
+                                            $('#select-IntTemp-Widget-m').attr('disabled', true);
+                                            $('#select-IntTemp-Widget-m').prop('required', false);
+                                            $('#inputFreqWidgetM').attr('disabled', true);
+                                            $('#inputFreqWidgetM').val("");
+                                            $('#inputFreqWidgetM').prop('required', false);
+                                            $('#inputHeaderFontColorWidgetM').attr('disabled', false);
+                                            $('#inputHeaderFontColorWidgetM').prop('required', true);
+                                            $('#inputUdmWidgetM').prop("required", false);
+                                            $('#inputUdmWidgetM').attr("disabled", true);
+                                            $('#inputUdmWidgetM').val("");
+                                            $('#inputUdmPositionM').prop("required", false);
+                                            $('#inputUdmPositionM').attr("disabled", true);
+                                            $('#inputUdmPositionM').val(-1);
+
+                                            //Parametri specifici del widget
+                                            $('#specificParamsM .row').remove();
+
+                                            //Nuova riga
+                                            //Centro della mappa per modalità GIS target
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Start lat</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterLatM" class="form-control"/>' +
+                                                +'</div>');
+                                            newInnerDiv.css("padding-left", "0px");
+                                            newInnerDiv.css("padding-right", "0px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Start lng</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterLngM" class="form-control"/>' +
+                                                +'</div>');
+                                            newInnerDiv.css("padding-left", "0px");
+                                            newInnerDiv.css("padding-right", "0px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Start zoom</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterZoomM" class="form-control"/>' +
+                                                +'</div>');
+                                            newLabel.css("padding-left", "8px");
+                                            newLabel.css("padding-right", "8px");
+                                            newInnerDiv.css("padding-left", "0px");
+                                            newInnerDiv.css("padding-right", "0px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newInnerDiv = $('<div id="gisTargetCenterMapDivM" class="col-md-12"></div>');
+                                            newFormRow.append(newInnerDiv);
+
+                                            //Nuova riga
+                                            //Full screen controls
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                            newSelect = $('<select class="form-control" id="enableFullscreenModalM" name="enableFullscreenModalM"></select>');
+                                            newSelect.append('<option value="yes">Yes</option>');
+                                            newSelect.append('<option value="no">No</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            gisTargetCenterParametersM = currentParams;
+                                            $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                            $("#widgetModeM").val(data.url);
+                                            $("#urlWidgetM").parents("div.row").hide();
+
+                                            gisTargetCenterParametersM = currentParams;
+                                            $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                            $("#inputShowTitleM").val("yes");
+                                            $("#enableFullscreenTabM").val("yes");
+
+                                            $("#gisTargetCenterLatM").val(gisTargetCenterParametersM.latLng[0]);
+                                            $("#gisTargetCenterLngM").val(gisTargetCenterParametersM.latLng[1]);
+                                            $("#gisTargetCenterZoomM").val(gisTargetCenterParametersM.zoom);
+                                            $('#coordsCollectionUriM').parents("div.row").show();
+
+                                            if (gisTargetCenterMapDivRefM === null) {
+                                                $("#gisTargetCenterLatM").parents("div.row").show();
+                                                $("#gisTargetCenterMapDivM").parents("div.row").show();
+
+                                                //Bisogna aspettare che il modale sia completamente in posizione e visibile, sennò il load della mappa dà problemi di visualizzazione dei tiles
+                                                setTimeout(function () {
+                                                    gisTargetCenterMapDivM = "gisTargetCenterMapDivM";
+                                                    gisTargetCenterMapDivRefM = L.map(gisTargetCenterMapDivM).setView(gisTargetCenterParametersM.latLng, gisTargetCenterParametersM.zoom);
+
+                                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                                        maxZoom: 18
+                                                    }).addTo(gisTargetCenterMapDivRefM);
+                                                    gisTargetCenterMapDivRefM.attributionControl.setPrefix('');
+
+                                                    gisTargetCenterMapDivRefM.off("zoom");
+                                                    gisTargetCenterMapDivRefM.on("zoom", function () {
+                                                        $("#gisTargetCenterZoomM").val(gisTargetCenterMapDivRefM.getZoom());
+                                                        gisTargetCenterParametersM.zoom = $("#gisTargetCenterZoomM").val();
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetCenterZoomM").off("input");
+                                                    $("#gisTargetCenterZoomM").on("input", function (event) {
+                                                        gisTargetCenterMapDivRefM.setZoom($(this).val());
+                                                        gisTargetCenterParametersM.zoom = $("#gisTargetCenterZoomM").val();
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    gisTargetCenterMapDivRefM.off("move");
+                                                    gisTargetCenterMapDivRefM.on("move", function () {
+                                                        $("#gisTargetCenterLatM").val(gisTargetCenterMapDivRefM.getCenter().lat);
+                                                        $("#gisTargetCenterLngM").val(gisTargetCenterMapDivRefM.getCenter().lng);
+                                                        gisTargetCenterParametersM.latLng[0] = $("#gisTargetCenterLatM").val();
+                                                        gisTargetCenterParametersM.latLng[1] = $("#gisTargetCenterLngM").val();
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetCenterLatM").off("input");
+                                                    $("#gisTargetCenterLatM").on("input", function (event) {
+                                                        gisTargetCenterParametersM.latLng[0] = $("#gisTargetCenterLatM").val();
+                                                        gisTargetCenterMapDivRefM.panTo(gisTargetCenterParametersM.latLng);
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetCenterLngM").off("input");
+                                                    $("#gisTargetCenterLngM").on("input", function (event) {
+                                                        gisTargetCenterParametersM.latLng[1] = $("#gisTargetCenterLngM").val();
+                                                        gisTargetCenterMapDivRefM.panTo(gisTargetCenterParametersM.latLng);
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    if (gisTargetCenterParametersM.coordsCollectionUri !== null) {
+                                                        $('#coordsCollectionUriM').val(gisTargetCenterParametersM.coordsCollectionUri);
+                                                    }
+
+                                                    $('#coordsCollectionUriM').change(function () {
+                                                        gisTargetCenterParametersM.coordsCollectionUri = $(this).val();
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+                                                }, 350);
+                                            }
+
+
+                                            break;
+                                            */
+                                    
                                     case "widgetGisWFS":
                                     //METTERE QUI IL CASE
                                     removeWidgetProcessGeneralFields("editWidget");                                       

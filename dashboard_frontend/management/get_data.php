@@ -433,6 +433,7 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                             "nodeRedInputOffValue" => $row5['offValue'],
                             "nodeRedInputOnValue" => $row5['onValue'],
                             "nodeRedInputDataPrecision" => $row5['dataPrecision'],
+                            "rowParams" => $row5['rowParameters']
                         );
                     }
                 }

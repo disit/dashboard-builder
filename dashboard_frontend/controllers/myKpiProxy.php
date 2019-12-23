@@ -32,6 +32,9 @@ function udate($format = 'u', $microT) {
 
     if (isset($_GET['myKpiId'])) {
         $myKpiId = $_GET['myKpiId'];
+        if (strpos($myKpiId, "datamanager/api/v1") !== false) {
+            $myKpiId = explode("datamanager/api/v1/poidata/", $myKpiId)[1];
+        }
         if (checkVarType($myKpiId, "integer") === false) {
             eventLog("Returned the following ERROR in myKpiProxy.php for myKpiId = ".$myKpiId.": ".$myKpiId." is not an integer as expected. Exit from script.");
             exit();
@@ -95,6 +98,25 @@ if(isset($_SESSION['refreshToken'])) {
     $myKpiDataJson = file_get_contents($apiUrl, false, $context);
 
     $myKpiData = json_decode($myKpiDataJson);
+
+    if (strpos($action, "getValueUnit") !== false) {
+        $apiUrlUnit = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
+        $optionsUnit = array(
+            'http' => array(
+                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method' => 'GET',
+                'timeout' => 30,
+                'ignore_errors' => true
+            )
+        );
+
+        $contextUnit = stream_context_create($optionsUnit);
+        $myKpiUnitJson = file_get_contents($apiUrlUnit, false, $contextUnit);
+
+        $myKpiUnit = json_decode($myKpiUnitJson);
+        $myKpiData[0]->valueUnit = $myKpiUnit->valueUnit;
+        $myKpiDataJson = json_encode($myKpiData);
+    }
 
     echo $myKpiDataJson;
 
