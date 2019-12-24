@@ -607,24 +607,46 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
           //  let endFlag = false;
             if (originalData.realtime) {
                 if (originalData.realtime.results) {
-                    extractedData = originalData.realtime.results.bindings[0][metric[i].metricType];
-                    extractedData.metricType = metric[i].metricType;
-                    extractedData.metricName = metric[i].metricName;
-                    let fatherNode = null;
+                    if (originalData.realtime.results.bindings.length > 1) {
+                        var tmpData = [];
+                        extractedData.metricType = metric[i].metricType;
+                        extractedData.metricName = metric[i].metricName;
+                        for (let t = 0; t < originalData.realtime.results.bindings.length; t++)  {
+                            tmpData = originalData.realtime.results.bindings[t][metric[i].metricType];
+                            let fatherNode = null;
 
-                    if (originalData.hasOwnProperty("Sensor"))
-                    {
-                        fatherNode = originalData.Sensor;
-                    } else
-                    {
-                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
-                        fatherNode = originalData.Service;
-                    }
+                            if (originalData.hasOwnProperty("Sensor")) {
+                                fatherNode = originalData.Sensor;
+                            } else {
+                                //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                fatherNode = originalData.Service;
+                            }
 
-                    if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
-                        extractedData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                            if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
+                                tmpData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                            }
+                            tmpData.measuredTime = originalData.realtime.results.bindings[0].measuredTime.value;
+                            extractedData[t] = tmpData;
+                            // extractedData[metric[i].metricName] = tmpData;
+                        }
+                    } else {
+                        extractedData = originalData.realtime.results.bindings[0][metric[i].metricType];
+                        extractedData.metricType = metric[i].metricType;
+                        extractedData.metricName = metric[i].metricName;
+                        let fatherNode = null;
+
+                        if (originalData.hasOwnProperty("Sensor")) {
+                            fatherNode = originalData.Sensor;
+                        } else {
+                            //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                            fatherNode = originalData.Service;
+                        }
+
+                        if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
+                            extractedData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                        }
+                        extractedData.measuredTime = originalData.realtime.results.bindings[0].measuredTime.value;
                     }
-                    extractedData.measuredTime = originalData.realtime.results.bindings[0].measuredTime.value;
                     callback(extractedData);
                 } else {
                     callback(undefined);
@@ -666,11 +688,12 @@ function getMyKPIValues(metricId, i, timeRange, lastValue, callback) {
             let extractedData = {};
          //   var convertedData = convertDataFromMyKpiToDm(data);
             extractedData.value = data[0].value;
-            extractedData.metricId = metricId[i].metricId;
             extractedData.metricType = metricId[i].metricType;
             if (metricId[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                extractedData.metricId = metricId[i].metricId.split("datamanager/api/v1/poidata/")[1];
                 extractedData.metricName = metricId[i].metricName + "_" + metricId[i].metricId.split("datamanager/api/v1/poidata/")[1];
             } else {
+                extractedData.metricId = metricId[i].metricId;
                 extractedData.metricName = metricId[i].metricName + "_" + metricId[i].metricId;
             }
             extractedData.measuredTime = new Date(data[0].dataTime).toUTCString();

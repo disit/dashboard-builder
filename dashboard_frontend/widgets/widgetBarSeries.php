@@ -1116,8 +1116,15 @@
                         dataLabelsAlign = 'center';
                         break;
                 }
+
+                let aggregationFlag = false;
+                if (JSON.parse(widgetData.params.rowParameters) != null) {
+                    if (JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "Sensor" || JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "MyKPI") {
+                        aggregationFlag = true;
+                    }
+                }
                     
-                if(widgetData.params.id_metric === 'AggregationSeries')
+                if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true)
                 {
                     rowParameters = JSON.parse(rowParameters);
                     aggregationGetData = [];
@@ -1192,7 +1199,12 @@
                                 var xlabels = [];
                                 var deviceLabels = [];
                                 var metricLabels = [];
-                                let smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                let smUrl = "";
+                                if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                } else {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                }
                             //    metricType = "Float";
 
                                 if("<?= $_REQUEST['timeRange']?>") {
@@ -1309,6 +1321,9 @@
                                 var metricLabels = [];
                                 let kpiMetricName =  rowParameters[i].metricName;
                                 let kpiMetricType =  rowParameters[i].metricType;
+                                if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                                    rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                                }
                                 getMyKPIValues(rowParameters, i, null, 1, function(extractedData) {
 
                                     if(extractedData) {

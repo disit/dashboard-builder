@@ -489,6 +489,48 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			MsgType:    "newNRMetricData",
 			MetricName: dat["metricName"].(string),
 			NewValue:   dat["newValue"]}
+		var err error
+		var username, role string
+		if dat["accessToken"] != nil {
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
+			if err != nil {
+				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
+			}
+		} else {
+			log.Print("MISSING ACCESSTOKEN ",dat)
+			err = fmt.Errorf("missing accessToken")
+		}
+		if err != nil {
+			//log.Print(err)
+			response["result"] = "Ko"
+			//response["error"] = err
+		} else {
+			if role != "RootAdmin" {
+				//organization, _ = getOrganization(username)
+				if dat["user"]!=username {
+					log.Print("AddMetricData: force user ", username, "/", dat["user"])
+					dat["user"] = username
+				}
+				//dat["organization"] = organization
+			} else {
+				//organization, _ = getOrganization(dat["user"].(string))
+				log.Print("AddMetricData: RootAdmin using user ", dat["user"])
+				//dat["organization"] = organization
+			}
+                }
+
+		//check if the user is the owner of the nodered metric
+                var count int
+                err2 := db.QueryRow("SELECT COUNT(*) FROM "+dashboard+".NodeRedMetrics WHERE name=? AND user=? AND appId=? AND flowId=?;", dat["metricName"],dat["user"],dat["appId"],dat["flowId"]).Scan(&count)
+
+                if err2 != nil {
+                        log.Print(err2)
+                        response["result"] = "Ko"
+                }
+                if count ==0 {
+			log.Print("AddMetricData: metric not found INVALID REQUEST ",dat)
+                } else {
+
 
 		// inoltra i nuovi dati ai vari user connessi. Con l'implementazione
 		// redis viene chiamata la funzione publish altrimenti, si inserisce
@@ -526,9 +568,16 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 
 		case "Series":
 
-			val := "series"
-			res := caseQuery(db, computationDate, dat, val)
-			response["result"] = res
+			//val := "series"
+			//res := caseQuery(db, computationDate, dat, val)
+			newValueJson,_ := json.Marshal(dat["newValue"])
+			_,err2 := db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE id_metric=? AND appId=? AND flowId=?",newValueJson, dat["metricName"].(string), dat["appId"].(string),  dat["flowId"].(string))
+			if err2 !=nil {
+                        	log.Print(err2)
+                                response["result"] = "Ko"
+                        } else {
+                                response["result"] = "Ok"
+                     	}
 			break
 
 		case "Testuale", "webContent":
@@ -563,6 +612,8 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		}
 
 		break
+
+		}
 
 	case "ClientWidgetRegistration":
 		//sender: dashboard
@@ -981,7 +1032,7 @@ func insertW(db *sql.DB, username interface{}, dashboardTitle interface{}, widge
 			_ = processingMsg2([]byte(defaultTarget.String))
 		}
 
-		if mono_multi.String == "Mono" {
+		if mono_multi.String == "Mono" || newWidgetType == "widgetBarSeries" {
 
 			// caso widget selezionato di tipo "Mono"
 

@@ -415,7 +415,7 @@ func InitDB() {
 	}
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(60 * time.Second)
-
+	db.SetMaxOpenConns(20)
 	//db.SetMaxOpenConns(qualche quantita` da definire)
 
 }
