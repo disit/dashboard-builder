@@ -30,6 +30,8 @@ mysqli_select_db($link, $dbname);
 
 if(isset($_SESSION['loggedUsername'])) 
 {
+    $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
+
     if(!checkDashboardId($link, $dashboardId)) {
         eventLog("invalid request for getDashboardIotApps.php for dashboardId = $dashboardId user: ".$_SESSION['loggedUsername']);
         exit;

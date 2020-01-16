@@ -609,6 +609,7 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                 if (originalData.realtime.results) {
                     if (originalData.realtime.results.bindings.length > 1) {
                         var tmpData = [];
+                        extractedData.value = [];
                         extractedData.metricType = metric[i].metricType;
                         extractedData.metricName = metric[i].metricName;
                         for (let t = 0; t < originalData.realtime.results.bindings.length; t++)  {
@@ -625,8 +626,8 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                             if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
                                 tmpData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
                             }
-                            tmpData.measuredTime = originalData.realtime.results.bindings[0].measuredTime.value;
-                            extractedData[t] = tmpData;
+                            tmpData.measuredTime = originalData.realtime.results.bindings[t].measuredTime.value;
+                            extractedData.value[t] = tmpData;
                             // extractedData[metric[i].metricName] = tmpData;
                         }
                     } else {
@@ -667,7 +668,7 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
 
 }
 
-function getMyKPIValues(metricId, i, timeRange, lastValue, callback) {
+function getMyKPIValues(metricObj, i, timeRange, lastValue, callback) {
 
     if (timeRange == null) {
         timeRange = "";
@@ -677,7 +678,7 @@ function getMyKPIValues(metricId, i, timeRange, lastValue, callback) {
         url: "../controllers/myKpiProxy.php",
         type: "GET",
         data: {
-            myKpiId: metricId[i].metricId,
+            myKpiId: metricObj[i].metricId,
             timeRange: timeRange,
             lastValue: lastValue,
             action: "getValueUnit"
@@ -688,13 +689,13 @@ function getMyKPIValues(metricId, i, timeRange, lastValue, callback) {
             let extractedData = {};
          //   var convertedData = convertDataFromMyKpiToDm(data);
             extractedData.value = data[0].value;
-            extractedData.metricType = metricId[i].metricType;
-            if (metricId[i].metricId.includes("datamanager/api/v1/poidata/")) {
-                extractedData.metricId = metricId[i].metricId.split("datamanager/api/v1/poidata/")[1];
-                extractedData.metricName = metricId[i].metricName + "_" + metricId[i].metricId.split("datamanager/api/v1/poidata/")[1];
+            extractedData.metricType = metricObj[i].metricType;
+            if (metricObj[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                extractedData.metricId = metricObj[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                extractedData.metricName = metricObj[i].metricName + "_" + metricObj[i].metricId.split("datamanager/api/v1/poidata/")[1];
             } else {
-                extractedData.metricId = metricId[i].metricId;
-                extractedData.metricName = metricId[i].metricName + "_" + metricId[i].metricId;
+                extractedData.metricId = metricObj[i].metricId;
+                extractedData.metricName = metricObj[i].metricName + "_" + metricObj[i].metricId;
             }
             extractedData.measuredTime = new Date(data[0].dataTime).toUTCString();
             if(data[0].valueUnit != null) {
@@ -814,6 +815,22 @@ function objectContains(obj, keyProp) {
 
 }
 
+function serializeDataForSeries(metricLabels, deviceLabels) {
+
+    let series = {};
+    series.firstAxis = {};
+    series.firstAxis.desc = "";
+    series.firstAxis.labels = metricLabels;
+
+    series.secondAxis = {};
+    series.secondAxis.desc = "devices";
+    series.secondAxis.labels = deviceLabels;
+    series.secondAxis.series = [];
+
+    return series;
+
+}
+
 function buildBarSeriesArrayMap(dataArray) {
 
     var dataArrayMap = dataArray.reduce((acc, {metricName, metricType, value}) => {
@@ -840,12 +857,11 @@ function getDeviceLabelsForBarSeries(dataArray) {
 
     let deviceLabels = [];
     for(n = 0; n < dataArray.length; n++) {
-
         if (!deviceLabels.includes(dataArray[n].metricName)) {
-            if (dataArray[n].metricHighLevelType == "Sensor") {
-                deviceLabels.push(dataArray[n].metricName);
-            } else if (dataArray[n].metricHighLevelType == "MyKPI") {
+            if (dataArray[n].metricHighLevelType == "MyKPI") {
                 deviceLabels.push(dataArray[n].metricName + "_" + dataArray[n].metricId);
+            } else {
+                deviceLabels.push(dataArray[n].metricName);
             }
         }
     }
@@ -857,9 +873,14 @@ function getMetricLabelsForBarSeries(dataArray) {
 
     let metricLabels = [];
     for(n = 0; n < dataArray.length; n++) {
-
-        if (!metricLabels.includes(dataArray[n].metricType)) {
-            metricLabels.push(dataArray[n].metricType);
+        if (dataArray[n].metricType != null) {
+            if (!metricLabels.includes(dataArray[n].metricType)) {
+                metricLabels.push(dataArray[n].metricType);
+            }
+        } else if (dataArray[n].smField != null) {
+            if (!metricLabels.includes(dataArray[n].smField)) {
+                metricLabels.push(dataArray[n].smField);
+            }
         }
     }
     return metricLabels;
@@ -873,6 +894,17 @@ function findWithAttr(array, attr) {
         }
     }
     return -1;
+}
+
+function getMyKPIUpperTimeLimit(hours) {
+    let now = new Date();
+    let timeZoneOffsetHours = now.getTimezoneOffset() / 60;
+    let upperTimeLimit = now.setHours(now.getHours() - hours - timeZoneOffsetHours);
+    let upperTimeLimitUTC = new Date(upperTimeLimit).toUTCString();
+    let upperTimeLimitISO = new Date(upperTimeLimitUTC).toISOString();
+    let upperTimeLimitISOTrim = upperTimeLimitISO.substring(0, isoDate.length - 5);
+    return upperTimeLimitISOTrim;
+    //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
 }
 
 /*function getMyKpiLabelsForBarSeries(dataArray) {

@@ -46,9 +46,12 @@
         var metricData, metricType, series, styleParameters, timeRange, gridLineColor, chartAxesColor, chartType, index, highchartsChartType, chartSeriesObject, legendWidth, xAxisCategories, rowParameters, aggregationGetData, getDataFinishCount, xAxisType,
             dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, stackingOption, fontSize, fontColor, chartColor, dataLabelsFontSize, chartLabelsFontSize, dataLabelsFontColor, chartLabelsFontColor, appId, flowId, nrMetricType,
             widgetHeight, lineWidth, xAxisTitle, smField, metricName, widgetTitle, countdownRef, widgetParameters, thresholdsJson, infoJson = null;
+        var serviceUri = "";
+        var editLabels = "";
+        var valueUnit = null;
         
         var pattern = /Percentuale\//;
-        
+        console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
         var unitsWidget = [[
                 'millisecond', // unit name
                 [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
@@ -161,7 +164,7 @@
             return format;
         }
         
-        function getChartSeriesObject(series)
+        function getChartSeriesObject(series, xAxisLabelsEdit)
         {
             var chartSeriesObject, singleObject, seriesName, seriesValue, seriesValues, zonesObject, zonesArray, inf, sup, i = null;
             
@@ -176,7 +179,11 @@
                 {
                     for(var i in series.secondAxis.series) 
                     {
-                        seriesName = series.secondAxis.labels[i];
+                        if (xAxisLabelsEdit != null) {
+                            seriesName = xAxisLabelsEdit[i];
+                        } else {
+                            seriesName = series.secondAxis.labels[i];
+                        }
                         seriesValues = series.secondAxis.series[i];
 
                         if((styleParameters.barsColorsSelect === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
@@ -241,7 +248,11 @@
                 {
                     for (i = 0; i < series.firstAxis.labels.length; i++) 
                     {
-                        seriesName = series.firstAxis.labels[i];
+                        if (xAxisLabelsEdit != null) {
+                            seriesName = xAxisLabelsEdit[i];
+                        } else {
+                            seriesName = series.secondAxis.labels[i];
+                        }
                         seriesArray = [];
                         zonesArray = [];
 
@@ -308,6 +319,7 @@
                         chartSeriesObject.push(singleObject);
                     }    
                 }
+
             }
             return chartSeriesObject;
         }
@@ -765,7 +777,7 @@
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
 	}
-        
+
         function drawDiagram(timeDomain)
         {
             if(timeDomain)
@@ -776,6 +788,11 @@
             else
             {
                 xAxisType = null;
+            }
+
+            let yAxisText = null;
+            if (chartSeriesObject.valueUnit != null) {
+                yAxisText = chartSeriesObject.valueUnit;
             }
             
             Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
@@ -803,7 +820,7 @@
 
                 xAxis: {
                     type: xAxisType,
-                    units: unitsWidget,
+                //    units: unitsWidget,
                     gridLineWidth: 0,
                     lineColor: chartAxesColor,
                     categories: xAxisCategories,
@@ -824,7 +841,7 @@
                     },
                     labels: {
                        enabled: true,
-                       useHTML: true,
+                       useHTML: false,
                        style: {
                             fontFamily: 'Montserrat',
                             fontSize: styleParameters.rowsLabelsFontSize + "px",
@@ -841,7 +858,8 @@
                     gridLineColor: gridLineColor,
                     gridZIndex: 0,
                     title: {
-                        text: null
+                        //text: null
+                        text: yAxisText
                     },
                     labels: {
                         overflow: 'justify',
@@ -956,19 +974,22 @@
                         {
                             if((desc !== null)&&(desc !== ''))
                             {
-                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' + 
+                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                       '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0,31) + '</b><br/>' +
                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';   
                             }
                             else
                             {
-                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' + 
+                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                       '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0,31) + '</b><br/>' +
                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
                             }
                         }
                         else
                         {
                             return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                   '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0,31) + '</b><br/>' +
                                    '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
                         }
                     }
@@ -998,7 +1019,7 @@
                     }
                 },
                 legend: {
-                    useHTML: true,
+                    useHTML: false,
                     labelFormatter: function () {
                         return this.name;
                     },
@@ -1096,13 +1117,13 @@
                                         singleSeriesData.push(singleSample);
                                     }
                                     break;
-                                
+
                                 //I testuali NON li aggiungiamo al grafico
                                 default:
                                     break;
                             }
                         }
-                        
+
                         seriesSingleObj = {
                             showInLegend: true,
                             name: aggregationGetData[i].metricShortDesc,
@@ -1129,15 +1150,26 @@
                                 }
                             }
                         };
-                        
+
                         chartSeriesObject.push(seriesSingleObj);
                         break;
-                    
+
                     case "Sensor":
                         var smPayload = aggregationGetData[i].data;
                         var smField = aggregationGetData[i].smField;
                         smPayload = JSON.parse(smPayload);
-                        
+
+                        let objName = null;
+                        if (editLabels != null) {
+                            if (editLabels.length > 0) {
+                                objName = editLabels[i];
+                            } else {
+                                objName = aggregationGetData[i].metricName;
+                            }
+                        } else {
+                            objName = aggregationGetData[i].metricName;
+                        }
+
                         if(smPayload.hasOwnProperty('trends'))
                         {
                             var resultsArray = smPayload.predictions;
@@ -1167,7 +1199,8 @@
 
                             seriesSingleObj = {
                                 showInLegend: true,
-                                name: aggregationGetData[i].metricName,
+                            //    name: aggregationGetData[i].metricName,
+                                name: objName,
                                 data: singleSeriesData,
                                 color: styleParameters.barsColors[i],
                                 dataLabels: {
@@ -1206,7 +1239,7 @@
                                     {
                                         newVal = resultsArray[j][smField].value;
                                         addSampleToTrend = true;
-                                        
+
                                         if(resultsArray[j].hasOwnProperty("updating"))
                                         {
                                             newTime = resultsArray[j].updating.value;
@@ -1226,10 +1259,10 @@
                                                 else
                                                 {
                                                     addSampleToTrend = false;
-                                                }    
+                                                }
                                             }
                                         }
-                                        
+
                                         if((newVal.trim() !== '')&&(addSampleToTrend))
                                         {
                                             roundedVal = parseFloat(newVal);
@@ -1242,7 +1275,7 @@
 
                                     seriesSingleObj = {
                                         showInLegend: true,
-                                        name: aggregationGetData[i].metricName,
+                                        name: objName,
                                         data: singleSeriesData,
                                         color: styleParameters.barsColors[i],
                                         dataLabels: {
@@ -1272,9 +1305,19 @@
 
                             }
                         }
-                        
-                        
-                        
+
+                        if (smPayload.Service != null) {
+                            if (smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit != null) {
+                                chartSeriesObject.valueUnit = "";
+                                chartSeriesObject.valueUnit = smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit;
+                            }
+                        } else if (smPayload.Sensor != null) {
+                            if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit != null) {
+                                chartSeriesObject.valueUnit = "";
+                                chartSeriesObject.valueUnit = smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit;
+                            }
+                        }
+
                         //console.log(aggregationGetData);
                         break;
                     
@@ -1320,13 +1363,24 @@
                         {
                             aggregationGetData[data.index] = data;
                             getDataFinishCount++;
+                            var deviceLabels = [];
+                            var metricLabels = [];
 
                             //Popoliamo il widget quando sono arrivati tutti i dati
                             if(getDataFinishCount === rowParameters.length)
                             {
                                 widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
                                 legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                editLabels = styleParameters.editDeviceLabels;
                                 buildSeriesFromAggregationData();
+
+                                metricLabels = getMetricLabelsForBarSeries(rowParameters);
+                            //    deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
+                                for (let n = 0; n < chartSeriesObject.length; n++) {
+                                    deviceLabels[n] = chartSeriesObject[n].name;
+                                }
+                            //    let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                series = serializeDataForSeries(metricLabels, deviceLabels);
 
                                 if(firstLoad !== false)
                                 {
@@ -1342,6 +1396,28 @@
                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
                                     $("#<?= $_REQUEST['name_w'] ?>_table").show();
                                 }
+
+                                if (!serviceUri) {
+                                    $.ajax({
+                                        url: "../widgets/updateBarSeriesParameters.php",
+                                        type: "GET",
+                                        data: {
+                                            widgetName: "<?= $_REQUEST['name_w'] ?>",
+                                            series: series
+                                        },
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function (widgetData) {
+                                            var stopFlag = 1;
+                                        },
+                                        error: function (errorData) {
+                                          /*  metricData = null;
+                                            console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
+                                            console.log(JSON.stringify(errorData)); */
+                                        }
+                                    });
+                                }
+
                                 drawDiagram(true);
                             }
                         },

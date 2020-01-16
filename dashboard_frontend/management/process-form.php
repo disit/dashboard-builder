@@ -2831,6 +2831,7 @@
 
         if(($type_widget_m == "widgetLineSeries") || ($type_widget_m == "widgetCurvedLineSeries"))
         {
+
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
                 $rowsLabelsFontSizeM = mysqli_real_escape_string($link, sanitizePostInt('rowsLabelsFontSizeM'));
@@ -2916,6 +2917,20 @@
             $styleParametersArrayM['xAxisDataset'] = $xAxisDatasetM;
             $styleParametersArrayM['lineWidth'] = $lineWidthM;
             $styleParametersArrayM['alrLook'] = $alrLookM;
+
+            if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
+            {
+                $deviceLabels = [];
+                $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_0'));
+                array_push($deviceLabels, $label);
+                $k = 1;
+                while (isset($_POST['deviceLabelsM_'.$k])&&($_POST['deviceLabelsM_'.$k]!="")) {
+                    $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_'.$k));
+                    array_push($deviceLabels, $label);
+                    $k++;
+                }
+            }
+            $styleParametersArrayM['editDeviceLabels'] = $deviceLabels;
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
@@ -3443,6 +3458,19 @@
         if(isset($_POST['select-IntTemp-Widget-m']) && ($_POST['select-IntTemp-Widget-m'] != "") &&($type_widget_m != 'widgetProtezioneCivile' && $type_widget_m != 'widgetProtezioneCivileFirenze'))
         {
             $int_temp_widget_m = mysqli_real_escape_string($link, $_POST['select-IntTemp-Widget-m']);
+        }
+        else if ($type_widget_m == 'widgetCurvedLineSeries')
+        {
+            $temporalRangeQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w = '" . escapeForSQL($name_widget_m, $link) . "' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
+            $temporalRangeRs = mysqli_query($link, $temporalRangeQuery);
+
+            if($temporalRangeRs)
+            {
+                $currRow = mysqli_fetch_assoc($temporalRangeRs);
+                if (sizeof($currRow) > 0) {
+                    $int_temp_widget_m = $currRow['temporal_range_w'];
+                }
+            }
         }
         else
         {

@@ -23699,11 +23699,48 @@
                                         var colorsArray = new Array();    
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        var seriesString = metricData.data[0].commit.author.series;
-                                        var series = jQuery.parseJSON(seriesString);
+                                        if (metricData.data.length != 0) {
+                                            var seriesString = metricData.data[0].commit.author.series;
+                                            var series = jQuery.parseJSON(seriesString);
+                                        } else {
+                                            var seriesDataArray = [];
+                                            var seriesString = "";
+                                            var series = null;
+                                            var rowParamsArray = JSON.parse(rowParams);
+                                            if (serviceUri) {
+                                                series = jQuery.parseJSON(serviceUri);
+                                            } else {
+                                                for (var i = 0; i < rowParamsArray.length; i++) {
+                                                    metricLabels = getMetricLabelsForBarSeries(rowParamsArray);
+                                                    deviceLabels = getDeviceLabelsForBarSeries(rowParamsArray);
+                                                    let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                                    series = serializeDataForSeries(metricLabels, deviceLabels);
+                                                }
+                                            }
+                                        }
                                         
                                         removeWidgetProcessGeneralFields("editWidget");
-                                        
+
+                                        var metricLabels = [];
+                                        var deviceLabels = [];
+
+                                        if (rowParamsArray) {
+                                            if (!serviceUri) {
+                                                // Caso New curvedLineSeries primo istanziamento
+                                                for (n = 0; n < rowParamsArray.length; n++) {
+                                                    if (!metricLabels.includes(rowParamsArray[n].smField)) {
+                                                        metricLabels.push(rowParamsArray[n].smField);
+                                                    }
+
+                                                    if (!deviceLabels.includes(rowParamsArray[n].metricName)) {
+                                                        deviceLabels.push(rowParamsArray[n].metricName);
+                                                    }
+                                                }
+                                            } else {
+                                                deviceLabels = series.secondAxis.labels;
+                                            }
+                                        }
+
                                         //Funzione di settaggio dei globals per il file dashboard_configdash.js
                                         setGlobals(currentParams, thrTables1, thrTables2, series, $('#select-widget-m').val());
                                         
@@ -23980,7 +24017,7 @@
                                         }
                                         
                                         //Contenitore per tabella dei colori
-                                        barsColorsTableContainerM = $('<div id="barsColorsTableContainerM" class="row rowCenterContent"></div>');
+                                      /*  barsColorsTableContainerM = $('<div id="barsColorsTableContainerM" class="row rowCenterContent"></div>');
                                         $("#specificParamsM").append(barsColorsTableContainerM);
                                         
                                         function updateWidgetBarSeriesColorsM(e, params)
@@ -24048,8 +24085,84 @@
                                         $("#barsColorsM").val(JSON.stringify(colorsArray));
                                         $('#barsColorsTableContainerM').append(colorsTable);
                                         //Per prima visualizzazione in edit
-                                        $('#barsColorsSelectM').trigger("change"); 
-                                        
+                                        $('#barsColorsSelectM').trigger("change");  */
+
+                                        //Contenitore per tabella dei colori
+                                        barsColorsTableContainerM = $('<div id="barsColorsTableContainerM" class="row rowCenterContent"></div>');
+                                        $("#specificParamsM").append(barsColorsTableContainerM);
+
+                                        function updateWidgetBarSeriesColorsM(e, params)
+                                        {
+                                            var newColor = $(this).colorpicker('getValue');
+                                            var index = parseInt($(this).parents('tr').index() - 1);
+                                            colorsArray[index] = newColor;
+                                            $("#barsColorsM").val(JSON.stringify(colorsArray));
+                                        }
+
+                                        colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
+                                        if (series) {
+                                            for (var i in series.secondAxis.labels) {
+                                                newRow = $('<tr></tr>');
+                                                newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                newRow.append(newCell);
+                                                newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                newRow.append(newCell);
+                                                //Se l'attuale impostazione è per colori automatici, costruiamo JSON e tabella GUI con impostazioni di default, altrimenti con colori da DB
+                                                if (styleParameters.barsColorsSelect === 'auto') {
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: defaultColorsArray[i % 10],
+                                                        format: "rgba"
+                                                    });
+                                                    colorsArray.push(defaultColorsArray[i % 10]);
+                                                } else {
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: styleParameters.barsColors[i],
+                                                        format: "rgba"
+                                                    });
+                                                    colorsArray.push(styleParameters.barsColors[i]);
+                                                }
+
+                                                newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColorsM);
+                                                colorsTable.append(newRow);
+                                            }
+                                        }
+
+                                        $("#barsColorsM").val(JSON.stringify(colorsArray));
+                                        $('#barsColorsTableContainerM').append(colorsTable);
+
+                                        //Per prima visualizzazione in edit
+                                        if($('#barsColorsSelectM').val() === "manual")
+                                        {
+                                            $('#barsColorsTableContainerM').show();
+                                        }
+                                        else
+                                        {
+                                            $('#barsColorsTableContainerM').hide();
+                                        }
+
+                                        // Nuove righe (labels per i devices)
+                                        for (var n = 0; n < deviceLabels.length; n++) {
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Device #' + (n+1).toString() + ' Label</label>');
+                                            newInnerDiv = $('<div class="col-md-7"></div>');
+                                            var placeholderStr = "";
+                                            if (styleParameters.editDeviceLabels != null) {
+                                                placeholderStr = styleParameters.editDeviceLabels[n];
+                                            } else {
+                                                placeholderStr = deviceLabels[n];
+                                            }
+                                            //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" placeholder="' + placeholderStr + '">');
+                                            newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" value = "' + placeholderStr + '">');
+                                            //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM" required placeholder="' + deviceLabels[n] + '">');
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            newInput.show();
+                                        }
+
                                         //Codice di creazione soglie
                                         //Nuova riga
                                         //Set thresholds
@@ -24457,7 +24570,7 @@
                                                 deviceLabels = series.secondAxis.labels;
                                             }
                                         }
-                                        
+
                                         //Funzione di settaggio dei globals per il file dashboard_configdash.js
                                         setGlobals(currentParams, thrTables1, thrTables2, series, $('#select-widget-m').val());
                                         

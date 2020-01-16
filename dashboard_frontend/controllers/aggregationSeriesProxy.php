@@ -14,11 +14,23 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
-    include '../config.php'; 
+    include '../config.php';
+    require '../sso/autoload.php';
+    use Jumbojett\OpenIDConnectClient;
     error_reporting(E_ERROR | E_NOTICE);
     date_default_timezone_set('Europe/Rome');
 
-    session_start(); 
+    session_start();
+
+    function getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint) {
+        $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+        $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+        $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+        $accessToken = $tkn->access_token;
+        $_SESSION['refreshToken'] = $tkn->refresh_token;
+        return $accessToken;
+    }
+
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     
@@ -152,7 +164,13 @@
             if (isset($_SESSION['orgKbUrl'])) {
                 $smUrl = $orgKbUrl . $dataOrigin->serviceUri . "&format=json";
             }*/
-            $smUrl = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $dataOrigin->metricId . "&format=json";
+
+            if(isset($_SESSION['refreshToken'])) {
+                $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
+            }
+
+            $smUrl = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
+
             $metricType = "Float";
             
             if(isset($_REQUEST['timeRange']))
@@ -197,12 +215,31 @@
             {
                 $urlToCall = $smUrl;
             }
-            
-            $smPayload = file_get_contents($urlToCall);
-            if(strpos($http_response_header[0], '200') !== false) 
+
+            if(isset($urlToCall)) {
+                $options = array(
+                    'http' => array(
+                        'method' => 'GET',
+                        'timeout' => 30,
+                        'ignore_errors' => true
+                    )
+                );
+                if(isset($accessToken)) {
+                    $options['http']['header'] = "Authorization: Bearer $accessToken\r\n";
+                }
+
+                $context = stream_context_create($options);
+                $result = file_get_contents($urlToCall, false, $context);
+                header("Content-Type: application/json");
+            }
+
+        //    $smPayload = file_get_contents($urlToCall);
+        if(strpos($http_response_header[0], '200') !== false)
+    //    if ($result)
             {
+                $data = json_decode($result);
                 $response['result'] = 'Ok';
-                $response['data'] = $smPayload;
+                $response['data'] = $result;
                 $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
                 $response['smField'] = $dataOrigin->smField;
                 $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
@@ -215,6 +252,82 @@
             }
             
             break;
+
+        case "MyKPI":
+
+            if(isset($_REQUEST['timeRange']))
+            {
+                if($_REQUEST['timeRange'] != 'last')
+                {
+                    switch($_REQUEST['timeRange'])
+                    {
+                        case "4 Ore":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(4);
+                            break;
+
+                        case "12 Ore":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(12);
+                            break;
+
+                        case "Giornaliera":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(24);
+                            break;
+
+                        case "Settimanale":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(168);
+                            break;
+
+                        case "Mensile":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(720);
+                            break;
+
+                        case "Annuale":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(8760);
+                            break;
+                    }
+
+                }
+                else
+                {
+                    $timeRange = "last=1";
+                }
+            }
+
+            if(isset($_SESSION['refreshToken'])) {
+                $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
+            }
+
+            $myKPIId = $dataOrigin->metricId;
+
+            $genFileContent = parse_ini_file("../conf/environment.ini");
+            $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
+            $env = $genFileContent['environment']['value'];
+
+            $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
+
+            $myKpiDataArray = [];
+            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . $timeRange;
+
+            $options = array(
+                'http' => array(
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method' => 'GET',
+                    'timeout' => 30,
+                    'ignore_errors' => true
+                )
+            );
+
+            $context = stream_context_create($options);
+            $myKPIDataJson = file_get_contents($apiUrl, false, $context);
+
+            $myKPIDataOwnedArray = json_decode($myKPIDataJson);
+
+            $myKPIDataArray = [];
+
+            $myKPIDataJson = json_encode($myKPIDataOwnedArray);
+
+            break;
+
         //Poi si aggiungeranno le altre sorgenti dati
         default:
             $response['result'] = "NotImplemented";

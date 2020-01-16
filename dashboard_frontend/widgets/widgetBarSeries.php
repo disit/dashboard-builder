@@ -52,6 +52,64 @@
         console.log("Entrato in widgetBarSeries --> " + widgetName);
 
         //Definizioni di funzione specifiche del widget
+
+        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels) {
+
+            var deviceLabels = [];
+            var metricLabels = [];
+
+            metricLabels = getMetricLabelsForBarSeries(rowParameters);
+            deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
+            let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
+
+            xAxisCategories = metricLabels.slice();
+
+            widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+
+            chartSeriesObject = getChartSeriesObject(series, editLabels);
+            legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+            //    xAxisCategories = getXAxisCategories(series, widgetHeight);
+
+            if(firstLoad !== false)
+            {
+                showWidgetContent(widgetName);
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+            }
+            else
+            {
+                elToEmpty.empty();
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+            }
+
+            if (!serviceUri) {
+                $.ajax({
+                    url: "../widgets/updateBarSeriesParameters.php",
+                    type: "GET",
+                    data: {
+                        widgetName: "<?= $_REQUEST['name_w'] ?>",
+                        series: series
+                    },
+                    async: true,
+                    dataType: 'json',
+                    success: function (widgetData) {
+
+                    },
+                    error: function (errorData) {
+                        metricData = null;
+                        console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
+                        console.log(JSON.stringify(errorData));
+                    }
+                });
+            }
+            drawDiagram();
+
+        }
+
         function showModalFieldsInfoFirstAxis()
         {
             var label = $(this).attr("data-label");
@@ -1197,8 +1255,6 @@
                                 var timeRange = null;
                                 var urlToCall = "";
                                 var xlabels = [];
-                                var deviceLabels = [];
-                                var metricLabels = [];
                                 let smUrl = "";
                                 if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
                                     smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
@@ -1256,60 +1312,29 @@
                                     //if (endFlag === true) {
                                     // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                     if (rowParameters.length === seriesDataArray.length) {
-                                        let stopFlag = 1;
                                         // DO FINAL SERIALIZATION
-                                        metricLabels = getMetricLabelsForBarSeries(rowParameters);
-                                        deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
-                                        let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
-                                        series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
-
-                                        xAxisCategories = metricLabels.slice();
-
-                                        widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
-
-                                        chartSeriesObject = getChartSeriesObject(series, editLabels);
-                                        legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
-                                    //    xAxisCategories = getXAxisCategories(series, widgetHeight);
-
-                                        if(firstLoad !== false)
-                                        {
-                                            showWidgetContent(widgetName);
-                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                        }
-                                        else
-                                        {
-                                            elToEmpty.empty();
-                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                        }
-
-                                        if (!serviceUri) {
-                                            $.ajax({
-                                                url: "../widgets/updateBarSeriesParameters.php",
-                                                type: "GET",
-                                                data: {
-                                                    widgetName: "<?= $_REQUEST['name_w'] ?>",
-                                                    series: series
-                                                },
-                                                async: true,
-                                                dataType: 'json',
-                                                success: function (widgetData) {
-
-                                                },
-                                                error: function (errorData) {
-                                                    metricData = null;
-                                                    console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
-                                                    console.log(JSON.stringify(errorData));
-                                                }
-                                            });
-                                        }
-                                        drawDiagram();
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels);
                                     }
 
                                 });
+                                break;
+
+                            case "Dynamic":
+                                let extractedData = {};
+                                extractedData.value = rowParameters[i].value;
+                                extractedData.metricType = rowParameters[i].metricType;
+                                extractedData.metricId = rowParameters[i].metricId;
+                                extractedData.metricName = rowParameters[i].metricName;
+                                extractedData.measuredTime = rowParameters[i].measuredTime;
+                                extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
+
+                                seriesDataArray.push(extractedData);
+
+                                if (rowParameters.length === seriesDataArray.length) {
+                                    // DO FINAL SERIALIZATION
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels)
+                                }
+
                                 break;
 
                             case "MyKPI":
@@ -1317,86 +1342,25 @@
                             //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
                                 let aggregationCell = [];
                                 var xlabels = [];
-                                var deviceLabels = [];
-                                var metricLabels = [];
                                 let kpiMetricName =  rowParameters[i].metricName;
                                 let kpiMetricType =  rowParameters[i].metricType;
                                 if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
                                     rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
                                 }
-                                getMyKPIValues(rowParameters, i, null, 1, function(extractedData) {
+                                getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
 
-                                    if(extractedData) {
+                                    if (extractedData) {
                                         seriesDataArray.push(extractedData);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         console.log("Dati Smart City non presenti");
                                         seriesDataArray.push(undefined);
                                     }
                                     //if (endFlag === true) {
                                     // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                     if (rowParameters.length === seriesDataArray.length) {
-                                        let stopFlag = 1;
                                         // DO FINAL SERIALIZATION
-                                        metricLabels = getMetricLabelsForBarSeries(rowParameters);
-                                    //    deviceLabels = getMyKpiLabelsForBarSeries(rowParameters);
-                                        deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
-                                        let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
-                                        series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
-
-                                    /*    for(n = 0; n < seriesDataArray.length; n++) {
-                                            if (!xlabels.includes(seriesDataArray[n].metricType)) {
-                                                xlabels.push(seriesDataArray[n].metricType);
-                                            }
-                                        }   */
-
-                                        xAxisCategories = metricLabels.slice();
-
-                                        widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
-
-                                        chartSeriesObject = getChartSeriesObject(series, editLabels);
-                                        legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
-                                        //    xAxisCategories = getXAxisCategories(series, widgetHeight);
-
-                                        if(firstLoad !== false)
-                                        {
-                                            showWidgetContent(widgetName);
-                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                        }
-                                        else
-                                        {
-                                            elToEmpty.empty();
-                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                        }
-
-                                        if (!serviceUri) {
-                                            $.ajax({
-                                                url: "../widgets/updateBarSeriesParameters.php",
-                                                type: "GET",
-                                                data: {
-                                                    widgetName: "<?= $_REQUEST['name_w'] ?>",
-                                                    series: series
-                                                },
-                                                async: true,
-                                                dataType: 'json',
-                                                success: function (widgetData) {
-
-                                                },
-                                                error: function (errorData) {
-                                                    metricData = null;
-                                                    console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
-                                                    console.log(JSON.stringify(errorData));
-                                                }
-                                            });
-                                        }
-                                        drawDiagram();
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels)
                                     }
-
 
                                 });
                                 break;
