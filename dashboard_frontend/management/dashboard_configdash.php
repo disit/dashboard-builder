@@ -23958,7 +23958,7 @@
 
                                         //Chart type
                                         newLabel = $('<label for="chartTypeM" class="col-md-2 control-label">Chart type</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInnerDiv = $('<div class="col-md-3" id="chartTypeDiv"></div>');
                                         newSelect = $('<select class="form-control" id="chartTypeM" name="chartTypeM"></select>');
                                         newSelect.append("<option value='lines'>Simple lines</option>");
                                         newSelect.append("<option value='area'>Area lines</option>");
@@ -23970,6 +23970,13 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
+
+                                        $("#chartTypeDiv").on("change", function() {
+                                            // if Stacekd Option is selected, a message is shown explaining it works only with equally-sampled data series
+                                            if (this.children[0].options[2].selected === true) {
+                                                alert('Please note that the Stacked Areas option correctly works only for equally-sampled data series!');
+                                            }
+                                        });
                                         
                                         //Nuova riga
                                         //Data labels

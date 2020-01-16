@@ -1089,6 +1089,7 @@
                                 roundedVal = parseFloat(aggregationGetData[i].data[j].value_perc1);
                                 roundedVal = Number(roundedVal.toFixed(2));
                                 sampleTime = parseInt(new Date(aggregationGetData[i].data[j].computationDate).getTime() + 7200000);
+                              //  sampleTime = parseInt(new Date(aggregationGetData[i].data[j].computationDate).getTime());
                                 singleSample = [sampleTime, roundedVal];
                                 singleSeriesData.push(singleSample);
                             }
@@ -1102,6 +1103,7 @@
                                     {
                                         roundedVal = parseInt(aggregationGetData[i].data[j].value_num);
                                         sampleTime = parseInt(new Date(aggregationGetData[i].data[j].computationDate).getTime() + 7200000);
+                                     //   sampleTime = parseInt(new Date(aggregationGetData[i].data[j].computationDate).getTime());
                                         singleSample = [sampleTime, roundedVal];
                                         singleSeriesData.push(singleSample);
                                     }
@@ -1113,6 +1115,7 @@
                                         roundedVal = parseFloat(aggregationGetData[i].data[j].value_num);
                                         roundedVal = Number(roundedVal.toFixed(2));
                                         sampleTime = parseInt(new Date(aggregationGetData[i].data[j].computationDate).getTime() + 7200000);
+                                    //    sampleTime = parseInt(new Date(aggregationGetData[i].data[j].computationDate).getTime());
                                         singleSample = [sampleTime, roundedVal];
                                         singleSeriesData.push(singleSample);
                                     }
@@ -1154,12 +1157,58 @@
                         chartSeriesObject.push(seriesSingleObj);
                         break;
 
+                    case "MyKPI":
+
+                        var smPayload = aggregationGetData[i].data;
+                        var smField = aggregationGetData[i].smField;
+                        smPayload = JSON.parse(smPayload);
+
+                        var objName = null;
+                        if (editLabels != null) {
+                            if (editLabels.length > 0) {
+                                objName = editLabels[i];
+                            } else {
+                                objName = aggregationGetData[i].metricName;
+                            }
+                        } else {
+                            objName = aggregationGetData[i].metricName;
+                        }
+
+                        seriesSingleObj = {
+                            showInLegend: true,
+                            name: aggregationGetData[i].metricShortDesc,
+                            data: singleSeriesData,
+                            color: styleParameters.barsColors[i],
+                            dataLabels: {
+                                useHTML: false,
+                                enabled: false,
+                                inside: true,
+                                rotation: dataLabelsRotation,
+                                overflow: 'justify',
+                                crop: true,
+                                align: dataLabelsAlign,
+                                verticalAlign: dataLabelsVerticalAlign,
+                                y: dataLabelsY,
+                                formatter: labelsFormat,
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.dataLabelsFontSize + "px",
+                                    color: styleParameters.dataLabelsFontColor,
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
+                                }
+                            }
+                        }
+
+                        break;
+
                     case "Sensor":
                         var smPayload = aggregationGetData[i].data;
                         var smField = aggregationGetData[i].smField;
                         smPayload = JSON.parse(smPayload);
 
-                        let objName = null;
+                        var objName = null;
                         if (editLabels != null) {
                             if (editLabels.length > 0) {
                                 objName = editLabels[i];
@@ -1191,7 +1240,8 @@
                                 {
                                     roundedVal = parseFloat(newVal);
                                     roundedVal = Number(roundedVal.toFixed(2));
-                                    sampleTime = parseInt(new Date(newTime).getTime() + 7200000);
+                                    //sampleTime = parseInt(new Date(newTime).getTime() + 7200000);
+                                    sampleTime = parseInt(new Date(newTime).getTime());
                                     singleSample = [sampleTime, roundedVal];
                                     singleSeriesData.push(singleSample);
                                 }
@@ -1267,7 +1317,8 @@
                                         {
                                             roundedVal = parseFloat(newVal);
                                             roundedVal = Number(roundedVal.toFixed(2));
-                                            sampleTime = parseInt(new Date(newTime).getTime() + 7200000);
+                                            //sampleTime = parseInt(new Date(newTime).getTime() + 7200000);
+                                            sampleTime = parseInt(new Date(newTime).getTime());
                                             singleSample = [sampleTime, roundedVal];
                                             singleSeriesData.push(singleSample);
                                         }

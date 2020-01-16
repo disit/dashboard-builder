@@ -881,6 +881,10 @@ function getMetricLabelsForBarSeries(dataArray) {
             if (!metricLabels.includes(dataArray[n].smField)) {
                 metricLabels.push(dataArray[n].smField);
             }
+        } else if (dataArray[n].metricHighLevelType == "KPI") {
+            if (!metricLabels.includes(dataArray[n].metricId)) {
+                metricLabels.push(dataArray[n].metricId);
+            }
         }
     }
     return metricLabels;
