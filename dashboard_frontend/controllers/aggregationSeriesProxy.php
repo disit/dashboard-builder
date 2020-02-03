@@ -22,6 +22,23 @@
 
     session_start();
 
+    function getMyKPIUpperTimeLimit($hoursOffset) {
+
+        // Current date and time
+        $datetime = date("Y-m-d H:i:s");
+
+        // Convert datetime to Unix timestamp
+        $timestamp = strtotime($datetime);
+
+        // Subtract time from datetime
+        $time = $timestamp - ($hoursOffset * 60 * 60);
+
+        // Date and time after subtraction
+        $datetime = date("Y-m-d H:i:s", $time);
+
+        return $datetime;
+    }
+
     function getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint) {
         $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
         $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
@@ -38,6 +55,12 @@
     $metricType = null;
     $dataOrigin = json_decode($_REQUEST['dataOrigin']);
     $index = $_REQUEST['index'];
+    if (strcmp($dataOrigin->metricHighLevelType, "Sensor" == 0) || strcmp($dataOrigin->metricHighLevelType, "MyKPI" == 0)) {
+        if(isset($_SESSION['refreshToken'])) {
+            $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
+        }
+    }
+    session_write_close();
     
     switch($dataOrigin->metricHighLevelType)
     {
@@ -165,9 +188,9 @@
                 $smUrl = $orgKbUrl . $dataOrigin->serviceUri . "&format=json";
             }*/
 
-            if(isset($_SESSION['refreshToken'])) {
+        /*    if(isset($_SESSION['refreshToken'])) {
                 $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
-            }
+            }   */
 
             $smUrl = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
 
@@ -234,7 +257,7 @@
             }
 
         //    $smPayload = file_get_contents($urlToCall);
-        if(strpos($http_response_header[0], '200') !== false)
+            if(strpos($http_response_header[0], '200') !== false)
     //    if ($result)
             {
                 $data = json_decode($result);
@@ -293,11 +316,15 @@
                 }
             }
 
-            if(isset($_SESSION['refreshToken'])) {
+            $timeRange = str_replace(" ","T", $timeRange);
+        /*    if(isset($_SESSION['refreshToken'])) {
                 $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
-            }
+            }*/
 
             $myKPIId = $dataOrigin->metricId;
+            IF (strpos($myKPIId, 'datamanager/api/v1/poidata/') !== false) {
+                $myKPIId = explode("datamanager/api/v1/poidata/", $myKPIId)[1];
+            }
 
             $genFileContent = parse_ini_file("../conf/environment.ini");
             $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
@@ -306,7 +333,7 @@
             $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
 
             $myKpiDataArray = [];
-            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . $timeRange;
+            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&" . $timeRange;
 
             $options = array(
                 'http' => array(
@@ -320,11 +347,38 @@
             $context = stream_context_create($options);
             $myKPIDataJson = file_get_contents($apiUrl, false, $context);
 
-            $myKPIDataOwnedArray = json_decode($myKPIDataJson);
+            $apiUrlUnit = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
+            $optionsUnit = array(
+                'http' => array(
+                    'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method' => 'GET',
+                    'timeout' => 30,
+                    'ignore_errors' => true
+                )
+            );
 
-            $myKPIDataArray = [];
+            $contextUnit = stream_context_create($optionsUnit);
+            $myKpiUnitJson = file_get_contents($apiUrlUnit, false, $contextUnit);
 
-            $myKPIDataJson = json_encode($myKPIDataOwnedArray);
+            $myKpiUnit = json_decode($myKpiUnitJson);
+
+            if(strpos($http_response_header[0], '200') !== false)
+                //    if ($result)
+            {
+                $data = json_decode($myKPIDataJson);
+                $response['result'] = 'Ok';
+                $response['data'] = $myKPIDataJson;
+                $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
+                $response['smField'] = $dataOrigin->smField;
+                $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                $response['metricValueUnit'] = $myKpiUnit->valueUnit;
+                $response['index'] = $index;
+            }
+            else
+            {
+                $response['result'] = "Call to MyKPI API KO";
+                $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
+            }
 
             break;
 

@@ -3113,6 +3113,13 @@ $title = $_REQUEST['title_w'];
                                             onEachFeature: onEachFeature
                                         }).addTo(map.defaultMapRef);
                                     }
+                                    
+                                    // CORTI - tentativo di inserimento icone in mappa 3D
+//                                    if(is3DViewOn){
+////                                      var geoJSON3D = { "type": "FeatureCollection", "features": ciclePathFeature };
+//                                        map.default3DMapRef.addGeoJSON("http://dashboard/dashboardSmartCity/widgets/layers/edificato/cyclingPaths.geojson");
+//                                        console.log(JSON.stringify(fatherGeoJsonNode));
+//                                    }
 
                                     if (loadingDiv) {
                                         loadingDiv.empty();
@@ -3201,8 +3208,11 @@ $title = $_REQUEST['title_w'];
                                                                 
                                                                 // CORTI - geoJSON 3D
                                                                 // Tentativo di aggiungere json piste ciclabili al 3d
-//                                                                var json3D = { "type": "FeatureCollection", "features": ciclePathFeature };
-//                                                                map.default3DMapRef.addGeoJSON(json3D);
+//                                                                if(is3DViewOn){
+//                                                                    var geoJSON3D = { "type": "FeatureCollection", "features": ciclePathFeature };
+//                                                                    map.default3DMapRef.addGeoJSON("http://dashboard/dashboardSmartCity/widgets/layers/edificato/cyclingPaths.geojson");
+//                                                                    console.log(JSON.stringify(geoJSON3D));
+//                                                                }
                                                                 
                                                                 gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                             }
@@ -5151,6 +5161,13 @@ $title = $_REQUEST['title_w'];
                                                         //  attribution: "IGN ©"
                                                         pane: 'Snap4City:' + wmsDatasetName,
                                                     }).addTo(map.defaultMapRef);
+                                                            console.log('Snap4City:' + wmsDatasetName);
+                                                            // CORTI - inclusione heatmap nella mappa 3d
+//                                                            if(is3DViewOn){
+//                                                                console.log("Loading hm1");
+//                                                                console.log("Snap4City:" + wmsDatasetName);
+//                                                                map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&request=GetMap&layers=Snap4City:' + wmsDatasetName + '&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=2019-04-18T08%3A43%3A24.000Z&tiled=true&width=256&height=256&srs=EPSG%3A4326&bbox=10.230986328125,42.75109381775651,12.291972656250002,44.79902662160831');
+//                                                            }
 
                                                     //    current_opacity = 0.5;
 
@@ -5634,6 +5651,14 @@ $title = $_REQUEST['title_w'];
                                                         tiled: true
                                                                 //  attribution: "IGN ©"
                                                     }).addTo(map.defaultMapRef);
+                                                            console.log('Snap4City:' + wmsDatasetName);
+                                                            
+                                                            // CORTI - inclusione heatmap nella mappa 3d
+//                                                            if(is3DViewOn){
+//                                                                console.log("Loading hm2");
+//                                                                console.log("Snap4City:" + wmsDatasetName);
+//                                                                map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&request=GetMap&layers=Snap4City:' + wmsDatasetName + '&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=2019-04-18T08%3A43%3A24.000Z&tiled=true&width=256&height=256&srs=EPSG%3A4326&bbox=10.230986328125,42.75109381775651,12.291972656250002,44.79902662160831');
+//                                                            }
 
                                                     // add legend to map
                                                     map.legendHeatmap.addTo(map.defaultMapRef);
@@ -9361,17 +9386,14 @@ $title = $_REQUEST['title_w'];
                     minZoom: 13,
                     maxZoom: 18,
                     tilt: 45,
+//                    fastMode: true,
                     attribution: '© Data <a href="https://openstreetmap.org/copyright/">OpenStreetMap</a> © Map <a href="https://mapbox.com/">Mapbox</a> © 3D <a href="https://osmbuildings.org/copyright/">OSM Buildings</a>'
                 });
 
                 map.default3DMapRef.addMapTiles('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png');
 
-                // standard
-//                map.default3DMapRef.addGeoJSONTiles('https://{s}.data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json');
-
-                // local - MAIN!!!!!!!!
-                //map.default3DMapRef.addGeoJSONTiles('http://dashboard/dashboardSmartCity/widgets/layers/edificato/{s}/{z}/{x}/{y}.json');
-                buildings3d = map.default3DMapRef.addGeoJSONTiles('https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/{s}/{z}/{x}/{y}.json');
+                // edifici
+                loadBuildings();
 
                 clear2DMap();
 
@@ -9493,9 +9515,24 @@ $title = $_REQUEST['title_w'];
                 });
 
             }
+            
+            function loadBuildings(){
+                // standard
+//                map.default3DMapRef.addGeoJSONTiles('https://{s}.data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json');
+//                
+                // mappe OSMB
+//              buildings3d = map.default3DMapRef.addGeoJSONTiles('http://dashboard/dashboardSmartCity/widgets/layers/edificato/{s}/{z}/{x}/{y}.json');
+//              
+                // mappe DISIT
+              //  buildings3d = map.default3DMapRef.addGeoJSON('http://localhost/dashboardSmartCity/widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+                buildings3d = map.default3DMapRef.addGeoJSON('https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+            }
 
             function setUIZoomValue() {
                 $('.zoom-info-value').text(Math.round(map.default3DMapRef.getZoom() * 10) / 10);
+                
+                // perspective origin
+                $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 400px');
             }
 
             function clear2DMap(resetSensors = true) {
@@ -9646,7 +9683,8 @@ $title = $_REQUEST['title_w'];
 
                     // 3D map - TMS for GeoServer
                     if (is3DViewOn) {
-                        map.default3DMapRef.addMapTiles('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/' + menu.layers[subLayerIndex].name + '@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+                    //    map.default3DMapRef.addMapTiles('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/' + menu.layers[subLayerIndex].name + '@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+                        map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/gwc/service/tms/1.0.0/' + menu.layers[subLayerIndex].name + '@EPSG%3A900913@png/{z}/{x}/{y}.png', {
                             maxZoom: 18,
                             tms: true,
                             crs: L.CRS.EPSG4326,
@@ -9781,7 +9819,9 @@ $title = $_REQUEST['title_w'];
                     
                     // reload edifici
                     map.default3DMapRef.remove(buildings3d);
-                    buildings3d = map.default3DMapRef.addGeoJSONTiles('http://dashboard/dashboardSmartCity/widgets/layers/edificato/{s}/{z}/{x}/{y}.json');
+
+                    // edifici
+                    loadBuildings();
                 }
 
                 // example of TMS for GeoServer
@@ -9852,22 +9892,22 @@ $title = $_REQUEST['title_w'];
                 zoomOffset = Math.round(zoomOffset * 100) / 100;
                 marginTopOffset = 120;
                 popupBottom = popupBottom45deg;
-                $map2DElem.find('.perspective-div').css('perspective-origin', '583px 400px');
+                $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 400px');
                 if (tilt === 65) {
                     marginTopOffset = 205;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', '583px 307px');
+                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 307px');
                     popupBottom = -140;
                 } else if (tilt < 65 && tilt >= 60) {
                     marginTopOffset = 179.5;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', '583px 322px');
+                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 322px');
                     popupBottom = -160;
                 } else if (tilt < 60 && tilt >= 55) {
                     marginTopOffset = 159;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', '583px 349px');
+                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 349px');
                     popupBottom = -180;
                 } else if (tilt < 55 && tilt >= 50) {
                     marginTopOffset = 133.5;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', '583px 351px');
+                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 351px');
                     popupBottom = -200;
                 } else if (tilt < 50 && tilt >= 45) {
                     marginTopOffset = 120;
@@ -10107,7 +10147,7 @@ $title = $_REQUEST['title_w'];
 
     .zoom-info{
         top: 100px;
-        left: -1030px;
+        left: -55px;
         opacity: 1;
     }
 </style>
@@ -10157,7 +10197,7 @@ $title = $_REQUEST['title_w'];
 
                 <!-- Correzione 1 -->
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map"
-                     style="height: 531px; width: 100%;"></div>
+                     style="height: 100%; width: 100%;"></div>
 
                 <!-- Layers & 3D -->
                 <div class="dropdown" id="mapOptions">

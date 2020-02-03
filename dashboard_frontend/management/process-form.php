@@ -716,6 +716,7 @@
                 }
                 $newOrionEntityJson = NULL;
                 $attributeName = NULL;
+                $groupByAttr = NULL;
                 
                 if(isset($_REQUEST['actuatorTarget']))
                 {
@@ -1240,6 +1241,11 @@
                         $dataLabelsRotation = mysqli_real_escape_string($link, sanitizePostString('dataLabelsRotation'));       // New pentest
                     }
 
+                    if(isset($_POST['groupByAttr'])&&($_POST['groupByAttr']!=""))
+                    {
+                        $groupByAttr = mysqli_real_escape_string($link, sanitizePostString('groupByAttr'));      // New pentest
+                    }
+
                     $styleParametersArray = array();
                     $styleParametersArray['rowsLabelsFontSize'] = $rowsLabelsFontSize;
                     $styleParametersArray['rowsLabelsFontColor'] = $rowsLabelsFontColor;
@@ -1265,6 +1271,7 @@
                     }
 
                     $styleParametersArray['barsColors'] = $barsColors;
+                    $styleParametersArray['groupByAttr'] = $groupByAttr;
                     $styleParameters = json_encode($styleParametersArray);
                 }
 
@@ -2504,6 +2511,7 @@
         } else {
             $fontFamily = mysqli_real_escape_string($link, sanitizePostString('inputFontFamilyWidgetM'));
         }
+        $groupByAttrM = NULL;
         
         $lastEditDate = date('Y-m-d H:i:s');
         
@@ -3021,6 +3029,11 @@
                 }
             }
 
+            if(isset($_POST['groupByAttrM'])&&($_POST['groupByAttrM']!=""))
+            {
+                $groupByAttrM = mysqli_real_escape_string($link, sanitizePostString('groupByAttrM'));      // New pentest
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
@@ -3047,6 +3060,7 @@
             }
 
             $styleParametersArrayM['barsColors'] = $barsColorsM;
+            $styleParametersArrayM['groupByAttr'] = $groupByAttrM;
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 

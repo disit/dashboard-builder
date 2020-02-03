@@ -51,6 +51,8 @@
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var needWebSocket = false;
+
+        console.log("Entrato in widgetGaugeChart --> " + widgetName);
         
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function(event) 

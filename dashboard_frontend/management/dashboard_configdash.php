@@ -16292,7 +16292,7 @@
                                 var info_mess = data['info_mess'];
                                 $("#inputShowTitleM").val(data['showTitle']);
                                 
-                                if((entityJson !== null)||(data.actuatorTarget === 'app'))
+                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries")
                                 {
                                     $('#actuatorTargetM').parents('div.row').show();
                                     if((data.actuatorTarget === 'app'))
@@ -24516,7 +24516,7 @@
                                     case "widgetBarSeries":
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        if (metricData.data.length != 0) {
+                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
@@ -24618,7 +24618,22 @@
                                         
                                         //RIMOZIONE CAMPI PER TUTTI GLI ALTRI WIDGET
                                         $('#specificParamsM .row').remove();
-                                        
+
+                                        //Group-by attribute
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="groupByAttrM" class="col-md-2 control-label">Group Bars by Attribute</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="groupByAttrM" name="groupByAttrM" required>');
+                                        newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                        newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+
                                         //Nuova riga
                                         //Rows labels font size
                                         newFormRow = $('<div class="row"></div>');
@@ -24889,11 +24904,16 @@
                                         for (var n = 0; n < deviceLabels.length; n++) {
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Device #' + (n+1).toString() + ' Label</label>');
+                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Data #' + (n+1).toString() + ' Label</label>');
                                             newInnerDiv = $('<div class="col-md-7"></div>');
                                             var placeholderStr = "";
                                             if (styleParameters.editDeviceLabels != null) {
-                                                placeholderStr = styleParameters.editDeviceLabels[n];
+                                                if (styleParameters.editDeviceLabels.lenght == deviceLabels.length) {
+                                                    placeholderStr = styleParameters.editDeviceLabels[n];
+                                                } else {
+                                                    // flipped case
+                                                    placeholderStr = deviceLabels[n];
+                                                }
                                             } else {
                                                 placeholderStr = deviceLabels[n];
                                             }

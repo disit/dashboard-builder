@@ -439,7 +439,8 @@ if (!empty($_REQUEST["filterDistinct"])) {
                     }
                 }  else if ($allowedRecord[1] === 'ServiceURI') {
                     if (strpos($allowedRecord[0], $allowedRecord[2]) !== false) {
-                        $whereAll = $whereAll . " OR (get_instances = '" . str_replace("/".$allowedRecord[2],'',$allowedRecord[0]) . "' AND low_level_type = '". $allowedRecord[2] ."')";
+                        // $whereAll = $whereAll . " OR (get_instances = '" . str_replace("/".$allowedRecord[2],'',$allowedRecord[0]) . "' AND low_level_type = '". $allowedRecord[2] ."')";
+                        $whereAll = $whereAll . " OR (get_instances = '" . substr($allowedRecord[0], 0, strrpos( $allowedRecord[0], '/')) . "' AND low_level_type = '". $allowedRecord[2] ."')";
                     } else {
                         $whereAll = $whereAll . " OR get_instances = '" . $allowedRecord[0] . "'";
                     }
@@ -1091,7 +1092,8 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                     }
                 }  else if ($allowedRecord[1] === 'ServiceURI') {
                     if (strpos($allowedRecord[0], $allowedRecord[2]) !== false) {
-                        $whereAll = $whereAll . " OR (get_instances = '" . str_replace("/".$allowedRecord[2],'',$allowedRecord[0]) . "' AND low_level_type = '". $allowedRecord[2] ."')";
+                    //    $whereAll = $whereAll . " OR (get_instances = '" . str_replace("/".$allowedRecord[2],'',$allowedRecord[0]) . "' AND low_level_type = '". $allowedRecord[2] ."')";
+                        $whereAll = $whereAll . " OR (get_instances = '" . substr($allowedRecord[0], 0, strrpos( $allowedRecord[0], '/')) . "' AND low_level_type = '". $allowedRecord[2] ."')";
                     } else {
                         $whereAll = $whereAll . " OR get_instances = '" . $allowedRecord[0] . "'";
                     }
@@ -1271,7 +1273,8 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                     //    if ($privateString == '') {
                     foreach ($delegatedElements as $delegatedElement) {
                         if ($delegatedElement['elementType'] == "ServiceURI") {
-                            if ($out['data'][$n][14] == str_replace("/" . $allowedRecord[2], '', $allowedRecord[0])) {
+                            //if ($out['data'][$n][14] == str_replace("/" . $allowedRecord[2], '', $allowedRecord[0])) {
+                            if ($out['data'][$n][14] == substr($allowedRecord[0], 0, strrpos( $allowedRecord[0], '/'))) {
                                 $privateString = "private (Delegated)";
                                 $out['data'][$n][15] = $privateString;
                             }

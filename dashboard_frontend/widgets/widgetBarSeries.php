@@ -38,7 +38,7 @@
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_table");
         var metricData, metricType, series, index, styleParameters, chartSeriesObject, fontSize, fontColor, legendWidth, xAxisCategories, chartType, highchartsChartType, chartColor, dataLabelsFontColor, 
             dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, stackingOption, dataLabelsFontSize, chartLabelsFontSize, 
-            widgetHeight, metricName, aggregationGetData, getDataFinishCount, widgetTitle, countdownRef, chartRef, widgetParameters, infoJson, thresholdsJson, rowParameters, chartLabelsFontColor, appId, flowId, nrMetricType = null;
+            widgetHeight, metricName, aggregationGetData, getDataFinishCount, widgetTitle, countdownRef, chartRef, widgetParameters, infoJson, thresholdsJson, rowParameters, chartLabelsFontColor, appId, flowId, nrMetricType, groupByAttr = null;
         var headerHeight = 25;      
         var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
@@ -48,20 +48,41 @@
         var pattern = /Percentuale\//;
         var seriesDataArray = [];
         var serviceUri = "";
+        var flipFlag = false;
 
         console.log("Entrato in widgetBarSeries --> " + widgetName);
 
         //Definizioni di funzione specifiche del widget
 
-        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels) {
+        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr) {
 
             var deviceLabels = [];
             var metricLabels = [];
+            var auxLabels = [];
+            let mappedSeriesDataArray = [];
 
             metricLabels = getMetricLabelsForBarSeries(rowParameters);
             deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
-            let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
-            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
+            if (groupByAttr != null) {
+                //if (groupByAttr == "metrics") {
+                if (groupByAttr == "value type") {
+                    flipFlag = false;
+            //    } else if (groupByAttr == "device") {
+                } else if (groupByAttr == "value name") {
+                    flipFlag = true;
+                }
+            } else {
+                flipFlag = false;
+            }
+            if (flipFlag !== true) {
+                mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+            } else {
+                mappedSeriesDataArray = buildBarSeriesArrayMap2(seriesDataArray);
+                auxLabels = metricLabels;
+                metricLabels = deviceLabels;
+                deviceLabels = auxLabels;
+            }
+            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
 
             xAxisCategories = metricLabels.slice();
 
@@ -86,7 +107,7 @@
                 $("#<?= $_REQUEST['name_w'] ?>_table").show();
             }
 
-            if (!serviceUri) {
+          //  if (!serviceUri) {
                 $.ajax({
                     url: "../widgets/updateBarSeriesParameters.php",
                     type: "GET",
@@ -105,7 +126,7 @@
                         console.log(JSON.stringify(errorData));
                     }
                 });
-            }
+          //  }
             drawDiagram();
 
         }
@@ -185,7 +206,12 @@
                     for (var i in series.secondAxis.series) 
                     {
                         if (xAxisLabelsEdit != null) {
-                            seriesName = xAxisLabelsEdit[i];
+                            if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
+                                seriesName = xAxisLabelsEdit[i];
+                            } else {
+                                // flipped case
+                                seriesName = series.secondAxis.labels[i];
+                            }
                         } else {
                             seriesName = series.secondAxis.labels[i];
                         }
@@ -255,6 +281,18 @@
         
         function drawDiagram()
         {
+         /*   let primoasse = series.firstAxis;
+            let secondoasse = series.secondAxis;
+            series.firstAxis = secondoasse;
+            series.secondAxis = primoasse;*/
+            let deviceLabels = series.secondAxis.labels;
+            let metricLabels = series.firstAxis.labels;
+        //    let flippedChartSeriesObject = chartSeriesObject;
+         //   let flippedChartSeriesObjDataLabels = chartSeriesObject;
+            if (flipFlag === true) {
+             //   flipSerie(metricLabels, deviceLabels);
+             //   xAxisCategories = deviceLabels;
+            }
             let yAxisText = null;
             if (seriesDataArray.length > 0) {
                 yAxisText = seriesDataArray[0].metricValueUnit;
@@ -289,7 +327,7 @@
                     title: {
                         align: 'high',
                         offset: 20,
-                        text: series.firstAxis.desc,
+                    //    text: series.firstAxis.desc,
                         rotation: 0,
                         y: 5,
                         style: {
@@ -952,11 +990,13 @@
         {
             var seriesObj = {  
                 firstAxis:{  
-                   desc:"Metrics",
+                   //desc:"Metrics",
+                   desc:"value type",
                    labels:[]
                 },
                 secondAxis:{  
-                   "desc":"Values",
+                //   "desc":"Values",
+                   "desc":"value name",
                    "labels":[],
                    "series":[]
                 }
@@ -1003,6 +1043,33 @@
             }
             return seriesObj; 
         }
+
+        function flipSerie(metricLabels, deviceLabels) {
+
+            let newSerie = [];
+            let flippedChartSeriesObject = [];
+            xAxisCategories = deviceLabels;
+            for (let i = 0; i < metricLabels.length; i++) {
+                newSerie[i] = [];
+                for (let j = 0; j < deviceLabels.length; j++) {
+
+                    newSerie[i].push(series.secondAxis.series[j][i]);
+
+                }
+            }
+            /*    series.firstAxis.series = [];
+                series.firstAxis.series.push(newSerie);
+                series.secondAxis.series = [];*/
+            for (let i = 0; i < metricLabels.length; i++) {
+                flippedChartSeriesObject[i] = [];
+                flippedChartSeriesObject[i].name = metricLabels[i];
+                flippedChartSeriesObject[i].data = newSerie[i];
+                flippedChartSeriesObject[i].dataLabels = chartSeriesObject[0].dataLabels;
+            }
+            chartSeriesObject = flippedChartSeriesObject;
+
+        }
+
         //Fine definizioni di funzione  
         
         $(document).off('changeMetricFromButton_' + widgetName);
@@ -1095,6 +1162,7 @@
                 if((widgetData.params.styleParameters !== "")&&(widgetData.params.styleParameters !== "null"))
                 {
                     styleParameters = JSON.parse(widgetData.params.styleParameters);
+                    groupByAttr = styleParameters['groupByAttr'];
                 }
 
                 if(widgetData.params.parameters !== null)
@@ -1182,7 +1250,7 @@
                     }
                 }
                     
-                if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true)
+                if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true || widgetData.params.id_metric.includes("NR_"))
                 {
                     rowParameters = JSON.parse(rowParameters);
                     aggregationGetData = [];
@@ -1313,7 +1381,7 @@
                                     // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                     if (rowParameters.length === seriesDataArray.length) {
                                         // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels);
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
                                     }
 
                                 });
@@ -1332,7 +1400,7 @@
 
                                 if (rowParameters.length === seriesDataArray.length) {
                                     // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels)
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
                                 }
 
                                 break;
@@ -1359,7 +1427,7 @@
                                     // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                     if (rowParameters.length === seriesDataArray.length) {
                                         // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels)
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
                                     }
 
                                 });
@@ -1477,4 +1545,4 @@
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
     </div>	
-</div> 
+</div>

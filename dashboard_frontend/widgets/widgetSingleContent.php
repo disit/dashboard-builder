@@ -287,7 +287,7 @@
                         }
                         else
                         {
-                            if(udm !== null)
+                            if(udm !== null && udm != '' && udm != ' ')
                             {
                                if(udmPos === 'next')
                                {   

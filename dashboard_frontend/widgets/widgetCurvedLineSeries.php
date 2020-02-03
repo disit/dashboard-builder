@@ -1174,6 +1174,7 @@
                             newVal = resultsArray[j].value;
                             addSampleToTrend = true;
                             newTime = resultsArray[j].insertTime;
+                            chartSeriesObject.valueUnit = "";
 
                             if((newVal.trim() !== '')&&(addSampleToTrend))
                             {
@@ -1213,6 +1214,10 @@
                             }
                         };
 
+                        if (aggregationGetData[i].metricValueUnit != null) {
+                            chartSeriesObject.valueUnit = aggregationGetData[i].metricValueUnit;
+                        }
+
                         chartSeriesObject.push(seriesSingleObj);
 
                         break;
@@ -1221,6 +1226,7 @@
                         var smPayload = aggregationGetData[i].data;
                         var smField = aggregationGetData[i].smField;
                         smPayload = JSON.parse(smPayload);
+                        chartSeriesObject.valueUnit = "";
 
                         var objName = null;
                         if (editLabels != null) {
@@ -1373,12 +1379,10 @@
 
                         if (smPayload.Service != null) {
                             if (smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit != null) {
-                                chartSeriesObject.valueUnit = "";
                                 chartSeriesObject.valueUnit = smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit;
                             }
                         } else if (smPayload.Sensor != null) {
                             if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit != null) {
-                                chartSeriesObject.valueUnit = "";
                                 chartSeriesObject.valueUnit = smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit;
                             }
                         }

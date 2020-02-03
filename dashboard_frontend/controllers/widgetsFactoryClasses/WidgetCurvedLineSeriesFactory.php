@@ -48,6 +48,23 @@ class WidgetCurvedLineSeriesFactory extends aGenericWidgetFactory
                     $myServiceUri = $selectedRow['get_instances'];
                     break;
 
+                case "MyKPI":
+                    $myMetricId = $selectedRow['parameters'];
+                    $myMetricName = $selectedRow['unique_name_id'];
+                    $mySmField = $selectedRow['low_level_type'];
+                    $myServiceUri = $selectedRow['get_instances'];
+
+                    if($selectedRow['parameters']) {
+                        $myMetricId = $selectedRow['parameters'];
+                    } else if($selectedRow['get_instances']) {
+                        $myMetricId = $selectedRow['get_instances'];
+                    }
+
+                    $myMetricName = $selectedRow['unique_name_id'];
+                    $myMetricType = $selectedRow['low_level_type'];
+
+                    break;
+
                 default:
                     //Per ora aggiungiamo solo i KPI e i sensors, poi si specializzerà
                     break;

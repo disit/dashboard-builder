@@ -447,19 +447,20 @@ include "../widgets/widgetTimeTrend_1.php";
                                           </div>
                                           <div role="tabpanel" class="tab-pane" id="HealthinessTab">
                                                     <div class="modal-body">
+                                                            <div class="input-group"><span class="input-group-addon">Value Type: </span><input id="data-low_level_type" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Healthiness Criteria: </span><input id="healthiness_c" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Delay: </span><input id="delay" type="text" class="form-control" readonly/></div><br />
-                                                            <div class="input-group"><span class="input-group-addon">Type: </span><input id="v_type" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Data Type: </span><input id="data_unit" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Period: </span><input id="period" type="text" class="form-control" readonly/></div><br />
-                                                            <div class="input-group"><span class="input-group-addon">Last Check: </span><input id="last_check_health" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Last Update: </span><input id="last_check_health" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Status 1:</span><span class="input-group-addon"><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_1"></i></span><input id="Status_h" type="text" class="form-control" value="" readonly/></div><br />
-                                                            <div class="input-group"><span class="input-group-addon">Status 2:</span><span class="input-group-addon"><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_h" type="text" class="form-control" value="" readonly/></div>
+                                                            <div class="input-group"><span class="input-group-addon">Status 2:</span><span class="input-group-addon"><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/></div>
                                                     </div>
                                           </div>
                                         <div role="tabpanel" class="tab-pane" id="browseTab">
                                                         <div class="modal-body">
-                                                            <div class="input-group"><span class="input-group-addon">Value Type: </span><input id="data-low_level_type" type="text" class="form-control" readonly/></div><br />
-                                                            <div class="input-group"><span class="input-group-addon">Data Type: </span><input id="data_unit" type="text" class="form-control" readonly/></div><br />
+
+
                                                             <div class="input-group"><span class="input-group-addon">Last Date: </span><input id="last_date" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Last Value: </span><input id="last_value" type="text" class="form-control" readonly/></div><br />
                                                                 <table id="healthiness_table" class="addWidgetWizardTable table table-striped dt-responsive nowrap">
@@ -678,6 +679,9 @@ include "../widgets/widgetTimeTrend_1.php";
                                 var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + parameters + "&operation=values&dataType=" + dataTypeMyKpi[0];
                                 $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                             }
+                            //
+                            //$('#iot_link').html('<a href="#" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
+                            //
                             break;
                         case 'MyData':
                             $(".etl_sensor").hide();
@@ -716,7 +720,7 @@ include "../widgets/widgetTimeTrend_1.php";
                             $('#tab3').show();
                             $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                             
-                            if ((parameters.includes("iot")) || (name_Subnature.includes("IoT")) || (name_Nature.includes("IOT")) ){
+                            if ((parameters.includes("iot/")) || (name_Subnature.includes("IoT/")) || (name_Nature.includes("IOT/")) ){
                                 $('#data_source').val("IoT");
                                 $(".iot_sensor").show();
                                 $(".etl_sensor").hide();
@@ -769,7 +773,7 @@ include "../widgets/widgetTimeTrend_1.php";
                             }
                             break;
                         case 'Special Widget':
-                            $('#tab3').show();
+                            $('#tab3').hide();
                             $(".etl_sensor").hide();
                             $(".iot_sensor").hide();
                             $('#data_source').val('Special Process');
@@ -897,44 +901,6 @@ include "../widgets/widgetTimeTrend_1.php";
                                                          }
                                                     }
 
-                                        if((data.realtime !== null)){
-                                                if(typeof data.realtime.results !== "undefined" ){
-                                                         if (typeof data.realtime.results.bindings !== "undefined") {
-                                                             if ((Object.values(data.realtime.results.bindings).length >0)&&(Object.values(data.realtime.results.bindings)!== null)){
-                                                                 key3 = Object.values(data.realtime.results.bindings);
-                                                             }else{
-                                                                 key3 = "";
-                                                             }
-                                                                 //
-                                                                    if (key3[0][name]) {
-                                                                        value_td = key3[0][name]['value'];
-                                                                    } else {
-                                                                        value_td = "";
-                                                                    }
-                                                                    if(key3[0]['measuredTime']['value']){
-                                                                        measured_time = key3[0]['measuredTime']['value'];
-                                                                    }
-                                                                 //
-                                                         }else{
-                                                                 key3 = data.realtime.results;
-                                                                 //
-                                                                    if (key3[0][name]) {
-                                                                        value_td = key3[0][name]['value'];
-                                                                    } else {
-                                                                        value_td = "";
-                                                                    }
-                                                                    if(key3[0]['measuredTime']['value']){
-                                                                        measured_time = key3[0]['measuredTime']['value'];
-                                                                    }
-                                                                 //
-                                                         }
-                                                     }else{
-                                                             key3 = "";
-                                                         }
-                                           }else{
-                                                //key3 = data.realtime.results;
-                                                key3 = "";
-                                           }
                                  }else{
                                      key3 = "";
                                      $('#data_source').val(dataSource);
@@ -948,22 +914,7 @@ include "../widgets/widgetTimeTrend_1.php";
                                     var fromTime ='';
                                     var toTime = '';
 
-                                    if ((last_date !=="")&&(last_date !== null)&&(typeof last_date !== "undefined")){
-                                        toTime =last_date.replace(" ","T");
-                                        fromTime = new Date(last_date);
-                                        var date = fromTime.getFullYear()+'-'+fromTime.getMonth()+'-'+fromTime.getDate();
-                                        var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
-                                        fromTime= date+'T'+time;
-                                }else{
-                                    //toTime =last_date.replace(" ","T");
-                                    //measured_time
-                                        toTime =measured_time.replace(" ","T");
-                                        fromTime = new Date(measured_time);
-                                        var date = fromTime.getFullYear()+'-'+fromTime.getMonth()+'-'+fromTime.getDate();
-                                        var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
-                                        fromTime= date+'T'+time;
-                                        //SETTARE IL FORMATO//
-                                }
+                                    
                                 
                                 //serviceUri
                                 var process_name_ST = data.process_name_ST;
@@ -1012,6 +963,8 @@ include "../widgets/widgetTimeTrend_1.php";
                                     $('#organization').val(organization);
                                 }
                                 //
+                                var count_nh = 0;
+                                var count_h = 0;
                                 var job_name = data.jobName;
                                 var job_group = data.jobGroup;
                                 var disces_ip_test = data.ip_disc;
@@ -1037,7 +990,7 @@ include "../widgets/widgetTimeTrend_1.php";
                                             data_type_td = key5[name]['data_type'];
                                             healthiness_criteria = key5[name]['healthiness_criteria'];
                                             value_refresh_rate = key5[name]['value_refresh_rate'];
-                                            healt_value = obj2[y]['healthy'];
+                                            healt_value = String(obj2[y]['healthy']);
                                         } else {
                                             value_unit_td = "";
                                             data_type_td = "";
@@ -1045,30 +998,109 @@ include "../widgets/widgetTimeTrend_1.php";
                                             value_refresh_rate = "";
                                             healt_value = "";
                                         }
-                                        
+                                        /************/
+                                        if((data.realtime !== null)){
+                                                if(typeof data.realtime.results !== "undefined" ){
+                                                         if (typeof data.realtime.results.bindings !== "undefined") {
+                                                             if ((Object.values(data.realtime.results.bindings).length >0)&&(Object.values(data.realtime.results.bindings)!== null)){
+                                                                 key3 = Object.values(data.realtime.results.bindings);
+                                                             }else{
+                                                                 key3 = "";
+                                                             }
+                                                                 //
+                                                                    if (key3[0][name]) {
+                                                                        value_td = key3[0][name]['value'];
+                                                                    } else {
+                                                                        value_td = "";
+                                                                    }
+                                                                    if(key3[0]['measuredTime']['value']){
+                                                                        measured_time = key3[0]['measuredTime']['value'];
+                                                                    }
+                                                                 //
+                                                         }else{
+                                                                 key3 = data.realtime.results;
+                                                                 //
+                                                                    if (key3[0][name]) {
+                                                                        value_td = key3[0][name]['value'];
+                                                                    } else {
+                                                                        value_td = "";
+                                                                    }
+                                                                    if(key3[0]['measuredTime']['value']){
+                                                                        measured_time = key3[0]['measuredTime']['value'];
+                                                                    }
+                                                                 //
+                                                         }
+                                                     }else{
+                                                             key3 = "";
+                                                         }
+                                           }else{
+                                                //key3 = data.realtime.results;
+                                                key3 = "";
+                                           }
+                                        if ((last_date !=="")&&(last_date !== null)&&(typeof last_date !== "undefined")){
+                                                    toTime =last_date.replace(" ","T");
+                                                    toTime = toTime.replace("+01:00","");
+                                                    fromTime = new Date(last_date);
+                                                    var date = fromTime.getFullYear()+'-'+fromTime.getMonth()+'-'+fromTime.getDate();
+                                                    var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
+                                                    fromTime= date+'T'+time;
+                                            }else{
+                                                //toTime =last_date.replace(" ","T");
+                                                //measured_time
+                                                    toTime =measured_time.replace(" ","T");
+                                                    toTime = toTime.replace("+01:00","");
+                                                    fromTime = new Date(measured_time);
+                                                    var date = fromTime.getFullYear()+'-'+fromTime.getMonth()+'-'+fromTime.getDate();
+                                                    var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
+                                                    fromTime= date+'T'+time;
+                                                    //SETTARE IL FORMATO//
+                                            }
+                                        /***********/
                                         var time_trend_link = "";
                                         if((fromTime !=='')&&(toTime !== '')){
                                             //time_trend_link = '<a href="https://www.snap4city.org/sensor-validate/index.php?serviceUri='+data_get_instances+'&fromTime='+fromTime+'&toTime='+toTime+'&metric='+keys2[y]+'" target= "_blank" role="button" class="btn btn-xs editDashBtnCard">VIEW</a>';
                                             time_trend_link = '<a type="button" class="viewDashBtn" href="https://www.snap4city.org/sensor-validate/index.php?serviceUri='+data_get_instances+'&fromTime='+fromTime+'&toTime='+toTime+'&metric='+keys2[y]+'" target= "_blank"> VIEW </a>';
                                         }
                                         dealy = obj2[y]['delay'];
-                                        $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + obj2[y]['healthy'] + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>'+time_trend_link+'</td></tr>');
+                                        var icn_h ="";
+                                        if (healt_value === 'true'){
+                                            icn_h ='<i class="fa fa-circle" aria-hidden="true" style="pointer-events: none; color:#33cc33;"></i>';
+                                            count_h = count_h +1;
+                                        }else{
+                                            icn_h='<i class="fa fa-circle" aria-hidden="true" style="pointer-events: none; color: red;"></i>';
+                                            count_nh = count_nh +1;
+                                        }
+                                        $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>'+time_trend_link+'</td></tr>');
+                                        //
+                                        
+                                            if ((name === data_low_level_type )||(data_unit==='sensor_map')){
+                                                        $('#last_check_health').val(measured_time);
+                                                        $('#Status_h').val(healt_value);
+                                                        $('#healthiness_c').val(healthiness_criteria);
+                                                        $('#period').val(value_refresh_rate);
+                                                        $('#delay').val(dealy);
+                                                        if(healt_value ==='true'){
+                                                            $('#status_1').css('color','#33cc33');
+                                                         }else if (healt_value ==='false'){
+                                                            $('#status_1').css('color','red');
+                                                        }else{
+                                                            $('#status_1').css('color','blue');
+                                                        }
+                                                }
+                                            //
                                     }
-                                            $('#healthiness_c').val(healthiness_criteria);
-                                            $('#period').val(value_refresh_rate);
-                                            $('#v_type').val(value_td);
-                                            //$('#attr_type').val(data_type_td);
-                                            $('#delay').val(dealy);
-                                            $('#last_check_health').val(measured_time);
-                                            $('#Status_h').val(healt_value);
-                                            var col_h = $('#Status_h').val();
-                                            if(col_h ==='true'){
-                                                $('#status_1').css('color','#33cc33');
-                                             }else if (col_h ==='false'){
-                                                $('#status_1').css('color','red');
-                                            }else{
-                                                $('#status_1').css('color','black');
-                                            }
+                                    if(count_nh > 0){
+                                        $('#Status_2').val('false');
+                                        $('#status_health').css('color','red');
+                                    }else if(count_h > 0){
+                                        $('#Status_2').val('true');
+                                        $('#status_health').css('color','#33cc33');
+                                    }else{
+                                        $('#Status_2').val('');
+                                        $('#status_health').css('color','black');
+                                    }
+                                            
+                                            
                                     //UPLOAD IMAGE//upload_image
                                     //upload_image
                                     if(role_session_active === 'RootAdmin'){
@@ -1171,7 +1203,9 @@ include "../widgets/widgetTimeTrend_1.php";
                                             $('#delay').val('');
                                             $('#last_check_health').val('');
                                             $('#status_1').css('color','black');
+                                            $('#status_health').css('color','black');
                                             $('#Status_h').val('');
+                                            $('#Status_2').val('');
                                             alert('Image uploaded');
                                     }, 1000);
                             }else{
@@ -1230,7 +1264,9 @@ include "../widgets/widgetTimeTrend_1.php";
                     $('#delay').val('');
                     $('#last_check_health').val('');
                     $('#status_1').css('color','black');
+                    $('#status_health').css('color','black');
                     $('#Status_h').val('');
+                    $('#Status_2').val('');
                 });
 
                 $(window).resize(function() {

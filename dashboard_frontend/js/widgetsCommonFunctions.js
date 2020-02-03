@@ -768,12 +768,21 @@ function ObjectSize(obj)
     return size;
 }
 
-function serializeSensorDataForBarSeries(dataArrayMap, labels1, labels2) {
+function serializeSensorDataForBarSeries(dataArrayMap, labels1, labels2, flipFlag) {
     var jsonObj = {};
     jsonObj.firstAxis = {};
     jsonObj.secondAxis = {};
-    var desc1 = "";
-    var desc2 = "device";
+    if (flipFlag != true) {
+    //    var desc1 = "metrics";
+        var desc1 = "value type";
+    //    var desc2 = "device";
+        var desc2 = "value name";
+    } else {
+    //    var desc1 = "device";
+        var desc1 = "value name";
+    //    var desc2 = "metrics";
+        var desc2 = "value type";
+    }
     var series = [];
 
     jsonObj.firstAxis.desc = desc1;
@@ -782,7 +791,7 @@ function serializeSensorDataForBarSeries(dataArrayMap, labels1, labels2) {
     for(i = 0; i < labels2.length; i++) {
         let seriesArray = [];
         for(j = 0; j < labels1.length; j++) {
-                let metricIdx = findWithAttr(dataArrayMap[labels2[i]], labels1[j]);
+                let metricIdx = findWithAttr(dataArrayMap[labels2[i]], labels1[j], flipFlag);
                 if (metricIdx != -1) {
                     if (dataArrayMap[labels2[i]][metricIdx].value != '') {
                         seriesArray.push(parseFloat(parseFloat(dataArrayMap[labels2[i]][metricIdx].value).toFixed(2)));
@@ -819,11 +828,13 @@ function serializeDataForSeries(metricLabels, deviceLabels) {
 
     let series = {};
     series.firstAxis = {};
-    series.firstAxis.desc = "";
+    //series.firstAxis.desc = "metrics";
+    series.firstAxis.desc = "value type";
     series.firstAxis.labels = metricLabels;
 
     series.secondAxis = {};
-    series.secondAxis.desc = "devices";
+    //series.secondAxis.desc = "devices";
+    series.secondAxis.desc = "value name";
     series.secondAxis.labels = deviceLabels;
     series.secondAxis.series = [];
 
@@ -891,10 +902,16 @@ function getMetricLabelsForBarSeries(dataArray) {
 
 }
 
-function findWithAttr(array, attr) {
+function findWithAttr(array, attr, flipFlag) {
     for(var i = 0; i < array.length; i += 1) {
-        if(array[i]['metricType'] === attr) {
-            return i;
+        if (flipFlag !== true) {
+            if (array[i]['metricType'] === attr) {
+                return i;
+            }
+        } else {
+            if (array[i]['metricName'] === attr) {
+                return i;
+            }
         }
     }
     return -1;

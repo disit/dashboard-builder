@@ -168,8 +168,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         $files1 = "";
                     }
                     
-                    //$payload = file_get_contents($value);
-                    //$result  = json_decode($payload);
+
                     //NUOVO PEZZO FILES//
                     $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
                     $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
@@ -194,17 +193,63 @@ if (isset($_SESSION['loggedUsername'])) {
                         }else{
                                 $payload = file_get_contents($value, false, $context);
                                 $result = json_decode($payload);
-                                if (property_exists($result, 'healthiness')) {
-                                    $healthiness = $result->healthiness;
-                                    if (property_exists($result, 'Service')) {
-                                        $serviceUri = $result->Service->features[0]->properties->serviceUri;
-                                    } else {
-                                        $serviceUri = $result->Sensor->features[0]->properties->serviceUri;
-                                    }
+                                $error = json_last_error();
+                                    
+                                
+                                 switch (json_last_error()) {
+                                            case JSON_ERROR_NONE:
+                                                if (property_exists($result, 'healthiness')) {
+                                                                    $healthiness = $result->healthiness;
+                                                                    if (property_exists($result, 'Service')) {
+                                                                        $serviceUri = $result->Service->features[0]->properties->serviceUri;
+                                                                    } else {
+                                                                        $serviceUri = $result->Sensor->features[0]->properties->serviceUri;
+                                                                    }
+                                                        } else{
+                                                            $serviceUri = "";
+                                                            $healthiness = "";
+                                                        }
+                                                //
+                                            break;
+                                            case JSON_ERROR_DEPTH:
+                                                $serviceUri = "";
+                                                $healthiness = "";
+                                            break;
+                                            case JSON_ERROR_STATE_MISMATCH:
+                                                $serviceUri = "";
+                                                $healthiness = "";
+                                            break;
+                                            case JSON_ERROR_CTRL_CHAR:
+                                                 $serviceUri = "";
+                                                 $healthiness = "";
+                                            break;
+                                            case JSON_ERROR_SYNTAX:
+                                                 $serviceUri = "";
+                                                 $healthiness = "";
+                                            break;
+                                            case JSON_ERROR_UTF8:
+                                                 $serviceUri = "";
+                                                 $healthiness = "";
+                                            break;
+                                            default:
+                                                 $serviceUri = "";
+                                                 $healthiness = "";
+                                            break;
+                                        }
+                                //var_dump($result, $error === JSON_ERROR_UTF8);
+                                /*
+                                    if (property_exists($result, 'healthiness')) {
+                                            $healthiness = $result->healthiness;
+                                            if (property_exists($result, 'Service')) {
+                                                $serviceUri = $result->Service->features[0]->properties->serviceUri;
+                                            } else {
+                                                $serviceUri = $result->Sensor->features[0]->properties->serviceUri;
+                                            }
                                 } else{
                                     $serviceUri = "";
                                     $healthiness = "";
                                 }
+                                */
 
                         }
                     $serviceUri_arr = explode("/", $serviceUri);
@@ -288,6 +333,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     }
                     //
                     $list['healthiness'] = $healthiness;
+                    /*****
                     if (property_exists($result, 'realtime')) {
                         $list['realtime'] = $result->realtime;
                     }else{
@@ -300,6 +346,49 @@ if (isset($_SESSION['loggedUsername'])) {
                     }else{
                         $list['Service'] = "";
                     }
+                     ****/
+                    switch (json_last_error()) {
+                                            case JSON_ERROR_NONE:
+                                                if (property_exists($result, 'realtime')) {
+                                                                $list['realtime'] = $result->realtime;
+                                                            }else{
+                                                                $list['realtime'] = "";
+                                                            }
+                                                            if (property_exists($result, 'Service')) {
+                                                                $list['Service'] = $result->Service;
+                                                            } else if(property_exists($result, 'Sensor')) {
+                                                                $list['Service'] = $result->Sensor;
+                                                            }else{
+                                                                $list['Service'] = "";
+                                                            }
+                                                //
+                                            break;
+                                            case JSON_ERROR_DEPTH:
+                                                $list['realtime'] = "";
+                                                $list['Service'] = "";
+                                            break;
+                                            case JSON_ERROR_STATE_MISMATCH:
+                                                $list['realtime'] = "";
+                                                $list['Service'] = "";
+                                            break;
+                                            case JSON_ERROR_CTRL_CHAR:
+                                                 $list['realtime'] = "";
+                                                 $list['Service'] = "";
+                                            break;
+                                            case JSON_ERROR_SYNTAX:
+                                                 $list['realtime'] = "";
+                                                 $list['Service'] = "";
+                                            break;
+                                            case JSON_ERROR_UTF8:
+                                                 $list['realtime'] = "";
+                                                 $list['Service'] = "";
+                                            break;
+                                            default:
+                                                 $list['realtime'] = "";
+                                                 $list['Service'] = "";
+                                            break;
+                                        }
+                    /****/
                     if (count($process_list) > 0) {
                         $list['process_name_ST']     = $process_list[0]['process_name_ST'];
                         $list['KB_Ip']               = $process_list[0]['KB_Ip'];

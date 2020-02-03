@@ -65,7 +65,9 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
             if($newVisibility == 'public')
             {
                 //Da privata a pubblica: 1) Cancelliamo deleghe pregresse; 
-                $apiUrl = $personalDataApiBaseUrl . "/v1/apps/" . $dashboardId . "/delegations?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+              //  $apiUrl = $personalDataApiBaseUrl . "/v1/apps/" . $dashboardId . "/delegations?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                // DATAMANAGER API V3 MOD
+                $apiUrl = $personalDataApiBaseUrl . "/v3/apps/" . $dashboardId . "/delegations?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=DashboardID";
 
                 $options = array(
                     'http' => array(
@@ -124,7 +126,9 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
             else
             {
                 //Da pubblica a privata: 1) Cancelliamo deleghe (anche quella pubblica);
-                $apiUrl = $personalDataApiBaseUrl . "/v1/apps/" . $dashboardId . "/delegations?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+             //   $apiUrl = $personalDataApiBaseUrl . "/v1/apps/" . $dashboardId . "/delegations?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+                // DATAMANAGER API V3 MOD
+                $apiUrl = $personalDataApiBaseUrl . "/v3/apps/" . $dashboardId . "/delegations?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=DashboardID";
 
                 $options = array(
                     'http' => array(

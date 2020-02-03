@@ -70,7 +70,9 @@ session_start();
                 $accessToken = $tkn->access_token;
                 $_SESSION['refreshToken'] = $tkn->refresh_token;
              //   $service_url = $personalDataApiBaseUrl ."/v1/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . checkVarTtpe($idDash, "integer");
-                $service_url = $personalDataApiBaseUrl ."/v1/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
+            //    $service_url = $personalDataApiBaseUrl ."/v1/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
+                // MOD V3 API
+                $service_url = $personalDataApiBaseUrl ."/v3/username/ANONYMOUS/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash . "&elementType=DashboardID";
                 $curl = curl_init($service_url);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                 $curl_response = curl_exec($curl);
@@ -78,7 +80,9 @@ session_start();
                 $arr = json_decode($curl_response, true);
                 if (!$arr["result"]) {
                 //    $service_url = $personalDataApiBaseUrl ."/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . checkVarTtpe($idDash, "integer");
-                    $service_url = $personalDataApiBaseUrl ."/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
+                //    $service_url = $personalDataApiBaseUrl ."/v1/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash;
+                    // MOD V3 API
+                    $service_url = $personalDataApiBaseUrl ."/v3/username/" . rawurlencode($addMem) . "/delegation/check?accessToken=" . $accessToken . "&sourceRequest=chatmanager&elementID=" . $idDash . "&elementType=DashboardID";
                     $curl = curl_init($service_url);
                     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                     $curl_response = curl_exec($curl);
