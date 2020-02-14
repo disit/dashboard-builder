@@ -152,10 +152,12 @@
             deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
             if (groupByAttr != null) {
                 //if (groupByAttr == "metrics") {
-                if (groupByAttr == "value type") {
+            //    if (groupByAttr == "value type") {
+                if (groupByAttr == "value name") {
                     flipFlag = false;
                     //    } else if (groupByAttr == "device") {
-                } else if (groupByAttr == "value name") {
+                    //    } else if (groupByAttr == "value name") {
+                } else  if (groupByAttr == "value type") {
                     flipFlag = true;
                 }
             } else {

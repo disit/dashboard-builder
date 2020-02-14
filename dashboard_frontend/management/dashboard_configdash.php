@@ -24718,7 +24718,7 @@
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel = $('<label for="groupByAttrM" class="col-md-2 control-label">Group Bars by Attribute</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInnerDiv = $('<div class="col-md-4"></div>');
                                         newSelect = $('<select class="form-control" id="groupByAttrM" name="groupByAttrM" required>');
                                     //    newSelect = $('<select class="form-control" id="groupByAttrM" name="groupByAttrM" required>');
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
@@ -26619,11 +26619,11 @@
                                         //Group-by attribute
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="groupByAttrM" class="col-md-2 control-label">Group by Attribute</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="groupByAttrM" class="col-md-2 control-label">Group by Attribute (Inner Pie)</label>');
+                                        newInnerDiv = $('<div class="col-md-4"></div>');
                                         newSelect = $('<select class="form-control" id="groupByAttrM" name="groupByAttrM" required>');
-                                        newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                         newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
+                                        newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -26636,9 +26636,11 @@
                                             let elems = document.getElementsByClassName("deviceLab");
 
                                             [].forEach.call(elems, function (elem) {
-                                                if($('#groupByAttrM').val() === "value name")
+                                            //    if($('#groupByAttrM').val() === "value name") {    // FLIP VELUE-TYPE
+                                                if($('#groupByAttrM').val() === "value type") {
                                                     elem.style.display = "none";
-                                                else if ($('#groupByAttrM').val() === "value type") {
+                                            //    } else if ($('#groupByAttrM').val() === "value type") {
+                                                } else if ($('#groupByAttrM').val() === "value name") {
                                                     elem.style.display = "block";
                                                 }
                                             });
@@ -27084,7 +27086,7 @@
                                                 colorsArray1M[i] = styleParameters.colors1[i];
                                                 newRow = $('<tr></tr>');
                                                 if (styleParameters.editDeviceLabels != null) {
-                                                    if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value type") {
+                                                    if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value name") {
                                                         newCell = $('<td>' + styleParameters.editDeviceLabels[i] + '</td>');
                                                     } else {
                                                         newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
@@ -27107,13 +27109,13 @@
                                                 colorsArray2M[i] = styleParameters.colors2[i];
                                                 newRow = $('<tr></tr>');
                                                 if (styleParameters.editDeviceLabels != null) {
-                                                    if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value name") {
+                                                    if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value type") {
                                                         newCell = $('<td>' + styleParameters.editDeviceLabels[i] + '</td>');
                                                     } else {
                                                         newCell = $('<td>' + series.firstAxis.labels[i] + '</td>');
                                                     }
                                                 } else {
-                                                    newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                    newCell = $('<td>' + series.firstAxis.labels[i] + '</td>');
                                                 }
                                                 newRow.append(newCell);
                                                 newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
@@ -27428,17 +27430,17 @@
                                                 newInput.show();
                                             }
 
-                                            if (document.getElementById("groupByAttrM").value == "value name") {
+                                        //    if (document.getElementById("groupByAttrM").value == "value name") {
                                                 let elems = document.getElementsByClassName("deviceLab");
 
                                                 [].forEach.call(elems, function (elem) {
-                                                    if($('#groupByAttrM').val() === "value name")
+                                                    if($('#groupByAttrM').val() === "value type")
                                                         elem.style.display = "none";
-                                                    else if ($('#groupByAttrM').val() === "value type") {
+                                                    else if ($('#groupByAttrM').val() === "value name") {
                                                         elem.style.display = "block";
                                                     }
                                                 });
-                                            }
+                                         //   }
 
                                             //Codice di creazione soglie
                                             //Nuova riga
