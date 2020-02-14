@@ -32,7 +32,7 @@ if (isset($_SESSION['loggedUsername'])) {
         //error_reporting(E_ERROR);
         $link = mysqli_connect($host, $username, $password);
         //error_reporting(E_ALL);
-        ini_set('display_errors', 1);
+        //ini_set('display_errors', 1);
         //error_reporting(-1);
         mysqli_select_db($link, $dbname);
         if (isset($_SESSION['loggedRole'])) {
