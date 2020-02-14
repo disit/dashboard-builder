@@ -129,11 +129,17 @@
     <script src="../js/modernizr-custom.js"></script>
     
     <!-- Highcharts -->
-    <script src="../js/highcharts/code/highcharts.js"></script>
+   <!-- <script src="../js/highcharts/code/highcharts.js"></script>
     <script src="../js/highcharts/code/modules/exporting.js"></script>
     <script src="../js/highcharts/code/highcharts-more.js"></script>
     <script src="../js/highcharts/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts/code/highcharts-3d.js"></script>
+    <script src="../js/highcharts/code/highcharts-3d.js"></script>  -->
+    <script src="../js/highcharts-8.0.0/code/highcharts.js"></script>
+    <script src="../js/highcharts-8.0.0/code/modules/exporting.js"></script>
+    <script src="../js/highcharts-8.0.0/code/highcharts-more.js"></script>
+    <script src="../js/highcharts-8.0.0/code/modules/parallel-coordinates.js"></script>
+    <script src="../js/highcharts-8.0.0/code/modules/solid-gauge.js"></script>
+    <script src="../js/highcharts-8.0.0/code/highcharts-3d.js"></script>
     
     <!-- Bootstrap editable tables -->
     <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
@@ -2218,8 +2224,8 @@
                     $("#chatContainer").css("left", $(window).width() - $('#chatContainer').width());
                    //$("#BtnContainerChat").css("top", $('#dashboardViewHeaderContainer').height());
                     //$("#BtnContainerChat").css("left", $(window).width() - $('#BtnContainerChat').width());
-                    
-                    
+
+
                
                
                 $('#chatBtn').click(function(){
@@ -23254,8 +23260,63 @@
                                        case "widgetRadarSeries":
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        var seriesString = metricData.data[0].commit.author.series;
-                                        var series = jQuery.parseJSON(seriesString);
+                                     //   var seriesString = metricData.data[0].commit.author.series;
+                                     //   var series = jQuery.parseJSON(seriesString);
+
+                                       if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                           var seriesString = metricData.data[0].commit.author.series;
+                                           var series = jQuery.parseJSON(seriesString);
+                                       } else {
+                                           var seriesDataArray = [];
+                                           var seriesString = "";
+                                           var series = null;
+                                           var rowParamsArray = JSON.parse(rowParams);
+                                           if (serviceUri) {
+                                               series = jQuery.parseJSON(serviceUri);
+                                           } else {
+                                               for (var i = 0; i < rowParamsArray.length; i++) {
+                                                   let smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParamsArray[i].metricId.split("serviceUri=")[1];
+                                                   getSmartCitySensorValues(rowParamsArray, i, smUrl, null, false, function (extractedData) {
+
+                                                       if (extractedData) {
+                                                           seriesDataArray.push(extractedData);
+                                                       } else {
+                                                           console.log("Dati Smart City non presenti");
+                                                           seriesDataArray.push(undefined);
+                                                       }
+                                                       //if (endFlag === true) {
+                                                       // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                                       if (rowParamsArray.length === seriesDataArray.length) {
+                                                           let stopFlag = 1;
+                                                           // DO FINAL SERIALIZATION
+                                                           metricLabels = getMetricLabelsForBarSeries(rowParamsArray);
+                                                           deviceLabels = getDeviceLabelsForBarSeries(rowParamsArray);
+                                                           let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                                           series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
+
+                                                       }
+
+                                                   });
+                                               }
+                                           }
+                                       }
+
+                                       if (rowParamsArray) {
+                                           if (!serviceUri) {
+                                               // Caso New BarSeries primo istanziamento
+                                               for (n = 0; n < rowParamsArray.length; n++) {
+                                                   if (!metricLabels.includes(rowParamsArray[n].metricType)) {
+                                                       metricLabels.push(rowParamsArray[n].metricType);
+                                                   }
+
+                                                   if (!deviceLabels.includes(rowParamsArray[n].metricName)) {
+                                                       deviceLabels.push(rowParamsArray[n].metricName);
+                                                   }
+                                               }
+                                           } else {
+                                               deviceLabels = series.secondAxis.labels;
+                                           }
+                                       }
                                         var thrSeries, i, j, k, min, max, color, newTableRow, newTableCell, currentFieldIndex, currentSeriesIndex, colorsTable, newRow, 
                                             newCell, newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer, 
                                             barsColorsTableContainerM, index, newThrObj, fieldName, descName = null;
@@ -23629,8 +23690,38 @@
                                         else
                                         {
                                             $('#barsColorsTableContainerM').hide();
-                                        } 
-                                        
+                                        }
+
+                                           // Nuove righe (labels per i devices)
+                                        if (deviceLabels != null) {
+                                            for (var n = 0; n < deviceLabels.length; n++) {
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Value Name #' + (n + 1).toString() + ' Label</label>');
+                                                newInnerDiv = $('<div class="col-md-7"></div>');
+                                                var placeholderStr = "";
+                                                if (styleParameters.editDeviceLabels != null) {
+                                                    if (styleParameters.editDeviceLabels.length == deviceLabels.length) {
+                                                        placeholderStr = styleParameters.editDeviceLabels[n];
+                                                    } else {
+                                                        // flipped case
+                                                        placeholderStr = deviceLabels[n];
+                                                    }
+                                                } else {
+                                                    placeholderStr = deviceLabels[n];
+                                                }
+                                                //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" placeholder="' + placeholderStr + '">');
+                                                newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" value = "' + placeholderStr + '">');
+                                                //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM" required placeholder="' + deviceLabels[n] + '">');
+                                                newInnerDiv.append(newInput);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.show();
+                                                newInnerDiv.show();
+                                                newInput.show();
+                                            }
+                                        }
+
                                         //Codice di creazione soglie
                                         //Nuova riga
                                         //Set thresholds
@@ -23792,7 +23883,7 @@
                                         //X-Axis dataset
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="xAxisDatasetM" class="col-md-2 control-label">X-Axis dataset</label>');
+                                    /*    newLabel = $('<label for="xAxisDatasetM" class="col-md-2 control-label">X-Axis dataset</label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="xAxisDatasetM" name="xAxisDatasetM" required>');
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
@@ -23802,7 +23893,7 @@
                                         newFormRow.append(newInnerDiv);
                                         newLabel.show();
                                         newInnerDiv.show();
-                                        newSelect.show();
+                                        newSelect.show();   */
 
                                         //Line width
                                         newLabel = $('<label for="lineWidthM" class="col-md-2 control-label">Line width</label>');
@@ -24574,7 +24665,11 @@
                                                     }
                                                 }
                                             } else {
-                                                deviceLabels = series.secondAxis.labels;
+                                                if (series.secondAxis.desc == "value name") {
+                                                    deviceLabels = series.secondAxis.labels;
+                                                } else {
+                                                    deviceLabels = series.firstAxis.labels;
+                                                }
                                             }
                                         }
 
@@ -24625,6 +24720,7 @@
                                         newLabel = $('<label for="groupByAttrM" class="col-md-2 control-label">Group Bars by Attribute</label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="groupByAttrM" name="groupByAttrM" required>');
+                                    //    newSelect = $('<select class="form-control" id="groupByAttrM" name="groupByAttrM" required>');
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                         newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
                                         newInnerDiv.append(newSelect);
@@ -24633,6 +24729,20 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
+
+                                        $('#groupByAttrM').change(function()
+                                        {
+                                            let elems = document.getElementsByClassName("deviceLab");
+
+                                            [].forEach.call(elems, function (elem) {
+                                                if($('#groupByAttrM').val() === "value name")
+                                                    elem.style.display = "none";
+                                                else if ($('#groupByAttrM').val() === "value type") {
+                                                    elem.style.display = "block";
+                                                }
+                                            });
+
+                                        });
 
                                         //Nuova riga
                                         //Rows labels font size
@@ -24863,7 +24973,15 @@
                                         if (series) {
                                             for (var i in series.secondAxis.labels) {
                                                 newRow = $('<tr></tr>');
-                                                newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                if (styleParameters.editDeviceLabels != null) {
+                                                    if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value != "value name") {
+                                                        newCell = $('<td>' + styleParameters.editDeviceLabels[i] + '</td>');
+                                                    } else {
+                                                        newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                    }
+                                                } else {
+                                                    newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                }
                                                 newRow.append(newCell);
                                                 newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                                 newRow.append(newCell);
@@ -24902,13 +25020,13 @@
 
                                         // Nuove righe (labels per i devices)
                                         for (var n = 0; n < deviceLabels.length; n++) {
-                                            newFormRow = $('<div class="row"></div>');
+                                            newFormRow = $('<div class="row deviceLab"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Data #' + (n+1).toString() + ' Label</label>');
+                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Value Name #' + (n + 1).toString() + ' Label</label>');
                                             newInnerDiv = $('<div class="col-md-7"></div>');
                                             var placeholderStr = "";
                                             if (styleParameters.editDeviceLabels != null) {
-                                                if (styleParameters.editDeviceLabels.lenght == deviceLabels.length) {
+                                                if (styleParameters.editDeviceLabels.length == deviceLabels.length) {
                                                     placeholderStr = styleParameters.editDeviceLabels[n];
                                                 } else {
                                                     // flipped case
@@ -24917,15 +25035,27 @@
                                             } else {
                                                 placeholderStr = deviceLabels[n];
                                             }
-                                        //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" placeholder="' + placeholderStr + '">');
+                                            //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" placeholder="' + placeholderStr + '">');
                                             newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" value = "' + placeholderStr + '">');
-                                        //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM" required placeholder="' + deviceLabels[n] + '">');
+                                            //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM" required placeholder="' + deviceLabels[n] + '">');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
                                             newLabel.show();
                                             newInnerDiv.show();
                                             newInput.show();
+                                        }
+
+                                        if (document.getElementById("groupByAttrM").value == "value name") {
+                                            let elems = document.getElementsByClassName("deviceLab");
+
+                                            [].forEach.call(elems, function (elem) {
+                                                if($('#groupByAttrM').val() === "value name")
+                                                    elem.style.display = "none";
+                                                else if ($('#groupByAttrM').val() === "value type") {
+                                                    elem.style.display = "block";
+                                                }
+                                            });
                                         }
 
                                         //Codice di creazione soglie
@@ -25010,15 +25140,75 @@
                                             //Listener per selezione campo
                                             $('#alrFieldSelM').change(alrFieldSelMListener);
                                         }
-                                        
+
                                         removeWidgetProcessGeneralFields("editWidget");
                                         break;
             
                                     case "widgetTable":
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        var seriesString = metricData.data[0].commit.author.series;
-                                        var series = jQuery.parseJSON(seriesString);
+                                     //   var seriesString = metricData.data[0].commit.author.series;
+                                     //   var series = jQuery.parseJSON(seriesString);
+
+                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                            var seriesString = metricData.data[0].commit.author.series;
+                                            var series = jQuery.parseJSON(seriesString);
+                                        } else {
+                                            var seriesDataArray = [];
+                                            var seriesString = "";
+                                            var series = null;
+                                            var rowParamsArray = JSON.parse(rowParams);
+                                            if (serviceUri) {
+                                                series = jQuery.parseJSON(serviceUri);
+                                            } else {
+                                                for (var i = 0; i < rowParamsArray.length; i++) {
+                                                    let smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParamsArray[i].metricId.split("serviceUri=")[1];
+                                                    getSmartCitySensorValues(rowParamsArray, i, smUrl, null, false, function (extractedData) {
+
+                                                        if (extractedData) {
+                                                            seriesDataArray.push(extractedData);
+                                                        } else {
+                                                            console.log("Dati Smart City non presenti");
+                                                            seriesDataArray.push(undefined);
+                                                        }
+                                                        //if (endFlag === true) {
+                                                        // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                                        if (rowParamsArray.length === seriesDataArray.length) {
+                                                            let stopFlag = 1;
+                                                            // DO FINAL SERIALIZATION
+                                                            metricLabels = getMetricLabelsForBarSeries(rowParamsArray);
+                                                            deviceLabels = getDeviceLabelsForBarSeries(rowParamsArray);
+                                                            let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                                            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
+
+                                                        }
+
+                                                    });
+                                                }
+                                            }
+                                        }
+
+                                        if (rowParamsArray) {
+                                            if (!serviceUri) {
+                                                // Caso New BarSeries primo istanziamento
+                                                for (n = 0; n < rowParamsArray.length; n++) {
+                                                    if (!metricLabels.includes(rowParamsArray[n].metricType)) {
+                                                        metricLabels.push(rowParamsArray[n].metricType);
+                                                    }
+
+                                                    if (!deviceLabels.includes(rowParamsArray[n].metricName)) {
+                                                        deviceLabels.push(rowParamsArray[n].metricName);
+                                                    }
+                                                }
+                                            } else {
+                                                if (series.secondAxis.desc == "value name") {
+                                                    deviceLabels = series.secondAxis.labels;
+                                                } else {
+                                                    deviceLabels = series.firstAxis.labels;
+                                                }
+                                            }
+                                        }
+
                                         var thrTables1 = new Array();
                                         var thrTables2 = new Array();
                                         var i, j, k, min, max, color, newTableRow, newTableCell, currentFieldIndex, currentSeriesIndex, thrSeries, newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer = null;
@@ -26348,25 +26538,112 @@
                                         $('#inputUdmPositionM').prop("required", false);
                                         $('#inputUdmPositionM').attr("disabled", true);
                                         $('#inputUdmPositionM').val(-1);
-                                        
-                                        if(metricType.indexOf('Percentuale') >= 0)
-                                        {
-                                            
+
+                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                            var seriesString = metricData.data[0].commit.author.series;
+                                            var series = jQuery.parseJSON(seriesString);
+                                        } else {
+                                            var seriesDataArray = [];
+                                            var seriesString = "";
+                                            var series = null;
+                                            var rowParamsArray = JSON.parse(rowParams);
+                                            if (serviceUri) {
+                                                series = jQuery.parseJSON(serviceUri);
+                                            } else {
+                                                for (var i = 0; i < rowParamsArray.length; i++) {
+                                                    let smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParamsArray[i].metricId.split("serviceUri=")[1];
+                                                    getSmartCitySensorValues(rowParamsArray, i, smUrl, null, false, function (extractedData) {
+
+                                                        if (extractedData) {
+                                                            seriesDataArray.push(extractedData);
+                                                        } else {
+                                                            console.log("Dati Smart City non presenti");
+                                                            seriesDataArray.push(undefined);
+                                                        }
+                                                        //if (endFlag === true) {
+                                                        // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                                        if (rowParamsArray.length === seriesDataArray.length) {
+                                                            let stopFlag = 1;
+                                                            // DO FINAL SERIALIZATION
+                                                            metricLabels = getMetricLabelsForBarSeries(rowParamsArray);
+                                                            deviceLabels = getDeviceLabelsForBarSeries(rowParamsArray);
+                                                            let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                                            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels);
+
+                                                        }
+
+                                                    });
+                                                }
+                                            }
                                         }
-                                        else
-                                        {
-                                            seriesString = metricData.data[0].commit.author.series;
-                                            series = jQuery.parseJSON(seriesString);
+
+                                        if(metricType != null) {
+                                            if (metricType.indexOf('Percentuale') >= 0) {
+
+                                            } else {
+                                                seriesString = metricData.data[0].commit.author.series;
+                                                series = jQuery.parseJSON(seriesString);
+                                            }
                                         }
-                                        
+
                                         if(styleParamsRaw !== null) 
                                         {
                                             styleParameters = JSON.parse(styleParamsRaw); 
                                         }
-                                        
+
+                                        if (rowParamsArray) {
+                                            if (!serviceUri) {
+                                                // Caso New PieChart primo istanziamento
+                                                for (n = 0; n < rowParamsArray.length; n++) {
+                                                    if (!metricLabels.includes(rowParamsArray[n].metricType)) {
+                                                        metricLabels.push(rowParamsArray[n].metricType);
+                                                    }
+
+                                                    if (!deviceLabels.includes(rowParamsArray[n].metricName)) {
+                                                        deviceLabels.push(rowParamsArray[n].metricName);
+                                                    }
+                                                }
+                                            } else {
+                                                if (series.secondAxis.desc == "value name") {
+                                                    deviceLabels = series.secondAxis.labels;
+                                                } else {
+                                                    deviceLabels = series.firstAxis.labels;
+                                                }
+                                            }
+                                        }
+
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
                                         removeWidgetProcessGeneralFields("editWidget");
+
+                                        //Group-by attribute
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="groupByAttrM" class="col-md-2 control-label">Group by Attribute</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="groupByAttrM" name="groupByAttrM" required>');
+                                        newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                        newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+
+                                        $('#groupByAttrM').change(function()
+                                        {
+                                            let elems = document.getElementsByClassName("deviceLab");
+
+                                            [].forEach.call(elems, function (elem) {
+                                                if($('#groupByAttrM').val() === "value name")
+                                                    elem.style.display = "none";
+                                                else if ($('#groupByAttrM').val() === "value type") {
+                                                    elem.style.display = "block";
+                                                }
+                                            });
+
+                                        });
                                         
                                         //Legend font size e font color
                                         newFormRow = $('<div class="row"></div>');
@@ -26391,16 +26668,26 @@
                                         //Datalabels distance (se Percentuale) oppure Datalabels (se Series)
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        if(metricType.indexOf('Percentuale') >= 0)
-                                        {
-                                            newLabel = $('<label for="dataLabelsDistanceM" class="col-md-2 control-label">Data labels distance</label>');
-                                            newInnerDiv = $('<div class="col-md-3"></div>');
-                                            newInput = $('<input type="text" class="form-control" id="dataLabelsDistanceM" name="dataLabelsDistanceM" required>');
-                                            newInput.val(styleParameters.dataLabelsDistance);
-                                            newInnerDiv.append(newInput);
-                                        }
-                                        else if(metricType === 'Series')
-                                        {
+                                        if(metricType != null) {
+                                            if (metricType.indexOf('Percentuale') >= 0) {
+                                                newLabel = $('<label for="dataLabelsDistanceM" class="col-md-2 control-label">Data labels distance</label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInput = $('<input type="text" class="form-control" id="dataLabelsDistanceM" name="dataLabelsDistanceM" required>');
+                                                newInput.val(styleParameters.dataLabelsDistance);
+                                                newInnerDiv.append(newInput);
+                                            } else if (metricType === 'Series') {
+                                                newLabel = $('<label for="dataLabelsM" class="col-md-2 control-label">Data labels for <i>' + series.firstAxis.desc + '</i></label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newSelect = $('<select class="form-control" id="dataLabelsM" name="dataLabelsM"></select>');
+                                                newSelect.append('<option value="no">No data labels</option>');
+                                                newSelect.append('<option value="value">Value only</option>');
+                                                newSelect.append('<option value="full">Field name and value</option>');
+                                                newSelect.val(styleParameters.dataLabels);
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                            }
+                                        } else {
                                             newLabel = $('<label for="dataLabelsM" class="col-md-2 control-label">Data labels for <i>' + series.firstAxis.desc + '</i></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="dataLabelsM" name="dataLabelsM"></select>');
@@ -26426,8 +26713,29 @@
                                         
                                         //Nuova riga
                                         //Data labels distances per widget series
-                                        if(metricType === 'Series')
-                                        {
+                                        if(metricType != null) {
+                                            if (metricType === 'Series') {
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                //Data labels distance per anello più interno
+                                                newLabel = $('<label for="dataLabelsDistance1M" class="col-md-2 control-label">Data labels distance for <i>' + series.secondAxis.desc + '</i></label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInput = $('<input type="text" class="form-control" id="dataLabelsDistance1M" name="dataLabelsDistance1M" required>');
+                                                newInput.val(styleParameters.dataLabelsDistance1);
+                                                newInnerDiv.append(newInput);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+
+                                                //Data labels distance per anello più esterno
+                                                newLabel = $('<label for="dataLabelsDistance2M" class="col-md-2 control-label">Data labels distance for <i>' + series.firstAxis.desc + '</i></label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInput = $('<input type="text" class="form-control" id="dataLabelsDistance2M" name="dataLabelsDistance2M" required>');
+                                                newInput.val(styleParameters.dataLabelsDistance2);
+                                                newInnerDiv.append(newInput);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                            }
+                                        } else {
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
                                             //Data labels distance per anello più interno
@@ -26466,15 +26774,19 @@
                                         newInnerDiv.colorpicker({color: styleParameters.dataLabelsFontColor, format: "rgba"});
                                         
                                         //Inner radius 1
-                                        if(metricType.indexOf('Percentuale') >= 0)
-                                        {
-                                            newLabel = $('<label for="innerRadius1M" class="col-md-2 control-label">Inner radius (%)</label>');
-                                            newInnerDiv = $('<div class="col-md-3"></div>');
-                                            newInput = $('<input type="text" class="form-control" id="innerRadius1M" name="innerRadius1M" required>');
-                                            newInput.val(styleParameters.innerRadius1);
-                                        }
-                                        else if(metricType === 'Series')
-                                        {
+                                        if(metricType != null) {
+                                            if (metricType.indexOf('Percentuale') >= 0) {
+                                                newLabel = $('<label for="innerRadius1M" class="col-md-2 control-label">Inner radius (%)</label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInput = $('<input type="text" class="form-control" id="innerRadius1M" name="innerRadius1M" required>');
+                                                newInput.val(styleParameters.innerRadius1);
+                                            } else if (metricType === 'Series') {
+                                                newLabel = $('<label for="innerRadius1M" class="col-md-2 control-label">Inner radius for <i>' + series.secondAxis.desc + '</i> (%)</label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInput = $('<input type="text" class="form-control" id="innerRadius1M" name="innerRadius1M" required>');
+                                                newInput.val(styleParameters.innerRadius1);
+                                            }
+                                        } else {
                                             newLabel = $('<label for="innerRadius1M" class="col-md-2 control-label">Inner radius for <i>' + series.secondAxis.desc + '</i> (%)</label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newInput = $('<input type="text" class="form-control" id="innerRadius1M" name="innerRadius1M" required>');
@@ -26486,9 +26798,30 @@
                                         
                                         //Nuova riga
                                         //Questi raggi sono solo per la versione series
-                                        if(metricType === 'Series')
-                                        {
-                                           //Outer radius 1
+                                        if(metricType != null) {
+                                            if (metricType === 'Series') {
+                                                //Outer radius 1
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="outerRadius1M" class="col-md-2 control-label">Outer radius for <i>' + series.secondAxis.desc + '</i> (%)</label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInput = $('<input type="text" class="form-control" id="outerRadius1M" name="outerRadius1M" required>');
+                                                newInput.val(styleParameters.outerRadius1);
+                                                newInnerDiv.append(newInput);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+
+                                                //Inner radius 2
+                                                newLabel = $('<label for="innerRadius2M" class="col-md-2 control-label">Inner radius for <i>' + series.firstAxis.desc + '</i> (%)</label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInput = $('<input type="text" class="form-control" id="innerRadius2M" name="innerRadius2M" required>');
+                                                newInput.val(styleParameters.innerRadius2);
+                                                newInnerDiv.append(newInput);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                            }
+                                        } else {
+                                            //Outer radius 1
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
                                             newLabel = $('<label for="outerRadius1M" class="col-md-2 control-label">Outer radius for <i>' + series.secondAxis.desc + '</i> (%)</label>');
@@ -26506,7 +26839,7 @@
                                             newInput.val(styleParameters.innerRadius2);
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv); 
+                                            newFormRow.append(newInnerDiv);
                                         }
                                         
                                         //Nuova riga
@@ -26543,12 +26876,13 @@
                                         newFormRow.append(newInnerDiv);
                                         
                                         //Select per colori automatici/manuali
-                                        if(metricType.indexOf('Percentuale') >= 0)
-                                        {
-                                            newLabel = $('<label for="colorsSelect1M" class="col-md-2 control-label">Slices colors</label>');
-                                        }
-                                        else if(metricType === 'Series')
-                                        {
+                                        if(metricType != null) {
+                                            if (metricType.indexOf('Percentuale') >= 0) {
+                                                newLabel = $('<label for="colorsSelect1M" class="col-md-2 control-label">Slices colors</label>');
+                                            } else if (metricType === 'Series') {
+                                                newLabel = $('<label for="colorsSelect1M" class="col-md-2 control-label">Slices colors for <i>' + series.secondAxis.desc + '</i></label>');
+                                            }
+                                        } else {
                                             newLabel = $('<label for="colorsSelect1M" class="col-md-2 control-label">Slices colors for <i>' + series.secondAxis.desc + '</i></label>');
                                         }
                                         newInnerDiv = $('<div class="col-md-3"></div>');
@@ -26589,76 +26923,137 @@
                                         }
                                         
                                         //Aggiunta al form dei campi per parametri specifici
-                                        if(metricType.indexOf('Percentuale') >= 0)
-                                        {
-                                            $("#specificParamsM").append(newColorsTableContainer);
-                                            
-                                            newColorsTable1Container.hide();
-                                            newColorsTableContainer.hide();
-                                            
-                                            //Form per dati tradizionali percentuali
-                                            var valuePerc = [];
-                                            var descriptions = [];
-                                            valuePerc[0] = metricData.data[0].commit.author.value_perc1;
-                                            valuePerc[1] = metricData.data[0].commit.author.value_perc2;
-                                            valuePerc[2] = metricData.data[0].commit.author.value_perc3;
-                                            
-                                            colorsTable1M = $("<table class='table table-bordered table-condensed thrRangeTable' style='width: 100%;'><tr><td>Field</td><td>Color</td></tr></table>");
-                                            
-                                            //Costruiamo la tabella dei colori e il corrispondente JSON una tantum e mostriamola/nascondiamola a seconda di cosa sceglie l'utente, per non perdere eventuali colori immessi in precedenza.
-                                            if((valuePerc[0] !== null) && (valuePerc[1] !== null) && (valuePerc[2] !== null))
-                                            {
-                                                valuesNum = 3;
-                                                descriptions[0] = metricData.data[0].commit.author.field1Desc;
-                                                descriptions[1] = metricData.data[0].commit.author.field2Desc;
-                                                descriptions[2] = metricData.data[0].commit.author.field3Desc;
+                                        if (metricType != null) {
+                                            if (metricType.indexOf('Percentuale') >= 0) {
+                                                $("#specificParamsM").append(newColorsTableContainer);
+
+                                                newColorsTable1Container.hide();
+                                                newColorsTableContainer.hide();
+
+                                                //Form per dati tradizionali percentuali
+                                                var valuePerc = [];
+                                                var descriptions = [];
+                                                valuePerc[0] = metricData.data[0].commit.author.value_perc1;
+                                                valuePerc[1] = metricData.data[0].commit.author.value_perc2;
+                                                valuePerc[2] = metricData.data[0].commit.author.value_perc3;
+
+                                                colorsTable1M = $("<table class='table table-bordered table-condensed thrRangeTable' style='width: 100%;'><tr><td>Field</td><td>Color</td></tr></table>");
+
+                                                //Costruiamo la tabella dei colori e il corrispondente JSON una tantum e mostriamola/nascondiamola a seconda di cosa sceglie l'utente, per non perdere eventuali colori immessi in precedenza.
+                                                if ((valuePerc[0] !== null) && (valuePerc[1] !== null) && (valuePerc[2] !== null)) {
+                                                    valuesNum = 3;
+                                                    descriptions[0] = metricData.data[0].commit.author.field1Desc;
+                                                    descriptions[1] = metricData.data[0].commit.author.field2Desc;
+                                                    descriptions[2] = metricData.data[0].commit.author.field3Desc;
+                                                } else if ((valuePerc[0] !== null) && (valuePerc[1] !== null) && (valuePerc[2] === null)) {
+                                                    valuesNum = 2;
+                                                    descriptions[0] = metricData.data[0].commit.author.field1Desc;
+                                                    descriptions[1] = metricData.data[0].commit.author.field2Desc;
+                                                } else if ((valuePerc[0] !== null) && (valuePerc[1] === null) && (valuePerc[2] === null)) {
+                                                    valuesNum = 1;
+                                                    descriptions[0] = metricData.data[0].commit.author.field1Desc;
+                                                }
+
+                                                //Costruzione tabella dei colori iniziale
+                                                for (var i = 0; i < valuesNum; i++) {
+                                                    colorsArray1M[i] = styleParameters.colors1[i];
+                                                    newRow = $('<tr></tr>');
+                                                    //newCell = $('<td>Value ' + parseInt(i+1) + '</td>');
+                                                    newCell = $('<td>' + descriptions[i] + '</td>');
+                                                    newRow.append(newCell);
+                                                    newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                    newRow.append(newCell);
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: colorsArray1M[i],
+                                                        format: "rgba"
+                                                    });
+                                                    newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors1M);
+                                                    colorsTable1M.append(newRow);
+                                                }
+
+                                                if (valuesNum === 1) {
+                                                    colorsArray1M[1] = styleParameters.colors1[1];
+                                                    newRow = $('<tr></tr>');
+                                                    newCell = $('<td>Complementary</td>');
+                                                    newRow.append(newCell);
+                                                    newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                    newRow.append(newCell);
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: colorsArray1M[1],
+                                                        format: "rgba"
+                                                    });
+                                                    newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors1M);
+                                                    colorsTable1M.append(newRow);
+                                                }
+
+                                                $("#colors1M").val(JSON.stringify(colorsArray1M));
+                                                newColorsTable1Container.append(colorsTable1M);
+                                                colorsTable1M.hide();
+                                            } else if (metricType === 'Series') {
+                                                //Nuova riga
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="colorsSelect2M" class="col-md-2 control-label">Slices colors for <i>' + series.firstAxis.desc + '</i></label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newSelect = $('<select class="form-control" id="colorsSelect2M" name="colorsSelect2M"></select>');
+                                                newSelect.append('<option value="auto">Automatic</option>');
+                                                newSelect.append('<option value="manual">Manual</option>');
+                                                newSelect.val(styleParameters.colorsSelect2);
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+
+                                                newColorsTableContainer.append(newColorsTable2Container);
+
+                                                $("#specificParamsM").append(newColorsTableContainer);
+
+                                                newColorsTable1Container.hide();
+                                                newColorsTable2Container.hide();
+                                                newColorsTableContainer.hide();
+
+                                                //Form per dati Series
+                                                colorsTable1M = $("<table class='table table-bordered table-condensed thrRangeTable' style='width: 100%;'><tr><td>Fields of set <b>" + series.secondAxis.desc + "</b></td><td>Color</td></tr></table>");
+                                                colorsTable2M = $("<table class='table table-bordered table-condensed thrRangeTable' style='width: 100%;'><tr><td>Fields of set <b>" + series.firstAxis.desc + "</b></td><td>Color</td></tr></table>");
+
+                                                //Costruiamo la tabella dei colori e il corrispondente JSON una tantum e mostriamola/nascondiamola a seconda di cosa sceglie l'utente, per non perdere eventuali colori immessi in precedenza.
+                                                for (var i = 0; i < series.secondAxis.labels.length; i++) {
+                                                    colorsArray1M[i] = styleParameters.colors1[i];
+                                                    newRow = $('<tr></tr>');
+                                                    newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                    newRow.append(newCell);
+                                                    newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                    newRow.append(newCell);
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: colorsArray1M[i],
+                                                        format: "rgba"
+                                                    });
+                                                    newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors1M);
+                                                    colorsTable1M.append(newRow);
+                                                }
+
+                                                for (var i = 0; i < series.firstAxis.labels.length; i++) {
+                                                    colorsArray2M[i] = styleParameters.colors2[i];
+                                                    newRow = $('<tr></tr>');
+                                                    newCell = $('<td>' + series.firstAxis.labels[i] + '</td>');
+                                                    newRow.append(newCell);
+                                                    newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                    newRow.append(newCell);
+                                                    newRow.find('div.colorPicker').colorpicker({
+                                                        color: colorsArray2M[i],
+                                                        format: "rgba"
+                                                    });
+                                                    newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors2M);
+                                                    colorsTable2M.append(newRow);
+                                                }
+
+                                                $("#colors1M").val(JSON.stringify(colorsArray1M));
+                                                newColorsTable1Container.append(colorsTable1M);
+                                                $("#colors2M").val(JSON.stringify(colorsArray2M));
+                                                newColorsTable2Container.append(colorsTable2M);
+                                                colorsTable1M.hide();
+                                                colorsTable2M.hide();
                                             }
-                                            else if((valuePerc[0] !== null) && (valuePerc[1] !== null) && (valuePerc[2] === null))
-                                            {
-                                                valuesNum = 2;
-                                                descriptions[0] = metricData.data[0].commit.author.field1Desc;
-                                                descriptions[1] = metricData.data[0].commit.author.field2Desc;
-                                            }
-                                            else if((valuePerc[0] !== null) && (valuePerc[1] === null) && (valuePerc[2] === null))
-                                            {
-                                                valuesNum = 1;
-                                                descriptions[0] = metricData.data[0].commit.author.field1Desc;
-                                            }
-                                            
-                                            //Costruzione tabella dei colori iniziale
-                                            for(var i = 0; i < valuesNum; i++)
-                                            {
-                                                colorsArray1M[i] = styleParameters.colors1[i];
-                                                newRow = $('<tr></tr>');
-                                                //newCell = $('<td>Value ' + parseInt(i+1) + '</td>');
-                                                newCell = $('<td>' + descriptions[i] + '</td>');
-                                                newRow.append(newCell);
-                                                newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                                                newRow.append(newCell);
-                                                newRow.find('div.colorPicker').colorpicker({color: colorsArray1M[i], format: "rgba"});
-                                                newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors1M);
-                                                colorsTable1M.append(newRow);
-                                            }
-                                            
-                                            if(valuesNum === 1)
-                                            {
-                                                colorsArray1M[1] = styleParameters.colors1[1];
-                                                newRow = $('<tr></tr>');
-                                                newCell = $('<td>Complementary</td>');
-                                                newRow.append(newCell);
-                                                newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                                                newRow.append(newCell);
-                                                newRow.find('div.colorPicker').colorpicker({color: colorsArray1M[1], format: "rgba"});
-                                                newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors1M);
-                                                colorsTable1M.append(newRow);
-                                            }
-                                            
-                                            $("#colors1M").val(JSON.stringify(colorsArray1M));    
-                                            newColorsTable1Container.append(colorsTable1M);   
-                                            colorsTable1M.hide();
-                                        }
-                                        else if(metricType === 'Series')
-                                        {
+                                        } else {
                                             //Nuova riga
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
@@ -26673,9 +27068,9 @@
                                             newFormRow.append(newInnerDiv);
 
                                             newColorsTableContainer.append(newColorsTable2Container);
-                                            
+
                                             $("#specificParamsM").append(newColorsTableContainer);
-                                            
+
                                             newColorsTable1Container.hide();
                                             newColorsTable2Container.hide();
                                             newColorsTableContainer.hide();
@@ -26683,37 +27078,57 @@
                                             //Form per dati Series
                                             colorsTable1M = $("<table class='table table-bordered table-condensed thrRangeTable' style='width: 100%;'><tr><td>Fields of set <b>" + series.secondAxis.desc + "</b></td><td>Color</td></tr></table>");
                                             colorsTable2M = $("<table class='table table-bordered table-condensed thrRangeTable' style='width: 100%;'><tr><td>Fields of set <b>" + series.firstAxis.desc + "</b></td><td>Color</td></tr></table>");
-                                        
+
                                             //Costruiamo la tabella dei colori e il corrispondente JSON una tantum e mostriamola/nascondiamola a seconda di cosa sceglie l'utente, per non perdere eventuali colori immessi in precedenza.
-                                            for(var i = 0; i < series.secondAxis.labels.length; i++)
-                                            {
+                                            for (var i = 0; i < series.secondAxis.labels.length; i++) {
                                                 colorsArray1M[i] = styleParameters.colors1[i];
                                                 newRow = $('<tr></tr>');
-                                                newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                if (styleParameters.editDeviceLabels != null) {
+                                                    if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value type") {
+                                                        newCell = $('<td>' + styleParameters.editDeviceLabels[i] + '</td>');
+                                                    } else {
+                                                        newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                    }
+                                                } else {
+                                                    newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                }
                                                 newRow.append(newCell);
                                                 newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                                 newRow.append(newCell);
-                                                newRow.find('div.colorPicker').colorpicker({color: colorsArray1M[i], format: "rgba"});
+                                                newRow.find('div.colorPicker').colorpicker({
+                                                    color: colorsArray1M[i],
+                                                    format: "rgba"
+                                                });
                                                 newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors1M);
                                                 colorsTable1M.append(newRow);
                                             }
-                                            
-                                            for(var i = 0; i < series.firstAxis.labels.length; i++)
-                                            {
+
+                                            for (var i = 0; i < series.firstAxis.labels.length; i++) {
                                                 colorsArray2M[i] = styleParameters.colors2[i];
                                                 newRow = $('<tr></tr>');
-                                                newCell = $('<td>' + series.firstAxis.labels[i] + '</td>');
+                                                if (styleParameters.editDeviceLabels != null) {
+                                                    if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value name") {
+                                                        newCell = $('<td>' + styleParameters.editDeviceLabels[i] + '</td>');
+                                                    } else {
+                                                        newCell = $('<td>' + series.firstAxis.labels[i] + '</td>');
+                                                    }
+                                                } else {
+                                                    newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                }
                                                 newRow.append(newCell);
                                                 newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                                 newRow.append(newCell);
-                                                newRow.find('div.colorPicker').colorpicker({color: colorsArray2M[i], format: "rgba"});
+                                                newRow.find('div.colorPicker').colorpicker({
+                                                    color: colorsArray2M[i],
+                                                    format: "rgba"
+                                                });
                                                 newRow.find('div.colorPicker').on('changeColor', updateWidgetPieChartColors2M);
                                                 colorsTable2M.append(newRow);
                                             }
-                                            
-                                            $("#colors1M").val(JSON.stringify(colorsArray1M));    
+
+                                            $("#colors1M").val(JSON.stringify(colorsArray1M));
                                             newColorsTable1Container.append(colorsTable1M);
-                                            $("#colors2M").val(JSON.stringify(colorsArray2M));    
+                                            $("#colors2M").val(JSON.stringify(colorsArray2M));
                                             newColorsTable2Container.append(colorsTable2M);
                                             colorsTable1M.hide();
                                             colorsTable2M.hide();
@@ -26736,23 +27151,34 @@
                                                 $('#colorsTableContainerM').css("display", "none");
                                             }
                                         }
-                                        
-                                        if(metricType === 'Series')
-                                        {
-                                            if($("#colorsSelect2M").val() === 'manual')
-                                            {
+
+                                        if (metricType != null) {
+                                            if (metricType === 'Series') {
+                                                if ($("#colorsSelect2M").val() === 'manual') {
+                                                    $('#colorsTableContainerM').css("display", "block");
+                                                    $('#colorsTable2ContainerM').css("display", "block");
+                                                    colorsTable2M.css("display", "");
+                                                    table2Shown = true;
+                                                } else {
+                                                    colorsTable2M.css("display", "none");
+                                                    $('#colorsTable2ContainerM').css("display", "none");
+                                                    table2Shown = false;
+                                                    if (table1Shown === false) {
+                                                        $('#colorsTableContainerM').css("display", "none");
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            if ($("#colorsSelect2M").val() === 'manual') {
                                                 $('#colorsTableContainerM').css("display", "block");
                                                 $('#colorsTable2ContainerM').css("display", "block");
                                                 colorsTable2M.css("display", "");
                                                 table2Shown = true;
-                                            }
-                                            else
-                                            {
+                                            } else {
                                                 colorsTable2M.css("display", "none");
                                                 $('#colorsTable2ContainerM').css("display", "none");
                                                 table2Shown = false;
-                                                if(table1Shown === false)
-                                                {
+                                                if (table1Shown === false) {
                                                     $('#colorsTableContainerM').css("display", "none");
                                                 }
                                             }
@@ -26779,24 +27205,36 @@
                                             }
                                         });
 
-                                        if(metricType === 'Series')
-                                        {
-                                            $('#colorsSelect2M').change(function () 
-                                            {
-                                                if($('#colorsSelect2M').val() === "manual")
-                                                {
+                                        if (metricType != null) {
+                                            if (metricType === 'Series') {
+                                                $('#colorsSelect2M').change(function () {
+                                                    if ($('#colorsSelect2M').val() === "manual") {
+                                                        $('#colorsTableContainerM').css("display", "block");
+                                                        $('#colorsTable2ContainerM').css("display", "block");
+                                                        colorsTable2M.css("display", "");
+                                                        table2Shown = true;
+                                                    } else {
+                                                        colorsTable2M.css("display", "none");
+                                                        $('#colorsTable2ContainerM').css("display", "none");
+                                                        table2Shown = false;
+                                                        if (table1Shown === false) {
+                                                            $('#colorsTableContainerM').css("display", "none");
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        } else {
+                                            $('#colorsSelect2M').change(function () {
+                                                if ($('#colorsSelect2M').val() === "manual") {
                                                     $('#colorsTableContainerM').css("display", "block");
                                                     $('#colorsTable2ContainerM').css("display", "block");
                                                     colorsTable2M.css("display", "");
                                                     table2Shown = true;
-                                                }
-                                                else
-                                                {
+                                                } else {
                                                     colorsTable2M.css("display", "none");
                                                     $('#colorsTable2ContainerM').css("display", "none");
                                                     table2Shown = false;
-                                                    if(table1Shown === false)
-                                                    {
+                                                    if (table1Shown === false) {
                                                         $('#colorsTableContainerM').css("display", "none");
                                                     }
                                                 }
@@ -26804,84 +27242,204 @@
                                         }
                                         
                                         //Codice costruzione soglie
-                                        if(metricType.indexOf('Percentuale') >= 0)
-                                        {
-                                            //Tabelle editabili delle soglie
-                                            thrSimpleTables = new Array();
+                                        if (metricType != null) {
+                                            if (metricType.indexOf('Percentuale') >= 0) {
+                                                //Tabelle editabili delle soglie
+                                                thrSimpleTables = new Array();
 
-                                            setSimpleGlobals(currentParams, thrSimpleTables, valuePerc, descriptions);
+                                                setSimpleGlobals(currentParams, thrSimpleTables, valuePerc, descriptions);
 
-                                            //Costruzione THRTables dai parametri provenienti da DB (vuote se non ci sono soglie per quel campo, anche nel caso di nessuna soglia settata in assoluto
-                                            buildThrTablesForEditWidgetSimple();
+                                                //Costruzione THRTables dai parametri provenienti da DB (vuote se non ci sono soglie per quel campo, anche nel caso di nessuna soglia settata in assoluto
+                                                buildThrTablesForEditWidgetSimple();
 
-                                            //Nuova riga
-                                            //Set thresholds
-                                            newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
-                                            newInnerDiv = $('<div class="col-md-3"></div>');
-                                            newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
-                                            newSelect.append('<option value="yes">Yes</option>');
-                                            newSelect.append('<option value="no">No</option>');
-                                            newInnerDiv.append(newSelect);
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-                                            newLabel.show();
-                                            newInnerDiv.show();
-                                            newSelect.show();
+                                                //Nuova riga
+                                                //Set thresholds
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
+                                                newSelect.append('<option value="yes">Yes</option>');
+                                                newSelect.append('<option value="no">No</option>');
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.show();
+                                                newInnerDiv.show();
+                                                newSelect.show();
 
-                                            //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
-                                            $('#alrThrSelM').change(alrThrFlagMListenerSimple);
+                                                //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
+                                                $('#alrThrSelM').change(alrThrFlagMListenerSimple);
 
-                                            //Threshold field select
-                                            newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
-                                            newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
-                                            newInnerDiv = $('<div class="col-md-3"></div>');
-                                            newInnerDiv.append(newSelect);
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-                                            newLabel.hide();
-                                            newInnerDiv.hide();
-                                            newSelect.hide();
+                                                //Threshold field select
+                                                newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                                newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.hide();
+                                                newInnerDiv.hide();
+                                                newSelect.hide();
 
-                                            //Contenitore per tabella delle soglie
-                                            addWidgetRangeTableContainerM = $('<div id="addWidgetRangeTableContainerM" class="row rowCenterContent"></div>');
-                                            $("#specificParamsM").append(addWidgetRangeTableContainerM);
-                                            addWidgetRangeTableContainerM.hide();
-                                            
-                                            if(currentParams === null)
-                                            {
-                                                $('#alrThrSelM').val("no");
-                                                $('#parametersM').val('');
-                                            }
-                                            else
-                                            {
-                                                //ESPOSIZIONE DEI CAMPI
-                                                $('#alrThrSelM').val("yes");
-                                                $("label[for='alrFieldSelM']").show();
-                                                $('#alrFieldSelM').parent().show();
-                                                $('#alrFieldSelM').show();
-                                                //POPOLAMENTO DELLA SELECT DEI CAMPI
-                                                for(var i = 0; i < descriptions.length; i++)
-                                                {
-                                                    $('#alrFieldSelM').append("<option value='" + descriptions[i] + "'>" + descriptions[i] + "</option>");
+                                                //Contenitore per tabella delle soglie
+                                                addWidgetRangeTableContainerM = $('<div id="addWidgetRangeTableContainerM" class="row rowCenterContent"></div>');
+                                                $("#specificParamsM").append(addWidgetRangeTableContainerM);
+                                                addWidgetRangeTableContainerM.hide();
+
+                                                if (currentParams === null) {
+                                                    $('#alrThrSelM').val("no");
+                                                    $('#parametersM').val('');
+                                                } else {
+                                                    //ESPOSIZIONE DEI CAMPI
+                                                    $('#alrThrSelM').val("yes");
+                                                    $("label[for='alrFieldSelM']").show();
+                                                    $('#alrFieldSelM').parent().show();
+                                                    $('#alrFieldSelM').show();
+                                                    //POPOLAMENTO DELLA SELECT DEI CAMPI
+                                                    for (var i = 0; i < descriptions.length; i++) {
+                                                        $('#alrFieldSelM').append("<option value='" + descriptions[i] + "'>" + descriptions[i] + "</option>");
+                                                    }
+                                                    $('#alrFieldSelM').val(-1);
+                                                    $('#addWidgetRangeTableContainerM').show();
+                                                    $('#parametersM').val(JSON.stringify(currentParams));
+                                                    //Listener per selezione campo
+                                                    $('#alrFieldSelM').change(alrFieldSelMListenerSimple);
                                                 }
-                                                $('#alrFieldSelM').val(-1);
-                                                $('#addWidgetRangeTableContainerM').show();
-                                                $('#parametersM').val(JSON.stringify(currentParams));
-                                                //Listener per selezione campo
-                                                $('#alrFieldSelM').change(alrFieldSelMListenerSimple);
+                                            } else if (metricType === 'Series') {
+                                                thrTables1 = new Array();
+                                                thrTables2 = new Array();
+                                                setGlobals(currentParams, thrTables1, thrTables2, series, $('#select-widget-m').val());
+
+                                                //Costruzione THRTables dai parametri provenienti da DB (vuote se non ci sono soglie per quel campo, anche nel caso di nessuna soglia settata in assoluto
+                                                buildThrTablesForEditWidget();
+
+                                                //Codice di creazione soglie
+                                                //Nuova riga
+                                                //Set thresholds
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
+                                                newSelect.append('<option value="yes">Yes</option>');
+                                                newSelect.append('<option value="no">No</option>');
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.show();
+                                                newInnerDiv.show();
+                                                newSelect.show();
+
+                                                //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
+                                                newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
+                                                newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
+                                                newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                                newSelect.val(-1);
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.hide();
+                                                newInnerDiv.hide();
+                                                newSelect.hide();
+
+                                                //Nuova riga
+                                                //Threshold field select
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                                newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.hide();
+                                                newInnerDiv.hide();
+                                                newSelect.hide();
+
+                                                //Contenitore per tabella delle soglie
+                                                addWidgetRangeTableContainerM = $('<div id="addWidgetRangeTableContainerM" class="row rowCenterContent"></div>');
+                                                $("#specificParamsM").append(addWidgetRangeTableContainerM);
+                                                addWidgetRangeTableContainerM.hide();
+
+                                                //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
+                                                $('#alrThrSelM').change(alrThrFlagMListener);
+
+                                                if (currentParams === null) {
+                                                    $('#alrThrSelM').val("no");
+                                                    $("label[for='alrAxisSelM']").hide();
+                                                    $('#alrAxisSelM').val(-1);
+                                                    $('#alrAxisSelM').hide();
+                                                    $('#parametersM').val('');
+                                                } else {
+                                                    //ESPOSIZIONE DEI CAMPI
+                                                    $('#alrThrSelM').val("yes");
+                                                    $('#alrAxisSelM').val(currentParams.thresholdObject.target);
+                                                    $("label[for='alrAxisSelM']").show();
+                                                    $('#alrAxisSelM').parent().show();
+                                                    $('#alrAxisSelM').show();
+                                                    $("label[for='alrFieldSelM']").show();
+                                                    $('#alrFieldSelM').parent().show();
+                                                    $('#alrFieldSelM').show();
+                                                    //POPOLAMENTO DELLA SELECT DEI CAMPI
+                                                    alrAxisSelMListener();
+                                                    $('#addWidgetRangeTableContainerM').show();
+                                                    $('#parametersM').val(JSON.stringify(currentParams));
+                                                    //Listener per settaggio/desettaggio campi in base ad asse selezionato
+                                                    $('#alrAxisSelM').change(alrAxisSelMListener);
+                                                    //Listener per selezione campo
+                                                    $('#alrFieldSelM').change(alrFieldSelMListener);
+                                                }
                                             }
-                                        }
-                                        else if(metricType === 'Series')
-                                        {
+                                        } else {
                                             thrTables1 = new Array();
                                             thrTables2 = new Array();
                                             setGlobals(currentParams, thrTables1, thrTables2, series, $('#select-widget-m').val());
-                                            
+
                                             //Costruzione THRTables dai parametri provenienti da DB (vuote se non ci sono soglie per quel campo, anche nel caso di nessuna soglia settata in assoluto
                                             buildThrTablesForEditWidget();
-                                            
+
+                                            // Nuove righe (labels per i devices)
+                                            for (var n = 0; n < deviceLabels.length; n++) {
+                                                newFormRow = $('<div class="row deviceLab"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Value Name #' + (n + 1).toString() + ' Label</label>');
+                                                newInnerDiv = $('<div class="col-md-7"></div>');
+                                                var placeholderStr = "";
+                                                if (styleParameters.editDeviceLabels != null) {
+                                                    if (styleParameters.editDeviceLabels.length == deviceLabels.length) {
+                                                        placeholderStr = styleParameters.editDeviceLabels[n];
+                                                    } else {
+                                                        // flipped case
+                                                        placeholderStr = deviceLabels[n];
+                                                    }
+                                                } else {
+                                                    placeholderStr = deviceLabels[n];
+                                                }
+                                                //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" placeholder="' + placeholderStr + '">');
+                                                newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" value = "' + placeholderStr + '">');
+                                                //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM" required placeholder="' + deviceLabels[n] + '">');
+                                                newInnerDiv.append(newInput);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.show();
+                                                newInnerDiv.show();
+                                                newInput.show();
+                                            }
+
+                                            if (document.getElementById("groupByAttrM").value == "value name") {
+                                                let elems = document.getElementsByClassName("deviceLab");
+
+                                                [].forEach.call(elems, function (elem) {
+                                                    if($('#groupByAttrM').val() === "value name")
+                                                        elem.style.display = "none";
+                                                    else if ($('#groupByAttrM').val() === "value type") {
+                                                        elem.style.display = "block";
+                                                    }
+                                                });
+                                            }
+
                                             //Codice di creazione soglie
                                             //Nuova riga
                                             //Set thresholds
@@ -26934,16 +27492,13 @@
                                             //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
                                             $('#alrThrSelM').change(alrThrFlagMListener);
 
-                                            if(currentParams === null)
-                                            {
+                                            if (currentParams === null) {
                                                 $('#alrThrSelM').val("no");
                                                 $("label[for='alrAxisSelM']").hide();
                                                 $('#alrAxisSelM').val(-1);
                                                 $('#alrAxisSelM').hide();
                                                 $('#parametersM').val('');
-                                            }
-                                            else
-                                            {
+                                            } else {
                                                 //ESPOSIZIONE DEI CAMPI
                                                 $('#alrThrSelM').val("yes");
                                                 $('#alrAxisSelM').val(currentParams.thresholdObject.target);

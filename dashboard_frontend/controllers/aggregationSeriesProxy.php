@@ -198,39 +198,39 @@
             
             if(isset($_REQUEST['timeRange']))
             {
-                if($_REQUEST['timeRange'] != 'last')
-                {
-                    switch($_REQUEST['timeRange'])
-                    {
-                        case "4 Ore":
-                            $timeRange = "fromTime=4-hour";
-                            break;
+                if (!empty($_REQUEST['timeRange'])) {
+                    if ($_REQUEST['timeRange'] != 'last') {
+                        switch ($_REQUEST['timeRange']) {
+                            case "4 Ore":
+                                $timeRange = "fromTime=4-hour";
+                                break;
 
-                        case "12 Ore":
-                            $timeRange = "fromTime=12-hour";
-                            break;
+                            case "12 Ore":
+                                $timeRange = "fromTime=12-hour";
+                                break;
 
-                        case "Giornaliera":
-                            $timeRange = "fromTime=1-day";
-                            break;
+                            case "Giornaliera":
+                                $timeRange = "fromTime=1-day";
+                                break;
 
-                        case "Settimanale":
-                            $timeRange = "fromTime=7-day";
-                            break;
+                            case "Settimanale":
+                                $timeRange = "fromTime=7-day";
+                                break;
 
-                        case "Mensile":
-                            $timeRange = "fromTime=30-day";
-                            break;
+                            case "Mensile":
+                                $timeRange = "fromTime=30-day";
+                                break;
 
-                        case "Annuale":
-                            $timeRange = "fromTime=365-day";
-                            break;
+                            case "Annuale":
+                                $timeRange = "fromTime=365-day";
+                                break;
+                        }
+
+                        $urlToCall = $smUrl . "&" . $timeRange;
+                    } else {
+                        $urlToCall = $smUrl;
                     }
-                    
-                    $urlToCall = $smUrl . "&" . $timeRange;
-                }
-                else
-                {
+                } else {
                     $urlToCall = $smUrl;
                 }
             }
@@ -264,8 +264,15 @@
                 $response['result'] = 'Ok';
                 $response['data'] = $result;
                 $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
-                $response['smField'] = $dataOrigin->smField;
-                $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                if (!isset($dataOrigin->smField)) {
+                    if (isset($dataOrigin->metricType)) {
+                        $response['metricType'] = $dataOrigin->metricType;
+                        $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                    }
+                } else {
+                    $response['smField'] = $dataOrigin->smField;
+                    $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                }
                 $response['index'] = $index;
             }
             else
@@ -274,6 +281,22 @@
                 $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
             }
             
+            break;
+
+        case "Dynamic":
+            $response['result'] = 'Ok';
+            $response['data'] = $dataOrigin->values;
+            $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
+            if (!isset($dataOrigin->smField)) {
+                if (isset($dataOrigin->metricType)) {
+                    $response['metricType'] = $dataOrigin->metricType;
+                    $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                }
+            } else {
+                $response['smField'] = $dataOrigin->smField;
+                $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+            }
+            $response['index'] = $index;
             break;
 
         case "MyKPI":
@@ -369,8 +392,15 @@
                 $response['result'] = 'Ok';
                 $response['data'] = $myKPIDataJson;
                 $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
-                $response['smField'] = $dataOrigin->smField;
-                $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                if (!isset($dataOrigin->smField)) {
+                    if (isset($dataOrigin->metricType)) {
+                        $response['metricType'] = $dataOrigin->metricType;
+                        $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                    }
+                } else {
+                    $response['smField'] = $dataOrigin->smField;
+                    $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                }
                 $response['metricValueUnit'] = $myKpiUnit->valueUnit;
                 $response['index'] = $index;
             }

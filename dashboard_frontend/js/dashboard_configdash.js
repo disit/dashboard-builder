@@ -522,7 +522,8 @@ function addGisQueryM()
             color: null,
             format: "rgba"
         });
-        newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+    //    newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+        newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
         // GP LAST ICONTEXT2 END
     }
 
@@ -561,12 +562,14 @@ function addGisQueryM()
    newTableCell = $('<td><div class="input-group colorPicker" data-param="color1"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
    newTableRow.append(newTableCell);
    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color1, format: "rgba"});
-   newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+   //newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+   newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
    
    newTableCell = $('<td><div class="input-group colorPicker" data-param="color2"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
    newTableRow.append(newTableCell);
    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#editGisQueryTable tr").length - 1)%7].color2, format: "rgba"});
-   newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+   //newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+   newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
    
    if($('#editGisQueryTable').attr('data-widgetType') === 'selector' || $('#editGisQueryTable').attr('data-widgetType') === 'selectorNew' || $('#editGisQueryTable').attr('data-widgetType') === 'selectorTech')
    {
@@ -586,14 +589,16 @@ function addGisQueryM()
                                             actionsBox: true, 
                                             width: 110
                                          });
-        newTableRow.find('select').on('changed.bs.select', editGisParametersLocal);
+        //newTableRow.find('select').on('changed.bs.select', editGisParametersLocal);
+        newTableRow.find('select').on('changed.bs.select', editGisUpdateParams);
         
         newTableCell = $('<td><select data-param="display" class="form-control"></select></td>');
         newTableCell.find('select').append('<option value="pins">Pins</option>');
         newTableCell.find('select').append('<option value="geometries">Geometries</option>');
         newTableCell.find('select').append('<option value="all">Pins and geometries</option>');
         newTableRow.append(newTableCell);
-        newTableCell.find('select').on('change', editGisParametersLocal);
+        //newTableCell.find('select').on('change', editGisParametersLocal);
+        newTableCell.find('select').on('change', editGisUpdateParams);
 
        if($('#editGisQueryTable').attr('data-widgetType') === 'selectorNew') {
            // New Map Pin Color
@@ -602,7 +607,8 @@ function addGisQueryM()
            newTableCell.find('select').append('<option value="SymbolColor">Symbol Color</option>');
            newTableRow.append(newTableCell);
          //  newTableCell.find('select').val(editGisParametersLocal.queries[rowIndex].newMapPinColor);
-           newTableCell.find('select').on('change', editGisParametersLocal);
+           //newTableCell.find('select').on('change', editGisParametersLocal);
+           newTableCell.find('select').on('change', editGisUpdateParams);
 
          //  newTableRow.append(newTableCell);
        }
@@ -664,7 +670,8 @@ function addGisQueryM()
    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
    newTableCell.find('i').click(delGisQueryM);
    newTableRow.append(newTableCell);
-   newTableRow.find('a.toBeEdited').on('save', editGisParametersLocal);
+   //newTableRow.find('a.toBeEdited').on('save', editGisParametersLocal);
+   newTableRow.find('a.toBeEdited').on('save', editGisUpdateParams);
   
    $("#editGisQueryTable").append(newTableRow);
    // GP LAST ICONTEXT START

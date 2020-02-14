@@ -47,18 +47,21 @@
         var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
         var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
-        var chart, widgetProperties, metricData, metricType, series, styleParameters, legendHeight, chartType, highchartsChartType, 
-                dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, 
-                stackingOption, widgetHeight, metricName, widgetTitle, countdownRef, widgetParameters, thresholdsJson, infoJson = null;
+        var chart, widgetProperties, metricData, metricType, series, styleParameters, legendHeight, chartType, highchartsChartType,
+            chartColor, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor, appId, flowId, nrMetricType, gridLineColor, chartAxesColor,
+            dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, xAxisType, xAxisCategories, chartSeriesObject,
+                stackingOption, widgetHeight, metricName, widgetTitle, countdownRef, widgetParameters, rowParameters, thresholdsJson, infoJson, xAxisTitle, smField, groupByAttr = null;
+        var seriesDataArray = [];
+        var serviceUri = "";
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-	{
-		showHeader = false;
-	}
-	else
-	{
-		showHeader = true;
-	}  
+        {
+            showHeader = false;
+        }
+        else
+        {
+            showHeader = true;
+        }
         
         //Definizioni di funzione specifiche del widget
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
@@ -74,7 +77,86 @@
             var infoJson = jQuery.parseJSON(widgetProperties.param.infoJson);
             return infoJson;
         }*/
-        
+
+        console.log("Entrato in widgetRadarSeries --> " + widgetName);
+
+        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr) {
+
+            var deviceLabels = [];
+            var metricLabels = [];
+            var auxLabels = [];
+            let mappedSeriesDataArray = [];
+
+            metricLabels = getMetricLabelsForBarSeries(rowParameters);
+            deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
+            if (groupByAttr != null) {
+                //if (groupByAttr == "metrics") {
+                if (groupByAttr == "value type") {
+                    flipFlag = false;
+                    //    } else if (groupByAttr == "device") {
+                } else if (groupByAttr == "value name") {
+                    flipFlag = true;
+                }
+            } else {
+                flipFlag = false;
+            }
+            if (flipFlag !== true) {
+                mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+            } else {
+                mappedSeriesDataArray = buildBarSeriesArrayMap2(seriesDataArray);
+                auxLabels = metricLabels;
+                metricLabels = deviceLabels;
+                deviceLabels = auxLabels;
+            }
+            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
+
+            xAxisCategories = metricLabels.slice();
+
+            widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+
+            chartSeriesObject = getChartSeriesObject(series, editLabels);
+            legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+            //    xAxisCategories = getXAxisCategories(series, widgetHeight);
+
+            if(firstLoad !== false)
+            {
+                showWidgetContent(widgetName);
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+            }
+            else
+            {
+                elToEmpty.empty();
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+            }
+
+            if (!serviceUri) {
+                $.ajax({
+                    url: "../widgets/updateBarSeriesParameters.php",
+                    type: "GET",
+                    data: {
+                        widgetName: "<?= $_REQUEST['name_w'] ?>",
+                        series: series
+                    },
+                    async: true,
+                    dataType: 'json',
+                    success: function (widgetData) {
+
+                    },
+                    error: function (errorData) {
+                        metricData = null;
+                        console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
+                        console.log(JSON.stringify(errorData));
+                    }
+                });
+            }
+            drawDiagram();
+
+        }
+
         function showModalFieldsInfoFirstAxis()
         {
             var label = $(this).attr("data-label");
@@ -135,7 +217,7 @@
             return format;
         }
         
-        function getChartSeriesObject(series)
+        function getChartSeriesObject(series, xAxisLabelsEdit)
         {
             var chartSeriesObject, singleObject, seriesName, seriesValue, seriesValues, zonesObject, zonesArray, inf, sup, i = null;
             
@@ -147,7 +229,16 @@
                     
                     for (var i in series.secondAxis.series) 
                     {
-                        seriesName = series.secondAxis.labels[i];
+                        if (xAxisLabelsEdit != null) {
+                            if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
+                                seriesName = xAxisLabelsEdit[i];
+                            } else {
+                                // flipped case
+                                seriesName = series.secondAxis.labels[i];
+                            }
+                        } else {
+                            seriesName = series.secondAxis.labels[i];
+                        }
                         seriesValues = series.secondAxis.series[i];
 
                         if((styleParameters.barsColorsSelect === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
@@ -497,6 +588,528 @@
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
 	}
+
+        function filterArray(test_array) {
+            // Remove NaN, null, undefined and empty elements in test_array
+            var index = -1,
+                arr_length = test_array ? test_array.length : 0,
+                resIndex = -1,
+                result = [];
+
+            while (++index < arr_length) {
+                var value = test_array[index];
+
+                if (value) {
+                    result[++resIndex] = value;
+                }
+            }
+
+            return result;
+        }
+
+        function adjustArrayForHighcharts(test_array) {
+            // Replace NaN, undefined and empty elements with null in test_array
+            var index = -1,
+                arr_length = test_array ? test_array.length : 0,
+                resIndex = -1,
+                result = [],
+                resultString = "";
+
+            while (++index < arr_length) {
+                var value = test_array[index];
+
+                if (index == 0) {
+                    if (value) {
+                        result[++resIndex] = value;
+                        resultString = value.toString();
+                    } else {
+                        result[++resIndex] = null;
+                        resultString = null;
+                    }
+                } else if (index == arr_length - 1) {
+                    if (value) {
+                        result[++resIndex] = value;
+                        resultString = resultString + ', ' + value.toString();
+                    } else {
+                        result[++resIndex] = null;
+                        resultString = resultString + ', ' + null;
+                    }
+                } else {
+                    if (value) {
+                        result[++resIndex] = value;
+                        resultString = resultString + ', ' + value.toString();
+                    } else {
+                        result[++resIndex] = null;
+                        resultString = resultString + ', ' + null;
+                    }
+                }
+            }
+
+            return resultString;
+        }
+
+	    function drawDiagram(timeDomain) {
+
+            if(timeDomain)
+            {
+                xAxisType = 'datetime';
+                xAxisCategories = null;
+            }
+            else
+            {
+                xAxisType = null;
+            }
+
+            // GP - Different scale yaxis
+            let yaxisOpts = "[";
+            let yaxisOptsJson = null;
+            let yaxisMin = [];
+            let yaxisMax = [];
+            let orderedSeriesForMinMax = [];
+
+            for( let m = 0; m < chartSeriesObject[0].data.length; m++) {
+
+                orderedSeriesForMinMax[m] = [];
+
+                for (let n = 0; n < chartSeriesObject.length; n++) {
+
+                    orderedSeriesForMinMax[m].push(chartSeriesObject[n].data[m]);
+
+                }
+
+                if (filterArray(orderedSeriesForMinMax[m]).length > 0) {
+                    let currentMinVal = Math.min.apply(null, filterArray(orderedSeriesForMinMax[m]));
+                    //    let currentMaxVal = Math.max(chartSeriesObject[n].data);
+                    let currentMaxVal = Math.max.apply(null, filterArray(orderedSeriesForMinMax[m]));
+                    // increase yaxis range of 20% with respect to max and min series values
+                    yaxisMin[m] = Math.min(0, currentMinVal - currentMinVal * 0.2);
+                    yaxisMax[m] = currentMaxVal + currentMaxVal * 0.2;
+                } else {
+                    yaxisMin[m] = 0;
+                    yaxisMax[m] = 10;
+                }
+
+                if (m == chartSeriesObject[0].data.length - 1) {
+                    yaxisOpts = yaxisOpts + '{"gridLineInterpolation": "polygon", "lineWidth": 0, "gridZIndex": 0, "gridLineColor": "' + styleParameters.gridLinesColor + '", "gridLineWidth": ' + styleParameters.gridLinesWidth + ', "title": {"text": null}, "labels": {"overflow": "justify", "style": {"fontFamily": "Montserrat", "fontSize": "' + styleParameters.colsLabelsFontSize + 'px", "fontWeight": "bold", "color": "' + styleParameters.colsLabelsFontColor + '", "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"}}, "min": ' + yaxisMin[m] + ', "max": ' + yaxisMax[m] + '}]';
+                } else {
+                    yaxisOpts = yaxisOpts + '{"gridLineInterpolation": "polygon", "lineWidth": 0, "gridZIndex": 0, "gridLineColor": "' + styleParameters.gridLinesColor + '", "gridLineWidth": ' + styleParameters.gridLinesWidth + ', "title": {"text": null}, "labels": {"overflow": "justify", "style": {"fontFamily": "Montserrat", "fontSize": "' + styleParameters.colsLabelsFontSize + 'px", "fontWeight": "bold", "color": "' + styleParameters.colsLabelsFontColor + '", "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"}}, "min": ' + yaxisMin[m] + ', "max": ' + yaxisMax[m] + '}, '
+                }
+
+            }
+
+            yaxisOptsJson = JSON.parse(yaxisOpts);
+
+            Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
+                chart: {
+                    type: 'line',
+                    polar: true,
+                    backgroundColor: 'transparent',
+                    parallelCoordinates: true,
+                    parallelAxes: {
+                        labels: {
+                            style: {
+                                color: '#999999'
+                            }
+                        },
+                        gridLineWidth: 1,
+                        lineWidth: 2,
+                        showFirstLabel: false,
+                        showLastLabel: true
+                    },
+                    //Funzione di applicazione delle soglie
+                    events: {
+                        load: onDraw
+                    }
+                },
+                //Per disabilitare il menu in alto a destra
+                exporting:
+                    {
+                        enabled: false
+                    },
+                //Non cancellare sennò ci mette il titolo di default
+                title: {
+                    text: ''
+                },
+                //Non cancellare sennò ci mette il sottotitolo di default
+                subtitle: {
+                    text: ''
+                },
+                //Vertici del poligono
+                xAxis: {
+                    categories: xAxisCategories,
+                    tickmarkPlacement: 'on',
+                    lineWidth: 0,
+                    gridLineColor: styleParameters.gridLinesColor,
+                    gridLineWidth: styleParameters.gridLinesWidth,
+                    title: {//Non mostriamolo, è brutto a vedersi
+                        align: 'high',
+                        offset: 0,
+                        text: null,
+                        rotation: 0,
+                        y: 5,
+                        style: {
+                            fontFamily: 'Montserrat',
+                            fontSize: styleParameters.rowsLabelsFontSize + "px",
+                            fontWeight: 'bold',
+                            fontStyle: 'italic',
+                            color: styleParameters.rowsLabelsFontColor,
+                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                        }
+                    },
+                    labels: {
+                        enabled: true,
+                        useHTML: false,
+                        style: {
+                            fontFamily: 'Montserrat',
+                            fontSize: styleParameters.rowsLabelsFontSize + "px",
+                            fontWeight: 'bold',
+                            color: styleParameters.rowsLabelsFontColor,
+                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                        }
+                    }
+                },
+                yAxis: yaxisOptsJson,
+             //   yAxis: {
+                //    gridLineInterpolation: 'polygon',
+                //    lineWidth: 0,
+                //    gridZIndex: 0,
+                //    gridLineColor: styleParameters.gridLinesColor,
+                //    gridLineWidth: styleParameters.gridLinesWidth,
+                //    title: {
+                //        text: null
+                //    },
+                //    labels: {
+                //        overflow: 'justify',
+                //        style: {
+                //            fontFamily: 'Montserrat',
+                //            fontSize: styleParameters.colsLabelsFontSize + "px",
+                //            fontWeight: 'bold',
+                //            color: styleParameters.colsLabelsFontColor,
+                 //           "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                //        }
+                 //   }
+              //  },
+                tooltip: {
+                    style: {
+                        fontFamily: 'Montserrat',
+                        fontSize: 12 + "px",
+                        color: 'black',
+                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.15)",
+                        "z-index": 5
+                    },
+                    useHTML: false,
+                    backgroundColor: {
+                        linearGradient: [0, 0, 0, 60],
+                        stops: [
+                            [0, '#FFFFFF'],
+                            [1, '#E0E0E0']
+                        ]
+                    },
+                    headerFormat: null,
+                    pointFormatter: function()
+                    {
+                        var field = this.series.name;
+                        var thresholdObject, desc, min, max, color, fieldName, index, message = null;
+                        var rangeOnThisField = false;
+                        var dataStringInPopup = "";
+                        var dateMessage = "";
+                        var valueUnitInPopup = "";
+
+                        for (var n = 0; n < seriesDataArray.length; n++) {
+                            if (seriesDataArray[n].metricName == this.series.name && seriesDataArray[n].metricType == this.category) {
+                                dataStringInPopup = seriesDataArray[n].measuredTime;
+                              //  if(seriesDataArray[n].metricValueUnit != null) {
+                                    valueUnitInPopup = seriesDataArray[n].metricValueUnit;
+                              //  }
+                            } else if (styleParameters.editDeviceLabels) {
+                                if (seriesDataArray[n].metricName == series.secondAxis.labels[styleParameters.editDeviceLabels.indexOf(field)] && seriesDataArray[n].metricType == this.category) {
+                                    dataStringInPopup = seriesDataArray[n].measuredTime;
+                                  //  if(seriesDataArray[n].metricValueUnit != null) {
+                                        valueUnitInPopup = seriesDataArray[n].metricValueUnit;
+                                  //  }
+                                }
+                            }
+                        }
+
+                        if((this.series.name.indexOf("Threshold") >= 0)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+                        {
+                            //Tooltip di una soglia
+                            var i1 = this.series.name.indexOf("-") + 2;
+                            var i2 = this.series.name.indexOf(":");
+
+                            desc = this.series.name.substring(i1, i2);
+
+                            return '<b>Threshold</b><br/>' +
+                                '<span style="color:' + this.color + '">\u25CF</span> Description: <b>' + desc  + '</b><br/>' +
+                                '<span style="color:' + this.color + '">\u25CF</span> Upper bound: <b>' + this.y  + '</b><br/>';
+                        }
+                        else
+                        {
+                            //Tooltip di una serie di dati
+                            if(this.category.indexOf('thrLegend') > 0)
+                            {
+                                fieldName = this.category.substring(this.category.indexOf('<span class="inline">'));
+                                fieldName = fieldName.replace('<span class="inline">', '');
+                                fieldName = fieldName.replace('</span>', '');
+                                fieldName = fieldName.replace('<b class="caret">', '');
+                                fieldName = fieldName.replace('</b></a>', '');
+                                fieldName = fieldName.replace('<ul class="dropdown-menu thrLegend">', '');//Lascialo così
+                                fieldName = fieldName.replace('<ul class="dropdown-menu">', '');
+                                fieldName = fieldName.replace('</ul></div>', '');
+                            }
+                            else
+                            {
+                                if(this.category.indexOf('<span>') > 0)
+                                {
+                                    fieldName = this.category.substring(this.category.indexOf('<span>'));
+                                    fieldName = fieldName.replace("<span>", "");
+                                    fieldName = fieldName.replace("</span>", "");
+                                }
+                                else
+                                {
+                                    fieldName = this.category;
+                                }
+                            }
+
+                            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+                            {
+                                if(thresholdsJson.thresholdArray.length > 0)
+                                {
+                                    var elementUpperBounds = [];
+
+                                    //Reperimento degli upper bounds per questo campo
+                                    for(var j = 0; j < thresholdsJson.thresholdArray.length; j++)
+                                    {
+                                        var newUpperBound = {
+                                            color: thresholdsJson.thresholdArray[j].color,
+                                            value: parseInt(thresholdsJson.thresholdArray[j][fieldName]),
+                                            desc: thresholdsJson.thresholdArray[j].desc
+                                        };
+                                        elementUpperBounds.push(newUpperBound);
+                                    }
+
+                                    //Ordinamento crescente del vettore degli upper bounds
+                                    elementUpperBounds.sort(compareUpperBounds);
+
+                                    for(var i = 0; i < elementUpperBounds.length; i++)
+                                    {
+                                        max = elementUpperBounds[i].value;
+                                        desc = elementUpperBounds[i].desc;
+
+                                        if(i === 0)
+                                        {
+                                            if(parseFloat(this.y) < max)
+                                            {
+                                                if((desc !== null)&&(desc !== ''))
+                                                {
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                                }
+                                                else
+                                                {
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            min = elementUpperBounds[i - 1].value;
+                                            if((parseFloat(this.y) >= min)&&(parseFloat(this.y) < max))
+                                            {
+                                                if((desc !== null)&&(desc !== ''))
+                                                {
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                                }
+                                                else
+                                                {
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: < <b>' + dataStringInPopup + '</b><br/>';
+                                                }
+                                            }
+                                            else if((i === (elementUpperBounds.length - 1))&&(parseFloat(this.y) >= max))
+                                            {
+                                                return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value higher than the greatest upper bound<br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    //Non sono stati definiti range
+                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
+                                        '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>' +
+                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                }
+
+
+                            }
+                            else
+                            {
+                                //Non sono stati definiti range
+                                return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
+                                    '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>' +
+                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                            }
+                        }
+                    }
+                },
+                plotOptions: {
+                    line: {
+                        lineWidth: styleParameters.linesWidth,
+                        events: {
+                         /*   legendItemClick: function(){
+                                return false;
+                            }*/
+                        },
+                    },
+                    series: {
+                        states: {
+                            hover: {
+                             //   enabled: false
+                                lineWidth: styleParameters.linesWidth
+                            },
+                            inactive: {
+                                lineWidth: 1
+                            }
+                        }
+                    }
+                },
+                legend: {
+                    enabled: true,
+                    useHTML: false,
+                    labelFormatter: function () {
+                        return this.name;
+                    },
+                    layout: 'horizontal',
+                    align: 'center',
+                    verticalAlign: 'bottom',
+                    floating: false,
+                    borderWidth: 0,
+                    itemDistance: 24,
+                    backgroundColor: 'transparent',
+                    shadow: false,
+                    symbolPadding: 5,
+                    symbolWidth: 5,
+                    itemStyle: {
+                        fontFamily: 'Montserrat',
+                        fontSize: styleParameters.legendFontSize + "px",
+                        color: styleParameters.legendFontColor,
+                        "text-align": "center",
+                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                    }
+                },
+                credits: {
+                    enabled: false
+                },
+                series: chartSeriesObject
+            });
+
+        }
+
+        function compareSeriesData(a, b)
+        {
+            var x = a[0];
+            var y = b[0];
+
+            if(x < y)
+            {
+                return -1
+            }
+            else
+            {
+                if(x > y)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+
+        function buildSeriesFromAggregationData()
+        {
+            var seriesObj = {
+                firstAxis:{
+                    //desc:"Metrics",
+                    desc:"value type",
+                    labels:[]
+                },
+                secondAxis:{
+                    //   "desc":"Values",
+                    "desc":"value name",
+                    "labels":[],
+                    "series":[]
+                }
+            };
+
+            for(var i = 0; i < aggregationGetData.length; i++)
+            {
+                switch(aggregationGetData[i].metricHighLevelType)
+                {
+                    case "KPI":
+                        seriesObj.secondAxis.labels[i] = aggregationGetData[i].metricShortDesc;
+                        var roundedVal = null;
+                        if((aggregationGetData[i].metricType === "Percentuale")||(pattern.test(aggregationGetData[i].metricType)))
+                        {
+                            roundedVal = parseFloat(JSON.parse(aggregationGetData[i].data).value_perc1);
+                            roundedVal = Number(roundedVal.toFixed(2));
+                            seriesObj.secondAxis.series[i] = [roundedVal];
+                        }
+                        else
+                        {
+                            switch(aggregationGetData[i].metricType)
+                            {
+                                case "Intero":
+                                    seriesObj.secondAxis.series[i] = [parseInt(JSON.parse(aggregationGetData[i].data).value_num)];
+                                    break;
+
+                                case "Float":
+                                    roundedVal = parseFloat(JSON.parse(aggregationGetData[i].data).value_num);
+                                    roundedVal = Number(roundedVal.toFixed(2));
+                                    seriesObj.secondAxis.series[i] = [roundedVal];
+                                    break;
+
+                                //I testuali NON li aggiungiamo al grafico
+                                default:
+                                    break;
+                            }
+                        }
+                        break;
+
+                    //Poi si aggiungeranno altri casi
+                    default:
+                        break;
+                }
+            }
+            return seriesObj;
+        }
+
         //Fine definizioni di funzione  
         
         //Codice core del widget
@@ -505,7 +1118,7 @@
             url = null;
         }
         
-        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+    /*    if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
         {
             metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
             widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
@@ -521,7 +1134,7 @@
             $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
             widgetHeaderColor = widgetHeaderColorFromDriver;
             widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
-        }
+        }*/
         
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function(event) 
@@ -540,364 +1153,404 @@
             showHeader = event.showHeader;
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
         });
-        
-        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);	
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
-        $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
-        if(firstLoad === false)
-        {
-            showWidgetContent(widgetName);
-        }
-        else
-        {
-            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-        }
-        //addLink(widgetName, url, linkElement, divContainer, null);
-        
-        //Nuova versione
-        if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
-        {
-            styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
-        }
-        
-        if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
-        {
-            widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
-            thresholdsJson = widgetParameters;
-        }
-        
-        if(('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null')&&('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== ''))
-        {
-            infoJson = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>');
-        }
-        
+
+
+        //Nuova versione // **************** NEW GP ********************************************************************
         $.ajax({
-            url: getMetricDataUrl,
+            url: "../controllers/getWidgetParams.php",
             type: "GET",
-            data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
+            data: {
+                widgetName: "<?= $_REQUEST['name_w'] ?>"
+            },
             async: true,
             dataType: 'json',
-            success: function (data) 
+            success: function(widgetData)
             {
-                metricData = data;
-                $("#" + widgetName + "_loading").css("display", "none");
-                
-                if(metricData.data.length !== 0)
+                showTitle = widgetData.params.showTitle;
+                widgetContentColor = widgetData.params.color_w;
+                fontSize = widgetData.params.fontSize;
+                fontColor = widgetData.params.fontColor;
+                timeToReload = widgetData.params.frequency_w;
+                hasTimer = widgetData.params.hasTimer;
+                chartColor = widgetData.params.chartColor;
+                dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                appId = widgetData.params.appId;
+                flowId = widgetData.params.flowId;
+                nrMetricType = widgetData.params.nrMetricType;
+                gridLineColor = widgetData.params.chartPlaneColor;
+                chartAxesColor = widgetData.params.chartAxesColor;
+                serviceUri = widgetData.params.serviceUri;
+
+                if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
-                    metricType = metricData.data[0].commit.author.metricType;
-                    series = JSON.parse(metricData.data[0].commit.author.series);
-
-                    widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
-
-                    //Disegno del grafico
-                    var chartSeriesObject = getChartSeriesObject(series);
-                    var xAxisCategories = getXAxisCategories(series, widgetHeight);
-
-                    if(firstLoad !== false)
-                    {
-                        showWidgetContent(widgetName);
-                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                    }
-                    else
-                    {
-                        elToEmpty.empty();
-                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                    }
-
-                    chart = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
-                        chart: {
-                            type: 'line',
-                            polar: true,
-                            backgroundColor: 'transparent',
-                            //Funzione di applicazione delle soglie
-                            events: {
-                                load: onDraw
-                            }
-                        },
-                        //Per disabilitare il menu in alto a destra
-                        exporting: 
-                        { 
-                            enabled: false 
-                        },
-                        //Non cancellare sennò ci mette il titolo di default
-                        title: {
-                            text: ''
-                        },
-                        //Non cancellare sennò ci mette il sottotitolo di default
-                        subtitle: {
-                            text: ''
-                        },
-                        //Vertici del poligono
-                        xAxis: {
-                            categories: xAxisCategories,
-                            tickmarkPlacement: 'on',
-                            lineWidth: 0,
-                            gridLineColor: styleParameters.gridLinesColor,
-                            gridLineWidth: styleParameters.gridLinesWidth,
-                            title: {//Non mostriamolo, è brutto a vedersi
-                                align: 'high',
-                                offset: 0,
-                                text: null,
-                                rotation: 0,
-                                y: 5,
-                                style: {
-                                    fontFamily: 'Montserrat',
-                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
-                                    fontWeight: 'bold',
-                                    fontStyle: 'italic',
-                                    color: styleParameters.rowsLabelsFontColor,
-                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                                }
-                            },
-                            labels: {
-                               enabled: true,
-                               useHTML: true,
-                               style: {
-                                    fontFamily: 'Montserrat',
-                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
-                                    fontWeight: 'bold',
-                                    color: styleParameters.rowsLabelsFontColor,
-                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                                }
-                            }
-                        },
-                        yAxis: {
-                            gridLineInterpolation: 'polygon',
-                            lineWidth: 0,
-                            gridZIndex: 0,
-                            gridLineColor: styleParameters.gridLinesColor,
-                            gridLineWidth: styleParameters.gridLinesWidth,
-                            title: {
-                                text: null
-                            },
-                            labels: {
-                                overflow: 'justify',
-                                style: {
-                                    fontFamily: 'Montserrat',
-                                    fontSize: styleParameters.colsLabelsFontSize + "px",
-                                    fontWeight: 'bold',
-                                    color: styleParameters.colsLabelsFontColor,
-                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                                }
-                            }
-                        },
-                        tooltip: {
-                            style: {
-                                fontFamily: 'Montserrat',
-                                fontSize: 12 + "px",
-                                color: 'black',
-                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.15)",
-                                "z-index": 5
-                            },
-                            useHTML: true,
-                            backgroundColor: {
-                                linearGradient: [0, 0, 0, 60],
-                                stops: [
-                                    [0, '#FFFFFF'],
-                                    [1, '#E0E0E0']
-                                ]
-                            },
-                            headerFormat: null,
-                            pointFormatter: function()
-                            {
-                                var thresholdObject, desc, min, max, color, fieldName, index, message = null;
-                                var rangeOnThisField = false;
-
-                                if((this.series.name.indexOf("Threshold") >= 0)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                                {
-                                    //Tooltip di una soglia
-                                    var i1 = this.series.name.indexOf("-") + 2;
-                                    var i2 = this.series.name.indexOf(":");
-
-                                    desc = this.series.name.substring(i1, i2);
-
-                                    return '<b>Threshold</b><br/>' + 
-                                           '<span style="color:' + this.color + '">\u25CF</span> Description: <b>' + desc  + '</b><br/>' +
-                                           '<span style="color:' + this.color + '">\u25CF</span> Upper bound: <b>' + this.y  + '</b><br/>';
-                                }
-                                else
-                                {
-                                    //Tooltip di una serie di dati
-                                    if(this.category.indexOf('thrLegend') > 0)
-                                    {
-                                        fieldName = this.category.substring(this.category.indexOf('<span class="inline">'));
-                                        fieldName = fieldName.replace('<span class="inline">', '');
-                                        fieldName = fieldName.replace('</span>', ''); 
-                                        fieldName = fieldName.replace('<b class="caret">', '');
-                                        fieldName = fieldName.replace('</b></a>', '');
-                                        fieldName = fieldName.replace('<ul class="dropdown-menu thrLegend">', '');//Lascialo così
-                                        fieldName = fieldName.replace('<ul class="dropdown-menu">', '');
-                                        fieldName = fieldName.replace('</ul></div>', '');
-                                    }
-                                    else
-                                    {
-                                        if(this.category.indexOf('<span>') > 0)
-                                        {
-                                            fieldName = this.category.substring(this.category.indexOf('<span>'));
-                                            fieldName = fieldName.replace("<span>", "");
-                                            fieldName = fieldName.replace("</span>", "");
-                                        }
-                                        else
-                                        {
-                                            fieldName = this.category;
-                                        }
-                                    }
-
-                                    if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                                    {
-                                        if(thresholdsJson.thresholdArray.length > 0)
-                                        {
-                                            var elementUpperBounds = [];
-
-                                            //Reperimento degli upper bounds per questo campo
-                                            for(var j = 0; j < thresholdsJson.thresholdArray.length; j++)
-                                            {
-                                                var newUpperBound = {
-                                                    color: thresholdsJson.thresholdArray[j].color,
-                                                    value: parseInt(thresholdsJson.thresholdArray[j][fieldName]),
-                                                    desc: thresholdsJson.thresholdArray[j].desc
-                                                };
-                                                elementUpperBounds.push(newUpperBound);
-                                            }
-
-                                            //Ordinamento crescente del vettore degli upper bounds
-                                            elementUpperBounds.sort(compareUpperBounds);
-
-                                            for(var i = 0; i < elementUpperBounds.length; i++)
-                                            {
-                                                max = elementUpperBounds[i].value;
-                                                desc = elementUpperBounds[i].desc;
-
-                                                if(i === 0)
-                                                {
-                                                    if(parseFloat(this.y) < max)
-                                                    {
-                                                        if((desc !== null)&&(desc !== ''))
-                                                        {
-                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>' +
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';   
-                                                        }
-                                                        else
-                                                        {
-                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>';
-                                                        }
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    min = elementUpperBounds[i - 1].value;
-                                                    if((parseFloat(this.y) >= min)&&(parseFloat(this.y) < max))
-                                                    {
-                                                        if((desc !== null)&&(desc !== ''))
-                                                        {
-                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';   
-                                                        }
-                                                        else
-                                                        {
-                                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
-                                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
-                                                        }
-                                                    }
-                                                    else if((i === (elementUpperBounds.length - 1))&&(parseFloat(this.y) >= max))
-                                                    {
-                                                        return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +  
-                                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value higher than the greatest upper bound<br/>';
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            //Non sono stati definiti range
-                                            return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                                   '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
-                                                   '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>';
-                                        }
-
-
-                                    }
-                                    else
-                                    {
-                                        //Non sono stati definiti range
-                                        return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' + 
-                                               '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' + 
-                                               '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>';
-                                    }
-                                }
-                            }
-                        },
-                        plotOptions: {
-                            line: {
-                                lineWidth: styleParameters.linesWidth,
-                                events: {
-                                    legendItemClick: function(){ 
-                                        return false;
-                                    } 
-                                }
-                            }
-                        },
-                        legend: {
-                            useHTML: true,
-                            labelFormatter: function () {
-                                return this.name;
-                            },
-                            layout: 'horizontal',
-                            align: 'center',
-                            verticalAlign: 'bottom',
-                            floating: false,
-                            borderWidth: 0,
-                            itemDistance: 24,
-                            backgroundColor: 'transparent',
-                            shadow: false,
-                            symbolPadding: 5,
-                            symbolWidth: 5,
-                            itemStyle: {
-                                fontFamily: 'Montserrat',
-                                fontSize: styleParameters.legendFontSize + "px",
-                                color: styleParameters.legendFontColor,
-                                "text-align": "center",
-                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
-                            }
-                        },
-                        credits: {
-                            enabled: false
-                        },
-                        series: chartSeriesObject
-                    });
+                    showHeader = false;
                 }
                 else
                 {
-                   showWidgetContent(widgetName);
-                   $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                   $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
-                   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                } 
+                    showHeader = true;
+                }
+
+                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+                {
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
+                    widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
+                    widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+                    widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
+                    rowParameters = widgetData.params.rowParameters;
+                }
+                else
+                {
+                    metricName = metricNameFromDriver;
+                    widgetTitleFromDriver.replace(/_/g, " ");
+                    widgetTitleFromDriver.replace(/\'/g, "&apos;");
+                    widgetTitle = widgetTitleFromDriver;
+                    $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+                    widgetHeaderColor = widgetHeaderColorFromDriver;
+                    widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+                }
+
+                setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+                $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+                $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                if(firstLoad === false)
+                {
+                    showWidgetContent(widgetName);
+                }
+                else
+                {
+                    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                }
+
+                if((widgetData.params.styleParameters !== "")&&(widgetData.params.styleParameters !== "null"))
+                {
+                    styleParameters = JSON.parse(widgetData.params.styleParameters);
+                    groupByAttr = styleParameters['groupByAttr'];
+                }
+
+                if(widgetData.params.parameters !== null)
+                {
+                    if(widgetData.params.parameters.length > 0)
+                    {
+                        widgetParameters = JSON.parse(widgetData.params.parameters);
+                        thresholdsJson = widgetParameters;
+                    }
+                }
+
+                if((widgetData.params.infoJson !== 'null')&&(widgetData.params.infoJson !== ''))
+                {
+                    infoJson = JSON.parse(widgetData.params.infoJson);
+                    //Patch per il resize, non mostriamo i pulsanti info per ora
+                    infoJson = null;
+                }
+
+                chartType = styleParameters.chartType;
+                lineWidth = styleParameters.lineWidth;
+
+           /*     switch(chartType)
+                {
+                    case 'lines':
+                        stackingOption = null;
+                        highchartsChartType = 'spline';
+                        dataLabelsAlign = 'center';
+                        dataLabelsVerticalAlign = 'middle';
+                        dataLabelsY = 0;
+                        break;
+
+                    case 'area':
+                        stackingOption = null;
+                        highchartsChartType = 'areaspline';
+                        dataLabelsAlign = 'center';
+                        dataLabelsVerticalAlign = 'middle';
+                        dataLabelsY = 0;
+                        break;
+
+                    case 'stacked':
+                        stackingOption = 'normal';
+                        highchartsChartType = 'areaspline';
+                        dataLabelsAlign = 'center';
+                        dataLabelsVerticalAlign = 'middle';
+                        dataLabelsY = 0;
+                        break;
+
+                    default:
+                        stackingOption = null;
+                        highchartsChartType = 'spline';
+                        dataLabelsAlign = 'center';
+                        break;
+                }*/
+
+                let aggregationFlag = false;
+                if (JSON.parse(widgetData.params.rowParameters) != null) {
+                    if (JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "Sensor" || JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "MyKPI") {
+                        aggregationFlag = true;
+                    }
+                }
+
+                if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true || widgetData.params.id_metric.includes("NR_"))
+                {
+                    rowParameters = JSON.parse(rowParameters);
+                    aggregationGetData = [];
+                    getDataFinishCount = 0;
+                    var editLabels = (JSON.parse(widgetData.params.styleParameters)).editDeviceLabels;
+
+                    for(var i = 0; i < rowParameters.length; i++)
+                    {
+                        aggregationGetData[i] = false;
+                    }
+
+                    for(var i = 0; i < rowParameters.length; i++)
+                    {
+                        let dataOrigin = rowParameters[i].metricHighLevelType;
+                        switch(dataOrigin) {
+                            case "KPI":
+                                index = i;
+                                $.ajax({
+                                    url: "../controllers/aggregationSeriesProxy.php",
+                                    type: "POST",
+                                    data:
+                                        {
+                                            dataOrigin: JSON.stringify(rowParameters[i]),
+                                            index: i
+                                        },
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        aggregationGetData[data.index] = data;
+                                        getDataFinishCount++;
+
+                                        //Popoliamo il widget quando sono arrivati tutti i dati
+                                        if (getDataFinishCount === rowParameters.length) {
+                                            series = buildSeriesFromAggregationData();
+
+                                            widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+
+                                            chartSeriesObject = getChartSeriesObject(series);
+                                            legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                            xAxisCategories = getXAxisCategories(series, widgetHeight);
+
+                                            if (firstLoad !== false) {
+                                                showWidgetContent(widgetName);
+                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                            } else {
+                                                elToEmpty.empty();
+                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                            }
+
+                                            drawDiagram();
+                                        }
+                                    },
+                                    error: function (errorData) {
+                                        metricData = null;
+                                        console.log("Error in data retrieval");
+                                        console.log(JSON.stringify(errorData));
+                                        showWidgetContent(widgetName);
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                        $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                    }
+                                });
+                                break;
+
+                            case "Sensor":
+                                var timeRange = null;
+                                var urlToCall = "";
+                                var xlabels = [];
+                                let smUrl = "";
+                                if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                } else {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                }
+                                //    metricType = "Float";
+
+                                if("<?= $_REQUEST['timeRange']?>") {
+                                    if("<?= $_REQUEST['timeRange'] ?>" != 'last' && "<?= $_REQUEST['timeRange'] ?>" != "") {
+                                        /*  switch("<?= $_REQUEST['timeRange'] ?>") {
+                                            case "4 Ore":
+                                                timeRange = "fromTime=4-hour";
+                                                break;
+
+                                            case "12 Ore":
+                                                timeRange = "fromTime=12-hour";
+                                                break;
+
+                                            case "Giornaliera":
+                                                timeRange = "fromTime=1-day";
+                                                break;
+
+                                            case "Settimanale":
+                                                timeRange = "fromTime=7-day";
+                                                break;
+
+                                            case "Mensile":
+                                                timeRange = "fromTime=30-day";
+                                                break;
+
+                                            case "Annuale":
+                                                timeRange = "fromTime=365-day";
+                                                break;
+                                        }   */
+
+                                        urlToCall = smUrl + "&" + timeRange;
+                                    } else {
+                                        urlToCall = smUrl;
+                                    }
+                                } else {
+                                    urlToCall = smUrl;
+                                }
+
+                                getSmartCitySensorValues(rowParameters, i, smUrl, null, true, function(extractedData) {
+
+                                    if(extractedData) {
+                                        seriesDataArray.push(extractedData);
+                                    }
+                                    else
+                                    {
+                                        console.log("Dati Smart City non presenti");
+                                        seriesDataArray.push(undefined);
+                                    }
+                                    //if (endFlag === true) {
+                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                    if (rowParameters.length === seriesDataArray.length) {
+                                        // DO FINAL SERIALIZATION
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
+                                    }
+
+                                });
+                                break;
+
+                            case "Dynamic":
+                                let extractedData = {};
+                                extractedData.value = rowParameters[i].value;
+                                extractedData.metricType = rowParameters[i].metricType;
+                                extractedData.metricId = rowParameters[i].metricId;
+                                extractedData.metricName = rowParameters[i].metricName;
+                                extractedData.measuredTime = rowParameters[i].measuredTime;
+                                extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
+
+                                seriesDataArray.push(extractedData);
+
+                                if (rowParameters.length === seriesDataArray.length) {
+                                    // DO FINAL SERIALIZATION
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                }
+
+                                break;
+
+                            case "MyKPI":
+
+                                //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
+                                let aggregationCell = [];
+                                var xlabels = [];
+                                let kpiMetricName =  rowParameters[i].metricName;
+                                let kpiMetricType =  rowParameters[i].metricType;
+                                if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                                    rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                                }
+                                getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
+
+                                    if (extractedData) {
+                                        seriesDataArray.push(extractedData);
+                                    } else {
+                                        console.log("Dati Smart City non presenti");
+                                        seriesDataArray.push(undefined);
+                                    }
+                                    //if (endFlag === true) {
+                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                    if (rowParameters.length === seriesDataArray.length) {
+                                        // DO FINAL SERIALIZATION
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                    }
+
+                                });
+                                break;
+
+                        }
+                    }
+                }
+                else
+                {
+                    $.ajax({
+                        url: getMetricDataUrl,
+                        type: "GET",
+                        data: {"IdMisura": [widgetData.params.id_metric]},
+                        async: true,
+                        dataType: 'json',
+                        success: function (data)
+                        {
+                            metricData = data;
+                            $("#" + widgetName + "_loading").css("display", "none");
+
+                            if(metricData.data.length !== 0)
+                            {
+                                metricType = metricData.data[0].commit.author.metricType;
+                                series = JSON.parse(metricData.data[0].commit.author.series);
+
+                                widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+
+                                chartSeriesObject = getChartSeriesObject(series);
+                                legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                xAxisCategories = getXAxisCategories(series, widgetHeight);
+
+                                if(firstLoad !== false)
+                                {
+                                    showWidgetContent(widgetName);
+                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                }
+                                else
+                                {
+                                    elToEmpty.empty();
+                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                }
+
+                                drawDiagram();
+                            }
+                            else
+                            {
+                                showWidgetContent(widgetName);
+                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                            }
+                        },
+                        error: function(errorData)
+                        {
+                            metricData = null;
+                            console.log("Error in data retrieval");
+                            console.log(JSON.stringify(errorData));
+                            showWidgetContent(widgetName);
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                            $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                        }
+                    });
+                }
+            // GP FINE SECONDA SOLUZIONE ------------------------------------------------------------
             },
             error: function(errorData)
             {
-                metricData = null;
-                console.log("Error in data retrieval");
+                console.log("Error in widget params retrieval");
                 console.log(JSON.stringify(errorData));
                 showWidgetContent(widgetName);
                 $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
             }
         });
-        
+        // ************* FINE NEW GP ***********************************************************************************
+
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();
         });

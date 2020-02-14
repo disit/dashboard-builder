@@ -33,17 +33,13 @@ if (isset($_SESSION['loggedUsername'])) {
         $link = mysqli_connect($host, $username, $password);
         //error_reporting(E_ALL);
         ini_set('display_errors', 1);
-        error_reporting(-1);
+        //error_reporting(-1);
         mysqli_select_db($link, $dbname);
         if (isset($_SESSION['loggedRole'])) {
             $role_session_active = $_SESSION['loggedRole'];
 
 
             if ($role_session_active == "RootAdmin") {
-//Patch: inspiegabilmente in ssoEndpoint ci viene scritto https://www.
-                $genFileContent = parse_ini_file("../conf/environment.ini");
-                $ssoContent = parse_ini_file("../conf/sso.ini");
-                $ssoEndpoint = $ssoContent["ssoEndpoint"][$genFileContent['environment']['value']];
 
                 function hash_password($password) { // SSHA with random 4-character salt
                     $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 4)), 0, 4);
@@ -71,14 +67,11 @@ if (isset($_SESSION['loggedUsername'])) {
                 if ($action == 'get_list') {
 
                     //
-                    //$ldapUserAdminName = $ldapBaseDN;
-                    //$ldapUserAdminPwd = 'admin';
-                    error_reporting(E_ERROR | E_PARSE);
                     //
                     //LISTA DEGLI UTENTI
                     $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
                     ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapBaseDN, $ldapAdminPwd);
+                    $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
                     $resultldap = ldap_search($connection, $ldapBaseDN, '(cn=Dashboard)');
                     $entries = ldap_get_entries($connection, $resultldap);
 
@@ -95,28 +88,29 @@ if (isset($_SESSION['loggedUsername'])) {
      //LISTA DEI RUOLI ToolAdmin
                     $resultldapToolAdmin = ldap_search($connection, $ldapBaseDN, '(cn=ToolAdmin)');
                     $entriesToolAdmin = ldap_get_entries($connection, $resultldapToolAdmin);
-                    $array_toolAdmin = $entriesToolAdmin[0]['roleoccupant'];
+                    $array_toolAdmin = array_map('strtolower', $entriesToolAdmin[0]['roleoccupant']);
                     //
                     //
      //
       $resultldapRootAdmin = ldap_search($connection, $ldapBaseDN, '(cn=RootAdmin)');
                     $entriesRootAdmin = ldap_get_entries($connection, $resultldapRootAdmin);
-                    $array_RootAdmin = $entriesRootAdmin[0]['roleoccupant'];
+                    $array_RootAdmin = array_map('strtolower', $entriesRootAdmin[0]['roleoccupant']);
                     //
                     //
      //
       $resultldapManager = ldap_search($connection, $ldapBaseDN, '(cn=Manager)');
                     $entriesManager = ldap_get_entries($connection, $resultldapManager);
-                    $array_manager = $entriesManager[0]['roleoccupant'];
+                    $array_manager = array_map('strtolower', $entriesManager[0]['roleoccupant']);
                     //
                     //
      //
      $resultldapAreaManager = ldap_search($connection, $ldapBaseDN, '(cn=AreaManager)');
                     $entriesAreaManager = ldap_get_entries($connection, $resultldapAreaManager);
-                    $array_AreaManger = $entriesAreaManager[0]['roleoccupant'];
-                    $resultldapObserver = ldap_search($connection, $ldapBaseDN, '(cn=Observer)');
+                    $array_AreaManger = array_map('strtolower', $entriesAreaManager[0]['roleoccupant']);
+//
+    $resultldapObserver = ldap_search($connection, $ldapBaseDN, '(cn=Observer)');
                     $entriesObserver = ldap_get_entries($connection, $resultldapObserver);
-                    $array_Observer = $entriesObserver[0]['roleoccupant'];
+                    $array_Observer = array_map('strtolower', $entriesObserver[0]['roleoccupant']);
                     //
                     //
      
@@ -135,16 +129,19 @@ if (isset($_SESSION['loggedUsername'])) {
                         //
         $resultldap0 = ldap_search($connection, $ldapBaseDN, '(cn=' . $final_username . ')');
                         $entries0 = ldap_get_entries($connection, $resultldap0);
-                        $pass = $entries0[0]['mail'][0];
+                        if (isset($entries0[0]['mail'][0])) {
+                            $pass = $entries0[0]['mail'][0];
+                        }
                         //
                         //
-        $org = null;
+                        $org = null;
                         $role = null;
                         //
                         $lenghtOrg = $entriesOrg['count'];
                         //
-                        for ($y = 0; $y < $lenghtOrg - 1; $y++) {
+                        for ($y = 0; $y < $lenghtOrg; $y++) {
                             $array_ut = $entriesOrg[$y]['l'];
+                            $user_min = strtolower($user);
                             if (in_array($user, $array_ut)) {
                                 $org = $entriesOrg[$y]['ou'][0];
                             }
@@ -163,7 +160,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         if (in_array($user, $array_AreaManger)) {
                             $role = 'AreaManager';
                         }
-                        if (in_array($array, $array_Observer)) {
+                        if (in_array($user, $array_Observer)) {
                             $role = 'Observer';
                         }
                         //
@@ -175,6 +172,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         $array_users[$i]["password"] = null;
                         $array_users[$i]["mail"] = $pass;
                         $array_users[$i]["admin"] = $role;
+                        $array_users[$i]["cn"] = $list_users[$i];
 
                         //
                     }
@@ -187,7 +185,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     //
                     //***************************//
                     //$ldapAdminDN = $ldapAdminDN;
-                    error_reporting(E_ERROR | E_PARSE);
+                    //error_reporting(E_ERROR | E_PARSE);
                     //
                     //LISTA DEGLI UTENTI
                     $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
@@ -204,8 +202,7 @@ if (isset($_SESSION['loggedUsername'])) {
                             $new_userType = "Manager";
                         }
                         //
-                        //
-        //$ldapBaseDN = $ldapBaseDN;
+                        //$ldapBaseDN = $ldapBaseDN;
                         $data = array();
                         $data['objectClass'][0] = 'inetOrgPerson';
                         $data['sn'] = strtolower($new_username);
@@ -263,6 +260,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     $result['password'] = "not modified";
                     //echo($new_username);
                     $dn = "cn=" . strtolower($new_username) . "," . $ldapBaseDN;
+                    $dn_role = "cn=" . $new_username . "," . $ldapBaseDN;
                     //
                     //ROLE
                     if ((isset($_POST['role'])) && (isset($_POST['old_role']))) {
@@ -271,12 +269,12 @@ if (isset($_SESSION['loggedUsername'])) {
                         if ($new_userType !== $old_userType) {
 
                             if ($old_userType !== '-') {
-                                $del = ldap_mod_del($connection, "cn=" . $old_userType . "," . $ldapBaseDN, array('roleOccupant' => $dn));
+                                $del = ldap_mod_del($connection, "cn=" . $old_userType . "," . $ldapBaseDN, array('roleOccupant' => $dn_role));
                             } else {
                                 $del = true;
                             }
                             if ($del) {
-                                $add = ldap_mod_add($connection, "cn=" . $new_userType . "," . $ldapBaseDN, array('roleOccupant' => $dn));
+                                $add = ldap_mod_add($connection, "cn=" . $new_userType . "," . $ldapBaseDN, array('roleOccupant' => $dn_role));
                                 if ($add) {
 
                                     $result['role'] = "OK";
@@ -304,7 +302,6 @@ if (isset($_SESSION['loggedUsername'])) {
                         //
                         if (($_POST['password'] != "") && ($_POST['password'] != null) && ($_POST['old_pass'] != "") && ($_POST['old_pass'] != null)) {
                             if ($_POST['old_pass'] == $_POST['password']) {
-                                //ldap_mod_replace
 
                                 $old_pass = hash_password($_POST['old_pass']);
                                 $new_pass = hash_password($_POST['password']);
@@ -333,7 +330,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     if ((isset($_POST['org'])) && (isset($_POST['old_org']))) {
                         $old_org = htmlspecialchars($_POST['old_org']);
                         $new_org = htmlspecialchars($_POST['org']);
-                        if (($old_org == '-')||($old_org == '')||($old_org == null)) {
+                        if (($old_org == '-') || ($old_org == '') || ($old_org == null)) {
                             $add_org = ldap_mod_add($connection, "ou=" . $new_org . "," . $ldapBaseDN . "", array('l' => $dn));
                             if ($add_org) {
 
@@ -401,7 +398,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     //
                 } else if ($action == 'list_org') {
                     //
-                    error_reporting(E_ERROR | E_PARSE);
+                    error_reporting(E_ERROR);
                     //LISTA DEGLI UTENTI
                     $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
                     ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -413,7 +410,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     $array_org = array();
                     //
                     $lenght = $entriesOrg["count"];
-                    for ($i = 0; $i < $lenght - 1; $i++) {
+                    for ($i = 0; $i < $lenght; $i++) {
                         $org = strval($entriesOrg[$i]['ou'][0]);
                         //
                         $org01 = explode('cn=', $org);
@@ -427,7 +424,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     //*******//
                 } else if ($action == 'delete_user') {
                     //
-                    error_reporting(E_ERROR | E_PARSE);
+                    //error_reporting(E_ERROR | E_PARSE);
                     //
                     $results = array();
                     $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
@@ -440,9 +437,10 @@ if (isset($_SESSION['loggedUsername'])) {
                         $role = htmlspecialchars($_POST['role']);
                         $org = htmlspecialchars($_POST['org']);
                         $dn = "cn=" . strtolower($username) . "," . $ldapBaseDN;
+                        $dn_role = "cn=" . $username . "," . $ldapBaseDN;
 
                         if ($role != "-") {
-                            $del_role = ldap_mod_del($connection, "cn=" . $role . "," . $ldapBaseDN, array('roleOccupant' => $dn));
+                            $del_role = ldap_mod_del($connection, "cn=" . $role . "," . $ldapBaseDN, array('roleOccupant' => $dn_role));
                             if ($del_role) {
                                 $results['role'] = 'success';
                             } else {

@@ -204,11 +204,17 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <script src="../newGridster/dist/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>-->
 
     <!-- Highcharts --> 
-    <script src="../js/highcharts/code/highcharts.js"></script>
+ <!--   <script src="../js/highcharts/code/highcharts.js"></script>
     <script src="../js/highcharts/code/modules/exporting.js"></script>
     <script src="../js/highcharts/code/highcharts-more.js"></script>
     <script src="../js/highcharts/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts/code/highcharts-3d.js"></script>
+    <script src="../js/highcharts/code/highcharts-3d.js"></script>  -->
+    <script src="../js/highcharts-8.0.0/code/highcharts.js"></script>
+    <script src="../js/highcharts-8.0.0/code/modules/exporting.js"></script>
+    <script src="../js/highcharts-8.0.0/code/highcharts-more.js"></script>
+    <script src="../js/highcharts-8.0.0/code/modules/parallel-coordinates.js"></script>
+    <script src="../js/highcharts-8.0.0/code/modules/solid-gauge.js"></script>
+    <script src="../js/highcharts-8.0.0/code/highcharts-3d.js"></script>
     
     <!-- TinyColors -->
     <script src="../js/tinyColor.js" type="text/javascript" charset="utf-8"></script>

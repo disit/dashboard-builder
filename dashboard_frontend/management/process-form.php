@@ -1056,6 +1056,11 @@
                         }
                     }
 
+                    if(isset($_POST['groupByAttr'])&&($_POST['groupByAttr']!=""))
+                    {
+                        $groupByAttr = mysqli_real_escape_string($link, sanitizePostString('groupByAttr'));      // New pentest
+                    }
+
                     $styleParametersArray = array();
                     $styleParametersArray['legendFontSize'] = $legendFontSize;
                     $styleParametersArray['legendFontColor'] = $legendFontColor;
@@ -1075,6 +1080,7 @@
                     $styleParametersArray['colors1'] = $colors1;
                     $styleParametersArray['colorsSelect2'] = $colorsSelect2;
                     $styleParametersArray['colors2'] = $colors2;
+                    $styleParametersArray['groupByAttr'] = $groupByAttr;
                     $styleParameters = json_encode($styleParametersArray);
                 }
 
@@ -2815,6 +2821,24 @@
                 }
             }
 
+            if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
+            {
+                $deviceLabels = [];
+                $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_0'));     // New pentest
+                array_push($deviceLabels, $label);
+                $k = 1;
+                while (isset($_POST['deviceLabelsM_'.$k])&&($_POST['deviceLabelsM_'.$k]!="")) {
+                    $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_'.$k));     // New pentest
+                    array_push($deviceLabels, $label);
+                    $k++;
+                }
+            }
+
+            if(isset($_POST['groupByAttrM'])&&($_POST['groupByAttrM']!=""))
+            {
+                $groupByAttrM = mysqli_real_escape_string($link, sanitizePostString('groupByAttrM'));      // New pentest
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['legendFontSize'] = $legendFontSizeM;
             $styleParametersArrayM['legendFontColor'] = $legendFontColorM;
@@ -2834,6 +2858,8 @@
             $styleParametersArrayM['colors1'] = $colors1M;
             $styleParametersArrayM['colorsSelect2'] = $colorsSelect2M;
             $styleParametersArrayM['colors2'] = $colors2M;
+            $styleParametersArrayM['editDeviceLabels'] = $deviceLabels;
+            $styleParametersArrayM['groupByAttr'] = $groupByAttrM;
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 
@@ -3141,6 +3167,19 @@
                 $dataLabelsRotationM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsRotationM'));     // CTR !!
             }
 
+            if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
+            {
+                $deviceLabels = [];
+                $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_0'));     // New pentest
+                array_push($deviceLabels, $label);
+                $k = 1;
+                while (isset($_POST['deviceLabelsM_'.$k])&&($_POST['deviceLabelsM_'.$k]!="")) {
+                    $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_'.$k));     // New pentest
+                    array_push($deviceLabels, $label);
+                    $k++;
+                }
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
@@ -3157,6 +3196,7 @@
             $styleParametersArrayM['alrThrLinesWidth'] = $alrThrLinesWidthM;
             $styleParametersArrayM['dataLabels'] = $dataLabelsM;
             $styleParametersArrayM['dataLabelsRotation'] = $dataLabelsRotationM;
+            $styleParametersArrayM['editDeviceLabels'] = $deviceLabels;
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {

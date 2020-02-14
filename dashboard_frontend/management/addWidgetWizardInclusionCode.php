@@ -4801,7 +4801,7 @@
                     checkBrokerAndNrRowsTogether();
                     checkTab1Conditions();
                     countSelectedRows();
-                    if (($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetCurvedLineSeries") && ObjectSize(widgetWizardSelectedRows) > 1) {
+                    if (($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetCurvedLineSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetPieChart") && ObjectSize(widgetWizardSelectedRows) > 1) {
                         // if ((wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[Object.keys(wizardSelectedRowsObj).length -1]].value_unit == wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[0]].value_unit)) {
                         // OK
                         //   } else {
@@ -6143,7 +6143,7 @@
             }
 
             updateIconsFromSelectedRows();
-            if (($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetCurvedLineSeries") && ObjectSize(widgetWizardSelectedRows) > 1) {
+            if (($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetCurvedLineSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetPieChart") && ObjectSize(widgetWizardSelectedRows) > 1) {
                 // if ((wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[Object.keys(wizardSelectedRowsObj).length -1]].value_unit == wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[0]].value_unit)) {
                 // OK
                 //   } else {

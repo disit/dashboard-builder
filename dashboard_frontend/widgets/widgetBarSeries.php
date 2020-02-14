@@ -206,8 +206,13 @@
                     for (var i in series.secondAxis.series) 
                     {
                         if (xAxisLabelsEdit != null) {
-                            if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
-                                seriesName = xAxisLabelsEdit[i];
+                        //    if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
+                            if (!flipFlag) {
+                                if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
+                                    seriesName = xAxisLabelsEdit[i];
+                                } else {
+                                    seriesName = series.secondAxis.labels[i];
+                                }
                             } else {
                                 // flipped case
                                 seriesName = series.secondAxis.labels[i];

@@ -1357,6 +1357,12 @@
                                 if (strpos($type_w, "widgetBarSeries") !== false) {
                                     $title_w = "Bar Series";
                                 }
+                                if (strpos($type_w, "widgetRadarSeries") !== false) {
+                                    $title_w = "Radar Series";
+                                }
+                                if (strpos($type_w, "widgetPieChart") !== false) {
+                                    $title_w = "Pie Chart";
+                                }
                                 $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 
                                 $creator = $_SESSION['loggedUsername'];
@@ -3006,6 +3012,12 @@
                             $title_w = "External content";
                             if (strpos($type_w, "widgetBarSeries") !== false) {
                                 $title_w = "Bar Series";
+                            }
+                            if (strpos($type_w, "widgetRadarSeries") !== false) {
+                                $title_w = "Radar Series";
+                            }
+                            if (strpos($type_w, "widgetPieChart") !== false) {
+                                $title_w = "Pie Chart";
                             }
                             $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 

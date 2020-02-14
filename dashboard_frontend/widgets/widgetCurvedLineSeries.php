@@ -49,6 +49,7 @@
         var serviceUri = "";
         var editLabels = "";
         var valueUnit = null;
+        var seriesDataArray = [];
         
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
@@ -977,6 +978,9 @@
                                 states: {
                                     hover: {
                                         enabled: false
+                                    },
+                                    inactive: {
+                                        lineWidth: 1
                                     }
                                 }
                             },
@@ -1063,7 +1067,7 @@
             }
         }
         
-        function buildSeriesFromAggregationData()
+        function buildSeriesFromAggregationData(timeRange)
         {
             var roundedVal, singleSeriesData, singleSample, sampleTime, seriesSingleObj = null;
             chartSeriesObject = [];
@@ -1149,6 +1153,103 @@
 
                         chartSeriesObject.push(seriesSingleObj);
                         break;
+
+                    case "Dynamic":
+
+                         let extractedData = {};
+                         extractedData.values = rowParameters[i].values;
+                         extractedData.metricType = rowParameters[i].metricType;
+                         extractedData.metricId = rowParameters[i].metricId;
+                         extractedData.metricName = rowParameters[i].metricName;
+                    //     extractedData.measuredTime = rowParameters[i].measuredTime;
+                         extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
+
+                         seriesDataArray.push(extractedData);
+
+                        var objName = null;
+                        if (editLabels != null) {
+                            if (editLabels.length > 0) {
+                                objName = editLabels[i];
+                            } else {
+                                objName = aggregationGetData[i].metricName;
+                            }
+                        } else {
+                            objName = aggregationGetData[i].metricName;
+                        }
+
+                    /*     if (rowParameters.length === seriesDataArray.length) {
+                             // DO FINAL SERIALIZATION
+                             serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                         }  */
+
+                         let timeSlicedData = [];
+                         let millisToSubtract = null;
+                         switch (timeRange) {
+                             case "4 Ore":
+                                 millisToSubtract = 4 * 60 * 60 * 1000;
+                                 break;
+                             case "12 Ore":
+                                 millisToSubtract = 12 * 60 * 60 * 1000;
+                                 break;
+                             case "Giornaliera":
+                                 millisToSubtract = 24 * 60 * 60 * 1000;
+                                 break;
+                             case "Settimanale":
+                                 millisToSubtract = 7 * 24 * 60 * 60 * 1000;
+                                 break;
+                             case "Mensile":
+                                 millisToSubtract = 30 * 24 * 60 * 60 * 1000;
+                                 break;
+                             case "Annuale":
+                                 millisToSubtract = 365 * 24 * 60 * 60 * 1000;
+                                 break;
+                         }
+                         let currDate = new Date();
+                         let currMillis = currDate.getTime();
+
+                         for (let n = 0; n < extractedData.values.length; n++) {
+                             let timestamp = extractedData.values[n][0];
+                             if (timestamp >= currMillis - millisToSubtract) {
+                                 timeSlicedData.push(extractedData.values[n]);
+                             }
+                         }
+                         seriesSingleObj = {
+                             showInLegend: true,
+                             name: objName,
+                         //    data: extractedData.values,
+                             data: timeSlicedData,
+                             color: styleParameters.barsColors[i],
+                             dataLabels: {
+                                 useHTML: false,
+                                 enabled: false,
+                                 inside: true,
+                                 rotation: dataLabelsRotation,
+                                 overflow: 'justify',
+                                 crop: true,
+                                 align: dataLabelsAlign,
+                                 verticalAlign: dataLabelsVerticalAlign,
+                                 y: dataLabelsY,
+                                 formatter: labelsFormat,
+                                 style: {
+                                     fontFamily: 'Montserrat',
+                                     fontSize: styleParameters.dataLabelsFontSize + "px",
+                                     color: styleParameters.dataLabelsFontColor,
+                                     fontWeight: 'bold',
+                                     fontStyle: 'italic',
+                                     "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
+                                 }
+                             }
+                         };
+
+                         if (extractedData.metricValueUnit != null) {
+                             chartSeriesObject.valueUnit = extractedData.metricValueUnit;
+                         }
+
+                         chartSeriesObject.push(seriesSingleObj);
+
+                     //    }
+
+                         break;
 
                     case "MyKPI":
 
@@ -1441,7 +1542,7 @@
                                 widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
                                 legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
                                 editLabels = styleParameters.editDeviceLabels;
-                                buildSeriesFromAggregationData();
+                                buildSeriesFromAggregationData(localTimeRange);
 
                                 metricLabels = getMetricLabelsForBarSeries(rowParameters);
                             //    deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
@@ -1449,7 +1550,11 @@
                                     deviceLabels[n] = chartSeriesObject[n].name;
                                 }
                             //    let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
-                                series = serializeDataForSeries(metricLabels, deviceLabels);
+                            /*    if (editLabels) {
+                                    series = serializeDataForSeries(metricLabels, deviceLabels, editLabels);
+                                } else {*/
+                                    series = serializeDataForSeries(metricLabels, deviceLabels);
+                             //   }
 
                                 if(firstLoad !== false)
                                 {
@@ -1468,7 +1573,7 @@
                                     $("#<?= $_REQUEST['name_w'] ?>_table").show();
                                 }
 
-                                if (!serviceUri) {
+                            //    if (!serviceUri) {
                                     $.ajax({
                                         url: "../widgets/updateBarSeriesParameters.php",
                                         type: "GET",
@@ -1487,7 +1592,7 @@
                                             console.log(JSON.stringify(errorData)); */
                                         }
                                     });
-                                }
+                            //    }
 
                                 drawDiagram(true);
                             }
@@ -1729,7 +1834,7 @@
                         break;
                 }
                 
-                if(widgetData.params.id_metric === 'AggregationSeries')
+                if(widgetData.params.id_metric === 'AggregationSeries' || widgetData.params.id_metric.includes("NR_"))
                 {
                     rowParameters = JSON.parse(rowParameters);
                     timeRange = widgetData.params.temporal_range_w;
