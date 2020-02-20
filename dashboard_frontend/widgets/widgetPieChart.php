@@ -602,13 +602,9 @@
                                     //  if(seriesDataArray[n].metricValueUnit != null) {
                                     valueUnitInPopup = seriesDataArray[n].metricValueUnit;
                                     //  }
-                                } else if (styleParameters.editDeviceLabels) {
-                                    if (seriesDataArray[n].metricType == this.name) {
-                                        dataStringInPopup = seriesDataArray[n].measuredTime;
-                                        //  if(seriesDataArray[n].metricValueUnit != null) {
-                                        valueUnitInPopup = seriesDataArray[n].metricValueUnit;
-                                        //  }
-                                    }
+                                } else if (flipFlag == true && seriesDataArray[n].metricName == this.name) {
+                                    dataStringInPopup = seriesDataArray[n].measuredTime;
+                                    valueUnitInPopup = seriesDataArray[n].metricValueUnit;
                                 }
                             }
 
@@ -1881,13 +1877,9 @@
                                                     //  if(seriesDataArray[n].metricValueUnit != null) {
                                                     valueUnitInPopup = seriesDataArray[n].metricValueUnit;
                                                     //  }
-                                                } else if (styleParameters.editDeviceLabels) {
-                                                    if (seriesDataArray[n].metricType == this.name) {
-                                                        dataStringInPopup = seriesDataArray[n].measuredTime;
-                                                        //  if(seriesDataArray[n].metricValueUnit != null) {
-                                                        valueUnitInPopup = seriesDataArray[n].metricValueUnit;
-                                                        //  }
-                                                    }
+                                                } else if (flipFlag == true && seriesDataArray[n].metricName == this.name) {
+                                                    dataStringInPopup = seriesDataArray[n].measuredTime;
+                                                    valueUnitInPopup = seriesDataArray[n].metricValueUnit;
                                                 }
                                             }
 

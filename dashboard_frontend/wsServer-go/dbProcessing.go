@@ -1032,7 +1032,7 @@ func insertW(db *sql.DB, username interface{}, dashboardTitle interface{}, widge
 			_ = processingMsg2([]byte(defaultTarget.String))
 		}
 
-		if mono_multi.String == "Mono" || newWidgetType == "widgetBarSeries" || newWidgetType == "widgetCurvedLineSeries" {
+		if mono_multi.String == "Mono" || strings.Contains("widgetBarSeries;widgetCurvedLineSeries;widgetRadarSeries;widgetPieChart;widgetTable",fmt.Sprintf("%v", newWidgetType)) {
 
 			// caso widget selezionato di tipo "Mono"
 

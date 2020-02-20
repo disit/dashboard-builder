@@ -1363,6 +1363,9 @@
                                 if (strpos($type_w, "widgetPieChart") !== false) {
                                     $title_w = "Pie Chart";
                                 }
+                                if (strpos($type_w, "widgetTable") !== false) {
+                                    $title_w = "Table";
+                                }
                                 $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 
                                 $creator = $_SESSION['loggedUsername'];
@@ -3018,6 +3021,9 @@
                             }
                             if (strpos($type_w, "widgetPieChart") !== false) {
                                 $title_w = "Pie Chart";
+                            }
+                            if (strpos($type_w, "widgetTable") !== false) {
+                                $title_w = "Table";
                             }
                             $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 

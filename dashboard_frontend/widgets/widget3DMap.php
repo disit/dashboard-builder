@@ -237,6 +237,15 @@ $title = $_REQUEST['title_w'];
             var wmsLayer = null;
             var wmsLayerFullscreen = null;
 
+            // 3d vars
+            timestampISO3D = '';
+            titleHeatamp3DControls = '';
+            heatmapLayer3D = null;
+
+
+            dynamicCor = [];
+            dynamicPos = [];
+
             function onEachFeature(feature, layer) {
                 //console.log(layer);
 
@@ -253,6 +262,7 @@ $title = $_REQUEST['title_w'];
 
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             markerList = [];
+            markerIndex = 0;
             function gisPrepareCustomMarker(feature, latlng) {
                 var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                 var markerIcon = L.icon({
@@ -271,6 +281,30 @@ $title = $_REQUEST['title_w'];
                 }
 
                 var latLngKey = latlng.lat + "" + latlng.lng;
+
+                // CORTI - marker 3D
+//                if(is3DViewOn){
+//                    var marker3D;
+//                    marker3D = map.default3DMapRef.addMarker({ latitude: latlng.lat, longitude: latlng.lng, altitude: 50 }, {}, { url: null, color: 'darkgreen'});
+//                    var pos = map.default3DMapRef.project(latlng.lat, latlng.lng, 1);
+//                    var coord = { lat: latlng.lat, lon: latlng.lng };
+//
+//                    dynamicCor[latLngKey] = coord;
+//                    dynamicPos[latLngKey] = pos;
+//                                    
+//                    marker3D.on('pointerup', function(){ 
+//                        this.color = 'darkorange';
+//                        marker.fire('click');
+//                        for (i=1;i<=dynamicPos.length;i++){
+//                            if (document.getElementById('label'+ i)!= null){
+//                                dynamicPos[i]= osmb.project(dynamicCor[i].lat, dynamicCor[i].lon, 1);
+//                                document.getElementById('label'+ i).style.left = Math.round(dynamicPos[i].x) + 'px';
+//                                document.getElementById('label'+ i).style.top = Math.round(dynamicPos[i].y) +60 + 'px';
+//                            }
+//                        }
+//                    });
+//                }
+//                markerIndex++;
 
                 latLngKey = latLngKey.replace(".", "");
                 latLngKey = latLngKey.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
@@ -303,6 +337,10 @@ $title = $_REQUEST['title_w'];
                 });
 
                 marker.on('click', function (event) {
+
+                    // opacizza
+                    hideMarkers();
+
                     let targetMarker = event.target;
 
                     var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
@@ -1033,6 +1071,8 @@ $title = $_REQUEST['title_w'];
                                     iconUrl: outImg
                                 });
                                 targetMarker.setIcon(outIcon);
+
+                                hideMarkers();
                                 editCSSFor3DWidgets();
 
                                 var popupContent = $('<div></div>');
@@ -2839,12 +2879,12 @@ $title = $_REQUEST['title_w'];
                             loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
 
                             // CORTI - evita loadingDiv in 3D View
-//                            if (!is3DViewOn) {
-                            loadingDiv.show();
+                            if (!is3DViewOn) {
+                                loadingDiv.show();
 
-                            loadingDiv.append(loadingText);
-                            loadingDiv.css("opacity", 1);
-//                            }
+                                loadingDiv.append(loadingText);
+                                loadingDiv.css("opacity", 1);
+                            }
 
                             var parHeight = loadingText.height();
                             var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
@@ -3113,7 +3153,7 @@ $title = $_REQUEST['title_w'];
                                             onEachFeature: onEachFeature
                                         }).addTo(map.defaultMapRef);
                                     }
-                                    
+
                                     // CORTI - tentativo di inserimento icone in mappa 3D
 //                                    if(is3DViewOn){
 ////                                      var geoJSON3D = { "type": "FeatureCollection", "features": ciclePathFeature };
@@ -4226,22 +4266,38 @@ $title = $_REQUEST['title_w'];
                                     page = numHeatmapPages();
 
                                 if (current_page == 0) {
-                                    btn_next.style.visibility = "hidden";
+                                    if (!is3DViewOn) {
+                                        btn_next.style.visibility = "hidden";
+                                    } else {
+                                        $('.heatmap-3d-controls').find('.next').addClass('hidden');
+                                    }
                                 } else {
-                                    btn_next.style.visibility = "visible";
+                                    if (!is3DViewOn) {
+                                        btn_next.style.visibility = "visible";
+                                    } else {
+                                        $('.heatmap-3d-controls').find('.next').removeClass('hidden');
+                                    }
                                 }
 
                                 if (current_page == numHeatmapPages() - 1) {
-                                    btn_prev.style.visibility = "hidden";
+                                    if (!is3DViewOn) {
+                                        btn_prev.style.visibility = "hidden";
+                                    } else {
+                                        $('.heatmap-3d-controls').find('.prev').addClass('hidden');
+                                    }
                                 } else {
-                                    btn_prev.style.visibility = "visible";
+                                    if (!is3DViewOn) {
+                                        btn_prev.style.visibility = "visible";
+                                    } else {
+                                        $('.heatmap-3d-controls').find('.prev').removeClass('hidden');
+                                    }
                                 }
                             }
 
                             if (current_page < numHeatmapPages()) {
                                 //  $("#heatMapDescr").text(heatmapData[current_page].metadata[0].date);  // OLD-API
                                 //    heatmapDescr.text(heatmapData[current_page].metadata.date);
-                                heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+//                                heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
                                 // heatmapData[current_page].metadata[0].date
                             }
                         }
@@ -4527,26 +4583,46 @@ $title = $_REQUEST['title_w'];
                                 //document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxOpacity").addEventListener("click", function(){ upSlider('maxOpacity', 0.01, 2, 0.8)}, false);
 
                                 if (!baseQuery.includes("heatmap.php")) {
-                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () {
-                                        animateHeatmap()
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function (evt) {
+                                        if (is3DViewOn) {
+                                            alert('24H function is not available for 3D map.');
+                                            evt.stopPropagation();
+                                            evt.preventDefault();
+                                        } else {
+                                            animateHeatmap()
+                                        }
                                     }, false);
                                 }
                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").addEventListener("click", function () {
                                     prevHeatmapPage();
-                                    
-                                    // CORTI
-                                    if (is3DViewOn) {
-                                        set2Dto3DMap();
-                                    }
                                 }, false);
                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").addEventListener("click", function () {
                                     nextHeatmapPage();
-                                    
-                                    // CORTI
-                                    if (is3DViewOn) {
-                                        set2Dto3DMap();
-                                    }
                                 }, false);
+
+                                // CORTI - listener per 3D heatmaps
+                                if (is3DViewOn) {
+                                    // heatmap controls
+                                    $('.heatmap-3d-controls').off();
+                                    $('.heatmap-3d-controls').on('click', '.prev', function () {
+                                        prevHeatmapPage();
+
+                                        $('.heatmap-3d-controls').find('.time').text(timestampISO3D);
+                                        $('.heatmap-3d-controls').find('.title').text(titleHeatamp3DControls);
+//                                        set2Dto3DMap();
+
+                                        $('.leaflet-control-container').css('display', 'none');
+                                    });
+                                    $('.heatmap-3d-controls').on('click', '.next', function () {
+                                        nextHeatmapPage();
+
+                                        $('.heatmap-3d-controls').find('.time').text(timestampISO3D);
+                                        $('.heatmap-3d-controls').find('.title').text(titleHeatamp3DControls);
+//                                        set2Dto3DMap();
+
+                                        $('.leaflet-control-container').css('display', 'none');
+                                    });
+                                }
 
                                 if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_changeRad").addEventListener("change", function () {
@@ -4685,16 +4761,18 @@ $title = $_REQUEST['title_w'];
                                 current_page++;
                                 changeHeatmapPage(current_page);
 
-                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                    if (map.eventsOnMap[i].eventType === 'heatmap') {
-                                        removeHeatmap(false);
-                                        map.eventsOnMap.splice(i, 1);
-                                    } else if (map.eventsOnMap[i].type === 'addHeatmap') {
-                                        removeHeatmapColorLegend(i, false);
-                                        map.eventsOnMap.splice(i, 1);
-                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                        map.eventsOnMap.splice(i, 1);
+                                if (!is3DViewOn) {
+                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                        if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                            removeHeatmap(false);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                            removeHeatmapColorLegend(i, false);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
                                     }
                                 }
 
@@ -4785,6 +4863,11 @@ $title = $_REQUEST['title_w'];
 
                         //   $('#'+event.target).on('click', function(e) {
                         map.defaultMapRef.on('click', function (e) {
+                            // CORTI - evita popup se heatmap sotto edifici 3d
+                            if (is3DViewOn) {
+                                return;
+                            }
+
                             //    if (map.testMetadata.metadata.file != 1) {
                             var heatmapPointAndClickData = null;
                             //  alert("Click on Map !");
@@ -5020,7 +5103,10 @@ $title = $_REQUEST['title_w'];
                                     loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
                                     loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
 
-                                    loadingDiv.show();
+                                    // CORTI - evita loadingDiv nella vista 3D
+                                    if (!is3DViewOn) {
+                                        loadingDiv.show();
+                                    }
 
                                     loadingDiv.append(loadingText);
                                     loadingDiv.css("opacity", 1);
@@ -5149,6 +5235,8 @@ $title = $_REQUEST['title_w'];
                                                     //   var timestampISO = "2019-01-23T20:20:15.000Z";
                                                     var timestamp = map.testMetadata.metadata.date;
                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
+
+                                                    // CORTI - con la mappa 3d la heatmap è nativa
                                                     wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
                                                         layers: 'Snap4City:' + wmsDatasetName,
                                                         format: 'image/png',
@@ -5161,13 +5249,18 @@ $title = $_REQUEST['title_w'];
                                                         //  attribution: "IGN ©"
                                                         pane: 'Snap4City:' + wmsDatasetName,
                                                     }).addTo(map.defaultMapRef);
-                                                            console.log('Snap4City:' + wmsDatasetName);
-                                                            // CORTI - inclusione heatmap nella mappa 3d
-//                                                            if(is3DViewOn){
-//                                                                console.log("Loading hm1");
-//                                                                console.log("Snap4City:" + wmsDatasetName);
-//                                                                map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&request=GetMap&layers=Snap4City:' + wmsDatasetName + '&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=2019-04-18T08%3A43%3A24.000Z&tiled=true&width=256&height=256&srs=EPSG%3A4326&bbox=10.230986328125,42.75109381775651,12.291972656250002,44.79902662160831');
-//                                                            }
+                                                    console.log('Snap4City:' + wmsDatasetName);
+                                                    // CORTI - inclusione heatmap nella mappa 3d
+                                                    if (is3DViewOn) {
+                                                        setOption('maxOpacity', 0, 2);
+                                                        timestampISO3D = timestampISO;
+                                                        titleHeatamp3DControls = wmsDatasetName;
+                                                        let tileSize = 512;
+                                                        if (wmsDatasetName == "GRALheatmap") {
+                                                            tileSize = 256;
+                                                        }
+                                                        heatmapLayer3D = map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&request=GetMap&layers=Snap4City%3A' + wmsDatasetName + '&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=' + timestampISO + '&tiled=true&width=' + tileSize + '&height=' + tileSize + '&srs=EPSG%3A4326/{z}/{x}/{y}');
+                                                    }
 
                                                     //    current_opacity = 0.5;
 
@@ -5357,7 +5450,10 @@ $title = $_REQUEST['title_w'];
                             loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
                             loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
 
-                            loadingDiv.show();
+                            // CORTI - evita loadingDiv nella vista 3D
+                            if (!is3DViewOn) {
+                                loadingDiv.show();
+                            }
 
                             loadingDiv.append(loadingText);
                             loadingDiv.css("opacity", 1);
@@ -5533,6 +5629,8 @@ $title = $_REQUEST['title_w'];
                                                             //   var timestampISO = "2019-01-23T20:20:15.000Z";
                                                             var timestamp = map.testMetadata.metadata.date;
                                                             var timestampISO = timestamp.replace(" ", "T") + ".000Z";
+
+                                                            // CORTI - con la mappa 3d la heatmap è nativa
                                                             wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
                                                                 layers: 'Snap4City:' + wmsDatasetName,
                                                                 format: 'image/png',
@@ -5545,6 +5643,18 @@ $title = $_REQUEST['title_w'];
                                                                         //  attribution: "IGN ©"
                                                             }).addTo(map.defaultMapRef);
                                                             //     current_opacity = 0.5;
+
+                                                            // CORTI - inclusione heatmap nella mappa 3d
+                                                            if (is3DViewOn) {
+                                                                setOption('maxOpacity', 0, 2);
+                                                                timestampISO3D = timestampISO;
+                                                                titleHeatamp3DControls = wmsDatasetName;
+                                                                let tileSize = 512;
+                                                                if (wmsDatasetName == "GRALheatmap") {
+                                                                    tileSize = 256;
+                                                                }
+                                                                heatmapLayer3D = map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&request=GetMap&layers=Snap4City%3A' + wmsDatasetName + '&styles=&format=image%2Fpng&version=1.1.1&time=' + timestampISO + '&tiled=true&width=' + tileSize + '&height=' + tileSize + '&srs=EPSG%3A4326/{z}/{x}/{y}');
+                                                            }
 
                                                         }
 
@@ -5640,6 +5750,8 @@ $title = $_REQUEST['title_w'];
                                                     // NEW HEATMAP
                                                     var timestamp = map.testMetadata.metadata.date;
                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
+
+                                                    // CORTI - con la mappa 3d la heatmap è nativa
                                                     wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
                                                         layers: 'Snap4City:' + wmsDatasetName,
                                                         format: 'image/png',
@@ -5651,14 +5763,18 @@ $title = $_REQUEST['title_w'];
                                                         tiled: true
                                                                 //  attribution: "IGN ©"
                                                     }).addTo(map.defaultMapRef);
-                                                            console.log('Snap4City:' + wmsDatasetName);
-                                                            
-                                                            // CORTI - inclusione heatmap nella mappa 3d
-//                                                            if(is3DViewOn){
-//                                                                console.log("Loading hm2");
-//                                                                console.log("Snap4City:" + wmsDatasetName);
-//                                                                map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&request=GetMap&layers=Snap4City:' + wmsDatasetName + '&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=2019-04-18T08%3A43%3A24.000Z&tiled=true&width=256&height=256&srs=EPSG%3A4326&bbox=10.230986328125,42.75109381775651,12.291972656250002,44.79902662160831');
-//                                                            }
+
+                                                    // CORTI - inclusione heatmap nella mappa 3d
+                                                    if (is3DViewOn) {
+                                                        setOption('maxOpacity', 0, 2);
+                                                        timestampISO3D = timestampISO;
+                                                        titleHeatamp3DControls = wmsDatasetName;
+                                                        let tileSize = 512;
+                                                        if (wmsDatasetName == "GRALheatmap") {
+                                                            tileSize = 256;
+                                                        }
+                                                        heatmapLayer3D = map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&request=GetMap&layers=Snap4City%3A' + wmsDatasetName + '&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=' + timestampISO + '&tiled=true&width=' + tileSize + '&height=' + tileSize + '&srs=EPSG%3A4326/{z}/{x}/{y}');
+                                                    }
 
                                                     // add legend to map
                                                     map.legendHeatmap.addTo(map.defaultMapRef);
@@ -7599,7 +7715,10 @@ $title = $_REQUEST['title_w'];
                                     loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
                                     loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
 
-                                    loadingDiv.show();
+                                    // CORTI - evita loadingDiv nella vista 3D
+                                    if (!is3DViewOn) {
+                                        loadingDiv.show();
+                                    }
 
                                     loadingDiv.append(loadingText);
                                     loadingDiv.css("opacity", 1);
@@ -8285,22 +8404,23 @@ $title = $_REQUEST['title_w'];
                                         current_page--;
                                         changeHeatmapPage(current_page);
 
-                                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                            if (map.eventsOnMap[i].eventType === 'heatmap') {
-                                                removeHeatmap(false);
-                                                map.eventsOnMap.splice(i, 1);
-                                            } else if (map.eventsOnMap[i].eventType === undefined && map.eventsOnMap[i].type === undefined) {
-                                                fullscreendefaultMapRef.eachLayer(function (layer) {
-                                                    fullscreendefaultMapRef.removeLayer(layer);
-                                                });
-                                                removeHeatmap(false);
-                                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                    maxZoom: 18
-                                                }).addTo(fullscreendefaultMapRef);
+                                        if (!is3DViewOn) {
+                                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                                if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                                    removeHeatmap(false);
+                                                    map.eventsOnMap.splice(i, 1);
+                                                } else if (map.eventsOnMap[i].eventType === undefined && map.eventsOnMap[i].type === undefined) {
+                                                    fullscreendefaultMapRef.eachLayer(function (layer) {
+                                                        fullscreendefaultMapRef.removeLayer(layer);
+                                                    });
+                                                    removeHeatmap(false);
+                                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                                        maxZoom: 18
+                                                    }).addTo(fullscreendefaultMapRef);
+                                                }
                                             }
                                         }
-
                                         if (addMode === 'additive') {
                                             //  if (baseQuery.includes("heatmap.php")) {
                                             // addHeatmapToMap();
@@ -8471,22 +8591,38 @@ $title = $_REQUEST['title_w'];
                                             page = numHeatmapPages();
 
                                         if (current_page == 0) {
-                                            btn_next.style.visibility = "hidden";
+                                            if (!is3DViewOn) {
+                                                btn_next.style.visibility = "hidden";
+                                            } else {
+                                                $('.heatmap-3d-controls').find('.next').addClass('hidden');
+                                            }
                                         } else {
-                                            btn_next.style.visibility = "visible";
+                                            if (!is3DViewOn) {
+                                                btn_next.style.visibility = "visible";
+                                            } else {
+                                                $('.heatmap-3d-controls').find('.next').removeClass('hidden');
+                                            }
                                         }
 
                                         if (current_page == numHeatmapPages() - 1) {
-                                            btn_prev.style.visibility = "hidden";
+                                            if (!is3DViewOn) {
+                                                btn_prev.style.visibility = "hidden";
+                                            } else {
+                                                $('.heatmap-3d-controls').find('.prev').addClass('hidden');
+                                            }
                                         } else {
-                                            btn_prev.style.visibility = "visible";
+                                            if (!is3DViewOn) {
+                                                btn_prev.style.visibility = "visible";
+                                            } else {
+                                                $('.heatmap-3d-controls').find('.prev').removeClass('hidden');
+                                            }
                                         }
                                     }
 
                                     if (current_page < numHeatmapPages()) {
                                         //  $("#modalLinkOpenHeatMapDescr").text(heatmapData[current_page].metadata[0].date); // OLD-API
                                         //   heatmapDescr.text(heatmapData[current_page].metadata.date);
-                                        heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+//                                        heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
                                         // heatmapData[current_page].metadata[0].date
                                     }
                                 }
@@ -9157,26 +9293,28 @@ $title = $_REQUEST['title_w'];
 
 
 
+            /**
+             * ANDREA CORTI - Implementazione mappa 3D tramite libreria OSM Buildings e inclusione
+             * di edifici da file GeoJSON, layers da GeoServer e layers da server esterni;
+             * inclusione di tutti i dati della mappa 2d ancorando la mappa stessa allo stesso container della 3d
+             * e inclinandone la prospettiva in relazione alle impostazioni tridimensionali
+             */
 
+            // variabili globali
+            $map2DElem = $("#<?= $_REQUEST['name_w'] ?>_map"); // elemento della mappa 2d
 
-            //// 3D Map - CORTI
-            $map2DElem = $("#<?= $_REQUEST['name_w'] ?>_map");
-                
-            layersCreated = []; // layers created but not added to map
-            layersAddedToMap = []; // layers already added to map
-            is3DViewOn = false;
+            layersCreated = []; // array di layers creati
+            layersAddedToMap = []; // array di layers aggiunti alla mappa 2d
+            is3DViewOn = false; // identifica se la visuale è settata sulla mappa 3d oppure no
+            current3DZoom = 15; // zoom offset nativo fra 2D e 3D
+            translate2D = "0px, 0px"; // traslazione iniziale mappa 2d applicata come layer alla 3d
+            height = $map2DElem.height(); // parametro per settare l'altezza della mappa 2d applicata alla 3d
 
-            // zoom offset nativo fra 2D e 3D
-            current3DZoom = 15;
-
-            // valori di offset per un tilt iniziale di 0 gradi
-            latOffset = 0;
-            zoomOffset45deg = 0;
-            tiltOffset = 0;
-            marginTopOffset45deg = 120;
-            popupBottom45deg = -220;
-            translate2D = "0px, 0px";
-
+            /*
+             * Inizializza i bottoni base de dropdown menu (2D e 3D) e i listener
+             * @param {object} map
+             * @returns {void}
+             */
             function initMapsAndListeners(map) {
                 let map2D = map.defaultMapRef;
 
@@ -9211,7 +9349,6 @@ $title = $_REQUEST['title_w'];
                     // select menu map
                     $(this).addClass('map-selected');
                     $('#3DButton').removeClass('map-selected');
-                    $('.leaflet-control-container').find('.leaflet-left').css('display', 'block');
 
                     // disabilita 3d map
                     if (map.default3DMapRef) {
@@ -9233,6 +9370,8 @@ $title = $_REQUEST['title_w'];
                         return;
                     }
                     is3DViewOn = true;
+
+                    // disabilita eventi per la mappa 2d
 
                     // load 3D map 
                     if (!map.default3DMapRef) {
@@ -9257,140 +9396,32 @@ $title = $_REQUEST['title_w'];
                     clear2DMap(false);
                 });
             }
-
-            function set2Dto3DMap(load3d = false) {
-                if (!is3DViewOn) {
-                    return;
+            
+            /*
+             * Carica e inizializza la mappa 3d applicando listener e azioni
+             * @param {bool} loadOrthmap
+             * @returns {void}
+             */
+            function load3DMap(loadOrthmap = true) {
+                if (map.default3DMapRef) {
+                    map.default3DMapRef.destroy();
+                    map.default3DMapRef = null;
                 }
 
-                if (!map.defaultMapRef) {
-                    // get dei parametri zoomOffset, latOffset, tiltOffset in base al Tilt3D
-                    get3DParamsByTilt();
-                    get3DParamsByRotation();
-                    newMap([map.default3DMapRef.getPosition().latitude + latOffset, map.default3DMapRef.getPosition().longitude], load3d);
-                }
-
-                // rendi marker e popup invisibile fino a che non sono in 3D
-                $map2DElem.find('.leaflet-map-pane').find('.leaflet-marker-pane').css('opacity', 0);
-                $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').css('opacity', 0);
-                $('.leaflet-control-container').find('.leaflet-left').css('display', 'none');
-
-                // pin 
-                $('.gisPinLink').click(function () {
-                    setTimeout(function () {
-                        get3DParamsByTilt();
-                        get3DParamsByRotation();
-                        editCSSFor3DWidgets();
-                    }, 100);
-                });
-
-                // add previous enabled sensors
-                let pinArray = [];
-                // get dei sensori attivi
-                let pin = 0;
-                $('.gisPinLink').each(function (evt) {
-                    if (pin <= 1) {
-                        if ($(this).attr('data-onmap') == "true") {
-                            $(this).trigger('click');
-                            pinArray.push(this);
-                        }
-                    }
-                    pin++;
-                });
-
-                setTimeout(function () {
-                    for (let i = 0; i < pinArray.length; i++) {
-                        $(pinArray[i]).click();
-                    }
-                    pinArray = [];
-                }, 100);
-
-                $map2DElem.find('.leaflet-control-container').first().after($map2DElem.find('.osmb').first());
-
-                $('.leaflet-control-container').find('.leaflet-left').css('display', 'none');
-//                $map2DElem.find('.leaflet-tile-pane').css('opacity', 0);
-
-                setTimeout(function () {
-                    // rendi tutto visibile
-                    $map2DElem.find('.leaflet-map-pane').find('.leaflet-marker-pane').css('opacity', 1);
-                    $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').css('opacity', 1);
-
-                    // css
-                    editCSSFor3DWidgets();
-
-                    $('.leaflet-control-container').find('.leaflet-left').css('display', 'none');
-//                    $map2DElem.find('.leaflet-tile-pane').css('opacity', 0);
-                }, 500);
-            }
-
-            function editCSSFor3DWidgets() {
-                if (!is3DViewOn) {
-                    return;
-                }
-
-                // prospettiva div container
-                $('.leaflet-container').css('background', 'transparent');
-                $map2DElem.find('.leaflet-map-pane').addClass('perspective-div');
-                $map2DElem.find('.leaflet-map-pane').css('margin-top', marginTopOffset + 'px');
-
-                // rotazione divs
-                $map2DElem.find('.leaflet-map-pane').find('.leaflet-pane').not('.leaflet-popup-pane').addClass('rotate3d-div');
-                $map2DElem.find('.leaflet-map-pane').find('.leaflet-pane').not('.leaflet-popup-pane')
-                        .css('transform', 'rotateX(' + (map.default3DMapRef.getTilt() - tiltOffset) + 'deg) rotate(' + (-map.default3DMapRef.getRotation()) + 'deg) translate(' + translate2D + ')');
-
-                // rotazione inversa elementi
-//                inverseMarkerAndPopup3DRotation();
-
-                // sync centers & zoom
-                if (map.defaultMapRef) {
-//                    map.defaultMapRef.panTo(new L.LatLng(map.default3DMapRef.getPosition().latitude - latOffset, map.default3DMapRef.getPosition().longitude));
-                    map.defaultMapRef.setZoom(map.default3DMapRef.getZoom() + zoomOffset, {animate: false});
-                }
-
-                inverseMarkerAndPopup3DRotation();
-            }
-
-            function inverseMarkerAndPopup3DRotation() {
-                if (!is3DViewOn) {
-                    return;
-                }
-                // markers
-                $map2DElem.find('.leaflet-map-pane').find('.leaflet-marker-pane').find('.leaflet-marker-icon').each(function () {
-                    // tilt
-                    if ($(this).css('transform').indexOf("rotateX") < 0 && $(this).css('transform').indexOf("matrix3d") < 0) {
-                        $(this).css('transform', $(this).css('transform') + ' rotateX(-' + map.default3DMapRef.getTilt() + 'deg)');
-                    }
-                    // rotation
-                    if ($(this).attr('style').indexOf("rotate(") < 0) {
-                        $(this).attr('style', $(this).attr('style').replace('rotateX', 'rotate(0deg) rotateX'));
-                        markerRot = 0;
-                    }
-                    $(this).attr('style', $(this).attr('style').replace('rotate(' + markerRot + 'deg)', 'rotate(' + map.default3DMapRef.getRotation() + 'deg)'));
-                });
-                markerRot = map.default3DMapRef.getRotation();
-
-                // popups
-                $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').find('.leaflet-popup').each(function () {
-                    $(this).css('transform', '');
-                    $(this).css('bottom', popupBottom + 'px').css('left', '70px');
-                });
-                $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').find('.leaflet-popup').find('.leaflet-popup-tip-container').css('opacity', 0);
-                $map2DElem.find('#heatmapLegend').css('right', '120px');
-            }
-
-            function load3DMap() {
                 map.default3DMapRef = new OSMBuildings({
                     container: '<?= $_REQUEST['name_w'] ?>_map',
                     position: {latitude: map.defaultMapRef.getCenter().lat, longitude: map.defaultMapRef.getCenter().lng},
                     zoom: current3DZoom,
                     minZoom: 13,
                     maxZoom: 18,
-                    tilt: 45,
-//                    fastMode: true,
+                    tilt: 30,
+                    fastMode: false,
                     attribution: '© Data <a href="https://openstreetmap.org/copyright/">OpenStreetMap</a> © Map <a href="https://mapbox.com/">Mapbox</a> © 3D <a href="https://osmbuildings.org/copyright/">OSM Buildings</a>'
                 });
 
-                map.default3DMapRef.addMapTiles('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png');
+                if (loadOrthmap) {
+                    mainOrthmap = map.default3DMapRef.addMapTiles('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png');
+                }
 
                 // edifici
                 loadBuildings();
@@ -9403,6 +9434,16 @@ $title = $_REQUEST['title_w'];
                     if (pointerDown && !pointerMoving) {
                         pointerMoving = true;
                         if (map.defaultMapRef) {
+                            hideMarkers();
+                            clear2DMap();
+                        }
+                    }
+                });
+                $('body').on('mousemove', function () {
+                    if (pointerDown && !pointerMoving) {
+                        pointerMoving = true;
+                        if (map.defaultMapRef) {
+                            hideMarkers();
                             clear2DMap();
                         }
                     }
@@ -9417,10 +9458,20 @@ $title = $_REQUEST['title_w'];
                     pointerDown = false;
                     pointerMoving = false;
                 });
+                $('body').on('mouseup', function () {
+                    if (!is3DViewOn) {
+                        return;
+                    }
+                    if (pointerMoving) {
+                        set2Dto3DMap();
+                    }
+                    pointerDown = false;
+                    pointerMoving = false;
+                });
                 map.default3DMapRef.on('zoom', function () {
                     if (map.defaultMapRef) {
+                        hideMarkers();
                         get3DParamsByTilt();
-                        get3DParamsByRotation();
                         editCSSFor3DWidgets();
                     }
 
@@ -9430,16 +9481,16 @@ $title = $_REQUEST['title_w'];
 
                 map.default3DMapRef.on('tilt', function () {
                     if (map.defaultMapRef) {
+                        hideMarkers();
                         get3DParamsByTilt();
-                        get3DParamsByRotation();
                         editCSSFor3DWidgets();
                     }
                 });
 
                 map.default3DMapRef.on('rotate', function () {
                     if (map.defaultMapRef) {
+                        hideMarkers();
                         get3DParamsByTilt();
-                        get3DParamsByRotation();
                         editCSSFor3DWidgets();
                     }
                 });
@@ -9448,7 +9499,7 @@ $title = $_REQUEST['title_w'];
                 setUIZoomValue();
 
                 // 3D sensors switch 
-                $('#sensorsSwitch').on('click', function () {
+                $('#sensorsSwitchButton').on('click', function () {
                     if (!is3DViewOn) {
                         return;
                     }
@@ -9457,15 +9508,11 @@ $title = $_REQUEST['title_w'];
                     // add previous enabled sensors
                     let pinArray = [];
                     // get dei sensori attivi
-                    let pin = 0;
                     $('.gisPinLink').each(function (evt) {
-                        if (pin > 1) {
-                            if ($(this).attr('data-onmap') == "true") {
-                                $(this).trigger('click');
-                                pinArray.push(this);
-                            }
+                        if ($(this).attr('data-onmap') == "true" && (!$(this).attr('data-query').includes("heatmap.php") && !$(this).attr('data-query').includes("wmsserver.snap4city.org"))) {
+                            $(this).trigger('click');
+                            pinArray.push(this);
                         }
-                        pin++;
                     });
 
                     setTimeout(function () {
@@ -9514,9 +9561,31 @@ $title = $_REQUEST['title_w'];
                     }
                 });
 
+                // heatmap pinLink listener
+                $('.gisPinLink').on('click', function () {
+                    if ($(this).attr('data-query').includes("heatmap.php") || $(this).attr('data-query').includes("wmsserver.snap4city.org")) {
+                        if ($(this).attr('data-onmap') == "false") {
+                            $('.heatmap-3d-controls').css('display', 'none');
+                            map.default3DMapRef.remove(heatmapLayer3D);
+                            mainOrthmap = map.default3DMapRef.addMapTiles('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png');
+                        } else {
+                            $('.heatmap-3d-controls').css('display', 'block');
+                        }
+                    }
+                });
+
+                // reload sensors at init
+                setTimeout(function () {
+                    $('#sensorsSwitchButton').click();
+                }, 500);
+
             }
-            
-            function loadBuildings(){
+
+            /*
+             * Inizializza e include gli edifici alla mappa 3d
+             * @returns {void}
+             */
+            function loadBuildings() {
                 // standard
 //                map.default3DMapRef.addGeoJSONTiles('https://{s}.data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json');
 //                
@@ -9528,19 +9597,165 @@ $title = $_REQUEST['title_w'];
                 buildings3d = map.default3DMapRef.addGeoJSON('https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
             }
 
-            function setUIZoomValue() {
-                $('.zoom-info-value').text(Math.round(map.default3DMapRef.getZoom() * 10) / 10);
-                
-                // perspective origin
-                $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 400px');
+            /*
+             * Setta tutte le impostazioni per applicare la vista prospettica alla mappa 2d,
+             * in modo tale che sia applicabile al container della mappa 3d
+             * @param {bool} load3d
+             * @returns {void}
+             */
+            function set2Dto3DMap(load3d = false) {
+                if (!is3DViewOn) {
+                    return;
+                }
+
+                if (!map.defaultMapRef) {
+                    get3DParamsByTilt();
+                    newMap([map.default3DMapRef.getPosition().latitude, map.default3DMapRef.getPosition().longitude], load3d);
+                }
+
+                // rendi marker e popup invisibile fino a che non sono in 3D
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-marker-pane').css('opacity', 0);
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').css('opacity', 0);
+                $('.leaflet-control-container').css('display', 'none');
+
+                // pin 
+                $('.gisPinLink').click(function () {
+                    setTimeout(function () {
+                        get3DParamsByTilt();
+                        editCSSFor3DWidgets();
+                    }, 100);
+                });
+
+                // add previous enabled sensors
+                let pinArray = [];
+                $('.gisPinLink').each(function (evt) {
+//                    if (pin <= 1) {
+                    if ($(this).attr('data-onmap') == "true" && (!$(this).attr('data-query').includes("heatmap.php") && !$(this).attr('data-query').includes("wmsserver.snap4city.org"))) {
+                        $(this).trigger('click');
+                        pinArray.push(this);
+                    }
+                });
+
+                setTimeout(function () {
+                    for (let i = 0; i < pinArray.length; i++) {
+                        $(pinArray[i]).click();
+                    }
+                    pinArray = [];
+                }, 100);
+
+                setTimeout(function () {
+                    // rendi tutto visibile
+                    $map2DElem.find('.leaflet-map-pane').find('.leaflet-marker-pane').css('opacity', 1);
+                    $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').css('opacity', 1);
+
+                    // css
+                    editCSSFor3DWidgets();
+                }, 500);
+            }
+            
+            /*
+             * Applica tutte le modifiche ai CSS per applicare la vista prospettica alla mappa 2d e ai relativi divs
+             * @returns {void}
+             */
+            function editCSSFor3DWidgets() {
+                if (!is3DViewOn) {
+                    return;
+                }
+
+                // prospettiva div container
+                $('.leaflet-container').css('background', 'transparent');
+                $map2DElem.find('.leaflet-map-pane').addClass('perspective-div');
+                $map2DElem.find('.leaflet-map-pane').css('height', height).css('width', $map2DElem.width());
+
+                // rotazione divs
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-pane').not('.leaflet-popup-pane').addClass('rotate3d-div');
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-pane').not('.leaflet-popup-pane')
+                        .css('transform', 'rotateX(' + (map.default3DMapRef.getTilt()) + 'deg) rotate(' + (-map.default3DMapRef.getRotation()) + 'deg) translate(' + translate2D + ')')
+                        .css('height', $map2DElem.height()).css('width', $map2DElem.width());
+
+                // sync centers & zoom
+                if (map.defaultMapRef) {
+                    map.defaultMapRef.setZoom(map.default3DMapRef.getZoom() + zoomOffset, {animate: false});
+                }
+
+                // heatmap controls
+                $('.leaflet-control-container').css('display', 'none');
+                $('.heatmap-3d-controls').find('.time').text(timestampISO3D);
+                $('.heatmap-3d-controls').find('.title').text(titleHeatamp3DControls);
+
+                setTimeout(function () {
+                    inverseMarkerAndPopup3DRotation();
+                }, 0);
+            }
+            
+            /*
+             * Nasconde tutti i markers, utile per effettuare le modifiche ai CSS prima della visualizzazione
+             * @returns {void}
+             */
+            function hideMarkers() {
+                // opacizza markers
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-marker-pane').find('.leaflet-marker-icon').each(function () {
+                    // opacizza prima del rendering            
+                    $(this).css('opacity', 0);
+                });
+            }
+            
+            /*
+             * Applica un antirotazione ai markers e ai popup per renderli indipendenti dalla prospettiva 3d
+             * @returns {void}
+             */
+            function inverseMarkerAndPopup3DRotation() {
+                if (!is3DViewOn) {
+                    return;
+                }
+                // markers
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-marker-pane').find('.leaflet-marker-icon').each(function () {
+                    $(this).css('opacity', 0);
+                    $(this).css('transform-origin', '50% 100%');
+                    // tilt
+                    if ($(this).attr('style').indexOf("rotateX") >= 0 && $(this).attr('style').indexOf("matrix3d") < 0) {
+                        const regex = /rotateX\(-?[0-9]{1,2}deg\)/gi;
+                        $(this).attr('style', $(this).attr('style').replace(regex, 'rotateX(-' + map.default3DMapRef.getTilt() + 'deg)'));
+                    } else if ($(this).attr('style').indexOf("rotateX") < 0 && $(this).attr('style').indexOf("matrix3d") < 0) {
+                        $(this).css('transform', $(this).css('transform') + ' rotateX(-' + map.default3DMapRef.getTilt() + 'deg)');
+                    }
+                    // rotation
+                    if ($(this).attr('style').indexOf("rotate(") < 0) {
+                        $(this).attr('style', $(this).attr('style').replace('rotateX', 'rotate(0deg) rotateX'));
+                        markerRot = 0;
+                    }
+                    $(this).attr('style', $(this).attr('style').replace('rotate(' + markerRot + 'deg)', 'rotate(' + map.default3DMapRef.getRotation() + 'deg)'));
+                    $(this).css('opacity', 1);
+                });
+                markerRot = map.default3DMapRef.getRotation();
+
+                // popups
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').find('.leaflet-popup').each(function () {
+                    $(this).css('transform', '');
+                    $(this).css('bottom', popupBottom + 'px').css('left', '70px');
+                });
+                $map2DElem.find('.leaflet-map-pane').find('.leaflet-popup-pane').find('.leaflet-popup').find('.leaflet-popup-tip-container').css('opacity', 0);
+                $map2DElem.find('#heatmapLegend').css('right', '120px');
             }
 
+            /*
+             * Setta valore di zoom
+             * @returns {void}
+             */
+            function setUIZoomValue() {
+                $('.zoom-info-value').text(Math.round(map.default3DMapRef.getZoom() * 10) / 10);
+            }
+
+            /*
+             * Distrugge la mappa 2d e tutte le reference
+             * @param {bool} resetSensors
+             * @returns {void}
+             */
             function clear2DMap(resetSensors = true) {
                 if (map.defaultMapRef) {
                     map.defaultMapRef.remove();
                     map.defaultMapRef = null;
                     $map2DElem.find('.leaflet-pane').remove();
-                    $map2DElem.find('.leaflet-control-container').remove();
                     $map2DElem.attr('class', '');
                 }
 
@@ -9565,6 +9780,10 @@ $title = $_REQUEST['title_w'];
                 $(document).unbind('removeHeatmap');
             }
 
+            /*
+             * Carica i campi del dropdown menu dal database
+             * @returns {void}
+             */
             function getMenuAjaxCall() {
                 if ($('.appendable').length > 0) {
                     return;
@@ -9633,6 +9852,10 @@ $title = $_REQUEST['title_w'];
                                         }
 
                                         // icon
+                                        if (is3DViewOn) {
+                                            // remove all others orthmaps
+                                            $('.dropdown-menu').find('.fa-check').addClass('hidden');
+                                        }
                                         $(evt.target).find('.appendable-icon').removeClass('hidden');
                                     } else {
                                         removeLayerById(menu.id, evt);
@@ -9655,56 +9878,63 @@ $title = $_REQUEST['title_w'];
                 });
             }
 
+            /*
+             * Aggiunge un layer alla mappa 2d o alla 3d tramite standard WMS (XYZ riadattato per la mappa 3d)
+             * @param {object} evt
+             * @param {object} menu
+             * @returns {void}
+             */
             function addLayerWMS(evt, menu) {
                 let imageType = 'png';
                 if (menu.imageType) {
                     imageType = menu.imageType;
                 }
-                for (var subLayerIndex = 0; subLayerIndex < menu.layers.length; subLayerIndex++) {
+                if (!is3DViewOn) {
+                    for (var subLayerIndex = 0; subLayerIndex < menu.layers.length; subLayerIndex++) {
 
-                    // zIndex
-                    if (map.defaultMapRef) {
-                        map.defaultMapRef.createPane(menu.id + menu.layers[subLayerIndex].name);
-                        if (menu.zIndex) {
-                            map.defaultMapRef.getPane(menu.id + menu.layers[subLayerIndex].name).style.zIndex = menu.zIndex;
+                        // zIndex
+                        if (map.defaultMapRef) {
+                            map.defaultMapRef.createPane(menu.id + menu.layers[subLayerIndex].name);
+                            if (menu.zIndex) {
+                                map.defaultMapRef.getPane(menu.id + menu.layers[subLayerIndex].name).style.zIndex = menu.zIndex;
+                            }
                         }
-                    }
 
-                    let layer = L.tileLayer.wms(menu.linkUrl, {
-                        layers: menu.layers[subLayerIndex].name,
-                        format: 'image/' + imageType,
-                        transparent: true,
-                        version: '1.1.0',
-                        minZoom: menu.minZoom,
-                        maxZoom: menu.maxZoom,
-                        attribution: "",
-                        pane: menu.id + menu.layers[subLayerIndex].name
-                    });
-
-                    // 3D map - TMS for GeoServer
-                    if (is3DViewOn) {
-                    //    map.default3DMapRef.addMapTiles('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/' + menu.layers[subLayerIndex].name + '@EPSG%3A900913@png/{z}/{x}/{y}.png', {
-                        map.default3DMapRef.addMapTiles('https://wmsserver.snap4city.org/geoserver/gwc/service/tms/1.0.0/' + menu.layers[subLayerIndex].name + '@EPSG%3A900913@png/{z}/{x}/{y}.png', {
-                            maxZoom: 18,
-                            tms: true,
-                            crs: L.CRS.EPSG4326,
-                            attribution: false
+                        let layer = L.tileLayer.wms(menu.linkUrl, {
+                            layers: menu.layers[subLayerIndex].name,
+                            format: 'image/' + imageType,
+                            transparent: true,
+                            version: '1.1.0',
+                            minZoom: menu.minZoom,
+                            maxZoom: menu.maxZoom,
+                            attribution: "",
+                            pane: menu.id + menu.layers[subLayerIndex].name
                         });
 
-                        // nascondi livello 2D
-                        $($map2DElem).find('.leaflet-' + menu.id + '' + menu.layers[subLayerIndex].name + '-pane').css('opacity', 0);
+                        if (!arrayContains(layersCreated, layer)) {
+                            layersCreated.push({"menu": menu, "layer": layer, "subLayerIndex": subLayerIndex});
+                        }
+
+                        // check zoom and add to map
+                        addLayerToMapByZoom(menu, layer, subLayerIndex, layersCreated.length - 1);
+
                     }
 
-                    if (!arrayContains(layersCreated, layer)) {
-                        layersCreated.push({"menu": menu, "layer": layer, "subLayerIndex": subLayerIndex});
-                    }
-
-                    // check zoom and add to map
-                    addLayerToMapByZoom(menu, layer, subLayerIndex, layersCreated.length - 1);
-
+                } else {
+                    // 3D
+                    map.default3DMapRef.remove(mainOrthmap);
+                    mainOrthmap = map.default3DMapRef.addMapTiles(menu.linkUrl + '?service=WMS&request=GetMap&layers=' + menu.layer3d + '&styles=&format=image%2Fjpeg&version=1.1.1&tiled=true&width=256&height=256&srs=EPSG%3A4326/{z}/{x}/{y}');
                 }
             }
 
+            /*
+             * Include un determinato layer alla mappa 2d in base allo zoom corrente
+             * @param {object} menu
+             * @param {string} layer
+             * @param {string} subLayerIndex
+             * @param {int} i
+             * @returns {void}
+             */
             function addLayerToMapByZoom(menu, layer, subLayerIndex, i) {
                 let zoom = map.defaultMapRef.getZoom();
                 if ((zoom <= menu.layers[subLayerIndex].maxZoom && zoom >= menu.layers[subLayerIndex].minZoom) || !menu.layers[subLayerIndex].minZoom) {
@@ -9734,6 +9964,12 @@ $title = $_REQUEST['title_w'];
                 }
             }
 
+            /*
+             * Rimuove un layer in base al'id passato come parametro
+             * @param {string} layerId
+             * @param {object} evt
+             * @returns {void}
+             */
             function removeLayerById(layerId, evt) {
                 // remove from array layersAddedToMap
                 for (var i = 0; i < layersAddedToMap.length; i++) {
@@ -9759,6 +9995,11 @@ $title = $_REQUEST['title_w'];
                 $('#loadingMenu').addClass('hidden');
             }
 
+            /*
+             * Rimuove tutti i layers dalla mappa
+             * @param {object} map
+             * @returns {void}
+             */
             function removeAllLayers(map) {
                 if (map) {
                     map.eachLayer(function (layer) {
@@ -9772,30 +10013,35 @@ $title = $_REQUEST['title_w'];
                 }
             }
 
-            // change tileLayer of the map: light, dark, etc
+            /*
+             * Aggiunge un layer alla mappa 2d o alla 3d tramite standard XYZ
+             * @param {object} evt
+             * @param {object} menu
+             * @returns {void}
+             */
             function addTileLayer(evt, menu) {
                 let layer;
                 // 2D
-                if (map.defaultMapRef) {
-                    if (menu.minZoom && menu.maxZoom) {
-                        layer = L.tileLayer(menu.linkUrl, {
-                            attribution: menu.layerAttribution,
-                            apikey: menu.apiKey,
-                            minZoom: menu.minZoom,
-                            maxZoom: menu.maxZoom,
-                        }).addTo(map.defaultMapRef);
-                    } else {
-                        layer = L.tileLayer(menu.linkUrl, {
-                            attribution: menu.layerAttribution,
-                            apikey: menu.apiKey,
-                        }).addTo(map.defaultMapRef);
+                if (!is3DViewOn) {
+                    if (map.defaultMapRef) {
+                        if (menu.minZoom && menu.maxZoom) {
+                            layer = L.tileLayer(menu.linkUrl, {
+                                attribution: menu.layerAttribution,
+                                apikey: menu.apiKey,
+                                minZoom: menu.minZoom,
+                                maxZoom: menu.maxZoom,
+                            }).addTo(map.defaultMapRef);
+                        } else {
+                            layer = L.tileLayer(menu.linkUrl, {
+                                attribution: menu.layerAttribution,
+                                apikey: menu.apiKey,
+                            }).addTo(map.defaultMapRef);
+                        }
+
+                        layersAddedToMap.push({"id": menu.id, "layer": layer});
                     }
-
-                    layersAddedToMap.push({"id": menu.id, "layer": layer});
-                }
-
-                // 3D
-                if (is3DViewOn) {
+                } else {
+                    // 3D
                     // l'edit dell'url nel 3D evita bug tile vuoti
                     let linkUrl = "";
                     if (menu.linkUrl3D) {
@@ -9803,36 +10049,29 @@ $title = $_REQUEST['title_w'];
                     } else {
                         linkUrl = menu.linkUrl;
                     }
+                    map.default3DMapRef.remove(mainOrthmap);
                     if (menu.minZoom && menu.maxZoom) {
-                        map.default3DMapRef.addMapTiles(linkUrl, {
+                        mainOrthmap = map.default3DMapRef.addMapTiles(linkUrl, {
                             attribution: menu.layerAttribution,
                             apikey: menu.apiKey,
                             minZoom: menu.minZoom,
                             maxZoom: menu.maxZoom
                         });
                     } else {
-                        map.default3DMapRef.addMapTiles(linkUrl, {
+                        mainOrthmap = map.default3DMapRef.addMapTiles(linkUrl, {
                             attribution: menu.layerAttribution,
                             apikey: menu.apiKey
                         });
                     }
-                    
-                    // reload edifici
-                    map.default3DMapRef.remove(buildings3d);
-
-                    // edifici
-                    loadBuildings();
                 }
-
-                // example of TMS for GeoServer
-//                let layer = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/ambiti_amministrativi_toscana:firenze_sat_here_z17@EPSG%3A900913@jpeg/{z}/{x}/{y}.png', {
-//                  maxZoom: 18,
-//                  tms: true,
-//                  crs: L.CRS.EPSG4326,
-//                  attribution: false
-//                });
             }
 
+            /*
+             * Aggiunge un layer alla mappa 2d o alla 3d estraendolo da un file KML
+             * @param {object} evt
+             * @param {object} menu
+             * @returns {void}
+             */
             function addLayerKML(evt, menu) {
                 var kmlLayer = new L.KML(menu.linkUrl, {
                     async: true
@@ -9843,6 +10082,12 @@ $title = $_REQUEST['title_w'];
                 map.defaultMapRef.kmlLayer.zIndex = 420;
             }
 
+            /*
+             * Aggiunge un layer alla mappa 2d o alla 3d estraendolo da file GeoJSON
+             * @param {object} evt
+             * @param {object} menu
+             * @returns {void}
+             */
             function addLayerGeoJSON(evt, menu) {
 
                 // zIndex
@@ -9858,24 +10103,35 @@ $title = $_REQUEST['title_w'];
                         pane: menu.id
                     }).addTo(map.defaultMapRef);
 
-                    // 3D
-//                    if (is3DViewOn) {
-//                        map.default3DMapRef.addGeoJSON(menu.linkUrl);
-//                    }
-
                     layersAddedToMap.push({"id": menu.id, "layer": layer});
                 });
             }
 
+            /*
+             * Aggiunge un layer alla mappa 2d o alla 3d estraendolo da un'immagine vettoriale
+             * @param {object} evt
+             * @param {object} menu
+             * @returns {void}
+             */
             function addLayerSVG(evt, menu) {
                 let imageBounds = [[9.716489, 42.2392816], [12.3529926, 44.47160041252872]];
                 L.imageOverlay(menu.linkUrl, imageBounds).addTo(map.defaultMapRef);
             }
 
+            /*
+             * Rimuove tutte le icone dal dropdown menu
+             * @returns {void}
+             */
             function removeAllIcons() {
                 $('.appendable-icon').addClass('hidden');
             }
 
+            /*
+             * Check se un array contiene un determinato layer
+             * @param {array} array
+             * @param {string} layer
+             * @returns {bool}
+             */
             function arrayContains(array, layer) {
                 for (var i = 0; i < array.length; i++) {
                     if (array[i].layer.options.layers === layer.options.layers) {
@@ -9885,141 +10141,15 @@ $title = $_REQUEST['title_w'];
                 return false;
             }
 
-            // TODO - valori di test, trovare la funzione matematica per la rappresentazione di tutti i valori
+            /*
+             * Get e Set di paramteri utili per la mappa 3d
+             * @returns {void}
+             */
             function get3DParamsByTilt() {
                 let tilt = map.default3DMapRef.getTilt();
-                zoomOffset = zoomOffset45deg + ((45 - tilt) * 0.0055);
-                zoomOffset = Math.round(zoomOffset * 100) / 100;
-                marginTopOffset = 120;
-                popupBottom = popupBottom45deg;
-                $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 400px');
-                if (tilt === 65) {
-                    marginTopOffset = 205;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 307px');
-                    popupBottom = -140;
-                } else if (tilt < 65 && tilt >= 60) {
-                    marginTopOffset = 179.5;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 322px');
-                    popupBottom = -160;
-                } else if (tilt < 60 && tilt >= 55) {
-                    marginTopOffset = 159;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 349px');
-                    popupBottom = -180;
-                } else if (tilt < 55 && tilt >= 50) {
-                    marginTopOffset = 133.5;
-                    $map2DElem.find('.perspective-div').css('perspective-origin', ($map2DElem.width() / 2) + 'px 351px');
-                    popupBottom = -200;
-                } else if (tilt < 50 && tilt >= 45) {
-                    marginTopOffset = 120;
-                    popupBottom = -220;
-                } else if (tilt < 45 && tilt >= 40) {
-                    marginTopOffset = 98;
-                    popupBottom = -240;
-                } else if (tilt < 40 && tilt >= 35) {
-                    marginTopOffset = 77.34;
-                    popupBottom = -260;
-                } else if (tilt < 35 && tilt >= 30) {
-                    marginTopOffset = 62.68;
-                    popupBottom = -280;
-                } else if (tilt < 30 && tilt >= 25) {
-                    marginTopOffset = 43.68;
-                    popupBottom = -300;
-                } else if (tilt < 25 && tilt >= 20) {
-                    marginTopOffset = 33;
-                    popupBottom = -320;
-                } else if (tilt < 20 && tilt >= 15) {
-                    marginTopOffset = 21;
-                    popupBottom = -340;
-                } else if (tilt < 15 && tilt >= 10) {
-                    marginTopOffset = 13.36;
-                    popupBottom = -360;
-                } else if (tilt < 10 && tilt >= 5) {
-                    marginTopOffset = 13.36;
-                    popupBottom = -380;
-                } else if (tilt < 5 && tilt >= 0) {
-                    marginTopOffset = 0;
-                    popupBottom = -400;
-                }
-            }
-
-            // TODO - valori di test, trovare la funzione matematica per la rappresentazione di tutti i valori
-            function get3DParamsByRotation() {
-                let rotation3D = map.default3DMapRef.getRotation();
-                if (rotation3D === 0 || rotation3D === 360) {
-                    translate2D = "0px, 0px";
-                } else if ((rotation3D > 0 && rotation3D <= 10) || (rotation3D > -360 && rotation3D <= -350)) {
-                    translate2D = "-54px, 97px";
-                } else if ((rotation3D > 10 && rotation3D <= 20) || (rotation3D > -350 && rotation3D <= -340)) {
-                    translate2D = "-124px, 183px";
-                } else if ((rotation3D > 20 && rotation3D <= 30) || (rotation3D > -340 && rotation3D <= -330)) {
-                    translate2D = "-210px, 256px";
-                } else if ((rotation3D > 30 && rotation3D <= 40) || (rotation3D > -330 && rotation3D <= -320)) {
-                    translate2D = "-307px, 315px";
-                } else if ((rotation3D > 40 && rotation3D <= 50) || (rotation3D > -320 && rotation3D <= -310)) {
-                    translate2D = "-411px, 353px";
-                } else if ((rotation3D > 50 && rotation3D <= 60) || (rotation3D > -310 && rotation3D <= -300)) {
-                    translate2D = "-520px, 373px";
-                } else if ((rotation3D > 60 && rotation3D <= 70) || (rotation3D > -300 && rotation3D <= -290)) {
-                    translate2D = "-632px, 374px";
-                } else if ((rotation3D > 70 && rotation3D <= 80) || (rotation3D > -290 && rotation3D <= -280)) {
-                    translate2D = "-743px, 356px";
-                } else if ((rotation3D > 80 && rotation3D <= 90) || (rotation3D > -280 && rotation3D <= -270)) {
-                    translate2D = "-845px, 318px";
-                } else if ((rotation3D > 90 && rotation3D <= 100) || (rotation3D > -270 && rotation3D <= -260)) {
-                    translate2D = "-943px, 263px";
-                } else if ((rotation3D > 100 && rotation3D <= 110) || (rotation3D > -260 && rotation3D <= -250)) {
-                    translate2D = "-1029px, 191px";
-                } else if ((rotation3D > 110 && rotation3D <= 120) || (rotation3D > -250 && rotation3D <= -240)) {
-                    translate2D = "-1104px, 104px";
-                } else if ((rotation3D > 120 && rotation3D <= 130) || (rotation3D > -240 && rotation3D <= -230)) {
-                    translate2D = "-1160px, 9px";
-                } else if ((rotation3D > 130 && rotation3D <= 140) || (rotation3D > -230 && rotation3D <= -220)) {
-                    translate2D = "-1197px, -95px";
-                } else if ((rotation3D > 140 && rotation3D <= 150) || (rotation3D > -220 && rotation3D <= -210)) {
-                    translate2D = "-1220px, -203px";
-                } else if ((rotation3D > 150 && rotation3D <= 160) || (rotation3D > -210 && rotation3D <= -200)) {
-                    translate2D = "-1221px, -314px";
-                } else if ((rotation3D > 160 && rotation3D <= 170) || (rotation3D > -200 && rotation3D <= -190)) {
-                    translate2D = "-1203px, -424px";
-                } else if ((rotation3D > 170 && rotation3D <= 180) || (rotation3D > -190 && rotation3D <= -180)) {
-                    translate2D = "-1166px, -529px";
-                } else if ((rotation3D > 180 && rotation3D <= 190) || (rotation3D > -180 && rotation3D <= -170)) {
-                    translate2D = "-1112px, -628px";
-                } else if ((rotation3D > 190 && rotation3D <= 200) || (rotation3D > -170 && rotation3D <= -160)) {
-                    translate2D = "-1042px, -713px";
-                } else if ((rotation3D > 200 && rotation3D <= 210) || (rotation3D > -160 && rotation3D <= -150)) {
-                    translate2D = "-956px, -786px";
-                } else if ((rotation3D > 210 && rotation3D <= 220) || (rotation3D > -150 && rotation3D <= -140)) {
-                    translate2D = "-860px, -840px";
-                } else if ((rotation3D > 220 && rotation3D <= 230) || (rotation3D > -140 && rotation3D <= -130)) {
-                    translate2D = "-753px, -884px";
-                } else if ((rotation3D > 230 && rotation3D <= 240) || (rotation3D > -130 && rotation3D <= -120)) {
-                    translate2D = "-646px, -899px";
-                } else if ((rotation3D > 240 && rotation3D <= 250) || (rotation3D > -120 && rotation3D <= -110)) {
-                    translate2D = "-530px, -905px";
-                } else if ((rotation3D > 250 && rotation3D <= 260) || (rotation3D > -110 && rotation3D <= -100)) {
-                    translate2D = "-421px, -886px";
-                } else if ((rotation3D > 260 && rotation3D <= 270) || (rotation3D > -100 && rotation3D <= -90)) {
-                    translate2D = "-316px, -846px";
-                } else if ((rotation3D > 270 && rotation3D <= 280) || (rotation3D > -90 && rotation3D <= -80)) {
-                    translate2D = "-219px, -792px";
-                } else if ((rotation3D > 280 && rotation3D <= 290) || (rotation3D > -80 && rotation3D <= -70)) {
-                    translate2D = "-132px, -722px";
-                } else if ((rotation3D > 290 && rotation3D <= 300) || (rotation3D > -70 && rotation3D <= -60)) {
-                    translate2D = "-61px, -639px";
-                } else if ((rotation3D > 300 && rotation3D <= 310) || (rotation3D > -60 && rotation3D <= -50)) {
-                    translate2D = "-4px, -541px";
-                } else if ((rotation3D > 310 && rotation3D <= 320) || (rotation3D > -50 && rotation3D <= -40)) {
-                    translate2D = "35px, -437px";
-                } else if ((rotation3D > 320 && rotation3D <= 330) || (rotation3D > -40 && rotation3D <= -30)) {
-                    translate2D = "56px, -326px";
-                } else if ((rotation3D > 330 && rotation3D <= 340) || (rotation3D > -30 && rotation3D <= -20)) {
-                    translate2D = "57px, -215px";
-                } else if ((rotation3D > 340 && rotation3D <= 350) || (rotation3D > -20 && rotation3D <= -10)) {
-                    translate2D = "39px, -105px";
-                } else if ((rotation3D > 350 && rotation3D < 360) || (rotation3D > -10 && rotation3D < 0)) {
-                    translate2D = "39px, -105px";
-                }
+                zoomOffset = 0.25;
+                popupBottom = -360;
+                height = $map2DElem.height() * 2;
             }
 
         });//Fine document ready
@@ -10042,17 +10172,21 @@ $title = $_REQUEST['title_w'];
     .perspective-div{
         position: absolute;
         perspective: 1234px;
-        perspective-origin: 583px 400px;
+        pointer-events: none;
     }
     .rotate3d-div{
         position: absolute;
         transform-style: preserve-3d;
-        /*transform: rotateX(45deg);*/
+    }
+    .leaflet-tuscanyBoundaries-pane{
+        pointer-events: none;
+    }
+    .leaflet-popup-pane{
+        pointer-events: all;
     }
     .inverse-rotate3d-div{
         position: absolute;
         transform-style: preserve-3d;
-        /*transform: rotateX(-45deg);*/
     }
     #sensorsSwitch{
         display: none;
@@ -10063,7 +10197,6 @@ $title = $_REQUEST['title_w'];
     }
     .leaflet-popup-3d{
         position: fixed !important;
-        /*transform: rotateX(-45deg) !important;*/
         top: 67px;
         left: 90px;
     }
@@ -10149,6 +10282,29 @@ $title = $_REQUEST['title_w'];
         top: 100px;
         left: -55px;
         opacity: 1;
+    }
+    .heatmap-3d-controls{
+        display: none;
+        top: 120px;
+        left: -320px;
+        opacity: 1;
+        background: lightgrey;
+        padding-right: 15px;
+        padding-bottom: 15px;
+        max-width: 230px;
+    }
+    .heatmap-3d-controls .title{
+        padding-top: 10px;
+        padding-left: 15px;
+    }
+    .heatmap-3d-controls .time{
+        width: 200px;
+    }
+    .heatmap-3d-controls .prev{
+        width: 90px;
+    }
+    .heatmap-3d-controls .next{
+        width: 90px;
     }
 </style>
 
@@ -10279,6 +10435,14 @@ $title = $_REQUEST['title_w'];
                             <option value="23">23:00</option>
                         </select>
                     </div>
+
+                    <div class="control heatmap-3d-controls">
+                        <div class="title"></div>
+                        <button class="dec time ml-1"></button><br />
+                        <button class="dec prev">< Prev</button>
+                        <button class="dec next ml-1">Next ></button>
+                    </div>
+
                 </div>
 
             </div>

@@ -55,8 +55,11 @@
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
-        var showHeader, widgetParameters, thresholdsJson, infoJson = null;
+        var showHeader, widgetParameters, thresholdsJson, infoJson, rowParameters, xAxisTitle, smField, editLabels, groupByAttr, colorMaps, aggregationGetData, getDataFinishCount = null;
         var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
+        var seriesDataArray = [];
+        var serviceUri = "";
+
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
 		{
 			showHeader = false;
@@ -65,9 +68,95 @@
 		{
 			showHeader = true;
 		}
-        
+
+		console.log("Entrato in widgetTable --> " + widgetName);
+
         //Definizioni di funzione specifiche del widget
-        
+
+        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr) {
+
+            var deviceLabels = [];
+            var metricLabels = [];
+            var auxLabels = [];
+            let mappedSeriesDataArray = [];
+
+            metricLabels = getMetricLabelsForBarSeries(rowParameters);
+            deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
+            if (groupByAttr != null) {
+                //if (groupByAttr == "metrics") {
+                if (groupByAttr == "value type") {
+                    flipFlag = false;
+                    //    } else if (groupByAttr == "device") {
+                } else if (groupByAttr == "value name") {
+                    flipFlag = true;
+                }
+            } else {
+                flipFlag = false;
+            }
+            if (flipFlag !== true) {
+                mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+            } else {
+                mappedSeriesDataArray = buildBarSeriesArrayMap2(seriesDataArray);
+                auxLabels = metricLabels;
+                metricLabels = deviceLabels;
+                deviceLabels = auxLabels;
+            }
+            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
+
+            xAxisCategories = metricLabels.slice();
+
+            widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+
+            if(firstLoad !== false)
+            {
+                populateTable(JSON.stringify(series));
+                showWidgetContent(widgetName);
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+            }
+            else
+            {
+                elToEmpty.empty();
+                populateTable(JSON.stringify(series));
+                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+            }
+        //    populateTable(JSON.stringify(series));
+            //   legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+            //    xAxisCategories = getXAxisCategories(series, widgetHeight);
+            applyThresholdCodes(series);
+            setTableHeight();
+            var widgetHeight = parseInt($("#WeatherStations_77_widgetTable783_table").height() + 25);
+            // createLegends(series, widgetHeight);
+            createLegendFromColorMap(series, widgetHeight);
+            createInfoButtons();
+
+            if (!serviceUri) {
+                $.ajax({
+                    url: "../widgets/updateBarSeriesParameters.php",
+                    type: "GET",
+                    data: {
+                        widgetName: "<?= $_REQUEST['name_w'] ?>",
+                        series: series
+                    },
+                    async: true,
+                    dataType: 'json',
+                    success: function (widgetData) {
+
+                    },
+                    error: function (errorData) {
+                        metricData = null;
+                        console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
+                        console.log(JSON.stringify(errorData));
+                    }
+                });
+            }
+        //    drawDiagram();
+
+        }
+
         //Funzione di calcolo ed applicazione dell'altezza della tabella
         function setTableHeight()
         {
@@ -82,7 +171,7 @@
             
             $("#<?= $_REQUEST['name_w'] ?>_table").css("height", height);
         }
-        
+
         //Funzione di popolamento della tabella
         function populateTable(seriesString)
         {
@@ -150,6 +239,8 @@
                             newCell.css("font-style", "italic");
                             newCell.css("color", colsLabelsFontColor);
                             newCell.css("background-color", colsLabelsBckColor);
+                         //   newCell.css("overflow", "hidden");
+                         //   newCell.css("text-overflow", "ellipsis");
                         }
                         newRow.append(newCell);
                     }
@@ -163,18 +254,66 @@
                         if(j === 0)
                         {
                             //Cella label
-                            newCell = $("<td>" + series.secondAxis.labels[z] + "</td>");
+                            if (editLabels != null) {
+                                if (editLabels[z] != null) {
+                                    newCell = $("<td>" + editLabels[z] + "</td>");
+                                } else {
+                                    newCell = $("<td>" + series.secondAxis.labels[z] + "</td>");
+                                }
+                            } else {
+                                newCell = $("<td>" + series.secondAxis.labels[z] + "</td>");
+                            }
                             newCell.css("font-size", rowsLabelsFontSize + "px");
                             newCell.css("font-style", "italic");
                             newCell.css("color", rowsLabelsFontColor);
                             newCell.css("background-color", rowsLabelsBckColor);
+                            newCell.css("overflow", "hidden");
+                            newCell.css("text-overflow", "ellipsis");
                         }
                         else
                         {
                             //Celle dati
+                            let hasColorMap = false;
+                            let mapIdx = null;
+                            let cellColor = null;
+                            if (colorMaps != null) {
+                                if (colorMaps != "" && colorMaps != "[]") {
+                                    for (let h = 0; h < colorMaps.length; h++) {
+                                        if (colorMaps[h].id == j - 1) {
+                                            hasColorMap = true;
+                                            mapIdx = h;
+                                        }
+                                    }
+                                }
+                            }
+                            if (hasColorMap && series.secondAxis.series[z][k] != null && $.isNumeric(series.secondAxis.series[z][k])) {
+                                for (let t = 0; t < colorMaps[mapIdx].colorMap.length; t++) {
+                                    if (colorMaps[mapIdx].colorMap[t].min == null) {
+                                        if (series.secondAxis.series[z][k] <= colorMaps[mapIdx].colorMap[t].max) {
+                                            cellColor = colorMaps[mapIdx].colorMap[t].rgb;
+                                            break;
+                                        }
+                                    } else if (colorMaps[mapIdx].colorMap[t].max == null) {
+                                        if (series.secondAxis.series[z][k] > colorMaps[mapIdx].colorMap[t].min) {
+                                            cellColor = colorMaps[mapIdx].colorMap[t].rgb;
+                                            break;
+                                        }
+                                    } else {
+                                        if (series.secondAxis.series[z][k] > colorMaps[mapIdx].colorMap[t].min && series.secondAxis.series[z][k] <= colorMaps[mapIdx].colorMap[t].max) {
+                                            cellColor = colorMaps[mapIdx].colorMap[t].rgb;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                             newCell = $("<td>" + series.secondAxis.series[z][k] + "</td>");
+                            if (cellColor != null) {
+                                newCell.css('background-color', "rgb(" + cellColor.substring(1, cellColor.length-1) + ")");
+                            }
                             newCell.css('font-size', fontSize + "px");
                             newCell.css('color', fontColor);
+                            newCell.css("overflow", "hidden");
+                            newCell.css("text-overflow", "ellipsis");
                         }
                         newRow.append(newCell);
                     }
@@ -348,11 +487,11 @@
                 }
             }
         }
-        
+
         function createLegends(seriesString2, widgetHeight)
         {
             var target = null;
-            
+
             if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 var thresholdObject = thresholdsJson.thresholdObject;
@@ -365,11 +504,11 @@
                 var colsLabelsFontSize = styleParameters.colsLabelsFontSize;
                 var colsLabelsFontColor = styleParameters.colsLabelsFontColor;
                 var k, labelCellWidth, legendWidth, legendMargin, colsLabels = null;
-                
+
                 if(target === series2.firstAxis.desc)
                 {
                     colsLabels = thresholdObject.firstAxis.fields.length;
-                    $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i) 
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i)
                     {
                         if(i !== 0)
                         {
@@ -378,16 +517,16 @@
                             var base = (i-1)/colsLabels;
                             var quadrato = (Math.pow(base, 3)).toFixed(2);
                             legendMargin = quadrato*100;
-                            
+
                             k = parseInt(i - 1);
                             if(thresholdObject.firstAxis.fields[k].thrSeries.length > 0)
                             {
                                 label = $(this).find('span').html();
-                                
-                                dropdownLegend = $('<div class="dropdown">' + 
-                                    '<a href="#" data-toggle="dropdown" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' + 
-                                        '<ul class="dropdown-menu">' +
-                                        '</ul>' +
+
+                                dropdownLegend = $('<div class="dropdown">' +
+                                    '<a href="#" data-toggle="dropdown" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
+                                    '<ul class="dropdown-menu">' +
+                                    '</ul>' +
                                     '</div>');
                                 dropdownLegend.find("a").css("text-decoration", "none");
                                 dropdownLegend.find("a").css("color", colsLabelsFontColor);
@@ -398,7 +537,7 @@
                                 dropdownLegend.find("a:visited").css("text-decoration", "none");
                                 dropdownLegend.find("a:active").css("text-decoration", "none");
 
-                                thresholdObject.firstAxis.fields[k].thrSeries.forEach(function(range) 
+                                thresholdObject.firstAxis.fields[k].thrSeries.forEach(function(range)
                                 {
                                     dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
                                     /*if(range.desc !== '')
@@ -423,8 +562,8 @@
                 {
                     //LEGENDA SOGLIE SUL SECONDO ASSE
                     var firstRowH, firstRowTopBorder, firstRowBottomBorder, rowH, rowTopBorder, rowBottomBorder, labelHeight = null;
-                    
-                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i) 
+
+                    $('#<?= $_REQUEST['name_w'] ?>_table tr').each(function (i)
                     {
                         if(i > 0)
                         {
@@ -449,23 +588,23 @@
                             {
                                 menuType = 'dropup';
                             }
-                            
+
                             tableCell = $(this).find('td').first();
                             labelCellWidth = tableCell.width();
                             legendWidth = 118;
                             legendMargin = parseInt((Math.abs(labelCellWidth - legendWidth))/2);
-                            
-                            
+
+
                             k = parseInt(i - 1);
                             if(thresholdObject.secondAxis.fields[k].thrSeries.length > 0)
                             {
                                 label = tableCell.html();
                                 dropdownLegend = $('<div class="' + menuType + '">' +
-                                    '<a href="#" data-toggle="dropdown" class="dropdown-toggle"><span>' + label + '</span><b class="caret"></b></a>' + 
-                                        '<ul class="dropdown-menu">' +
-                                        '</ul>' +
+                                    '<a href="#" data-toggle="dropdown" class="dropdown-toggle"><span>' + label + '</span><b class="caret"></b></a>' +
+                                    '<ul class="dropdown-menu">' +
+                                    '</ul>' +
                                     '</div>');
-                                
+
                                 dropdownLegend.find("a").css("color", rowsLabelsFontColor);
                                 dropdownLegend.find("a").css("font-size", rowsLabelsFontSize);
                                 dropdownLegend.find("ul").css("padding-left", "2px");
@@ -475,7 +614,7 @@
                                 dropdownLegend.find("a:visited").css("text-decoration", "none");
                                 dropdownLegend.find("a:active").css("text-decoration", "none");
 
-                                thresholdObject.secondAxis.fields[k].thrSeries.forEach(function(range) 
+                                thresholdObject.secondAxis.fields[k].thrSeries.forEach(function(range)
                                 {
                                     dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
                                     /*if(range.desc !== '')
@@ -503,9 +642,84 @@
                             firstRowBottomBorder = parseInt($(this).css("border-bottom-width").replace('px', ''));
                             firstRowH = parseInt(firstRowH + firstRowTopBorder + firstRowBottomBorder);
                         }
-                        
+
                     });
-                } 
+                }
+            }
+        }
+
+        function createLegendFromColorMap(series2, widgetHeight)
+        {
+            var target = null;
+            
+            if((colorMaps !== null)&&(colorMaps !== undefined)&&(colorMaps !== 'undefined'))
+            {
+                var fields, thrFields, dropdownLegend, dropDownElement, label, tableCell = null;
+                var rowsLabelsFontSize = styleParameters.rowsLabelsFontSize;
+                var rowsLabelsFontColor = styleParameters.rowsLabelsFontColor;
+                var colsLabelsFontSize = styleParameters.colsLabelsFontSize;
+                var colsLabelsFontColor = styleParameters.colsLabelsFontColor;
+                var k, labelCellWidth, legendWidth, legendMargin, colsLabels = null;
+
+                colsLabels = series2.firstAxis.labels.length;
+                $('#<?= $_REQUEST['name_w'] ?>_table tr').first().find('td').each(function (i)
+                {
+                    if(i !== 0)
+                    {
+                        tableCell = $(this);
+                        labelCellWidth = tableCell.width();
+                        var base = (i-1)/colsLabels;
+                        var quadrato = (Math.pow(base, 3)).toFixed(2);
+                        legendMargin = quadrato*100;
+
+                        k = parseInt(i - 1);
+                        colorMaps.forEach(function(cMap) {
+                            if (cMap.colorMap.length > 0 && cMap.id == k) {
+                                label = tableCell.find('span').html();
+
+                                dropdownLegend = $('<div class="dropdown">' +
+                                    '<a href="#" data-toggle="dropdown" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
+                                    '<ul class="dropdown-menu">' +
+                                    '</ul>' +
+                                    '</div>');
+                                dropdownLegend.find("a").css("text-decoration", "none");
+                                dropdownLegend.find("a").css("color", colsLabelsFontColor);
+                                dropdownLegend.find("a").css("font-size", colsLabelsFontSize);
+                                dropdownLegend.find("ul").css("padding-left", "2px");
+                                dropdownLegend.find("a:hover").css("text-decoration", "none");
+                                dropdownLegend.find("a:link").css("text-decoration", "none");
+                                dropdownLegend.find("a:visited").css("text-decoration", "none");
+                                dropdownLegend.find("a:active").css("text-decoration", "none");
+
+                                cMap.colorMap.forEach(function (range) {
+                                    let minTh, maxTh = null;
+                                    if (range.min == null) {
+                                        dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: rgb(' + range.rgb.substring(1, range.rgb.length - 1) + ')"></div>&nbsp;&nbsp;&nbsp; < ' + range.max + '</a></li>');
+                                    } else if (range.max == null) {
+                                        dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: rgb(' + range.rgb.substring(1, range.rgb.length - 1) + ')"></div>&nbsp;&nbsp;&nbsp; > ' + range.min + '</a></li>');
+                                    } else {
+                                        dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: rgb(' + range.rgb.substring(1, range.rgb.length - 1) + ')"></div>&nbsp;&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
+                                    }
+                                //    dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: rgb(' + range.rgb.substring(1, range.rgb.length - 1) + ')"></div>&nbsp;&nbsp;&nbsp;' + minTh + ' <i class="fa fa-arrows-h"></i> ' + maxTh + '</a></li>');
+                                    /*if(range.desc !== '')
+                                    {
+                                        dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '&nbsp;&nbsp;<b>' + range.desc + '</b></a></li>');
+                                    }
+                                    else
+                                    {
+                                        dropDownElement = $('<li><a href="#"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
+                                    }*/
+                                    dropDownElement.css("font", "bold 10px Verdana");
+                                    dropDownElement.find("i").css("font-size", "12px");
+                                    dropdownLegend.find("ul").append(dropDownElement);
+                                });
+                                dropdownLegend.find("ul").css("left", "-" + legendMargin + "%");
+                                tableCell.html(dropdownLegend);
+                            }
+                        });
+                    }
+                });
+
             }
         }
         
@@ -707,57 +921,392 @@
         {
             infoJson = "<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>";
         }
-        
+
+        //Nuova versione // **************** NEW GP ********************************************************************
         $.ajax({
-            url: getMetricDataUrl,
+            url: "../controllers/getWidgetParams.php",
             type: "GET",
-            data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
+            data: {
+                widgetName: "<?= $_REQUEST['name_w'] ?>"
+            },
             async: true,
             dataType: 'json',
-            success: function (data) 
+            success: function(widgetData)
             {
-                metricData = data;
-                if(metricData.data.length !== 0)
+                showTitle = widgetData.params.showTitle;
+                widgetContentColor = widgetData.params.color_w;
+                fontSize = widgetData.params.fontSize;
+                fontColor = widgetData.params.fontColor;
+                timeToReload = widgetData.params.frequency_w;
+                hasTimer = widgetData.params.hasTimer;
+                chartColor = widgetData.params.chartColor;
+                dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                appId = widgetData.params.appId;
+                flowId = widgetData.params.flowId;
+                nrMetricType = widgetData.params.nrMetricType;
+                gridLineColor = widgetData.params.chartPlaneColor;
+                chartAxesColor = widgetData.params.chartAxesColor;
+                serviceUri = widgetData.params.serviceUri;
+
+                if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
-                    metricType = metricData.data[0].commit.author.metricType;
-                    series = metricData.data[0].commit.author.series;
-                    if(firstLoad !== false)
-                    {
-                        showWidgetContent(widgetName);
-                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                    }
-                    else
-                    {
-                        elToEmpty.empty();
-                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                        $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                    }
-                    populateTable(series);
-                    applyThresholdCodes(series);
-                    setTableHeight();
-                    var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
-                    createLegends(series, widgetHeight);
-                    createInfoButtons();
+                    showHeader = false;
                 }
                 else
                 {
-                   showWidgetContent(widgetName);
-                   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                   $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                } 
+                    showHeader = true;
+                }
+
+                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+                {
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
+                    widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
+                    widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
+                    widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
+                    rowParameters = widgetData.params.rowParameters;
+                }
+                else
+                {
+                    metricName = metricNameFromDriver;
+                    widgetTitleFromDriver.replace(/_/g, " ");
+                    widgetTitleFromDriver.replace(/\'/g, "&apos;");
+                    widgetTitle = widgetTitleFromDriver;
+                    $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+                    widgetHeaderColor = widgetHeaderColorFromDriver;
+                    widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+                }
+
+                setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+                $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
+                $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                if(firstLoad === false)
+                {
+                    showWidgetContent(widgetName);
+                }
+                else
+                {
+                    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                }
+
+                if((widgetData.params.styleParameters !== "")&&(widgetData.params.styleParameters !== "null"))
+                {
+                    styleParameters = JSON.parse(widgetData.params.styleParameters);
+                    groupByAttr = styleParameters['groupByAttr'];
+                    if (styleParameters.colorMaps != null) {
+                        if (styleParameters.colorMaps != "" && styleParameters.colorMaps != "[]") {
+                            colorMaps = JSON.parse(styleParameters.colorMaps);
+                        }
+                    }
+                }
+
+                if(widgetData.params.parameters !== null)
+                {
+                    if(widgetData.params.parameters.length > 0)
+                    {
+                        widgetParameters = JSON.parse(widgetData.params.parameters);
+                        thresholdsJson = widgetParameters;
+                    }
+                }
+
+                if((widgetData.params.infoJson !== 'null')&&(widgetData.params.infoJson !== ''))
+                {
+                    infoJson = JSON.parse(widgetData.params.infoJson);
+                    //Patch per il resize, non mostriamo i pulsanti info per ora
+                    infoJson = null;
+                }
+
+                chartType = styleParameters.chartType;
+                lineWidth = styleParameters.lineWidth;
+
+                /*     switch(chartType)
+                     {
+                         case 'lines':
+                             stackingOption = null;
+                             highchartsChartType = 'spline';
+                             dataLabelsAlign = 'center';
+                             dataLabelsVerticalAlign = 'middle';
+                             dataLabelsY = 0;
+                             break;
+
+                         case 'area':
+                             stackingOption = null;
+                             highchartsChartType = 'areaspline';
+                             dataLabelsAlign = 'center';
+                             dataLabelsVerticalAlign = 'middle';
+                             dataLabelsY = 0;
+                             break;
+
+                         case 'stacked':
+                             stackingOption = 'normal';
+                             highchartsChartType = 'areaspline';
+                             dataLabelsAlign = 'center';
+                             dataLabelsVerticalAlign = 'middle';
+                             dataLabelsY = 0;
+                             break;
+
+                         default:
+                             stackingOption = null;
+                             highchartsChartType = 'spline';
+                             dataLabelsAlign = 'center';
+                             break;
+                     }*/
+
+                let aggregationFlag = false;
+                if (JSON.parse(widgetData.params.rowParameters) != null) {
+                    if (JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "Sensor" || JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "MyKPI") {
+                        aggregationFlag = true;
+                    }
+                }
+
+                if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true || widgetData.params.id_metric.includes("NR_"))
+                {
+                    rowParameters = JSON.parse(rowParameters);
+                    aggregationGetData = [];
+                    getDataFinishCount = 0;
+                    editLabels = (JSON.parse(widgetData.params.styleParameters)).editDeviceLabels;
+
+                    for(var i = 0; i < rowParameters.length; i++)
+                    {
+                        aggregationGetData[i] = false;
+                    }
+
+                    for(var i = 0; i < rowParameters.length; i++)
+                    {
+                        let dataOrigin = rowParameters[i].metricHighLevelType;
+                        switch(dataOrigin) {
+                            case "KPI":
+                                index = i;
+                                $.ajax({
+                                    url: "../controllers/aggregationSeriesProxy.php",
+                                    type: "POST",
+                                    data:
+                                        {
+                                            dataOrigin: JSON.stringify(rowParameters[i]),
+                                            index: i
+                                        },
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        aggregationGetData[data.index] = data;
+                                        getDataFinishCount++;
+
+                                        //Popoliamo il widget quando sono arrivati tutti i dati
+                                        if (getDataFinishCount === rowParameters.length) {
+                                            populateTable(JSON.stringify(series));
+                                            //   legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                            //    xAxisCategories = getXAxisCategories(series, widgetHeight);
+                                            applyThresholdCodes(series);
+                                            setTableHeight();
+                                            var widgetHeight = parseInt($("#WeatherStations_77_widgetTable783_table").height() + 25);
+                                            createLegends(series, widgetHeight);
+                                            createInfoButtons();
+
+                                            if (firstLoad !== false) {
+                                                showWidgetContent(widgetName);
+                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                            } else {
+                                                elToEmpty.empty();
+                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                            }
+
+                                        //    drawDiagram();
+                                        }
+                                    },
+                                    error: function (errorData) {
+                                        metricData = null;
+                                        console.log("Error in data retrieval");
+                                        console.log(JSON.stringify(errorData));
+                                        showWidgetContent(widgetName);
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                        $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                    }
+                                });
+                                break;
+
+                            case "Sensor":
+                                var timeRange = null;
+                                var urlToCall = "";
+                                var xlabels = [];
+                                let smUrl = "";
+                                if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                } else {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                }
+                                //    metricType = "Float";
+
+                                if("<?= $_REQUEST['timeRange']?>") {
+                                    if("<?= $_REQUEST['timeRange'] ?>" != 'last' && "<?= $_REQUEST['timeRange'] ?>" != "") {
+                                        /*  switch("<?= $_REQUEST['timeRange'] ?>") {
+                                            case "4 Ore":
+                                                timeRange = "fromTime=4-hour";
+                                                break;
+
+                                            case "12 Ore":
+                                                timeRange = "fromTime=12-hour";
+                                                break;
+
+                                            case "Giornaliera":
+                                                timeRange = "fromTime=1-day";
+                                                break;
+
+                                            case "Settimanale":
+                                                timeRange = "fromTime=7-day";
+                                                break;
+
+                                            case "Mensile":
+                                                timeRange = "fromTime=30-day";
+                                                break;
+
+                                            case "Annuale":
+                                                timeRange = "fromTime=365-day";
+                                                break;
+                                        }   */
+
+                                        urlToCall = smUrl + "&" + timeRange;
+                                    } else {
+                                        urlToCall = smUrl;
+                                    }
+                                } else {
+                                    urlToCall = smUrl;
+                                }
+
+                                getSmartCitySensorValues(rowParameters, i, smUrl, null, true, function(extractedData) {
+
+                                    if(extractedData) {
+                                        seriesDataArray.push(extractedData);
+                                    }
+                                    else
+                                    {
+                                        console.log("Dati Smart City non presenti");
+                                        seriesDataArray.push(undefined);
+                                    }
+                                    //if (endFlag === true) {
+                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                    if (rowParameters.length === seriesDataArray.length) {
+                                        // DO FINAL SERIALIZATION
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
+                                    }
+
+                                });
+                                break;
+
+                            case "Dynamic":
+                                let extractedData = {};
+                                extractedData.value = rowParameters[i].value;
+                                extractedData.metricType = rowParameters[i].metricType;
+                                extractedData.metricId = rowParameters[i].metricId;
+                                extractedData.metricName = rowParameters[i].metricName;
+                                extractedData.measuredTime = rowParameters[i].measuredTime;
+                                extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
+
+                                seriesDataArray.push(extractedData);
+
+                                if (rowParameters.length === seriesDataArray.length) {
+                                    // DO FINAL SERIALIZATION
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                }
+
+                                break;
+
+                            case "MyKPI":
+
+                                //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
+                                let aggregationCell = [];
+                                var xlabels = [];
+                                let kpiMetricName =  rowParameters[i].metricName;
+                                let kpiMetricType =  rowParameters[i].metricType;
+                                if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                                    rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                                }
+                                getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
+
+                                    if (extractedData) {
+                                        seriesDataArray.push(extractedData);
+                                    } else {
+                                        console.log("Dati Smart City non presenti");
+                                        seriesDataArray.push(undefined);
+                                    }
+                                    //if (endFlag === true) {
+                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                    if (rowParameters.length === seriesDataArray.length) {
+                                        // DO FINAL SERIALIZATION
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                    }
+
+                                });
+                                break;
+
+                        }
+                    }
+                }
+                else {
+
+                    $.ajax({
+                        url: getMetricDataUrl,
+                        type: "GET",
+                        data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
+                        async: true,
+                        dataType: 'json',
+                        success: function (data) {
+                            metricData = data;
+                            if (metricData.data.length !== 0) {
+                                metricType = metricData.data[0].commit.author.metricType;
+                                series = metricData.data[0].commit.author.series;
+                                if (firstLoad !== false) {
+                                    showWidgetContent(widgetName);
+                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                } else {
+                                    elToEmpty.empty();
+                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                }
+                                populateTable(series);
+                                applyThresholdCodes(series);
+                                setTableHeight();
+                                var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
+                                createLegends(series, widgetHeight);
+                                createInfoButtons();
+                            } else {
+                                showWidgetContent(widgetName);
+                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                            }
+                        },
+                        error: function (errorData) {
+                            metricData = null;
+                            console.log("Error in data retrieval");
+                            console.log(JSON.stringify(errorData));
+                            showWidgetContent(widgetName);
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                            $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                        }
+                    });
+                }
+                // GP FINE SECONDA SOLUZIONE ------------------------------------------------------------
             },
             error: function(errorData)
             {
-                metricData = null;
-                console.log("Error in data retrieval");
+                console.log("Error in widget params retrieval");
                 console.log(JSON.stringify(errorData));
                 showWidgetContent(widgetName);
                 $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
             }
         });
+        // ************* FINE NEW GP ***********************************************************************************
         
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();

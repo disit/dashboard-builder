@@ -3269,7 +3269,48 @@
                 $tableBordersColorM = mysqli_real_escape_string($link, sanitizePostString('tableBordersColorM'));       // New pentest
             }
 
-            $styleParametersArrayM = array('showTableFirstCell' => $showTableFirstCellM, 'tableFirstCellFontSize' => $tableFirstCellFontSizeM, 'tableFirstCellFontColor' => $tableFirstCellFontColorM, 'rowsLabelsFontSize' => $rowsLabelsFontSizeM, 'rowsLabelsFontColor' => $rowsLabelsFontColorM, 'colsLabelsFontSize' => $colsLabelsFontSizeM, 'colsLabelsFontColor' => $colsLabelsFontColorM, 'rowsLabelsBckColor' => $rowsLabelsBckColorM, 'colsLabelsBckColor' => $colsLabelsBckColorM, 'tableBorders' => $tableBordersM, 'tableBordersColor' => $tableBordersColorM);
+            if(isset($_POST['showColorMapM0'])&&($_POST['showColorMapM0']!=""))
+            {
+                $colorMapElementsM = '[';
+                $colorMapName = mysqli_real_escape_string($link, sanitizePostString('showColorMapM0'));
+                $colorMapArray = file_get_contents($heatmapUrl . "getColorMap.php?metricName=" . $colorMapName);
+                if ($colorMapArray) {
+                    if ($colorMapArray != "[]") {
+                        $colorMapElementsM = $colorMapElementsM . '{"id": 0, "name": "' . $colorMapName . '", "colorMap": ' . $colorMapArray . '}';
+                    }
+                }
+                $k = 1;
+                while (isset($_POST['showColorMapM'.$k])&&($_POST['showColorMapM'.$k]!="")) {
+                    $colorMapName = mysqli_real_escape_string($link, sanitizePostString('showColorMapM'.$k));
+                    $colorMapArray = file_get_contents($heatmapUrl . "getColorMap.php?metricName=" . $colorMapName);
+                    if ($colorMapArray) {
+                        if ($colorMapArray != "[]") {
+                            if (strcmp(substr($colorMapElementsM, 0, 7), '[{"id":') == 0) {
+                                $colorMapElementsM = $colorMapElementsM . ', {"id": ' . $k . ', "name": "' . $colorMapName . '", "colorMap": ' . $colorMapArray . '}';
+                            } else {
+                                $colorMapElementsM = $colorMapElementsM . '{"id": ' . $k . ', "name": "' . $colorMapName . '", "colorMap": ' . $colorMapArray . '}';
+                            }
+                        }
+                    }
+                    $k++;
+                }
+                $colorMapElementsM = $colorMapElementsM . "]";
+            }
+
+            if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
+            {
+                $deviceLabels = [];
+                $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_0'));     // New pentest
+                array_push($deviceLabels, $label);
+                $k = 1;
+                while (isset($_POST['deviceLabelsM_'.$k])&&($_POST['deviceLabelsM_'.$k]!="")) {
+                    $label = mysqli_real_escape_string($link, sanitizePostString('deviceLabelsM_'.$k));     // New pentest
+                    array_push($deviceLabels, $label);
+                    $k++;
+                }
+            }
+
+            $styleParametersArrayM = array('showTableFirstCell' => $showTableFirstCellM, 'tableFirstCellFontSize' => $tableFirstCellFontSizeM, 'tableFirstCellFontColor' => $tableFirstCellFontColorM, 'rowsLabelsFontSize' => $rowsLabelsFontSizeM, 'rowsLabelsFontColor' => $rowsLabelsFontColorM, 'colsLabelsFontSize' => $colsLabelsFontSizeM, 'colsLabelsFontColor' => $colsLabelsFontColorM, 'rowsLabelsBckColor' => $rowsLabelsBckColorM, 'colsLabelsBckColor' => $colsLabelsBckColorM, 'tableBorders' => $tableBordersM, 'tableBordersColor' => $tableBordersColorM, 'editDeviceLabels' => $deviceLabels, 'colorMaps' => $colorMapElementsM);
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 

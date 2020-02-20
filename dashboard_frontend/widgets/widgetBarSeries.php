@@ -406,16 +406,26 @@
                         var dateMessage = "";
 
                         for (var n = 0; n < seriesDataArray.length; n++) {
-                            if (seriesDataArray[n].metricName == field) {
-                                dataStringInPopup = seriesDataArray[n].measuredTime;
-                            } else if (styleParameters.editDeviceLabels) {
-                                if (seriesDataArray[n].metricName == series.secondAxis.labels[styleParameters.editDeviceLabels.indexOf(field)]) {
+                            if (flipFlag) {
+                                if (seriesDataArray[n].metricType == field) {
                                     dataStringInPopup = seriesDataArray[n].measuredTime;
+                                } else if (styleParameters.editDeviceLabels) {
+                                    if (seriesDataArray[n].metricType == series.secondAxis.labels[styleParameters.editDeviceLabels.indexOf(field)]) {
+                                        dataStringInPopup = seriesDataArray[n].measuredTime;
+                                    }
+                                }
+                            } else {
+                                if (seriesDataArray[n].metricName == field) {
+                                    dataStringInPopup = seriesDataArray[n].measuredTime;
+                                } else if (styleParameters.editDeviceLabels) {
+                                    if (seriesDataArray[n].metricName == series.secondAxis.labels[styleParameters.editDeviceLabels.indexOf(field)]) {
+                                        dataStringInPopup = seriesDataArray[n].measuredTime;
+                                    }
                                 }
                             }
                         }
 
-                        if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+                        if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&(groupByAttr == thresholdsJson.thresholdObject.target)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                         {
                             thresholdObject = thresholdsJson.thresholdObject.firstAxis.fields;
 
@@ -641,7 +651,7 @@
                         y0 = y0 - halfL + margin;
                         y1 = y1 - halfL - margin;
 
-                        if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+                        if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&(groupByAttr == thresholdsJson.thresholdObject.target)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                         {
                             thresholdObject = thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries;
                             
@@ -746,7 +756,7 @@
                             x0 = x0 - halfL + margin;
                             x1 = x1 - halfL - margin;
 
-                            if ((thresholdsJson !== null) && (thresholdsJson !== undefined) && (thresholdsJson !== 'undefined') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                            if ((thresholdsJson !== null) && (thresholdsJson !== undefined) && (thresholdsJson !== 'undefined') && (groupByAttr == thresholdsJson.thresholdObject.target) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                                 console.log("THR: " + thresholdsJson);
 
                                 thresholdObject = thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries;
@@ -839,7 +849,7 @@
             var wHeight = $("#<?= $_REQUEST['name_w'] ?>_div").height();
             
             //Applicazione dei menu a comparsa sulle labels che hanno già ricevuto il caret (freccia) dall'esecuzione del metodo getXAxisCategories
-            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&(groupByAttr == thresholdsJson.thresholdObject.target)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 thresholdsJson.thresholdObject.firstAxis.fields.forEach(function(field)
                 {
@@ -896,7 +906,7 @@
             
             finalLabels = [];
             
-            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
+            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== thresholdsJson.thresholdObject.target)&&(groupByAttr == thresholdsJson.thresholdObject.target)&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
             {
                 var thresholdObject = thresholdsJson.thresholdObject; 
             }

@@ -794,7 +794,11 @@ function serializeSensorDataForBarSeries(dataArrayMap, labels1, labels2, flipFla
                 let metricIdx = findWithAttr(dataArrayMap[labels2[i]], labels1[j], flipFlag);
                 if (metricIdx != -1) {
                     if (dataArrayMap[labels2[i]][metricIdx].value != '') {
-                        seriesArray.push(parseFloat(parseFloat(dataArrayMap[labels2[i]][metricIdx].value).toFixed(2)));
+                        if (!$.isNumeric(dataArrayMap[labels2[i]][metricIdx].value) && dataArrayMap[labels2[i]][metricIdx].value != null && dataArrayMap[labels2[i]][metricIdx].value != 'NaN') {
+                            seriesArray.push(dataArrayMap[labels2[i]][metricIdx].value);
+                        } else {
+                            seriesArray.push(parseFloat(parseFloat(dataArrayMap[labels2[i]][metricIdx].value).toFixed(2)));
+                        }
                     } else {
                         seriesArray.push("");
                     }

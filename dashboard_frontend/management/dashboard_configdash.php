@@ -1837,6 +1837,13 @@
                             <input type="hidden" id="parametersDiff" name="parametersDiff" />
                             <input type="hidden" id="barsColorsM" name="barsColorsM" />
                         </div>
+                        <div class="well wellCustom2right" id="specificParamsMRight">
+                           <!-- <legend class="legend-form-group">Specific widget properties</legend>-->
+                            <!--NON CANCELLARE -->
+                         <!--   <input type="hidden" id="parametersMRight" name="parametersMRight" />
+                            <input type="hidden" id="parametersDiffRight" name="parametersDiffRight" />
+                            <input type="hidden" id="barsColorsMRight" name="barsColorsMRight" />   -->
+                        </div>
                         
                         <input type="hidden" id="dashboardIdUnderEdit" name="dashboardIdUnderEdit" />
                         <input type="hidden" id="dashboardUser" name="dashboardUser" />
@@ -2176,6 +2183,75 @@
                         return false;
                     }
                     return true;
+                }
+
+                function getAllColorMaps(baseUrl, callback) {
+
+                    $.ajax({
+                        url: baseUrl + "getMetrics.php",
+                        type: "GET",
+                        data: {
+                            
+                        },
+                        async: true,
+                        dataType: 'json',
+                        success: function(data) {
+                            let allMaps = data;
+                        /*    //   var convertedData = convertDataFromMyKpiToDm(data);
+                            extractedData.value = data[0].value;
+                            extractedData.metricType = metricObj[i].metricType;
+                            if (metricObj[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                                extractedData.metricId = metricObj[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                                extractedData.metricName = metricObj[i].metricName + "_" + metricObj[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                            } else {
+                                extractedData.metricId = metricObj[i].metricId;
+                                extractedData.metricName = metricObj[i].metricName + "_" + metricObj[i].metricId;
+                            }
+                            extractedData.measuredTime = new Date(data[0].dataTime).toUTCString();
+                            if(data[0].valueUnit != null) {
+                                extractedData.metricValueUnit = data[0].valueUnit;
+                            }*/
+                            callback(allMaps);
+                            //callback(data);
+                        },
+                        error: function (data) {
+                            console.log("Errore!");
+                            console.log(JSON.stringify(data));
+                        }
+                    });
+
+                }
+                
+                function previewColorMap (colorMapNumber) {
+                    let  selectedMap = $('#showColorMapM' + colorMapNumber).find(":selected").text();
+                    //    console.log("E' stata selezionata la color map: " + selectedMap);
+
+                    $.ajax({
+                        url: "../controllers/getHeatmapImage.php",
+                        data: {
+                            metricName: selectedMap,
+                        },
+                        type: "GET",
+                        async: true,
+                        dataType: 'json',
+                        success: function(data)
+                        {
+                            if(data.detail !== 'Ok')
+                            {
+                                // no image preview available
+                                $('#imgPreviewM').attr('src', '');
+                            }
+                            else
+                            {
+                                $('#imgPreviewM').attr('src', data.heatmapLegendPath);
+
+                            }
+                        },
+                        error: function(errorData)
+                        {
+                            console.log("Error while retrieving image preview.");
+                        }
+                    });
                 }
                 
                 $(document).ready(function ()
@@ -16298,7 +16374,7 @@
                                 var info_mess = data['info_mess'];
                                 $("#inputShowTitleM").val(data['showTitle']);
                                 
-                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries")
+                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries" && widgetTypeM != "widgetPieChart")
                                 {
                                     $('#actuatorTargetM').parents('div.row').show();
                                     if((data.actuatorTarget === 'app'))
@@ -20065,8 +20141,6 @@
                                                 $('.poolBtn').off('click');
                                                 $('.poolBtn').on('click', function()
                                                 {
-                                               //     alert("EVVIVA!");
-                                                    // APRI MODALE E FAI SCEGLIERE ICONE DA NUOVO POOL
                                                  //   getIconsPool
                                                 });
                                                 
@@ -20666,7 +20740,6 @@
                                                 $('.poolBtn').off('click');
                                                 $('.poolBtn').on('click', function()
                                                 {
-                                               //     alert("EVVIVA!");
                                                     // APRI MODALE E FAI SCEGLIERE ICONE DA NUOVO POOL
                                                  //   getIconsPool
                                                 });
@@ -25144,7 +25217,7 @@
                                         removeWidgetProcessGeneralFields("editWidget");
                                         break;
             
-                                    case "widgetTable":
+                                        case "widgetTable":
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
                                      //   var seriesString = metricData.data[0].commit.author.series;
@@ -25362,7 +25435,7 @@
                                         //Rows labels background color
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="rowsLabelsBckColorM" class="col-md-2 control-label">Rows labels background color</label>');
+                                        newLabel = $('<label for="rowsLabelsBckColorM" class="col-md-2 control-label">Rows labels backgr. color</label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="rowsLabelsBckColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsBckColorM" name="rowsLabelsBckColorM" required><span class="input-group-addon"><i id="widgetRowsLabelsBckColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -25377,7 +25450,7 @@
 
 
                                         //Cols labels background color
-                                        newLabel = $('<label for="colsLabelsBckColorM" class="col-md-2 control-label">Cols labels background color</label>');
+                                        newLabel = $('<label for="colsLabelsBckColorM" class="col-md-2 control-label">Cols labels backgr. color</label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="colsLabelsBckColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsBckColorM" name="colsLabelsBckColorM" required><span class="input-group-addon"><i id="widgetColsLabelsBckColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -25421,6 +25494,79 @@
                                         $("#widgetTableBordersColorM").css('display', 'block');
                                         $("#widgetTableBordersColorM").parent().parent().parent().colorpicker({color: styleParameters.tableBordersColor, format: "rgba"});
 
+                                        // Color Maps for Table Columns, on the bottom-right panel
+                                        let legend = $('<legend class="legend-form-group">Table Columns Color Maps</legend>');
+                                        $("#specificParamsMRight").append(legend);
+
+                                        var allColorMaps = [];
+                                        var heatmapBaseUrl = "<?= $heatmapUrl ?>";
+                                        let colorMapJson = null;
+                                        if (styleParameters.colorMaps != null) {
+                                            if (styleParameters.colorMaps != "" && styleParameters.colorMaps != "[]") {
+                                                colorMapJson = JSON.parse(styleParameters.colorMaps);
+                                            }
+                                        }
+                                        getAllColorMaps(heatmapBaseUrl, function(maps) {
+
+                                            if(maps) {
+                                                allColorMaps = maps.sort();
+                                                for (let n = 0; n < series.firstAxis.labels.length; n++) {
+                                                    //Nuova riga
+                                                    //Color Maps for Table Columns
+                                                    newFormRow = $('<div class="row"></div>');
+                                                    $("#specificParamsMRight").append(newFormRow);
+                                                    newLabel = $('<label for="tableColorMapsM" class="col-md-4 control-label">Col # ' + n + ' (' + series.firstAxis.labels[n] + ') Color Map</label>');
+                                                    newInnerDiv = $('<div class="col-md-4"></div>');
+                                                    newSelect = $('<select class="form-control" id="showColorMapM' + n + '" name="showColorMapM' + n + '"></select>');
+                                                    newSelect.append('<option value="null"> </option>');
+                                                    for (let m = 0; m < allColorMaps.length; m++) {
+                                                        newSelect.append('<option value="' + allColorMaps[m] + '">' + allColorMaps[m] + '</option>');
+                                                    }
+                                                    newInnerDiv.append(newSelect);
+                                                    let newInnerDiv2 = $('<div class="col-md-3"></div>');
+                                                //    let selectedColorMap = $('#showColorMapM').find(":selected").text();
+                                                    let previewBtn = $('<button onclick="previewColorMap(' + n + ')" type="button" id="colorMapPreview" class="btn confirmBtn" style=" margin-left: 5px; float: left"><a href="#colorMapImg" class="button">Preview</a></button>');
+                                                    newInnerDiv2.append(previewBtn);
+                                                    newFormRow.append(newLabel);
+                                                    newFormRow.append(newInnerDiv);
+                                                    newFormRow.append(newInnerDiv2);
+                                                    newLabel.show();
+                                                    newInnerDiv.show();
+                                                    newSelect.show();
+                                                    let hasColorMap = false;
+                                                    let selectedVal = null;
+                                                    if (colorMapJson != null) {
+                                                        for (let j = 0; j < colorMapJson.length; j++) {
+                                                            if (colorMapJson[j].id == n) {
+                                                                hasColorMap = true;
+                                                                selectedVal = colorMapJson[j].name;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                    if (hasColorMap) {
+                                                        //    $('#showColorMapM' + n + ' option[value="' +  selectedVal + '"]').attr("selected",true);
+                                                        $('#showColorMapM' + n).val(selectedVal);
+                                                    }
+                                                }
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsMRight").append(newFormRow);
+                                                newLabel = $('<label for="colorMapPreviewM" class="col-md-4 control-label">ColorMap Preview</label>');
+                                                newInnerDiv = $('<div id="colorMapImg" class="col-md-4" style="border:1px solid; border-color:silver;"></div>');
+                                                let previewImg = $('<img id="imgPreviewM" style="height:100%; display:block; margin-left:auto; margin-right:auto; margin-bottom:10%; margin-top:10%; border:1px solid;">');
+                                                newInnerDiv.append(previewImg);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.show();
+                                                newInnerDiv.show();
+                                            }
+                                            else
+                                            {
+                                                console.log("Error in retrieveing Color Maps");
+                                            }
+
+                                        });
+
                                         if(styleParamsRaw !== null) 
                                         {
                                             $("#showTableFirstCellM").val(styleParameters.showTableFirstCell);
@@ -25441,10 +25587,40 @@
                                             $("#tableBordersColorM").val(styleParameters.tableBordersColor);
                                             $("#widgetTableBordersColorM").css("background-color", styleParameters.tableBordersColor);
                                         }
-                                        
+
+                                        // Nuove righe (labels per i devices)
+                                        if (deviceLabels != null) {
+                                            for (var n = 0; n < deviceLabels.length; n++) {
+                                                newFormRow = $('<div class="row"></div>');
+                                                $("#specificParamsM").append(newFormRow);
+                                                newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Value Name #' + (n + 1).toString() + ' Label</label>');
+                                                newInnerDiv = $('<div class="col-md-7"></div>');
+                                                var placeholderStr = "";
+                                                if (styleParameters.editDeviceLabels != null) {
+                                                    if (styleParameters.editDeviceLabels.length == deviceLabels.length) {
+                                                        placeholderStr = styleParameters.editDeviceLabels[n];
+                                                    } else {
+                                                        // flipped case
+                                                        placeholderStr = deviceLabels[n];
+                                                    }
+                                                } else {
+                                                    placeholderStr = deviceLabels[n];
+                                                }
+                                                //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" placeholder="' + placeholderStr + '">');
+                                                newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM_' + n + '" value = "' + placeholderStr + '">');
+                                                //    newInput = $('<input type="text" class="form-control" id="deviceLabelsM_' + n + '" name="deviceLabelsM" required placeholder="' + deviceLabels[n] + '">');
+                                                newInnerDiv.append(newInput);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                                newLabel.show();
+                                                newInnerDiv.show();
+                                                newInput.show();
+                                            }
+                                        }
+
                                         //Nuova riga
                                         //Set thresholds
-                                        newFormRow = $('<div class="row"></div>');
+                                    /*    newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
@@ -25457,7 +25633,7 @@
                                         newFormRow.append(newInnerDiv);
                                         newLabel.show();
                                         newInnerDiv.show();
-                                        newSelect.show();
+                                        newSelect.show();   */
                                         
                                         //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
                                         $('#alrThrSelM').change(alrThrFlagMListener);
@@ -25467,7 +25643,7 @@
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                         newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -25481,7 +25657,7 @@
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
