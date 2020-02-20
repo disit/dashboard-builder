@@ -60,16 +60,16 @@ public class Utility {
 
   public static void WriteInfoLog(Logger logger, String infoText) 
   {
-    addHandlerToLogger(logger);
+    /*addHandlerToLogger(logger);
     logger.info(new String(infoText + "\n"));
-    closeHandlersToLogger(logger);
+    closeHandlersToLogger(logger);*/
   }
 
   public static void WriteExcepLog(Logger logger, Exception excep) 
   {
-    addHandlerToLogger(logger);
+    /*addHandlerToLogger(logger);
     logger.log(Level.SEVERE, "an exception was thrown:", excep);
-    closeHandlersToLogger(logger);
+    closeHandlersToLogger(logger);*/
   }
 
   public static void SendEmail(String[] paramsEmail, String bodyText) 

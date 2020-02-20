@@ -58,7 +58,7 @@ public class DBAccess
   public void setConnection(String[] accessValues) 
   {
     String url = (accessValues[0].trim());
-    if(accessValues[1]!=null)
+    if(accessValues[1]!=null && !accessValues[1].trim().isEmpty())
       url += "/" + (accessValues[1].trim());
     String username = accessValues[2]!=null ? accessValues[2].trim() : null;
     String password = accessValues[3]!=null ? accessValues[3].trim() : null;

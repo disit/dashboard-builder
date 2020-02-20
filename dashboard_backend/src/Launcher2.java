@@ -102,11 +102,11 @@ public class Launcher2 implements Serializable
                   
                   //AlarmManager alarmMng = new AlarmManager(id, threshold, thresholdEval, thresholdEvalCount, thresholdTime, desc, this.map_dbAccess.get("AlarmEmail"));
                   init(id, desc, query, queryType, metricType, processType, freq, dataSourceId, this.map_dbAccess /*alarmMng,*/ /*thresholdTime,*/);
-                  Thread threadManagerQuery = new Thread(this.managerQV, THREAD_NAME);
+                  Thread threadManagerQuery = new Thread(this.managerQV, THREAD_NAME+"_"+id);
                   threadManagerQuery.start();
                   
                   if(this.listProcess.getString("oldDataEvalTime")!=null) {
-                    Thread threadOldDataEvaluation = new Thread(this.oldDataEvaluationThread, THREAD_NAME);
+                    Thread threadOldDataEvaluation = new Thread(this.oldDataEvaluationThread, THREAD_NAME+"_OLD_"+id);
                     threadOldDataEvaluation.start();
                   }
                 }
