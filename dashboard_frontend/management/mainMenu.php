@@ -72,21 +72,9 @@
 
             <div id="mainMenuScrollableCnt"  class="col-md-12">
                  <?php
-                    if(isset($_SESSION['loggedUsername'])) {
-                        $ldapUsername = "cn=" . $_SESSION['loggedUsername'] . "," . $ldapBaseDN;
-                        $ds = ldap_connect($ldapServer, $ldapPort);
-                        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($ds);
-                        $organization = checkLdapOrganization($ds, $ldapUsername, $ldapBaseDN);
-                        if (is_null($organization)) {
-                            $organization = "None";
-                            $organizationSql = "Other";
-                        } else if ($organization == "") {
-                            $organization = "None";
-                            $organizationSql = "Other";
-                        } else {
-                            $organizationSql = $organization;
-                        }
+                    if(isset($_SESSION['loggedOrganization'])) {
+                      $organization = $_SESSION['loggedOrganization'];
+                      $organizationSql = $organization; 
                     } else {
                       $organization = "None";
                       $organizationSql = "Other";
@@ -116,7 +104,7 @@
                             $externalApp = $row['externalApp'];
                             $allowedOrgs = $row['organizations'];
 
-                            if(strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                            if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
                                 if ($externalApp == 'yes') {
                                     if ($openMode == 'newTab') {
                                         if ($linkUrl == 'submenu') {
@@ -165,7 +153,7 @@
                                 }
                             }
 
-                            if((strpos($privileges, "'". ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ((strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
+                            if((strpos($privileges, "'". ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs=='*' || (strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
                             {
                                 echo $newItem;
                             }
@@ -199,7 +187,7 @@
                                     $externalApp2 = $row2['externalApp'];
                                     $allowedOrgs2 = $row2['organizations'];
 
-                                    if(strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                                    if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
                                         if ($externalApp2 == 'yes') {
                                             if ($openMode2 == 'newTab') {
                                                 if ($_REQUEST['fromSubmenu'] == false || $_REQUEST['fromSubmenu'] != $linkId) {
@@ -248,7 +236,7 @@
                                         }
                                     }
 
-                                    if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ((strpos($allowedOrgs2, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
+                                    if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs2=='*' || (strpos($allowedOrgs2, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
                                     {
                                         echo $newItem;
                                     }
