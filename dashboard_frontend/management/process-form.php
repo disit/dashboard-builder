@@ -2863,6 +2863,36 @@
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 
+        if($type_widget_m == "widgetGaugeChart") {
+            if(isset($_POST['setMaxValueM'])&&($_POST['setMaxValueM']!=""))
+            {
+                $setMaxValueM = mysqli_real_escape_string($link, sanitizePostInt('setMaxValueM'));
+            }
+            $styleParametersArrayM = array();
+            $styleParametersArrayM['setMaxValue'] = $setMaxValueM;
+            if(isset($_POST['setMinValueM'])&&($_POST['setMinValueM']!=""))
+            {
+                $setMinValueM = mysqli_real_escape_string($link, sanitizePostInt('setMinValueM'));
+            }
+            $styleParametersArrayM['setMinValue'] = $setMinValueM;
+            $styleParametersM = json_encode($styleParametersArrayM);
+        }
+
+        if($type_widget_m == "widgetSpeedometer") {
+            if(isset($_POST['setMaxValueM'])&&($_POST['setMaxValueM']!=""))
+            {
+                $setMaxValueM = mysqli_real_escape_string($link, sanitizePostInt('setMaxValueM'));
+            }
+            $styleParametersArrayM = array();
+            $styleParametersArrayM['setMaxValue'] = $setMaxValueM;
+            if(isset($_POST['setMinValueM'])&&($_POST['setMinValueM']!=""))
+            {
+                $setMinValueM = mysqli_real_escape_string($link, sanitizePostInt('setMinValueM'));
+            }
+            $styleParametersArrayM['setMinValue'] = $setMinValueM;
+            $styleParametersM = json_encode($styleParametersArrayM);
+        }
+
         if(($type_widget_m == "widgetLineSeries") || ($type_widget_m == "widgetCurvedLineSeries"))
         {
 

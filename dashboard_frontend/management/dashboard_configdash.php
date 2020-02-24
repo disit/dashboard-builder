@@ -16374,7 +16374,7 @@
                                 var info_mess = data['info_mess'];
                                 $("#inputShowTitleM").val(data['showTitle']);
                                 
-                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries" && widgetTypeM != "widgetPieChart")
+                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries"  && widgetTypeM != "widgetGaugeChart" && widgetTypeM != "widgetSpeedometer")
                                 {
                                     $('#actuatorTargetM').parents('div.row').show();
                                     if((data.actuatorTarget === 'app'))
@@ -26633,6 +26633,10 @@
                                         break;
                                         
                                         case "widgetGaugeChart":
+                                        if(styleParamsRaw !== null)
+                                        {
+                                            styleParameters = JSON.parse(styleParamsRaw);
+                                        }
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -26665,12 +26669,36 @@
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+
+                                        //Set min value
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="setMinValueM" class="col-md-2 control-label">Set Min Value</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="setMinValueM" name="setMinValueM">');
+                                        if (styleParameters != null) {
+                                            newInput.val(styleParameters.setMinValue);
+                                        }
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        //Set max value
+                                        newLabel = $('<label for="setMaxValueM" class="col-md-2 control-label">Set Max Value</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="setMaxValueM" name="setMaxValueM">');
+                                        if (styleParameters != null) {
+                                            newInput.val(styleParameters.setMaxValue);
+                                        }
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
                                         
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
                                         
                                         //Campo di registrazione widget sul Notificatore
                                         editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
+
                                         break;
                                         
                                     case "widgetPieChart":
@@ -28458,6 +28486,10 @@
                                         break; 
                                         
                                         case "widgetSpeedometer":
+                                        if(styleParamsRaw !== null)
+                                        {
+                                            styleParameters = JSON.parse(styleParamsRaw);
+                                        }
                                         $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -28501,6 +28533,32 @@
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
+
+                                        //Parametri specifici del widget
+                                        $('#specificParamsM .row').remove();
+
+                                        //Set min value
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="setMinValueM" class="col-md-2 control-label">Set Min Value</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="setMinValueM" name="setMinValueM">');
+                                        if (styleParameters != null) {
+                                            newInput.val(styleParameters.setMinValue);
+                                        }
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        //Set max value
+                                        newLabel = $('<label for="setMaxValueM" class="col-md-2 control-label">Set Max Value</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="setMaxValueM" name="setMaxValueM">');
+                                        if (styleParameters != null) {
+                                            newInput.val(styleParameters.setMaxValue);
+                                        }
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
                                         
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");

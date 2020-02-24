@@ -241,7 +241,21 @@
                                     break;
                             }
                         }
-                        
+
+                        // Set max value as in more options
+                        if (styleParameters) {
+                            if (styleParameters['setMaxValue'] != null) {
+                                if (styleParameters['setMaxValue'] != "") {
+                                    maxGauge = parseFloat(styleParameters['setMaxValue']);
+                                }
+                            }
+                            if (styleParameters['setMinValue'] != null) {
+                                if (styleParameters['setMinValue'] != "") {
+                                    minGauge = parseFloat(styleParameters['setMinValue']);
+                                }
+                            }
+                        }
+
                         //Non cancellare - Da recuperare quando riabilitiamo e aggiorniamo il blink in caso d'allarme
                         /*if((threshold === null) || (thresholdEval === null))
                         {
@@ -362,7 +376,7 @@
                                 shape: 'arc'
                             }
                         };
-                        
+
                        yObj =  {
                            stops: [
                              [minGauge, {
@@ -387,7 +401,7 @@
                              y: 12,
                              distance: -12,
                              style: {
-                                fontFamily: 'Montserrat' 
+                                fontFamily: 'Montserrat'
                              }
                            },
                            min: minGauge,
@@ -1216,6 +1230,108 @@
                         }
                     });
                     break;
+
+                case 'myKPI':
+                    $.ajax({
+                        url: "../controllers/myKpiProxy.php",
+                        type: "GET",
+                        data: {
+                            myKpiId: rowParameters,
+                        //    action: "getValueUnit"
+                            last: 1
+                        },
+                        async: true,
+                        dataType: 'json',
+                        success: function (data)
+                        {
+                            if(parseFloat(data[0].value) !== 'NaN')
+                            {
+                                originalMetricType = 'float';
+                            }
+                            else
+                            {
+                                if(parseInt(data[0].value) !== 'NaN')
+                                {
+                                    originalMetricType = 'integer';
+                                }
+                                else
+                                {
+                                    originalMetricType = 'string';
+                                }
+                            }
+
+                            udm = data[0].variableUnit;
+
+                            metricData = {
+                                data:[
+                                    {
+                                        commit:{
+                                            author:{
+                                                IdMetric_data: sm_field,
+                                                computationDate: null,
+                                                value_num:null,
+                                                value_perc1: null,
+                                                value_perc2: null,
+                                                value_perc3: null,
+                                                value_text: null,
+                                                quant_perc1: null,
+                                                quant_perc2: null,
+                                                quant_perc3: null,
+                                                tot_perc1: null,
+                                                tot_perc2: null,
+                                                tot_perc3: null,
+                                                series: null,
+                                                descrip: sm_field,
+                                                metricType: null,
+                                                threshold:null,
+                                                thresholdEval:null,
+                                                field1Desc: null,
+                                                field2Desc: null,
+                                                field3Desc: null,
+                                                hasNegativeValues: "1"
+                                            }
+                                        }
+                                    }
+                                ]
+                            };
+
+                            switch(originalMetricType)
+                            {
+                                case "float":
+                                    metricData.data[0].commit.author.metricType = "Float";
+                                    metricData.data[0].commit.author.value_num = parseFloat(data[0].value);
+                                    break;
+
+                                case "integer":
+                                    metricData.data[0].commit.author.metricType = "Intero";
+                                    metricData.data[0].commit.author.value_num = parseInt(data[0].value);
+                                    break;
+
+                                default:
+                                    metricData.data[0].commit.author.metricType = "Testuale";
+                                    metricData.data[0].commit.author.value_text = data[0].value;
+                                    break;
+                            }
+
+                            $("#" + widgetName + "_loading").css("display", "none");
+                            $("#" + widgetName + "_content").css("display", "block");
+                            populateWidget();
+                        },
+                        error: function(errorData)
+                        {
+                            metricData = null;
+                            console.log("Error in data retrieval");
+                            console.log(JSON.stringify(errorData));
+                            if(firstLoad !== false)
+                            {
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                            }
+                        }
+                    });
+                    break;
+
             }
         }
         
