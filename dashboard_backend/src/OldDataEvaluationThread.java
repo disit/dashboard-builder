@@ -416,6 +416,8 @@ public class OldDataEvaluationThread implements Runnable, Serializable
 
         try 
         {
+          if(oldDataEvalTime==0)
+            oldDataEvalTime=10000;
           System.out.println("Old data evaluation thread for metric " + this.metricName + " will now sleep for " + oldDataEvalTime);
           Thread.sleep(this.oldDataEvalTime);
         }
