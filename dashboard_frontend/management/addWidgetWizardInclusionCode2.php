@@ -71,6 +71,7 @@
                         $dataTypeSelection = $row['dataTypeSelection'];
                         $healthinessSelection = $row['healthinessSelection'];
                         $ownershipSelection = $row['ownershipSelection'];
+                        $valueUnitSelection = $row['valueUnitSelection'];
                         $highLevelTypeVisible = $row['highLevelTypeVisible'];
                         $natureVisible = $row['natureVisible'];
                         $subnatureVisible = $row['subnatureVisible'];
@@ -82,6 +83,7 @@
                         $healthinessVisible = $row['healthinessVisible'];
                         $lastCheckVisible = $row['lastCheckVisible'];
                         $ownershipVisible = $row['ownershipVisible'];
+                        $valueUnitVisible = $row['valueUnitVisible'];
                         $hasActuators = $row['hasActuators'];
                         
                         if($widgetType == 'any')
@@ -100,7 +102,7 @@
                             }
                         }
 
-                        $newItem = '<div class="col-xs-10 col-sm-4 col-md-3 modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
+                        $newItem = '<div class="col-xs-10 col-sm-4 col-md-3 modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-valueUnitVisible = "' . $valueUnitVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-valueUnitSel="' . $valueUnitSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
                                         <div class="col-xs-12 modalAddDashboardWizardChoicePic" style="background-image: url(' . $templateIcon . ')"> 
 
                                         </div>
@@ -253,6 +255,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><div id="uniqueNameIdColumnFilter"></div></th>      <!-- Ex NAME-ID -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="DataType"><div id="unitColumnFilter"></th>    <!-- Data Type Ex UNIT -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><div id="valueUnitColumnFilter"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastDate"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastValue"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Healthiness"><div id="healthinessColumnFilter"></th>
@@ -262,7 +265,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="Last Check"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><div id="ownershipColumnFilter"></th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
+                            <!--    <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>   -->
 
                             </tr>  
                             <tr>  
@@ -273,6 +276,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
@@ -282,7 +286,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
+                            <!--    <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th> -->
 
                             </tr>  
                         </thead>
@@ -312,6 +316,7 @@
                                     <li><a href="#" class="small" data-value="option9" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="healthiness"/>&nbsp;Healthiness</a></li>
                                     <li><a href="#" class="small" data-value="option10" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="lastCheck"/>&nbsp;Last check</a></li>
                                     <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="ownership"/>&nbsp;Ownership</a></li>
+                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_unit"/>&nbsp;Value Unit</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -642,7 +647,7 @@
                 }
             },
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-rowId', data[13]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
@@ -651,30 +656,30 @@
                 $(row).attr('data-instance_uri', data[5]);
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[14]);
-                $(row).attr('data-sm_based', data[16]);
-                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-get_instances', data[15]);
+                $(row).attr('data-sm_based', data[20]);
+                $(row).attr('data-parameters', data[12]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-last_value', data[9]);
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[7]);
-                $(row).attr('ownership',data[15]);
-                $(row).attr('icon',data[20]);
+                $(row).attr('last_date',data[8]);
+                $(row).attr('data-valueUnit',data[7]);
+                $(row).attr('ownership',data[16]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16],
+                    "targets": [5, 12, 13, 15],
                     "visible": false
                 },
                 {
-                    "targets": 9,
+                    "targets": 10,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[9]) {
-                            if (row[9] === 'true') {
+                        if (row[10]) {
+                            if (row[10] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -687,7 +692,7 @@
                     }
                 },
                 {
-                    "targets": 10,
+                    "targets": 11,
                     "searchable": true,
                     "visible": false
                 },
@@ -758,7 +763,7 @@
                 }
             },
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-rowId', data[13]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
@@ -767,30 +772,30 @@
                 $(row).attr('data-instance_uri', data[5]);
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[14]);
-                $(row).attr('data-sm_based', data[16]);
-                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-get_instances', data[15]);
+                $(row).attr('data-sm_based', data[20]);
+                $(row).attr('data-parameters', data[12]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-last_value', data[9]);
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[7]);
-                $(row).attr('ownership',data[15]);
-                $(row).attr('icon',data[20]);
+                $(row).attr('last_date',data[8]);
+                $(row).attr('data-valueUnit',data[7]);
+                $(row).attr('ownership',data[16]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16],
+                    "targets": [5, 12, 13, 15],
                     "visible": false
                 },
                 {
-                    "targets": 9,
+                    "targets": 10,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[9]) {
-                            if (row[9] === 'true') {
+                        if (row[10]) {
+                            if (row[10] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -802,7 +807,7 @@
                     }
                 },
                 {
-                    "targets": 10,
+                    "targets": 11,
                     "searchable": true,
                     "visible": false
                 },
@@ -2307,7 +2312,7 @@
         var healthinessSelectStartOptions = 0;
         var ownershipSelectStartOptions = 0;
 
-        globalSqlFilterDI = [
+        var globalSqlFilterDI = [
             {
                 "field": "high_level_type",
                 "value": "",
@@ -2370,6 +2375,13 @@
                 "active": "false",
                 "selectedVals": [],
                 "allSelected": true
+            },
+            {
+                "field": "value_unit",
+                "value": "",
+                "active": "false",
+                "selectedVals": [],
+                "allSelected": true
             }
         ];
 
@@ -2381,7 +2393,7 @@
             validityConditions.atLeastOneRowSelected = false;
             checkTab1Conditions();
             countSelectedRows();*/
-            
+
             var search = [];
             $.each($('#highLevelTypeSelect option:selected'), function () {
                 search.push($(this).val());
@@ -2405,7 +2417,7 @@
             globalSqlFilterDI[0].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++)
+            for (var n = 0; n < globalSqlFilterDI.length; n++)
             {
                 if (n !== 4 && n != 5)
                 {
@@ -2449,7 +2461,7 @@
             globalSqlFilterDI[1].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("nature", search, $('#natureSelect'), "#natureColumnFilter", n, false, true);
                 }
@@ -2495,7 +2507,7 @@
             globalSqlFilterDI[2].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("sub_nature", search, $('#subnatureSelect'), "#subnatureColumnFilter", n, false, true);
                 }
@@ -2538,7 +2550,7 @@
             globalSqlFilterDI[3].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("low_level_type", search, $('#lowLevelTypeSelect'), "#lowLevelTypeColumnFilter", n, false, true);
                 }
@@ -2580,7 +2592,7 @@
             globalSqlFilterDI[6].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("unit", search, $('#unitSelect'), "#unitColumnFilter", n, false, true);
                 }
@@ -2623,7 +2635,7 @@
             globalSqlFilterDI[7].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("healthiness", search, $('#healthinessSelect'), "#healthinessColumnFilter", n, false, true);
                 }
@@ -2666,12 +2678,49 @@
             globalSqlFilterDI[8].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
-            for (var n = 0; n < 9; n++) {
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
                     populateSelectMenus("ownership", search, $('#ownershipSelect'), "#ownershipColumnFilter", n, false, true);
                 }
             }
-            
+
+            checkTab1Conditions();
+            countSelectedRows();
+        }
+
+        function applyValueUnitFilter()
+        {
+
+            var search = [];
+            $.each($('#valueUnitSelect option:selected'), function () {
+                search.push($(this).val());
+
+            });
+            var nOptions = 0;
+            $.each($('#valueUnitSelect option'), function () {
+                nOptions++;
+            });
+
+            globalSqlFilterDI[9].allSelected = (search.length == nOptions);
+            if (search.length == nOptions)
+                search = [];
+            globalSqlFilterDI[9].selectedVals = search;
+            search = search.join('|');
+
+            globalSqlFilterDI[9].value = search;
+            if (search == '' && !globalSqlFilterDI[9].allSelected) {
+                search = 'oiunqauhalknsufhvnoqwpnvfv';
+            }
+            widgetWizardTable.column(20).search(search, false, false).draw();
+            globalSqlFilterDI[9].value = search;
+
+            // Chiamata a funzione per popolare menù multi-select di filtraggio
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                if (n !== 4 && n != 5) {
+                    populateSelectMenus("value_unit", search, $('#valueUnitSelect'), "#valueUnitColumnFilter", n, false, true);
+                }
+            }
+
             checkTab1Conditions();
             countSelectedRows();
         }
@@ -2875,7 +2924,7 @@
                     }
                     
                     // Chiamata a funzione per popolare menù multi-select di filtraggio
-                    for(var n = 0; n < 9; n++) 
+                    for(var n = 0; n < globalSqlFilterDI.length; n++)
                     {
                         if(n !== 4 && n != 5) 
                         {
@@ -4231,6 +4280,8 @@
                 var idx = 9;
             } else if ($(this).attr('data-fieldTitle') === "lastCheck") {
                 var idx = 13;
+            } else if ($(this).attr('data-fieldTitle') === "value_unit") {
+                var idx = 16;
             } else if ($(this).attr('data-fieldTitle') === "ownership") {
                 var idx = 15;
             }
@@ -4277,6 +4328,8 @@
                 distinctField = "healthiness";
             } else if (n == 8) {
                 distinctField = "ownership";
+            } else if (n == 9) {
+                distinctField = "value_unit";
             }
 
             var nActive = 0;
@@ -4367,6 +4420,8 @@
                                 select = $("#healthinessSelect");
                             } else if (distinctField === "ownership") {
                                 select = $("#ownershipSelect");
+                            } else if (distinctField === "value_unit") {
+                                select = $("#valueUnitSelect");
                             }
 
                             for (var x = 0; x < data.table.length; x++) 
@@ -4519,6 +4574,10 @@
             var selectedValsOwnership = [];
             var allSelectedOwnership = true;
             var searchValueOwnership = "";
+
+            var selectedValsValueUnit = [];
+            var allSelectedValueUnit = true;
+            var searchValueValueUnit = "";
             
             //Questo if distingue il caso in cui stiamo agendo sui template di dashboard
             if(!location.href.includes("dashboard_configdash.php")&&!location.href.includes("inspector.php"))
@@ -4577,6 +4636,14 @@
                     selectedValsOwnership = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-ownershipsel').split('|');
                     allSelectedOwnership = false;
                     searchValueOwnership = selectedValsOwnership.join('|');
+                }
+
+                //Gestione del preset valueUnit da template dashboard
+                if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valueUnitsel') !== 'any')
+                {
+                    selectedValsValueUnit = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valueUnitsel').split('|');
+                    allSelectedValueUnit = false;
+                    searchValueValueUnit = selectedValsValueUnit.join('|');
                 }
             }
 
@@ -4643,6 +4710,13 @@
                     "active": "false",
                     "selectedVals": selectedValsOwnership,
                     "allSelected": allSelectedOwnership
+                },
+                {
+                    "field": "value_unit",
+                    "value": searchValueValueUnit,
+                    "active": "false",
+                    "selectedVals": selectedValsValueUnit,
+                    "allSelected": allSelectedValueUnit
                 }
             ];
             
@@ -4672,11 +4746,16 @@
                         
                     case 9:
                         widgetWizardTable.column(n).search(searchValueHealth, true, false); 
-                        break;    
-                        
+                        break;
+
+                    case 16:
+                        widgetWizardTable.column(n).search(searchValueValueUnit, true, false);
+                        break;
+
                     case 15:
                         widgetWizardTable.column(n).search(searchValueOwnership, true, false); 
-                        break;    
+                        break;
+
                         
                     default://Ci cadono anche 4 e 5
                         break;
@@ -4685,7 +4764,7 @@
             
             widgetWizardTable.draw();
 
-            for(var n = 0; n < 9; n++) 
+            for(var n = 0; n < globalSqlFilterDI.length; n++)
             {
                 if (n !== 4 && n != 5) 
                 {
@@ -4798,6 +4877,13 @@
                     "active": "false",
                     "selectedVals": [],
                     "allSelected": true
+                },
+                {
+                    "field": "value_unit",
+                    "value": "",
+                    "active": "false",
+                    "selectedVals": [],
+                    "allSelected": true
                 }
             ];
             
@@ -4813,7 +4899,7 @@
             
             widgetWizardTable.draw();
 
-            for(var n = 0; n < 9; n++) 
+            for(var n = 0; n < globalSqlFilterDI.length; n++)
             {
                 if (n !== 4 && n != 5) 
                 {
@@ -4836,8 +4922,8 @@
             "pageLength": 8,
             aaSorting: [[0, 'desc']],
             "createdRow": function (row, data, index) {
-                $(row).attr('data-rowId', data[11]);
-                $(row).attr('data-widgetCompatible', data[12]);
+                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-widgetCompatible', data[13]);
 
                 $(row).find('.widgetWizardSelectedRowsDelBtn').click(function ()
                 {
@@ -4872,7 +4958,7 @@
             },
             "columnDefs": [
                 {
-                    "targets": 11,
+                    "targets": 12,
                     "searchable": false,
                     "render": function (data, type, row, meta) {
                         return '<i class="fa fa-close widgetWizardSelectedRowsDelBtn"></i>';
@@ -4929,7 +5015,7 @@
                 }   */
             },
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-rowId', data[13]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
@@ -4938,30 +5024,30 @@
                 $(row).attr('data-instance_uri', data[5]);
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[14]);
-                $(row).attr('data-sm_based', data[16]);
-                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-get_instances', data[15]);
+                $(row).attr('data-sm_based', data[20]);
+                $(row).attr('data-parameters', data[12]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-last_value', data[9]);
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[7]);
-                $(row).attr('ownership',data[15]);
-                $(row).attr('icon',data[20]);
+                $(row).attr('last_date',data[8]);
+                $(row).attr('data-valueUnit',data[7]);
+                $(row).attr('ownership',data[16]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14, 16],
+                    "targets": [5, 12, 13, 15],
                     "visible": false
                 },
                 {
-                    "targets": 9,
+                    "targets": 10,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[9]) {
-                            if (row[9] === 'true') {
+                        if (row[10]) {
+                            if (row[10] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -4974,7 +5060,7 @@
                     }
                 },
                 {
-                    "targets": 10,
+                    "targets": 11,
                     "searchable": true,
                     "visible": false
                 },
@@ -5030,7 +5116,7 @@
                                 globalSqlFilterDI[0].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) 
+                                for (var n = 0; n < globalSqlFilterDI.length; n++)
                                 {
                                     if (n !== 4 && n != 5) 
                                     {
@@ -5169,7 +5255,7 @@
                                 globalSqlFilterDI[1].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("nature", search, select, "#natureColumnFilter", n, false, true);
                                     }
@@ -5288,7 +5374,7 @@
                                 globalSqlFilterDI[2].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("sub_nature", search, select, "#subnatureColumnFilter", n, false, true);
                                     }
@@ -5363,7 +5449,7 @@
                                 globalSqlFilterDI[3].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("low_level_type", search, select, "#lowLevelTypeColumnFilter", n, false, true);
                                     }
@@ -5451,7 +5537,7 @@
                                 globalSqlFilterDI[6].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("unit", search, select, "#unitColumnFilter", n, false, true);
                                     }
@@ -5484,7 +5570,7 @@
                 });
 
                 // HEALTHINESS COLUMN
-                this.api().columns([9]).every(function () {       // HEALTHINESS
+                this.api().columns([10]).every(function () {       // HEALTHINESS
 
                     var column = this;
                     var select = $('<select id="healthinessSelect" style="color: black;" multiple="multiple"></select>')
@@ -5529,11 +5615,11 @@
                                 widgetWizardTable.ajax.reload();*/
 
 
-                                widgetWizardTable.column(9).search(search, false, false).draw();
+                                widgetWizardTable.column(10).search(search, false, false).draw();
                                 globalSqlFilterDI[7].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("healthiness", search, select, "#healthinessColumnFilter", n, false, true);
                                     }
@@ -5575,7 +5661,7 @@
                 });
 
                 // OWNERSHIP COLUMN
-                this.api().columns([15]).every(function () 
+                this.api().columns([16]).every(function ()
                 {     
                     var select = $('<select id="ownershipSelect" style="color: black;" multiple="multiple"></select>')
                             .appendTo($("#ownershipColumnFilter"))
@@ -5617,11 +5703,11 @@
                                 }
                                 widgetWizardTable.ajax.reload();*/
 
-                                widgetWizardTable.column(15).search(search, false, false).draw();
+                                widgetWizardTable.column(16).search(search, false, false).draw();
                                 globalSqlFilterDI[8].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
-                                for (var n = 0; n < 9; n++) {
+                                for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
                                         populateSelectMenus("ownership", search, select, "#ownershipColumnFilter", n, false, true);
                                     }
@@ -5661,6 +5747,79 @@
                             });
 
                 });
+
+                // VALUE_UNIT
+                this.api().columns([7]).every(function ()
+                {
+                    var select = $('<select id="valueUnitSelect" style="color: black;" multiple="multiple"></select>')
+                        .appendTo($("#valueUnitColumnFilter"))
+                        .on('change', function () {
+                            /*widgetWizardSelectedRows = {};
+                            widgetWizardSelectedRowsTable.clear().draw(false);
+                            validityConditions.atLeastOneRowSelected = false;
+                            checkTab1Conditions();
+                            countSelectedRows();*/
+
+                            var search = [];
+                            $.each($('#valueUnitSelect option:selected'), function () {
+                                search.push($(this).val());
+
+                            });
+                            var nOptions = 0;
+                            $.each($('#valueUnitSelect option'), function () {
+                                nOptions++;
+                            });
+
+                            globalSqlFilterDI[9].allSelected = (search.length == nOptions && nOptions == valueUnitSelectStartOptions);
+                            if (search.length == nOptions && nOptions == valueUnitSelectStartOptions)
+                                search = [];
+                            globalSqlFilterDI[9].selectedVals = search;
+                            search = search.join('|');
+
+                            globalSqlFilterDI[9].value = search;
+                            if (search == '' && !globalSqlFilterDI[9].allSelected) {
+                                search = 'oiunqauhalknsufhvnoqwpnvfv';
+                            }
+                            widgetWizardTable.column(7).search(search, false, false).draw();
+                            globalSqlFilterDI[9].value = search;
+
+                            // Chiamata a funzione per popolare menù multi-select di filtraggio
+                            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                                if (n !== 4 && n != 5) {
+                                    populateSelectMenus("value_unit", search, select, "#valueUnitColumnFilter", n, false, true);
+                                }
+                            }
+
+                            checkTab1Conditions();
+                            countSelectedRows();
+
+                        });
+
+                    valueUnitSelectStartOptions = 0;
+                    $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
+                        {
+                            filter: "value_unit",
+                            filterOrg: orgFilter,
+                            ajax: 'true'
+                        },
+                        function (data) {
+                            var options = '';
+                            var attrib = '';
+                            for (var x = 0; x < data.table.length; x++) {
+                                options = '<option value="' + data.table[x].value_unit + '" selected="selected">' + data.table[x].value_unit + '</option>';         // CHANGE
+                                //    options = '<option value="' + attrib + '" selected="selected">' + attrib + '</option>';         // CHANGE
+                                select.append(options);
+                                valueUnitSelectStartOptions++;
+                            }
+                            unitSelect = $('#valueUnitSelect').multiselect({
+                                maxHeight: 165,
+                                includeSelectAllOption: true,
+                                // enableFiltering: true
+                            }).multiselect('selectAll', true).multiselect('updateButtonText');
+                        });
+
+                });
+
             }
         });
         
@@ -5767,7 +5926,8 @@
                     parameters: $(this).attr('data-parameters'),
                     widgetCompatible: true,
                     get_instances: $(this).attr('data-get_instances'),
-                    last_value: $(this).attr('data-last_value')
+                    last_value: $(this).attr('data-last_value'),
+                    value_unit: $(this).attr('data-valueunit')
                 };
                 
                 widgetWizardSelectedRowsTable.row.add([
@@ -5782,6 +5942,7 @@
                     $(this).find('td').eq(8).html(),
                     $(this).find('td').eq(9).html(),
                     $(this).find('td').eq(10).html(),
+                    $(this).find('td').eq(11).html(),
                     $(this).attr('data-rowid'),
                     true
                 ]).draw(false);
@@ -6583,7 +6744,16 @@
                     {
                         widgetWizardTable.column(13).visible(false);
                     }
-                    
+
+                    if($(this).attr("data-valueUnitVisible") === 'true')
+                    {
+                        widgetWizardTable.column(16).visible(true);
+                    }
+                    else
+                    {
+                        widgetWizardTable.column(16).visible(false);
+                    }
+
                     if($(this).attr("data-ownershipVisible") === 'true')
                     {
                         widgetWizardTable.column(15).visible(true);

@@ -254,6 +254,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><div id="uniqueNameIdColumnFilter"></div></th>      <!-- Ex NAME-ID -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="DataType"><div id="unitColumnFilter"></th>    <!-- Data Type Ex UNIT -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><div id="valueUnitColumnFilter"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastDate"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastValue"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Healthiness"><div id="healthinessColumnFilter"></th>
@@ -263,7 +264,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="Last Check"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><div id="ownershipColumnFilter"></th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><div id="valueUnitColumnFilter"></th>
+                            <!--    <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><div id="valueUnitColumnFilter"></th>  -->
                                 <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations"></th>
                                 <?php } ?>
@@ -277,6 +278,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
@@ -286,7 +288,7 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
+                            <!--    <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>    -->
                                 <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
                                 <?php } ?>
@@ -662,8 +664,11 @@
                     poiFlag: noPOIFlag
                 }
             },
+          /*   colReorder: {
+                 order: [0, 1, 2, 3, 4, 6, 16, 7, 8, 9, 13, 15, 17]
+             },*/
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-rowId', data[13]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
@@ -672,30 +677,30 @@
                 $(row).attr('data-instance_uri', data[5]);
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[14]);
+                $(row).attr('data-get_instances', data[15]);
                 $(row).attr('data-sm_based', data[20]);
-                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-parameters', data[12]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-last_value', data[9]);
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[7]);
-                $(row).attr('data-valueUnit',data[16]);
-                $(row).attr('ownership',data[15]);
+                $(row).attr('last_date',data[8]);
+                $(row).attr('data-valueUnit',data[7]);
+                $(row).attr('ownership',data[16]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14],
+                    "targets": [5, 12, 13, 15],
                     "visible": false
                 },
                 {
-                    "targets": 9,
+                    "targets": 10,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[9]) {
-                            if (row[9] === 'true') {
+                        if (row[10]) {
+                            if (row[10] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -708,7 +713,7 @@
                     }
                 },
                 {
-                    "targets": 10,
+                    "targets": 11,
                     "searchable": true,
                     "visible": false
                 },
@@ -778,8 +783,11 @@
                     d.poiSubNature = getPOISubNature()
                 }
             },
+          /*  colReorder: {
+                 order: [0, 1, 2, 3, 4, 6, 16, 7, 8, 9, 13, 15, 17]
+            },*/
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-rowId', data[13]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
@@ -788,30 +796,30 @@
                 $(row).attr('data-instance_uri', data[5]);
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[14]);
+                $(row).attr('data-get_instances', data[15]);
                 $(row).attr('data-sm_based', data[20]);
-                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-parameters', data[12]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-last_value', data[9]);
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[7]);
-                $(row).attr('data-valueUnit',data[16]);
-                $(row).attr('ownership',data[15]);
+                $(row).attr('last_date',data[8]);
+                $(row).attr('data-valueUnit',data[7]);
+                $(row).attr('ownership',data[16]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14],
+                    "targets": [5, 12, 13, 15],
                     "visible": false
                 },
                 {
-                    "targets": 9,
+                    "targets": 10,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[9]) {
-                            if (row[9] === 'true') {
+                        if (row[10]) {
+                            if (row[10] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -823,7 +831,7 @@
                     }
                 },
                 {
-                    "targets": 10,
+                    "targets": 11,
                     "searchable": true,
                     "visible": false
                 },
@@ -2500,7 +2508,7 @@
             }
         ];
 
-        function applyHighLevelTypeFilter() 
+        function applyHighLevelTypeFilter()
         {
             /*choosenWidgetIconName = null;
             widgetWizardSelectedRows = {};
@@ -2508,7 +2516,7 @@
             validityConditions.atLeastOneRowSelected = false;
             checkTab1Conditions();
             countSelectedRows();*/
-            
+
             var search = [];
             $.each($('#highLevelTypeSelect option:selected'), function () {
                 search.push($(this).val());
@@ -2539,12 +2547,12 @@
                     populateSelectMenus("high_level_type", search, $('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
                 }
             }
-            
+
             checkTab1Conditions();
             countSelectedRows();
         }
 
-        function applyNatureFilter() 
+        function applyNatureFilter()
         {
             /*widgetWizardSelectedRows = {};
             choosenWidgetIconName = null;
@@ -2581,12 +2589,12 @@
                     populateSelectMenus("nature", search, $('#natureSelect'), "#natureColumnFilter", n, false, true);
                 }
             }
-            
+
             checkTab1Conditions();
             countSelectedRows();
         }
 
-        function applySubnatureFilter() 
+        function applySubnatureFilter()
         {
             /*widgetWizardSelectedRows = {};
             choosenWidgetIconName = null;
@@ -2627,7 +2635,7 @@
                     populateSelectMenus("sub_nature", search, $('#subnatureSelect'), "#subnatureColumnFilter", n, false, true);
                 }
             }
-            
+
             checkTab1Conditions();
             countSelectedRows();
         }
@@ -2670,7 +2678,7 @@
                     populateSelectMenus("low_level_type", search, $('#lowLevelTypeSelect'), "#lowLevelTypeColumnFilter", n, false, true);
                 }
             }
-            
+
             checkTab1Conditions();
             countSelectedRows();
         }
@@ -2712,7 +2720,7 @@
                     populateSelectMenus("unit", search, $('#unitSelect'), "#unitColumnFilter", n, false, true);
                 }
             }
-            
+
             checkTab1Conditions();
             countSelectedRows();
         }
@@ -2755,7 +2763,7 @@
                     populateSelectMenus("healthiness", search, $('#healthinessSelect'), "#healthinessColumnFilter", n, false, true);
                 }
             }
-            
+
             checkTab1Conditions();
             countSelectedRows();
         }
@@ -2768,7 +2776,7 @@
             validityConditions.atLeastOneRowSelected = false;
             checkTab1Conditions();
             countSelectedRows();*/
-            
+
             var search = [];
             $.each($('#ownershipSelect option:selected'), function () {
                 search.push($(this).val());
@@ -2798,7 +2806,7 @@
                     populateSelectMenus("ownership", search, $('#ownershipSelect'), "#ownershipColumnFilter", n, false, true);
                 }
             }
-            
+
             checkTab1Conditions();
             countSelectedRows();
         }
@@ -4773,6 +4781,9 @@
             "language": {search: ""},
             "pageLength": 8,
             aaSorting: [[0, 'desc']],
+          /*  colReorder: {
+                order: [0, 1, 2, 3, 4, 6, 16, 7, 8, 9, 13, 15, 17]
+            },*/
             "createdRow": function (row, data, index) {
                 $(row).attr('data-rowId', data[12]);
                 $(row).attr('data-widgetCompatible', data[13]);
@@ -4868,8 +4879,35 @@
                     poiFlag: getPOIFlag()
                 }
             },
+          /*  columns: [
+                { data: "high_level_type" },
+                { data: "nature" },
+                { data: "sub_nature" },
+                { data: "low_level_type" },
+                { data: "unique_name_id" },
+             //   { data: "instance_uri" },
+                { data: "unit" },
+                { data: "last_date" },
+                { data: "last_value" },
+                { data: "healthiness" },
+             //   { data: "instance_uri" },
+             //   { data: "parameters" },
+             //   { data: "id" },
+                { data: "lastCheck" },
+            //    { data: "get_instances" },
+                { data: "ownership" },
+                { data: "value_unit" },
+                { data: "organizations" },
+            //    { data: "latitude" },
+             //   { data: "longitude" },
+             //   { data: "sm_based" }
+            ],
+             colReorder: true,*/
+         /*   colReorder: {
+                order: [0, 1, 2, 3, 4, 6, 16, 7, 8, 9, 13, 15, 17]
+            },*/
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-rowId', data[13]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
@@ -4878,30 +4916,30 @@
                 $(row).attr('data-instance_uri', data[5]);
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[14]);
+                $(row).attr('data-get_instances', data[15]);
                 $(row).attr('data-sm_based', data[20]);
-                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-parameters', data[12]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-last_value', data[9]);
                 $(row).attr('data-latitude', data[18]);
                 $(row).attr('data-longitude', data[19]);
                 $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[7]);
-                $(row).attr('data-valueUnit',data[16]);
-                $(row).attr('ownership',data[15]);
+                $(row).attr('last_date',data[8]);
+                $(row).attr('data-valueUnit',data[7]);
+                $(row).attr('ownership',data[16]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 11, 12, 14],
+                    "targets": [5, 12, 13, 15],
                     "visible": false
                 },
                 {
-                    "targets": 9,
+                    "targets": 10,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[9]) {
-                            if (row[9] === 'true') {
+                        if (row[10]) {
+                            if (row[10] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -4914,7 +4952,7 @@
                     }
                 },
                 {
-                    "targets": 10,
+                    "targets": 11,
                     "searchable": true,
                     "visible": false
                 },
@@ -5413,7 +5451,7 @@
                 });
 
                 // HEALTHINESS COLUMN
-                this.api().columns([9]).every(function () {       // HEALTHINESS
+                this.api().columns([10]).every(function () {       // HEALTHINESS
 
                     var column = this;
                     var select = $('<select id="healthinessSelect" style="color: black;" multiple="multiple"></select>')
@@ -5446,7 +5484,7 @@
                                 if (search == '' && !globalSqlFilter[7].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
-                                widgetWizardTable.column(9).search(search, false, false).draw();
+                                widgetWizardTable.column(10).search(search, false, false).draw();
                                 globalSqlFilter[7].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
@@ -5492,7 +5530,7 @@
                 });
 
                 // OWNERSHIP COLUMN
-                this.api().columns([15]).every(function () 
+                this.api().columns([16]).every(function ()
                 {     
                     var select = $('<select id="ownershipSelect" style="color: black;" multiple="multiple"></select>')
                             .appendTo($("#ownershipColumnFilter"))
@@ -5523,7 +5561,7 @@
                                 if (search == '' && !globalSqlFilter[8].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
                                 }
-                                widgetWizardTable.column(15).search(search, false, false).draw();
+                                widgetWizardTable.column(16).search(search, false, false).draw();
                                 globalSqlFilter[8].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
@@ -5569,7 +5607,7 @@
                 });
 
                 // VALUE_UNIT
-                this.api().columns([16]).every(function ()
+                this.api().columns([7]).every(function ()
                 {
                     var select = $('<select id="valueUnitSelect" style="color: black;" multiple="multiple"></select>')
                         .appendTo($("#valueUnitColumnFilter"))
@@ -5600,7 +5638,7 @@
                             if (search == '' && !globalSqlFilter[9].allSelected) {
                                 search = 'oiunqauhalknsufhvnoqwpnvfv';
                             }
-                            widgetWizardTable.column(16).search(search, false, false).draw();
+                            widgetWizardTable.column(7).search(search, false, false).draw();
                             globalSqlFilter[9].value = search;
 
                             // Chiamata a funzione per popolare menù multi-select di filtraggio

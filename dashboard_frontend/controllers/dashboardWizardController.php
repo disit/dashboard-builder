@@ -696,9 +696,10 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             array( 'db' => 'unique_name_id',     'dt' => 4 ),
             array( 'db' => 'instance_uri',     'dt' => 5 ),
             array( 'db' => 'unit',     'dt' => 6 ),
+            array( 'db' => 'value_unit',     'dt' => 7 ),
             array(
                 'db'        => 'last_date',
-                'dt'        => 7,
+                'dt'        => 8,
                 'formatter' => function( $d, $row ) {
                     if ($d != null) {
                         return date( 'Y-m-d H:i:s', strtotime($d));
@@ -707,15 +708,14 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                     }
                 }
             ),
-            array( 'db' => 'last_value',     'dt' => 8 ),
-            array( 'db' => 'healthiness',     'dt' => 9 ),
-            array( 'db' => 'instance_uri',     'dt' => 10 ),
-            array( 'db' => 'parameters',     'dt' => 11 ),
-            array( 'db' => 'id',     'dt' => 12 ),
-            array( 'db' => 'lastCheck',     'dt' => 13 ),
-            array( 'db' => 'get_instances',     'dt' => 14 ),
-            array( 'db' => 'ownership',     'dt' => 15 ),
-            array( 'db' => 'value_unit',     'dt' => 16 ),
+            array( 'db' => 'last_value',     'dt' => 9 ),
+            array( 'db' => 'healthiness',     'dt' => 10 ),
+            array( 'db' => 'instance_uri',     'dt' => 11 ),
+            array( 'db' => 'parameters',     'dt' => 12 ),
+            array( 'db' => 'id',     'dt' => 13 ),
+            array( 'db' => 'lastCheck',     'dt' => 14 ),
+            array( 'db' => 'get_instances',     'dt' => 15 ),
+            array( 'db' => 'ownership',     'dt' => 16 ),
             array( 'db' => 'organizations',     'dt' => 17 ),
             array( 'db' => 'latitude',     'dt' => 18 ),
             array( 'db' => 'longitude',     'dt' => 19 ),

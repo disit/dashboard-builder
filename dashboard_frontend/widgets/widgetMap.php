@@ -282,37 +282,64 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         //iconAnchor: [15, 42]
                         iconAnchor: [16, 37]
                     }); */
+                    var filePinPath = "../img/outputPngIcons/pin-generico.png";
+                    if(feature.properties.iconFilePath != null) {
+                        if (feature.properties.iconFilePath.includes("/nature/")) {
+                            filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
+                        } else if (feature.properties.iconFilePath.includes("/subnature/")) {
+                            filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
+                        } else if (feature.properties.iconFilePath.includes("/hlt/")) {
+                            filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
+                        }
 
-                    var pinColor = feature.properties.symbolcolor;
-                    if (pinColor.includes("#")) {
-                        pinColor = pinColor.split("#")[1];
-                    }
-                //    var newIconPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
-                    var newIconPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
 
-                    if (iconsFileBuffer[newIconPath] == null) {
-                        if (!UrlExists(newIconPath)) {
-                            iconsFileBuffer[newIconPath] = false;
-                            newIconPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
-                            if (!UrlExists(newIconPath)) {
-                                iconsFileBuffer[newIconPath] = false;
-                                newIconPath = '../img/outputPngIcons/pin-generico.png';
-                            } else {
-                                iconsFileBuffer[newIconPath] = true;
-                            }
+                        if (feature.properties.pinattr == "pin" && feature.properties.pincolor == "Default") {
+                            var newIconPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
                         } else {
-                            iconsFileBuffer[newIconPath] = true;
+                            var pinColor = feature.properties.symbolcolor;
+                            if (pinColor.includes("#")) {
+                                pinColor = pinColor.split("#")[1];
+                            }
+                            //    var newIconPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
+                            var newIconPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
+
+                            if (iconsFileBuffer[newIconPath] == null) {
+                                if (!UrlExists(newIconPath)) {
+                                    iconsFileBuffer[newIconPath] = false;
+                                    if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
+                                        newIconPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
+                                        if (!UrlExists(newIconPath)) {
+                                            iconsFileBuffer[newIconPath] = false;
+                                            newIconPath = '../img/outputPngIcons/pin-generico.png';
+                                        } else {
+                                            iconsFileBuffer[newIconPath] = true;
+                                        }
+                                    } else {
+                                        newIconPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
+                                        iconsFileBuffer[newIconPath] = true;
+                                    }
+                                } else {
+                                    iconsFileBuffer[newIconPath] = true;
+                                }
+                            } else {
+                                if (iconsFileBuffer[newIconPath] === false) {
+                                    if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
+                                        if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '_' + '.png'] === false) {
+                                            newIconPath = '../img/outputPngIcons/pin-generico.png';
+                                        } else {
+                                            newIconPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
+                                        }
+                                    } else {
+                                        newIconPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
+                                        iconsFileBuffer[newIconPath] = true;
+                                    }
+                                } else {
+                                    newIconPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
+                                }
+                            }
                         }
                     } else {
-                        if (iconsFileBuffer[newIconPath] === false) {
-                            if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png'] === false) {
-                                newIconPath = '../img/outputPngIcons/pin-generico.png';
-                            } else {
-                                newIconPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
-                            }
-                        } else {
-                            newIconPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
-                        }
+                        var newIconPath = '../img/outputPngIcons/pin-generico.png';
                     }
                  //   iconsFileBuffer.push(newIconPath);
 
@@ -341,7 +368,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         event.target.setIcon(hoverIcon);
                     } else {
 
-                        // CHIAMATA AJAX PER REPERIRE IL COLORE DI DEFAULT
 
                     /*   $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "white");
                        $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';  */
@@ -351,38 +377,50 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     */
 
                     //    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
-                        var newIconOverPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '-over_' + widgetName.split("_widget")[1] + '.png';
-
-                    /*    if (!UrlExists(newIconOverPath)) {
-                            newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
-                            if (!UrlExists(newIconOverPath)) {
-                                newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                        var filePinPath = "../img/outputPngIcons/pin-generico.png";
+                        if(feature.properties.iconFilePath != null) {
+                            if (feature.properties.iconFilePath.includes("/nature/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
+                            } else if (feature.properties.iconFilePath.includes("/subnature/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
+                            } else if (feature.properties.iconFilePath.includes("/hlt/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
                             }
-                        }*/
+                            var newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
 
-                        if (iconsFileBuffer[newIconOverPath] == null) {
-                            if (!UrlExists(newIconOverPath)) {
-                                iconsFileBuffer[newIconOverPath] = false;
-                                newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
+                            /*    if (!UrlExists(newIconOverPath)) {
+                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
+                                    if (!UrlExists(newIconOverPath)) {
+                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                    }
+                                }*/
+
+                            if (iconsFileBuffer[newIconOverPath] == null) {
                                 if (!UrlExists(newIconOverPath)) {
                                     iconsFileBuffer[newIconOverPath] = false;
-                                    newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                                    if (!UrlExists(newIconOverPath)) {
+                                        iconsFileBuffer[newIconOverPath] = false;
+                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                    } else {
+                                        iconsFileBuffer[newIconOverPath] = true;
+                                    }
                                 } else {
                                     iconsFileBuffer[newIconOverPath] = true;
                                 }
                             } else {
-                                iconsFileBuffer[newIconOverPath] = true;
+                                if (iconsFileBuffer[newIconOverPath] === false) {
+                                    if (iconsFileBuffer['../img/outputPngIcons/generic/generic-over' + '.png'] === false) {
+                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                    } else {
+                                        newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                                    }
+                                } else {
+                                    newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
+                                }
                             }
                         } else {
-                            if (iconsFileBuffer[newIconOverPath] === false) {
-                                if (iconsFileBuffer['../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png'] === false) {
-                                    newIconOverPath = '../img/outputPngIcons/pin-generico.png';
-                                } else {
-                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
-                                }
-                            } else {
-                                newIconOverPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '-over_' + widgetName.split("_widget")[1] + '.png';
-                            }
+                            var newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
                         }
 
                         var hoverIcon = L.icon({
@@ -408,31 +446,59 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         if (pinColor.includes("#")) {
                             pinColor = pinColor.split("#")[1];
                         }
-                        var newIconOutPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
 
-                        if (iconsFileBuffer[newIconOutPath] == null) {
-                            if (!UrlExists(newIconOutPath)) {
-                                iconsFileBuffer[newIconOutPath] = false;
-                                newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
-                                if (!UrlExists(newIconOutPath)) {
-                                    iconsFileBuffer[newIconOutPath] = false;
-                                    newIconOutPath = '../img/outputPngIcons/pin-generico.png';
-                                } else {
-                                    iconsFileBuffer[newIconOutPath] = true;
-                                }
+                        var filePinPath = "../img/outputPngIcons/pin-generico.png";
+                        if(feature.properties.iconFilePath != null) {
+                            if (feature.properties.iconFilePath.includes("/nature/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
+                            } else if (feature.properties.iconFilePath.includes("/subnature/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
+                            } else if (feature.properties.iconFilePath.includes("/hlt/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
+                            }
+
+                            if (feature.properties.pinattr == "pin" && feature.properties.pincolor == "Default") {
+                                var newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
                             } else {
-                                iconsFileBuffer[newIconOutPath] = true;
+                                var newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
+
+                                if (iconsFileBuffer[newIconOutPath] == null) {
+                                    if (!UrlExists(newIconOutPath)) {
+                                        iconsFileBuffer[newIconOutPath] = false;
+                                        if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
+                                            newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
+                                            if (!UrlExists(newIconOutPath)) {
+                                                iconsFileBuffer[newIconOutPath] = false;
+                                                newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                            } else {
+                                                iconsFileBuffer[newIconOutPath] = true;
+                                            }
+                                        } else {
+                                            newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
+                                            iconsFileBuffer[newIconOutPath] = true;
+                                        }
+                                    } else {
+                                        iconsFileBuffer[newIconOutPath] = true;
+                                    }
+                                } else {
+                                    if (iconsFileBuffer[newIconOutPath] === false) {
+                                        if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
+                                            if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '.png'] === false) {
+                                                newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                            } else {
+                                                newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
+                                            }
+                                        } else {
+                                            newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
+                                            iconsFileBuffer[newIconOutPath] = true;
+                                        }
+                                    } else {
+                                        newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
+                                    }
+                                }
                             }
                         } else {
-                            if (iconsFileBuffer[newIconOutPath] === false) {
-                                if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png'] === false) {
-                                    newIconOutPath = '../img/outputPngIcons/pin-generico.png';
-                                } else {
-                                    newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
-                                }
-                            } else {
-                                newIconOutPath = '../img/outputPngIcons/' + feature.properties.serviceType + '/' + feature.properties.serviceType + '_' + pinColor + '_' + widgetName.split("_widget")[1] + '.png';
-                            }
+                            var newIconOutPath = '../img/outputPngIcons/pin-generico.png';
                         }
 
                         var outIcon = L.icon({
@@ -470,6 +536,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     var latLngId = event.target.getLatLng().lat + "" + event.target.getLatLng().lng;
                     latLngId = latLngId.replace(".", "");
                     latLngId = latLngId.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
+
+                    // TBD if(this.feature.properties.kpidata != null) { // MAKE MyKPI / MyPOI API CALL AND VISUALIZATION }
 
                     $.ajax({
                         url: urlToCall,
@@ -3007,6 +3075,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             var pinattr = passedData.pinattr;
                             var pincolor = passedData.pincolor;
                             var symbolcolor = passedData.symbolcolor;
+                            var iconFilePath = passedData.iconFilePath;
 
                             var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
@@ -3104,7 +3173,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     }
                                 }
                             } else if(queryType === "Sensor") {
-                                query = "<?= $superServiceMapProxy ?>" + passedData.query;
+                                if (event.query != null) {
+                                    query = "<?= $superServiceMapProxy ?>" + event.query;
+                                } else if (query != null) {
+                                    query = "<?= $superServiceMapProxy ?>" + query;
+                                }
                             } else if(queryType === "MyPOI") {
                                 if (passedData.desc != "My POI") {
                                     myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
@@ -3294,6 +3367,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         fatherGeoJsonNode.features[i].properties.pinattr = passedData.pinattr;
                                         fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
                                         fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
+                                        fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;
 
                                         dataObj.lat = fatherGeoJsonNode.features[i].geometry.coordinates[1];
                                         dataObj.lng = fatherGeoJsonNode.features[i].geometry.coordinates[0];

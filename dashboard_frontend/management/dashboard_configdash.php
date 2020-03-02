@@ -15479,6 +15479,11 @@
                                     gridsterCellW = 76;
                                     gridsterCellH = 38;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                                    /*
+                                    gridsterCellW = 8;
+                                    gridsterCellH = 4;
+                                    widgetsContainerWidth = num_cols*4*(gridsterCellW + 2);
+                                    */
                                     break;
 
                                 case "smallResponsive":
@@ -19853,6 +19858,30 @@
                                             newLabel.show();
                                             newInnerDiv.show();
 
+                                            $('#iconTextMode').change(function()
+                                            {
+                                                if($('#iconTextMode').val() === "Icon Only")
+                                                {
+                                                    $('#mapPinIcon').show();
+                                                    $('#symbolColorColumn').show();
+                                                    $('.symbolColorTd').show();
+                                                    if ($('#mapPinIcon').val() === "Pin Icon")
+                                                    {
+                                                        $('#mapIconColorColumn').show();
+                                                        $('.newMapPinColorTd').show();
+                                                    } else {
+                                                        $('#mapIconColorColumn').hide();
+                                                        $('.newMapPinColorTd').hide();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $('#mapPinIcon').hide();
+                                                    $('#symbolColorColumn').hide();
+                                                    $('.symbolColorTd').hide();
+                                                }
+                                            });
+
                                             // Map Pins Icon
                                         /*    newTableCell = $('<td><select data-param="mapPinIcon" class="form-control"></select></td>');
                                             newTableCell.find('select').append('<option value="old">Old</option>');
@@ -19875,10 +19904,24 @@
                                             newLabel.show();
                                             newInnerDiv.show();
 
+                                            $('#mapPinIcon').change(function()
+                                            {
+                                                if($('#mapPinIcon').val() === "Pin Icon")
+                                                {
+                                                    $('#mapIconColorColumn').show();
+                                                    $('.newMapPinColorTd').show();
+                                                }
+                                                else
+                                                {
+                                                    $('#mapIconColorColumn').hide();
+                                                    $('.newMapPinColorTd').hide();
+                                                }
+                                            });
+
                                             //Nuova riga
                                             //Contenitore per tabella delle query
                                             var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:120px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td>Map Icon color (only for Pin Icon)</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:120px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td id='symbolColorColumn'>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td id='mapIconColorColumn'>Map Icon color</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                             editGisQueryTableContainer.append(editGisQueryTable);
                                             $("#specificParamsM").append(editGisQueryTableContainer);
 
@@ -20180,7 +20223,7 @@
                                                 });
 
                                                 // Symbol color CELL
-                                                newTableCell = $('<td><div class="input-group colorPicker" data-param="symbolColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                newTableCell = $('<td class="symbolColorTd"><div class="input-group colorPicker" data-param="symbolColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                                 newTableRow.append(newTableCell);
                                                 newTableRow.find('div.colorPicker').colorpicker({
                                                     color: editGisParameters.queries[i].symbolColor,
@@ -20266,7 +20309,7 @@
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
 
                                                 // New Map Pin Color
-                                                newTableCell = $('<td><select data-param="newMapPinColor" class="form-control"></select></td>');
+                                                newTableCell = $('<td class="newMapPinColorTd"><select data-param="newMapPinColor" class="form-control"></select></td>');
                                                 newTableCell.find('select').append('<option value="Default">Default</option>');
                                                 newTableCell.find('select').append('<option value="SymbolColor">Symbol Color</option>');
                                                 newTableRow.append(newTableCell);
@@ -20339,6 +20382,24 @@
                                                             liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
                                                         });
                                             //    }
+                                            }
+
+                                            if (styleParameters.iconText == "Icon Only") {
+                                                $('#mapPinIcon').show();
+                                                $('#symbolColorColumn').show();
+                                                $('.symbolColorTd').show();
+                                                if ($('#mapPinIcon').val() === "Pin Icon")
+                                                {
+                                                    $('#mapIconColorColumn').show();
+                                                    $('.newMapPinColorTd').show();
+                                                } else {
+                                                    $('#mapIconColorColumn').hide();
+                                                    $('.newMapPinColorTd').hide();
+                                                }
+                                            } else {
+                                                $('#mapPinIcon').hide();
+                                                $('#symbolColorColumn').hide();
+                                                $('.symbolColorTd').hide();
                                             }
 
                                             $("#editGisQueryTable i.fa-plus").click(addGisQueryM);
@@ -28634,6 +28695,10 @@
                                         break;
 
                                         case "widgetMap":
+                                            if(styleParamsRaw !== null)
+                                            {
+                                                styleParameters = JSON.parse(styleParamsRaw);
+                                            }
                                             //Rimozione eventuali campi del subform general per widget process
                                             removeWidgetProcessGeneralFields("editWidget");
 
@@ -28711,6 +28776,25 @@
                                             newInnerDiv = $('<div id="gisTargetCenterMapDivM" class="col-md-12"></div>');
                                             newFormRow.append(newInnerDiv);
 
+                                            //Nuova riga
+                                            //Show Orthomaps
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="showOrthomapsM" class="col-md-2 control-label">Show Othomaps Controls</label>');
+                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                            newSelect = $('<select class="form-control" id="showOrthomapsM" name="showOrthomapsM"></select>');
+                                            newSelect.append('<option style="display:none">');
+                                            newSelect.append('<option value="yes">Yes</option>');
+                                            newSelect.append('<option value="no">No</option>');
+                                            if (styleParameters != null) {
+                                                if (styleParameters.showOrthomaps) {
+                                                    newSelect.val(styleParameters.showOrthomaps);
+                                                }
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            
                                             //Nuova riga
                                             //Full screen controls
                                             newFormRow = $('<div class="row"></div>');
@@ -30420,7 +30504,7 @@
                 }
             },
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[12]);
+                $(row).attr('data-rowId', data[13]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
@@ -30429,15 +30513,15 @@
                 $(row).attr('data-instance_uri', data[5]);
                 $(row).attr('data-unit', data[6]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[14]);
-                $(row).attr('data-sm_based', data[16]);
-                $(row).attr('data-parameters', data[11]);
+                $(row).attr('data-get_instances', data[15]);
+                $(row).attr('data-sm_based', data[17]);
+                $(row).attr('data-parameters', data[12]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[8]);
+                $(row).attr('data-last_value', data[9]);
             },
             "columnDefs": [
                 {
-                    "targets": [0, 1, 2, 5, 7, 9, 10, 11, 12, 13, 14, 15, 16],
+                    "targets": [0, 1, 2, 5, 8, 10, 11, 12, 13, 14, 15, 16, 17],
                     "searchable": false,
                     "visible": false
                 }

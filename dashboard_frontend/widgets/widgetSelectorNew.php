@@ -229,8 +229,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
           //  var iconWhitePathAuto = queries[i].iconPoolImg.split(".svg")[0] + "-white.svg";
             var iconWhitePathAuto = "../img/widgetSelectorIconsPool/subnature/generic-white.svg";
             var iconPathAuto = "../img/widgetSelectorIconsPool/subnature/generic-white.svg";
+            var filePinPath = "";
 
             var widgetNameForFile = widgetName;
+            if(iconPath.includes("/nature/")) {
+                filePinPath = iconPath.split("/nature/")[1].split(".svg")[0];
+            } else if (iconPath.includes("/subnature/")) {
+                filePinPath = iconPath.split("/subnature/")[1].split(".svg")[0];
+            } else if (iconPath.includes("/hlt/")) {
+                filePinPath = iconPath.split("/hlt/")[1].split(".svg")[0];
+            }
+
          /*   if (nature) {
                 if (subNature) {
                     // iconPath = "../img/widgetSelectorIconsPool/subnature/"+ nature + "/" + nature + "_" + subNature + ".svg";
@@ -303,9 +312,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 symbolColorForFileName = symbolColor;
             }
 
-            if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_" + symbolColorForFileName + "_" + widgetNameForFile + ".png")) {
+            //if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_" + symbolColorForFileName + "_" + widgetNameForFile + ".png")) {
+            if (!UrlExists("../img/outputPngIcons/" + filePinPath + "/" + filePinPath + "_" + symbolColorForFileName + ".png") && !filePinPath.includes("heatmap")) {
 
-                if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_default_" + widgetNameForFile + ".png")) {
+               // if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_default_" + widgetNameForFile + ".png")) {
+                if (!UrlExists("../img/outputPngIcons/" + filePinPath + "/" + filePinPath + "_default.png")  && !filePinPath.includes("heatmap")) {
                     //    if (symbolColor == undefined) {
                     //   symbolColor = "rgba(204,203,203,1)";
                     $.ajax({
@@ -319,8 +330,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         dataType: 'json',
                         success: function (data) {
                             symbolColorDef = data.defColour;
-                            if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_default_" + widgetNameForFile + ".png")) {
-                                htmlNewPinIcon = '<div id="' + serviceTypeString + '_default" class="newPinContainer" data-filename="' + serviceTypeString + '_default_' + widgetNameForFile +'" data-currentpincolor="' + symbolColorAttr + '">' +
+                            //if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_default_" + widgetNameForFile + ".png")) {
+                            if (!UrlExists("../img/outputPngIcons/" + filePinPath + "/" + filePinPath + "_default.png")  && !filePinPath.includes("heatmap")) {
+                                htmlNewPinIcon = '<div id="' + filePinPath + '_default" class="newPinContainer" data-filename="' + filePinPath + '_default" data-currentpincolor="' + symbolColorDef + '">' +
                                     '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Livello_1" x="0px" y="0px" viewBox="0 0 184.3 184.3" style="enable-background:new 0 0 184.3 184.3;height: 32px;width: 32px;" xml:space="preserve">' +
                                     '<style type="text/css">' +
                                     '.st' + idx + '_default{fill-rule:evenodd;clip-rule:evenodd;fill:' + symbolColorDef + ';stroke:grey;stroke-width:3}' +
@@ -360,9 +372,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                 //    if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_" + symbolColorOk + ".png")) {
                 if (symbolColorAttr != "") {
-                    if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_" + symbolColorAttr + "_" + widgetNameForFile + ".png")) {
+                    //if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "_" + symbolColorAttr + "_" + widgetNameForFile + ".png")) {
+                    if (!UrlExists("../img/outputPngIcons/" + filePinPath + "/" + filePinPath + "_" + symbolColorAttr + ".png")  && !filePinPath.includes("heatmap")) {
                         if (htmlNewPinIcon == "") {
-                            htmlNewPinIcon = '<div id="' + serviceTypeString + '-white_' + symbolColorOk + '" class="newPinContainer" data-filename="' + serviceTypeString + '_' + symbolColorOk + "_" + widgetNameForFile + '" data-currentpincolor="' + symbolColorAttr + '">' +
+                            htmlNewPinIcon = '<div id="' + filePinPath + '-white_' + symbolColorOk + '" class="newPinContainer" data-filename="' + filePinPath + '_' + symbolColorOk + '" data-currentpincolor="' + symbolColorAttr + '">' +
                                 '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Livello_1" x="0px" y="0px" viewBox="0 0 184.3 184.3" style="enable-background:new 0 0 184.3 184.3;height: 32px;width: 32px;" xml:space="preserve">' +
                                 '<style type="text/css">' +
                                 '.st' + idx + '_filled{fill-rule:evenodd;clip-rule:evenodd;fill:' + symbolColorOk + ';stroke:grey;stroke-width:3}' +
@@ -375,7 +388,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 '<img class="innerImg" src="' + iconWhitePath + '" alt="">' +
                                 '</div>';
                         } else {
-                            htmlNewPinIcon = htmlNewPinIcon + '<div id="' + serviceTypeString + '-white_' + symbolColorOk + '" class="newPinContainer" data-filename="' + serviceTypeString + '_' + symbolColorOk + "_" + widgetNameForFile + '" data-currentpincolor="' + symbolColorAttr + '">' +
+                            htmlNewPinIcon = htmlNewPinIcon + '<div id="' + filePinPath + '-white_' + symbolColorOk + '" class="newPinContainer" data-filename="' + filePinPath + '_' + symbolColorOk + '" data-currentpincolor="' + symbolColorAttr + '">' +
                                 '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Livello_1" x="0px" y="0px" viewBox="0 0 184.3 184.3" style="enable-background:new 0 0 184.3 184.3;height: 32px;width: 32px;" xml:space="preserve">' +
                                 '<style type="text/css">' +
                                 '.st' + idx + '_filled{fill-rule:evenodd;clip-rule:evenodd;fill:' + symbolColorOk + ';stroke:grey;stroke-width:3}' +
@@ -393,8 +406,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
             }
 
-            if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "-over_" + widgetNameForFile + ".png")) {
-                htmlNewPinIcon = htmlNewPinIcon + '<div id="' + serviceTypeString + '_FFFFFF" class="newPinContainer" data-filename="' + serviceTypeString + '-over_' + widgetNameForFile + '" data-currentpincolor="' + symbolColorAttr + '">' +
+            //if (!UrlExists("../img/outputPngIcons/" + serviceTypeString + "/" + serviceTypeString + "-over_" + widgetNameForFile + ".png")) {
+            if (!UrlExists("../img/outputPngIcons/" + filePinPath + "/" + filePinPath + "-over.png")  && !filePinPath.includes("heatmap")) {
+                htmlNewPinIcon = htmlNewPinIcon + '<div id="' + filePinPath + '_FFFFFF" class="newPinContainer" data-filename="' + filePinPath + '-over" data-currentpincolor="' + symbolColorAttr + '">' +
                     '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Livello_1" x="0px" y="0px" viewBox="0 0 184.3 184.3" style="enable-background:new 0 0 184.3 184.3;height: 32px;width: 32px;" xml:space="preserve">' +
                     '<style type="text/css">' +
                     '.st' + idx + '_white{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;stroke:grey;stroke-width:3}' +
@@ -536,7 +550,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 if (symbolColor != null) {
                     pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-color: ' + symbolColor + '; border-radius: 50%"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 } else {
-                  //  if (symbolColor == undefined) {
+                    if (pinattr == "pin") {
+                        //  if (symbolColor == undefined) {
                         //   symbolColor = "rgba(204,203,203,1)";
                         $.ajax({
                             url: "../controllers/getDefaultPinColor.php",
@@ -556,9 +571,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         });
 
-                 //   } else {
-                 //       symbolColorOk = symbolColor;
-                 //   }
+                        //   } else {
+                        //       symbolColorOk = symbolColor;
+                        //   }
+                    }
                     pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 }
              //   pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="position: relative; width: ' + rowHeight + '; height: ' + rowHeight + ';"><img src="../img/widgetSelectorBakcGrnd/cerchio-arancione.svg" alt="" style="top: 0; left: 0;"><img class="svg" id="logo" alt="" style="position: absolute; top: 0; left: 0;"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
@@ -649,14 +665,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
              //   if (queries[i].newMapPinColor == "SymbolColor") {
                 if (pinattr == "pin" && (queryType == "Default" || queryType == "Sensor")) {
                 //    if (i > 0) {
-                    if (!query.includes("heatmap.snap4city.org") && !query.includes("wmsserver.snap4city.org") && !query.includes("firenzetraffic.km4city.org") && !query.includes("/scenario/") && !query.includes("/whatif/")) {
-                        if (newPinsContainer != null) {
-                            newPinsContainer = newPinsContainer + makeNewPinIcon(queries[i].nature, queries[i].sub_nature, queries[i].symbolColor, iconPath, iconWhitePath, i, widgetTargetList[0].split("_widget")[1]);
-                        } else {
-                            newPinsContainer = makeNewPinIcon(queries[i].nature, queries[i].sub_nature, queries[i].symbolColor, iconPath, iconWhitePath, i, widgetTargetList[0].split("_widget")[1]);
-                        }
-                        //    newRow.append(newPinsContainer);
+                    if (newPinsContainer != null) {
+                        newPinsContainer = newPinsContainer + makeNewPinIcon(queries[i].nature, queries[i].sub_nature, queries[i].symbolColor, iconPath, iconWhitePath, i, widgetTargetList[0].split("_widget")[1]);
+                    } else {
+                        newPinsContainer = makeNewPinIcon(queries[i].nature, queries[i].sub_nature, queries[i].symbolColor, iconPath, iconWhitePath, i, widgetTargetList[0].split("_widget")[1]);
                     }
+                //    newRow.append(newPinsContainer);
                 }
 
                 pinContainer.find("a.gisPinLink").hover(
@@ -1089,9 +1103,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                             if ($(this).attr("data-onMap") === "false") {
                                 $(this).attr("data-onMap", "true");
+                                if ($(this).attr("data-pinattr") == "pin") {
+
+                                }
                             //    $(this).hide();
                             //    $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
-                                addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-queryType"), $(this).attr("data-icontextmode"), $(this).attr("data-pinattr"), $(this).attr("data-pincolor"), $(this).attr("data-symbolcolor"));
+                                addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-queryType"), $(this).attr("data-icontextmode"), $(this).attr("data-pinattr"), $(this).attr("data-pincolor"), $(this).attr("data-symbolcolor"), $(this).find('img.svg').attr("data-iconblack"));
                             }
                             else {
                                 $(this).attr("data-onMap", "false");
@@ -1190,7 +1207,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             }
         }
 
-        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType, iconTextMode, pinAttr, pinColor, symbolColor) {
+        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType, iconTextMode, pinAttr, pinColor, symbolColor, iconFilePath) {
             let coordsAndType = {};
 
             coordsAndType.eventGenerator = eventGenerator;
@@ -1205,6 +1222,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.pinattr = pinAttr;
             coordsAndType.pincolor = pinColor;
             coordsAndType.symbolcolor = symbolColor;
+            coordsAndType.iconFilePath = iconFilePath;
 
             $.event.trigger({
                 type: "addSelectorPin",

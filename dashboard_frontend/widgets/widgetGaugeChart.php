@@ -41,7 +41,7 @@
         var fontSize, fontColor, chartColor, timeToReload, showHeader, hasTimer, showTitle, widgetHeaderColor, widgetContentColor, widgetHeaderFontColor,
             styleParameters, metricType, metricData, pattern, udm, seriesObj, widgetParameters, minGauge, maxGauge, shownValue, plotBands, 
             plotBandObj, paneObj, yObj, solidGaugeObj, chart, alarmSet, labelsObj, labelObj, sizeRows, sizeCols, hasNegativeValues, metricName, widgetTitle, countdownRef, 
-            urlToCall, webSocket, openWs, manageIncomingWsMsg, sm_based, rowParameters, sm_field, originalMetricType, openWsConn, wsClosed, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor = null;
+            urlToCall, webSocket, openWs, manageIncomingWsMsg, sm_based, rowParameters, sm_field, originalMetricType, openWsConn, wsClosed, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor, dateTime = null;
         var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
         var elToEmpty = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
         var wsRetryActive, wsRetryTime = null;
@@ -180,7 +180,9 @@
 
                                         maxGauge = Math.floor(shownValue + (Math.random() * 25) + 10); 
                                     }
-                                    udm = "";
+                                    if (udm == null) {
+                                        udm = "";
+                                    }
                                     break;
 
                                 case "Float":
@@ -220,7 +222,9 @@
 
                                         maxGauge = Math.floor(shownValue + (Math.random() * 25) + 10); 
                                     }
-                                    udm = "";
+                                    if (udm == null) {
+                                        udm = "";
+                                    }
                                     break;
 
                                 case "Percentuale":
@@ -378,6 +382,10 @@
                         };
 
                        yObj =  {
+                         /*  title: {
+                               //    text: null
+                               text: udm
+                           },*/
                            stops: [
                              [minGauge, {
                                 linearGradient: {
@@ -644,7 +652,8 @@
                                                     
                         dataLabelFontSize = fontSize;                            
                         
-                        var dataLabelUdmFontSize = dataLabelFontSize - 3;
+                      //  var dataLabelUdmFontSize = dataLabelFontSize - 3;
+                        var dataLabelUdmFontSize = Math.floor(dataLabelFontSize - dataLabelFontSize * .5);
                         
                         solidGaugeObj = {
                            dataLabels: {
@@ -653,7 +662,7 @@
                                useHTML: false
                            }
                         };
-                            
+
                         seriesObj = [{
                             data: [shownValue],
                             dataLabels: {
@@ -672,7 +681,7 @@
                             title: null,
                             pane: paneObj,
                             tooltip: {
-                               enabled: false
+                               enabled: true
                             },
                             xAxis: {
 
@@ -717,6 +726,9 @@
                                     enabled: false
                                 },
                                 series: seriesObj,
+                                tooltip: {
+                                    pointFormat: '<div>Last Date and Time: ' + dateTime + '</div>'
+                                },
                                 exporting: {
                                     enabled: false
                                 },
@@ -1023,10 +1035,15 @@
 
                             if (data.Service) {
                                 var originalMetricType = data.Service.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                //    udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
                             } else if (data.Sensor) {
                                 var originalMetricType = data.Sensor.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                //   udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                            }
+                            if (data.realtime.results.bindings[0].measuredTime != null) {
+                                dateTime = data.realtime.results.bindings[0].measuredTime.value;
+                            } else {
+                                dateTime = "n.a.";
                             }
 
                             metricData = {  
@@ -1112,8 +1129,14 @@
                             needWebSocket = metricData.data[0].needWebSocket;
                             $("#" + widgetName + "_loading").css("display", "none");
                             $("#" + widgetName + "_content").css("display", "block");
+                            if(data.data[0].commit.author != null) {
+                                if (data.data[0].commit.author.computationDate != null) {
+                                    dateTime = data.data[0].commit.author.computationDate;
+                                } else {
+                                    dateTime = "n.a.";
+                                }
+                            }
                             populateWidget();
-                            
                             if(needWebSocket)
                             {
                                 openWs();
@@ -1160,6 +1183,9 @@
                             }
 
                             udm = data[0].variableUnit;
+                            if (dateTime == null) {
+                                dateTime = "n.a.";
+                            }
 
                             metricData = {  
                                 data:[  
@@ -1237,7 +1263,7 @@
                         type: "GET",
                         data: {
                             myKpiId: rowParameters,
-                        //    action: "getValueUnit"
+                            action: "getValueUnit",
                             last: 1
                         },
                         async: true,
@@ -1261,6 +1287,11 @@
                             }
 
                             udm = data[0].variableUnit;
+                            if (data[0].dataTime != null) {
+                                dateTime = new Date(data[0].dataTime).toUTCString();
+                            } else {
+                                dateTime = "n.a.";
+                            }
 
                             metricData = {
                                 data:[

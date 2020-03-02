@@ -897,7 +897,7 @@
                   $styleParametersArray = array('clockData' => $clockData, 'clockFont' => $clockFont);
                   $styleParameters = json_encode($styleParametersArray);
                 }
-                
+
                 if($type_widget == "widgetFirstAid")
                 {
                     if(isset($_POST['showTableFirstCell'])&&($_POST['showTableFirstCell']!=""))
@@ -3548,6 +3548,62 @@
                    }
                }
             }
+
+            if ($type_widget_m == "widgetMap") {
+                if(isset($_POST['showOrthomapsM'])&&($_POST['showOrthomapsM']!="")) {
+                    $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'));
+                    $styleParametersM = json_encode($styleParametersM);
+                    $showOrthomapsM = mysqli_real_escape_string($link, sanitizePostString('showOrthomapsM'));
+                    if ($showOrthomapsM == "yes") {
+                        $queryOrthomaps = "SELECT orthomapJson FROM Dashboard.Organizations Orgs INNER JOIN Dashboard.Config_dashboard Dash ON Dash.id = " . mysqli_real_escape_string($link, $id_dashboard2) . " AND Dash.organizations = Orgs.organizationName;";
+                        $resOrthomaps = mysqli_query($link, $queryOrthomaps);
+
+                        if($resOrthomaps)
+                        {
+                            $currRow = mysqli_fetch_assoc($resOrthomaps);
+                            if (sizeof($currRow) > 0) {
+                                $orthomapJsonM = $currRow['orthomapJson'];
+                            }
+                        }
+                        $infoJsonM = "yes";
+                        // $parametersM = json_encode($orthomapJsonM);
+                    //   $parametersM = $orthomapJsonM;
+                        $orthomapJsonArray = json_decode($orthomapJsonM, true);
+                        if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
+                            $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
+                            $parametersArray = json_decode($parametersM);
+                            if ($parametersArray->dropdownMenu) {
+                                // if an orthomap json already exists, update only latLng and zoom
+                                $latLngCenterMap = $parametersArray->latLng;
+                                $zoomMap = $parametersArray->zoom;
+                                $parametersArray->latLng = $latLngCenterMap;
+                                $parametersArray->zoom = $zoomMap;
+                                $parametersM = json_encode($parametersArray);
+                            } else {
+                                // if there isn't any orthomap json, create it using the organization template
+                                $tempParametersArray = $parametersArray;
+                                $latLngCenterMap = $tempParametersArray->latLng;
+                                $zoomMap = $tempParametersArray->zoom;
+                                $orthomapJsonArray['latLng'] = $latLngCenterMap;
+                                $orthomapJsonArray['zoom'] = $zoomMap;
+                                $parametersM = json_encode($orthomapJsonArray);
+                            }
+                        }
+
+                    } else if ($showOrthomapsM == "no") {
+                        if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
+                            $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
+                            $tempParametersArray = json_decode($parametersM);
+                            $latLngCenterMap = $tempParametersArray->latLng;
+                            $zoomMap = $tempParametersArray->zoom;
+                            $parametersArray = array('latLng' => $latLngCenterMap, 'zoom' => $zoomMap);
+                            $parametersM = json_encode($parametersArray);
+                            $infoJsonM = "no";
+                        }
+                    }
+                }
+            }
+
         }
 
         if(isset($_POST['inputFontSizeM']) && ($_POST['inputFontSizeM']!=""))
@@ -3861,7 +3917,7 @@
                        . ", title_w = " . returnManagedStringForDb(html_entity_decode(escapeForSQL($title_widget_m, $link), ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
                //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
-                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
+                       . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) . ", infoJson = " . returnManagedStringForDb($infoJsonM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
                        . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb(escapeForSQL($styleParametersM, $link))
                        . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . ", lastEditor = " . returnManagedStringForDb(escapeForSQL($lastEditor, $link)) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate) . " WHERE Id = '$widgetIdM' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";

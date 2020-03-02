@@ -41,7 +41,7 @@
         var widgetProperties, fontSize, chartColor, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showTitle, showHeader, hasTimer, thresholdObject, styleParameters, metricType, metricData, pattern, udm,
             widgetParameters, paneObj, minGauge, maxGauge, shownValue, plotOptionsObj, sizeRowsWidget, originalMetricType, alarmSet, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
             plotBandObj, plotBandSet, hasNegativeValues, metricName, widgetTitle, countdownRef, udmObj, timeToReload, 
-            chart, widgetParameters, sm_based, rowParameters, sm_field, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+            chart, widgetParameters, sm_based, rowParameters, sm_field, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed, dateTime = null;
         var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
         var elToEmpty = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
         var hasThresholds = false;
@@ -49,7 +49,9 @@
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var needWebSocket = false;
-        
+
+        console.log("Entrato in widgetSpeedometer --> " + widgetName);
+
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function(event) 
         {
@@ -770,6 +772,12 @@
                                     pane: paneObj,
                                     plotOptions: plotOptionsObj,
                                     yAxis: yAxisObj,
+                                    tooltip: {
+                                        useHTML: true,
+                                        formatter: function() {
+                                            return '<div>Last Date and Time: ' + dateTime + '</div>';
+                                        }
+                                    },
                                     series: [{
                                         data: [shownValue],
                                         tooltip: {
@@ -1075,10 +1083,15 @@
                                     udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;*/
                                     if (data.Service) {
                                         var originalMetricType = data.Service.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                        //    udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                        udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
                                     } else if (data.Sensor) {
                                         var originalMetricType = data.Sensor.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                        //   udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                        udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                    }
+                                    if (data.realtime.results.bindings[0].measuredTime != null) {
+                                        dateTime = data.realtime.results.bindings[0].measuredTime.value;
+                                    } else {
+                                        dateTime = "n.a.";
                                     }
                                     
                                     metricData = {  
@@ -1176,6 +1189,13 @@
                                             text: udm
                                         }
                                     }
+                                    if(data.data[0].commit.author != null) {
+                                        if (data.data[0].commit.author.computationDate != null) {
+                                            dateTime = data.data[0].commit.author.computationDate;
+                                        } else {
+                                            dateTime = "n.a.";
+                                        }
+                                    }
                                     populateWidget();
                                     
                                     if(needWebSocket)
@@ -1224,6 +1244,9 @@
                                     }
 
                                     udm = data[0].variableUnit;
+                                    if (dateTime == null) {
+                                        dateTime = "n.a.";
+                                    }
 
                                     metricData = {  
                                         data:[  
@@ -1307,7 +1330,7 @@
                                 type: "GET",
                                 data: {
                                     myKpiId: rowParameters,
-                                    //    action: "getValueUnit"
+                                    action: "getValueUnit",
                                     last: 1
                                 },
                                 async: true,
@@ -1331,6 +1354,11 @@
                                     }
 
                                     udm = data[0].variableUnit;
+                                    if (data[0].dataTime != null) {
+                                        dateTime = new Date(data[0].dataTime).toUTCString();
+                                    } else {
+                                        dateTime = "n.a.";
+                                    }
 
                                     metricData = {
                                         data:[
@@ -1385,6 +1413,12 @@
 
                                     $("#" + widgetName + "_loading").css("display", "none");
                                     $("#" + widgetName + "_content").css("display", "block");
+                                    if(udm !== null)
+                                    {
+                                        udmObj = {
+                                            text: udm
+                                        }
+                                    }
                                     populateWidget();
                                 },
                                 error: function(errorData)
