@@ -89,9 +89,9 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                 $sub_nature = $selectedRow['sub_nature'];
 
                 if ($sub_nature != null) {
-                    $query = "SELECT * FROM Dashboard.DefaultNatureColors WHERE nature = '" . escapeForSQL($nature) . "' AND sub_nature = '" . escapeForSQL($sub_nature) . "';";
+                    $query = "SELECT * FROM Dashboard.DefaultNatureColors WHERE nature = '" . escapeForSQL($nature, $link) . "' AND sub_nature = '" . escapeForSQL($sub_nature, $link) . "';";
                 } else {
-                    $query = "SELECT * FROM Dashboard.DefaultNatureColors WHERE nature = '" . escapeForSQL($nature) . "';";
+                    $query = "SELECT * FROM Dashboard.DefaultNatureColors WHERE nature = '" . escapeForSQL($nature, $link) . "';";
                 }
                 $result = mysqli_query($link, $query);
 
