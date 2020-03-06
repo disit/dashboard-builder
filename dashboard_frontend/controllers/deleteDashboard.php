@@ -88,7 +88,7 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
     
     echo $response;
     
-    if($response == "Ok")
+    if($response == "Ok" && $chatBaseUrl)
     {        
         $nameGroup=strtolower(str_replace(" ", "", str_replace('%2520','',str_replace('%20', '', $dashboardTitle."-".$dashboardId))));
         $nameGroup=urldecode ($nameGroup);

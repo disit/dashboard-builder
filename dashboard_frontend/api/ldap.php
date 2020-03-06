@@ -31,7 +31,7 @@ This array should be encoded in json
 header("Content-type: application/json");
 header("Access-Control-Allow-Origin: *\r\n");
 include ('../config.php');
-include ('common.php');
+include ('../common.php');
 // session_start();
 
 //Altrimenti restituisce in output le warning
