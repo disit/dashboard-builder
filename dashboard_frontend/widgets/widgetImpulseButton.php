@@ -1146,7 +1146,7 @@
                                         console.log(widgetName+" ERR1 ackReceived:"+webSocket.ackReceived)
                                         onError1({});
                                       }
-                                    },3000)
+                                    },60000)
                                 } else {
                                     console.log(widgetName+" ERR1 socket not OPEN");
                                     onError1({});

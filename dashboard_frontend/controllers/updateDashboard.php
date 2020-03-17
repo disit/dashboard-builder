@@ -361,7 +361,8 @@
             }
 
             //New version: lasciamo gli addendi espliciti per agevolare la lettura
-            $width = ($nCols * 78) + 10;
+        //    $width = ($nCols * 78) + 10;
+            $width = ($nCols * 26);
 
             //Logo della dashboard
             $uploadFolder = "../img/dashLogos/dashboard" . $dashboardId . "/";
@@ -615,6 +616,11 @@
                 $n_column = 1;
                 $size_rows = 1;
                 $size_columns = 8;
+
+                // MOD GRID
+                $size_rows = 3;
+                $size_columns = 24;
+
                 $id_metric = "Separator";
                 $type_w = "widgetSeparator";
                 $name_w = preg_replace('/\+/', '', $id_metric) . "_" . $dashboardId . "_" . $type_w . $nextId;
@@ -691,7 +697,24 @@
                 $response['detail'] = 'queryKo';
             }
             break;
-            
+
+        case "updateNewGrid":
+            $newNumColumns = mysqli_real_escape_string($link, $_REQUEST['newNumColumns']);
+            $newWidth = mysqli_real_escape_string($link, $_REQUEST['newWidth']);
+
+            $query = "UPDATE Dashboard.Config_dashboard SET width = '$newWidth', num_columns = '$newNumColumns', scaleFactor = 'yes' WHERE Id = '$dashboardId'";
+            $result = mysqli_query($link, $query);
+
+            if($result)
+            {
+                $response['detail'] = 'Ok';
+            }
+            else
+            {
+                $response['detail'] = 'queryKo';
+            }
+            break;
+
         default:
             break;
     }

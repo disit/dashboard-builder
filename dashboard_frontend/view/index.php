@@ -315,6 +315,14 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             var myGpsActive, myGpsPeriod, myGpsInterval, globalDashboardTitle = null, backOverlayOpacity = null;
             var embedPreview = "<?php if(isset($_REQUEST['embedPreview'])){echo escapeForJS($_REQUEST['embedPreview']);}else{echo 'false';} ?>";
             var loggedUsername = "<?php echo $_SESSION['loggedUsername']; ?>";
+            var scaleFactorFlag, extra_rows_gridster, max_rows_gridster = null;
+            var scaleFactorW = 1;
+            var scaleFactorH = 1;
+            /*  var newScaledGridsterCellW = 15;
+              var newScaledGridsterCellH = 7; */
+            var newScaledGridsterCellW = 26;
+            var newScaledGridsterCellH = 13;
+            var widgetMargins = [1, 1];
 
             $.ajax({
                 url: "../controllers/dashOrganizationProxy.php",
@@ -591,66 +599,128 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 switch(dashboardViewMode)
                 {
                     case "fixed":
-                        gridsterCellW = 76;
-                        gridsterCellH = 38;
-                        widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                        if (scaleFactorFlag == null) {
+                            gridsterCellW = 76;
+                            gridsterCellH = 38;
+                            widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                        } else if (scaleFactorFlag == 'yes') {
+                            // MOD GRID
+                            gridsterCellW = newScaledGridsterCellW;
+                            gridsterCellH = newScaledGridsterCellH;
+                            widgetsContainerWidth = dashboardParams.width;
+                        }
+
                         break;
                         
                     case "smallResponsive":
                         if($(window).width() > 768)
                         {
-                            gridsterCellW = 76;
-                            gridsterCellH = 38;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = 76;
+                                gridsterCellH = 38;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
+                            }
                         }
                         else
                         {
-                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                            gridsterCellH = gridsterCellW/2;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols) - 2;
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else {
+                                gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                gridsterCellH = gridsterCellW/2;
+                                //    widgetsContainerWidth = dashboardParams.width;
+                                widgetsContainerWidth = num_cols * (gridsterCellW);
+                            }
                         }
                         break;
                         
                     case "mediumResponsive":
                         if($(window).width() > 992)
                         {
-                            gridsterCellW = 76;
-                            gridsterCellH = 38;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = 76;
+                                gridsterCellH = 38;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
+                            }
                         }
                         else
                         {
-                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                            gridsterCellH = gridsterCellW/2;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols) - 2;
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols);
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW);
+                            }
                         }
                         break;
                         
                     case "largeResponsive":
                         if($(window).width() > 1200)
                         {
-                            gridsterCellW = 76;
-                            gridsterCellH = 38;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = 76;
+                                gridsterCellH = 38;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
+                            }
                         }
                         else
                         {
-                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                            gridsterCellH = gridsterCellW/2;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols) - 2;
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols);
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW);
+                            }
                         }
                         break;    
                         
                     case "alwaysResponsive":
-                        gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                        gridsterCellH = gridsterCellW/2;
-                        widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                        if (scaleFactorFlag == null) {
+                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
+                            gridsterCellH = gridsterCellW/2;
+                            widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                        } else {
+                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                            gridsterCellH = gridsterCellW/2;
+                            //    widgetsContainerWidth = dashboardParams.width;
+                            widgetsContainerWidth = num_cols * (gridsterCellW);
+                        }
                         break;
                         
                     default:
-                        gridsterCellW = 76;
-                        gridsterCellH = 38;
-                        widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                        if (scaleFactorFlag == null) {
+                            gridsterCellW = 76;
+                            gridsterCellH = 38;
+                            widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                        } else if (scaleFactorFlag == 'yes') {
+                            // MOD GRID
+                            gridsterCellW = newScaledGridsterCellW;
+                            gridsterCellH = newScaledGridsterCellH;
+                            widgetsContainerWidth = dashboardParams.width;
+                        }
                         break;    
                 }
                 
@@ -659,7 +729,8 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
 
                 gridster.resize_widget_dimensions({
                     widget_base_dimensions: [gridsterCellW, gridsterCellH],
-                    widget_margins: [1, 1]
+                //    widget_margins: [1, 1]
+                    widget_margins: widgetMargins
                 });
                                 
                 $('li.gs_w').trigger({
@@ -847,66 +918,127 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 switch(dashboardViewMode)
                 {
                     case "fixed":
-                        gridsterCellW = 76;
-                        gridsterCellH = 38;
-                        widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                        if (scaleFactorFlag == null) {
+                            gridsterCellW = 76;
+                            gridsterCellH = 38;
+                            widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                        } else if (scaleFactorFlag == 'yes') {
+                            // MOD GRID
+                            gridsterCellW = newScaledGridsterCellW;
+                            gridsterCellH = newScaledGridsterCellH;
+                            widgetsContainerWidth = dashboardParams.width;
+                        }
+
                         break;
                         
                     case "smallResponsive":
                         if($(window).width() > 768)
                         {
-                            gridsterCellW = 76;
-                            gridsterCellH = 38;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = 76;
+                                gridsterCellH = 38;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
+                            }
                         }
                         else
                         {
-                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                            gridsterCellH = gridsterCellW/2;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols) - 2;
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols);
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW);
+                            }
                         }
                         break;
                         
                     case "mediumResponsive":
                         if($(window).width() > 992)
                         {
-                            gridsterCellW = 76;
-                            gridsterCellH = 38;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = 76;
+                                gridsterCellH = 38;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
+                            }
                         }
                         else
                         {
-                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                            gridsterCellH = gridsterCellW/2;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols) - 2;
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols);
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW);
+                            }
                         }
                         break;
                         
                     case "largeResponsive":
                         if($(window).width() > 1200)
                         {
-                            gridsterCellW = 76;
-                            gridsterCellH = 38;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = 76;
+                                gridsterCellH = 38;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
+                            }
                         }
                         else
                         {
-                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                            gridsterCellH = gridsterCellW/2;
-                            widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                            if (scaleFactorFlag == null) {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols) - 2;
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                            } else if (scaleFactorFlag == 'yes') {
+                                gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols);
+                                gridsterCellH = gridsterCellW / 2;
+                                widgetsContainerWidth = num_cols * (gridsterCellW);
+                            }
                         }
                         break;     
                         
                     case "alwaysResponsive":
-                        gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
-                        gridsterCellH = gridsterCellW/2;
-                        widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                        if (scaleFactorFlag == null) {
+                            gridsterCellW = Math.floor(parseInt($('body').width() * 0.98) / num_cols) - 2;
+                            gridsterCellH = gridsterCellW / 2;
+                            widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                        } else {
+                            gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                            gridsterCellH = gridsterCellW/2;
+                        //    widgetsContainerWidth = dashboardParams.width;
+                            widgetsContainerWidth = num_cols * (gridsterCellW);
+                        }
                         break;
                         
                     default:
-                        gridsterCellW = 76;
-                        gridsterCellH = 38;
-                        widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+                        if (scaleFactorFlag == null) {
+                            gridsterCellW = 76;
+                            gridsterCellH = 38;
+                            widgetsContainerWidth = num_cols * (gridsterCellW + 2);
+                        } else if (scaleFactorFlag == 'yes') {
+                            // MOD GRID
+                            gridsterCellW = newScaledGridsterCellW;
+                            gridsterCellH = newScaledGridsterCellH;
+                            widgetsContainerWidth = dashboardParams.width;
+                        }
                         break;    
                 }
                 
@@ -951,14 +1083,27 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     $("#logos a.footerLogo").hide();
                     $("#logos #embedAutoLogoContainer").show();
                }
-               
+
+                if (scaleFactorFlag == null) {
+                    widgetMargins = [1, 1];
+                    extra_rows_gridster = 100;
+                    max_rows_gridster = 100;
+                } else if (scaleFactorFlag == 'yes') {
+                    widgetMargins = [0, 0];
+                    extra_rows_gridster = 100 * scaleFactorH;
+                    max_rows_gridster = 100 * scaleFactorH;
+                }
+
                 gridster = $("#gridsterUl").gridster({
                     widget_base_dimensions: [gridsterCellW, gridsterCellH],
-                    widget_margins: [1, 1],
+                 //   widget_margins: [1, 1],
+                    widget_margins: widgetMargins,
                     min_cols: num_cols,
                     max_size_x: 100,
-                    max_rows: 100,
-                    extra_rows: 100,
+                //    max_rows: 100,
+                    max_rows: max_rows_gridster,
+                //    extra_rows: 100,
+                    extra_rows: extra_rows_gridster,
                     draggable: {ignore_dragging: false},
                     serialize_params: function ($w, wgd){
                         return {
@@ -1335,7 +1480,18 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     async: true,//LASCIARLA ASINCRONA.
                     dataType: 'json',
                     success: function (response) 
-                    {  
+                    {
+                        scaleFactorFlag = response.dashboardParams.scaleFactor;
+                        if (scaleFactorFlag == "yes") {
+                            scaleFactorW = 78 / newScaledGridsterCellW;
+                            scaleFactorH = 39 / newScaledGridsterCellH;
+                        //    scaleFactorH = scaleFactorW;
+                            //    dashboardParams.num_columns = Math.round(scaleFactorW * dashboardParams.num_columns);
+                        //    response.dashboardParams.num_columns = Math.round(scaleFactorW * (response.dashboardParams.num_columns) + scaleFactorW);
+                        } else if (scaleFactorFlag == null) {
+                            scaleFactorW = 1;
+                            scaleFactorH = 1;
+                        }
                         switch(response.visibility)
                         {
                             case 'public':

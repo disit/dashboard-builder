@@ -451,7 +451,26 @@
                 $response['detail'] = 'queryKo';
               }
               break;
-          
+
+        case "updateNewGridDims":
+            $newWidth = mysqli_real_escape_string($link, $_REQUEST['newWidth']);
+            $newHeight = mysqli_real_escape_string($link, $_REQUEST['newHeight']);
+            $newNCols = mysqli_real_escape_string($link, $_REQUEST['newNCols']);
+            $newNRows = mysqli_real_escape_string($link, $_REQUEST['newNRows']);
+            $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
+            $query = "UPDATE Dashboard.Config_widget_dashboard SET size_columns = '$newWidth', size_rows = '$newHeight', n_row = '$newNRows', n_column = '$newNCols', scaleFactor = 'yes' WHERE name_w = '$widgetName'";
+            $result = mysqli_query($link, $query);
+
+            if($result)
+            {
+                $response['detail'] = 'Ok';
+            }
+            else
+            {
+                $response['detail'] = 'queryKo';
+            }
+            break;
+
             default:
               break;
 	}

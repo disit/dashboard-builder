@@ -2280,6 +2280,13 @@
                     var choosenWidgetType = null;
                     var mainWidget, targetWidget, unit, icon, mono_multi, widgetCategory = null;
                     var dashTitleEscaped = null;
+                    var scaleFactorFlag, extra_rows_gridster, max_rows_gridster = null;
+                    var scaleFactorW = 1;
+                    var scaleFactorH = 1;
+                  /*  var newScaledGridsterCellW = 15;
+                    var newScaledGridsterCellH = 7; */
+                    var newScaledGridsterCellW = 26;
+                    var newScaledGridsterCellH = 13;
 
                     $('#dashBckCnt').css("height", ($(window).height() - $('#dashboardViewHeaderContainer').height()) + "px");
                     var changeMetricSelectedRows = {};
@@ -3481,8 +3488,13 @@
                             setTimeout(function(){
                                 gridWidth = $("#dashboardViewWidgetsContainer").width();
                                 gridHeight = $(window).height()*2;
-                                gridRowsNumber = gridHeight / (gridsterCellH + 2);
-                                gridColsNumber = gridWidth / (gridsterCellW + 2);
+                                if (scaleFactorFlag == 'yes') {
+                                    gridRowsNumber = gridHeight / gridsterCellH;
+                                    gridColsNumber = gridWidth / gridsterCellW;
+                                } else {
+                                    gridRowsNumber = gridHeight / (gridsterCellH + 2);
+                                    gridColsNumber = gridWidth / (gridsterCellW + 2);
+                                }
                                 var newRow = null;
                                 var gridTableTop = $('#dashboardViewWidgetsContainer').offset().top;
                                 var gridTableLeft = $('#dashboardViewWidgetsContainer').offset().left;
@@ -3527,6 +3539,12 @@
                                 gridsterCellW = 76;
                                 gridsterCellH = 38;
                                 widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
+
                                 break;
 
                             case "smallResponsive":
@@ -3535,12 +3553,22 @@
                                     gridsterCellW = 76;
                                     gridsterCellH = 38;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = newScaledGridsterCellW;
+                                    gridsterCellH = newScaledGridsterCellH;
+                                    widgetsContainerWidth = dashboardParams.width;
                                 }
                                 else
                                 {
                                     gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                     gridsterCellH = gridsterCellW/2;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                    gridsterCellH = gridsterCellW/2;
+                                    widgetsContainerWidth = num_cols*(gridsterCellW);
                                 }
                                 break;
 
@@ -3550,12 +3578,22 @@
                                     gridsterCellW = 76;
                                     gridsterCellH = 38;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = newScaledGridsterCellW;
+                                    gridsterCellH = newScaledGridsterCellH;
+                                    widgetsContainerWidth = dashboardParams.width;
                                 }
                                 else
                                 {
                                     gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                     gridsterCellH = gridsterCellW/2;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                    gridsterCellH = gridsterCellW/2;
+                                    widgetsContainerWidth = num_cols*(gridsterCellW);
                                 }
                                 break;
                                 
@@ -3565,12 +3603,22 @@
                                     gridsterCellW = 76;
                                     gridsterCellH = 38;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = newScaledGridsterCellW;
+                                    gridsterCellH = newScaledGridsterCellH;
+                                    widgetsContainerWidth = dashboardParams.width;
                                 }
                                 else
                                 {
                                     gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                     gridsterCellH = gridsterCellW/2;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                    gridsterCellH = gridsterCellW/2;
+                                    widgetsContainerWidth = num_cols*(gridsterCellW);
                                 }
                                 break;     
 
@@ -3578,12 +3626,23 @@
                                 gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                 gridsterCellH = gridsterCellW/2;
                                 widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                // MOD GRID
+                                gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                gridsterCellH = gridsterCellW/2;
+                            //    widgetsContainerWidth = dashboardParams.width;
+                                widgetsContainerWidth = num_cols*(gridsterCellW);
                                 break;
 
                             default:
                                 gridsterCellW = 76;
                                 gridsterCellH = 38;
                                 widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                // MOD GRID
+                                gridsterCellW = newScaledGridsterCellW;
+                                gridsterCellH = newScaledGridsterCellH;
+                                widgetsContainerWidth = dashboardParams.width;
                                 break;    
                         }
 
@@ -3592,7 +3651,8 @@
 
                         gridster.resize_widget_dimensions({
                             widget_base_dimensions: [gridsterCellW, gridsterCellH],
-                            widget_margins: [1, 1]
+                        //    widget_margins: [1/scaleFactorW, 1/scaleFactorH],
+                            widget_margins: [0, 0]
                         });
                         
                         $('li.gs_w').trigger({
@@ -4412,8 +4472,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -4493,8 +4553,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                 $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                 $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -4759,8 +4819,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -5024,8 +5084,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -5272,8 +5332,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -5514,9 +5574,9 @@
 
                                 break;
                         }
-                        
-                        $('#inputSizeRowsWidget').val("6");
-                        $('#inputSizeColumnsWidget').val("3");
+
+                        $('#inputSizeRowsWidget').val(6 * (78 / newScaledGridsterCellW));     // MOD GRID
+                        $('#inputSizeColumnsWidget').val(3 * (39 / newScaledGridsterCellH));    // MOD GRID
                         $('#inputFreqWidget').val("600");
                     });	
                     
@@ -5655,8 +5715,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -5736,8 +5796,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -6002,8 +6062,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -6385,8 +6445,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -6714,8 +6774,8 @@
                                 $('#addWidgetFirstAidHospital').prop("required", false);
                                 $('#addWidgetFirstAidHospital').val(-1);
                                 $('#inputFirstAidRow').hide();
-                                $('#inputSizeRowsWidget').val(8);
-                                $('#inputSizeColumnsWidget').val(4);
+                                $('#inputSizeRowsWidget').val(8 * (78 / newScaledGridsterCellW));     // MOD GRID
+                                $('#inputSizeColumnsWidget').val(4 * (39 / newScaledGridsterCellH));    // MOD GRID
 
                                 //Parametri specifici del widget
                                 $('#specificWidgetPropertiesDiv .row').remove();
@@ -15036,9 +15096,9 @@
                                     removeWidgetProcessGeneralFields("addWidget");
                                     break;
                             }//Fine switch
-                        
-                        $('#inputSizeRowsWidget').val("6");
-                        $('#inputSizeColumnsWidget').val("3");
+
+                        $('#inputSizeRowsWidget').val(6 * (78 / newScaledGridsterCellW));     // MOD GRID
+                        $('#inputSizeColumnsWidget').val(3 * (39 / newScaledGridsterCellH));    // MOD GRID
                         $('#inputFreqWidget').val("600");
                     };
                     
@@ -15121,6 +15181,23 @@
                             dashboardId = dashboardParams.Id;
                             dashBckImg = dashboardParams.bckImgFilename;
                             useBckImg = dashboardParams.useBckImg;
+                            scaleFactorFlag = dashboardParams.scaleFactor;
+                            if (scaleFactorFlag == null) {
+                             /*   scaleFactorW = 5;
+                                scaleFactorH = 5.4; */
+                            /*    scaleFactorW = 4.8125;
+                                scaleFactorH = 4.3333;*/
+                            /*    scaleFactorW = 5.0666;
+                                scaleFactorH = 4.3333;*/
+                                scaleFactorW = 78 / newScaledGridsterCellW;
+                                scaleFactorH = 39 / newScaledGridsterCellH;
+                            //    scaleFactorH = scaleFactorW;
+                                dashboardParams.num_columns = Math.round(scaleFactorW * dashboardParams.num_columns);
+                             //   dashboardParams.num_columns = Math.round(scaleFactorW * (dashboardParams.num_columns) + scaleFactorW);
+                            } else if (scaleFactorFlag == "yes") {
+                                scaleFactorW = 1;
+                                scaleFactorH = 1;
+                            }
                             
                             if((dashBckImg !== null)&&(useBckImg === 'yes'))
                             {
@@ -15479,11 +15556,17 @@
                                     gridsterCellW = 76;
                                     gridsterCellH = 38;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
-                                    /*
-                                    gridsterCellW = 8;
-                                    gridsterCellH = 4;
-                                    widgetsContainerWidth = num_cols*4*(gridsterCellW + 2);
-                                    */
+
+                                    // MOD GRID
+                                    gridsterCellW = newScaledGridsterCellW;
+                                    gridsterCellH = newScaledGridsterCellH;
+                                    if (dashboardParams.scaleFactor != 'yes') {
+                                    //    widgetsContainerWidth = Math.round(num_cols * (gridsterCellW + 2 / scaleFactorW));
+                                        widgetsContainerWidth = Math.round(num_cols * (gridsterCellW));
+                                    } else {
+                                        widgetsContainerWidth = dashboardParams.width;
+                                    }
+
                                     break;
 
                                 case "smallResponsive":
@@ -15492,12 +15575,28 @@
                                         gridsterCellW = 76;
                                         gridsterCellH = 38;
                                         widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                        // MOD GRID
+                                        gridsterCellW = newScaledGridsterCellW;
+                                        gridsterCellH = newScaledGridsterCellH;
+                                        if (dashboardParams.scaleFactor != 'yes') {
+                                            //    widgetsContainerWidth = Math.round(num_cols * (gridsterCellW + 2 / scaleFactorW));
+                                            widgetsContainerWidth = Math.round(num_cols * (gridsterCellW));
+                                        } else {
+                                            widgetsContainerWidth = dashboardParams.width;
+                                        }
                                     }
                                     else
                                     {
                                         gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                         gridsterCellH = gridsterCellW/2;
                                         widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                        // MOD GRID
+                                        gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                        gridsterCellH = gridsterCellW/2;
+                                        widgetsContainerWidth = num_cols*(gridsterCellW);
+
                                     }
                                     break;
 
@@ -15507,12 +15606,27 @@
                                         gridsterCellW = 76;
                                         gridsterCellH = 38;
                                         widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                        // MOD GRID
+                                        gridsterCellW = newScaledGridsterCellW;
+                                        gridsterCellH = newScaledGridsterCellH;
+                                        if (dashboardParams.scaleFactor != 'yes') {
+                                            //    widgetsContainerWidth = Math.round(num_cols * (gridsterCellW + 2 / scaleFactorW));
+                                            widgetsContainerWidth = Math.round(num_cols * (gridsterCellW));
+                                        } else {
+                                            widgetsContainerWidth = dashboardParams.width;
+                                        }
                                     }
                                     else
                                     {
                                         gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                         gridsterCellH = gridsterCellW/2;
                                         widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                        // MOD GRID
+                                        gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                        gridsterCellH = gridsterCellW/2;
+                                        widgetsContainerWidth = num_cols*(gridsterCellW);
                                     }
                                     break;
                                     
@@ -15522,12 +15636,27 @@
                                         gridsterCellW = 76;
                                         gridsterCellH = 38;
                                         widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                        // MOD GRID
+                                        gridsterCellW = newScaledGridsterCellW;
+                                        gridsterCellH = newScaledGridsterCellH;
+                                        if (dashboardParams.scaleFactor != 'yes') {
+                                            //    widgetsContainerWidth = Math.round(num_cols * (gridsterCellW + 2 / scaleFactorW));
+                                            widgetsContainerWidth = Math.round(num_cols * (gridsterCellW));
+                                        } else {
+                                            widgetsContainerWidth = dashboardParams.width;
+                                        }
                                     }
                                     else
                                     {
                                         gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                         gridsterCellH = gridsterCellW/2;
                                         widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                        // MOD GRID
+                                        gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                        gridsterCellH = gridsterCellW/2;
+                                        widgetsContainerWidth = num_cols*(gridsterCellW);
                                     }
                                     break;    
 
@@ -15535,25 +15664,52 @@
                                     gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols) - 2;
                                     gridsterCellH = gridsterCellW/2;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = Math.floor(parseInt($('body').width()*0.98) / num_cols);
+                                    gridsterCellH = gridsterCellW/2;
+                                //    widgetsContainerWidth = dashboardParams.width;
+                                    widgetsContainerWidth = num_cols*(gridsterCellW);
+
                                     break;
 
                                 default:
                                     gridsterCellW = 76;
                                     gridsterCellH = 38;
                                     widgetsContainerWidth = num_cols*(gridsterCellW + 2);
+
+                                    // MOD GRID
+                                    gridsterCellW = newScaledGridsterCellW;
+                                    gridsterCellH = newScaledGridsterCellH;
+                                    if (dashboardParams.scaleFactor != 'yes') {
+                                        //    widgetsContainerWidth = Math.round(num_cols * (gridsterCellW + 2 / scaleFactorW));
+                                        widgetsContainerWidth = Math.round(num_cols * (gridsterCellW));
+                                    } else {
+                                        widgetsContainerWidth = dashboardParams.width;
+                                    }
                                     break;    
                             }
 
                             $('#dashboardViewWidgetsContainer').css('width', widgetsContainerWidth + "px");
                             $('div.footerLogos').css('margin-right', ($('body').width() - widgetsContainerWidth)/2);
-                            
+
+                            extra_rows_gridster = 100 * (39 / newScaledGridsterCellH);      // force scaling for base gridster
+                            max_rows_gridster = 100 * (39 / newScaledGridsterCellH);        // force scaling for base gridster
+
                             gridster = $("#gridsterUl").gridster({
                                 widget_base_dimensions: [gridsterCellW, gridsterCellH],
-                                widget_margins: [1, 1],
+                            //    avoid_overlapped_widgets: true,
+                              //  widget_base_dimensions: [Math.round(gridsterCellW * scaleFactor), Math.round(gridsterCellH * scaleFactor)],
+                              //  widget_margins: [1, 1],
+                            //    widget_margins: [1/scaleFactorW, 1/scaleFactorH],
+                                widget_margins: [0, 0],
                                 min_cols: num_cols,
+                            //    max_cols: num_cols,
                                 max_size_x: 100,
-                                max_rows: 100,
-                                extra_rows: 100,
+                            /*    max_rows: 100,
+                                extra_rows: 100,*/
+                                max_rows: max_rows_gridster,
+                                extra_rows: extra_rows_gridster,
                                 resize: {
                                    enabled: true,
                                    resize: function(e, ui, $widget){
@@ -15613,7 +15769,7 @@
                                     stop: function(event, ui){
                                         firstFreeRow = 1;
                                         draggedWidgetId = $(event.target).parents('li.gs_w').attr('id');
-					$('.applicationCtxMenu').hide();					
+					                    $('.applicationCtxMenu').hide();
                                         
                                         setTimeout(function(){
                                             $('.applicationCtxMenu').hide();
@@ -15658,7 +15814,47 @@
                             
                             for(var i = 0; i < dashboardWidgets.length; i++)
                             {
-                                temp = parseInt(parseInt(dashboardWidgets[i]['n_row']) + parseInt(dashboardWidgets[i]['size_rows']));
+                              //  if (i != 0) {
+                                    dashboardWidgets[i]['n_row'] = Math.round(parseInt(dashboardWidgets[i]['n_row'] - 1) * scaleFactorH) + 1;
+                                    dashboardWidgets[i]['n_column'] = Math.round(parseInt(dashboardWidgets[i]['n_column'] - 1) * scaleFactorW) + 1;
+                              /*  } else {
+
+                                }   */
+                                dashboardWidgets[i]['size_rows'] = Math.round(parseInt(dashboardWidgets[i]['size_rows']) * scaleFactorH);
+                                dashboardWidgets[i]['size_columns'] = Math.round(parseInt(dashboardWidgets[i]['size_columns']) * scaleFactorW);
+                                temp = parseInt(parseInt(dashboardWidgets[i]['n_row']) + parseInt(dashboardWidgets[i]['size_rows']))
+                             //   temp = parseInt(Math.round(parseInt(dashboardWidgets[i]['n_row']) * scaleFactorH) + parseInt(dashboardWidgets[i]['size_rows']));
+
+                                if (dashboardWidgets[i].scaleFactor != 'yes') {
+
+                                    $.ajax({
+                                        url: "../controllers/updateWidget.php",
+                                        data: {
+                                            action: "updateNewGridDims",
+                                            widgetName: dashboardWidgets[i]['name_w'],
+                                            newWidth: dashboardWidgets[i]['size_columns'],
+                                            newHeight: dashboardWidgets[i]['size_rows'],
+                                            newNCols: dashboardWidgets[i]['n_column'],
+                                            newNRows: dashboardWidgets[i]['n_row']
+                                        },
+                                        type: "POST",
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function(data)
+                                        {
+                                            if(data.detail === 'Ok') {
+                                                console.log("Succesfully updated new Grid Dimensions for widget: " + $('#widgetInfoModalWidgetName').val());
+                                            } else {
+                                                console.log("Error while updating new Grid Dimensions for widget: " + $('#widgetInfoModalWidgetName').val());
+                                            }
+                                        },
+                                        error: function(errorData) {
+                                            console.log("Error while adding updateing new Grid Dimensions for widget: " + $('#widgetInfoModalWidgetName').val());
+                                        }
+                                    });
+
+                                }
+
                                 if(temp > firstFreeRow)
                                 {
                                     firstFreeRow = temp;
@@ -15719,8 +15915,10 @@
                             setTimeout(function(){
                                 gridWidth = $("#dashboardViewWidgetsContainer").width();
                                 gridHeight = $(window).height()*2;
-                                gridRowsNumber = gridHeight / (gridsterCellH + 2);
-                                gridColsNumber = gridWidth / (gridsterCellW + 2);
+                            /*    gridRowsNumber = gridHeight / (gridsterCellH + 2/scaleFactorH);
+                                gridColsNumber = gridWidth / (gridsterCellW + 2/scaleFactorW);*/
+                                gridRowsNumber = gridHeight / (gridsterCellH);
+                                gridColsNumber = gridWidth / (gridsterCellW);
                                 var newRow = null;
                                 var gridTableTop = $('#dashboardViewWidgetsContainer').offset().top;
                                 var gridTableLeft = $('#dashboardViewWidgetsContainer').offset().left;
@@ -15744,12 +15942,40 @@
                             }, 1000);
                             
                             $('#firstFreeRowInput').val(firstFreeRow);
+
+                            if (dashboardParams.scaleFactor != 'yes') {
+                                $.ajax({
+                                    url: "../controllers/updateDashboard.php",
+                                    data: {
+                                        action: "updateNewGrid",
+                                        dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
+                                        newNumColumns: num_cols,
+                                        newWidth: widgetsContainerWidth
+                                    },
+                                    type: "POST",
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        if (data.detail !== 'Ok') {
+                                            alert("Error while updating dashboard scaleFactor");
+                                        } else {
+                                            // OK
+                                            console.log("Succesfully updated new Grid Dimensions for current dashboard.");
+                                        }
+                                    },
+                                    error: function (errorData) {
+                                        alert("Error while updating dashboard scaleFactor");
+                                    }
+                                });
+                            }
+
                         },
                         error: function(data) 
                         {
                             console.log("Errore in chiamata di get_data.php --> getDashboardParamsAndWidgets.php");
                             console.log(JSON.stringify(data));
                         }
+                        
                     });
                     
                     //Reperimento elenco metriche personali NodeRed

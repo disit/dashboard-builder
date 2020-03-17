@@ -21,6 +21,7 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
        // $mapPinIcon = null;
         $newMapPinColor = "#959595";
      //   $defaultPinColor = "#959595";
+        $scaleFactor = 3;
         
         if($this->widgetTypeDbRow['mono_multi'] == 'Mono')
         {
@@ -127,7 +128,7 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
             }
 
             $this->startParams->parameters = json_encode($selectorParameters);
-            $this->startParams->size_rows = $count + 1;
+            $this->startParams->size_rows = ($count + 1) * $scaleFactor;
             $this->startParams->title_w = "Selector";
         }
         

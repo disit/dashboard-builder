@@ -319,7 +319,7 @@
                                 showUpdateResult("API KO");
                                 console.log("Update value KO");
                               }
-                            },3000)
+                            },60000)
                         } else {
                             console.log(widgetName+" ERR1 socket not OPEN");
                             requestComplete = true;

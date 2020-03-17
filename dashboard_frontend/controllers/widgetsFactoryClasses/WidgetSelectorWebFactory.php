@@ -7,6 +7,8 @@ class WidgetSelectorWebFactory extends aGenericWidgetFactory
     {
         $defaultColors1 = ["#ffdb4d", "#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900"];
         $defaultColors2 = ["#fff5cc", "#ffe0b3", "#ffcccc", "#99ffff", "#99e6ff", "#adebad", "#80ff80"];
+    //    $myIconText = "Text Description";
+        $scaleFactor = 3;
         
         if($this->widgetTypeDbRow['mono_multi'] == 'Mono')
         {
@@ -69,7 +71,8 @@ class WidgetSelectorWebFactory extends aGenericWidgetFactory
                             "color2" => $defaultColors2[$count%7], 
                             "defaultOption" => false, 
                             "desc" => $selectedRow['sub_nature'], 
-                            "display" => "pins", 
+                            "display" => "pins",
+                        //    "iconText" => $myIconText,
                             "query" => $rowQuery, 
                             "symbolMode" => "auto", 
                             "targets" => "[]",];
@@ -80,7 +83,7 @@ class WidgetSelectorWebFactory extends aGenericWidgetFactory
             }
             
             $this->startParams->parameters = json_encode($selectorParameters);
-            $this->startParams->size_rows = $count + 1;
+            $this->startParams->size_rows = ($count + 1) * $scaleFactor;
             $this->startParams->title_w = "Selector Web";
         }
         

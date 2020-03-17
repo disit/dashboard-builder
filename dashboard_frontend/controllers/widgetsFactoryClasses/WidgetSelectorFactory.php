@@ -10,6 +10,7 @@ class WidgetSelectorFactory extends aGenericWidgetFactory
         $myQueryType = null;
         $defaultColors1 = ["#ffdb4d", "#ff9900", "#ff6666", "#00e6e6", "#33ccff", "#33cc33", "#009900"];
         $defaultColors2 = ["#fff5cc", "#ffe0b3", "#ffcccc", "#99ffff", "#99e6ff", "#adebad", "#80ff80"];
+        $scaleFactor = 3;
         
         if($this->widgetTypeDbRow['mono_multi'] == 'Mono')
         {
@@ -83,7 +84,7 @@ class WidgetSelectorFactory extends aGenericWidgetFactory
             }
 
             $this->startParams->parameters = json_encode($selectorParameters);
-            $this->startParams->size_rows = $count + 1;
+            $this->startParams->size_rows = ($count + 1) * $scaleFactor;
             $this->startParams->title_w = "Selector";
         }
         

@@ -51,6 +51,7 @@
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var needWebSocket = false;
+        var scaleFactor = null;
 
         console.log("Entrato in widgetGaugeChart --> " + widgetName);
         
@@ -417,8 +418,12 @@
                            plotBands: null,
                            title: null
                       };
-                      
-                        var labelFontSize = 12 * (widgetHeight / 7);
+
+                       if (scaleFactor == null) {
+                           var labelFontSize = 12 * (widgetHeight / 7);
+                       } else {
+                           var labelFontSize = (12 * (widgetHeight / 7)) / 3;
+                       }
                            
                         //Costruzione degli stop e delle plot lines delle soglie
                         if((thresholdObject !== null) && (thresholdObject !== 'undefined'))
@@ -809,6 +814,7 @@
                 sm_based = widgetData.params.sm_based;
                 rowParameters = widgetData.params.rowParameters;
                 sm_field = widgetData.params.sm_field;
+                scaleFactor = widgetData.params.scaleFactor;
                 
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {

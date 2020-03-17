@@ -252,6 +252,7 @@
         $sourceWidgetRow = NULL;
         $sourceEntityJson = NULL;
         $selectedRowIds = [];
+        $scaleFactor = 3;
         
             if($newWidgetType == NULL || $newWidgetType == "none")
             {
@@ -330,8 +331,11 @@
                                     $n_column = 1;
 
                                     //Costruzione size_rows e size_columns
-                                    $size_rows = $defaultParameters['size_rows'];
-                                    $size_columns = $defaultParameters['size_columns'];
+                                /*    $size_rows = $defaultParameters['size_rows'];
+                                    $size_columns = $defaultParameters['size_columns'];*/
+                                    // MOD GRID
+                                    $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                    $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                                     //Costruzione nome del widget
                                     $id_metric = null;
@@ -626,8 +630,12 @@
                                         $n_column = 1;
 
                                         //Costruzione size_rows e size_columns
-                                        $size_rows = $defaultParameters['size_rows'];
-                                        $size_columns = $defaultParameters['size_columns'];
+                                      /*  $size_rows = $defaultParameters['size_rows'];
+                                        $size_columns = $defaultParameters['size_columns'];*/
+
+                                        // MOD GRID
+                                        $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                        $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
                                         
                                         //Costruzione nome del widget
                                         if(($widgetCategory == 'actuator')&&($selectedRow['high_level_type'] == 'Sensor-Actuator')&&($selectedRow['nature'] == 'From Dashboard to IOT Device'))
@@ -1046,8 +1054,12 @@
                                         $n_column = 1;
 
                                         //Costruzione size_rows e size_columns
-                                        $size_rows = $defaultParameters['size_rows'];
-                                        $size_columns = $defaultParameters['size_columns'];
+                                    /*    $size_rows = $defaultParameters['size_rows'];
+                                        $size_columns = $defaultParameters['size_columns'];*/
+
+                                        // MOD GRID
+                                        $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                        $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                                         //Costruzione nome del widget
                                         if(isset($selectedRow['unique_name_id']))
@@ -1161,8 +1173,12 @@
                                                 $n_column = $n_column + $size_columns;
 
                                                 //Costruzione size_rows e size_columns
-                                                $size_rows = $defaultParametersTarget[$i]['size_rows'];
-                                                $size_columns = $defaultParametersTarget[$i]['size_columns'];
+                                             /*   $size_rows = $defaultParametersTarget[$i]['size_rows'];
+                                                $size_columns = $defaultParametersTarget[$i]['size_columns'];*/
+
+                                                 // MOD GRID
+                                                 $size_rows = $defaultParametersTarget[$i]['size_rows'] * $scaleFactor;
+                                                 $size_columns = $defaultParametersTarget[$i]['size_columns'] * $scaleFactor;
 
                                                 //Costruzione nome del widget
                                                 if($targetWidgets[$i] == 'widgetTimeTrend')
@@ -1332,8 +1348,12 @@
                                 $n_column = 1;
 
                                 //Costruzione size_rows e size_columns
-                                $size_rows = $defaultParameters['size_rows'];
-                                $size_columns = $defaultParameters['size_columns'];
+                            /*    $size_rows = $defaultParameters['size_rows'];
+                                $size_columns = $defaultParameters['size_columns'];*/
+
+                                // MOD GRID
+                                $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                                 //Costruzione nome del widget
                                 if(isset($selectedRow['unique_name_id']))
@@ -1474,8 +1494,12 @@
                                 $n_column = 1;
 
                                 //Costruzione size_rows e size_columns
-                                $size_rows = $defaultParameters['size_rows'];
-                                $size_columns = $defaultParameters['size_columns'];
+                            /*    $size_rows = $defaultParameters['size_rows'];
+                                $size_columns = $defaultParameters['size_columns'];*/
+
+                                // MOD GRID
+                                $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                                 //Costruzione nome del widget
                                 if(isset($selectedRow['unique_name_id']))
@@ -1601,8 +1625,12 @@
                                                 $title_w = "Selector - Map";
                                                 $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
                                                 //Costruzione size_rows e size_columns
-                                                $size_rows = $defaultParametersTarget[$i]['size_rows'];
-                                                $size_columns = $defaultParametersTarget[$i]['size_columns'];
+                                            /*    $size_rows = $defaultParametersTarget[$i]['size_rows'];
+                                                $size_columns = $defaultParametersTarget[$i]['size_columns'];*/
+
+                                                // MOD GRID
+                                                $size_rows = $defaultParametersTarget[$i]['size_rows'] * $scaleFactor;
+                                                $size_columns = $defaultParametersTarget[$i]['size_columns'] * $scaleFactor;
                                             } else {
                                                 $n_row = $firstFreeRow + $size_rows;
                                                 $n_column = $n_column;
@@ -1611,8 +1639,14 @@
                                                 $infoJson = "fromTracker";
                                                 $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
                                                 //Costruzione size_rows e size_columns
-                                                $size_rows = $defaultParametersTarget[$i]['size_rows'] - 2;
-                                                $size_columns = max($size_columns, $defaultParametersTarget[$i]['size_columns']);
+                                            /*    $size_rows = $defaultParametersTarget[$i]['size_rows'] - 2;
+                                                $size_columns = max($size_columns, $defaultParametersTarget[$i]['size_columns']);*/
+
+                                                // MOD GRID
+                                                $size_rows = $defaultParametersTarget[$i]['size_rows'] * $scaleFactor - 4;
+                                            //    $size_columns = $defaultParametersTarget[$i]['size_columns'] * $scaleFactor;
+                                                $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
+
                                              //   $rowParameters = "datamanager/api/v1/poidata/" . $rowParametersToTarget;
                                                 $rowParameters = $rowParametersToTarget;
                                             }
@@ -1884,6 +1918,7 @@
         $sourceWidgetRow = NULL;
         $sourceEntityJson = NULL;
         $selectedRowIds = [];
+        $scaleFactor = 3;
         $oldWidgetIdToUpdate = escapeForSQL($_REQUEST['widgetId'], $link);
 
         if($newWidgetType == NULL || $newWidgetType == "none")
@@ -1964,8 +1999,12 @@
                                 $n_column = 1;
 
                                 //Costruzione size_rows e size_columns
-                                $size_rows = $defaultParameters['size_rows'];
-                                $size_columns = $defaultParameters['size_columns'];
+                            /*    $size_rows = $defaultParameters['size_rows'];
+                                $size_columns = $defaultParameters['size_columns'];*/
+
+                                // MOD GRID
+                                $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                                 //Costruzione nome del widget
                                 $id_metric = null;
@@ -2272,8 +2311,12 @@
                                     $n_column = 1;
 
                                     //Costruzione size_rows e size_columns
-                                    $size_rows = $defaultParameters['size_rows'];
-                                    $size_columns = $defaultParameters['size_columns'];
+                                /*    $size_rows = $defaultParameters['size_rows'];
+                                    $size_columns = $defaultParameters['size_columns'];*/
+
+                                    // MOD GRID
+                                    $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                    $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                                     //Costruzione nome del widget
                                     if(($widgetCategory == 'actuator')&&($selectedRow['high_level_type'] == 'Sensor-Actuator')&&($selectedRow['nature'] == 'From Dashboard to IOT Device'))
@@ -2696,8 +2739,12 @@
                                     $n_column = 1;
 
                                     //Costruzione size_rows e size_columns
-                                    $size_rows = $defaultParameters['size_rows'];
-                                    $size_columns = $defaultParameters['size_columns'];
+                                /*    $size_rows = $defaultParameters['size_rows'];
+                                    $size_columns = $defaultParameters['size_columns'];*/
+
+                                    // MOD GRID
+                                    $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                                    $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                                     //Costruzione nome del widget
                                     if(isset($selectedRow['unique_name_id']))
@@ -2820,8 +2867,12 @@
                                             $n_column = $n_column + $size_columns;
 
                                             //Costruzione size_rows e size_columns
-                                            $size_rows = $defaultParametersTarget[$i]['size_rows'];
-                                            $size_columns = $defaultParametersTarget[$i]['size_columns'];
+                                        /*    $size_rows = $defaultParametersTarget[$i]['size_rows'];
+                                            $size_columns = $defaultParametersTarget[$i]['size_columns'];*/
+
+                                            // MOD GRID
+                                            $size_rows = $defaultParametersTarget[$i]['size_rows'] * $scaleFactor;
+                                            $size_columns = $defaultParametersTarget[$i]['size_columns'] * $scaleFactor;
 
                                             //Costruzione nome del widget
                                             if($targetWidgets[$i] == 'widgetTimeTrend')
@@ -2991,8 +3042,12 @@
                             $n_column = 1;
 
                             //Costruzione size_rows e size_columns
-                            $size_rows = $defaultParameters['size_rows'];
-                            $size_columns = $defaultParameters['size_columns'];
+                        /*    $size_rows = $defaultParameters['size_rows'];
+                            $size_columns = $defaultParameters['size_columns'];*/
+
+                            // MOD GRID
+                            $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                            $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                             //Costruzione nome del widget
                             if(isset($selectedRow['unique_name_id']))
@@ -3145,8 +3200,12 @@
                             $n_column = 1;
 
                             //Costruzione size_rows e size_columns
-                            $size_rows = $defaultParameters['size_rows'];
-                            $size_columns = $defaultParameters['size_columns'];
+                        /*    $size_rows = $defaultParameters['size_rows'];
+                            $size_columns = $defaultParameters['size_columns'];*/
+
+                            // MOD GRID
+                            $size_rows = $defaultParameters['size_rows'] * $scaleFactor;
+                            $size_columns = $defaultParameters['size_columns'] * $scaleFactor;
 
                             //Costruzione nome del widget
                             if(isset($selectedRow['unique_name_id']))
@@ -3264,8 +3323,12 @@
                                         $n_column = $n_column + $size_columns;
 
                                         //Costruzione size_rows e size_columns
-                                        $size_rows = $defaultParametersTarget[$i]['size_rows'];
-                                        $size_columns = $defaultParametersTarget[$i]['size_columns'];
+                                    /*    $size_rows = $defaultParametersTarget[$i]['size_rows'];
+                                        $size_columns = $defaultParametersTarget[$i]['size_columns'];*/
+
+                                        // MOD GRID
+                                        $size_rows = $defaultParametersTarget[$i]['size_rows'] * $scaleFactor;
+                                        $size_columns = $defaultParametersTarget[$i]['size_columns'] * $scaleFactor;
 
                                         //Costruzione nome del widget
                                         $id_metric = "ToBeReplacedByFactory";
@@ -3606,8 +3669,10 @@
             $subtitle = "";  
             $color = "rgba(51, 204, 255, 1)";  //E' header color
             $background = "#FFFFFF";  
-            $externalColor = "#FFFFFF";  
-            $nCols = 24;  
+            $externalColor = "#FFFFFF";
+            // MOD GRID
+        //    $nCols = 24;
+            $nCols = 72;
             $headerFontColor = "white";  
             $headerFontSize = 28;
             $viewMode = "fixed";
@@ -3618,7 +3683,9 @@
             $headerVisible = 1;
             $embeddable = "yes";
             $authorizedPagesJson = "[]";
-            $width = ($nCols * 78) + 10;
+            // MOD GRID
+        //    $width = ($nCols * 78) + 10;
+            $width = ($nCols * 26);
             
             $lastUsedColors = [
                 "rgba(51, 204, 255, 1)",
@@ -3668,8 +3735,8 @@
 
                     $q = "INSERT INTO Dashboard.Config_dashboard
                     (name_dashboard, title_header, subtitle_header, color_header,
-                    width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, last_edit_date, lastUsedColors, organizations) 
-                    VALUES ('$title', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP, '$lastUsedColorsJson', '$org')";
+                    width, height, num_rows, num_columns, user, status_dashboard, creation_date, color_background, external_frame_color, headerFontColor, headerFontSize, visibility, headerVisible, embeddable, authorizedPagesJson, viewMode, last_edit_date, lastUsedColors, organizations, scaleFactor) 
+                    VALUES ('$title', '$title', '$subtitle', '$color', $width, 0, 0, $nCols, '$dashboardAuthorName', 1, now(), '$background', '$externalColor', '$headerFontColor', $headerFontSize, '$visibility', $headerVisible, '$embeddable', '$authorizedPagesJson', '$viewMode', CURRENT_TIMESTAMP, '$lastUsedColorsJson', '$org', 'yes')";
 
                     $r = mysqli_query($link, $q);
 
