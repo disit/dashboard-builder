@@ -766,7 +766,7 @@ func createDashboard(db *sql.DB, dat map[string]interface{}) bool {
 	color := "rgba(51, 204, 255, 1)"
 	background := "#FFFFFF"
 	externalColor := "#FFFFFF"
-	nCols := 15
+	nCols := 15;
 	headerFontColor := "white"
 	headerFontSize := 28
 	viewMode := "alwaysResponsive"
@@ -1010,7 +1010,8 @@ func insertW(db *sql.DB, username interface{}, dashboardTitle interface{}, widge
 	newWidgetType := widgetType
 	var firstFreeRow interface{} = nil
 	var id interface{}
-	err := db.QueryRow("SELECT Id FROM "+dashboard+".Config_dashboard WHERE user =  ?  AND title_header = ? ;", username, dashboardTitle).Scan(&id)
+	var scaleFactor sql.NullString 
+	err := db.QueryRow("SELECT Id,scaleFactor FROM "+dashboard+".Config_dashboard WHERE user =  ?  AND title_header = ? ;", username, dashboardTitle).Scan(&id,&scaleFactor)
 	if err != nil {
 		log.Print(err)
 	}
@@ -1078,9 +1079,14 @@ func insertW(db *sql.DB, username interface{}, dashboardTitle interface{}, widge
 					n_column = 1
 
 					// costruzione size_rows e size_columns
+                                        var scale = 1.0;
+                                        log.Print("SCALEFACTOR ",scaleFactor)
+                                        if scaleFactor.Valid && scaleFactor.String=="yes" {
+                                           scale = 3.0
+                                        }
 
-					size_rows := dbRow2["size_rows"]
-					size_columns := dbRow2["size_columns"]
+					size_rows := dbRow2["size_rows"].(float64) * scale
+					size_columns := dbRow2["size_columns"].(float64) * scale
 
 					// costruzione nome widget
 
@@ -1103,9 +1109,9 @@ func insertW(db *sql.DB, username interface{}, dashboardTitle interface{}, widge
 						"infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered,notificatorEnabled, enableFullscreenTab, "+
 						"enableFullscreenModal, fontFamily, entityJson, attributeName, creator, lastEditor, canceller,lastEditDate, cancelDate, "+
 						"actuatorTarget, actuatorEntity, actuatorAttribute, chartColor, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize,"+
-						"chartLabelsFontColor, sm_based, rowParameters, sm_field, wizardRowIds) VALUES(?, ?, ?, ?, ?, ?, ?, ?,"+
+						"chartLabelsFontColor, sm_based, rowParameters, sm_field, wizardRowIds, scaleFactor) VALUES(?, ?, ?, ?, ?, ?, ?, ?,"+
 						" ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?,"+
-						" ?, ?, ?, ?, ? ,? , null);", appId, flowId, metricType, nodeId, name_w, id_dashboard,
+						" ?, ?, ?, ?, ? ,? , null, ?);", appId, flowId, metricType, nodeId, name_w, id_dashboard,
 						id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, dbRow2["color_w"], dbRow2["frequency_w"],
 						dbRow2["temporal_range_w"], dbRow2["municipality_w"], dbRow2["infoMessage_w"], dbRow2["link_w"], dbRow2["parameters"],
 						dbRow2["frame_color_w"], dbRow2["udm"], dbRow2["udmPos"], dbRow2["fontSize"], dbRow2["fontColor"], dbRow2["controlsPosition"],
@@ -1115,7 +1121,7 @@ func insertW(db *sql.DB, username interface{}, dashboardTitle interface{}, widge
 						dbRow2["enableFullscreenModal"], dbRow2["fontFamily"], dbRow2["entityJson"], dbRow2["attributeName"], creator, sql.NullString{}, dbRow2["canceller"],
 						dbRow2["lastEditDate"], dbRow2["cancelDate"], dbRow2["actuatorTarget"], dbRow2["actuatorEntity"], dbRow2["actuatorAttribute"],
 						dbRow2["chartColor"], dbRow2["dataLabelsFontSize"], dbRow2["dataLabelsFontColor"], dbRow2["chartLabelsFontSize"], dbRow2["chartLabelsFontColor"],
-						"no", sql.NullString{}, sql.NullString{})
+						"no", sql.NullString{}, sql.NullString{}, scaleFactor)
 
 					if err2 != nil {
 

@@ -162,7 +162,7 @@ func ownershipLimitsDash(dat map[string]interface{}) (int, int, error) {
 }*/
 
 func checkToken(accessToken string, clientID string) (string, string, error) {
-	log.Print("checkToken")
+	//log.Print("checkToken")
 	ctx := context.Background()
 	provider, err := oidc.NewProvider(ctx, ws.ssoIssuer)
 	if err != nil {
@@ -201,7 +201,7 @@ func checkToken(accessToken string, clientID string) (string, string, error) {
 	} else if claims["preferred_username"] != nil {
 		username = claims["preferred_username"].(string)
 	}
-	log.Print(claims)
+	//log.Print(claims)
 	roles, ok := claims["roles"].([]interface{})
 	if ok {
 		for _, value := range roles {
