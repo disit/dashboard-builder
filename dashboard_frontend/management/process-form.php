@@ -2511,6 +2511,8 @@
         $clockFontM = NULL;
         $enableFullscreenTabM = 'no';
         $enableFullscreenModalM = 'no';
+        $xAxisFormat = NULL;
+        $yAxisType = NULL;
     //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
         if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
             $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidgetM'));
@@ -3005,8 +3007,20 @@
                     array_push($barsColorsM, $color);
                 }
             }
-
             $styleParametersArrayM['barsColors'] = $barsColorsM;
+
+            if(isset($_POST['xAxisFormat'])&&($_POST['xAxisFormat']!=""))
+            {
+                $xAxisFormat = sanitizePostString('xAxisFormat');
+            }
+            $styleParametersArrayM['xAxisFormat'] = $xAxisFormat;
+
+            if(isset($_POST['yAxisType'])&&($_POST['yAxisType']!=""))
+            {
+                $yAxisType = sanitizePostString('yAxisType');
+            }
+            $styleParametersArrayM['yAxisType'] = $yAxisType;
+
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 

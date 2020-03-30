@@ -10904,6 +10904,38 @@
                                     newInnerDiv.show();
                                     newInput.show();
 
+                                    //Nuova Riga
+                                    //X-Axis Format
+                                    // Rimuovere commento solo dopo aver testato su vecchie curvedLineSeries !
+                                /*    newFormRow = $('<div class="row"></div>');
+                                    $("#specificParamsM").append(newFormRow);
+                                    newLabel = $('<label for="xAxisFormat" class="col-md-2 control-label">X-Axis format</label>');
+                                    newInnerDiv = $('<div class="col-md-3" id="chartTypeDiv"></div>');
+                                    newSelect = $('<select class="form-control" id="xAxisFormat" name="xAxisFormat"></select>');
+                                    newSelect.append("<option value='lines'>Timestamp</option>");
+                                    newSelect.append("<option value='area'>Numeric</option>");
+                                    newSelect.val(styleParameters.chartType);
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newSelect.show();
+
+                                    //Y-Axis Type
+                                    newLabel = $('<label for="yAxisType" class="col-md-2 control-label">Y-Axis type</label>');
+                                    newInnerDiv = $('<div class="col-md-3" id="chartTypeDiv"></div>');
+                                    newSelect = $('<select class="form-control" id="yAxisType" name="yAxisType"></select>');
+                                    newSelect.append("<option value='lines'>Linear</option>");
+                                    newSelect.append("<option value='area'>Logarithmic</option>");
+                                    newSelect.val(styleParameters.chartType);
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newSelect.show();   */
+
                                     //Nuova riga
                                     //X-Axis labels font size
                                     newFormRow = $('<div class="row"></div>');
@@ -11435,7 +11467,7 @@
                                     var currentParams, i, k, currentFieldIndex, currentSeriesIndex = null;
                                     var metricId = $('#select-metric').val();
                                     var metricData = getMetricData(metricId);
-                                    if (metricData.data.length != 0) {
+                                    if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                         var seriesString = metricData.data[0].commit.author.series;
                                         var series = jQuery.parseJSON(seriesString);
                                     } else {
@@ -15815,7 +15847,7 @@
                             for(var i = 0; i < dashboardWidgets.length; i++)
                             {
                               //  if (i != 0) {
-                                    dashboardWidgets[i]['n_row'] = Math.round(parseInt(dashboardWidgets[i]['n_row'] - 1) * scaleFactorH) + 1;
+                                dashboardWidgets[i]['n_row'] = Math.round(parseInt(dashboardWidgets[i]['n_row'] - 1) * scaleFactorH) + 1;
                                     dashboardWidgets[i]['n_column'] = Math.round(parseInt(dashboardWidgets[i]['n_column'] - 1) * scaleFactorW) + 1;
                               /*  } else {
 
@@ -24150,7 +24182,7 @@
                                         var colorsArray = new Array();    
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        if (metricData.data.length != 0) {
+                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
@@ -24265,6 +24297,37 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newInput.show();
+
+                                        //Nuova Riga
+                                        //X-Axis Format
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="xAxisFormat" class="col-md-2 control-label">X-Axis format</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="xAxisFormat" name="xAxisFormat"></select>');
+                                        newSelect.append("<option value='timestamp'>Timestamp</option>");
+                                        newSelect.append("<option value='numeric'>Numeric</option>");
+                                        newSelect.val(styleParameters.xAxisFormat);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+
+                                        //Y-Axis Type
+                                        newLabel = $('<label for="yAxisType" class="col-md-2 control-label">Y-Axis type</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="yAxisType" name="yAxisType"></select>');
+                                        newSelect.append("<option value='linear'>Linear</option>");
+                                        newSelect.append("<option value='logarithmic'>Logarithmic</option>");
+                                        newSelect.val(styleParameters.yAxisType);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
                                         
                                         //Nuova riga
                                         //X-Axis labels font size

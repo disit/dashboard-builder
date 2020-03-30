@@ -356,7 +356,11 @@
             $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
 
             $myKpiDataArray = [];
-            $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&" . $timeRange;
+            if(isset($_SESSION['refreshToken'])) {
+                $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&" . $timeRange;
+            } else {
+                $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager" . $timeRange;
+            }
 
             $options = array(
                 'http' => array(
@@ -370,7 +374,11 @@
             $context = stream_context_create($options);
             $myKPIDataJson = file_get_contents($apiUrl, false, $context);
 
-            $apiUrlUnit = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
+            if(isset($_SESSION['refreshToken'])) {
+                $apiUrlUnit = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
+            } else {
+                $apiUrlUnit = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKPIId . "/?sourceRequest=dashboardmanager&accessToken=";
+            }
             $optionsUnit = array(
                 'http' => array(
                     'header' => "Content-type: application/x-www-form-urlencoded\r\n",

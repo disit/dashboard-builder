@@ -45,7 +45,7 @@
         var addSampleToTrend = null;
         var metricData, metricType, series, styleParameters, timeRange, gridLineColor, chartAxesColor, chartType, index, highchartsChartType, chartSeriesObject, legendWidth, xAxisCategories, rowParameters, aggregationGetData, getDataFinishCount, xAxisType,
             dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, stackingOption, fontSize, fontColor, chartColor, dataLabelsFontSize, chartLabelsFontSize, dataLabelsFontColor, chartLabelsFontColor, appId, flowId, nrMetricType,
-            widgetHeight, lineWidth, xAxisTitle, smField, metricName, widgetTitle, countdownRef, widgetParameters, thresholdsJson, infoJson = null;
+            widgetHeight, lineWidth, xAxisTitle, smField, metricName, widgetTitle, countdownRef, widgetParameters, thresholdsJson, infoJson, xAxisFormat, yAxisType = null;
         var serviceUri = "";
         var editLabels = "";
         var valueUnit = null;
@@ -164,7 +164,39 @@
             
             return format;
         }
-        
+
+        function truncateStackedSerie(serie, timeRange) {
+
+            var truncatedSerie = [];
+            var truncatedMillis = null;
+
+          /*  switch(timeRange) {
+                case "Annuale":
+
+                    for (let n = 0; n < serie.length; n++) {
+                        truncatedMillis = moment(serie[n][0]).hours(0).minutes(0).seconds(0).milliseconds(0).valueOf();
+                        truncatedSerie[n] = [truncatedMillis, serie[n][1]];
+                    }
+
+                    break;
+
+                case "lines":
+                    break;
+
+                default:
+                    break;
+            }*/
+
+            for (let n = 0; n < serie.length; n++) {
+             //   truncatedMillis = moment(serie[n][0]).hours(0).minutes(0).seconds(0).milliseconds(0).valueOf();
+                truncatedMillis = moment(serie[n][0]).milliseconds(0).valueOf();
+                truncatedSerie[n] = [truncatedMillis, serie[n][1]];
+            }
+
+            return truncatedSerie;
+
+        }
+
         function getChartSeriesObject(series, xAxisLabelsEdit)
         {
             var chartSeriesObject, singleObject, seriesName, seriesValue, seriesValues, zonesObject, zonesArray, inf, sup, i = null;
@@ -779,11 +811,17 @@
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
 	}
 
-        function drawDiagram(timeDomain)
+        function drawDiagram(timeDomain, xAxisFormat, yAxisFormat)
         {
             if(timeDomain)
             {
-                xAxisType = 'datetime';
+                if (xAxisFormat == null) {
+                    xAxisType = 'datetime';
+                } else if (xAxisFormat == "timestamp") {
+                    xAxisType = 'datetime';
+                } else if (xAxisFormat == "Numeric") {
+                    xAxisType = 'numeric';
+                }
                 xAxisCategories = null;
             }
             else
@@ -791,9 +829,21 @@
                 xAxisType = null;
             }
 
+            if (yAxisFormat == null) {
+                yAxisType = "linear";
+            } else if (yAxisFormat == "logarithmic") {
+                yAxisType = "logarithmic";
+            } else {
+                yAxisType = "linear";
+            }
+
             let yAxisText = null;
             if (chartSeriesObject.valueUnit != null) {
                 yAxisText = chartSeriesObject.valueUnit;
+            }
+
+            if (yAxisType == "logarithmic") {
+                yAxisText = yAxisText + " (logarithmic)";
             }
 
             if (chartSeriesObject[0] != null) {
@@ -856,6 +906,7 @@
                             }
                         },
                         yAxis: {
+                            type: yAxisType,
                             lineWidth: 1,
                             lineColor: chartAxesColor,
                             gridLineWidth: 1,
@@ -1207,12 +1258,17 @@
                          let currDate = new Date();
                          let currMillis = currDate.getTime();
 
-                         for (let n = 0; n < extractedData.values.length; n++) {
-                             let timestamp = extractedData.values[n][0];
-                             if (timestamp >= currMillis - millisToSubtract) {
-                                 timeSlicedData.push(extractedData.values[n]);
+                         if (xAxisFormat != "numeric") {
+                             for (let n = 0; n < extractedData.values.length; n++) {
+                                 let timestamp = extractedData.values[n][0];
+                                 if (timestamp >= currMillis - millisToSubtract) {
+                                     timeSlicedData.push(extractedData.values[n]);
+                                 }
                              }
+                         } else {
+                             timeSlicedData = extractedData.values;
                          }
+
                          seriesSingleObj = {
                              showInLegend: true,
                              name: objName,
@@ -1274,7 +1330,8 @@
                         {
                             newVal = resultsArray[j].value;
                             addSampleToTrend = true;
-                            newTime = resultsArray[j].insertTime;
+                        //    newTime = resultsArray[j].insertTime;
+                            newTime = resultsArray[j].dataTime;
                             chartSeriesObject.valueUnit = "";
 
                             if((newVal.trim() !== '')&&(addSampleToTrend))
@@ -1286,6 +1343,10 @@
                                 singleSample = [sampleTime, roundedVal];
                                 singleSeriesData.push(singleSample);
                             }
+                        }
+
+                        if (stackingOption == "normal") {
+                            singleSeriesData = truncateStackedSerie(singleSeriesData, timeRange);
                         }
 
                         seriesSingleObj = {
@@ -1368,6 +1429,10 @@
                                 }
                             }
 
+                            if (stackingOption == "normal") {
+                                singleSeriesData = truncateStackedSerie(singleSeriesData, timeRange);
+                            }
+
                             seriesSingleObj = {
                                 showInLegend: true,
                             //    name: aggregationGetData[i].metricName,
@@ -1443,6 +1508,10 @@
                                             singleSample = [sampleTime, roundedVal];
                                             singleSeriesData.push(singleSample);
                                         }
+                                    }
+
+                                    if (stackingOption == "normal") {
+                                        singleSeriesData = truncateStackedSerie(singleSeriesData, timeRange);
                                     }
 
                                     seriesSingleObj = {
@@ -1594,7 +1663,7 @@
                                     });
                             //    }
 
-                                drawDiagram(true);
+                                drawDiagram(true, xAxisFormat, yAxisType);
                             }
                         },
                         error: function(errorData)
@@ -1663,7 +1732,7 @@
                                 $("#<?= $_REQUEST['name_w'] ?>_table").show();
                             }
 
-                            drawDiagram(false);
+                            drawDiagram(false, xAxisFormat, yAxisType);
                         }
                         else
                         {
@@ -1780,6 +1849,8 @@
                 if((widgetData.params.styleParameters !== "")&&(widgetData.params.styleParameters !== "null"))
                 {
                     styleParameters = JSON.parse(widgetData.params.styleParameters);
+                    xAxisFormat = styleParameters.xAxisFormat;
+                    yAxisType = styleParameters.yAxisType;
                 }
                 
                 if(widgetData.params.parameters !== null)
