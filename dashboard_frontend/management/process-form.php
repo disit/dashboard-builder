@@ -2513,6 +2513,7 @@
         $enableFullscreenModalM = 'no';
         $xAxisFormat = NULL;
         $yAxisType = NULL;
+        $rowParameters = NULL;
     //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
         if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
             $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidgetM'));
@@ -3022,6 +3023,23 @@
             $styleParametersArrayM['yAxisType'] = $yAxisType;
 
             $styleParametersM = json_encode($styleParametersArrayM);
+
+            if(isset($_POST['parametersM'])&&($_POST['parametersM']!="")) {
+                $rowParameters = sanitizeJsonRelaxed($_POST['parametersM']);
+                $parametersArray = json_decode($rowParameters, false);
+                for($i = (sizeof($parametersArray)) - 1; $i >= 0; $i--) {
+                    if (isset($parametersArray[$i]->deleted)) {
+                        if ($parametersArray[$i]->deleted == true) {
+                         //   array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
+                            unset($parametersArray[$i]);
+                        }
+                    }
+                }
+
+                $rowParameters = json_encode(array_values($parametersArray));
+                $_POST['parametersM'] = NULL;
+            }
+
         }
 
         if($type_widget_m == "widgetBarSeries")
@@ -3933,7 +3951,7 @@
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) . ", infoJson = " . returnManagedStringForDb($infoJsonM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
-                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb(escapeForSQL($styleParametersM, $link))
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb(escapeForSQL($styleParametersM, $link)) . ", rowParameters = COALESCE(" . returnManagedStringForDb(escapeForSQL($rowParameters, $link)) . ", rowParameters)"
                        . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew) . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily) . ", lastEditor = " . returnManagedStringForDb(escapeForSQL($lastEditor, $link)) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate) . " WHERE Id = '$widgetIdM' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
            }
            else
@@ -3944,7 +3962,7 @@
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
-                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb(escapeForSQL($styleParametersM, $link))
+                       . ", defaultTab = " . returnManagedNumberForDb($inputDefaultTabM) . ", zoomControlsColor = " . returnManagedStringForDb($zoomControlsColorM) . ", headerFontColor = " . returnManagedStringForDb($headerFontColorM) . ", styleParameters = " . returnManagedStringForDb(escapeForSQL($styleParametersM, $link)) . ", rowParameters = COALESCE(" . returnManagedStringForDb(escapeForSQL($rowParameters, $link)) . ", rowParameters)"
                        . ", serviceUri = " . returnManagedStringForDb($serviceUri) . ($type_widget_m == "widgetMap" ? "" : ", viewMode = " . returnManagedStringForDb($viewMode)) . ", hospitalList = " . returnManagedStringForDb($hospitalList) . ", lastSeries = " . returnManagedStringForDb($lastSeries) . ", notificatorRegistered = " . returnManagedStringForDb($notificatorRegisteredNew)
                        . ", notificatorEnabled = " . returnManagedStringForDb($notificatorEnabledNew) . ", enableFullscreenTab = " . returnManagedStringForDb($enableFullscreenTabM) . ", enableFullscreenModal = " . returnManagedStringForDb($enableFullscreenModalM) . ", fontFamily = ". returnManagedStringForDb($fontFamily)
                        . ", lastEditor = " . returnManagedStringForDb(escapeForSQL($lastEditor, $link)) . ", lastEditDate = " . returnManagedStringForDb($lastEditDate)

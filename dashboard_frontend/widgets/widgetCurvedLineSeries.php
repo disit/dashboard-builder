@@ -1003,20 +1003,28 @@
                                     message = "No range defined on this field";
                                 }
 
+                                var chartItemIdx = chartSeriesObject.findIndex(el => el.name === this.series.name);
+                                var dateLine = null;
+                                if (styleParameters.xAxisFormat == "numeric" && rowParameters[chartItemIdx].metricHighLevelType == "Dynamic") {
+                                    dateLine = "";
+                                } else {
+                                    dateLine = '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>';
+                                }
+
                                 if (rangeOnThisField) {
                                     if ((desc !== null) && (desc !== '')) {
                                         return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                            '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>' +
+                                            dateLine +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';
                                     } else {
                                         return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                            '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>' +
+                                            dateLine +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
                                     }
                                 } else {
                                     return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                        '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>' +
+                                        dateLine +
                                         '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
                                 }
                             }
@@ -1218,12 +1226,18 @@
                          seriesDataArray.push(extractedData);
 
                         var objName = null;
-                        if (editLabels != null) {
+                     /*   if (editLabels != null) {
                             if (editLabels.length > 0) {
                                 objName = editLabels[i];
                             } else {
                                 objName = aggregationGetData[i].metricName;
                             }
+                        } else {
+                            objName = aggregationGetData[i].metricName;
+                        }*/
+
+                        if (aggregationGetData[i].label) {
+                            objName = aggregationGetData[i].label;
                         } else {
                             objName = aggregationGetData[i].metricName;
                         }
@@ -1258,44 +1272,50 @@
                          let currDate = new Date();
                          let currMillis = currDate.getTime();
 
-                         if (xAxisFormat != "numeric") {
-                             for (let n = 0; n < extractedData.values.length; n++) {
-                                 let timestamp = extractedData.values[n][0];
-                                 if (timestamp >= currMillis - millisToSubtract) {
-                                     timeSlicedData.push(extractedData.values[n]);
+                         if (extractedData.values) {
+                             if (xAxisFormat != "numeric") {
+                                 for (let n = 0; n < extractedData.values.length; n++) {
+                                     let timestamp = extractedData.values[n][0];
+                                     if (timestamp >= currMillis - millisToSubtract) {
+                                         timeSlicedData.push(extractedData.values[n]);
+                                     }
                                  }
+                             } else {
+                                 timeSlicedData = extractedData.values;
                              }
                          } else {
-                             timeSlicedData = extractedData.values;
+                             timeSlicedData = [];
                          }
 
-                         seriesSingleObj = {
-                             showInLegend: true,
-                             name: objName,
-                         //    data: extractedData.values,
-                             data: timeSlicedData,
-                             color: styleParameters.barsColors[i],
-                             dataLabels: {
-                                 useHTML: false,
-                                 enabled: false,
-                                 inside: true,
-                                 rotation: dataLabelsRotation,
-                                 overflow: 'justify',
-                                 crop: true,
-                                 align: dataLabelsAlign,
-                                 verticalAlign: dataLabelsVerticalAlign,
-                                 y: dataLabelsY,
-                                 formatter: labelsFormat,
-                                 style: {
-                                     fontFamily: 'Montserrat',
-                                     fontSize: styleParameters.dataLabelsFontSize + "px",
-                                     color: styleParameters.dataLabelsFontColor,
-                                     fontWeight: 'bold',
-                                     fontStyle: 'italic',
-                                     "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
+                         if (timeSlicedData.length != 0) {
+                             seriesSingleObj = {
+                                 showInLegend: true,
+                                 name: objName,
+                                 //    data: extractedData.values,
+                                 data: timeSlicedData,
+                                 color: styleParameters.barsColors[i],
+                                 dataLabels: {
+                                     useHTML: false,
+                                     enabled: false,
+                                     inside: true,
+                                     rotation: dataLabelsRotation,
+                                     overflow: 'justify',
+                                     crop: true,
+                                     align: dataLabelsAlign,
+                                     verticalAlign: dataLabelsVerticalAlign,
+                                     y: dataLabelsY,
+                                     formatter: labelsFormat,
+                                     style: {
+                                         fontFamily: 'Montserrat',
+                                         fontSize: styleParameters.dataLabelsFontSize + "px",
+                                         color: styleParameters.dataLabelsFontColor,
+                                         fontWeight: 'bold',
+                                         fontStyle: 'italic',
+                                         "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
+                                     }
                                  }
-                             }
-                         };
+                             };
+                         }
 
                          if (extractedData.metricValueUnit != null) {
                              chartSeriesObject.valueUnit = extractedData.metricValueUnit;
@@ -1316,7 +1336,7 @@
                         var resultsArray = smPayload;
 
                         var objName = null;
-                        if (editLabels != null) {
+                    /*    if (editLabels != null) {
                             if (editLabels.length > 0) {
                                 objName = editLabels[i];
                             } else {
@@ -1324,6 +1344,12 @@
                             }
                         } else {
                             objName = aggregationGetData[i].metricName;
+                        }*/
+
+                        if (aggregationGetData[i].label) {
+                            objName = aggregationGetData[i].label;
+                        } else {
+                            objName = aggregationGetData[i].metricName + " - " + smField;
                         }
 
                         for(var j = 0; j < resultsArray.length; j++)
@@ -1390,7 +1416,7 @@
                         smPayload = JSON.parse(smPayload);
                         chartSeriesObject.valueUnit = "";
 
-                        var objName = null;
+                    /*    var objName = null;
                         if (editLabels != null) {
                             if (editLabels.length > 0) {
                                 objName = editLabels[i];
@@ -1399,6 +1425,12 @@
                             }
                         } else {
                             objName = aggregationGetData[i].metricName;
+                        }*/
+
+                        if (aggregationGetData[i].label) {
+                            objName = aggregationGetData[i].label;
+                        } else {
+                            objName = aggregationGetData[i].metricName + " - " + smField;
                         }
 
                         if(smPayload.hasOwnProperty('trends'))

@@ -267,12 +267,21 @@
                 if (!isset($dataOrigin->smField)) {
                     if (isset($dataOrigin->metricType)) {
                         $response['metricType'] = $dataOrigin->metricType;
-                        $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                        if ($dataOrigin->label != null) {
+                            $response['label'] = $dataOrigin->label;
+                        } else {
+                            $response['label'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                        }
                     }
                 } else {
                     $response['smField'] = $dataOrigin->smField;
-                    $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                    if ($dataOrigin->label != null) {
+                        $response['label'] = $dataOrigin->label;
+                    } else {
+                        $response['label'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                    }
                 }
+                $response['metricName'] = $dataOrigin->metricName;
                 $response['index'] = $index;
             }
             else
@@ -290,12 +299,21 @@
             if (!isset($dataOrigin->smField)) {
                 if (isset($dataOrigin->metricType)) {
                     $response['metricType'] = $dataOrigin->metricType;
-                    $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                    if ($dataOrigin->label != null) {
+                        $response['label'] = $dataOrigin->label;
+                    } else {
+                        $response['label'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                    }
                 }
             } else {
                 $response['smField'] = $dataOrigin->smField;
-                $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                if ($dataOrigin->label != null) {
+                    $response['label'] = $dataOrigin->label;
+                } else {
+                    $response['label'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                }
             }
+            $response['metricName'] = $dataOrigin->metricName;
             $response['index'] = $index;
             break;
 
@@ -344,7 +362,8 @@
                 $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
             }*/
 
-            $myKPIId = $dataOrigin->metricId;
+        //    $myKPIId = $dataOrigin->metricId;
+            $myKPIId = $dataOrigin->serviceUri;
             IF (strpos($myKPIId, 'datamanager/api/v1/poidata/') !== false) {
                 $myKPIId = explode("datamanager/api/v1/poidata/", $myKPIId)[1];
             }
@@ -403,12 +422,21 @@
                 if (!isset($dataOrigin->smField)) {
                     if (isset($dataOrigin->metricType)) {
                         $response['metricType'] = $dataOrigin->metricType;
-                        $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                        if ($dataOrigin->label != null) {
+                            $response['label'] = $dataOrigin->label;
+                        } else {
+                            $response['label'] = $dataOrigin->metricName . " - " . $dataOrigin->metricType;
+                        }
                     }
                 } else {
                     $response['smField'] = $dataOrigin->smField;
-                    $response['metricName'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                    if ($dataOrigin->label != null) {
+                        $response['label'] = $dataOrigin->label;
+                    } else {
+                        $response['label'] = $dataOrigin->metricName . " - " . $dataOrigin->smField;
+                    }
                 }
+                $response['metricName'] = $dataOrigin->metricName;
                 $response['metricValueUnit'] = $myKpiUnit->valueUnit;
                 $response['index'] = $index;
             }

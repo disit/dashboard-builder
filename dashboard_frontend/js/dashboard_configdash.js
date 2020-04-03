@@ -15,7 +15,7 @@
 
 //Globals
 var series, widgetType, editors, editorsM, currentEditor, infoJson, currentParamsSingleValueWidget, parametersDiff, 
-    addWidgetConditionsArrayLocal, editWidgetConditionsArrayLocal, addGisParametersLocal, editGisParametersLocal, addWidgetSelectorRowRef = null;
+    addWidgetConditionsArrayLocal, editWidgetConditionsArrayLocal, addGisParametersLocal, editGisParametersLocal, addMultiSeriesParametersLocal, editMultiSeriesParametersLocal, addWidgetSelectorRowRef = null;
     
 var gisDefaultColors = [
     {
@@ -55,9 +55,19 @@ function setAddGisParameters(addGisParametersAtt)
     addGisParametersLocal = addGisParametersAtt;
 }
 
+function setAddMultiSeriesParameters(addMultiSeriesParametersAtt)
+{
+    addMultiSeriesParametersLocal = addMultiSeriesParametersAtt;
+}
+
 function setEditGisParameters(editGisParametersAtt)
 {
     editGisParametersLocal = editGisParametersAtt;
+}
+
+function setEditMultiSeriesParameters(editMultiSeriesParametersAtt)
+{
+    editMultiSeriesParametersLocal = editMultiSeriesParametersAtt;
 }
 
 function addGisQuery()
@@ -712,6 +722,111 @@ function addGisQueryM()
    $('#parametersM').val(JSON.stringify(editGisParametersLocal));
 }
 
+function addMultiSeriesQueryM()
+{
+    var newTableRow, newTableCell, newQueryObj, widgetId, widgetTitle = null;
+
+    //Gestione caso nessuna soglia pregressa: costruiamo l'object literal per i parametri
+    if(editMultiSeriesParametersLocal === null)
+    {
+        //Creazione del JSON dei parametri
+        editMultiSeriesParametersLocal = {};
+    }
+
+    newQueryObj = {
+        metricName: "",
+        serviceUri: "",
+        metricHighLevelType: "",
+        smField : "",
+        lineColor: gisDefaultColors[($("#editMultiSeriesQueryTable tr").length - 1)%7].color1,
+    };
+
+    editMultiSeriesParametersLocal.push(newQueryObj);
+
+    //Aggiunta record alla tabella GUI delle query
+    newTableRow = $('<tr></tr>');
+
+
+    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="labels"></a></td>');
+    newTableCell.find('a').editable({
+        emptytext: "Empty",
+        display: function(value, response){
+            if(value.length > 30)
+            {
+                $(this).html(value.substring(0, 30) + "...");
+            }
+            else
+            {
+                $(this).html(value);
+            }
+        }
+    });
+    newTableRow.append(newTableCell);
+
+    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="queryIDUrl"></td>');
+    newTableCell.find('a').editable({
+        emptytext: "Empty",
+        display: function(value, response){
+            if(value.length > 45)
+            {
+                $(this).html(value.substring(0, 45) + "...");
+            }
+            else
+            {
+                $(this).html(value);
+            }
+        }
+    });
+    newTableRow.append(newTableCell);
+
+    // High Level Type CELL
+  /*  newTableCell = $('<td><select data-param="hlt" class="form-control"></select></td>');
+    newTableCell.find('select').append('<option value="Sensor">Sensor</option>');
+    newTableCell.find('select').append('<option value="MyKPI">MyKPI</option>');
+    newTableCell.find('select').append('<option value="Dynamic">Dynamic</option>');
+    newTableCell.find('select').val('');
+    newTableCell.find('select').on('change', editMultiSeriesUpdateParams);
+    newTableRow.append(newTableCell);*/
+
+    // Value Type CELL
+    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="valueType"></td>');
+    newTableCell.find('a').editable({
+        emptytext: "Empty",
+        display: function (value, response) {
+            if (value.length > 12) {
+                $(this).html(value.substring(0, 12) + "...");
+            }
+            else {
+                $(this).html(value);
+            }
+        },
+    });
+    newTableRow.append(newTableCell);
+
+    newTableCell = $('<td><div class="input-group colorPicker" data-param="lineColor"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+    newTableRow.append(newTableCell);
+    newTableRow.find('div.colorPicker').colorpicker({color: gisDefaultColors[($("#editMultiSeriesQueryTable tr").length - 1)%7].color1, format: "rgba"});
+    //newTableRow.find('div.colorPicker').on('hidePicker', editGisParametersLocal);
+    newTableRow.find('div.colorPicker').on('hidePicker', editMultiSeriesUpdateParams);
+    newTableRow.find('div.colorPicker').on('changeColor', editMultiSeriesUpdateParams);
+
+    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+    newTableCell.find('i').click(delMultiSeriesQueryM);
+    newTableRow.append(newTableCell);
+    //newTableRow.find('a.toBeEdited').on('save', editGisParametersLocal);
+    newTableRow.find('a.toBeEdited').on('save', editMultiSeriesUpdateParams);
+
+    var colorsArray = JSON.parse($("#barsColorsM")[0].value);
+    colorsArray.push(gisDefaultColors[($("#editMultiSeriesQueryTable tr").length - 1)%7].color1);
+    $("#barsColorsM").val(JSON.stringify(colorsArray));
+
+    $("#editMultiSeriesQueryTable").append(newTableRow);
+
+    //    }
+    // GP LAST ICONTEXT END
+    $('#parametersM').val(JSON.stringify(editMultiSeriesParametersLocal));
+}
+
 function addGisUpdateParams(e, params) 
 {
    var param = $(this).attr('data-param');
@@ -769,6 +884,61 @@ function addGisUpdateParams(e, params)
    
    $('#parameters').val(JSON.stringify(addGisParametersLocal));
    checkAddWidgetConditions();
+}
+
+function addMultiSeriesUpdateParams(e, params)
+{
+    var param = $(this).attr('data-param');
+    var rowIndex = $(this).parents("tr").index() - 1;
+    var newValue = null;
+    var numberPattern = /^-?\d*\.?\d+$/;
+
+    //Aggiornamento dei parametri
+    switch(param)
+    {
+        case 'labels':
+            newValue = params.newValue;
+            addMultiSeriesParametersLocal[rowIndex].label = newValue;
+        //    addMultiSeriesParametersLocal[rowIndex].metricName = newValue;
+            break;
+
+        case 'queryIDUrl':
+            newValue = params.newValue;
+            addMultiSeriesParametersLocal[rowIndex].serviceUri = newValue;
+            addMultiSeriesParametersLocal[rowIndex].metricId = newValue;
+            if (newValue.includes("www.")) {
+                addMultiSeriesParametersLocal[rowIndex].metricHighLevelType = "Sensor";
+            } else if (newValue != "") {
+                addMultiSeriesParametersLocal[rowIndex].metricHighLevelType = "MyKPI";
+            }
+            break;
+
+        case 'hlt':
+            newValue = $(this).val();
+            addMultiSeriesParametersLocal[rowIndex].metricHighLevelType = newValue;
+            break;
+
+        case 'valueType':
+            newValue = params.newValue;
+            addMultiSeriesParametersLocal[rowIndex].smField = newValue;
+            break;
+
+        case 'lineColor':
+            newValue = $(this).colorpicker('getValue');
+        //    addMultiSeriesParametersLocal[rowIndex].lineColor = newValue;
+            var colorsArray = JSON.parse($("#barsColorsM")[0].value);
+            var index = parseInt($(this).parents('tr').index() - 1);
+            colorsArray[index] = newValue;
+            $("#barsColorsM").val(JSON.stringify(colorsArray));
+
+            break;
+
+        default:
+            break;
+    }
+
+    $('#parameters').val(JSON.stringify(addGisParametersLocal));
+    checkAddWidgetConditions();
 }
 
 function editGisUpdateParams(e, params) 
@@ -852,6 +1022,71 @@ function editGisUpdateParams(e, params)
    $('#parametersM').val(JSON.stringify(editGisParametersLocal));
 }
 
+function editMultiSeriesUpdateParams(e, params)
+{
+    var param = $(this).attr('data-param');
+    var rowIndex = $(this).parents("tr").index() - 1;
+    var newValue = null;
+    var numberPattern = /^-?\d*\.?\d+$/;
+
+    //Aggiornamento dei parametri
+    switch(param)
+    {
+        case 'labels':
+            newValue = params.newValue;
+            editMultiSeriesParametersLocal[rowIndex].label = newValue;
+        //    editMultiSeriesParametersLocal[rowIndex].metricName = newValue;
+            break;
+
+        case 'queryIDUrl':
+            newValue = params.newValue;
+            editMultiSeriesParametersLocal[rowIndex].serviceUri = newValue;
+            editMultiSeriesParametersLocal[rowIndex].metricId = newValue;
+            if (newValue.includes("www.")) {
+                editMultiSeriesParametersLocal[rowIndex].metricHighLevelType = "Sensor";
+            } else if (newValue != "") {
+                editMultiSeriesParametersLocal[rowIndex].metricHighLevelType = "MyKPI";
+            }
+            break;
+
+        case 'hlt':
+            newValue = $(this).val();
+            editMultiSeriesParametersLocal[rowIndex].metricHighLevelType = newValue;
+            break;
+
+        case 'valueType':
+            newValue = params.newValue;
+            editMultiSeriesParametersLocal[rowIndex].smField = newValue;
+            break;
+
+        case 'lineColor':
+            newValue = $(this).colorpicker('getValue');
+        //    editMultiSeriesParametersLocal[rowIndex].lineColor = newValue;
+            var colorsArray = JSON.parse($("#barsColorsM")[0].value);
+            var index = parseInt($(this).parents('tr').index() - 1);
+            colorsArray[index] = newValue;
+            $("#barsColorsM").val(JSON.stringify(colorsArray));
+
+            break;
+
+    /*    case 'display':
+            newValue = $(this).val();
+            editMultiSeriesParametersLocal.queries[rowIndex].display = newValue;
+            break;
+
+        case 'symbolColor':
+            //   newValue = $(this).val();
+            newValue = $(this).colorpicker('getValue');
+            editGisParametersLocal.queries[rowIndex].symbolColor = newValue;
+            break;*/
+
+        default:
+            break;
+    }
+
+    $('#parametersM').val(JSON.stringify(editMultiSeriesParametersLocal));
+}
+
 function delGisQuery(e)
 {
    var delIndex = parseInt($(this).parents('tr').index() - 1);
@@ -880,6 +1115,27 @@ function delGisQueryM(e)
    editGisParametersLocal.queries[delIndex].deleted = true;
    
    $('#parametersM').val(JSON.stringify(editGisParametersLocal));
+}
+
+function delMultiSeriesQueryM(e)
+{
+    var delIndex = parseInt($(this).parents('tr').index() - 1);
+
+    //Cancellazione della riga dalla tabella
+    //$(this).parents('tr').remove();
+    $(this).parents('tr').hide();
+
+    //Aggiornamento JSON parametri
+    //editGisParametersLocal.queries.splice(delIndex, 1);
+
+    editMultiSeriesParametersLocal[delIndex].deleted = true;
+
+    //    addMultiSeriesParametersLocal[rowIndex].lineColor = newValue;
+    var colorsArray = JSON.parse($("#barsColorsM")[0].value);
+    colorsArray.splice(delIndex, 1);;
+    $("#barsColorsM").val(JSON.stringify(colorsArray));
+
+    $('#parametersM').val(JSON.stringify(editMultiSeriesParametersLocal));
 }
 
 function addWidgetServerStatusNotificatorAndThresholdFields()
@@ -4079,6 +4335,7 @@ function alrThrFlagMListener()
 //Listener per settaggio/desettaggio campi in base ad asse selezionato
 function alrAxisSelMListener()
 {
+ //   console.log("alrAxisSelMListener.");
     var newField = null;
     $('#addWidgetRangeTableContainerM').empty();
 

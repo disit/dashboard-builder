@@ -16622,7 +16622,7 @@
                                 var entityJson = JSON.parse(data.entityJson);
                                 var attributeName = data.attributeName;
                                 var widgetTypeM = data.type_widget;
-                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech") {
+                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech" || widgetTypeM == "widgetCurvedLineSeries") {
                                     $("#specificParamsM").css("width", "100%");
                                 }
                                 var paramsRaw = data['param_w'];
@@ -24232,6 +24232,8 @@
                                         
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
+
+                                        setEditMultiSeriesParameters(rowParamsArray);
                                         
                                         if(styleParamsRaw !== null) 
                                         {
@@ -24288,8 +24290,8 @@
                                         newSelect.show();   */
 
                                         //Line width
-                                        newLabel = $('<label for="lineWidthM" class="col-md-2 control-label">Line width</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="lineWidthM" class="col-md-1 control-label">Line width</label>');
+                                        newInnerDiv = $('<div class="col-md-1"></div>');
                                         newInput = $('<input type="text" class="form-control" id="lineWidthM" name="lineWidthM" required>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24300,10 +24302,10 @@
 
                                         //Nuova Riga
                                         //X-Axis Format
-                                        newFormRow = $('<div class="row"></div>');
-                                        $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="xAxisFormat" class="col-md-2 control-label">X-Axis format</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                     /*   newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);*/
+                                        newLabel = $('<label for="xAxisFormat" class="col-md-1 control-label">X-Axis format</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newSelect = $('<select class="form-control" id="xAxisFormat" name="xAxisFormat"></select>');
                                         newSelect.append("<option value='timestamp'>Timestamp</option>");
                                         newSelect.append("<option value='numeric'>Numeric</option>");
@@ -24316,8 +24318,8 @@
                                         newSelect.show();
 
                                         //Y-Axis Type
-                                        newLabel = $('<label for="yAxisType" class="col-md-2 control-label">Y-Axis type</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="yAxisType" class="col-md-1 control-label">Y-Axis type</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newSelect = $('<select class="form-control" id="yAxisType" name="yAxisType"></select>');
                                         newSelect.append("<option value='linear'>Linear</option>");
                                         newSelect.append("<option value='logarithmic'>Logarithmic</option>");
@@ -24333,8 +24335,8 @@
                                         //X-Axis labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label">X-Axis labels font size</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-1 control-label">X-Axis labels font size</label>');
+                                        newInnerDiv = $('<div class="col-md-1"></div>');
                                         newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSizeM" name="rowsLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24344,8 +24346,8 @@
                                         newInput.show();
 
                                         //X-Axis labels font color
-                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label">X-Axis labels font color</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-1 control-label">X-Axis labels font color</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInput = $('<div id="rowsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColorM" name="rowsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24359,10 +24361,10 @@
                                         
                                         //Nuova riga
                                         //Y-Axis labels font size
-                                        newFormRow = $('<div class="row"></div>');
-                                        $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-2 control-label">Y-Axis labels font size</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                     /*   newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);*/
+                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-1 control-label">Y-Axis labels font size</label>');
+                                        newInnerDiv = $('<div class="col-md-1"></div>');
                                         newInput = $('<input type="text" class="form-control" id="colsLabelsFontSizeM" name="colsLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24372,8 +24374,8 @@
                                         newInput.show();
 
                                         //Y-Axis labels font color
-                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-2 control-label">Y-Axis labels font color</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-1 control-label">Y-Axis labels font color</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInput = $('<div id="colsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColorM" name="colsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetColsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24389,8 +24391,8 @@
                                         //Data labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-2 control-label">Data labels font size</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-1 control-label">Data labels font size</label>');
+                                        newInnerDiv = $('<div class="col-md-1"></div>');
                                         newInput = $('<input type="text" class="form-control" id="dataLabelsFontSizeM" name="dataLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24400,8 +24402,8 @@
                                         newInput.show();
 
                                         //Data labels font color
-                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-2 control-label">Data labels font color</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-1 control-label">Data labels font color</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInput = $('<div id="dataLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColorM" name="dataLabelsFontColorM" required><span class="input-group-addon"><i id="widgetDataLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24415,10 +24417,10 @@
                                         
                                         //Nuova riga
                                         //Legend font size
-                                        newFormRow = $('<div class="row"></div>');
-                                        $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="legendFontSizeM" class="col-md-2 control-label">Legend font size</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                    /*    newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);*/
+                                        newLabel = $('<label for="legendFontSizeM" class="col-md-1 control-label">Legend font size</label>');
+                                        newInnerDiv = $('<div class="col-md-1"></div>');
                                         newInput = $('<input type="text" class="form-control" id="legendFontSizeM" name="legendFontSizeM" required>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24428,8 +24430,8 @@
                                         newInput.show();
 
                                         //Legend font color
-                                        newLabel = $('<label for="legendFontColorM" class="col-md-2 control-label">Legend font color</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="legendFontColorM" class="col-md-1 control-label">Legend font color</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInput = $('<div id="legendFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="legendFontColorM" name="legendFontColorM" required><span class="input-group-addon"><i id="widgetLegendFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
@@ -24440,39 +24442,13 @@
                                         $('#legendFontColorM').show();
                                         $("#widgetLegendFontColorM").css('display', 'block');
                                         $("#widgetLegendFontColorM").parent().parent().parent().colorpicker({color: styleParameters.legendFontColor, format: "rgba"});
-                                        
-                                        //Nuova riga
-                                        //Lines colors
+
+                                        // Nuova Riga
+                                        //Chart type
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="barsColorsSelectM" class="col-md-2 control-label">Lines colors</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
-                                        newSelect = $('<select class="form-control" id="barsColorsSelectM" name="barsColorsSelectM"></select>');
-                                        newSelect.append('<option value="auto">Automatic</option>');
-                                        newSelect.append('<option value="manual">Manual</option>');
-                                        newSelect.val(styleParameters.barsColorsSelect);
-                                        newInnerDiv.append(newSelect);
-                                        newFormRow.append(newLabel);
-                                        newFormRow.append(newInnerDiv);
-                                        newLabel.show();
-                                        newInnerDiv.show();
-                                        newSelect.show();
-                                        
-                                        $('#barsColorsSelectM').change(function() 
-                                        {
-                                            if($('#barsColorsSelectM').val() === "manual")
-                                            {
-                                                $('#barsColorsTableContainerM').show();
-                                            }
-                                            else
-                                            {
-                                                $('#barsColorsTableContainerM').hide();
-                                            }
-                                        });
-
-                                        //Chart type
-                                        newLabel = $('<label for="chartTypeM" class="col-md-2 control-label">Chart type</label>');
-                                        newInnerDiv = $('<div class="col-md-3" id="chartTypeDiv"></div>');
+                                        newLabel = $('<label for="chartTypeM" class="col-md-1 control-label">Chart type</label>');
+                                        newInnerDiv = $('<div class="col-md-2" id="chartTypeDiv"></div>');
                                         newSelect = $('<select class="form-control" id="chartTypeM" name="chartTypeM"></select>');
                                         newSelect.append("<option value='lines'>Simple lines</option>");
                                         newSelect.append("<option value='area'>Area lines</option>");
@@ -24494,10 +24470,10 @@
                                         
                                         //Nuova riga
                                         //Data labels
-                                        newFormRow = $('<div class="row"></div>');
-                                        $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="dataLabelsM" class="col-md-2 control-label">Data labels</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                    /*    newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);*/
+                                        newLabel = $('<label for="dataLabelsM" class="col-md-1 control-label">Data labels</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newSelect = $('<select class="form-control" id="dataLabelsM" name="dataLabelsM">');
                                         newSelect.append('<option value="no">No data labels</option>');
                                         newSelect.append('<option value="value">Value only</option>');
@@ -24536,77 +24512,6 @@
                                             $("#lineWidthM").val(styleParameters.lineWidth);
                                             $("#alrLookM").val(styleParameters.alrLook);
                                         }
-                                        
-                                        //Contenitore per tabella dei colori
-                                      /*  barsColorsTableContainerM = $('<div id="barsColorsTableContainerM" class="row rowCenterContent"></div>');
-                                        $("#specificParamsM").append(barsColorsTableContainerM);
-                                        
-                                        function updateWidgetBarSeriesColorsM(e, params)
-                                        {
-                                            var newColor = $(this).colorpicker('getValue');
-                                            var index = parseInt($(this).parents('tr').index() - 1);
-                                            colorsArray[index] = newColor;
-                                            $("#barsColorsM").val(JSON.stringify(colorsArray));
-                                        }
-                                        
-                                        colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
-                                        updateXAxisSelectM();
-                                        
-                                        function updateXAxisSelectM()
-                                        {
-                                            var colorsTarget = null;
-
-                                            colorsTable.find('tr').remove();
-                                            colorsTable.append("<tr><td>Series</td><td>Color</td></tr>");
-                                            
-                                            $('#alrAxisSelM').empty();
-
-                                            if($("#xAxisDatasetM").val() === series.firstAxis.desc)
-                                            {
-                                                //Grafico non trasposto
-                                                colorsTarget = series.secondAxis.labels;
-                                                $('#alrAxisSelM').append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
-                                            }
-                                            else
-                                            {
-                                                //Grafico trasposto
-                                                colorsTarget = series.firstAxis.labels;
-                                                $('#alrAxisSelM').append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
-                                            }
-                                            
-                                            alrAxisSelMListener();
-
-                                            for(var i in colorsTarget)
-                                            {
-                                                newRow = $('<tr></tr>');
-                                                newCell = $('<td>' + colorsTarget[i]+ '</td>');
-                                                newRow.append(newCell);
-                                                newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                                                newRow.append(newCell);
-                                                
-                                                //Se l'attuale impostazione è per colori automatici, costruiamo JSON e tabella GUI con impostazioni di default, altrimenti con colori da DB
-                                                if(styleParameters.barsColorsSelect === 'auto')
-                                                {
-                                                    newRow.find('div.colorPicker').colorpicker({color: defaultColorsArray[i%10], format: "rgba"});
-                                                    colorsArray.push(defaultColorsArray[i%10]);
-                                                }
-                                                else
-                                                {
-                                                    newRow.find('div.colorPicker').colorpicker({color: styleParameters.barsColors[i], format: "rgba"});
-                                                    colorsArray.push(styleParameters.barsColors[i]);
-                                                }
-                                                
-                                                newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColorsM); 
-                                                colorsTable.append(newRow);
-                                            }
-                                        }
-
-                                        $("#xAxisDatasetM").off();
-                                        $("#xAxisDatasetM").on("change", updateXAxisSelectM);
-                                        $("#barsColorsM").val(JSON.stringify(colorsArray));
-                                        $('#barsColorsTableContainerM').append(colorsTable);
-                                        //Per prima visualizzazione in edit
-                                        $('#barsColorsSelectM').trigger("change");  */
 
                                         //Contenitore per tabella dei colori
                                         barsColorsTableContainerM = $('<div id="barsColorsTableContainerM" class="row rowCenterContent"></div>');
@@ -24622,9 +24527,9 @@
 
                                         colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
                                         if (series) {
-                                            for (var i in series.secondAxis.labels) {
+                                            for (var i in rowParamsArray) {
                                                 newRow = $('<tr></tr>');
-                                                newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                                newCell = $('<td>' + rowParamsArray[i].metricName + '</td>');
                                                 newRow.append(newCell);
                                                 newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                                 newRow.append(newCell);
@@ -24661,12 +24566,140 @@
                                             $('#barsColorsTableContainerM').hide();
                                         }
 
+                                        if (rowParamsArray) {   // For NEW wdgetCurvedLineSeries Only
+                                            //Nuova riga
+                                            //Contenitore per tabella delle query
+                                            var editMultiSeriesQueryTableContainer = $('<div id="editMultiSeriesQueryTableContainer" class="row rowCenterContent"></div>');
+                                            var editMultiSeriesQueryTable = $("<table id='editMultiSeriesQueryTable' data-widgetType='curvedLineSeries' class='table table-bordered table-condensed thrRangeTable'><col style='width:100px'><col style='width:136px'><col style='width:50px'><col style='width:76px'><col style='width:25px'><tr><td><br>Labels</td><td>Query ID or URI <br>(Empty for Dynamic Data from IOT-Apps)</td><td>Value Type<br>(Mandatory only for MyKPI & Sensor)</td><td><br>Color</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            editMultiSeriesQueryTableContainer.append(editMultiSeriesQueryTable);
+                                            $("#specificParamsM").append(editMultiSeriesQueryTableContainer);
+
+                                    //    editGisParameters.queries.sort(compareJsonElementsByKeyValues('rowOrder'));
+                                    //    var allIcons = getIconsPool();
+                                        
+                                            for (var i = 0; i < rowParamsArray.length; i++) {
+                                                newTableRow = $('<tr></tr>');
+
+                                                var placeholderStr = "";
+                                                /*  if (styleParameters.editDeviceLabels != null) {
+                                                      placeholderStr = styleParameters.editDeviceLabels[i];
+                                                  } else {
+                                                      placeholderStr = deviceLabels[i];
+                                                  }*/
+                                                //   placeholderStr = rowParamsArray[i].metricName;
+                                                if (rowParamsArray[i].label) {
+                                                    placeholderStr = rowParamsArray[i].label;
+                                                } else {
+                                                    placeholderStr = rowParamsArray[i].metricName + ' - ' + rowParamsArray[i].smField;
+                                                }
+
+                                                // Labels CELL
+                                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="labels"></a></td>');
+                                                newTableCell.find('a').editable({
+                                                    emptytext: "Empty",
+                                                    display: function (value, response) {
+                                                        if (value.length > 30) {
+                                                            $(this).html(value.substring(0, 30) + "...");
+                                                        } else {
+                                                            $(this).html(value);
+                                                        }
+                                                    },
+                                                    //    value: rowParamsArray[i].metricName
+                                                    value: placeholderStr
+                                                });
+                                                newTableRow.append(newTableCell);
+
+                                                // Query ID or URI CELL
+                                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="queryIDUrl"></td>');
+                                                newTableCell.find('a').editable({
+                                                    emptytext: "Empty",
+                                                    display: function (value, response) {
+                                                        if (value.length > 45) {
+                                                            $(this).html(value.substring(0, 45) + "...");
+                                                        } else {
+                                                            $(this).html(value);
+                                                        }
+                                                    },
+                                                    value: rowParamsArray[i].serviceUri
+                                                });
+                                                newTableRow.append(newTableCell);
+
+                                                // High Level Type CELL
+                                                /*    newTableCell = $('<td><select data-param="hlt" class="form-control"></select></td>');
+                                                    newTableCell.find('select').append('<option value="Sensor">Sensor</option>');
+                                                    newTableCell.find('select').append('<option value="MyKPI">MyKPI</option>');
+                                                    newTableCell.find('select').append('<option value="Dynamic">Dynamic</option>');
+                                                    newTableRow.append(newTableCell);
+                                                    newTableCell.find('select').val(rowParamsArray[i].metricHighLevelType);
+                                                    newTableCell.find('select').on('change', editMultiSeriesUpdateParams);*/
+
+                                                // Value Type CELL
+                                                newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="valueType"></td>');
+                                                newTableCell.find('a').editable({
+                                                    emptytext: "Empty",
+                                                    display: function (value, response) {
+                                                        if (value.length > 12) {
+                                                            $(this).html(value.substring(0, 12) + "...");
+                                                        } else {
+                                                            $(this).html(value);
+                                                        }
+                                                    },
+                                                    value: rowParamsArray[i].smField
+                                                });
+                                                newTableRow.append(newTableCell);
+
+                                                function updateWidgetBarSeriesColorsM(e, params) {
+                                                    var newColor = $(this).colorpicker('getValue');
+                                                    var index = parseInt($(this).parents('tr').index() - 1);
+                                                    colorsArray[index] = newColor;
+                                                    $("#barsColorsM").val(JSON.stringify(colorsArray));
+                                                }
+
+                                                newTableCell = $('<td><div class="input-group colorPicker" data-param="lineColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                newTableRow.append(newTableCell);
+                                                /*  if (styleParameters.barsColorsSelect === 'auto') {
+                                                      newTableRow.find('div.colorPicker').colorpicker({
+                                                          color: defaultColorsArray[i % 10],
+                                                          format: "rgba"
+                                                      });
+                                                      colorsArray.push(defaultColorsArray[i % 10]);
+                                                  } else {*/
+                                                newTableRow.find('div.colorPicker').colorpicker({
+                                                    color: styleParameters.barsColors[i],
+                                                    format: "rgba"
+                                                });
+                                                colorsArray.push(styleParameters.barsColors[i]);
+                                                //   }
+
+                                                // NO UPDATE QUI
+                                                //    newTableRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColorsM);
+
+                                                newTableRow.find('div.colorPicker').on('changeColor', editMultiSeriesUpdateParams);
+                                                colorsTable.append(newTableRow);
+                                                newTableRow.append(newTableCell);
+                                                /*   newTableRow.find('div.colorPicker').colorpicker({
+                                                       color: editGisParameters.queries[i].color1,
+                                                       format: "rgba"
+                                                   });
+                                                   newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);
+
+                                                   newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
+                                                   newTableRow.append(newTableCell);*/
+
+                                                newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+                                                newTableCell.find('i').click(delMultiSeriesQueryM);
+                                                newTableRow.append(newTableCell);
+                                                newTableRow.find('a.toBeEdited').on('save', editMultiSeriesUpdateParams);
+                                                $("#editMultiSeriesQueryTable").append(newTableRow);
+                                            }
+                                        }
+
                                         // Nuove righe (labels per i devices)
-                                        for (var n = 0; n < deviceLabels.length; n++) {
+                                    /*    for (var n = 0; n < deviceLabels.length; n++) {
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Device #' + (n+1).toString() + ' Label</label>');
-                                            newInnerDiv = $('<div class="col-md-7"></div>');
+                                            newLabel = $('<label for="deviceLabelsM" class="col-md-1 control-label">Device #' + (n+1).toString() + ' Label</label>');
+                                            newInnerDiv = $('<div class="col-md-3"></div>');
                                             var placeholderStr = "";
                                             if (styleParameters.editDeviceLabels != null) {
                                                 placeholderStr = styleParameters.editDeviceLabels[n];
@@ -24682,15 +24715,15 @@
                                             newLabel.show();
                                             newInnerDiv.show();
                                             newInput.show();
-                                        }
+                                        }*/
 
                                         //Codice di creazione soglie
                                         //Nuova riga
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newLabel = $('<label for="alrThrSelM" class="col-md-1 control-label">Set thresholds</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
                                         newSelect.append('<option value="no">No</option>');
@@ -24702,7 +24735,7 @@
                                         newSelect.show();
                                         
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                        newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
+                                        newLabel = $('<label for="alrAxisSelM" class="col-md-1 control-label">Thresholds target set</label>');
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                         if($("#xAxisDatasetM").val() === series.firstAxis.desc)
                                         {
@@ -24715,7 +24748,7 @@
                                             newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
                                         }
                                         newSelect.val(-1);
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -24727,9 +24760,9 @@
                                         //Threshold field select
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                        newLabel = $('<label for="alrFieldSelM" class="col-md-1 control-label">Thresholds target field</label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -24738,13 +24771,13 @@
                                         newSelect.hide();
                                         
                                         //Threshold look&feel
-                                        newLabel = $('<label for="alrLookM" class="col-md-2 control-label">Thresholds look&feel</label>');
+                                        newLabel = $('<label for="alrLookM" class="col-md-1 control-label">Thresholds look&feel</label>');
                                         newSelect = $('<select class="form-control" id="alrLookM" name="alrLookM">');
                                         newSelect.append('<option value="none">Tooltip only</option>');
                                         newSelect.append('<option value="lines">Lines</option>');
                                         newSelect.append('<option value="areas">Background areas</option>');
                                         newSelect.val(styleParameters.alrLook);
-                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -24766,7 +24799,8 @@
                                             $("label[for='alrAxisSelM']").hide();
                                             $('#alrAxisSelM').val(-1);
                                             $('#alrAxisSelM').hide();
-                                            $('#parametersM').val('');
+                                        //    $('#parametersM').val('');
+                                            $('#parametersM').val(rowParams);
                                         }
                                         else
                                         {
@@ -24792,6 +24826,7 @@
                                             //Listener per selezione campo
                                             $('#alrFieldSelM').change(alrFieldSelMListener);
                                         }
+                                        $("#editMultiSeriesQueryTable i.fa-plus").click(addMultiSeriesQueryM);
                                         break;
                                         
                                         case "widgetScatterSeries":
@@ -24933,10 +24968,10 @@
                                         }
                                         
                                         colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
-                                        for(var i in series.secondAxis.labels)
+                                        for(var i in rowParamsArray)
                                         {
                                             newRow = $('<tr></tr>');
-                                            newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
+                                            newCell = $('<td>' + rowParamsArray[i].metricName + '</td>');
                                             newRow.append(newCell);
                                             newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                             newRow.append(newCell);
