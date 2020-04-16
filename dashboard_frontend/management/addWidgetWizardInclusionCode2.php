@@ -265,6 +265,13 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="Last Check"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><div id="ownershipColumnFilter"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Latitude"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Longitude"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ownerHash"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedHash"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedGroupHash"></th>
                             <!--    <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>   -->
 
                             </tr>  
@@ -286,6 +293,13 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Latitude">Latitude</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Longitude">Longitude</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based">sm_based</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ownerHash">ownerHash</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedHash">delegatedHash</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedGroupHash">delegatedGroupHash</th>
                             <!--    <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th> -->
 
                             </tr>  
@@ -632,7 +646,7 @@
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
             "processing": true,
             "serverSide": true,
             "pageLength": widgetWizardPageLength,
@@ -670,7 +684,7 @@
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15],
+                    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
                     "visible": false
                 },
                 {
@@ -742,7 +756,7 @@
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
             "processing": true,
             "serverSide": true,
             "pageLength": widgetWizardPageLength,
@@ -786,7 +800,7 @@
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15],
+                    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
                     "visible": false
                 },
                 {
@@ -4273,17 +4287,17 @@
             } else if ($(this).attr('data-fieldTitle') === "unit") {
                 var idx = 6;
             } else if ($(this).attr('data-fieldTitle') === "last_date") {
-                var idx = 7;
-            } else if ($(this).attr('data-fieldTitle') === "last_value") {
                 var idx = 8;
-            } else if ($(this).attr('data-fieldTitle') === "healthiness") {
+            } else if ($(this).attr('data-fieldTitle') === "last_value") {
                 var idx = 9;
+            } else if ($(this).attr('data-fieldTitle') === "healthiness") {
+                var idx = 10;
             } else if ($(this).attr('data-fieldTitle') === "lastCheck") {
-                var idx = 13;
+                var idx = 14;
             } else if ($(this).attr('data-fieldTitle') === "value_unit") {
-                var idx = 16;
+                var idx = 7;
             } else if ($(this).attr('data-fieldTitle') === "ownership") {
-                var idx = 15;
+                var idx = 16;
             }
             if ($(this).is(":checked")) {
                 // Get the column API object
@@ -4744,15 +4758,15 @@
                         widgetWizardTable.column(n).search(searchValueUnit, true, false); 
                         break;    
                         
-                    case 9:
+                    case 10:
                         widgetWizardTable.column(n).search(searchValueHealth, true, false); 
                         break;
 
-                    case 16:
+                    case 7:
                         widgetWizardTable.column(n).search(searchValueValueUnit, true, false);
                         break;
 
-                    case 15:
+                    case 16:
                         widgetWizardTable.column(n).search(searchValueOwnership, true, false); 
                         break;
 
@@ -4920,7 +4934,7 @@
             "paging": true,
             "language": {search: ""},
             "pageLength": 8,
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
             "createdRow": function (row, data, index) {
                 $(row).attr('data-rowId', data[12]);
                 $(row).attr('data-widgetCompatible', data[13]);
@@ -4992,7 +5006,7 @@
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
             "processing": true,
             "serverSide": true,
             "pageLength": widgetWizardPageLength,
@@ -5038,7 +5052,7 @@
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15],
+                    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
                     "visible": false
                 },
                 {

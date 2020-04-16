@@ -50,6 +50,7 @@
         var editLabels = "";
         var valueUnit = null;
         var seriesDataArray = [];
+        var utcOption = false;
         
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
@@ -838,12 +839,16 @@
             }
 
             let yAxisText = null;
-            if (chartSeriesObject.valueUnit != null) {
-                yAxisText = chartSeriesObject.valueUnit;
-            }
+            if (styleParameters.yAxisLabel != null) {
+                yAxisText = styleParameters.yAxisLabel;
+            } else {
+                if (chartSeriesObject.valueUnit != null) {
+                    yAxisText = chartSeriesObject.valueUnit;
+                }
 
-            if (yAxisType == "logarithmic") {
-                yAxisText = yAxisText + " (logarithmic)";
+                if (yAxisType == "logarithmic") {
+                    yAxisText = yAxisText + " (logarithmic)";
+                }
             }
 
             if (chartSeriesObject[0] != null) {
@@ -857,6 +862,9 @@
                             events: {
                                 load: onDraw
                             }
+                        },
+                        time: {
+                            useUTC: utcOption
                         },
                         //Per disabilitare il menu in alto a destra
                         exporting:
@@ -889,7 +897,8 @@
                                     fontSize: styleParameters.rowsLabelsFontSize + "px",
                                     fontWeight: 'bold',
                                     fontStyle: 'italic',
-                                    color: chartLabelsFontColor,
+                                //    color: chartLabelsFontColor,
+                                    color: styleParameters.rowsLabelsFontColor,
                                     "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
                                 }
                             },
@@ -914,7 +923,15 @@
                             gridZIndex: 0,
                             title: {
                                 //text: null
-                                text: yAxisText
+                                text: yAxisText,
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.colsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    color: styleParameters.colsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
                             },
                             labels: {
                                 overflow: 'justify',
@@ -1138,6 +1155,7 @@
                  switch(aggregationGetData[i].metricHighLevelType)
                  {
                     case "KPI":
+                        utcOption = true;
                         if((aggregationGetData[i].metricType === "Percentuale")||(pattern.test(aggregationGetData[i].metricType)))
                         {
                             for(var j = 0; j < aggregationGetData[i].data.length; j++)
@@ -1214,7 +1232,7 @@
                         break;
 
                     case "Dynamic":
-
+                      //   utcOption = false;
                          let extractedData = {};
                          extractedData.values = rowParameters[i].values;
                          extractedData.metricType = rowParameters[i].metricType;
@@ -1328,7 +1346,7 @@
                          break;
 
                     case "MyKPI":
-
+                        utcOption = false;
                         var smPayload = aggregationGetData[i].data;
                         var smField = aggregationGetData[i].smField;
                         smPayload = JSON.parse(smPayload);
@@ -1411,6 +1429,7 @@
                         break;
 
                     case "Sensor":
+                        utcOption = false;
                         var smPayload = aggregationGetData[i].data;
                         var smField = aggregationGetData[i].smField;
                         smPayload = JSON.parse(smPayload);
@@ -1656,6 +1675,19 @@
                                 } else {*/
                                     series = serializeDataForSeries(metricLabels, deviceLabels);
                              //   }
+
+                                if (styleParameters.xAxisLabel != null) {
+                                    xAxisTitle = styleParameters.xAxisLabel;
+                                }
+                             /*   if (xAxisFormat) {
+                                    if (xAxisFormat == "timestamp") {
+                                        xAxisTitle = "DateTime";
+                                    } else if (xAxisFormat == "numeric") {
+                                        xAxisTitle = "Numeric Values";
+                                    }
+                                } else {
+                                    xAxisTitle = "DateTime";
+                                }*/
 
                                 if(firstLoad !== false)
                                 {

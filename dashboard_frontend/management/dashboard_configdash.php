@@ -24386,7 +24386,39 @@
                                         $('#colsLabelsFontColorM').show();
                                         $("#widgetColsLabelsFontColorM").css('display', 'block');
                                         $("#widgetColsLabelsFontColorM").parent().parent().parent().colorpicker({color: styleParameters.colsLabelsFontColor, format: "rgba"});
-                                        
+
+                                        if (rowParamsArray) {
+                                            //Nuova riga
+                                            //X-Axis Label
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="xAxisLabel" class="col-md-1 control-label">X-Axis Label</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newInput = $('<input type="text" class="form-control" id="xAxisLabel" name="xAxisLabel">');
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            newInput.show();
+                                        }
+
+                                        if (rowParamsArray == null) {
+                                            // Nuova Riga
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                        }
+                                        // Y-Axis Label
+                                        newLabel = $('<label for="yAxisLabel" class="col-md-1 control-label">Y-Axis Label</label>');
+                                        newInnerDiv = $('<div class="col-md-4"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="yAxisLabel" name="yAxisLabel">');
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+
                                         //Nuova riga
                                         //Data labels font size
                                         newFormRow = $('<div class="row"></div>');
@@ -24511,6 +24543,8 @@
                                             $("#dataLabelsM").val(styleParameters.dataLabels);
                                             $("#lineWidthM").val(styleParameters.lineWidth);
                                             $("#alrLookM").val(styleParameters.alrLook);
+                                            $("#xAxisLabel").val(styleParameters.xAxisLabel);
+                                            $("#yAxisLabel").val(styleParameters.yAxisLabel);
                                         }
 
                                         //Contenitore per tabella dei colori

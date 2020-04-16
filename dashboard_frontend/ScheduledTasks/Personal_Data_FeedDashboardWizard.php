@@ -50,7 +50,7 @@ $startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
-echo("Starting Personal_Data_FeedDashboardWizard SCRIPT at: ".$start_time_ok."\n");
+echo("*** Starting Personal_Data_FeedDashboardWizard SCRIPT at: ".$start_time_ok."\n");
 
 $startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
@@ -62,6 +62,32 @@ $token_endpoint= $token_endpoint_PD;
 $client_id= $client_id_PD;
 $username= $usernamePD;
 $password= $passwordPD;
+
+$ownedMyKPIElements = [];
+$delegatedMyKPIElements = [];
+$encrMyKPICpls = [];                 // MOD OWN-DEL
+$encrDelMyKPICpls = [];              // MOD OWN-DEL
+$encrDelMyKPIGroupCpls = [];         // MOD OWN-DEL
+
+$apiAllMyKPIDelegationsArray = [];
+$ownedMyPOIElements = [];
+$delegatedMyPOIElements = [];
+$delegatedMyPOIUsers = [];
+$encrMyPOICpls = [];                 // MOD OWN-DEL
+$encrDelMyPOICpls = [];              // MOD OWN-DEL
+$encrDelMyPOIGroupCpls = [];         // MOD OWN-DEL
+$delegatedMyPOIUsersStr = null;    // MOD OWN-DEL
+$delegatedMyPOIGroupStr = null;     // MOD OWN-DEL
+$apiAllMyPOIDelegationsArray = [];
+$ownedMyDataElements = [];
+$delegatedMyDataElements = [];
+$delegatedMyDataUsers = [];
+$encrMyDataCpls = [];                 // MOD OWN-DEL
+$encrDelMyDataCpls = [];              // MOD OWN-DEL
+$encrDelMyDataGroupCpls = [];         // MOD OWN-DEL
+$delegatedMyDataUsersStr = null;    // MOD OWN-DEL
+$delegatedMyDataGroupStr = null;     // MOD OWN-DEL
+$apiAllMyDataDelegationsArray = [];
 
 
 //$high_level_type_KPI = "MyKPI";
@@ -95,9 +121,29 @@ if ($test === "yes") {
 $queryPersonalKPIRresults = file_get_contents($queryApiPersonalKPI);
 $resKPIArray = json_decode($queryPersonalKPIRresults, true);
 
+$apiAllMyKPIDelegationsUrl = $host_PD . ":8080/datamanager/api/v1/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=MyKPI";
+$apiAllMyKPIDelegationsResults = file_get_contents($apiAllMyKPIDelegationsUrl);
+
+//$resKPIArray = []; // UNCOMMENT TO TEST MyPOI AND MyData ONLY
+
+if(trim($apiAllMyKPIDelegationsResults) != "")
+{
+    $apiAllMyKPIDelegationsArray = json_decode($apiAllMyKPIDelegationsResults, true);
+}
+
 foreach ($resKPIArray as $resKPIRecord) {
 
     $count++;
+    $owner = null;                  // MOD OWN-DEL
+    $cryptedOwner = null;           // MOD OWN-DEL
+    $cryptedDelegatedUsr = null;    // MOD OWN-DEL
+    $decryptedOwner = null;         // MOD OWN-DEL
+    $ownerCheck = null;             // MOD OWN-DEL
+    $delegatedMyKPIUsers = [];           // MOD OWN-DEL
+    $delegatedMyKPIGroups = [];          // MOD OWN-DEL
+    $delegatedMyKPIUsersStr = null;        // MOD OWN-DEL
+    $delegatedMyKPIGroupStr = null;        // MOD OWN-DEL
+
     if ($resKPIRecord['latitude'] == "" && $resKPIRecord['longitude'] == "") {
 
         $parameters_KPI = $resKPIRecord['id'];
@@ -121,6 +167,7 @@ foreach ($resKPIArray as $resKPIRecord) {
     $low_level_type_KPI = $resKPIRecord['valueType'];
     $sub_nature_KPI = $resKPIRecord['subNature'];
     $unique_name_id_KPI = addslashes($resKPIRecord['valueName']);
+
     $last_value_KPI = $resKPIRecord['lastValue'];
     $get_instances_KPI = $resKPIRecord['getInstances'];
     if ($get_instances_KPI == "") {
@@ -145,14 +192,94 @@ foreach ($resKPIArray as $resKPIRecord) {
     $healthiness_KPI = "true";
     $lastCheck_KPI = $lastCheck;
     $organizations_KPI = $resKPIRecord['organizations'];
-    $organizations_KPI = explode( "ou=", $organizations_KPI)[1];
-    $organizations_KPI = explode(",dc=ldap,dc=disit,dc=org]", $organizations_KPI)[0];
+    $orgStr = "[";
+    if (substr_count($organizations_KPI, ',dc=ldap,dc=disit,dc=org') == 1) {
+        $organizations_KPI = explode("ou=", $organizations_KPI)[1];
+        $organizations_KPI = explode(",dc=ldap,dc=disit,dc=org]", $organizations_KPI)[0];
+    } else {
+        $organizationsArray = explode("ou=", $organizations_KPI);
+        for ($m = 1; $m < sizeof($organizationsArray); $m++) {
+            $organizations_KPI = $organizationsArray[$m];
+            $organizations_KPI = explode(",dc=ldap,dc=disit,dc=org", $organizations_KPI)[0];
+            if ($m == sizeof($organizationsArray) - 1) {
+                $orgStr = $orgStr . $organizations_KPI . "]";
+            } else {
+                $orgStr = $orgStr . $organizations_KPI . ", ";
+            }
+        }
+        $organizations_KPI = $orgStr;
+    }
     $value_unitKPI = $resKPIRecord['valueUnit'];
+    $usernameMyKPI = $resKPIRecord['username'];
+    if (!array_key_exists($usernameMyKPI, $encrMyKPICpls)) {
+        $queryMyKPIDelegatedResults = [];
+     /*   $cryptedOwner = encryptOSSL($usernameMyKPI, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
+        $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
+        $encrMyKPICpls[$usernameMyKPI] = $cryptedOwner;*/
+        if (!array_key_exists($usernameMyKPI, $encrMyKPICpls)) {
+            $cryptedOwner = encryptOSSL($usernameMyKPI, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);       // MOD OWN-DEL
+            $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);      // MOD OWN-DEL
+            $encrMyKPICpls[$usernameMyKPI] = $cryptedOwner;
+        } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+            $cryptedOwner = $encrMyKPICpls[$usernameMyKPI];
+        }
+    } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+        $cryptedOwner = $encrMyKPICpls[$usernameMyKPI];
+    }
+
+    foreach($apiAllMyKPIDelegationsArray as $delStruct) {
+        if ($resKPIRecord['id'] == $delStruct['elementId']) {
+            $cryptedMyKPIDelegatedUsr = null;
+            $ownerCheck = $delStruct['usernameDelegator'];
+            if (!in_array($delStruct['usernameDelegated'], $delegatedMyKPIUsers)) {
+                if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
+                    array_push($delegatedMyKPIUsers, $delStruct['usernameDelegated']);
+                    if (!array_key_exists($delStruct['usernameDelegated'], $encrDelMyKPICpls)) {
+                        $cryptedMyKPIDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                        $encrDelMyKPICpls[$delStruct['usernameDelegated']] = $cryptedMyKPIDelegatedUsr;
+                    } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                        $cryptedMyKPIDelegatedUsr = $encrDelMyKPICpls[$delStruct['usernameDelegated']];
+                    }
+                    if ($delegatedMyKPIUsersStr == null || $delegatedMyKPIUsersStr === "") {
+                        $delegatedMyKPIUsersStr = $cryptedMyKPIDelegatedUsr;
+                    } else {
+                        $delegatedMyKPIUsersStr = $delegatedMyKPIUsersStr . ", " . $cryptedMyKPIDelegatedUsr;
+                    }
+                }
+            } else {
+                $duplicateDelegationFlag = 1;
+            }
+
+            if (isset($delStruct['groupnameDelegated'])) {
+                //    $cryptedDelegatedGroup = null;
+                if (!in_array($delStruct['groupnameDelegated'], $delegatedMyKPIGroups)) {
+                    if (!is_null($delStruct['groupnameDelegated'])) {
+                        $delegatedGroupsItem = $delStruct['groupnameDelegated'];
+                        if (isset(explode(",ou", $delegatedGroupsItem)[1])) {
+                            $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
+                        /*    if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
+                                $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
+                            }*/
+                        } else {
+                            $delegatedGroupsItem = explode(",dc=", explode("ou=", $delegatedGroupsItem)[1])[0];
+                        }
+                        array_push($delegatedMyKPIGroups, $delegatedGroupsItem);
+
+                        if ($delegatedMyKPIGroupStr == null || $delegatedMyKPIGroupStr === "") {
+                            $delegatedMyKPIGroupStr = $delegatedGroupsItem;
+                        } else {
+                            $delegatedMyKPIGroupStr = $delegatedMyKPIGroupStr . ", " . $delegatedGroupsItem;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (!is_null($nature_KPI)) {
         if ($nature_KPI != '') {
             echo($count . " - MY KPI: " . $nature_KPI . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id_KPI . ", MOTIVATION: " . $low_level_type_KPI . ", KPI-ID: " . $kpiId . "\n");
-            $insertQuery_KPI = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude, value_unit) VALUES ('$nature_KPI','$high_level_type_KPI','$sub_nature_KPI','$low_level_type_KPI', '$unique_name_id_KPI', '$instance_uri_KPI', '$get_instances_KPI', '$unit_KPI', '$metric_KPI', '$saved_direct_KPI', '$kb_based_KPI', '$sm_based_KPI', '$parameters_KPI', '$last_date_KPI', '$last_value_KPI', '$healthiness_KPI', '$lastCheck_KPI', '$ownership_KPI', '$organizations_KPI', '$latitude_KPI', '$longitude_KPI', '$value_unitKPI') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', unit = '" . $unit_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' , value_unit = '" . $value_unitKPI . "';";
+            $insertQuery_KPI = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude, value_unit, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature_KPI','$high_level_type_KPI','$sub_nature_KPI','$low_level_type_KPI', '$unique_name_id_KPI', '$instance_uri_KPI', '$get_instances_KPI', '$unit_KPI', '$metric_KPI', '$saved_direct_KPI', '$kb_based_KPI', '$sm_based_KPI', '$parameters_KPI', '$last_date_KPI', '$last_value_KPI', '$healthiness_KPI', '$lastCheck_KPI', '$ownership_KPI', '$organizations_KPI', '$latitude_KPI', '$longitude_KPI', '$value_unitKPI', '$cryptedOwner', '$delegatedMyKPIUsersStr', '$delegatedMyKPIGroupStr') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', unit = '" . $unit_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' , value_unit = '" . $value_unitKPI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyKPIUsersStr . "', delegatedGroupHash = '" . $delegatedMyKPIGroupStr . "';";
             try {
                 //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                 mysqli_query($link, $insertQuery_KPI);
@@ -161,7 +288,7 @@ foreach ($resKPIArray as $resKPIRecord) {
             } catch (Exception $e) {
                 echo $e->getMessage();
                // $updtQuery_KPI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' WHERE high_level_type = '" . $high_level_type_KPI . "' AND sub_nature = '" . $sub_nature_KPI . "' AND low_level_type = '" . $low_level_type_KPI . "' AND unique_name_id = '" . $unique_name_id_KPI . "' AND instance_uri = '" . $instance_uri_KPI . "' AND get_instances = '" . $get_instances_KPI . "';";
-                $updtQuery_KPI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', unit = '" . $unit_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' , value_unit = '" . $value_unitKPI . "';";
+                $updtQuery_KPI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', unit = '" . $unit_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' , value_unit = '" . $value_unitKPI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyKPIUsersStr . "', delegatedGroupHash = '" . $delegatedMyKPIGroupStr . "';";
                 mysqli_query($link, $updtQuery_KPI);
                 echo ("\nUPDATE QUERY per KPI-ID: " . $kpiId . ": " . $updtQuery_KPI . "\n");
             }
@@ -202,9 +329,29 @@ if ($test === "yes") {
 $queryPersonalPOIRresults = file_get_contents($queryApiPersonalPOI);
 $resPOIArray = json_decode($queryPersonalPOIRresults, true);
 
+$apiAllMyPOIDelegationsUrl = $host_PD . ":8080/datamanager/api/v1/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=MyPOI";
+$apiAllMyPOIDelegationsResults = file_get_contents($apiAllMyPOIDelegationsUrl);
+
+//$resPOIArray = []; // UNCOMMENT TO TEST MyData ONLY
+
+if(trim($apiAllMyPOIDelegationsResults) != "")
+{
+    $apiAllMyPOIDelegationsArray = json_decode($apiAllMyPOIDelegationsResults, true);
+}
+
 foreach ($resPOIArray as $resPOIRecord) {
     if (sizeOf($resPOIRecord) > 1) {
         $count++;
+
+        $owner = null;                  // MOD OWN-DEL
+        $cryptedOwner = null;           // MOD OWN-DEL
+        $cryptedDelegatedUsr = null;    // MOD OWN-DEL
+        $decryptedOwner = null;         // MOD OWN-DEL
+        $ownerCheck = null;             // MOD OWN-DEL
+        $delegatedMyPOIUsers = [];           // MOD OWN-DEL
+        $delegatedMyPOIGroups = [];          // MOD OWN-DEL
+        $delegatedMyPOIUsersStr = null;        // MOD OWN-DEL
+        $delegatedMyPOIGroupStr = null;        // MOD OWN-DEL
 
         if ($resPOIRecord['geometry']['coordinates'][0] != "" && $resPOIRecord['geometry']['coordinates'][1] != "") {
             $latitude_POI = $resPOIRecord['geometry']['coordinates'][1];
@@ -241,14 +388,99 @@ foreach ($resPOIArray as $resPOIRecord) {
         $healthiness_POI = "true";
         $lastCheck_POI = $lastCheck;
         $organizations_POI = $resPOIRecord['properties']['kpidata']['organizations'];
-        $organizations_POI = explode("ou=", $organizations_POI)[1];
-        $organizations_POI = explode(",dc=ldap,dc=disit,dc=org]", $organizations_POI)[0];
-        $value_unitPOI = $resPOIRecord['valueUnit'];
+     /*   $organizations_POI = explode("ou=", $organizations_POI)[1];
+        $organizations_POI = explode(",dc=ldap,dc=disit,dc=org]", $organizations_POI)[0];*/
+
+        $orgStr = "[";
+        if (substr_count($organizations_POI, ',dc=ldap,dc=disit,dc=org') == 1) {
+            $organizations_POI = explode("ou=", $organizations_POI)[1];
+            $organizations_POI = explode(",dc=ldap,dc=disit,dc=org]", $organizations_POI)[0];
+        } else {
+            $organizationsArray = explode("ou=", $organizations_POI);
+            for ($m = 1; $m < sizeof($organizationsArray); $m++) {
+                $organizations_POI = $organizationsArray[$m];
+                $organizations_POI = explode(",dc=ldap,dc=disit,dc=org", $organizations_POI)[0];
+                if ($m == sizeof($organizationsArray) - 1) {
+                    $orgStr = $orgStr . $organizations_POI . "]";
+                } else {
+                    $orgStr = $orgStr . $organizations_POI . ", ";
+                }
+            }
+            $organizations_POI = $orgStr;
+        }
+
+        $value_unitPOI = $resPOIRecord['properties']['kpidata']['valueUnit'];
+
+        $usernameMyPOI = $resPOIRecord['properties']['kpidata']['username'];
+        if (!array_key_exists($usernameMyPOI, $encrMyPOICpls)) {
+            $queryMyPOIDelegatedResults = [];
+            /*   $cryptedOwner = encryptOSSL($usernameMyPOI, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
+               $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
+               $encrMyPOICpls[$usernameMyPOI] = $cryptedOwner;*/
+            if (!array_key_exists($usernameMyPOI, $encrMyPOICpls)) {
+                $cryptedOwner = encryptOSSL($usernameMyPOI, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);       // MOD OWN-DEL
+                $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);      // MOD OWN-DEL
+                $encrMyPOICpls[$usernameMyPOI] = $cryptedOwner;
+            } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                $cryptedOwner = $encrMyPOICpls[$usernameMyPOI];
+            }
+        } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+            $cryptedOwner = $encrMyPOICpls[$usernameMyPOI];
+        }
+
+        foreach($apiAllMyPOIDelegationsArray as $delStruct) {
+            if ($resPOIRecord['properties']['kpidata']['id'] == $delStruct['elementId']) {
+                $cryptedMyPOIDelegatedUsr = null;
+                $ownerCheck = $delStruct['usernameDelegator'];
+                if (!in_array($delStruct['usernameDelegated'], $delegatedMyPOIUsers)) {
+                    if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
+                        array_push($delegatedMyPOIUsers, $delStruct['usernameDelegated']);
+                        if (!array_key_exists($delStruct['usernameDelegated'], $encrDelMyPOICpls)) {
+                            $cryptedMyPOIDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                            $encrDelMyPOICpls[$delStruct['usernameDelegated']] = $cryptedMyPOIDelegatedUsr;
+                        } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                            $cryptedMyPOIDelegatedUsr = $encrDelMyPOICpls[$delStruct['usernameDelegated']];
+                        }
+                        if ($delegatedMyPOIUsersStr == null || $delegatedMyPOIUsersStr === "") {
+                            $delegatedMyPOIUsersStr = $cryptedMyPOIDelegatedUsr;
+                        } else {
+                            $delegatedMyPOIUsersStr = $delegatedMyPOIUsersStr . ", " . $cryptedMyPOIDelegatedUsr;
+                        }
+                    }
+                } else {
+                    $duplicateDelegationFlag = 1;
+                }
+
+                if (isset($delStruct['groupnameDelegated'])) {
+                    //    $cryptedDelegatedGroup = null;
+                    if (!in_array($delStruct['groupnameDelegated'], $delegatedMyPOIGroups)) {
+                        if (!is_null($delStruct['groupnameDelegated'])) {
+                            $delegatedGroupsItem = $delStruct['groupnameDelegated'];
+                            if (isset(explode(",ou", $delegatedGroupsItem)[1])) {
+                                $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
+                                /*    if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
+                                        $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                    }*/
+                            } else {
+                                $delegatedGroupsItem = explode(",dc=", explode("ou=", $delegatedGroupsItem)[1])[0];
+                            }
+                            array_push($delegatedMyPOIGroups, $delegatedGroupsItem);
+
+                            if ($delegatedMyPOIGroupStr == null || $delegatedMyPOIGroupStr === "") {
+                                $delegatedMyPOIGroupStr = $delegatedGroupsItem;
+                            } else {
+                                $delegatedMyPOIGroupStr = $delegatedMyPOIGroupStr . ", " . $delegatedGroupsItem;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         if (!is_null($nature_POI)) {
             if ($nature_POI != '') {
                 echo($count . " - MY POI: " . $nature_POI . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id_POI . ", MOTIVATION: " . $low_level_type_POI . "\n");
-                $insertQuery_POI = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, widgets, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude, value_unit) VALUES ('$nature_POI','$high_level_type_POI','$sub_nature_POI','$low_level_type_POI', '$unique_name_id_POI', '$instance_uri_POI', '$get_instances_POI', '$unit_POI', '$metric_POI', '$saved_direct_POI', '$kb_based_POI', '$sm_based_POI', '$widgets_POI', '$parameters_POI', '$last_date_POI', '$last_value_POI', '$healthiness_POI', '$lastCheck_POI', '$ownership_POI', '$organizations_POI', '$latitude_POI', '$longitude_POI', '$value_unitPOI') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_POI . "', sub_nature = '" . $sub_nature_POI . "', low_level_type = '" . $low_level_type_POI . "', unique_name_id = '" . $unique_name_id_POI . "', instance_uri = '" . $instance_uri_POI . "', get_instances = '" . $get_instances_POI . "', sm_based = '" . $sm_based_POI . "', widgets = '" . $widgets_POI . "', last_date = '" . $last_date_POI . "', last_value = '" . $last_value_POI . "', parameters = '" . $parameters_POI . "', healthiness = '" . $healthiness_POI . "', lastCheck = '" . $lastCheck_POI . "', ownership = '" . $ownership_POI . "', organizations = '" . $organizations_POI . "', latitude = '" . $latitude_POI . "', longitude = '" . $longitude_POI . "' , value_unit = '" . $value_unitPOI . "';";
+                $insertQuery_POI = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, widgets, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude, value_unit, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature_POI','$high_level_type_POI','$sub_nature_POI','$low_level_type_POI', '$unique_name_id_POI', '$instance_uri_POI', '$get_instances_POI', '$unit_POI', '$metric_POI', '$saved_direct_POI', '$kb_based_POI', '$sm_based_POI', '$widgets_POI', '$parameters_POI', '$last_date_POI', '$last_value_POI', '$healthiness_POI', '$lastCheck_POI', '$ownership_POI', '$organizations_POI', '$latitude_POI', '$longitude_POI', '$value_unitPOI', '$cryptedOwner', '$delegatedMyPOIUsersStr', '$delegatedMyPOIGroupStr') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_POI . "', sub_nature = '" . $sub_nature_POI . "', low_level_type = '" . $low_level_type_POI . "', unique_name_id = '" . $unique_name_id_POI . "', instance_uri = '" . $instance_uri_POI . "', get_instances = '" . $get_instances_POI . "', sm_based = '" . $sm_based_POI . "', widgets = '" . $widgets_POI . "', last_date = '" . $last_date_POI . "', last_value = '" . $last_value_POI . "', parameters = '" . $parameters_POI . "', healthiness = '" . $healthiness_POI . "', lastCheck = '" . $lastCheck_POI . "', ownership = '" . $ownership_POI . "', organizations = '" . $organizations_POI . "', latitude = '" . $latitude_POI . "', longitude = '" . $longitude_POI . "' , value_unit = '" . $value_unitPOI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyPOIUsersStr . "', delegatedGroupHash = '" . $delegatedMyPOIGroupStr . "';";
                 try {
                     //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                     mysqli_query($link, $insertQuery_POI);
@@ -256,7 +488,7 @@ foreach ($resPOIArray as $resPOIRecord) {
                     //   echo ("\nINSERT QUERY ON DUPLICATE KEY: ".$insertQuery."\n");
                 } catch (Exception $e) {
                     echo $e->getMessage();
-                    $updtQuery_POI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_POI . "', sub_nature = '" . $sub_nature_POI . "', low_level_type = '" . $low_level_type_POI . "', unique_name_id = '" . $unique_name_id_POI . "', instance_uri = '" . $instance_uri_POI . "', get_instances = '" . $get_instances_POI . "', sm_based = '" . $sm_based_POI . "', last_date = '" . $last_date_POI . "', last_value = '" . $last_value_POI . "', parameters = '" . $parameters_POI . "', healthiness = '" . $healthiness_POI . "', lastCheck = '" . $lastCheck_POI . "', ownership = '" . $ownership_POI . "', latitude = '" . $latitude_POI . "', longitude = '" . $longitude_POI . "' WHERE high_level_type = '" . $high_level_type_POI . "' AND sub_nature = '" . $sub_nature_POI . "' AND low_level_type = '" . $low_level_type_POI . "' AND unique_name_id = '" . $unique_name_id_POI . "' AND instance_uri = '" . $instance_uri_POI . "' AND get_instances = '" . $get_instances_POI . "' , value_unit = '" . $value_unitPOI . "';";
+                    $updtQuery_POI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_POI . "', sub_nature = '" . $sub_nature_POI . "', low_level_type = '" . $low_level_type_POI . "', unique_name_id = '" . $unique_name_id_POI . "', instance_uri = '" . $instance_uri_POI . "', get_instances = '" . $get_instances_POI . "', sm_based = '" . $sm_based_POI . "', last_date = '" . $last_date_POI . "', last_value = '" . $last_value_POI . "', parameters = '" . $parameters_POI . "', healthiness = '" . $healthiness_POI . "', lastCheck = '" . $lastCheck_POI . "', ownership = '" . $ownership_POI . "', latitude = '" . $latitude_POI . "', longitude = '" . $longitude_POI . "' WHERE high_level_type = '" . $high_level_type_POI . "' AND sub_nature = '" . $sub_nature_POI . "' AND low_level_type = '" . $low_level_type_POI . "' AND unique_name_id = '" . $unique_name_id_POI . "' AND instance_uri = '" . $instance_uri_POI . "' AND get_instances = '" . $get_instances_POI . "' , value_unit = '" . $value_unitPOI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyPOIUsersStr . "', delegatedGroupHash = '" . $delegatedMyPOIGroupStr . "';";
                     mysqli_query($link, $updtQuery_POI);
                     echo("\nUPDATE QUERY: " . $updtQuery_POI . "\n");
                 }
@@ -297,9 +529,27 @@ if ($test === "yes") {
 $queryPersonalMyDataRresults = file_get_contents($queryApiPersonalMyData);
 $resMyDataArray = json_decode($queryPersonalMyDataRresults, true);
 
+$apiAllMyDataDelegationsUrl = $host_PD . ":8080/datamanager/api/v1/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=MyData";
+$apiAllMyDataDelegationsResults = file_get_contents($apiAllMyDataDelegationsUrl);
+
+if(trim($apiAllMyDataDelegationsResults) != "")
+{
+    $apiAllMyDataDelegationsArray = json_decode($apiAllMyDataDelegationsResults, true);
+}
+
 foreach ($resMyDataArray as $resMyDataRecord) {
 
     $count++;
+    $owner = null;                  // MOD OWN-DEL
+    $cryptedOwner = null;           // MOD OWN-DEL
+    $cryptedDelegatedUsr = null;    // MOD OWN-DEL
+    $decryptedOwner = null;         // MOD OWN-DEL
+    $ownerCheck = null;             // MOD OWN-DEL
+    $delegatedMyDataUsers = [];           // MOD OWN-DEL
+    $delegatedMyDataGroups = [];          // MOD OWN-DEL
+    $delegatedMyDataUsersStr = null;        // MOD OWN-DEL
+    $delegatedMyDataGroupStr = null;        // MOD OWN-DEL
+
     //$unit_MyData = "mydata_";
     if ($resMyDataRecord['latitude'] == "" && $resMyDataRecord['longitude'] == "") {
         $parameters_MyData = $resMyDataRecord['id'];
@@ -348,14 +598,101 @@ foreach ($resMyDataArray as $resMyDataRecord) {
     $healthiness_MyData = "true";
     $lastCheck_MyData = $lastCheck;
     $organizations_MyData = $resMyDataRecord['organizations'];
-    $organizations_MyData = explode( "ou=", $organizations_MyData)[1];
-    $organizations_MyData = explode(",dc=ldap,dc=disit,dc=org]", $organizations_MyData)[0];
+  /*  $organizations_MyData = explode( "ou=", $organizations_MyData)[1];
+    $organizations_MyData = explode(",dc=ldap,dc=disit,dc=org]", $organizations_MyData)[0];*/
+
+    $orgStr = "[";
+    if (substr_count($organizations_MyData, ',dc=ldap,dc=disit,dc=org') == 1) {
+        $organizations_MyData = explode("ou=", $organizations_MyData)[1];
+        $organizations_MyData = explode(",dc=ldap,dc=disit,dc=org]", $organizations_MyData)[0];
+    } else {
+        // for ($n = 0; $n < substr_count($organizations_KPI, ',dc=ldap,dc=disit,dc=org'); $n++) {
+        $organizationsArray = explode("ou=", $organizations_MyData);
+        for ($m = 1; $m < sizeof($organizationsArray); $m++) {
+            $organizations_MyData = $organizationsArray[$m];
+            $organizations_MyData = explode(",dc=ldap,dc=disit,dc=org", $organizations_MyData)[0];
+            if ($m == sizeof($organizationsArray) - 1) {
+                $orgStr = $orgStr . $organizations_MyData . "]";
+            } else {
+                $orgStr = $orgStr . $organizations_MyData . ", ";
+            }
+        }
+        $organizations_MyData = $orgStr;
+        //  }
+    }
+
     $value_unit_MyData = $resMyDataRecord['valueUnit'];
+
+    $usernameMyData = $resMyDataRecord['username'];
+    if (!array_key_exists($usernameMyData, $encrMyDataCpls)) {
+        $queryMyDataDelegatedResults = [];
+        /*   $cryptedOwner = encryptOSSL($usernameMyData, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
+           $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
+           $encrMyDataCpls[$usernameMyData] = $cryptedOwner;*/
+        if (!array_key_exists($usernameMyData, $encrMyDataCpls)) {
+            $cryptedOwner = encryptOSSL($usernameMyData, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);       // MOD OWN-DEL
+            $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);      // MOD OWN-DEL
+            $encrMyDataCpls[$usernameMyData] = $cryptedOwner;
+        } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+            $cryptedOwner = $encrMyDataCpls[$usernameMyData];
+        }
+    } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+        $cryptedOwner = $encrMyDataCpls[$usernameMyData];
+    }
+
+    foreach($apiAllMyDataDelegationsArray as $delStruct) {
+        if ($resMyDataRecord['id'] == $delStruct['elementId']) {
+            $cryptedMyDataDelegatedUsr = null;
+            $ownerCheck = $delStruct['usernameDelegator'];
+            if (!in_array($delStruct['usernameDelegated'], $delegatedMyDataUsers)) {
+                if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
+                    array_push($delegatedMyDataUsers, $delStruct['usernameDelegated']);
+                    if (!array_key_exists($delStruct['usernameDelegated'], $encrDelMyDataCpls)) {
+                        $cryptedMyDataDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                        $encrDelMyDataCpls[$delStruct['usernameDelegated']] = $cryptedMyDataDelegatedUsr;
+                    } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                        $cryptedMyDataDelegatedUsr = $encrDelMyDataCpls[$delStruct['usernameDelegated']];
+                    }
+                    if ($delegatedMyDataUsersStr == null || $delegatedMyDataUsersStr === "") {
+                        $delegatedMyDataUsersStr = $cryptedMyDataDelegatedUsr;
+                    } else {
+                        $delegatedMyDataUsersStr = $delegatedMyDataUsersStr . ", " . $cryptedMyDataDelegatedUsr;
+                    }
+                }
+            } else {
+                $duplicateDelegationFlag = 1;
+            }
+
+            if (isset($delStruct['groupnameDelegated'])) {
+                //    $cryptedDelegatedGroup = null;
+                if (!in_array($delStruct['groupnameDelegated'], $delegatedMyDataGroups)) {
+                    if (!is_null($delStruct['groupnameDelegated'])) {
+                        $delegatedGroupsItem = $delStruct['groupnameDelegated'];
+                        if (isset(explode(",ou", $delegatedGroupsItem)[1])) {
+                            $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
+                            /*    if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
+                                    $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                }*/
+                        } else {
+                            $delegatedGroupsItem = explode(",dc=", explode("ou=", $delegatedGroupsItem)[1])[0];
+                        }
+                        array_push($delegatedMyDataGroups, $delegatedGroupsItem);
+
+                        if ($delegatedMyDataGroupStr == null || $delegatedMyDataGroupStr === "") {
+                            $delegatedMyDataGroupStr = $delegatedGroupsItem;
+                        } else {
+                            $delegatedMyDataGroupStr = $delegatedMyDataGroupStr . ", " . $delegatedGroupsItem;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (!is_null($nature_MyData)) {
         if ($nature_MyData != '') {
             echo($count . " - MY Data: " . $nature_MyData . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id_MyData . ", MOTIVATION: " . $low_level_type_MyData . ", KPI-ID: " . $kpiId . "\n");
-            $insertQuery_MyData = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude, value_unit) VALUES ('$nature_MyData','$high_level_type_MyData','$sub_nature_MyData','$low_level_type_MyData', '$unique_name_id_MyData', '$instance_uri_MyData', '$get_instances_MyData', '$unit_MyData', '$metric_MyData', '$saved_direct_MyData', '$kb_based_MyData', '$sm_based_MyData', '$parameters_MyData', '$last_date_MyData', '$last_value_MyData', '$healthiness_MyData', '$lastCheck_MyData', '$ownership_MyData', '$organizations_MyData', '$latitude_MyData', '$longitude_MyData', '$value_unit_MyData') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = '" . $healthiness_MyData . "',, lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', organizations = '" . $organizations_MyData . "', latitude = '" . $latitude_MyData . "', longitude = '" . $longitude_MyData . "' , value_unit = '" . $value_unit_MyData . "';";
+            $insertQuery_MyData = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude, value_unit, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature_MyData','$high_level_type_MyData','$sub_nature_MyData','$low_level_type_MyData', '$unique_name_id_MyData', '$instance_uri_MyData', '$get_instances_MyData', '$unit_MyData', '$metric_MyData', '$saved_direct_MyData', '$kb_based_MyData', '$sm_based_MyData', '$parameters_MyData', '$last_date_MyData', '$last_value_MyData', '$healthiness_MyData', '$lastCheck_MyData', '$ownership_MyData', '$organizations_MyData', '$latitude_MyData', '$longitude_MyData', '$value_unit_MyData', '$cryptedOwner', '$delegatedMyDataUsersStr', '$delegatedMyDataGroupStr') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = '" . $healthiness_MyData . "', lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', organizations = '" . $organizations_MyData . "', latitude = '" . $latitude_MyData . "', longitude = '" . $longitude_MyData . "' , value_unit = '" . $value_unit_MyData . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyDataUsersStr . "', delegatedGroupHash = '" . $delegatedMyDataGroupStr . "';";
             try {
                 //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                 mysqli_query($link, $insertQuery_MyData);
@@ -363,7 +700,7 @@ foreach ($resMyDataArray as $resMyDataRecord) {
                 //   echo ("\nINSERT QUERY ON DUPLICATE KEY: ".$insertQuery."\n");
             } catch (Exception $e) {
                 echo $e->getMessage();
-                $updtQuery_MyData = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = '" . $healthiness_MyData . "', lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', latitude = '" . $latitude_MyData . "', longitude = '" . $longitude_MyData . "' WHERE high_level_type = '" . $high_level_type_MyData . "' AND sub_nature = '" . $sub_nature_MyData . "' AND low_level_type = '" . $low_level_type_MyData . "' AND unique_name_id = '" . $unique_name_id_MyData . "' AND instance_uri = '" . $instance_uri_MyData . "' AND get_instances = '" . $get_instances_MyData . "' , value_unit = '" . $value_unit_MyData . "';";
+                $updtQuery_MyData = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = '" . $healthiness_MyData . "', lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', latitude = '" . $latitude_MyData . "', longitude = '" . $longitude_MyData . "' WHERE high_level_type = '" . $high_level_type_MyData . "' AND sub_nature = '" . $sub_nature_MyData . "' AND low_level_type = '" . $low_level_type_MyData . "' AND unique_name_id = '" . $unique_name_id_MyData . "' AND instance_uri = '" . $instance_uri_MyData . "' AND get_instances = '" . $get_instances_MyData . "' , value_unit = '" . $value_unit_MyData . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyDataUsersStr . "', delegatedGroupHash = '" . $delegatedMyDataGroupStr . "';";
                 mysqli_query($link, $updtQuery_MyData);
                 echo ("\nUPDATE QUERY: ".$updtQuery_MyData."\n");
             }
@@ -389,6 +726,59 @@ $sm_based = "";
 $parameters = "";
 $healthiness = "";
 $ownership = "";
+$encrCpls = [];                 // MOD OWN-DEL
+$encrDelCpls = [];              // MOD OWN-DEL
+$encrDelGroupCpls = [];         // MOD OWN-DEL
+$delegatedUsers = [];
+$delegatedGroups = [];
+$delegatedUsersStr = null;
+$delegatedGroupStr = null;
+$allowedElementIDs = [];
+
+$accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
+$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=AppID";
+// MOD-GP 2019 Query Per prendere TUTTI i DELEGATED ANONYMOUS
+//$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+$apiResults = file_get_contents($apiUrl);
+
+if(trim($apiResults) != "")
+{
+    $resApiArray = json_decode($apiResults, true);
+    $publicApp = $resApiArray;
+    foreach($resApiArray as $publicItem)
+    {
+        array_push($allowedElementIDs, $publicItem['elementId']);
+    }
+}
+
+$apiAllDelegationsUrl = $host_PD . ":8080/datamanager/api/v1/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=AppID";
+$apiAllDelegationsResults = file_get_contents($apiAllDelegationsUrl);
+
+if(trim($apiAllDelegationsResults) != "")
+{
+    $resApiAllArray = json_decode($apiAllDelegationsResults, true);
+    $delegatedApp = $resApiAllArray;
+}
+
+// NEW OWENRSHIP - REQUEST ALL OWNED AppID ELEMENTS
+$apiOwnershipUrl = $ownershipApiBaseUrl . "/v1/list/?type=AppID&accessToken=" . $accessToken;
+
+$options = array(
+    'http' => array(
+        'header'  => "Content-type: application/json\r\n",
+        'method'  => 'GET',
+        'timeout' => 30,
+        'ignore_errors' => true
+    )
+);
+
+$context  = stream_context_create($options);
+$ownedAppJson = file_get_contents($apiOwnershipUrl, false, $context);
+$ownedApp = json_decode($ownedAppJson);
+
+for($i = 0; $i < count($ownedApp); $i++) {
+    array_push($ownedElements, $ownedApp[$i]->elementId);
+}
 
 if (isset($accessToken)) {
     // QUERY ALLE API PER PERSONAL DATA
@@ -410,6 +800,15 @@ $count = 0;
 foreach ($resArray as $resRecord) {
 
     $count++;
+    $owner = null;                  // MOD OWN-DEL
+    $cryptedOwner = null;           // MOD OWN-DEL
+    $cryptedDelegatedUsr = null;    // MOD OWN-DEL
+    $decryptedOwner = null;         // MOD OWN-DEL
+    $ownerCheck = null;             // MOD OWN-DEL
+    $delegatedUsers = [];
+    $delegatedGroups = [];
+    $delegatedUsersStr = null;
+    $delegatedGroupStr = null;
     $nature = $resRecord['APPName'];
     $low_level_type = $resRecord['motivation'];
     $unique_name_id = addslashes($resRecord['variableName']);
@@ -427,14 +826,94 @@ foreach ($resArray as $resRecord) {
     $sm_based = "no";
     $healthiness = "true";
 
-    if($low_level_type === 'ping-adv') {
-        $stop_flag = 1;
+    foreach($ownedApp as $struct) {
+        if ($get_instances == $struct->elementId) {
+            $owner = $struct->username;     // MOD OWN-DEL
+            break;
+        }
+    }
+
+    //  if (!in_array($owner, $encrCpls)) {
+    if (!array_key_exists($owner, $encrCpls)) {
+        $cryptedOwner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
+        $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
+        $encrCpls[$owner] = $cryptedOwner;
+    } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+        $cryptedOwner = $encrCpls[$owner];
+    }
+
+    /*    if ($availability != '') {
+            $ownership = $availability;
+        } else if ($ownShip != '') {
+            $ownership = $ownShip;
+        } else {
+            $ownership = "public";
+        }*/
+
+    if (in_array($get_instances, $allowedElementIDs)) {
+        $ownership = 'public';
+    } else {
+        $ownership = 'private';
+    }
+
+    if ($ownership == "private") {
+
+        // MOD OWN-DEL
+        foreach($delegatedApp as $delStruct) {
+            if ($get_instances == $delStruct['elementId']) {
+                $cryptedDelegatedUsr = null;
+                $ownerCheck = $delStruct['usernameDelegator'];
+                if (!in_array($delStruct['usernameDelegated'], $delegatedUsers)) {
+                    if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
+                        array_push($delegatedUsers, $delStruct['usernameDelegated']);
+                        if (!array_key_exists($delStruct['usernameDelegated'], $encrDelCpls)) {
+                            $cryptedDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                            $encrDelCpls[$delStruct['usernameDelegated']] = $cryptedDelegatedUsr;
+                        } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                            $cryptedDelegatedUsr = $encrDelCpls[$delStruct['usernameDelegated']];
+                        }
+                        if ($delegatedUsersStr == null || $delegatedUsersStr === "") {
+                            $delegatedUsersStr = $cryptedDelegatedUsr;
+                        } else {
+                            $delegatedUsersStr = $delegatedUsersStr . ", " . $cryptedDelegatedUsr;
+                        }
+                    }
+                } else {
+                    $duplicateDelegationFlag = 1;
+                }
+
+                if (isset($delStruct['groupnameDelegated'])) {
+                    //    $cryptedDelegatedGroup = null;
+                    if (!in_array($delStruct['groupnameDelegated'], $delegatedGroups)) {
+                        if (!is_null($delStruct['groupnameDelegated'])) {
+                            $delegatedGroupsItem = $delStruct['groupnameDelegated'];
+                            if (isset(explode(",ou", $delegatedGroupsItem)[1])) {
+                                $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
+                                /*   if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
+                                       $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                   }*/
+                            } else {
+                                $delegatedGroupsItem = explode(",dc=", explode("ou=", $delegatedGroupsItem)[1])[0];
+                            }
+                            array_push($delegatedGroups, $delegatedGroupsItem);
+
+                            if ($delegatedGroupStr == null || $delegatedGroupStr === "") {
+                                $delegatedGroupStr = $delegatedGroupsItem;
+                            } else {
+                                $delegatedGroupStr = $delegatedGroupStr . ", " . $delegatedGroupsItem;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     if (!is_null($nature)) {
         if ($nature != '') {
             echo($count . " - PERSONAL APP-NAME: " . $nature . ", PERSONAL DATA VARIABLE-NAME: " . $unique_name_id . ", MOTIVATION: " . $low_level_type . "\n");
-            $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', saved_direct = '" . $saved_direct_POI . "';";
+            $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', saved_direct = '" . $saved_direct_POI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "';";
             try {
              //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                 mysqli_query($link, $insertQuery);
@@ -442,7 +921,7 @@ foreach ($resArray as $resRecord) {
              //   echo ("\nINSERT QUERY ON DUPLICATE KEY: ".$insertQuery."\n");
             } catch (Exception $e) {
                 echo $e->getMessage();
-                $updtQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                $updtQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
                 mysqli_query($link, $updtQuery);
                 echo ("\nUPDATE QUERY: ".$updtQuery."\n");
             }

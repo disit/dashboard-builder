@@ -819,13 +819,15 @@ else
                             }
 
                             for ($i = 0; $i < count($delegatedDashboards); $i++) {
-                                if (@$delegatedDashboards[$i]->elementType == 'DashboardID') {
-                                    if ($orgFlag != "all") {
-                                        if (in_array($delegatedDashboards[$i]->elementId, $dashboardOrgList, true)) {
+                                if (!isset($delegatedDashboards->error)) {
+                                    if (@$delegatedDashboards[$i]->elementType == 'DashboardID') {
+                                        if ($orgFlag != "all") {
+                                            if (in_array($delegatedDashboards[$i]->elementId, $dashboardOrgList, true)) {
+                                                array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                            }
+                                        } else {
                                             array_push($dashIds, $delegatedDashboards[$i]->elementId);
                                         }
-                                    } else {
-                                        array_push($dashIds, $delegatedDashboards[$i]->elementId);
                                     }
                                 }
                             }

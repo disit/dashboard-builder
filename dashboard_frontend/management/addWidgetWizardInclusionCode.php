@@ -265,9 +265,16 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><div id="ownershipColumnFilter"></th>
                             <!--    <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><div id="valueUnitColumnFilter"></th>  -->
-                                <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
+                            <!--    <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations"></th>
-                                <?php } ?>
+                                <?php } ?> -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Latitude"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Longitude"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ownerHash"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedHash"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedGroupHash"></th>
 
                             </tr>  
                             <tr>  
@@ -289,9 +296,16 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
                             <!--    <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>    -->
-                                <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
+                            <!--    <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
-                                <?php } ?>
+                                <?php } ?>  -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Latitude">Latitude</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Longitude">Longitude</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based">sm_based</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ownerHash">ownerHash</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedHash">delegatedHash</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedGroupHash">delegatedGroupHash</th>
 
                             </tr>  
                         </thead>
@@ -466,6 +480,7 @@
         var tabsQt = 3;
     //    var dashTitle = "<?php if (isset($_REQUEST['dashboardTitle'])) {echo $_REQUEST['dashboardTitle'];} else {echo 1;} ?>";
         var orgFilter = "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>";
+        var invisibleCols = [];
         addWidgetWizardMapMarkers = {};
         currentMarkerId = 0;
     //    dashTitleEscaped = dashTitle.replace(/\'/g, "%27");
@@ -552,6 +567,12 @@
                 console.log(JSON.stringify(data));
             }
         });
+
+        if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+            invisibleCols = [5, 12, 13, 15, 18, 19, 20, 21, 22, 23];
+        } else {
+            invisibleCols = [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23];
+        }
 
         //False se è violata, true se è rispettata
         var validityConditions = {
@@ -650,7 +671,7 @@
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
             "processing": true,
             "serverSide": true,
             "pageLength": widgetWizardPageLength,
@@ -691,7 +712,8 @@
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15],
+                 //   "targets": [5, 12, 13, 15, 18, 19, 20, 21, 22, 23],
+                    "targets": invisibleCols,
                     "visible": false
                 },
                 {
@@ -763,7 +785,7 @@
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
             "processing": true,
             "serverSide": true,
             "pageLength": widgetWizardPageLength,
@@ -810,7 +832,8 @@
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15],
+                //    "targets": [5, 12, 13, 15, 18, 19, 20, 21, 22, 23],
+                    "targets": invisibleCols,
                     "visible": false
                 },
                 {
@@ -4126,17 +4149,17 @@
             } else if ($(this).attr('data-fieldTitle') === "unit") {
                 var idx = 6;
             } else if ($(this).attr('data-fieldTitle') === "last_date") {
-                var idx = 7;
-            } else if ($(this).attr('data-fieldTitle') === "last_value") {
                 var idx = 8;
-            } else if ($(this).attr('data-fieldTitle') === "healthiness") {
+            } else if ($(this).attr('data-fieldTitle') === "last_value") {
                 var idx = 9;
+            } else if ($(this).attr('data-fieldTitle') === "healthiness") {
+                var idx = 10;
             } else if ($(this).attr('data-fieldTitle') === "lastCheck") {
-                var idx = 13;
+                var idx = 14;
             } else if ($(this).attr('data-fieldTitle') === "value_unit") {
-                var idx = 16;
+                var idx = 7;
             } else if ($(this).attr('data-fieldTitle') === "ownership") {
-                var idx = 15;
+                var idx = 16;
             }
             if ($(this).is(":checked")) {
                 // Get the column API object
@@ -4600,15 +4623,15 @@
                         widgetWizardTable.column(n).search(searchValueUnit, true, false); 
                         break;    
                         
-                    case 9:
+                    case 10:
                         widgetWizardTable.column(n).search(searchValueHealth, true, false); 
                         break;
 
-                    case 16:
+                    case 7:
                         widgetWizardTable.column(n).search(searchValueValueUnit, true, false);
                         break;
 
-                    case 15:
+                    case 16:
                         widgetWizardTable.column(n).search(searchValueOwnership, true, false); 
                         break;
 
@@ -4780,7 +4803,7 @@
             "paging": true,
             "language": {search: ""},
             "pageLength": 8,
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
           /*  colReorder: {
                 order: [0, 1, 2, 3, 4, 6, 16, 7, 8, 9, 13, 15, 17]
             },*/
@@ -4864,7 +4887,7 @@
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
-            aaSorting: [[0, 'desc']],
+            aaSorting: [[0, 'asc']],
             "processing": true,
             "serverSide": true,
             "pageLength": widgetWizardPageLength,
@@ -4930,7 +4953,8 @@
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15],
+                //    "targets": [5, 12, 13, 15, 18, 19, 20, 21, 22, 23],
+                    "targets": invisibleCols,
                     "visible": false
                 },
                 {
@@ -4989,6 +5013,11 @@
                             //    if (search != "") {
                                     search = search.join('|');
                              //   }
+
+                                if (search.charAt(0) == '|') { // CLEAR FIRST CHARACTER IF "|"
+                                    search = search.substr(1);
+                                }
+
                                 globalSqlFilter[0].value = search;
                                 if (search == '' && !globalSqlFilter[0].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
@@ -5104,6 +5133,10 @@
                                 globalSqlFilter[1].selectedVals = search;
                                 search = search.join('|');
 
+                                if (search.charAt(0) == '|') { // CLEAR FIRST CHARACTER IF "|"
+                                    search = search.substr(1);
+                                }
+
                                 globalSqlFilter[1].value = search;
                                 if (search == '' && !globalSqlFilter[1].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
@@ -5210,6 +5243,10 @@
                                     search = [];
                                 globalSqlFilter[2].selectedVals = search;
                                 search = search.join('|');
+
+                                if (search.charAt(0) == '|') { // CLEAR FIRST CHARACTER IF "|"
+                                    search = search.substr(1);
+                                }
 
                                 globalSqlFilter[2].value = search;
                                 if (search == '' && !globalSqlFilter[2].allSelected) {
@@ -5333,6 +5370,10 @@
                                 globalSqlFilter[3].selectedVals = search;
                                 search = search.join('|');
 
+                                if (search.charAt(0) == '|') { // CLEAR FIRST CHARACTER IF "|"
+                                    search = search.substr(1);
+                                }
+
                                 globalSqlFilter[3].value = search;
                                 if (search == '' && !globalSqlFilter[3].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
@@ -5410,6 +5451,10 @@
                                 globalSqlFilter[6].selectedVals = search;
                                 search = search.join('|');
 
+                                if (search.charAt(0) == '|') {  // CLEAR FIRST CHARACTER IF "|"
+                                    search = search.substr(1);
+                                }
+
                                 globalSqlFilter[6].value = search;
                                 if (search == '' && !globalSqlFilter[6].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
@@ -5479,6 +5524,10 @@
                                     search = [];
                                 globalSqlFilter[7].selectedVals = search;
                                 search = search.join('|');
+
+                                if (search.charAt(0) == '|') {  // CLEAR FIRST CHARACTER IF "|"
+                                    search = search.substr(1);
+                                }
 
                                 globalSqlFilter[7].value = search;
                                 if (search == '' && !globalSqlFilter[7].allSelected) {
@@ -5557,6 +5606,10 @@
                                 globalSqlFilter[8].selectedVals = search;
                                 search = search.join('|');
 
+                                if (search.charAt(0) == '|') {  // CLEAR FIRST CHARACTER IF "|"
+                                    search = search.substr(1);
+                                }
+
                                 globalSqlFilter[8].value = search;
                                 if (search == '' && !globalSqlFilter[8].allSelected) {
                                     search = 'oiunqauhalknsufhvnoqwpnvfv';
@@ -5633,6 +5686,10 @@
                                 search = [];
                             globalSqlFilter[9].selectedVals = search;
                             search = search.join('|');
+
+                            if (search.charAt(0) == '|') {  // CLEAR FIRST CHARACTER IF "|"
+                                search = search.substr(1);
+                            }
 
                             globalSqlFilter[9].value = search;
                             if (search == '' && !globalSqlFilter[9].allSelected) {
@@ -6550,15 +6607,6 @@
                     
                     if($(this).attr("data-lastDateVisible") === 'true')
                     {
-                        widgetWizardTable.column(7).visible(true);
-                    }
-                    else
-                    {
-                        widgetWizardTable.column(7).visible(false);
-                    }
-                    
-                    if($(this).attr("data-lastValueVisible") === 'true')
-                    {
                         widgetWizardTable.column(8).visible(true);
                     }
                     else
@@ -6566,7 +6614,7 @@
                         widgetWizardTable.column(8).visible(false);
                     }
                     
-                    if($(this).attr("data-healthinessVisible") === 'true')
+                    if($(this).attr("data-lastValueVisible") === 'true')
                     {
                         widgetWizardTable.column(9).visible(true);
                     }
@@ -6575,31 +6623,40 @@
                         widgetWizardTable.column(9).visible(false);
                     }
                     
-                    if($(this).attr("data-lastCheckVisible") === 'true')
+                    if($(this).attr("data-healthinessVisible") === 'true')
                     {
-                        widgetWizardTable.column(13).visible(true);
+                        widgetWizardTable.column(10).visible(true);
                     }
                     else
                     {
-                        widgetWizardTable.column(13).visible(false);
+                        widgetWizardTable.column(10).visible(false);
+                    }
+                    
+                    if($(this).attr("data-lastCheckVisible") === 'true')
+                    {
+                        widgetWizardTable.column(14).visible(true);
+                    }
+                    else
+                    {
+                        widgetWizardTable.column(14).visible(false);
                     }
 
                     if($(this).attr("data-valueUnitVisible") === 'true')
+                    {
+                        widgetWizardTable.column(7).visible(true);
+                    }
+                    else
+                    {
+                        widgetWizardTable.column(7).visible(false);
+                    }
+
+                    if($(this).attr("data-ownershipVisible") === 'true')
                     {
                         widgetWizardTable.column(16).visible(true);
                     }
                     else
                     {
                         widgetWizardTable.column(16).visible(false);
-                    }
-
-                    if($(this).attr("data-ownershipVisible") === 'true')
-                    {
-                        widgetWizardTable.column(15).visible(true);
-                    }
-                    else
-                    {
-                        widgetWizardTable.column(15).visible(false);
                     }
                     
                     if(($(this).attr('data-highlevelsel').split('|').length > 1) || ($(this).attr('data-highlevelsel') === 'any'))

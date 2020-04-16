@@ -139,8 +139,13 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     $sql_where_ok = $whereString;
 
     $wizardColumns = array('high_level_type', 'nature', 'sub_nature', 'low_level_type', 'unit', 'healthiness', 'ownership', 'value_unit');
-        
-    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok." ORDER BY ".$sql_distinct_field." ASC;";
+
+    $dashLoggedUsername = $_SESSION['loggedUsername'];
+    $cryptedUsr = encryptOSSL($dashLoggedUsername, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+
+    $whereAllHash = " AND (ownership = 'public' OR (ownerHash LIKE '%" . $cryptedUsr . "%' OR delegatedHash LIKE '%" . $cryptedUsr . "%'))";
+
+    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok . $whereAllHash . " ORDER BY ".$sql_distinct_field." ASC;";
 
     if ($freezeMap == "true") {
         $wizardColId = array_search($sql_distinct_field, $wizardColumns);
@@ -346,10 +351,11 @@ if (!empty($_REQUEST["filterDistinct"])) {
         // GESTIONE COMPLETA DELEGHE DA ALTRE ORGANIZATIONS ********************************************
 
         $dashLoggedUsername = $_SESSION['loggedUsername'];
+        $cryptedUsr = encryptOSSL($dashLoggedUsername, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
         $dashUserRole = $_SESSION['loggedRole'];
         $organizationName = $_SESSION['loggedOrganization'];
 
-        $myPOIQueryString = "";
+    /*    $myPOIQueryString = "";
 
         // RECUPERA IL REFRESH TOKEN PER CHIAMATA API OWNERSHIP E DELEGATION
         if (isset($_SESSION['refreshToken'])) {
@@ -490,14 +496,18 @@ if (!empty($_REQUEST["filterDistinct"])) {
 
         $whereAll = $whereAll.$whereAllUsers . $myPOIQueryString;
         $whereAll = $whereAll.")";
+*/
 
-
+        $whereAllHash = "(organizations LIKE '%" . $organizationName . "%' AND ownership = 'public' OR (ownerHash LIKE '%" . $cryptedUsr . "%' OR delegatedHash LIKE '%" . $cryptedUsr . "%'))";
+        $whereAll = $whereAllHash;
 
         $link = mysqli_connect($host, $username, $password);
         //error_reporting(E_ERROR | E_NOTICE);
         error_reporting(E_ERROR);
 
-        $query = "SELECT DISTINCT ".$sql_filter." FROM Dashboard.DashboardWizard WHERE organizations REGEXP '". $org ."' ORDER BY ".$sql_filter." ASC";
+    //    $query = "SELECT DISTINCT ".$sql_filter." FROM Dashboard.DashboardWizard WHERE organizations REGEXP '". $org ."' ORDER BY ".$sql_filter." ASC";
+        $query = "SELECT DISTINCT ".$sql_filter." FROM Dashboard.DashboardWizard WHERE " . $whereAll . " ORDER BY ".$sql_filter." ASC";
+
      //   $queryNEW_KO = "SELECT DISTINCT ".$sql_filter." FROM Dashboard.DashboardWizard WHERE " . $whereAll . " ORDER BY ".$sql_filter." ASC";
       //  $query = "SELECT * FROM Dashboard.DashboardWizard";
 
@@ -719,7 +729,10 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             array( 'db' => 'organizations',     'dt' => 17 ),
             array( 'db' => 'latitude',     'dt' => 18 ),
             array( 'db' => 'longitude',     'dt' => 19 ),
-            array( 'db' => 'sm_based',     'dt' => 20 )
+            array( 'db' => 'sm_based',     'dt' => 20 ),
+            array( 'db' => 'ownerHash',     'dt' => 21 ),
+            array( 'db' => 'delegatedHash',     'dt' => 22 ),
+            array( 'db' => 'delegatedGroupHash',     'dt' => 23 )
 
         );
 
@@ -808,7 +821,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
         } else {
             $organizationName = null;
         }*/
-
+/*
         // RECUPERA IL REFRESH TOKEN PER CHIAMATA API OWNERSHIP E DELEGATION
         if (isset($_SESSION['refreshToken'])) {
             $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
@@ -845,19 +858,19 @@ if(isset($_REQUEST["initWidgetWizard"])) {
         }
 
         // $privateDashWizRows NON USATO, SOLO PER REFERENCE !!
-    /*    $queryPriv = "(SELECT * FROM Dashboard.DashboardWizard WHERE ownership = 'private');";
-        $rsPriv = mysqli_query($link, $queryPriv);
-        $resultPriv = [];
-        if($rsPriv) {
-            while ($rowPriv = mysqli_fetch_assoc($rsPriv)) {
-                $recordPriv = [];
-                array_push($recordPriv, $rowPriv['parameters']);
-                array_push($recordPriv, null);
-                    // $rowApp['parameters'] ?? Se è utile...
-                array_push($recordPriv, $rowPriv['high_level_type']);
-                array_push($privateDashWizRows, $recordPriv);
-            }
-        }   */
+    //    $queryPriv = "(SELECT * FROM Dashboard.DashboardWizard WHERE ownership = 'private');";
+    //    $rsPriv = mysqli_query($link, $queryPriv);
+    //    $resultPriv = [];
+    //    if($rsPriv) {
+    //        while ($rowPriv = mysqli_fetch_assoc($rsPriv)) {
+    //            $recordPriv = [];
+    //            array_push($recordPriv, $rowPriv['parameters']);
+    //            array_push($recordPriv, null);
+    //                // $rowApp['parameters'] ?? Se è utile...
+    //            array_push($recordPriv, $rowPriv['high_level_type']);
+    //            array_push($privateDashWizRows, $recordPriv);
+    //        }
+    //    }
 
         // Call Onwership API
     //    $queryOwnership = $ownershipApiBaseUrl . "/v1/list?username=".$dashLoggedUsername;
@@ -905,52 +918,52 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             }
         }
 
-/*
+
         // NEW DELEGATED ANONYMOUS PER ORG !
-        if (isset($_SESSION["loggedOrganization"])) {
-            $ldapBaseDnOrg = "ou=". $_SESSION["loggedOrganization"] .",dc=foo,dc=example,dc=org";
-        } else {
-            $ldapBaseDnOrg = "ou=Other,dc=foo,dc=example,dc=org";
-        }
+    //    if (isset($_SESSION["loggedOrganization"])) {
+    //        $ldapBaseDnOrg = "ou=". $_SESSION["loggedOrganization"] .",dc=foo,dc=example,dc=org";
+    //    } else {
+    //        $ldapBaseDnOrg = "ou=Other,dc=foo,dc=example,dc=org";
+    //    }
 
-        if (isset($_SESSION['loggedOrganization'])) {
-          //  $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
-      //  } else {
-            $ldapBaseDnOrgEncoded = urlencode($ldapBaseDnOrg);
-            $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" . $ldapBaseDnOrgEncoded;
-        } else {
-            $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
-        }
+    //    if (isset($_SESSION['loggedOrganization'])) {
+    //      //  $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+    //  //  } else {
+    //        $ldapBaseDnOrgEncoded = urlencode($ldapBaseDnOrg);
+    //        $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" . $ldapBaseDnOrgEncoded;
+    //    } else {
+    //        $apiUrl = $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+    //    }
 
-        // PRODUZIONE
-        //      $apiUrlNewProd= $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" .  urlencode($ldapBaseDnOrg);
+    //    // PRODUZIONE
+    //    //      $apiUrlNewProd= $personalDataApiBaseUrl . "/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&groupname=" .  urlencode($ldapBaseDnOrg);
 
-        $options = array(
-            'http' => array(
-                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method'  => 'GET',
-                'timeout' => 30,
-                'ignore_errors' => true
-            )
-        );
+    //    $options = array(
+    //        'http' => array(
+    //            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+    //            'method'  => 'GET',
+    //            'timeout' => 30,
+    //            'ignore_errors' => true
+    //        )
+    //    );
 
-        $context  = stream_context_create($options);
-        $queryPublicResults = file_get_contents($apiUrl, false, $context);
-        $queryPublicResultsArray = json_decode($queryPublicResults);
-        if(trim($queryPublicResults) != "")
-        {
-            $resPublicArray = json_decode($queryPublicResults, true);
-            foreach($resPublicArray as $publicRecord)
-            {
-                if(!in_array($publicRecord['elementId'], $allowedElementIDs, true)) {
-                    //   $allowedElements[] = $delegatedRecord;
-                    array_push($publicElements, $publicRecord);
-                    $allowedElementCouples[] = array($publicRecord['elementId'], $publicRecord['elementType'], $publicRecord['variableName'], $publicRecord['motivation'], "Delegated");
-                    array_push($allowedElementIDs, $publicRecord['elementId']);
-                }
-            }
-        }
-*/
+    //    $context  = stream_context_create($options);
+    //    $queryPublicResults = file_get_contents($apiUrl, false, $context);
+    //    $queryPublicResultsArray = json_decode($queryPublicResults);
+    //    if(trim($queryPublicResults) != "")
+    //    {
+    //        $resPublicArray = json_decode($queryPublicResults, true);
+    //        foreach($resPublicArray as $publicRecord)
+    //        {
+    //            if(!in_array($publicRecord['elementId'], $allowedElementIDs, true)) {
+    //                //   $allowedElements[] = $delegatedRecord;
+    //                array_push($publicElements, $publicRecord);
+    //                $allowedElementCouples[] = array($publicRecord['elementId'], $publicRecord['elementType'], $publicRecord['variableName'], $publicRecord['motivation'], "Delegated");
+    //                array_push($allowedElementIDs, $publicRecord['elementId']);
+    //            }
+    //        }
+    //    }
+
 
         // Call MyKPI API
         $queryMyKPI = $personalDataApiBaseUrl . "/v1/kpidata/?sourceRequest=dashboardwizard&accessToken=" . $accessToken . "&highLevelType=MyKPI";
@@ -1136,10 +1149,10 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                 }
             }
     //    }
-        /*else
-        {
-             fwrite($file, "Risposta vuota 2\n");
-        }*/
+    //   // else
+    //   // {
+    //   //      fwrite($file, "Risposta vuota 2\n");
+    //   // }
 
         if ($myPOIQueryString === "") {
             $myPOIQueryString = " AND (high_level_type != 'MyPOI' AND nature != 'Any' AND sub_nature != 'Any')";
@@ -1147,6 +1160,11 @@ if(isset($_REQUEST["initWidgetWizard"])) {
 
         $whereAll = $whereAll.$whereAllUsers . $myPOIQueryString;
         $whereAll = $whereAll.")";
+*/
+
+        $cryptedUsr = encryptOSSL($dashLoggedUsername, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+        $whereAllHash = "(organizations LIKE '%" . $organizationName . "%' AND ownership = 'public' OR (ownerHash LIKE '%" . $cryptedUsr . "%' OR delegatedHash LIKE '%" . $cryptedUsr . "%'))";
+        $whereAll = $whereAllHash;
 
         $pageBuffer = [];
 
@@ -1156,15 +1174,15 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             $out = dashboardWizardControllerSSP::simple( $_GET, $sql_details, $table, $primaryKey, $columns );
         }
 
-
+/*
 
         for($n=0; $n < sizeof($out['data']); $n++) {
-            if ($out['data'][$n][15] == "private") {
+            if ($out['data'][$n][16] == "private") {
                 $privateString = "";
                 if ($out['data'][$n][0] == "Dashboard-IOT App") {      // IOT-App *****************
                     if ($dashUserRole != "RootAdmin") {
                         $privateString = "private (My Own)";
-                        $out['data'][$n][15] = $privateString;
+                        $out['data'][$n][16] = $privateString;
                     } else {
                         foreach ($ownedElements as $ownedElement) {
                             if ($out['data'][$n][14] == $ownedElement['elementId']) {
@@ -1173,16 +1191,16 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                                 } else {
                                     $privateString = "private";
                                 }
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                         }
                     }
-                    /*    foreach ($delegatedElements as $delegatedElement) {
-                            if ($out['data'][$n][14] == $delegatedElement['elementId']) {
-                                $privateString = "private (Delegated)";
-                                    $out['data'][$n][15] = $privateString;
-                            }
-                        }       */
+                     //   foreach ($delegatedElements as $delegatedElement) {
+                     //       if ($out['data'][$n][14] == $delegatedElement['elementId']) {
+                     //           $privateString = "private (Delegated)";
+                     //               $out['data'][$n][16] = $privateString;
+                     //       }
+                     //   }
                 } else if ($out['data'][$n][0] == "POI") {                                  // POI ********************
                     foreach ($ownedElements as $ownedElement) {
                         if ($ownedElement['elementType'] == "ServiceGraphID") {
@@ -1193,21 +1211,21 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                                     } else {
                                         $privateString = "private";
                                     }
-                                    $out['data'][$n][15] = $privateString;
+                                    $out['data'][$n][16] = $privateString;
                                 }
                             }
                         }
                     }
                     //    if ($privateString == '') {
                     foreach ($delegatedElements as $delegatedElement) {
-                        /* if ($out['data'][$n][11] == $delegatedElement['elementId']) {
-                             $privateString = "private (Delegated)";
-                             $out['data'][$n][15] = $privateString;
-                         }   */
+                       //  if ($out['data'][$n][11] == $delegatedElement['elementId']) {
+                       //      $privateString = "private (Delegated)";
+                       //      $out['data'][$n][16] = $privateString;
+                       //  }
                         foreach ($privatePOIsGraphId as $privatePOIel) {
                             if ($delegatedElement['elementId'] == $privatePOIel[0]) {
                                 $privateString = "private (Delegated)";
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                         }
                     }
@@ -1222,7 +1240,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                             } else {
                                 $privateString = "private";
                             }
-                            $out['data'][$n][15] = $privateString;
+                            $out['data'][$n][16] = $privateString;
                         }
                     }
                     //    if ($private != '') {
@@ -1230,7 +1248,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                         foreach ($delegatedElements as $delegatedElement) {
                             if ($out['data'][$n][14] == $delegatedElement['elementId'] && $out['data'][$n][3] == $delegatedElement['motivation'] && $out['data'][$n][4] == $delegatedElement['variableName']) {
                                 $privateString = "private (Delegated)";
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                                 $personalDataPrivateMatch = true;
                             }
                         }
@@ -1238,24 +1256,24 @@ if(isset($_REQUEST["initWidgetWizard"])) {
 
                     if ($personalDataPrivateMatch != true) {
                         $privateString = "private (Delegated)";
-                        $out['data'][$n][15] = $privateString;
+                        $out['data'][$n][16] = $privateString;
                         $personalDataPrivateMatch = true;
                     }
 
-                 /*   if ($personalDataPrivateMatch != true) {
-                        foreach ($publicElements as $publicElement) {
-                            if ($out['data'][$n][14] == $publicElement['elementId'] && $out['data'][$n][3] == $publicElement['motivation'] && $out['data'][$n][4] == $publicElement['variableName']) {
-                                $privateString = "public";
-                                $out['data'][$n][15] = $privateString;
-                                $personalDataPrivateMatch = true;
-                            }
-                        }
-                    }*/
+              //      if ($personalDataPrivateMatch != true) {
+              //          foreach ($publicElements as $publicElement) {
+              //              if ($out['data'][$n][14] == $publicElement['elementId'] && $out['data'][$n][3] == $publicElement['motivation'] && $out['data'][$n][4] == $publicElement['variableName']) {
+              //                  $privateString = "public";
+              //                  $out['data'][$n][16] = $privateString;
+              //                  $personalDataPrivateMatch = true;
+              //              }
+              //          }
+              //      }
 
                 } else if ($out['data'][$n][0] == "Sensor" || $out['data'][$n][0] == "Sensor-Actuator") {                                  // Sensor ********************
                     if ($dashUserRole != "RootAdmin") {
                         $privateString = "private (My Own)";
-                        $out['data'][$n][15] = $privateString;
+                        $out['data'][$n][16] = $privateString;
                     } else {
                         foreach ($ownedElements as $ownedElement) {
                             //  if ($ownedElement['elementType'] == "ServiceUri") {
@@ -1265,7 +1283,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                                 } else {
                                     $privateString = "private";
                                 };
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                             //  }
                         }
@@ -1276,12 +1294,12 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                             //if ($out['data'][$n][14] == str_replace("/" . $allowedRecord[2], '', $allowedRecord[0])) {
                             if ($out['data'][$n][14] == substr($allowedRecord[0], 0, strrpos( $allowedRecord[0], '/'))) {
                                 $privateString = "private (Delegated)";
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                         } else {
                             if ($out['data'][$n][14] == $delegatedElement['elementId'] || $out['data'][$n][4] == $delegatedElement['elementId']) {
                                 $privateString = "private (Delegated)";
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                         }
                     }
@@ -1297,7 +1315,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                             } else {
                                 $privateString = "private";
                             }
-                            $out['data'][$n][15] = $privateString;
+                            $out['data'][$n][16] = $privateString;
                         }
                     }
 
@@ -1305,7 +1323,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                         foreach ($delegatedKpiElements as $delegatedKpiElement) {
                             if ($out['data'][$n][4] == $delegatedKpiElement['valueName']) {
                                 $privateString = "private (Delegated)";
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                         }
                     }
@@ -1322,7 +1340,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                             } else {
                                 $privateString = "private";
                             }
-                            $out['data'][$n][15] = $privateString;
+                            $out['data'][$n][16] = $privateString;
                         }
                     }
 
@@ -1330,7 +1348,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                         foreach ($delegatedPOIElements as $delegatedPOIElement) {
                             if ($out['data'][$n][4] == $delegatedPOIElement['properties']['kpidata']['valueName']) {
                                 $privateString = "private (Delegated)";
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                         }
                     }
@@ -1347,7 +1365,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                             } else {
                                 $privateString = "private";
                             }
-                            $out['data'][$n][15] = $privateString;
+                            $out['data'][$n][16] = $privateString;
                         }
                     }
 
@@ -1355,7 +1373,7 @@ if(isset($_REQUEST["initWidgetWizard"])) {
                         foreach ($delegatedMyDataElements as $delegatedMyDataElement) {
                             if ($out['data'][$n][4] == $delegatedMyDataElement['valueName']) {
                                 $privateString = "private (Delegated)";
-                                $out['data'][$n][15] = $privateString;
+                                $out['data'][$n][16] = $privateString;
                             }
                         }
                     }
@@ -1368,6 +1386,21 @@ if(isset($_REQUEST["initWidgetWizard"])) {
             }
         }
         $out['allowed_elements'] = $allowedElementCouples;
+
+        */
+
+        for($n=0; $n < sizeof($out['data']); $n++) {
+            $privateString = "private";
+            if ($out['data'][$n][16] == "private") {
+                if (strpos($out['data'][$n][21], $cryptedUsr) !== false) {
+                    $privateString = "private (My Own)";
+                } else if (strpos($out['data'][$n][22], $cryptedUsr) !== false) {
+                    $privateString = "private (Delegated)";
+                }
+                $out['data'][$n][16] = $privateString;
+            }
+        }
+
         $out_json = json_encode($out);
         echo $out_json;
     }

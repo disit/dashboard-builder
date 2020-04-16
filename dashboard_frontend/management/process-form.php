@@ -2513,6 +2513,8 @@
         $enableFullscreenModalM = 'no';
         $xAxisFormat = NULL;
         $yAxisType = NULL;
+        $xAxisLabel = NULL;
+        $yAxisLabel = NULL;
         $rowParameters = NULL;
     //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
         if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
@@ -3021,6 +3023,18 @@
                 $yAxisType = sanitizePostString('yAxisType');
             }
             $styleParametersArrayM['yAxisType'] = $yAxisType;
+
+            if(isset($_POST['xAxisLabel'])&&($_POST['xAxisLabel']!=""))
+            {
+                $xAxisLabel = sanitizePostString('xAxisLabel');
+            }
+            $styleParametersArrayM['xAxisLabel'] = $xAxisLabel;
+
+            if(isset($_POST['yAxisLabel'])&&($_POST['yAxisLabel']!=""))
+            {
+                $yAxisLabel = sanitizePostString('yAxisLabel');
+            }
+            $styleParametersArrayM['yAxisLabel'] = $yAxisLabel;
 
             $styleParametersM = json_encode($styleParametersArrayM);
 

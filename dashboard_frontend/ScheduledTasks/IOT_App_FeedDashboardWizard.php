@@ -14,6 +14,21 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
+function getAccessToken($token_endpoint, $username, $password, $client_id){
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL,$token_endpoint);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS,
+        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $curl_response = curl_exec($ch);
+    curl_close($ch);
+    return json_decode($curl_response)->access_token;
+
+}
+
 include '../config.php';
 
 error_reporting(E_ERROR);
@@ -22,11 +37,73 @@ $link = mysqli_connect($host, $username, $password);
 //error_reporting(E_ALL);
 mysqli_select_db($link, $dbname);
 
+$allowedElementIDs = [];
+$allowedElementCouples = [];
+$ownedElements = [];
+$encrCpls = [];                 // MOD OWN-DEL
+$encrDelCpls = [];              // MOD OWN-DEL
+$encrDelGroupCpls = [];         // MOD OWN-DEL
+$genFileContent = parse_ini_file("../conf/environment.ini");
+$genFileContent = parse_ini_file("../conf/environment.ini");
+$personalDataFileContent = parse_ini_file("../conf/personalData.ini");
+$env = $genFileContent['environment']['value'];
+
+$host_pd= $personalDataFileContent["host_PD"][$env];
+$token_endpoint= $personalDataFileContent["token_endpoint_PD"][$env];
+$client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environment']['value']];
+$username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
+$password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
+
+$accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
+$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=AppID";
+// MOD-GP 2019 Query Per prendere TUTTI i DELEGATED ANONYMOUS
+//$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+$apiResults = file_get_contents($apiUrl);
+
+if(trim($apiResults) != "")
+{
+    $resApiArray = json_decode($apiResults, true);
+    $publicApp = $resApiArray;
+    foreach($resApiArray as $publicItem)
+    {
+        array_push($allowedElementIDs, $publicItem['elementId']);
+    }
+}
+
+$apiAllDelegationsUrl = $host_PD . ":8080/datamanager/api/v1/delegation?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=AppID";
+$apiAllDelegationsResults = file_get_contents($apiAllDelegationsUrl);
+
+if(trim($apiAllDelegationsResults) != "")
+{
+    $resApiAllArray = json_decode($apiAllDelegationsResults, true);
+    $delegatedApp = $resApiAllArray;
+}
+
+// NEW OWENRSHIP - REQUEST ALL OWNED AppID ELEMENTS
+$apiOwnershipUrl = $ownershipApiBaseUrl . "/v1/list/?type=AppID&accessToken=" . $accessToken;
+
+$options = array(
+    'http' => array(
+        'header'  => "Content-type: application/json\r\n",
+        'method'  => 'GET',
+        'timeout' => 30,
+        'ignore_errors' => true
+    )
+);
+
+$context  = stream_context_create($options);
+$ownedAppJson = file_get_contents($apiOwnershipUrl, false, $context);
+$ownedApp = json_decode($ownedAppJson);
+
+for($i = 0; $i < count($ownedApp); $i++) {
+    array_push($ownedElements, $ownedApp[$i]->elementId);
+}
+
 $startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $lastCheck = str_replace("T", " ", $start_scritp_time_string[0]);
-echo("Starting FeedT IO_App SCRIPT at: ".$lastCheck."\n");
+echo("*** Starting FeedT IO_App SCRIPT at: ".$lastCheck."\n");
 
 $count2 = 0;
 
@@ -49,6 +126,13 @@ $healthiness2 = "true";
 $ownership2 = "";
 $organizations2 = "";
 
+//$allowedElementIDs = [];
+//$allowedElementCouples = [];
+$ownedElements = [];
+$encrCpls = [];                 // MOD OWN-DEL
+$encrDelCpls = [];              // MOD OWN-DEL
+$encrDelGroupCpls = [];         // MOD OWN-DEL
+
 $s2 = "";
 $a2 = "";
 $dt2 = "";
@@ -63,6 +147,16 @@ if($rs2) {
 
     while($row2 = mysqli_fetch_assoc($rs2)) 
     {
+        $owner = null;                  // MOD OWN-DEL
+        $cryptedOwner = null;           // MOD OWN-DEL
+        $cryptedDelegatedUsr = null;    // MOD OWN-DEL
+        $decryptedOwner = null;         // MOD OWN-DEL
+        $ownerCheck = null;             // MOD OWN-DEL
+        $delegatedUsers = [];           // MOD OWN-DEL
+        $delegatedGroups = [];          // MOD OWN-DEL
+        $delegatedUsersStr = null;        // MOD OWN-DEL
+        $delegatedGroupStr = null;        // MOD OWN-DEL
+
         $queryDashboardName2 = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = ".$row2['id_dashboard'];
         $rsDashName2 = mysqli_query($link, $queryDashboardName2);
         $resultDashName2 = [];
@@ -116,8 +210,92 @@ if($rs2) {
                             $ownership2 = "private";
                             $organizations2 = $row2['organization'];
 
-                            $insertQuery2 = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature2','$high_level_type2','$sub_nature2','$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', '$healthiness2', '$lastCheck', '$ownership2', '$organizations2') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "', get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "', organizations = '" . $organizations2 . "';";
-                            mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature2','$high_level_type2','$sub_nature2','$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', '$healthiness2', '$lastCheck', '$ownership2', '$organizations2') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "',  get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "', organizations = '" . $organizations2 . "';");
+                            foreach($ownedApp as $struct) {
+                                if ($get_instances2 == $struct->elementId) {
+                                    $owner = $struct->username;     // MOD OWN-DEL
+                                    break;
+                                }
+                            }
+
+                            //  if (!in_array($owner, $encrCpls)) {
+                            if (!array_key_exists($owner, $encrCpls)) {
+                                $cryptedOwner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
+                                $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
+                                $encrCpls[$owner] = $cryptedOwner;
+                            } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                                $cryptedOwner = $encrCpls[$owner];
+                            }
+
+                            /*    if ($availability != '') {
+                                    $ownership = $availability;
+                                } else if ($ownShip != '') {
+                                    $ownership = $ownShip;
+                                } else {
+                                    $ownership = "public";
+                                }*/
+
+                            if (in_array($get_instances2, $allowedElementIDs)) {
+                                $ownership2 = 'public';
+                            } else {
+                                $ownership2 = 'private';
+                            }
+
+                            if ($ownership2 == "private") {
+
+                                // MOD OWN-DEL
+                                foreach($delegatedApp as $delStruct) {
+                                    if ($get_instances2 == $delStruct['elementId']) {
+                                        $cryptedDelegatedUsr = null;
+                                        $ownerCheck = $delStruct['usernameDelegator'];
+                                        if (!in_array($delStruct['usernameDelegated'], $delegatedUsers)) {
+                                            if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
+                                                array_push($delegatedUsers, $delStruct['usernameDelegated']);
+                                                if (!array_key_exists($delStruct['usernameDelegated'], $encrDelCpls)) {
+                                                    $cryptedDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                                                    $encrDelCpls[$delStruct['usernameDelegated']] = $cryptedDelegatedUsr;
+                                                } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                                                    $cryptedDelegatedUsr = $encrDelCpls[$delStruct['usernameDelegated']];
+                                                }
+                                                if ($delegatedUsersStr == null || $delegatedUsersStr === "") {
+                                                    $delegatedUsersStr = $cryptedDelegatedUsr;
+                                                } else {
+                                                    $delegatedUsersStr = $delegatedUsersStr . ", " . $cryptedDelegatedUsr;
+                                                }
+                                            }
+                                        } else {
+                                            $duplicateDelegationFlag = 1;
+                                        }
+
+                                        if (isset($delStruct['groupnameDelegated'])) {
+                                            //    $cryptedDelegatedGroup = null;
+                                            if (!in_array($delStruct['groupnameDelegated'], $delegatedGroups)) {
+                                                if (!is_null($delStruct['groupnameDelegated'])) {
+                                                    $delegatedGroupsItem = $delStruct['groupnameDelegated'];
+                                                    if (isset(explode(",ou", $delegatedGroupsItem)[1])) {
+                                                        $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
+                                                     /*   if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
+                                                            $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                                        }*/
+                                                    } else {
+                                                        $delegatedGroupsItem = explode(",dc=", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                                    }
+                                                    array_push($delegatedGroups, $delegatedGroupsItem);
+
+                                                    if ($delegatedGroupStr == null || $delegatedGroupStr === "") {
+                                                        $delegatedGroupStr = $delegatedGroupsItem;
+                                                    } else {
+                                                        $delegatedGroupStr = $delegatedGroupStr . ", " . $delegatedGroupsItem;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+
+                            $insertQuery2 = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature2','$high_level_type2','$sub_nature2','$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', '$healthiness2', '$lastCheck', '$ownership2', '$organizations2', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "', get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "', organizations = '" . $organizations2 . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "';";
+                            mysqli_query($link, $insertQuery2);
                             $count2++;
                             echo($count2 . " - Dashboard METRIC for DataViewers (From IOT App to Dashboard) : " . $unique_name_id2 . ", MEASURE: " . $low_level_type2 . "\n");
                     
@@ -149,6 +327,13 @@ $healthiness = "true";
 $ownership = "";
 $organizations = "";
 
+//$allowedElementIDs = [];
+//$allowedElementCouples = [];
+$ownedElements = [];
+$encrCpls = [];                 // MOD OWN-DEL
+$encrDelCpls = [];              // MOD OWN-DEL
+$encrDelGroupCpls = [];         // MOD OWN-DEL
+
 $s = "";
 $a = "";
 $dt = "";
@@ -162,6 +347,16 @@ if($rs) {
     $dashboardName = "";
 
     while ($row = mysqli_fetch_assoc($rs)) {
+
+        $owner = null;                  // MOD OWN-DEL
+        $cryptedOwner = null;           // MOD OWN-DEL
+        $cryptedDelegatedUsr = null;    // MOD OWN-DEL
+        $decryptedOwner = null;         // MOD OWN-DEL
+        $ownerCheck = null;             // MOD OWN-DEL
+        $delegatedUsers = [];           // MOD OWN-DEL
+        $delegatedGroups = [];          // MOD OWN-DEL
+        $delegatedUsersStr = null;        // MOD OWN-DEL
+        $delegatedGroupStr = null;        // MOD OWN-DEL
 
         $queryDashboardName = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = ".$row['id_dashboard'];
         $rsDashName = mysqli_query($link, $queryDashboardName);
@@ -185,47 +380,127 @@ if($rs) {
                         } else {
                             $unique_name_id = $appName;
                         }
-                            array_push($actSensArray, $unique_name_id);
-                            $nature = "From Dashboard to IOT App";
-                            //    $low_level_type = $row['name'];
-                            //   $low_level_type = $row['title_w'];      // e magari $parameters = $row['name']; ??
-                        //    $low_level_type = $row['type_w'];
-                            $low_level_type = $row['title_w'];
-                            $parameters = $row['name'];
-                            $instance_uri = '';                                                                                    // EMPTY
-                            if ($row['valueType'] == "geolocator") {
-                                $unit = "json-act";
-                            } else if ($row['valueType'] == "Intero") {
-                                $unit = "integer-act";
-                            } else if ($row['valueType'] == "Integer") {
-                                $unit = "integer-act";
-                            } else if ($row['valueType'] == "integer") {
-                                $unit = "integer-act";
-                            } else if ($row['valueType'] == "Testuale") {
-                                $unit = "string-act";
-                            } else if ($row['valueType'] == "webContent") {
-                                $unit = "webpage-act";
-                            } else if ($row['valueType'] == "Float") {
-                                $unit = "float-act";
-                            } else if ($row['valueType'] == "float") {
-                                $unit = "float-act";
-                            } else if ($row['valueType'] == "boolean") {
-                                $unit = "boolean-act";
-                            } else if ($row['valueType'] == "String") {
-                                $unit = "string-act";
-                            } else {
-                                $unit = $row['valueType'];
-                            }
-                            $get_instances = $row['appId'];         // appID !!!!
-                            $metric = "yes";
-                            $saved_direct = "saved";
-                            $kb_based = "no";
-                            $sm_based = "no";
-                            $ownership = "private";
-                            $organizations = $row['organization'];
+                        array_push($actSensArray, $unique_name_id);
+                        $nature = "From Dashboard to IOT App";
+                        //    $low_level_type = $row['name'];
+                        //   $low_level_type = $row['title_w'];      // e magari $parameters = $row['name']; ??
+                    //    $low_level_type = $row['type_w'];
+                        $low_level_type = $row['title_w'];
+                        $parameters = $row['name'];
+                        $instance_uri = '';                                                                                    // EMPTY
+                        if ($row['valueType'] == "geolocator") {
+                            $unit = "json-act";
+                        } else if ($row['valueType'] == "Intero") {
+                            $unit = "integer-act";
+                        } else if ($row['valueType'] == "Integer") {
+                            $unit = "integer-act";
+                        } else if ($row['valueType'] == "integer") {
+                            $unit = "integer-act";
+                        } else if ($row['valueType'] == "Testuale") {
+                            $unit = "string-act";
+                        } else if ($row['valueType'] == "webContent") {
+                            $unit = "webpage-act";
+                        } else if ($row['valueType'] == "Float") {
+                            $unit = "float-act";
+                        } else if ($row['valueType'] == "float") {
+                            $unit = "float-act";
+                        } else if ($row['valueType'] == "boolean") {
+                            $unit = "boolean-act";
+                        } else if ($row['valueType'] == "String") {
+                            $unit = "string-act";
+                        } else {
+                            $unit = $row['valueType'];
+                        }
+                        $get_instances = $row['appId'];         // appID !!!!
+                        $metric = "yes";
+                        $saved_direct = "saved";
+                        $kb_based = "no";
+                        $sm_based = "no";
+                        $ownership = "private";
+                        $organizations = $row['organization'];
                             // METTERE ANCHE HEALTHINESS A VERDE
-                        $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck', '$ownership', '$organizations') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "';";
-                        mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck', '$ownership', '$organizations') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "';");
+
+                        foreach($ownedApp as $struct) {
+                            if ($get_instances == $struct->elementId) {
+                                $owner = $struct->username;     // MOD OWN-DEL
+                                break;
+                            }
+                        }
+
+                        //  if (!in_array($owner, $encrCpls)) {
+                        if (!array_key_exists($owner, $encrCpls)) {
+                            $cryptedOwner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
+                            $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
+                            $encrCpls[$owner] = $cryptedOwner;
+                        } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                            $cryptedOwner = $encrCpls[$owner];
+                        }
+
+                        /*    if ($availability != '') {
+                                $ownership = $availability;
+                            } else if ($ownShip != '') {
+                                $ownership = $ownShip;
+                            } else {
+                                $ownership = "public";
+                            }*/
+
+                        if (in_array($get_instances, $allowedElementIDs)) {
+                            $ownership = 'public';
+                        } else {
+                            $ownership = 'private';
+                        }
+
+                        if ($ownership == "private") {
+
+                            // MOD OWN-DEL
+                            foreach($delegatedApp as $delStruct) {
+                                if ($get_instances == $delStruct['elementId']) {
+                                    $cryptedDelegatedUsr = null;
+                                    $ownerCheck = $delStruct['usernameDelegator'];
+                                    if (!in_array($delStruct['usernameDelegated'], $delegatedUsers)) {
+                                        if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
+                                            array_push($delegatedUsers, $delStruct['usernameDelegated']);
+                                            if (!array_key_exists($delStruct['usernameDelegated'], $encrDelCpls)) {
+                                                $cryptedDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                                                $encrDelCpls[$delStruct['usernameDelegated']] = $cryptedDelegatedUsr;
+                                            } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                                                $cryptedDelegatedUsr = $encrDelCpls[$delStruct['usernameDelegated']];
+                                            }
+                                            if ($delegatedUsersStr == null || $delegatedUsersStr === "") {
+                                                $delegatedUsersStr = $cryptedDelegatedUsr;
+                                            } else {
+                                                $delegatedUsersStr = $delegatedUsersStr . ", " . $cryptedDelegatedUsr;
+                                            }
+                                        }
+                                    } else {
+                                        $duplicateDelegationFlag = 1;
+                                    }
+
+                                    if (isset($delStruct['groupnameDelegated'])) {
+                                        //    $cryptedDelegatedGroup = null;
+                                        if (!in_array($delStruct['groupnameDelegated'], $delegatedGroups)) {
+                                            if (!is_null($delStruct['groupnameDelegated'])) {
+                                                $delegatedGroupsItem = $delStruct['groupnameDelegated'];
+                                                $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
+                                                if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
+                                                    $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                                }
+                                                array_push($delegatedGroups, $delegatedGroupsItem);
+                                                if ($delegatedGroupStr == null || $delegatedGroupStr === "") {
+                                                    $delegatedGroupStr = $delegatedGroupsItem;
+                                                } else {
+                                                    $delegatedGroupStr = $delegatedGroupStr . ", " . $delegatedGroupsItem;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+
+                        $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, ownership, organizations, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck', '$ownership', '$organizations', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "';";
+                        mysqli_query($link, $insertQuery);
                             $count++;
                             echo($count . " - Dashboard ACTUATOR (From Dashboard to IOT App) : " . $unique_name_id . ", MEASURE: " . $low_level_type . "\n");
                     //    }

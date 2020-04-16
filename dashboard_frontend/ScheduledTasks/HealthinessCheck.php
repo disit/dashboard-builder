@@ -59,6 +59,12 @@ if (defined('STDIN')) {
 $rs = mysqli_query($link, $query);
 $result = [];
 
+$serviceChangeBuffer = array(
+    "last" => "",
+    "current" => "",
+);
+
+
 if ($rs) {
     $result = [];
     $count = 0;
@@ -69,6 +75,7 @@ if ($rs) {
             $sub_nature = $row['sub_nature'];
             $low_level_type = $row['low_level_type'];
             $unique_name_id = $row['unique_name_id'];
+            $get_instances = $row['get_instances'];
 
             $instance_uri = $row['instance_uri'];
             //   $unit = $row[unit];
@@ -78,26 +85,33 @@ if ($rs) {
             $parameters = $row['parameters'];
 
           //  if (strpos($row['get_instances'] , 'weather_sensor_ow') == false) {
-                array_push($result, $row);
-                if ($row['high_level_type'] == 'From Dashboad to IOT Device' || $row['high_level_type'] == 'From IOT Device to Dashboard') {
-                    if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
-                        $sUri = urlencode($row['get_instances']);
-                    } else {
-                        $sUri = $row['get_instances'];
-                    }
-                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
-                    $instance_uri = "single_marker";
-                } else if ($row['nature'] != 'IoTDevice' && $sub_nature != "First Aid Data") {
-                    if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
-                        $sUri = urlencode($row['get_instances']);
-                    } else {
-                        $sUri = $row['get_instances'];
-                    }
-                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
-                    $instance_uri = "any + status";
-                } else if ($sub_nature === "First Aid Data") {
-                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $row['parameters'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+            array_push($result, $row);
+            if ($row['high_level_type'] == 'From Dashboad to IOT Device' || $row['high_level_type'] == 'From IOT Device to Dashboard') {
+                if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
+                    $sUri = urlencode($row['get_instances']);
+                } else {
+                    $sUri = $row['get_instances'];
                 }
+                $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                $instance_uri = "single_marker";
+            } else if ($row['nature'] != 'IoTDevice' && $sub_nature != "First Aid Data") {
+                if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
+                    $sUri = urlencode($row['get_instances']);
+                } else {
+                    $sUri = $row['get_instances'];
+                }
+                if ($row['sub_nature'] != 'IoTSensor' && $row['sub_nature'] != 'IoTSensor-Actuator') {
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+                } else {
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+                }
+                $instance_uri = "any + status";
+            } else if ($sub_nature === "First Aid Data") {
+                $url =  $kbUrlSuperServiceMap . "?serviceUri=" . $row['parameters'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+            }
+
+            $serviceChangeBuffer["current"] = $sUri;
+            if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
 
                 $response = file_get_contents($url);
                 $responseArray = json_decode($response, true);
@@ -115,7 +129,7 @@ if ($rs) {
                     $stop_flag = 1;
                 }
 
-                if($realtime_data['measuredTime']) {
+                if ($realtime_data['measuredTime']) {
                     $last_date = str_replace("T", " ", $realtime_data['measuredTime']['value']);
                 } else if ($realtime_data['instantTime']) {
                     $last_date = str_replace("T", " ", $realtime_data['instantTime']['value']);
@@ -129,7 +143,7 @@ if ($rs) {
 
                         if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
                             if ($key != 'capacity' || $sub_nature != 'Car_park') {
-                                // QUI ALTRE CONDIZIONI PER FILTRARE IL PROCESSING !!!
+
                                 $measure = $realtime_data[$key]['value'];
                                 // if ($realtime_data[$key]['unit'] != '') {
                                 if (!empty($realtime_data[$key]['unit'])) {
@@ -157,8 +171,9 @@ if ($rs) {
                                 $offset = $current_dateTimeZone->getOffset($updateTimeU);
                                 $update_scritp_timeU = $updateTimeU->format('c');
                                 $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
-                                echo("             Udpating : ". $key . " at: ".$update_time_okU."\n");
-                                $query_update = "UPDATE DashboardWizard SET last_date= '" . substr($last_date, 0,strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';";
+                                echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
+                                $query_update = "UPDATE DashboardWizard SET last_date= '" . substr($last_date, 0, strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances= '" . $get_instances . "' AND low_level_type = '" . $key . "';";
+                                mysqli_query($link, $query_update);
                             }
                         } else {
                             $stop_flag = 1;
@@ -172,7 +187,8 @@ if ($rs) {
                     $check_time = str_replace("T", " ", $date_now_ok[0]);
 
                     // Per i Sensori a livello generale (senza misure) si mette healthiness = 'true' se almeno una delle sue misure ha heathiness = 'true', altrimenti si mette healthiness = 'false';
-                    $checkHealthinessSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE unique_name_id = '" . $unique_name_id . "' AND healthiness = 'true'";
+
+                    $checkHealthinessSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE get_instances = '" . $get_instances . "' AND low_level_type != '' AND healthiness = 'true'";
                     $rs2 = mysqli_query($link, $checkHealthinessSensorGeneralQuery);
 
                     $result2 = [];
@@ -184,7 +200,8 @@ if ($rs) {
                             $last_date_sql = $row2['last_date'];
                         } else {
                             $healthiness_sql = 'false';
-                            $lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE unique_name_id = '" . $unique_name_id . "'";
+                            //$lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE unique_name_id = '" . $unique_name_id . "'";
+                            $lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE get_instances = '" . $get_instances . "'";
                             $rs3 = mysqli_query($link, $lastDateSensorGeneralQuery);
                             if ($rs3) {
                                 $result3['table'] = [];
@@ -195,15 +212,18 @@ if ($rs) {
                         }
                     }
 
-                    if ($last_date_sql === null) {
-                        $query_updateGeneral = "UPDATE DashboardWizard SET last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '';";
-                        mysqli_query($link, "UPDATE DashboardWizard SET last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '';");
+                    if ($last_date_sql === null && $last_date != null) {
+
+                        $query_updateGeneral = "UPDATE DashboardWizard SET last_date = '" . $last_date . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                        mysqli_query($link, $query_updateGeneral);
                     } else if ($last_date_sql === null) {
-                        $query_updateGeneral = "UPDATE DashboardWizard SET last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '';";
-                        mysqli_query($link, "UPDATE DashboardWizard SET last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '';");
-                    } else {
-                        $query_updateGeneral = "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '';";
-                        mysqli_query($link, "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '';");
+
+                        $query_updateGeneral = "UPDATE DashboardWizard SET last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                        mysqli_query($link, $query_updateGeneral);
+                    } else if ($last_date_sql != null) {
+
+                        $query_updateGeneral = "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                        mysqli_query($link, $query_updateGeneral);
                     }
                     //**********************************************************************************
 
@@ -214,7 +234,7 @@ if ($rs) {
 
                                 if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
                                     if ($key != 'capacity' || $sub_nature != 'Car_park') {
-                                        // QUI ALTRE CONDIZIONI PER FILTRARE IL PROCESSING !!!
+
                                         $measure = $realtime_data[$key]['value'];
                                         // if ($realtime_data[$key]['unit'] != '') {
                                         if (!empty($realtime_data[$key]['unit'])) {
@@ -242,8 +262,9 @@ if ($rs) {
                                         $offset = $current_dateTimeZone->getOffset($updateTimeU);
                                         $update_scritp_timeU = $updateTimeU->format('c');
                                         $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
-                                        echo("             Udpating : " . $key . " at: " . $update_time_okU . "\n");
-                                        $query_update = "UPDATE DashboardWizard SET healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE unique_name_id= '" . $unique_name_id . "' AND low_level_type = '" . $key . "';";
+                                        echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
+
+                                        $query_update = "UPDATE DashboardWizard SET healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '" . $key . "';";
                                         mysqli_query($link, $query_update);
                                     }
                                 } else {
@@ -258,7 +279,7 @@ if ($rs) {
                         $date_now_ok = explode("+", $date_now);
                         $check_time = str_replace("T", " ", $date_now_ok[0]);
 
-                        $checkHealthinessSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE unique_name_id = '" . $unique_name_id . "' AND healthiness = 'true'";
+                        $checkHealthinessSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE get_instances = '" . $get_instances . "' AND low_level_type != '' AND healthiness = 'true'";
                         $rs2 = mysqli_query($link, $checkHealthinessSensorGeneralQuery);
 
                         $result2 = [];
@@ -270,7 +291,8 @@ if ($rs) {
                                 $last_date_sql = $row2['last_date'];
                             } else {
                                 $healthiness_sql = 'false';
-                                $lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE unique_name_id = '" . $unique_name_id . "'";
+                                //$lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE unique_name_id = '" . $unique_name_id . "'";
+                                $lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE get_instances = '" . $get_instances . "'";
                                 $rs3 = mysqli_query($link, $lastDateSensorGeneralQuery);
                                 if ($rs3) {
                                     $result3['table'] = [];
@@ -281,20 +303,25 @@ if ($rs) {
                             }
                         }
                         if ($last_date_sql === null) {
-                            $query_updateGeneral = "UPDATE DashboardWizard SET healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "';";
-                            mysqli_query($link, "UPDATE DashboardWizard SET healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "';");
+
+                            $query_updateGeneral = "UPDATE DashboardWizard SET healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                            mysqli_query($link, $query_updateGeneral);
                         } else {
-                            $query_updateGeneral = "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "';";
-                            mysqli_query($link, "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE unique_name_id= '" . $unique_name_id . "';");
+
+                            $query_updateGeneral = "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                            mysqli_query($link, $query_updateGeneral);
                         }
                         //**********************************************************************************
 
                     }
                 }
 
+
+                $serviceChangeBuffer["last"] = $sUri;
                 $stopFlag = 1;
                 $count++;
                 echo($count . " FINISHED HEALTHINESS CHECK FOR DEVICE: " . $unique_name_id . "\n");
+            }
 
         }
     } catch (Exception $e) {
