@@ -526,7 +526,7 @@ function addGisQueryM()
 
     if($('#editGisQueryTable').attr('data-widgetType') === 'selectorNew') {
         // GP LAST ICONTEXT2 START
-        newTableCell = $('<td><div class="input-group colorPicker" data-param="symbolColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+        newTableCell = $('<td class="symbolColorTd"><div class="input-group colorPicker" data-param="symbolColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
         newTableRow.append(newTableCell);
         newTableRow.find('div.colorPicker').colorpicker({
             color: null,
@@ -612,7 +612,7 @@ function addGisQueryM()
 
        if($('#editGisQueryTable').attr('data-widgetType') === 'selectorNew') {
            // New Map Pin Color
-           newTableCell = $('<td><select data-param="newMapPinColor" class="form-control"></select></td>');
+           newTableCell = $('<td class="newMapPinColorTd"><select data-param="newMapPinColor" class="form-control"></select></td>');
            newTableCell.find('select').append('<option value="Default">Default</option>');
            newTableCell.find('select').append('<option value="SymbolColor">Symbol Color</option>');
            newTableRow.append(newTableCell);
@@ -717,6 +717,30 @@ function addGisQueryM()
             liveTitle.html(item.split('-').join(' '));
             liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
         });
+
+    if($('#iconTextMode').val() === "Icon Only")
+    {
+        $('#mapPinIcon').show();
+        $('#symbolColorColumn').show();
+        $('.symbolColorTd').show();
+        if ($('#mapPinIcon').val() === "Pin Icon")
+        {
+            $('#mapIconColorColumn').show();
+            $('.newMapPinColorTd').show();
+        } else {
+            $('#mapIconColorColumn').hide();
+            $('.newMapPinColorTd').hide();
+        }
+    }
+    else
+    {
+        $('#mapPinIcon').hide();
+        $('#symbolColorColumn').hide();
+        $('.symbolColorTd').hide();
+        $('#mapIconColorColumn').hide();
+        $('.newMapPinColorTd').hide();
+    }
+
     //    }
     // GP LAST ICONTEXT END
    $('#parametersM').val(JSON.stringify(editGisParametersLocal));

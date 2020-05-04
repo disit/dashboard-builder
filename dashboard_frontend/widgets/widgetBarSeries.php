@@ -485,6 +485,8 @@
                                             message = "No range defined on this field";
                                             dateMessage = "Date: " + dataStringInPopup;
                                         }
+                                    } else {
+                                        dateMessage = "Date: " + dataStringInPopup;
                                     }
                                 }
                             }
@@ -521,9 +523,11 @@
                         }
                         else
                         {
+                         //   return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                         //          '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
+                         //          '<span style="color:' + this.color + '">\u25CF</span> ' + dateMessage + '<br/>';
                             return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                   '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
-                                   '<span style="color:' + this.color + '">\u25CF</span> ' + dateMessage + '<br/>';
+                                '<span style="color:' + this.color + '">\u25CF</span> ' + dateMessage + '<br/>';
                         }
                     }
                 },

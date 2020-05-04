@@ -20179,7 +20179,7 @@
                                             //Nuova riga
                                             //Contenitore per tabella delle query
                                             var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
-                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:76px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:120px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td id='symbolColorColumn'>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td id='mapIconColorColumn'>Map Icon color</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:76px'><col style='width:120px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td id='symbolColorColumn'>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td id='mapIconColorColumn'>Map Icon color</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                             editGisQueryTableContainer.append(editGisQueryTable);
                                             $("#specificParamsM").append(editGisQueryTableContainer);
 
@@ -20658,6 +20658,8 @@
                                                 $('#mapPinIcon').hide();
                                                 $('#symbolColorColumn').hide();
                                                 $('.symbolColorTd').hide();
+                                                $('#mapIconColorColumn').hide();
+                                                $('.newMapPinColorTd').hide();
                                             }
 
                                             $("#editGisQueryTable i.fa-plus").click(addGisQueryM);
@@ -29241,7 +29243,7 @@
                                                         gisTargetCenterParametersM.coordsCollectionUri = $(this).val();
                                                         $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                                     });
-                                                }, 350);
+                                                }, 700);
                                             }
 
 

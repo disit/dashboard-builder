@@ -851,8 +851,8 @@
                 }
             }
 
-            if (chartSeriesObject[0] != null) {
-                if (chartSeriesObject[0].data.length > 0) {
+            if (chartSeriesObject != null) {
+            //    if (chartSeriesObject[0].data.length > 0) {
 
                     Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                         chart: {
@@ -1040,9 +1040,11 @@
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
                                     }
                                 } else {
+                                  //  return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                  //      dateLine +
+                                  //      '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
                                     return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                        dateLine +
-                                        '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
+                                        dateLine;
                                 }
                             }
                         },
@@ -1102,14 +1104,14 @@
                         series: chartSeriesObject
                     });
 
-                } else {
+             /*   } else {
 
                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
                     $("#<?= $_REQUEST['name_w'] ?>_table").hide();
                     //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
 
-                }
+                }*/
             } else {
 
                 $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();

@@ -679,10 +679,13 @@
                             }
                             else
                             {
+                             //   return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
+                             //          '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
+                             //          '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                             //          '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
                                 return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                       '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
-                                       '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
-                                       '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
                             }
                         }
                     },
@@ -1963,8 +1966,11 @@
                                             }
                                             else
                                             {
+                                            //    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
+                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
                                                 return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
                                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
                                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
                                             }

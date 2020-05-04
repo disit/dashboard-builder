@@ -210,7 +210,7 @@ foreach ($resKPIArray as $resKPIRecord) {
         $organizations_KPI = $orgStr;
     }
     $value_unitKPI = $resKPIRecord['valueUnit'];
-    $usernameMyKPI = $resKPIRecord['username'];
+    $usernameMyKPI = strtolower($resKPIRecord['username']);
     if (!array_key_exists($usernameMyKPI, $encrMyKPICpls)) {
         $queryMyKPIDelegatedResults = [];
      /*   $cryptedOwner = encryptOSSL($usernameMyKPI, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
@@ -228,17 +228,19 @@ foreach ($resKPIArray as $resKPIRecord) {
     }
 
     foreach($apiAllMyKPIDelegationsArray as $delStruct) {
+        $userMyKPIDelegated = null;
         if ($resKPIRecord['id'] == $delStruct['elementId']) {
+            $userMyKPIDelegated = strtolower($delStruct['usernameDelegated']);
             $cryptedMyKPIDelegatedUsr = null;
             $ownerCheck = $delStruct['usernameDelegator'];
-            if (!in_array($delStruct['usernameDelegated'], $delegatedMyKPIUsers)) {
-                if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
-                    array_push($delegatedMyKPIUsers, $delStruct['usernameDelegated']);
-                    if (!array_key_exists($delStruct['usernameDelegated'], $encrDelMyKPICpls)) {
-                        $cryptedMyKPIDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                        $encrDelMyKPICpls[$delStruct['usernameDelegated']] = $cryptedMyKPIDelegatedUsr;
+            if (!in_array($userMyKPIDelegated, $delegatedMyKPIUsers)) {
+                if (strcmp($userMyKPIDelegated, '') != 0 && $userMyKPIDelegated != "anonymous") {
+                    array_push($delegatedMyKPIUsers, $userMyKPIDelegated);
+                    if (!array_key_exists($userMyKPIDelegated, $encrDelMyKPICpls)) {
+                        $cryptedMyKPIDelegatedUsr = encryptOSSL($userMyKPIDelegated, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                        $encrDelMyKPICpls[$userMyKPIDelegated] = $cryptedMyKPIDelegatedUsr;
                     } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
-                        $cryptedMyKPIDelegatedUsr = $encrDelMyKPICpls[$delStruct['usernameDelegated']];
+                        $cryptedMyKPIDelegatedUsr = $encrDelMyKPICpls[$userMyKPIDelegated];
                     }
                     if ($delegatedMyKPIUsersStr == null || $delegatedMyKPIUsersStr === "") {
                         $delegatedMyKPIUsersStr = $cryptedMyKPIDelegatedUsr;
@@ -288,7 +290,7 @@ foreach ($resKPIArray as $resKPIRecord) {
             } catch (Exception $e) {
                 echo $e->getMessage();
                // $updtQuery_KPI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' WHERE high_level_type = '" . $high_level_type_KPI . "' AND sub_nature = '" . $sub_nature_KPI . "' AND low_level_type = '" . $low_level_type_KPI . "' AND unique_name_id = '" . $unique_name_id_KPI . "' AND instance_uri = '" . $instance_uri_KPI . "' AND get_instances = '" . $get_instances_KPI . "';";
-                $updtQuery_KPI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', unit = '" . $unit_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' , value_unit = '" . $value_unitKPI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyKPIUsersStr . "', delegatedGroupHash = '" . $delegatedMyKPIGroupStr . "';";
+                $updtQuery_KPI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_KPI . "', sub_nature = '" . $sub_nature_KPI . "', low_level_type = '" . $low_level_type_KPI . "', unique_name_id = '" . $unique_name_id_KPI . "', instance_uri = '" . $instance_uri_KPI . "', get_instances = '" . $get_instances_KPI . "', unit = '" . $unit_KPI . "', sm_based = '" . $sm_based_KPI . "', last_date = '" . $last_date_KPI . "', last_value = '" . $last_value_KPI . "', parameters = '" . $parameters_KPI . "', healthiness = '" . $healthiness_KPI . "', lastCheck = '" . $lastCheck_KPI . "', ownership = '" . $ownership_KPI . "', organizations = '" . $organizations_KPI . "', latitude = '" . $latitude_KPI . "', longitude = '" . $longitude_KPI . "' , value_unit = '" . $value_unitKPI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyKPIUsersStr . "', delegatedGroupHash = '" . $delegatedMyKPIGroupStr . "' WHERE high_level_type = '" . $high_level_type_KPI . "' AND sub_nature = '" . $sub_nature_KPI . "' AND low_level_type = '" . $low_level_type_KPI . "' AND unique_name_id = '" . $unique_name_id_KPI . "' AND instance_uri = '" . $instance_uri_KPI . "' AND get_instances = '" . $get_instances_KPI . "';";
                 mysqli_query($link, $updtQuery_KPI);
                 echo ("\nUPDATE QUERY per KPI-ID: " . $kpiId . ": " . $updtQuery_KPI . "\n");
             }
@@ -411,7 +413,7 @@ foreach ($resPOIArray as $resPOIRecord) {
 
         $value_unitPOI = $resPOIRecord['properties']['kpidata']['valueUnit'];
 
-        $usernameMyPOI = $resPOIRecord['properties']['kpidata']['username'];
+        $usernameMyPOI = strtolower($resPOIRecord['properties']['kpidata']['username']);
         if (!array_key_exists($usernameMyPOI, $encrMyPOICpls)) {
             $queryMyPOIDelegatedResults = [];
             /*   $cryptedOwner = encryptOSSL($usernameMyPOI, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
@@ -429,17 +431,19 @@ foreach ($resPOIArray as $resPOIRecord) {
         }
 
         foreach($apiAllMyPOIDelegationsArray as $delStruct) {
+            $userMyPOIDelegated = null;
             if ($resPOIRecord['properties']['kpidata']['id'] == $delStruct['elementId']) {
+                $userMyPOIDelegated = strtolower($delStruct['usernameDelegated']);
                 $cryptedMyPOIDelegatedUsr = null;
                 $ownerCheck = $delStruct['usernameDelegator'];
-                if (!in_array($delStruct['usernameDelegated'], $delegatedMyPOIUsers)) {
-                    if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
-                        array_push($delegatedMyPOIUsers, $delStruct['usernameDelegated']);
-                        if (!array_key_exists($delStruct['usernameDelegated'], $encrDelMyPOICpls)) {
-                            $cryptedMyPOIDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                            $encrDelMyPOICpls[$delStruct['usernameDelegated']] = $cryptedMyPOIDelegatedUsr;
+                if (!in_array($userMyPOIDelegated, $delegatedMyPOIUsers)) {
+                    if (strcmp($userMyPOIDelegated, '') != 0 && $userMyPOIDelegated != "anonymous") {
+                        array_push($delegatedMyPOIUsers, $userMyPOIDelegated);
+                        if (!array_key_exists($userMyPOIDelegated, $encrDelMyPOICpls)) {
+                            $cryptedMyPOIDelegatedUsr = encryptOSSL($userMyPOIDelegated, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                            $encrDelMyPOICpls[$userMyPOIDelegated] = $cryptedMyPOIDelegatedUsr;
                         } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
-                            $cryptedMyPOIDelegatedUsr = $encrDelMyPOICpls[$delStruct['usernameDelegated']];
+                            $cryptedMyPOIDelegatedUsr = $encrDelMyPOICpls[$userMyPOIDelegated];
                         }
                         if ($delegatedMyPOIUsersStr == null || $delegatedMyPOIUsersStr === "") {
                             $delegatedMyPOIUsersStr = $cryptedMyPOIDelegatedUsr;
@@ -488,7 +492,7 @@ foreach ($resPOIArray as $resPOIRecord) {
                     //   echo ("\nINSERT QUERY ON DUPLICATE KEY: ".$insertQuery."\n");
                 } catch (Exception $e) {
                     echo $e->getMessage();
-                    $updtQuery_POI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_POI . "', sub_nature = '" . $sub_nature_POI . "', low_level_type = '" . $low_level_type_POI . "', unique_name_id = '" . $unique_name_id_POI . "', instance_uri = '" . $instance_uri_POI . "', get_instances = '" . $get_instances_POI . "', sm_based = '" . $sm_based_POI . "', last_date = '" . $last_date_POI . "', last_value = '" . $last_value_POI . "', parameters = '" . $parameters_POI . "', healthiness = '" . $healthiness_POI . "', lastCheck = '" . $lastCheck_POI . "', ownership = '" . $ownership_POI . "', latitude = '" . $latitude_POI . "', longitude = '" . $longitude_POI . "' WHERE high_level_type = '" . $high_level_type_POI . "' AND sub_nature = '" . $sub_nature_POI . "' AND low_level_type = '" . $low_level_type_POI . "' AND unique_name_id = '" . $unique_name_id_POI . "' AND instance_uri = '" . $instance_uri_POI . "' AND get_instances = '" . $get_instances_POI . "' , value_unit = '" . $value_unitPOI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyPOIUsersStr . "', delegatedGroupHash = '" . $delegatedMyPOIGroupStr . "';";
+                    $updtQuery_POI = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_POI . "', sub_nature = '" . $sub_nature_POI . "', low_level_type = '" . $low_level_type_POI . "', unique_name_id = '" . $unique_name_id_POI . "', instance_uri = '" . $instance_uri_POI . "', get_instances = '" . $get_instances_POI . "', sm_based = '" . $sm_based_POI . "', last_date = '" . $last_date_POI . "', last_value = '" . $last_value_POI . "', parameters = '" . $parameters_POI . "', healthiness = '" . $healthiness_POI . "', lastCheck = '" . $lastCheck_POI . "', ownership = '" . $ownership_POI . "', latitude = '" . $latitude_POI . "', longitude = '" . $longitude_POI .  "', value_unit = '" . $value_unitPOI . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyPOIUsersStr . "', delegatedGroupHash = '" . $delegatedMyPOIGroupStr . "' WHERE high_level_type = '" . $high_level_type_POI . "' AND sub_nature = '" . $sub_nature_POI . "' AND low_level_type = '" . $low_level_type_POI . "' AND unique_name_id = '" . $unique_name_id_POI . "' AND instance_uri = '" . $instance_uri_POI . "' AND get_instances = '" . $get_instances_POI . "';";
                     mysqli_query($link, $updtQuery_POI);
                     echo("\nUPDATE QUERY: " . $updtQuery_POI . "\n");
                 }
@@ -623,7 +627,7 @@ foreach ($resMyDataArray as $resMyDataRecord) {
 
     $value_unit_MyData = $resMyDataRecord['valueUnit'];
 
-    $usernameMyData = $resMyDataRecord['username'];
+    $usernameMyData = strtolower($resMyDataRecord['username']);
     if (!array_key_exists($usernameMyData, $encrMyDataCpls)) {
         $queryMyDataDelegatedResults = [];
         /*   $cryptedOwner = encryptOSSL($usernameMyData, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
@@ -641,17 +645,19 @@ foreach ($resMyDataArray as $resMyDataRecord) {
     }
 
     foreach($apiAllMyDataDelegationsArray as $delStruct) {
+        $userMyDataDelegated = null;
         if ($resMyDataRecord['id'] == $delStruct['elementId']) {
+            $userMyDataDelegated = strtolower($delStruct['usernameDelegated']);
             $cryptedMyDataDelegatedUsr = null;
             $ownerCheck = $delStruct['usernameDelegator'];
-            if (!in_array($delStruct['usernameDelegated'], $delegatedMyDataUsers)) {
-                if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
-                    array_push($delegatedMyDataUsers, $delStruct['usernameDelegated']);
-                    if (!array_key_exists($delStruct['usernameDelegated'], $encrDelMyDataCpls)) {
-                        $cryptedMyDataDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                        $encrDelMyDataCpls[$delStruct['usernameDelegated']] = $cryptedMyDataDelegatedUsr;
+            if (!in_array($userMyDataDelegated, $delegatedMyDataUsers)) {
+                if (strcmp($userMyDataDelegated, '') != 0 && $userMyDataDelegated != "anonymous") {
+                    array_push($delegatedMyDataUsers, $userMyDataDelegated);
+                    if (!array_key_exists($userMyDataDelegated, $encrDelMyDataCpls)) {
+                        $cryptedMyDataDelegatedUsr = encryptOSSL($userMyDataDelegated, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                        $encrDelMyDataCpls[$userMyDataDelegated] = $cryptedMyDataDelegatedUsr;
                     } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
-                        $cryptedMyDataDelegatedUsr = $encrDelMyDataCpls[$delStruct['usernameDelegated']];
+                        $cryptedMyDataDelegatedUsr = $encrDelMyDataCpls[$userMyDataDelegated];
                     }
                     if ($delegatedMyDataUsersStr == null || $delegatedMyDataUsersStr === "") {
                         $delegatedMyDataUsersStr = $cryptedMyDataDelegatedUsr;
@@ -700,7 +706,7 @@ foreach ($resMyDataArray as $resMyDataRecord) {
                 //   echo ("\nINSERT QUERY ON DUPLICATE KEY: ".$insertQuery."\n");
             } catch (Exception $e) {
                 echo $e->getMessage();
-                $updtQuery_MyData = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = '" . $healthiness_MyData . "', lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', latitude = '" . $latitude_MyData . "', longitude = '" . $longitude_MyData . "' WHERE high_level_type = '" . $high_level_type_MyData . "' AND sub_nature = '" . $sub_nature_MyData . "' AND low_level_type = '" . $low_level_type_MyData . "' AND unique_name_id = '" . $unique_name_id_MyData . "' AND instance_uri = '" . $instance_uri_MyData . "' AND get_instances = '" . $get_instances_MyData . "' , value_unit = '" . $value_unit_MyData . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyDataUsersStr . "', delegatedGroupHash = '" . $delegatedMyDataGroupStr . "';";
+                $updtQuery_MyData = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_MyData . "', sub_nature = '" . $sub_nature_MyData . "', low_level_type = '" . $low_level_type_MyData . "', unique_name_id = '" . $unique_name_id_MyData . "', instance_uri = '" . $instance_uri_MyData . "', get_instances = '" . $get_instances_MyData . "', sm_based = '" . $sm_based_MyData . "', last_date = '" . $last_date_MyData . "', last_value = '" . $last_value_MyData . "', parameters = '" . $parameters_MyData . "', healthiness = '" . $healthiness_MyData . "', lastCheck = '" . $lastCheck_MyData . "', ownership = '" . $ownership_MyData . "', latitude = '" . $latitude_MyData . "', longitude = '" . $longitude_MyData .  "', value_unit = '" . $value_unit_MyData . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedMyDataUsersStr . "', delegatedGroupHash = '" . $delegatedMyDataGroupStr . "' WHERE high_level_type = '" . $high_level_type_MyData . "' AND sub_nature = '" . $sub_nature_MyData . "' AND low_level_type = '" . $low_level_type_MyData . "' AND unique_name_id = '" . $unique_name_id_MyData . "' AND instance_uri = '" . $instance_uri_MyData . "' AND get_instances = '" . $get_instances_MyData . "';";
                 mysqli_query($link, $updtQuery_MyData);
                 echo ("\nUPDATE QUERY: ".$updtQuery_MyData."\n");
             }
@@ -828,7 +834,7 @@ foreach ($resArray as $resRecord) {
 
     foreach($ownedApp as $struct) {
         if ($get_instances == $struct->elementId) {
-            $owner = $struct->username;     // MOD OWN-DEL
+            $owner = strtolower($struct->username);     // MOD OWN-DEL
             break;
         }
     }
@@ -860,17 +866,19 @@ foreach ($resArray as $resRecord) {
 
         // MOD OWN-DEL
         foreach($delegatedApp as $delStruct) {
+            $userDelegated = null;
             if ($get_instances == $delStruct['elementId']) {
+                $userDelegated = strtolower($delStruct['usernameDelegated']);
                 $cryptedDelegatedUsr = null;
                 $ownerCheck = $delStruct['usernameDelegator'];
-                if (!in_array($delStruct['usernameDelegated'], $delegatedUsers)) {
-                    if (!is_null($delStruct['usernameDelegated']) && $delStruct['usernameDelegated'] != "ANONYMOUS") {
-                        array_push($delegatedUsers, $delStruct['usernameDelegated']);
-                        if (!array_key_exists($delStruct['usernameDelegated'], $encrDelCpls)) {
-                            $cryptedDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                            $encrDelCpls[$delStruct['usernameDelegated']] = $cryptedDelegatedUsr;
+                if (!in_array($userDelegated, $delegatedUsers)) {
+                    if (strcmp($userDelegated, '') != 0 && $userDelegated != "anonymous") {
+                        array_push($delegatedUsers, $userDelegated);
+                        if (!array_key_exists($userDelegated, $encrDelCpls)) {
+                            $cryptedDelegatedUsr = encryptOSSL($userDelegated, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                            $encrDelCpls[$userDelegated] = $cryptedDelegatedUsr;
                         } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
-                            $cryptedDelegatedUsr = $encrDelCpls[$delStruct['usernameDelegated']];
+                            $cryptedDelegatedUsr = $encrDelCpls[$userDelegated];
                         }
                         if ($delegatedUsersStr == null || $delegatedUsersStr === "") {
                             $delegatedUsersStr = $cryptedDelegatedUsr;
@@ -917,6 +925,7 @@ foreach ($resArray as $resRecord) {
             try {
              //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                 mysqli_query($link, $insertQuery);
+                $updtQuery1 = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
 
              //   echo ("\nINSERT QUERY ON DUPLICATE KEY: ".$insertQuery."\n");
             } catch (Exception $e) {

@@ -203,7 +203,7 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
 
     foreach($ownedIOT as $struct) {
         if ($unique_name_id == $struct->elementId) {
-            $owner = $struct->username;     // MOD OWN-DEL
+            $owner = strtolower($struct->username);     // MOD OWN-DEL
             break;
         }
     }
@@ -224,17 +224,19 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
 
         // MOD OWN-DEL
         foreach($delegatedIOT as $delStruct) {
+            $userDelegated = null;
             if ($unique_name_id == $delStruct['elementId']) {
+                $userDelegated = strtolower($delStruct['usernameDelegated']);
                 $cryptedDelegatedUsr = null;
                 $ownerCheck = $delStruct['usernameDelegator'];
-                if (!in_array($delStruct['usernameDelegated'], $delegatedUsers)) {
-                    if (!is_null($delStruct['usernameDelegated'])) {
-                        array_push($delegatedUsers, $delStruct['usernameDelegated']);
-                        if (!array_key_exists($delStruct['usernameDelegated'], $encrDelCpls)) {
-                            $cryptedDelegatedUsr = encryptOSSL($delStruct['usernameDelegated'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                            $encrDelCpls[$delStruct['usernameDelegated']] = $cryptedDelegatedUsr;
+                if (!in_array($userDelegated, $delegatedUsers)) {
+                    if (strcmp($userDelegated, '') != 0) {
+                        array_push($delegatedUsers, $userDelegated);
+                        if (!array_key_exists($userDelegated, $encrDelCpls)) {
+                            $cryptedDelegatedUsr = encryptOSSL($userDelegated, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                            $encrDelCpls[$userDelegated] = $cryptedDelegatedUsr;
                         } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
-                            $cryptedDelegatedUsr = $encrDelCpls[$delStruct['usernameDelegated']];
+                            $cryptedDelegatedUsr = $encrDelCpls[$userDelegated];
                         }
                         if ($delegatedUsersStr == null || $delegatedUsersStr === "") {
                             $delegatedUsersStr = $cryptedDelegatedUsr;

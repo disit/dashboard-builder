@@ -109,12 +109,14 @@ if (isset($_REQUEST["globalSqlFilter"])) {
         }
     }
 
-    if ($whereString === "") {
-        //   $whereString = " WHERE organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
-        $whereString = " organizations REGEXP '" . $orgFilter . "'";
-    } else {
-        //   $whereString = " AND organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
-        $whereString = $whereString . " AND organizations REGEXP '" . $orgFilter . "'";
+    if ($_SESSION['loggedRole'] !== "RootAdmin") {
+        if ($whereString === "") {
+            //   $whereString = " WHERE organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
+            $whereString = " organizations REGEXP '" . $orgFilter . "'";
+        } else {
+            //   $whereString = " AND organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
+            $whereString = $whereString . " AND organizations REGEXP '" . $orgFilter . "'";
+        }
     }
   
     $sql_distinct_field = $_REQUEST['distinctField'];
@@ -141,9 +143,16 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     $wizardColumns = array('high_level_type', 'nature', 'sub_nature', 'low_level_type', 'unit', 'healthiness', 'ownership', 'value_unit');
 
     $dashLoggedUsername = $_SESSION['loggedUsername'];
-    $cryptedUsr = encryptOSSL($dashLoggedUsername, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+    if ($_SESSION['loggedRole'] !== "RootAdmin") {
+        $cryptedUsr = encryptOSSL($dashLoggedUsername, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
 
-    $whereAllHash = " AND (ownership = 'public' OR (ownerHash LIKE '%" . $cryptedUsr . "%' OR delegatedHash LIKE '%" . $cryptedUsr . "%'))";
+        $whereAllHash = " AND (ownership = 'public' OR (ownerHash LIKE '%" . $cryptedUsr . "%' OR delegatedHash LIKE '%" . $cryptedUsr . "%'))";
+    } else {
+        $whereAllHash = "";
+        if ($sql_where_ok === "") {
+            $sql_where_ok = "1";
+        }
+    }
 
     $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok . $whereAllHash . " ORDER BY ".$sql_distinct_field." ASC;";
 
