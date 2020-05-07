@@ -3535,3 +3535,102 @@ tr.iotAppsTableRow:nth-child(even)
     width: 22px;
     height: 22px;
 }
+
+/* Organization Dashboard Menu */
+
+#orgMenuCnt
+{
+    background-color: rgba(51, 64, 69, 1);
+    color: white;
+    height: 100vh;
+    /*overflow-y: auto;*/
+}
+
+.orgMenuItemCnt, .orgMenuItemCnt a, .orgMenuSubItemLink
+{
+    color: rgb(51, 64, 69);
+    text-decoration:none !important;
+}
+
+div.orgMenuItemCnt
+{
+    height: 25px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border: none;
+  /*  border-top: 1px solid #595959;
+    border-bottom: 1px solid #333333; */
+    border-right: 1px solid #333333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none !important;
+}
+
+@media(min-width:992px)
+{
+    div.orgMenuItemCnt
+    {
+        height: 25px;
+        font-size: 0.5em;
+        font-weight: 400;
+        border: none;
+        text-decoration: none !important;
+        border-top: 1px solid #595959;
+      /*  border-bottom: 1px solid #333333; */
+    }
+}
+
+div.orgMenuSubItemCnt
+{
+    height: 20px;
+    font-size: 14px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border: none;
+  /*  border-top: 1px solid #364449;
+    border-right: 1px solid #364449;*/
+    background-color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.orgMenuItemCnt:hover
+ {
+    /* cursor: pointer; */
+     background: rgba(0, 162, 211, 1);
+     color:white;
+ }
+
+div.orgMenuItemCnt a:hover
+{
+    cursor: pointer;
+}
+
+div.orgMenuSubItemCnt:hover
+{
+  /*  cursor: pointer;  */
+    background: rgba(0, 162, 211, 1);
+    color:white !important;
+}
+
+div.orgMenuSubItemCnt a:hover
+{
+    cursor: pointer;
+}
+
+div.orgMenuItemCntActive
+{
+    background: rgba(0, 162, 211, 1);
+    font-weight: bold;
+}
+
+#orgMenuButton:hover
+{
+    cursor: pointer;
+}

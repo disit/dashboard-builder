@@ -16,7 +16,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
+    text-align: left;
     font-weight: bold;
 }
 #restorescreenButton
@@ -130,7 +130,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        text-align: center;
+        text-align: left;
         font-weight: bold;
     }
     
@@ -279,4 +279,10 @@
     content: "";
     clear: both;
     display: table;
+}
+
+#orgMenu
+{
+    font-weight: normal !important;
+  /*  left:100px;*/
 }

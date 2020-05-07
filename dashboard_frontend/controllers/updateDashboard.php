@@ -715,6 +715,27 @@
             }
             break;
 
+        case "updateOrgMenuVisibility":
+            $orgMenuVisibility = mysqli_real_escape_string($link, $_REQUEST['newVisibility']);
+            if ($orgMenuVisibility === 'true') {
+                $orgMenuVisible = 'yes';
+            } else if ($orgMenuVisibility === 'false') {
+                $orgMenuVisible = 'no';
+            }
+
+            $query = "UPDATE Dashboard.Config_dashboard SET orgMenuVisible = '$orgMenuVisible' WHERE Id = '$dashboardId'";
+            $result = mysqli_query($link, $query);
+
+            if($result)
+            {
+                $response['detail'] = 'Ok';
+            }
+            else
+            {
+                $response['detail'] = 'queryKo';
+            }
+            break;
+
         default:
             break;
     }

@@ -439,9 +439,365 @@
                             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-adjust"></i></div>
                             <div class="col-xs-10 fullCtxMenuTxt ">Background darkness</div>
                         </div>
-                        <div class="row fullCtxMenuRow centerWithFlex quitRow" data-selected="false">
-                            <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-mail-reply"></i></div>
-                            <div class="col-xs-10 fullCtxMenuTxt">Quit</div>
+                            <?php
+
+                            $link = mysqli_connect($host, $username, $password);
+                            mysqli_select_db($link, $dbname);
+
+                            $orgMenuVisibilityQuery = "SELECT * FROM Dashboard.Config_dashboard WHERE id = '$dashId';";
+                            $r = mysqli_query($link, $orgMenuVisibilityQuery);
+
+                            if($r) {
+                                while ($row = mysqli_fetch_assoc($r)) {
+
+                                    $orgMenuVisible = $row['orgMenuVisible'];
+                                    if ($orgMenuVisible == 'yes') {
+                                        $orgMenuVisibility = 'true';
+                                        $orgMenuVisibilityText = 'Hide Links Menu';
+                                        $iconClass = 'fa fa-eye-slash';
+                                    } else {
+                                        $orgMenuVisibility = 'false';
+                                        $orgMenuVisibilityText = 'Show Links Menu';
+                                        $iconClass = 'fa fa-eye';
+                                    }
+
+                                    $newItem = '<div class="row fullCtxMenuRow menuVisibility" data-menushown = "' . $orgMenuVisibility . '" data-selected = "false">' .
+                                        '<div class="col-xs-2 fullCtxMenuIcon centerWithFlex" ><i class="' . $iconClass . '"></i ></div >' .
+                                        '<div class="col-xs-10 fullCtxMenuTxt"> ' . $orgMenuVisibilityText . '</div >' .
+                                        '</div >';
+
+                                    echo($newItem);
+
+                                    $newItem = '<div class="row fullCtxMenuRow centerWithFlex quitRow" data-selected="false">' .
+                                        '<div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-mail-reply"></i></div>' .
+                                        '<div class="col-xs-10 fullCtxMenuTxt">Quit</div>' .
+                                        '</div>' .
+                                        '</div>';
+
+                                    echo($newItem);
+
+                                    $orgMenuIconHidden = '<i id="orgMenuButton" class="fa fa-bars" style="display:none"></i>';
+                                    $orgMenuIconShown = '<i id="orgMenuButton" class="fa fa-bars"></i>';
+                                    if ($orgMenuVisible == 'yes') {
+                                        echo($orgMenuIconShown);
+                                    } else {
+                                        echo($orgMenuIconHidden);
+                                    }
+
+                                }
+                            }
+                            mysqli_close($link);
+                            
+                            ?>
+
+                    <div id="orgMenu" data-shown="false" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu">
+                        <div id=orgMenuCnt">
+                            <?php
+
+                            $link = mysqli_connect($host, $username, $password);
+                            mysqli_select_db($link, $dbname);
+
+                            $domainId = null;
+
+                            $currDom = $_SERVER['HTTP_HOST'];
+
+                            $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
+                            $r = mysqli_query($link, $domQ);
+
+                            if($r)
+                            {
+                                if(mysqli_num_rows($r) > 0)
+                                {
+                                    $row = mysqli_fetch_assoc($r);
+                                    $domainId = $row['id'];
+                                    //   echo $row['claim'];
+                                }
+                                else
+                                {
+                                    //   echo 'DISIT';
+                                }
+                            }
+                            else
+                            {
+                                //   echo 'DISIT';
+                            }
+
+                            if(isset($_SESSION['loggedOrganization'])) {
+                                $organization = $_SESSION['loggedOrganization'];
+                                $organizationSql = $organization;
+                            } else {
+                                $organization = "None";
+                                $organizationSql = "Other";
+                            }
+
+                            $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
+                            $r = mysqli_query($link, $menuQuery);
+
+                            if($r)
+                            {
+                                while($row = mysqli_fetch_assoc($r))
+                                {
+                                    $menuItemId = $row['id'];
+                                    $linkUrl = $row['publicLinkUrl']!=null && $_SESSION['isPublic'] ? $row['publicLinkUrl']: $row['linkUrl'];
+                                    $linkId = $row['linkId'];
+                                    $icon = $row['icon'];
+                                    $text = $row['text'];
+                                    $privileges = $row['privileges'];
+                                    $userType = $row['userType'];
+                                    $externalApp = $row['externalApp'];
+                                    $openMode = $row['openMode'];
+                                    $iconColor = $row['iconColor'];
+                                    $pageTitle = $row['pageTitle'];
+                                    $externalApp = $row['externalApp'];
+                                    $allowedOrgs = $row['organizations'];
+
+                                    if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                                        if ($externalApp == 'yes') {
+                                            if ($openMode == 'newTab') {
+                                                if ($linkUrl == 'submenu') {
+                                                    $newItem =  '<div class="row" data-selected="false">' .
+                                                        '<div class="col-md-12 orgMenuItemCnt">' .
+                                                        '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink" target="_blank">' .
+                                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: rgb(51, 64, 69)"></i>' .
+                                                        '</a>'.
+                                                        '</div>' .
+                                                        '</div>';
+
+                                                    /* $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink" target="_blank">' .
+                                                         '<div class="col-md-12 mainMenuItemCnt">' .
+                                                         '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
+                                                         '</div>' .
+                                                         '</a>';*/
+                                                } else {
+                                                    $newItem =  '<div class="row" data-selected="false">' .
+                                                        '<div class="col-md-12 orgMenuItemCnt">' .
+                                                        '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink" target="_blank">' .
+                                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                        '</a>'.
+                                                        '</div>' .
+                                                        '</div>';
+
+                                                    /*    $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
+                                                            '<div class="col-md-12 mainMenuItemCnt">' .
+                                                            '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                            '</div>' .
+                                                            '</a>';*/
+                                                }
+                                            } else {
+                                                //CASO IFRAME
+                                                if ($linkUrl == 'submenu') {
+                                                    $newItem =  '<div class="row" data-selected="false">' .
+                                                        '<div class="col-md-12 orgMenuItemCnt">' .
+                                                        '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
+                                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: rgb(51, 64, 69)"></i>' .
+                                                        '</a>'.
+                                                        '</div>' .
+                                                        '</div>';
+
+                                                    /*    $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
+                                                            '<div class="col-md-12 mainMenuItemCnt">' .
+                                                            '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
+                                                            '</div>' .
+                                                            '</a>';*/
+                                                } else {
+                                                    $newItem =  '<div class="row" data-selected="false">' .
+                                                        '<div class="col-md-12 orgMenuItemCnt">' .
+                                                        '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
+                                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                        '</a>'.
+                                                        '</div>' .
+                                                        '</div>';
+
+                                                    /*    $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
+                                                            '<div class="col-md-12 mainMenuItemCnt">' .
+                                                            '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                            '</div>' .
+                                                            '</a>';*/
+                                                }
+                                            }
+                                        } else {
+                                            if ($linkUrl == 'submenu') {
+                                                $newItem =  '<div class="row" data-selected="false">' .
+                                                    '<div class="col-md-12 orgMenuItemCnt">' .
+                                                    '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink">' .
+                                                    '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: rgb(51, 64, 69)"></i>' .
+                                                    '</a>'.
+                                                    '</div>' .
+                                                    '</div>';
+
+                                                /*    $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink">' .
+                                                        '<div class="col-md-12 mainMenuItemCnt">' .
+                                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
+                                                        '</div>' .
+                                                        '</a>';*/
+                                            } else {
+                                                $newItem =  '<div class="row" data-selected="false">' .
+                                                    '<div class="col-md-12 orgMenuItemCnt">' .
+                                                    '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink">' .
+                                                    '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                    '</a>'.
+                                                    '</div>' .
+                                                    '</div>';
+
+                                                /*    $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink">' .
+                                                        '<div class="col-md-12 mainMenuItemCnt">' .
+                                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                        '</div>' .
+                                                        '</a>';*/
+                                            }
+                                        }
+                                    }
+
+                                    if((strpos($privileges, "'". ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs=='*' || (strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
+                                    {
+                                        echo $newItem;
+                                    }
+
+                                    $uname = isset($_SESSION['loggedUsername']) ? $_SESSION['loggedUsername'] : '';
+
+                                    $submenuQuery = "SELECT * FROM Dashboard.OrgMenuSubmenus s LEFT JOIN Dashboard.MainMenuSubmenusUser u ON u.submenu=s.id WHERE menu = '$menuItemId' AND (user is NULL OR user='$uname') ORDER BY menuOrder ASC";
+                                    $r2 = mysqli_query($link, $submenuQuery);
+
+                                    if($r2)
+                                    {
+                                        while($row2 = mysqli_fetch_assoc($r2))
+                                        {
+                                            $menuItemId2 = $row2['id'];
+                                            $linkUrl2 = $row2['linkUrl'];
+
+                                            if($linkUrl2 == 'submenu')
+                                            {
+                                                $linkUrl2 = '#';
+                                            }
+
+                                            $linkId2 = $row2['linkId'];
+                                            $icon2 = $row2['icon'];
+                                            $text2 = $row2['text'];
+                                            $privileges2 = $row2['privileges'];
+                                            $userType2 = $row2['userType'];
+                                            $externalApp2 = $row2['externalApp'];
+                                            $openMode2 = $row2['openMode'];
+                                            $iconColor2 = $row2['iconColor'];
+                                            $pageTitle2 = $row2['pageTitle'];
+                                            $externalApp2 = $row2['externalApp'];
+                                            $allowedOrgs2 = $row2['organizations'];
+
+                                            if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                                                if ($externalApp2 == 'yes') {
+                                                    if ($openMode2 == 'newTab') {
+                                                        if ($_REQUEST['fromSubmenu'] == false || $_REQUEST['fromSubmenu'] != $linkId) {
+                                                            $newItem =  '<div class="row" data-selected="false">' .
+                                                                '<div class="col-md-12 orgMenuSubItemCnt" data-fatherMenuIdDiv="' . $linkId .'" style="display: none">' .
+                                                                '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" style="text-decoration:none;padding-left:15px" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink orgMenuSubItemLink" target="_blank">' .
+                                                                '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                                '</a>'.
+                                                                '</div>' .
+                                                                '</div>';
+
+                                                            /*    $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink" target="_blank">' .
+                                                                    '<div class="col-md-12 mainMenuSubItemCnt" style="display: none">' .
+                                                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                                    '</div>' .
+                                                                    '</a>';*/
+                                                        } else {
+                                                            $newItem =  '<div class="row" data-selected="false">' .
+                                                                '<div class="col-md-12 orgMenuSubItemCnt" data-fatherMenuIdDiv="' . $linkId .'" style="display: none">' .
+                                                                '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" style="text-decoration:none;padding-left:15px" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink orgMenuSubItemLink" target="_blank">' .
+                                                                '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                                '</a>'.
+                                                                '</div>' .
+                                                                '</div>';
+
+                                                            /*    $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink" target="_blank">' .
+                                                                    '<div class="col-md-12 mainMenuSubItemCnt">' .
+                                                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                                                    '</div>' .
+                                                                    '</a>';*/
+                                                        }
+                                                    } else {
+                                                        //CASO IFRAME
+                                                        if ($_REQUEST['fromSubmenu'] == false || $_REQUEST['fromSubmenu'] != $linkId) {
+                                                            $newItem =  '<div class="row" data-selected="false">' .
+                                                                '<div class="col-md-12 orgMenuSubItemCnt" data-fatherMenuIdDiv="' . $linkId .'" style="display: none">' .
+                                                                '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" style="text-decoration:none;padding-left:15px" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink orgMenuSubItemLink mainMenuIframeLink">' .
+                                                                '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                                '</a>'.
+                                                                '</div>' .
+                                                                '</div>';
+
+                                                            /*    $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink mainMenuIframeLink">' .
+                                                                    '<div class="col-md-12 mainMenuSubItemCnt" style="display: none">' .
+                                                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                                    '</div>' .
+                                                                    '</a>';*/
+                                                        } else {
+                                                            $newItem =  '<div class="row" data-selected="false">' .
+                                                                '<div class="col-md-12 orgMenuSubItemCnt" data-fatherMenuIdDiv="' . $linkId .'" style="display: none">' .
+                                                                '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" style="text-decoration:none;padding-left:15px" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink orgMenuSubItemLink mainMenuIframeLink">' .
+                                                                '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                                '</a>'.
+                                                                '</div>' .
+                                                                '</div>';
+
+                                                            /*    $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink mainMenuIframeLink">' .
+                                                                    '<div class="col-md-12 mainMenuSubItemCnt">' .
+                                                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                                    '</div>' .
+                                                                    '</a>';*/
+                                                        }
+                                                    }
+                                                } else {
+                                                    if ($_REQUEST['fromSubmenu'] == false || $_REQUEST['fromSubmenu'] != $linkId) {
+                                                        $newItem =  '<div class="row" data-selected="false">' .
+                                                            '<div class="col-md-12 orgMenuSubItemCnt" data-fatherMenuIdDiv="' . $linkId .'" style="display: none">' .
+                                                            '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" style="text-decoration:none;padding-left:15px" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink orgMenuSubItemLink">' .
+                                                            '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                            '</a>'.
+                                                            '</div>' .
+                                                            '</div>';
+
+                                                        /*   $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink">' .
+                                                               '<div class="col-md-12 mainMenuSubItemCnt" style="display: none">' .
+                                                               '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                               '</div>' .
+                                                               '</a>';*/
+                                                    } else {
+                                                        $newItem =  '<div class="row" data-selected="false">' .
+                                                            '<div class="col-md-12 orgMenuSubItemCnt" data-fatherMenuIdDiv="' . $linkId .'" style="display: none">' .
+                                                            '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" style="text-decoration:none;padding-left:15px" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink orgMenuSubItemLink">' .
+                                                            '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                            '</a>'.
+                                                            '</div>' .
+                                                            '</div>';
+
+                                                        /*   $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink">' .
+                                                               '<div class="col-md-12 mainMenuSubItemCnt">' .
+                                                               '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                                               '</div>' .
+                                                               '</a>';*/
+                                                    }
+                                                }
+                                            }
+
+                                            if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs2=='*' || (strpos($allowedOrgs2, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
+                                            {
+                                                echo $newItem;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            mysqli_close($link);
+                            ?>
+
+                            <div class="row fullCtxMenuRow quitRow" data-selected="false">
+                                <div class="col-md-12 orgMenuItemCnt">
+                                    <i class="fa fa-mail-reply"></i>&nbsp;&nbsp;&nbsp;Quit&nbsp;&nbsp;&nbsp;
+                                    <!--  <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-mail-reply"></i></div>
+                                      <div class="col-xs-10 fullCtxMenuTxt">Quit</div>    -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -1248,7 +1604,7 @@
                                         Dashboard width (cells)
                                     </div>
                                     <div class="col-xs-12 centerWithFlex">
-                                       <input id="inputWidthDashboard" name="inputWidthDashboard" data-slider-id="inputWidthDashboardSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>
+                                       <input id="inputWidthDashboard" name="inputWidthDashboard" data-slider-id="inputWidthDashboardSlider" type="text" data-slider-min="1" data-slider-max="300" data-slider-step="1"/>
                                     </div>
                                 </div>  
                                 
@@ -2288,6 +2644,150 @@
                     var newScaledGridsterCellW = 26;
                     var newScaledGridsterCellH = 13;
 
+
+                    $('#orgMenu').hide();
+                    $('#orgMenuCnt a.mainMenuLink').attr('data-submenuVisible', 'false');
+                    $('#orgMenuCnt a.orgMenuSubItemLink').hide();
+                    $('.linkgen').css('text-decoration', 'none');
+
+                    // $('#orgMenuButton').off('click');
+                    $('#orgMenuButton').click(function(){
+                        // alert("Organization Menu Coming Soon !");
+                        if($('#orgMenu').attr('data-shown') === 'true')
+                        {
+                            $('#orgMenu').hide();
+                            $('#orgMenu').attr('data-shown', 'false');
+                        }
+                        else
+                        {
+                            $('#orgMenu').show();
+                            $('#orgMenu').attr('data-shown', 'true');
+                        }
+                    });
+
+                    $('#orgMenu .quitRow').off('click');
+                    $('#orgMenu .quitRow').click(function()
+                    {
+                        $('#orgMenu .fullCtxSubmenu').each(function(i){
+                            $(this).attr('data-clicked', 'false');
+                        });
+                        $('.widgetSubmenu').hide();
+                        $('.fullCtxMenu').hide();
+                        $('.applicationCtxMenu').hide();
+                        $('.fullCtxSubmenu').hide();
+                        $('#orgMenu').hide();
+                        $(".fullCtxMenuRow").css('color', 'rgb(51, 64, 69)');
+                        $(".fullCtxMenuRow").css('background-color', 'transparent');
+                        $(".fullCtxMenuRow").attr("data-selected", "false");
+                        $('#orgMenu').attr('data-shown', 'false');
+
+                        // Close Org Sub-Menus
+                        $('#orgMenu a.mainMenuLink').attr('data-submenuVisible', 'false');
+                        $('.orgMenuSubItemCnt a.orgMenuSubItemLink').hide();
+                        $('.orgMenuSubItemCnt').css( "display", "none" );
+                        $('.submenuIndicator').removeClass('fa-caret-up');
+                        $('.submenuIndicator').addClass('fa-caret-down');
+                    });
+
+                    /*    $('#orgMenu .fullCtxMenuRow').hover(function(){
+                            if($(this).attr("data-selected") === "false")
+                            {
+                                $(this).css('color', 'white');
+                                $(this).css('background-color', 'rgba(0, 162, 211, 1)');
+                            }
+                        }, function(){
+                            if($(this).attr("data-selected") === "false")
+                            {
+                                $(this).css('color', 'rgb(51, 64, 69)');
+                                $(this).css('background-color', 'transparent');
+                            }
+                        });*/
+
+                    //  $('#orgMenuCnt .mainMenuLink').click(function(event){
+                    $('.mainMenuLink').click(function(event){
+                        //  $('.linkgen').click(function(event){
+                        event.preventDefault();
+                        var pageTitle = $(this).attr('data-pageTitle');
+                        var linkId = $(this).attr('id');
+                        var linkUrl = $(this).attr('data-linkUrl');
+
+                        if($(this).attr('data-linkUrl') === 'submenu')
+                        {
+                            $('#orgMenuCnt .orgMenuItemCnt').each(function(i){
+                                $(this).removeClass('orgMenuItemCntActive');
+                            });
+                            $(this).find('div.orgMenuItemCnt').addClass("orgMenuItemCntActive");
+                            if($(this).attr('data-submenuVisible') === 'false')
+                            {
+                                $(this).attr('data-submenuVisible', 'true');
+                                //   $('.orgMenuSubItemCnt').css( "display", "block" );
+                                $('.orgMenuSubItemCnt[data-fatherMenuIdDiv='+ $(this).attr('id') + ']').css( "display", "block" );
+                                //    $(this).find('.orgMenuSubItemCnt').css( "display", "block" ); // data-fatherMenuIdDiv
+                                $('.orgMenuSubItemCnt a.orgMenuSubItemLink[data-fatherMenuId=' + $(this).attr('id') + ']').show();
+                                $(this).find('.submenuIndicator').removeClass('fa-caret-down');
+                                $(this).find('.submenuIndicator').addClass('fa-caret-up');
+                            }
+                            else
+                            {
+                                $(this).attr('data-submenuVisible', 'false');
+                                $('.orgMenuSubItemCnt a.orgMenuSubItemLink[data-fatherMenuId=' + $(this).attr('id') + ']').hide();
+                                //    $('.orgMenuSubItemCnt').css( "display", "none" );
+                                $('.orgMenuSubItemCnt[data-fatherMenuIdDiv='+ $(this).attr('id') + ']').css( "display", "none" );
+                                //   $(this).find('.orgMenuSubItemCnt').css( "display", "none" );
+                                $(this).find('.submenuIndicator').removeClass('fa-caret-up');
+                                $(this).find('.submenuIndicator').addClass('fa-caret-down');
+                            }
+                        }
+                        else
+                        {
+                            $('#orgMenuCnt a.orgMenuSubItemLink').hide();
+
+                            $('#orgMenuCnt a.orgMenuSubItemLink').each(function(i){
+                                $(this).attr('data-submenuVisible', 'false');
+                            });
+                            switch($(this).attr('data-openMode'))
+                            {
+                                case "iframe":
+                                    $('#orgMenuCnt .orgMenuItemCnt').each(function(i){
+                                        $(this).removeClass('orgMenuItemCntActive');
+                                    });
+                                    $(this).find('div.orgMenuItemCnt').addClass("orgMenuItemCntActive");
+                                    if($(this).attr('data-externalApp') === 'yes')
+                                    {
+                                     //   location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
+                                        location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl);
+                                    }
+                                    break;
+
+                                case "newTab":
+                                  //  var newTab = window.open($(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=false", '_blank');
+                                    var newTab = window.open($(this).attr('data-linkurl'));
+                                    if(newTab)
+                                    {
+                                        newTab.focus();
+                                    }
+                                    else
+                                    {
+                                        alert('Please allow popups for this website');
+                                    }
+                                    break;
+
+                                case "samePage":
+                                    $('#orgMenuCnt .orgMenuItemCnt').each(function(i){
+                                        $(this).removeClass('orgMenuItemCntActive');
+                                    });
+                                    $(this).find('div.orgMenuItemCnt').addClass("orgMenuItemCntActive");
+                                //    location.href = $(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=false&pageTitle=" + pageTitle;
+                                    location.href = $(this).attr('data-linkurl');
+                                    break;
+                            }
+                        }
+
+                        var mainMenuScrollableCntHeight = parseInt($('#orgMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#orgMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
+                        $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
+                        $('#mainMenuScrollableCnt').css("overflow-y", "auto");
+                    });
+
                     $('#dashBckCnt').css("height", ($(window).height() - $('#dashboardViewHeaderContainer').height()) + "px");
                     var changeMetricSelectedRows = {};
                     var firstRowId = null;
@@ -2308,51 +2808,49 @@
                    //$("#BtnContainerChat").css("top", $('#dashboardViewHeaderContainer').height());
                     //$("#BtnContainerChat").css("left", $(window).width() - $('#BtnContainerChat').width());
 
-
                
-               
-                $('#chatBtn').click(function(){
-                if($(this).attr("data-status") === 'closed')
-                {
-                    $(this).attr("data-status", 'open');
-                    $('#chatContainer').show();
-                    $('#BtnContainerChat').show();
-                }
-                else
-                {
-                    $(this).attr("data-status", 'closed');
-                    $('#chatContainer').hide();
-                    $('#BtnContainerChat').hide();
-                }
-            });
-            $('#chatBtnNew').click(function(){
-                if($(this).attr("data-status") === 'closed')
-                {
-                    $(this).attr("data-status", 'open');
-                    $('#chatContainer').show();
-                    console.log("Show");
-                }
-                else
-                {
-                    $(this).attr("data-status", 'closed');
-                    $('#chatContainer').hide();
-                    console.log("Hide");
-                }
-            });
-            $('#chatBtnError').click(function(){
-                if($(this).attr("data-status") === 'closed')
-                {
-                    $(this).attr("data-status", 'open');
-                    $('#chatContainer').show();
-                    $('#BtnContainerChat').show();
-                }
-                else
-                {
-                    $(this).attr("data-status", 'closed');
-                    $('#chatContainer').hide();
-                    $('#BtnContainerChat').hide();
-                }
-            });
+                    $('#chatBtn').click(function(){
+                        if($(this).attr("data-status") === 'closed')
+                        {
+                            $(this).attr("data-status", 'open');
+                            $('#chatContainer').show();
+                            $('#BtnContainerChat').show();
+                        }
+                        else
+                        {
+                            $(this).attr("data-status", 'closed');
+                            $('#chatContainer').hide();
+                            $('#BtnContainerChat').hide();
+                        }
+                    });
+                    $('#chatBtnNew').click(function(){
+                        if($(this).attr("data-status") === 'closed')
+                        {
+                            $(this).attr("data-status", 'open');
+                            $('#chatContainer').show();
+                            console.log("Show");
+                        }
+                        else
+                        {
+                            $(this).attr("data-status", 'closed');
+                            $('#chatContainer').hide();
+                            console.log("Hide");
+                        }
+                    });
+                    $('#chatBtnError').click(function(){
+                        if($(this).attr("data-status") === 'closed')
+                        {
+                            $(this).attr("data-status", 'open');
+                            $('#chatContainer').show();
+                            $('#BtnContainerChat').show();
+                        }
+                        else
+                        {
+                            $(this).attr("data-status", 'closed');
+                            $('#chatContainer').hide();
+                            $('#BtnContainerChat').hide();
+                        }
+                    });
             
                     $('#fullscreenBtnContainer .contextMenuQuitBtn').off('click');
                     $('#fullscreenBtnContainer .contextMenuQuitBtn').click(function(){
@@ -2775,6 +3273,7 @@
                         $(".fullCtxMenuRow").css('color', 'rgb(51, 64, 69)');
                         $(".fullCtxMenuRow").css('background-color', 'transparent');
                         $(".fullCtxMenuRow").attr("data-selected", "false");
+                        $('#dashboardEditHeaderMenu').attr('data-shown', 'false');
                     });
                     
                     $('#dashHeaderFontColorPicker').colorpicker({
@@ -3092,7 +3591,71 @@
                             $('#dashboardBckDarknessSubmenu').css('left', parseInt($('#dashboardCtxMenuBtn').offset().left + $('#dashboardEditHeaderMenu').outerWidth() + 2) + 'px');
                         }
                     });
-                    
+
+                    $('#dashboardEditHeaderMenu .fullCtxMenuRow').eq(5).click(function(){
+                        var contentHeight, showTitle, showHeader = null;
+
+                        // MS> Slightly edited to manage with super-container redim at content collapse
+
+                        if($('#dashboardEditHeaderMenu .menuVisibility').attr('data-menushown') == "true")
+                        {
+                            $('#dashboardEditHeaderMenu .menuVisibility').attr('data-menushown', 'false')
+                            $('#orgMenuButton').hide();
+                            $('#dashboardEditHeaderMenu .menuVisibility .fullCtxMenuIcon i').removeClass('fa-eye-slash');
+                            $('#dashboardEditHeaderMenu .menuVisibility .fullCtxMenuIcon i').addClass('fa-eye');
+                            $('#dashboardEditHeaderMenu .menuVisibility .fullCtxMenuTxt').html('Show Links Menu');
+
+                        }
+                        else
+                        {
+                            $('#dashboardEditHeaderMenu .menuVisibility').attr('data-menushown', 'true')
+                            $('#orgMenuButton').show();
+                            $('#dashboardEditHeaderMenu .menuVisibility .fullCtxMenuIcon i').removeClass('fa-eye');
+                            $('#dashboardEditHeaderMenu .menuVisibility .fullCtxMenuIcon i').addClass('fa-eye-slash');
+                            $('#dashboardEditHeaderMenu .menuVisibility .fullCtxMenuTxt').html('Hide Links Menu');
+                        }
+
+                        //Update parametro su DB
+                        $.ajax({
+                            url: "../controllers/updateDashboard.php",
+                            data: {
+                                action: "updateOrgMenuVisibility",
+                                dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>,
+                                newVisibility: $('#dashboardEditHeaderMenu .menuVisibility').attr('data-menushown'),
+                            },
+                            type: "POST",
+                            async: true,
+                            dataType: 'json',
+                            success: function(data)
+                            {
+                                if(data.detail === 'Ok')
+                                {
+                               /*     updateLastUsedColors($('#dashboardViewHeaderContainer').attr('data-newFontColor'));
+                                    button.parents('div.container-fluid').find('div.contextMenuMsgRow div.col-xs-12').html('Saved&nbsp;<i class="fa fa-thumbs-up" style="font-size:14px"></i>');
+                                    $('#dashboardViewHeaderContainer').attr('data-currentFontColor', $('#dashboardViewHeaderContainer').attr('data-newFontColor'));
+                                    setTimeout(function(){
+                                        button.parents('div.container-fluid').find('div.contextMenuMsgRow').hide();
+                                        button.parents('div.widgetSubmenu').hide();
+                                        $(".fullCtxMenuRow").css('color', 'rgb(51, 64, 69)');
+                                        $(".fullCtxMenuRow").css('background-color', 'transparent');
+                                        $(".fullCtxMenuRow").attr("data-selected", "false");
+                                    }, 750);*/
+                                }
+                                else
+                                {
+                                /*    button.parents('div.container-fluid').find('div.contextMenuMsgRow div.col-xs-12').html('Error&nbsp;<i class="fa fa-thumbs-down" style="font-size:14px"></i>');
+                                    setTimeout(function(){
+                                        button.parents('div.container-fluid').find('div.contextMenuMsgRow').hide();
+                                    }, 1000); */
+                                }
+                            },
+                            error: function(errorData)
+                            {
+
+                            }
+                        });
+                    });
+
                     $('#dashboardEditHeaderMenu .fullCtxMenuRow').hover(function(){
                         if($(this).attr("data-selected") === "false")
                         {

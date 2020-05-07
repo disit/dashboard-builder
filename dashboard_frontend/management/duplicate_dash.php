@@ -221,8 +221,13 @@ if($result1)
                                  $newQueryFields = $key;
                                  $newQueryValues = returnManagedStringForDb($value);
                              } else {
-                                 $newQueryFields = $newQueryFields . ", " . $key;
-                                 $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
+                                 if ($key == "parameters" && $row4['type_w'] == "widgetMap") {
+                                     $newQueryFields = $newQueryFields . ", " . $key;
+                                     $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
+                                 } else {
+                                     $newQueryFields = $newQueryFields . ", " . $key;
+                                     $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
+                                 }
                              }
 
                              $count++;
