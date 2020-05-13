@@ -1349,6 +1349,18 @@
                         myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
                         break;
 
+                    case "Semestrale":
+                        serviceMapTimeRange = "fromTime=180-day";
+                        globalDiagramRange = "180/DAY";
+
+                        var now = new Date();
+                        myKPIFromTimeRange = now.setHours(now.getHours() - 4320);
+                        var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                        var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                        var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                        myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                        break;
+
                     case "Annuale":
                         serviceMapTimeRange = "fromTime=365-day";
                         globalDiagramRange = "365/DAY";

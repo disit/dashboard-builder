@@ -102,6 +102,10 @@
                                 case "Mensile":
                                     $timeRange = "30 DAY";
                                     break;
+
+                                case "Semestrale":
+                                    $timeRange = "180 DAY";
+                                    break;
                                 
                                 case "Annuale":
                                     $timeRange = "365 DAY";
@@ -219,6 +223,10 @@
 
                             case "Mensile":
                                 $timeRange = "fromTime=30-day";
+                                break;
+
+                            case "Semestrale":
+                                $timeRange = "fromTime=180-day";
                                 break;
 
                             case "Annuale":
@@ -343,6 +351,10 @@
 
                         case "Mensile":
                             $timeRange = "from=" . getMyKPIUpperTimeLimit(720);
+                            break;
+
+                        case "Semestrale":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(4320);
                             break;
 
                         case "Annuale":

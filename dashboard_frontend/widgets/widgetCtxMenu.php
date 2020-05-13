@@ -1148,9 +1148,14 @@
                                 timeRangeTick = 5;
                                 break;
 
+                            case "Semestrale":
+                                timeRangeDisplayed = "6 Months";
+                                timeRangeTick = 6;
+                                break;
+
                             case "Annuale":
                                 timeRangeDisplayed = "1 Year";
-                                timeRangeTick = 6;
+                                timeRangeTick = 7;
                                 break;
                         }
                         
@@ -1159,7 +1164,7 @@
                             max: 6,
                             step: 1,
                             value: timeRangeTick,
-                            ticks: [1, 2, 3, 4, 5, 6],
+                            ticks: [1, 2, 3, 4, 5, 6, 7],
                             tooltip: 'hide'
                         });
                         
@@ -1192,8 +1197,13 @@
                                     timeRangeDisplayed = "1 Month";
                                     timeRange = "Mensile";
                                     break;
-                                    
+
                                 case 6:
+                                    timeRangeDisplayed = "6 Months";
+                                    timeRange = "Semestrale";
+                                    break;
+
+                                case 7:
                                     timeRangeDisplayed = "1 Year";
                                     timeRange = "Annuale";
                                     break;    
@@ -1236,9 +1246,14 @@
                                     timeRangeTick = 5;
                                     break;
 
+                                case "Semestrale":
+                                    timeRangeDisplayed = "6 Months";
+                                    timeRangeTick = 6;
+                                    break;
+
                                 case "Annuale":
                                     timeRangeDisplayed = "1 Year";
-                                    timeRangeTick = 6;
+                                    timeRangeTick = 7;
                                     break;
                             }
                             

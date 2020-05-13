@@ -1285,6 +1285,9 @@
                              case "Mensile":
                                  millisToSubtract = 30 * 24 * 60 * 60 * 1000;
                                  break;
+                             case "Semestrale":
+                                 millisToSubtract = 180 * 24 * 60 * 60 * 1000;
+                                 break;
                              case "Annuale":
                                  millisToSubtract = 365 * 24 * 60 * 60 * 1000;
                                  break;

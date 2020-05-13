@@ -361,7 +361,11 @@
                                     if(range === '30/DAY') 
                                     {
                                         seriesData2.push([Date.UTC(dayParts[0], dayParts[1], dayParts[2]), value]);
-                                    } 
+                                    }
+                                    if(range === '180/DAY')
+                                    {
+                                        seriesData2.push([Date.UTC(dayParts[0], parseInt(dayParts[1]) - 1, parseInt(dayParts[2]) + 180), value]);
+                                    }
                                     else if (range === '7/DAY') 
                                     {
                                         seriesData2.push([Date.UTC(dayParts[0], parseInt(dayParts[1]) - 1, parseInt(dayParts[2]) + 7), value]);
@@ -635,12 +639,18 @@
                                                 valuePrec = valX.getMonth() - 1;
                                                 valX.setMonth(valuePrec);
                                             } 
-                                            else if (mod === '7/DAY') 
+                                            else if (mod === '7/DAY')
                                             {
                                                 valueAtt = valX.getDate();
                                                 valuePrec = valX.getDate() - 7;
                                                 valX.setDate(valuePrec);
-                                            } 
+                                            }
+                                            else if (mod === '180/DAY')
+                                            {
+                                                valueAtt = valX.getDate();
+                                                valuePrec = valX.getDate() - 180;
+                                                valX.setDate(valuePrec);
+                                            }
                                             else if (mod === '365/DAY') 
                                             {
                                                 valueAtt = valX.getYear();

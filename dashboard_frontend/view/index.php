@@ -91,7 +91,8 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             }
 
            if($queryResult->num_rows > 0) 
-           {    
+           {
+                $dashOrg = $row['organizations'];
                 $embeddable = $row['embeddable'];
                 $authorizedPages = $row['authorizedPagesJson'];
            }
@@ -1266,7 +1267,11 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     if(dashboardWidgets[i]['temporal_range_w'] === "Mensile") 
                     {
                         time = "30/DAY";
-                    } 
+                    }
+                    else if (dashboardWidgets[i]['temporal_range_w'] === "Semestrale")
+                    {
+                        time = "180/DAY";
+                    }
                     else if (dashboardWidgets[i]['temporal_range_w'] === "Annuale") 
                     {
                         time = "365/DAY";
@@ -1845,13 +1850,15 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                              //   echo 'DISIT';
                             }
 
-                            if(isset($_SESSION['loggedOrganization'])) {
+                       /*     if(isset($_SESSION['loggedOrganization'])) {
                                 $organization = $_SESSION['loggedOrganization'];
                                 $organizationSql = $organization;
                             } else {
                                 $organization = "None";
                                 $organizationSql = "Other";
-                            }
+                            }   */
+
+                            $organizationSql = $dashOrg;
 
                             $newDivItem = '<div id=orgMenuCnt"><div id="orgMenu" data-shown="false" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu">';
                             echo($newDivItem);

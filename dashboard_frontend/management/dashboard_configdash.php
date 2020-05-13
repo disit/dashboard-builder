@@ -51,6 +51,7 @@
             $dashboardAuthorName = $row['user']; //$_REQUEST['dashboardAuthorName'];
             $dashboardTitle = $row['title_header']; //$_REQUEST['dashboardTitle'];
             $dashboardEditorName = $_SESSION['loggedUsername'];
+            $dashOrg = $row['organizations'];
         }
     }
 ?>
@@ -522,13 +523,15 @@
                                 //   echo 'DISIT';
                             }
 
-                            if(isset($_SESSION['loggedOrganization'])) {
+                         /*   if(isset($_SESSION['loggedOrganization'])) {
                                 $organization = $_SESSION['loggedOrganization'];
                                 $organizationSql = $organization;
                             } else {
                                 $organization = "None";
                                 $organizationSql = "Other";
-                            }
+                            }   */
+
+                            $organizationSql = $dashOrg;
 
                             $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
                             $r = mysqli_query($link, $menuQuery);
@@ -1493,6 +1496,7 @@
                                             <option value="Giornaliera">Day</option>
                                             <option value="Settimanale">Week</option>
                                             <option value="Mensile">Month</option>
+                                            <option value="Semestrale">6 Months</option>
                                             <option value="Annuale">Year</option>       
                                         </select>
                                     </div>
@@ -2135,6 +2139,7 @@
                                             <option value="Giornaliera">Day</option>
                                             <option value="Settimanale">Week</option>
                                             <option value="Mensile">Month</option>
+                                            <option value="Semestrale">6 Months</option>
                                             <option value="Annuale">Year</option>   
                                         </select>
                                     </div>
@@ -8131,6 +8136,7 @@
                                                 $('#select-IntTemp-Widget').append('<option value="Giornaliera">Daily</option>');
                                                 $('#select-IntTemp-Widget').append('<option value="Settimanale">Weekly</option>');
                                                 $('#select-IntTemp-Widget').append('<option value="Mensile">Monthly</option>');
+                                                $('#select-IntTemp-Widget').append('<option value="Semestrale">6 Months</option>');
                                                 $('#select-IntTemp-Widget').append('<option value="Annuale">Annually</option>');
                                             } 
                                             else 
@@ -16460,7 +16466,11 @@
                                 if(dashboardWidgets[i]['temporal_range_w'] === "Mensile") 
                                 {
                                     time = "30/DAY";
-                                } 
+                                }
+                                else if (dashboardWidgets[i]['temporal_range_w'] === "Semestrale")
+                                {
+                                    time = "180/DAY";
+                                }
                                 else if (dashboardWidgets[i]['temporal_range_w'] === "Annuale") 
                                 {
                                     time = "365/DAY";
@@ -31795,6 +31805,10 @@
                                     if(newWidgetToUpdate['temporal_range_w'] === "Mensile")
                                     {
                                         time = "30/DAY";
+                                    }
+                                    else if (dashboardWidgets[i]['temporal_range_w'] === "Semestrale")
+                                    {
+                                        time = "180/DAY";
                                     }
                                     else if (newWidgetToUpdate['temporal_range_w'] === "Annuale")
                                     {

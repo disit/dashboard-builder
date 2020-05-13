@@ -70,6 +70,7 @@
         var fromGisExternalContentFieldPrevious = null;
         var dataFut = null;
         var upLimit = null;
+        var currentWidth = null;
 
         console.log("Entrato in widgetTimeTrend --> " + widgetName);
 
@@ -301,9 +302,9 @@
 
         function drawDiagram(metricData, timeRange, seriesName, fromSelector, timeZone)
         {
-            if ($("#" + widgetName + "_loading").css("display") == "block") {
+           /* if ($("#" + widgetName + "_loading").css("display") == "block") {
                 $("#" + widgetName + "_loading").css("display", "none");
-            }
+            }*/
             if(metricData.data.length > 0)
             {
                 desc = metricData.data[0].commit.author.descrip;
@@ -931,6 +932,12 @@
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
             }
+
+         /*   if ($("#" + widgetName + "_content").css("display") == "none") {
+                $("#" + widgetName + "_content").css("display", "block");
+            }*/
+            showWidgetContent(widgetName);
+
         }
         
         function convertDataFromSmToDm(originalData, field)
@@ -1086,52 +1093,6 @@
                 else
                 {
                     singleData.commit.author.value = singleOriginalData.variableValue;
-                }
-
-                convertedData.data.push(singleData);
-            }
-
-            return convertedData;
-        }
-
-        function convertDataFromMyKpiToDm(originalData)
-        {
-            var singleOriginalData, singleData, convertedDate = null;
-            var convertedData = {
-                data: []
-            };
-
-            for(var i = 0; i < originalData.length; i++)
-            {
-                singleData = {
-                    commit: {
-                        author: {
-                            IdMetric_data: null, //Si può lasciare null, non viene usato dal widget
-                            computationDate: null,
-                            value_perc1: null, //Non lo useremo mai
-                            value: null,
-                            descrip: null, //Mettici il nome della metrica splittato
-                            threshold: null, //Si può lasciare null, non viene usato dal widget
-                            thresholdEval: null //Si può lasciare null, non viene usato dal widget
-                        },
-                        range_dates: 0//Si può lasciare null, non viene usato dal widget
-                    }
-                };
-
-                singleOriginalData = originalData[i];
-
-                convertedDate = new Date(singleOriginalData.dataTime); //2001-11-23 03:08:46
-                convertedDate = convertedDate.getFullYear() + "-" + parseInt(convertedDate.getMonth() + 1) + "-" + convertedDate.getDate() + " " + convertedDate.getHours() + ":" + convertedDate.getMinutes() + ":" + convertedDate.getSeconds();
-
-                singleData.commit.author.computationDate = convertedDate;
-
-                if(!isNaN(parseFloat(singleOriginalData.value)))
-                {
-                    singleData.commit.author.value = parseFloat(singleOriginalData.value);
-                }
-                else
-                {
-                    singleData.commit.author.value = singleOriginalData.value;
                 }
 
                 convertedData.data.push(singleData);
@@ -1622,6 +1583,29 @@
                             var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
                          //   myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
                             var myKPIFromTimeRangeNew = moment(upperTimeLimitISOTrimmed).subtract(1, 'month');
+                            var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
+                            myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
+                        }
+                        break;
+
+                    case "Semestrale":
+                        serviceMapTimeRange = "fromTime=180-day";
+                        //    var deltaT = 365 + parseInt(timeCount) * 365;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+                        globalDiagramRange = "180/DAY";
+
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(180*24*timeCount);
+
+                        if (flagTracker === true) {
+                            myKPITimeRange = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                        } else {
+                            var now = new Date();
+                            myKPIFromTimeRange = now.setHours(now.getHours() - 4320);
+                            var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                            var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                            var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                            //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                            var myKPIFromTimeRangeNew = moment(upperTimeLimitISOTrimmed).subtract(6, 'month');
                             var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
                             myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
                         }
@@ -2439,8 +2423,10 @@
                 $("#<?= $_REQUEST['name_w'] ?>").off('changeTimeRangeEvent');
                 $("#<?= $_REQUEST['name_w'] ?>").on('changeTimeRangeEvent', function(event)
                 {
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').hide();
+                //    currentWidth = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').height();
+                 //   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content').hide();
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading').show();
+                //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').css('height', currentWidth);
                     timeRange = event.newTimeRange;
                     populateWidget(event.newTimeRange, null, null, 0);
                 });
