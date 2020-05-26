@@ -1137,10 +1137,14 @@
                                 var urlToCall = "";
                                 var xlabels = [];
                                 let smUrl = "";
-                                if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
-                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                if (rowParameters[i].metricId != null) {
+                                    if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
+                                        smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                    } else {
+                                        smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                    }
                                 } else {
-                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                    smUrl = "";
                                 }
                                 //    metricType = "Float";
 

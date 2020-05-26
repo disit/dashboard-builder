@@ -22,7 +22,7 @@ if (isset($_SESSION['loggedUsername'])) {
         $role_session_active = $_SESSION['loggedRole'];
         
         
-        if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin")) {
+        if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin") || ($role_session_active == "AreaManager") || ($role_session_active == "Manager")) {
         //if (($role_session_active == "RootAdmin") || ($role_session_active == "ToolAdmin") || ($role_session_active == "Manager")) {
             //
             $ip_disc = 'disces.snap4city.org';

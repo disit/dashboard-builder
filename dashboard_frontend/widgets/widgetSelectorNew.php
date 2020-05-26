@@ -44,7 +44,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             eventContentWPerc,
             mapPtrContainer, pinContainer, queryDescContainer, activeFontColor, rowHeight, iconSize,
             queryDescContainerWidth,
-            queryDescContainerWidthPerc, pinContainerWidthPerc, gisMapPtrContainerWidth, gisMapPtrContainerWidthPerc, defaultOption, iconTextMode, highLevelType, nature, subNature, mapPinIcon = null;
+            queryDescContainerWidthPerc, pinContainerWidthPerc, gisMapPtrContainerWidth, gisMapPtrContainerWidthPerc,
+            defaultOption, iconTextMode, highLevelType, nature, subNature, mapPinIcon, bubbleMode, bubbleMetrics, bubbleSelectedMetric = null;
 
         var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var speed = 65;
@@ -69,6 +70,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         console.log("Selector Widget loaded: " + widgetName);
         globalMapView = false;
         var newPinsContainer = null;
+     //   var bubbleMetricsArray = [];
 
      //   $('.poolIcon').tooltip();
      //   $('[data-toggle="tooltip"]').tooltip();
@@ -469,6 +471,27 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 display = queries[i].display;
 
                 queryType = queries[i].queryType;
+                bubbleMode = queries[i].bubble;
+                if (bubbleMode == null) {
+                    bubbleMode = 'No';
+                }
+                bubbleSelectedMetric = queries[i].bubbleMetrics;
+                if (bubbleSelectedMetric == null) {
+                    bubbleSelectedMetric = "";
+                }
+
+             /*   bubbleMetricsArray[i] = [];
+                if (bubbleMode == "Yes") {
+                    // RETRIEVE METRICS ARRAY FOR BUBBLE CHART (SERVER SIDE)
+                    getBubbleMetrics(query, i, function(extractedMetrics) {
+                        if (extractedMetrics) {
+                            let index = extractedMetrics[0];
+                            bubbleMetricsArray[index].push(extractedMetrics[1].metrics);
+                            $('#' + widgetName +'_pinCtn' + index).attr("data-bubblemetricsarray", extractedMetrics[1].metrics);
+                            var stopFlag = 1;
+                        }
+                    });
+                }*/
 
                 newRow = $('<div class="selectorRow"></div>');
                 newRow.css("width", "100%");
@@ -548,7 +571,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             //    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-image: url(&quot;../img/widgetSelectorBakcGrnd/cerchio-arancione.svg&quot;); background-repeat: no-repeat; background-position: center center;"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 // PROVA CON BACKGROUND-COLOR e BORDER-RADIUS!!!
                 if (symbolColor != null) {
-                    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-color: ' + symbolColor + '; border-radius: 50%"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
+                    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName +'_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + bubbleMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-color: ' + symbolColor + '; border-radius: 50%"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 } else {
                     if (pinattr == "pin") {
                         //  if (symbolColor == undefined) {
@@ -575,7 +598,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         //       symbolColorOk = symbolColor;
                         //   }
                     }
-                    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
+                    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName +'_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + bubbleMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 }
              //   pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="position: relative; width: ' + rowHeight + '; height: ' + rowHeight + ';"><img src="../img/widgetSelectorBakcGrnd/cerchio-arancione.svg" alt="" style="top: 0; left: 0;"><img class="svg" id="logo" alt="" style="position: absolute; top: 0; left: 0;"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 if (iconTextMode == "Icon Only") {
@@ -1108,7 +1131,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 }
                             //    $(this).hide();
                             //    $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
-                                addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-queryType"), $(this).attr("data-icontextmode"), $(this).attr("data-pinattr"), $(this).attr("data-pincolor"), $(this).attr("data-symbolcolor"), $(this).find('img.svg').attr("data-iconblack"));
+                                addLayerToTargetMaps($(this), $(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-queryType"), $(this).attr("data-icontextmode"), $(this).attr("data-pinattr"), $(this).attr("data-pincolor"), $(this).attr("data-symbolcolor"), $(this).find('img.svg').attr("data-iconblack"), $(this).attr("data-bubbleMode"), $(this).attr("data-bubbleselectedmetric"));
                             }
                             else {
                                 $(this).attr("data-onMap", "false");
@@ -1128,7 +1151,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                 $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('span.gisQueryDescPar').css("font-weight", "normal");
                                 $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('span.gisQueryDescPar').css("color", $(this).attr("data-fontColor"));
-                                removeLayerFromTargetMaps($(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"));
+                                removeLayerFromTargetMaps($(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-bubbleMode"));
                             }
                         }
 
@@ -1180,7 +1203,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 queryDescContainer.textfill({
                     maxFontPixels: fontSize
                 });
-            }//Fine del for    
+
+
+            }//Fine del for
 
             var minFontSize = fontSize;
 
@@ -1207,7 +1232,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             }
         }
 
-        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType, iconTextMode, pinAttr, pinColor, symbolColor, iconFilePath) {
+        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType, iconTextMode, pinAttr, pinColor, symbolColor, iconFilePath, bubbleMode, bubbleSelectedMetric) {
             let coordsAndType = {};
 
             coordsAndType.eventGenerator = eventGenerator;
@@ -1223,15 +1248,28 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.pincolor = pinColor;
             coordsAndType.symbolcolor = symbolColor;
             coordsAndType.iconFilePath = iconFilePath;
+            coordsAndType.bubbleMode = bubbleMode;
+            coordsAndType.bubbleSelectedMetric = bubbleSelectedMetric;
 
-            $.event.trigger({
-                type: "addSelectorPin",
-                target: widgetTargetList[0],
-                passedData: coordsAndType
-            });
+            if (bubbleMode == "Yes") {
+
+                $.event.trigger({
+                    type: "addBubbleChart",
+                    target: widgetTargetList[0],
+                    passedData: coordsAndType
+                });
+
+            } else {
+
+                $.event.trigger({
+                    type: "addSelectorPin",
+                    target: widgetTargetList[0],
+                    passedData: coordsAndType
+                });
+            }
         }
 
-        function removeLayerFromTargetMaps(desc, query, color1, color2, targets, display) {
+        function removeLayerFromTargetMaps(desc, query, color1, color2, targets, display, bubbleFlag) {
             let coordsAndType = {};
 
             coordsAndType.desc = desc;
@@ -1241,11 +1279,19 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.targets = targets;
             coordsAndType.display = display;
 
-            $.event.trigger({
-                type: "removeSelectorPin",
-                target: widgetTargetList[0],
-                passedData: coordsAndType
-            });
+            if (bubbleFlag != "Yes") {
+                $.event.trigger({
+                    type: "removeSelectorPin",
+                    target: widgetTargetList[0],
+                    passedData: coordsAndType
+                });
+            } else {
+                $.event.trigger({
+                    type: "removeBubbles",
+                    target: widgetTargetList[0],
+                    passedData: coordsAndType
+                });
+            }
         }
 
         //Restituisce il JSON delle info se presente, altrimenti NULL
@@ -1371,6 +1417,70 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     $('#<?= $_REQUEST['name_w'] ?>').attr("data-icontextmode", iconTextMode);
 
                     populateWidget();
+
+                /*    var querySel = JSON.parse(widgetProperties.param.parameters).queries;
+                    for (let no = 0; no < querySel.length; no++) {
+                        bubbleMetricsArray[no] = [];
+                        if (querySel[no].bubble == "Yes") {
+
+                            // RETRIEVE METRICS ARRAY FOR BUBBLE CHART (SERVER SIDE)
+                            getBubbleMetrics(querySel[no].query, no, function(extractedMetrics) {
+                                if (extractedMetrics) {
+                                    let index = extractedMetrics[0];
+                                    if(extractedMetrics[1].metrics.length > 0) {
+                                        bubbleMetricsArray[index].push(extractedMetrics[1].metrics);
+                                        $('#' + widgetName + '_pinCtn' + index).attr("data-bubblemetricsarray", extractedMetrics[1].metrics);
+                                        if (bubbleMetricsArray[index][0] != null) {
+                                            if (bubbleMetricsArray[index][0].length > 0) {
+                                                for (let k = 0; k < bubbleMetricsArray[index][0].length; k++) {
+                                                    if (bubbleMetricsArray[index][k] === "loading available metrics..." || bubbleMetricsArray[index] === "no metrics available") {
+                                                        $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="' + bubbleMetricsArray[index][0][k] + '" disabled>' + bubbleMetricsArray[index][0][k] + '</option>');
+                                                    } else {
+                                                        $('#bubbleMetricsSelect' + index).append('<option value="' + bubbleMetricsArray[index][0][k] + '">' + bubbleMetricsArray[index][0][k] + '</option>');
+                                                    }
+                                                }
+                                                for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                                    if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                        $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                        break;
+                                                    }
+                                                }
+                                            } else {
+                                                $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
+                                                $('#bubbleMetricsSelect' + index).val("no metrics available");
+                                                for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                                    if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                        $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
+                                            $('#bubbleMetricsSelect' + index).val("no metrics available");
+                                            for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                                if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                    $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        var stopFlag = 1;
+                                    } else {
+                                        $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
+                                        $('#bubbleMetricsSelect' + index).val("no metrics available");
+                                        for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                            if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }   */
+
                     $("#<?= $_REQUEST['name_w'] ?>_mainContainer").append(newPinsContainer);
 
                     $("div.newPinContainer").each(function (index) {

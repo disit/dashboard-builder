@@ -58,6 +58,13 @@
 
         console.log("Entrato in widgetButton --> " + widgetName);
 
+        // decode url-encoded sinlge quotes eventually present in buttonText
+        if (buttonText.includes('&#39')) {
+            var txt = document.createElement("textarea");
+            txt.innerHTML = buttonText;
+            buttonText = txt.innerHTML;
+        }
+
 		$("#" + widgetName + "_countdownContainerDiv").hide();
 		
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))

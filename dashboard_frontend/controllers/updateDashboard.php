@@ -170,7 +170,8 @@
                 break;
             }
 
-            if (strpos($newTitle, "'") !== false || strpos($newTitle, '"') !== false) {
+        //    if (strpos($newTitle, "'") !== false || strpos($newTitle, '"') !== false) {
+            if (strpos($newTitle, '"') !== false) {
                 $response['detail'] = 'queryKo_quotes';
                 break;
             }

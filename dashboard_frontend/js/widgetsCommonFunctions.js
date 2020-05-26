@@ -19,7 +19,8 @@ var loadingIconDim = 20;
 var widgetHeaderHeight = 25;
 var getParametersWidgetUrl = "../widgets/getParametersWidgets.php";
 var getMetricDataUrl = "../widgets/getDataMetrics.php";
-var getIconsPoolUrl = "../widgets/getIconsPool.php"
+var getIconsPoolUrl = "../widgets/getIconsPool.php";
+var getBubbleMetricsUrl = "../widgets/getBubbleMetricsProxy.php";
 
 
 //Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout
@@ -557,6 +558,32 @@ function getSuggestedIconsPool(hlt, nat, subNat) {
 
 }
 
+function getBubbleMetrics(query, idx, callback) {
+
+    var properties = null;
+
+    $.ajax({
+        url: getBubbleMetricsUrl,
+        type: "GET",
+        data: {
+            "query": query
+        },
+        async: true,
+        dataType: 'json',
+        success: function (data)
+        {
+            properties = [idx, data];
+            callback(properties);
+        },
+        error: function(errorData)
+        {
+            console.log("Errore in caricamento proprietà 'IconsPool (All)'");
+            console.log(JSON.stringify(errorData));
+        }
+    });
+
+}
+
 function UrlExists(url)
 {
     var http = new XMLHttpRequest();
@@ -650,10 +677,16 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                     }
                     callback(extractedData);
                 } else {
-                    callback(undefined);
+                    extractedData = [];
+                    extractedData.metricType = metric[i].metricType;
+                    extractedData.metricName = metric[i].metricName;
+                    callback(extractedData);
                 }
             } else {
-                callback(undefined);
+                extractedData = [];
+                extractedData.metricType = metric[i].metricType;
+                extractedData.metricName = metric[i].metricName;
+                callback(extractedData);
             }
         },
         error: function (data)
@@ -661,8 +694,13 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
          //   showWidgetContent(widgetName);
           //  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
           //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+            let extractedData = {};
+            extractedData = [];
+            extractedData.metricType = metric[i].metricType;
+            extractedData.metricName = metric[i].metricName;
             console.log("Errore in scaricamento dati da Service Map");
             console.log(JSON.stringify(data));
+            callback(extractedData);
         }
     });
 
@@ -797,7 +835,11 @@ function serializeSensorDataForBarSeries(dataArrayMap, labels1, labels2, flipFla
                         if (!$.isNumeric(dataArrayMap[labels2[i]][metricIdx].value) && dataArrayMap[labels2[i]][metricIdx].value != null && dataArrayMap[labels2[i]][metricIdx].value != 'NaN') {
                             seriesArray.push(dataArrayMap[labels2[i]][metricIdx].value);
                         } else {
-                            seriesArray.push(parseFloat(parseFloat(dataArrayMap[labels2[i]][metricIdx].value).toFixed(2)));
+                            if (isNaN(parseFloat(dataArrayMap[labels2[i]][metricIdx].value))) {
+                                seriesArray.push("");
+                            } else {
+                                seriesArray.push(parseFloat(parseFloat(dataArrayMap[labels2[i]][metricIdx].value).toFixed(2)));
+                            }
                         }
                     } else {
                         seriesArray.push("");
@@ -944,3 +986,14 @@ function getMyKPIUpperTimeLimit(hours) {
     return deviceLabels;
 
 }*/
+
+function removeLoadingBubbleMetricsMsg(elem) {
+
+    for (let sc = 0; sc < elem.length; sc++) {
+        if (elem.options[sc].value == 'loading available metrics...' || elem.options[sc].value == 'no metrics available') {
+            elem.remove(sc);
+            break;
+        }
+    }
+
+}

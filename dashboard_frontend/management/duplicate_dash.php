@@ -80,15 +80,27 @@ if($result1)
         if($count == 0)
         {
             $newQueryFields = $key;
-            $newQueryValues = returnManagedStringForDb($value);
+            if (strpos($value, '&#39;') !== false) {
+                $value_aux = html_entity_decode($value, ENT_QUOTES|ENT_HTML5);
+                $newQueryValues = returnManagedStringForDb(escapeForSQL($value_aux, $link));
+            } else {
+                $newQueryValues = returnManagedStringForDb($value);
+            }
         }
         else
         {
             $newQueryFields = $newQueryFields . ", " . $key;
             
-            if($key == 'subtitle_header')
+            if ($key == 'subtitle_header')
             {
                 $newQueryValues = $newQueryValues . ", '$value'";
+            } else if ($key == 'title_header') {
+                if (strpos($value, '&#39;') !== false) {
+                    $value_aux = html_entity_decode($value, ENT_QUOTES|ENT_HTML5);
+                    $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value_aux, $link));
+                } else {
+                    $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
+                }
             }
             else
             {
@@ -221,12 +233,17 @@ if($result1)
                                  $newQueryFields = $key;
                                  $newQueryValues = returnManagedStringForDb($value);
                              } else {
-                                 if ($key == "parameters" && $row4['type_w'] == "widgetMap") {
-                                     $newQueryFields = $newQueryFields . ", " . $key;
+                                 $newQueryFields = $newQueryFields . ", " . $key;
+                                 if (($key == "parameters" && $row4['type_w'] == "widgetMap") || ($key == "styleParameters" && $row4['type_w'] == "widgetTable"))  {
+                                 //    $newQueryFields = $newQueryFields . ", " . $key;
                                      $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
                                  } else {
-                                     $newQueryFields = $newQueryFields . ", " . $key;
-                                     $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
+                                 //    $newQueryFields = $newQueryFields . ", " . $key;
+                                     if ($key == "title_w") {
+                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
+                                     } else {
+                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
+                                     }
                                  }
                              }
 

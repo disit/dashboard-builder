@@ -794,6 +794,7 @@
                             }
                         },
                         tooltip: {
+                            xDateFormat: '%A, %e %b %Y, %H:%M',
                             valueSuffix: ''
                         },
                          
@@ -903,6 +904,7 @@
                         },
                         tooltip: 
                         {
+                            xDateFormat: '%A, %e %b %Y, %H:%M',
                             valueSuffix: ''
                         },
                         series: [{

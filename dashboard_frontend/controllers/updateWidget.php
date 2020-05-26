@@ -215,7 +215,8 @@
               
             case "updateTitle":  
               $newTitle = mysqli_real_escape_string($link, $_REQUEST['newTitle']);
-              if (strpos($newTitle, '\'') != false || strpos($newTitle, '"') != false) {
+           //  if (strpos($newTitle, '\'') != false || strpos($newTitle, '"') != false) {
+              if (strpos($newTitle, '"') != false) {
                   $response['detail'] = 'queryQuotesKo';
                   break;
               }

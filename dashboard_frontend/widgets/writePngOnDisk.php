@@ -74,6 +74,8 @@ if (isset($_REQUEST['imgBase64Data'])) {
             fwrite($file, $data);
             fclose($file);
 
+            $response['detail'] = 'File Written.';
+
         /*    $files = glob($uploadFolder.'*');
             foreach($files as $file) {
                 if (is_file($file)) {

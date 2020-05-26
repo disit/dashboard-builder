@@ -400,7 +400,7 @@ include "../widgets/widgetTimeTrend_1.php";
         <!-- MODALE HEALTHINESS -->
         <?php
 //if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "Manager")) {
-  if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
+  if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
     echo ('<div class="modal fade bd-example-modal-lg" id="healthiness-modal" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
                         <div class="modal-dialog modal-lg" style="background-color: rgba(108, 135, 147, 1);">
                             <div class="modal-content modal-lg" style="background-color: rgba(108, 135, 147, 1);">
@@ -430,6 +430,8 @@ include "../widgets/widgetTimeTrend_1.php";
                                                             <div class="input-group"><span class="input-group-addon">Nature: </span><input id="name_Nature" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Subnature: </span><input id="name_Subnature" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Value Name: </span><input id="data-unique_name_id" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Device ServiceURI or Data ID: </span><input id="data-get_instances" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Sensor ServiceURI or Data ID: </span><input id="data-get_sensor_instances" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Datasource: </span><input id="data_source" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Ownership: </span><input id="ownership" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Organizations: </span><input id="organization" type="text" class="form-control" readonly/></div><br />
@@ -474,9 +476,12 @@ include "../widgets/widgetTimeTrend_1.php";
                                                                             <th class="widgetWizardTitleCell">Refresh Rate (s)</th>
                                                                             <th class="widgetWizardTitleCell">Data type</th>
                                                                             <th class="widgetWizardTitleCell">Unit</th>
-                                                                            <th class="widgetWizardTitleCell">Value</th>
-                                                                            <th class="widgetWizardTitleCell">Time Trend</th>
-                                                                        </tr>
+                                                                            <th class="widgetWizardTitleCell">Value</th>');}
+      if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
+          echo('<th class="widgetWizardTitleCell">Time Trend</th>');
+      }
+          if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
+                                                               echo('</tr>
                                                                     </thead>
                                                                     <tbody style="background-color: #F5F5F5">
                                                                     </tbody>
@@ -521,10 +526,10 @@ include "../widgets/widgetTimeTrend_1.php";
                                                         <div class="modal-body">
                                                             <!-- data graph -->
                                                             <!-- -->
-                                                                    <div class="input-group"><span class="input-group-addon">Owner: </span><input id="owner" type="text" class="form-control" readonly/></div><br />
-                                                                    <div class="input-group"><span class="input-group-addon">Licence: </span><input id="licence" type="text" class="form-control" readonly/></div><br />
-                                                                    <div class="input-group"><span class="input-group-addon">Address: </span><input id="address" type="text" class="form-control" readonly/></div><br />
-                                                                    <div class="input-group"><span class="input-group-addon">Mail: </span><input id="mail" type="text" class="form-control" readonly/></div><br />
+                                                                    <div id="ownerLabel" class="input-group"><span class="input-group-addon">Owner: </span><input id="owner" type="text" class="form-control" readonly/></div><br />
+                                                                    <div id="ownerLabel" class="input-group"><span class="input-group-addon">Licence: </span><input id="licence" type="text" class="form-control" readonly/></div><br />
+                                                                    <div id="addressLabel" class="input-group"><span class="input-group-addon">Address: </span><input id="address" type="text" class="form-control" readonly/></div><br />
+                                                                    <div id="mailLabel" class="input-group"><span class="input-group-addon">Mail: </span><input id="mail" type="text" class="form-control" readonly/></div><br />
                                                             <!-- -->
                                                         </div>
                                                    </div>
@@ -586,6 +591,7 @@ include "../widgets/widgetTimeTrend_1.php";
                     var data_organizations = $(this).parent().parent().attr('data-organizations');
                     var data_low_level_type = $(this).parent().parent().attr('data-low_level_type');
                     var data_get_instances = $(this).parent().parent().attr('data-get_instances');
+                    var data_get_sensor_instances = $(this).parent().parent().attr('data-get_sensor_instances');
                     var last_date = $(this).parent().parent().attr('last_date');
                     var ownership = $(this).parent().parent().attr('ownership');
                     var icon = $(this).parent().parent().attr('icon');
@@ -600,6 +606,34 @@ include "../widgets/widgetTimeTrend_1.php";
                     $('#name_Nature').val(name_Nature);
                     $('#name_Subnature').val(name_Subnature);
                     $('#data-unique_name_id').val(data_unique_name_id);
+                    if (high_level == 'Sensor' || high_level == 'Sensor-Actuator') {
+                        $('#data-get_instances').val(data_get_instances);
+                        if (data_get_sensor_instances !== null) {
+                            if (data_low_level_type !== '') {
+                                $('#data-get_sensor_instances').val(data_get_instances + '/' + data_low_level_type);
+                            } else {
+                                $('#data-get_sensor_instances').val(data_get_instances);
+                            }
+                        } else {
+                            $('#data-get_sensor_instances').val();
+                        }
+                    } else if (high_level == 'MyKPI' || high_level == 'MyPOI') {
+                        let correctGetInstancesStr = "";
+                        if (data_get_instances.includes("datamanager/api/v1/poidata/")) {
+                            correctGetInstancesStr = data_get_instances.split("datamanager/api/v1/poidata/")[1];
+                        } else {
+                            correctGetInstancesStr = data_get_instances;
+                        }
+                        $('#data-get_instances').val(correctGetInstancesStr);
+                        if (data_low_level_type !== '') {
+                            $('#data-get_sensor_instances').val(correctGetInstancesStr + '/' + data_low_level_type);
+                        } else {
+                            $('#data-get_sensor_instances').val(correctGetInstancesStr);
+                        }
+                    } else {
+                        $('#data-get_instances').val('');
+                        $('#data-get_sensor_instances').val('');
+                    }
                     $('#data_unit').val(data_unit);
                     $('#last_date').val(last_date);
                     $('#ownership').val(ownership);
@@ -1070,7 +1104,12 @@ include "../widgets/widgetTimeTrend_1.php";
                                             icn_h='<i class="fa fa-circle" aria-hidden="true" style="pointer-events: none; color: red;"></i>';
                                             count_nh = count_nh +1;
                                         }
-                                        $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>'+time_trend_link+'</td></tr>');
+                                        if (("<?=$_SESSION['loggedRole']?>" == "RootAdmin") || ("<?=$_SESSION['loggedRole']?>" == "ToolAdmin"))
+                                        {
+                                            $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>' + time_trend_link + '</td></tr>');
+                                        } else {
+                                            $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td></tr>');
+                                        }
                                         //
                                         
                                             if ((name === data_low_level_type )||(data_unit==='sensor_map')){
@@ -1140,6 +1179,22 @@ include "../widgets/widgetTimeTrend_1.php";
                   //  } else {
                    //     $('#healthiness_table tbody').html('<tr><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td><td>Not available</td></tr>');
                    // }
+                    if (("<?=$_SESSION['loggedRole']?>" == "AreaManager" || "<?=$_SESSION['loggedRole']?>" == "Manager") && ownership == "public") {
+                        $('#owner').hide();
+                        $('#ownerLabel').hide();
+                        $('#address').hide();
+                        $('#addressLabel').hide();
+                        $('#mail').hide();
+                        $('#mailLabel').hide();
+                    } else {
+                        $('#owner').show();
+                        $('#ownerLabel').show();
+                        $('#address').show();
+                        $('#addressLabel').show();
+                        $('#mail').show();
+                        $('#mailLabel').show();
+                    }
+
                     $('#healthiness-modal').modal('show');
 
                 });
