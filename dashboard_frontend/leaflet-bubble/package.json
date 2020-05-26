@@ -1,0 +1,58 @@
+{
+  "name": "leaflet.bubble",
+  "version": "0.1.0",
+  "description": "A simple and fast library for Leaflet bubble maps.",
+  "homepage": "https://github.com/stevepepple/Leaflet.bubble",
+  "keywords": [
+    "bubble",
+    "chart",
+    "canvas",
+    "visualization",
+    "gis",
+    "leaflet",
+    "plugin"
+  ],
+  "author": "Steve Pepple",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stevepepple/Leaflet.bubble.git"
+  },
+  "main": "dist/leaflet-bubble.js",
+  "devDependencies": {
+    "chroma-js": "^1.1.1",
+    "d3-scale": "^0.6.4",
+    "eslint": "^1.7.3",
+    "eslint-config-mourner": "^1.0.1",
+    "uglify-js": "^2.5.0"
+  },
+  "eslintConfig": {
+    "extends": "mourner",
+    "globals": {
+      "L": false
+    }
+  },
+  "scripts": {
+    "test": "eslint src",
+    "prepublish": "uglifyjs node_modules/d3-interpolate/build/d3-interpolate.min.js node_modules/d3-scale/build/d3-scale.min.js node_modules/chroma-js/chroma.js node_modules/numeral/min/numeral.min.js src/BubbleLayer.js -c -m -o dist/leaflet-bubble.js"
+  },
+  "license": "BSD-2-Clause",
+  "jshintConfig": {
+    "quotmark": "single",
+    "globals": {
+      "L": true
+    },
+    "trailing": true,
+    "camelcase": true,
+    "curly": true,
+    "eqeqeq": true,
+    "noempty": true,
+    "nonbsp": true,
+    "undef": true,
+    "unused": true,
+    "browser": true
+  },
+  "dependencies": {
+    "d3-interpolate": "^0.7.0",
+    "numeral": "^1.5.3"
+  }
+}

@@ -1,0 +1,115 @@
+var ca_cities = {
+   "type": "FeatureCollection",
+   "features": [
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -118.244,34.052 ]
+    },
+    "properties": {
+    "city":"Los Angeles",
+    "population": 3884307
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -117.157,32.715 ]
+    },
+    "properties": {
+    "city":"San Diego",
+    "population": 1307402
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -121.895,37.339 ]
+    },
+    "properties": {
+    "city":"San Jose",
+    "population": 945942
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -122.419,37.775 ]
+    },
+    "properties": {
+    "city":"San Francisco",
+    "population": 805235
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -119.772,36.748 ]
+    },
+    "properties": {
+    "city":"Fresno",
+    "population": 494665
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -121.494,38.582 ]
+    },
+    "properties": {
+    "city":"Sacramento",
+    "population": 466488
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -118.189,33.767 ]
+    },
+    "properties": {
+    "city":"Long Beach",
+    "population": 462257
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -122.271,37.804 ]
+    },
+    "properties": {
+    "city":"Oakland",
+    "population": 390724
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -119.019,35.373 ]
+    },
+    "properties": {
+    "city":"Bakersfield",
+    "population": 347483
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+       "type": "Point",
+       "coordinates":  [ -117.915,33.835 ]
+    },
+    "properties": {
+    "city":"Anaheim",
+    "population": 336265
+    }
+  }
+]
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet.bubble example</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+    <style>
+        #map { width: 1024px; height: 800px; }
+        body { font: 16px/1.4 "Helvetica Neue", Arial, sans-serif; }
+        a { color: #0077ff; }
+    </style>
+</head>
+<body>
+
+<p>An example of <a href="https://github.com/stevepepple/Leaflet.bubble">Leaflet.bubble</a>, a Leaflet plugin for bubble maps.</p>
+
+<div id="map"></div>
+
+<!-- <script src="../node_modules/d3-interpolate/build/d3-interpolate.min.js"></script>
+<script src="../node_modules/d3-scale/build/d3-scale.min.js"></script>
+<script src="../node_modules/chroma-js/chroma.js"></script>
+<script src="../node_modules/numeral/min/numeral.min.js"></script>
+<script src="../src/BubbleLayer.js"></script>	-->
+
+<script src="../dist/leaflet-bubble.js"></script>
+
+<script src="http://leaflet.github.io/Leaflet.markercluster/example/realworld.388.js"></script>
+<script src="ca-cities.geojson"></script>
+
+<script>
+
+var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+});
+
+var map = L.map('map').setView([36.65079252503468, -119.15771484375], 6);
+
+map.addLayer(layer);
+
+// Pass Leaflet.bubble as GeoJSON object and amount property to visualize
+bubbles = L.bubbleLayer(ca_cities, {
+  property: "population",
+  legend: true,
+  max_radius : 40,
+  tooltip : true
+})
+
+bubbles.addTo(map);
+
+// Library removes the bubble using the removeLayer function: map.removeLayer(bubbles)
+
+</script>
+</body>
+</html>
