@@ -3597,8 +3597,7 @@
 
             if ($type_widget_m == "widgetMap") {
                 if(isset($_POST['showOrthomapsM'])&&($_POST['showOrthomapsM']!="")) {
-                    $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'));
-                    $styleParametersM = json_encode($styleParametersM);
+
                     $showOrthomapsM = mysqli_real_escape_string($link, sanitizePostString('showOrthomapsM'));
                     if ($showOrthomapsM == "yes") {
                         $queryOrthomaps = "SELECT orthomapJson FROM Dashboard.Organizations Orgs INNER JOIN Dashboard.Config_dashboard Dash ON Dash.id = " . mysqli_real_escape_string($link, $id_dashboard2) . " AND Dash.organizations = Orgs.organizationName;";
@@ -3647,7 +3646,16 @@
                             $infoJsonM = "no";
                         }
                     }
+
+                    if(isset($_POST['defaultOrthomapM'])&&($_POST['defaultOrthomapM']!="")) {
+                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'), 'defaultOrthomap' => sanitizePostString('defaultOrthomapM'));
+                    } else {
+                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'));
+                    }
+
+                    $styleParametersM = json_encode($styleParametersM);
                 }
+
             }
 
         }

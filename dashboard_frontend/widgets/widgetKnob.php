@@ -73,6 +73,9 @@
             incrementControlDim, incrementControlAngle, incrementControlDeltaValue, knobHeight, knobWidth, actuatorTarget,
             nodeRedInputName, username, endPointHost, endPointPort = null;
         var useWebSocket = <?= $useActuatorWS ?>;
+        var updatedEverFlag = false;
+        var updatedFlag = false;
+        var lastValueOk = null;
         if(Window.webSockets == undefined)
           Window.webSockets = {};
         
@@ -281,6 +284,7 @@
             
             $('#<?= $_REQUEST['name_w'] ?>_minusControl').click(function(){
                 changeValueByControl("minus");
+                updatedFlag = false;
             });
             
             newTick.width(tickPxDim);
@@ -325,6 +329,7 @@
             
             $('#<?= $_REQUEST['name_w'] ?>_plusControl').click(function(){
                 changeValueByControl("plus");
+                updatedFlag = false;
             });
             
             newTick.width(tickPxDim);
@@ -997,6 +1002,7 @@
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("cursor", "default");
             $(document).off('mouseup', knobRotationEnd);
             updateRemoteValue();
+            updatedFlag = false;
         }
         
         function setUpdatingMsg()
@@ -1045,7 +1051,9 @@
             }
             
             setUpdatingMsgIndex = 0;
-            setUpdatingMsgInterval = setInterval(setUpdatingMsg, 500);
+            if (updatedEverFlag !== true) {
+                setUpdatingMsgInterval = setInterval(setUpdatingMsg, 500);
+            }
             
             switch(actuatorTarget)
             {
@@ -1306,14 +1314,18 @@
                                 $('#<?= $_REQUEST['name_w'] ?>_knob').css('-o-transition', 'none');
                                 $('#<?= $_REQUEST['name_w'] ?>_knob').css('-ms-transition', 'none');
                                 $('#<?= $_REQUEST['name_w'] ?>_knob').css('transition', 'none');
-                                
-                                $('#<?= $_REQUEST['name_w'] ?>_minusControl').click(function(){
-                                    changeValueByControl("minus");
-                                });
-                                
-                                $('#<?= $_REQUEST['name_w'] ?>_plusControl').click(function(){
-                                    changeValueByControl("plus");
-                                });
+
+                                if (updatedFlag !== true) {
+                                    $('#<?= $_REQUEST['name_w'] ?>_minusControl').click(function () {
+                                        changeValueByControl("minus");
+                                        updatedFlag = false;
+                                    });
+
+                                    $('#<?= $_REQUEST['name_w'] ?>_plusControl').click(function () {
+                                        changeValueByControl("plus");
+                                        updatedFlag = false;
+                                    });
+                                }
                                 
                             }, 520);
                             
@@ -1391,13 +1403,17 @@
                                     hoverIndicatorColor = "rgba(51, 204, 255, 1)";
                                 }
                             }
-                            $('#<?= $_REQUEST['name_w'] ?>_minusControl').click(function(){
-                                changeValueByControl("minus");
-                            });
-                            
-                            $('#<?= $_REQUEST['name_w'] ?>_plusControl').click(function(){
-                                changeValueByControl("plus");
-                            });
+                            if (updatedFlag !== true) {
+                                $('#<?= $_REQUEST['name_w'] ?>_minusControl').click(function () {
+                                    changeValueByControl("minus");
+                                    updatedFlag = false;
+                                });
+
+                                $('#<?= $_REQUEST['name_w'] ?>_plusControl').click(function () {
+                                    changeValueByControl("plus");
+                                    updatedFlag = false;
+                                });
+                            }
                         }
                         
                         $('#<?= $_REQUEST['name_w'] ?>_knobIndicator').off("hover");
@@ -1573,6 +1589,7 @@
             
             $('#<?= $_REQUEST['name_w'] ?>_minusControl').click(function(){
                 changeValueByControl("minus");
+            //    updatedFlag = false;
             });
             
             newTick.width(tickPxDim);
@@ -1622,6 +1639,7 @@
             
             $('#<?= $_REQUEST['name_w'] ?>_plusControl').click(function(){
                 changeValueByControl("plus");
+             //   updatedFlag = false;
             });
             
             incrementControlAngle = endAngle + 30*(152/minDim);
@@ -1836,20 +1854,144 @@
         {
             var msgObj = JSON.parse(msg.data);
             console.log(msgObj);
+            if (msgObj.msgType == "DataToEmitter") {
+                if (currentValue != msgObj.newValue) {
+                    updatedEverFlag = true;
+                    updatedFlag = true;
+                    lastValueOk = msgObj.newValue;
+                  //  showUpdateResult("Device OK");
+                }
+            }
             if(msgObj.msgType=="DataToEmitterAck") {
-              var webSocket = Window.webSockets[msgObj.widgetUniqueName];
-              if(! webSocket.ackReceived) {
-                clearTimeout(webSocket.timeout);
-                webSocket.ackReceived = true;
-                console.log(msgObj.widgetUniqueName+" ACK ackReceived:"+webSocket.ackReceived)
-                webSocket.onAck({result:"Ok", widgetName:msgObj.widgetUniqueName});
-              }
+                if (lastValueOk !== null) {
+                    currentValue = lastValueOk;
+                    lastValueOk = null;
+                    showUpdateResult("Device OK");
+                 //   currentValue = currentNormAngle*convFactor + minValue;
+                    currentNormAngle = (currentValue - minValue)/convFactor;
+                    var newAngle = currentNormAngle;
+                //    var newAngle = null;
+                    if ((currentNormAngle >= 0) && (currentNormAngle <= 360 - startAngle)) {
+                        newAngle = currentNormAngle + startAngle;
+                    } else if ((currentNormAngle >= 360 - startAngle) && (currentNormAngle <= 360 + endAngle - startAngle)) {
+                        newAngle = currentNormAngle + startAngle - 360;
+                    }
+
+                    switch(dataType)
+                    {
+                        case "Float": case "float":
+                        currentValue = parseFloat(currentValue).toFixed(dataPrecision);
+                        break;
+
+                        case "Integer": case "integer":
+                        currentValue = parseInt(currentValue);
+                        break;
+                    }
+
+                    $('#<?= $_REQUEST['name_w'] ?>_knob').css('-webkit-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+                    $('#<?= $_REQUEST['name_w'] ?>_knob').css('-moz-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+                    $('#<?= $_REQUEST['name_w'] ?>_knob').css('-o-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+                    $('#<?= $_REQUEST['name_w'] ?>_knob').css('-ms-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+                    $('#<?= $_REQUEST['name_w'] ?>_knob').css('transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+
+                    $('#<?= $_REQUEST['name_w'] ?>_innerCircle span').html(currentValue);
+
+                    $('#<?= $_REQUEST['name_w'] ?>_innerCircle').textfill({
+                        maxFontPixels: -20
+                    });
+
+                    if(fontSize < parseInt($('#<?= $_REQUEST['name_w'] ?>_innerCircle span').css('font-size').replace('px', '')))
+                    {
+                        $("#<?= $_REQUEST['name_w'] ?>_innerCircle span").css('font-size', fontSize + 'px');
+                    }
+
+
+                    /*activeTicks = (Math.round(currentNormAngle / tickDeltaAngle) + 1);
+                    $('#<?= $_REQUEST['name_w'] ?>_ticks .tick').removeClass('activetick');
+                        $('#<?= $_REQUEST['name_w'] ?>_ticks .tick').slice(0, activeTicks).addClass('activetick');*/
+
+                    if(domainType === 'continuous')
+                    {
+                        if(continuousRanges !== null)
+                        {
+                            for(var i in continuousRanges)
+                            {
+                                if((currentValue >= parseFloat(continuousRanges[i].min))&&(currentValue <= parseFloat(continuousRanges[i].max)))
+                                {
+                                    /*$('#<?= $_REQUEST['name_w'] ?>_halo').css("background", continuousRanges[i].color);
+                                        $('#<?= $_REQUEST['name_w'] ?>_halo').css("-moz-box-shadow", "3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px " + continuousRanges[i].color + ", 0 0 25px " + continuousRanges[i].color.replace(",1)", ", 0.6"));
+                                        $('#<?= $_REQUEST['name_w'] ?>_halo').css("-webkit-box-shadow", "3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px " + continuousRanges[i].color + ", 0 0 25px " + continuousRanges[i].color.replace(",1)", ", 0.6"));
+                                        $('#<?= $_REQUEST['name_w'] ?>_halo').css("box-shadow", "3px 5px 8px rgba(255, 255, 255, .5) inset, 0 0 10px " + continuousRanges[i].color + ", 0 0 25px " + continuousRanges[i].color.replace(",1)", ", 0.6"));*/
+
+                                    $('#<?= $_REQUEST['name_w'] ?>_innerCircle').css("-moz-box-shadow", "2px 2px 4px " + continuousRanges[i].color + ", 2px -2px 4px " + continuousRanges[i].color + ", -2px 2px 4px " + continuousRanges[i].color + ", -2px -2px 4px " + continuousRanges[i].color);
+                                    $('#<?= $_REQUEST['name_w'] ?>_innerCircle').css("-webkit-box-shadow", "2px 2px 4px " + continuousRanges[i].color + ", 2px -2px 4px " + continuousRanges[i].color + ", -2px 2px 4px " + continuousRanges[i].color + ", -2px -2px 4px " + continuousRanges[i].color);
+                                    $('#<?= $_REQUEST['name_w'] ?>_innerCircle').css("box-shadow", "2px 2px 4px " + continuousRanges[i].color + ", 2px -2px 4px " + continuousRanges[i].color + ", -2px 2px 4px " + continuousRanges[i].color + ", -2px -2px 4px " + continuousRanges[i].color);
+                                    hoverRotationColor = continuousRanges[i].color;
+                                }
+
+                                /*$('#<?= $_REQUEST['name_w'] ?>_ticks .tick').removeClass('activetick');
+                                    $('#<?= $_REQUEST['name_w'] ?>_ticks .tick .tickInner').css("background-color", ticksColor);
+                                    $('#<?= $_REQUEST['name_w'] ?>_ticks .tickInner').css("-webkit-box-shadow", "none");
+                                    $('#<?= $_REQUEST['name_w'] ?>_ticks .tickInner').css("-moz-box-shadow", "none");
+                                    $('#<?= $_REQUEST['name_w'] ?>_ticks .tickInner').css("box-shadow", "none");*/
+
+                                /*$('#<?= $_REQUEST['name_w'] ?>_ticks .tick').each(function(i){
+                                        if(currentValue >= parseFloat($(this).attr('data-value')))
+                                        {
+                                            var thisTickActiveColor = $(this).attr('data-activeColor');
+                                            $(this).addClass('activetick');
+                                            $(this).find('.tickInner').css("background-color", thisTickActiveColor);
+                                            $(this).find('.tickInner').css("-webkit-box-shadow", "0px 0px 0px 1px " + thisTickActiveColor.replace(",1)", ", 0.5"));
+                                            $(this).find('.tickInner').css("-moz-box-shadow", "0px 0px 0px 1px " + thisTickActiveColor.replace(",1)", ", 0.5"));
+                                            $(this).find('.tickInner').css("box-shadow", "0px 0px 0px 1px " + thisTickActiveColor.replace(",1)", ", 0.5"));
+                                        }
+                                    });*/
+                            }
+                        }
+                        else
+                        {
+                            /*$('#<?= $_REQUEST['name_w'] ?>_ticks .tick').removeClass('activetick');
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .tick .tickInner').css("background-color", ticksColor);
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .tickInner').css("-webkit-box-shadow", "none");
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .tickInner').css("-moz-box-shadow", "none");
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .tickInner').css("box-shadow", "none");
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .tick').slice(0, activeTicks).addClass('activetick');
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .activetick .tickInner').css("background-color", "rgba(51, 204, 255, 1)");
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .activetick .tickInner').css("-webkit-box-shadow", "0px 0px 0px 1px rgba(51, 204, 255, 0.5)");
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .activetick .tickInner').css("-moz-box-shadow", "0px 0px 0px 1px rgba(51, 204, 255, 0.5)");
+                                $('#<?= $_REQUEST['name_w'] ?>_ticks .activetick .tickInner').css("box-shadow", "0px 0px 0px 1px rgba(51, 204, 255, 0.5)");*/
+                            hoverRotationColor = "rgba(51, 204, 255, 1)";
+                        }
+
+                        $('#<?= $_REQUEST['name_w'] ?>_knobIndicator').off("hover");
+                        $('#<?= $_REQUEST['name_w'] ?>_knobIndicator').css("-moz-box-shadow", "0px 0px 2px 2px " + hoverRotationColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_knobIndicator').css("-webkit-box-shadow", "0px 0px 2px 2px " + hoverRotationColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_knobIndicator').css("box-shadow", "0px 0px 2px 2px " + hoverRotationColor);
+                    }
+
+                    stopFlag = 1;
+                } else {
+                    var webSocket = Window.webSockets[msgObj.widgetUniqueName];
+                    if (!webSocket.ackReceived) {
+                        clearTimeout(webSocket.timeout);
+                        webSocket.ackReceived = true;
+                        console.log(msgObj.widgetUniqueName + " ACK ackReceived:" + webSocket.ackReceived)
+                        webSocket.onAck({result: "Ok", widgetName: msgObj.widgetUniqueName});
+                    }
+                }
             }
         };
         
         timeToReload=200;
-        var openWsConn = function(widget) {            
+        var openWsConn = function(widget) {
             var webSocket = Window.webSockets[widget];
+            var wsRegistration = {
+                msgType: "ClientWidgetRegistration",
+                userType: "widgetInstance",
+             //   metricName: encodeURIComponent(metricName),
+                widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+            };
+            webSocket.send(JSON.stringify(wsRegistration));
             /*setTimeout(function(){
                 var webSocket = Window.webSockets[widget];
                 webSocket.removeEventListener('message', manageIncomingWsMsg);

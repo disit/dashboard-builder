@@ -321,6 +321,11 @@ class dashboardWizardControllerSSP {
 		$limit = self::limit( $request, $columns );
 		$order = self::order( $request, $columns );
 		$where = self::filter( $request, $columns, $bindings );
+		if ($where != '') {
+            $where = $where . ' AND oldEntry IS NULL';
+        } else {
+            $where = 'WHERE oldEntry IS NULL';
+        }
 
 		// Main query to actually get the data
 		$data = self::sql_exec( $db, $bindings,

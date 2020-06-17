@@ -825,7 +825,8 @@
                 else 
                 {
                     //Disegno del diagramma
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts({
+                //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts({
+                    chartRef = Highcharts.chart('<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer', {
                         credits: {
                             enabled: false
                         },
@@ -2363,9 +2364,19 @@
                         case "newNRMetricData":
                             if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
                             {
-                                webSocket.close();
+                             /*   webSocket.close();
                                 clearInterval(countdownRef);
-                                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+                                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);*/
+                                var newValue = msgObj.newValue;
+
+                                // TIME-ZONE CONVERSION and ADJUSTMENT TO ADD DIRECTLY INTO HIGHCHART SERIES (DEFAULT-UTC HIGHCHARTS MODE)
+                                var localTimeZone = moment.tz.guess();
+                                var momentDateTime = moment(Date.now());
+                                var offset = momentDateTime.utcOffset();
+                                var localDteTimeAdj = momentDateTime.tz(localTimeZone).valueOf() + 60000 * offset;
+
+                                chartRef.series[0].addPoint([localDteTimeAdj, newValue], true);
+
                             }
                             break;
 

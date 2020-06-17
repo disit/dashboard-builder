@@ -21,6 +21,7 @@ var getParametersWidgetUrl = "../widgets/getParametersWidgets.php";
 var getMetricDataUrl = "../widgets/getDataMetrics.php";
 var getIconsPoolUrl = "../widgets/getIconsPool.php";
 var getBubbleMetricsUrl = "../widgets/getBubbleMetricsProxy.php";
+var getOrthomapsUrl = "../widgets/getOrthomaps.php";
 
 
 //Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout
@@ -578,6 +579,32 @@ function getBubbleMetrics(query, idx, callback) {
         error: function(errorData)
         {
             console.log("Errore in caricamento proprietà 'IconsPool (All)'");
+            console.log(JSON.stringify(errorData));
+        }
+    });
+
+}
+
+function getOrthomaps(widgetName, callback) {
+
+    var properties = null;
+
+    $.ajax({
+        url: getOrthomapsUrl,
+        type: "GET",
+        data: {
+            "widgetName": widgetName
+        },
+        async: true,
+        dataType: 'json',
+        success: function (data)
+        {
+            properties = [data];
+            callback(properties);
+        },
+        error: function(errorData)
+        {
+            console.log("Error while loading Orthomaps.'");
             console.log(JSON.stringify(errorData));
         }
     });

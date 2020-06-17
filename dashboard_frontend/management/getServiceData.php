@@ -69,6 +69,12 @@ if (isset($_SESSION['loggedUsername'])) {
                 $data_source = "";
             }
             
+            if (isset($_REQUEST['rb_row'])) {
+                $row_db = $_REQUEST['rb_row'];
+            } else {
+                $row_db = "";
+            }
+            
             if ($data_source == 'IoT') {
                 if (strpos($value_name, ':') !== false) {
                     $pieces = explode(":", $value_name);
@@ -98,6 +104,25 @@ if (isset($_SESSION['loggedUsername'])) {
                 }
             }
             //
+            //OwnerHarsh
+            $OwnerHarsh = "";
+            
+            if ($role_session_active == "RootAdmin"){
+                //row_db
+                //$query_own ="SELECT DISTINCT unique_name_id, ownerHash FROM DashboardWizard WHERE unique_name_id = '".$value_name."';";
+                $query_own ="SELECT DISTINCT unique_name_id, ownerHash FROM DashboardWizard WHERE id = '".$row_db."';";
+                $result_own = mysqli_query($link, $query_own) or die(mysqli_error($link));
+               // print_r($result_own);
+                while ($row_own = mysqli_fetch_assoc($result_own)) {
+                    $OwnerHarsh_01 = $row_own['ownerHash'];
+                    if (($OwnerHarsh_01 != null)&&($OwnerHarsh_01 !=="")){
+                          $decryptedOwn = decryptOSSL($OwnerHarsh_01, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                          $OwnerHarsh = $decryptedOwn;
+                    }
+                    //print_r($decryptedOwn);
+                }
+            }
+            //value
             //
             $list                        = array();
             $list['process_name_ST']     = '';
@@ -124,6 +149,10 @@ if (isset($_SESSION['loggedUsername'])) {
             $list['device_id']           = $device_id;
             $list['HealthinessCriteria'] = '';
             $list['period']              = '';
+            $list['creator'] = $OwnerHarsh;
+            
+            $list['address'] =             '';
+            $list['reference_person'] =    '';
             
             $currentDir      = getcwd();
             $newDir          = explode('management', $currentDir);
@@ -155,7 +184,10 @@ if (isset($_SESSION['loggedUsername'])) {
                     $uploadDirectory = "img/sensorImages/";
                     $currentDir2     = $newDir[0];
                     $id_img          = $id_row;
-                    
+                    $serviceUri = "";
+                    $healthiness = "";
+                   $result = "";
+
                     
                     
                     if ($id_img !== "") {
@@ -260,7 +292,8 @@ if (isset($_SESSION['loggedUsername'])) {
                     mysqli_select_db($link, $dbname_processes);
                     $process      = '';
                     $process_list = array();
-                    $query0       = "SELECT devices.device_name AS 'Process_ST', devices.process AS 'process', devices.HealthinessCriteria AS 'HealthinessCriteria', devices.Period AS 'Period', process_manager_graph.KB_Ip AS 'KB_Ip', process_manager_graph.Graph_Uri AS 'Graph_Uri', process_manager_graph.phoenix_table AS 'phoenix_table', process_manager_graph.process_path AS 'process_path', process_manager_graph.DISCES_Ip AS 'DISCES_Ip', process_manager_responsible.responsible AS 'responsible', process_manager_responsible.process_type AS 'process_type', process_manager_responsible.licence AS 'licence', process_manager_responsible.webpage AS 'webpage', process_manager_responsible.telephone AS 'telephone', process_manager_responsible.mail AS 'mail', process_manager_graph.HealthinessCriteria AS 'HealthinessCriteria_graph', process_manager_graph.Period AS 'Period_graph' FROM devices, process_manager_graph, process_manager_responsible WHERE process_manager_graph.Process_name=devices.process AND process_manager_responsible.process_name=devices.process AND devices.device_name ='" . $value_name . "' group by Process_ST";
+                    ///$query0       = "SELECT devices.device_name AS 'Process_ST', devices.process AS 'process', devices.HealthinessCriteria AS 'HealthinessCriteria', devices.Period AS 'Period', process_manager_graph.KB_Ip AS 'KB_Ip', process_manager_graph.Graph_Uri AS 'Graph_Uri', process_manager_graph.phoenix_table AS 'phoenix_table', process_manager_graph.process_path AS 'process_path', process_manager_graph.DISCES_Ip AS 'DISCES_Ip', process_manager_responsible.responsible AS 'responsible', process_manager_responsible.process_type AS 'process_type', process_manager_responsible.licence AS 'licence', process_manager_responsible.webpage AS 'webpage', process_manager_responsible.telephone AS 'telephone', process_manager_responsible.mail AS 'mail', process_manager_graph.HealthinessCriteria AS 'HealthinessCriteria_graph', process_manager_graph.Period AS 'Period_graph' FROM devices, process_manager_graph, process_manager_responsible WHERE process_manager_graph.Process_name=devices.process AND process_manager_responsible.process_name=devices.process AND devices.device_name ='" . $value_name . "' group by Process_ST";
+                    $query0       = "SELECT devices.device_name AS 'Process_ST', devices.process AS 'process', devices.HealthinessCriteria AS 'HealthinessCriteria', devices.Period AS 'Period', process_manager_graph.KB_Ip AS 'KB_Ip', process_manager_graph.Graph_Uri AS 'Graph_Uri', process_manager_graph.phoenix_table AS 'phoenix_table', process_manager_graph.process_path AS 'process_path', process_manager_graph.DISCES_Ip AS 'DISCES_Ip', process_manager_responsible.responsible AS 'responsible', process_manager_responsible.process_type AS 'process_type', process_manager_responsible.licence AS 'licence', process_manager_responsible.webpage AS 'webpage', process_manager_responsible.telephone AS 'telephone', process_manager_responsible.mail AS 'mail', process_manager_graph.HealthinessCriteria AS 'HealthinessCriteria_graph', process_manager_graph.Period AS 'Period_graph', process_manager_responsible.address AS 'address', process_manager_responsible.reference_person AS 'reference_person' FROM devices, process_manager_graph, process_manager_responsible WHERE process_manager_graph.Process_name=devices.process AND process_manager_responsible.process_name=devices.process AND devices.device_name ='" . $value_name . "' group by Process_ST";
                     $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
                     //echo($query0);
                     //
@@ -301,7 +334,9 @@ if (isset($_SESSION['loggedUsername'])) {
                             "telephone" => $row0['telephone'],
                             "mail" => $row0['mail'],
                             "owner" => $row0['responsible'],
-                            "Disces_Ip" => $row0['DISCES_Ip']
+                            "Disces_Ip" => $row0['DISCES_Ip'],
+                            "address" => $row0['address'],
+                            "reference_person" => $row0['reference_person']
                         );
                         $process_path = $row0['process_path'];
                         array_push($process_list, $listFile0);
@@ -414,6 +449,9 @@ if (isset($_SESSION['loggedUsername'])) {
                         $list['icon']                = $files1;
                         $list['HealthinessCriteria'] = $health_c;
                         $list['Period']              = $period;
+                        $list['creator'] = $OwnerHarsh;
+                        $list['address'] =              $process_list[0]['address'];
+                        $list['reference_person'] =     $process_list[0]['reference_person'];
                     } else {
                         $list['Graph_Uri'] = $graph_uri;
                         if ($owner_iot == '') {
@@ -496,7 +534,8 @@ if (isset($_SESSION['loggedUsername'])) {
                         } else {
                             $graph_uri = "";
                         }
-                        $query0 = "SELECT process_manager_graph.*, process_manager_responsible.licence, process_manager_responsible.webpage, process_manager_responsible.process_type, process_manager_responsible.telephone, process_manager_responsible.responsible, process_manager_responsible.mail FROM process_manager_graph, process_manager_responsible WHERE process_manager_graph.Graph_Uri='" . $graph_uri . "' AND process_manager_graph.Process_name=process_manager_responsible.process_name LIMIT 1";
+                        //$query0 = "SELECT process_manager_graph.*, process_manager_responsible.licence, process_manager_responsible.webpage, process_manager_responsible.process_type, process_manager_responsible.telephone, process_manager_responsible.responsible, process_manager_responsible.mail FROM process_manager_graph, process_manager_responsible WHERE process_manager_graph.Graph_Uri='" . $graph_uri . "' AND process_manager_graph.Process_name=process_manager_responsible.process_name LIMIT 1";
+                        $query0 = "SELECT process_manager_graph.*, process_manager_responsible.licence, process_manager_responsible.webpage, process_manager_responsible.process_type, process_manager_responsible.telephone, process_manager_responsible.responsible, process_manager_responsible.mail, process_manager_responsible.reference_person, process_manager_responsible.address FROM process_manager_graph, process_manager_responsible WHERE process_manager_graph.Graph_Uri='" . $graph_uri . "' AND process_manager_graph.Process_name=process_manager_responsible.process_name LIMIT 1";
                         $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
                         $total0       = $result0->num_rows;
                         $process_st0  = '';
@@ -515,7 +554,9 @@ if (isset($_SESSION['loggedUsername'])) {
                                     "telephone" => $row0['telephone'],
                                     "mail" => $row0['mail'],
                                     "owner" => $row0['responsible'],
-                                    "Disces_Ip" => $row0['DISCES_Ip']
+                                    "Disces_Ip" => $row0['DISCES_Ip'],
+                                    "address" =>$row0['address'],
+                                    "reference_person"=>$row0['reference_person']
                                 );
                                 $process_path = $row0['process_path'];
                                 array_push($process_list, $listFile0);
@@ -563,14 +604,41 @@ if (isset($_SESSION['loggedUsername'])) {
                             $list['broker']            = $broker;
                             $list['device_id']         = $device_id;
                             $list['icon']              = $files1;
+                            $list['creator'] = $OwnerHarsh;
+                            $list['address'] =              $process_list[0]['address'];
+                            $list['reference_person'] =     $process_list[0]['reference_person'];
                         }
                     }
                     echo json_encode($list);
                     break;
+                    case "Dashboard list":
+                        $arr = array();
+                        //$app_id = 'nr6dsjh';
+                        $app_id =  $value;
+                   //$q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName, user as dashboardAuthor FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app_id' AND d.deleted='no'";
+                    $q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app_id' AND d.deleted='no'";
+                        $r = mysqli_query($link, $q);
+                    //print_r($r);
+                    if($r)
+                    {
+                        $i = 0;
+                    while($row = mysqli_fetch_assoc($r))
+                    {
+                         $row_dash = htmlspecialchars($row['dashboardName']);
+                       $arr[$i] = $row;
+                       $i++;
+                    }
+                    }else{
+                        //echo('nothing');
+                        $arr[0] = 'null';
+                    }
+                    $list['dashboards'] =$arr;
+                        echo json_encode($list);
+                    break;
                 case "From Dashboard to IOT Device":
-                    $link_dash = mysqli_connect($host, $username, $password) or die("failed to connect to server Processes !!");
-                    mysqli_set_charset($link_dash, 'utf8');
-                    mysqli_select_db($link_dash, $dbname);
+                        $link_dash = mysqli_connect($host, $username, $password) or die("failed to connect to server Processes !!");
+                        mysqli_set_charset($link_dash, 'utf8');
+                        mysqli_select_db($link_dash, $dbname);
                     //echo($value);
                     $query_dash = "SELECT id_dashboard FROM Config_widget_dashboard WHERE name_w = '" . $value . "'";
                     $result_dash = mysqli_query($link_dash, $query_dash) or die(mysqli_error($link_dash));
@@ -580,14 +648,14 @@ if (isset($_SESSION['loggedUsername'])) {
                     if ($total1 > 0) {
                         while ($row1 = mysqli_fetch_assoc($result_dash)) {
                             $name_dashboard['name'] = $row1['id_dashboard'];
-                        }
-                    } else {
-                        $name_dashboard['name'] = 'no';
                     }
+                            } else {
+                        $name_dashboard['name'] = 'no';
+                            }
                     //
-                    echo json_encode($name_dashboard);
+                            echo json_encode($name_dashboard);
                     //echo json_encode($list);
-                    break;
+                        break;
                 case "Special Widget":
                     $value_name = $_REQUEST['value'];
                     $link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
@@ -662,7 +730,9 @@ if (isset($_SESSION['loggedUsername'])) {
                                         "telephone" => '',
                                         "mail" => '',
                                         "owner" => '',
-                                        "Disces_Ip" => $row0['DISCES_Ip']
+                                        "Disces_Ip" => $row0['DISCES_Ip'],
+                                        "address" =>'',
+                                        "reference_person"=>''
                                     );
                                     $process_path = $row0['process_path'];
                                     array_push($process_list, $listFile0);
@@ -699,6 +769,9 @@ if (isset($_SESSION['loggedUsername'])) {
                         $list['mail']            = $process_list[0]['mail'];
                         $list['owner']           = $process_list[0]['owner'];
                         $list['disces_ip']       = $process_list[0]['Disces_Ip'];
+                        $list['creator'] = $OwnerHarsh;
+                        $list['address'] =              $process_list[0]['address'];
+                        $list['reference_person'] =     $process_list[0]['reference_person'];
                     }
                     
                     $currentDir      = getcwd();
@@ -731,15 +804,22 @@ if (isset($_SESSION['loggedUsername'])) {
                         $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
                         $accessToken = $tkn->access_token;
                         $_SESSION['refreshToken'] = $tkn->refresh_token;
-                        $url_ownership = 'http://'.$iot_device_ownership.'/ownership-api/v1/list/?elementId='.urlencode($value_name).'&type=IOTID&accessToken='.$accessToken;
+                        //$url_ownership = 'http://'.$iot_device_ownership.'/ownership-api/v1/list/?elementId='.urlencode($value_name).'&type=IOTID&accessToken='.$accessToken;
                         $owner_iot = '';
-                        $payload_own = file_get_contents($url_ownership);
-                        $var_own = json_decode($payload_own, true);
+                        //$payload_own = file_get_contents($url_ownership);
+                        //$var_own = json_decode($payload_own, true);
+                        /*
+                        if($type == "MyKPI"){
+                            $link_kpi = 'http://www.snap4city.org/mypersonaldata/api/v1/public/kpidata/'.$data_source.'/activities';
+                            $payload       = file_get_contents($link_kpi);
+                            $result        = json_decode($payload);
+                            $list['list_mykpi'] = $payload;
+                        }*/
                         //
                     //
-                    $url_api       = "https://www.snap4city.org/mypersonaldata/api/v1/public/kpidata/?sourceRequest=";
-                    $payload       = file_get_contents($url_api);
-                    $result        = json_decode($payload);
+                    //$url_api       = "https://www.snap4city.org/mypersonaldata/api/v1/public/kpidata/?sourceRequest=";
+                    //$payload       = file_get_contents($url_api);
+                    //$result        = json_decode($payload);
                     $id_mypoi      = '';
                     $name_owner    = '';
                     $organizations = '';
@@ -751,6 +831,27 @@ if (isset($_SESSION['loggedUsername'])) {
                         $new_id = $arr_id[0];
                     }
                     
+                    //
+                    /*
+                    $url_api2 = "https://www.snap4city.org/mypersonaldata/api/v1/kpidata/" .$data_source ."/activities";
+                    $ch1 = curl_init($url_api2);
+                    
+                    //$ch1 = curl_init();
+                            curl_setopt($ch1, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $_SESSION['refreshToken']));
+                            curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch1, CURLOPT_FAILONERROR, true);
+                            curl_setopt($ch1, CURLOPT_CUSTOMREQUEST, 'GET');
+                            curl_setopt($ch1, CURLOPT_URL, $url_api2);
+                           // $rtn = curl_exec( $ch1 );
+                     $response_02 = curl_exec($ch1);
+                    if (!curl_errno($ch1)) {
+                    //print_r($response_02);
+                    }else{
+                        $err=curl_errno($ch1);
+                        //print_r($err);
+                    }
+                    //
+                    */
                     $currentDir      = getcwd();
                     $newDir          = explode('management', $currentDir);
                     $uploadDirectory = "img/sensorImages/";
@@ -796,6 +897,25 @@ if (isset($_SESSION['loggedUsername'])) {
                         }
                     }
                     echo json_encode($list);
+                    break;
+                    case "check_iot": 
+                        $url = $_REQUEST['link'];
+                        //////
+                        $result = array();
+                            $array = get_headers($url);
+                            $string = $array[0];
+                            if(strpos($string,"200"))
+                              {
+                                //echo 'url exists';
+                                 $result['result'] = true;
+                              }
+                              else
+                              {
+                                  $result['result'] = false;
+                                //echo 'url does not exist';
+                              }
+                        ///
+                        echo json_encode($result);
                     break;
                 default:
                     //echo json_encode($list);

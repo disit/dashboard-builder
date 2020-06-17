@@ -29878,26 +29878,66 @@
                                             newFormRow.append(newInnerDiv);
 
                                             //Default Orthomap
-                                        /*    $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="defaultOrthomapM" class="col-md-2 control-label">Default Orthomap</label>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="defaultOrthomapM" id="defaultOrthomapLabelM" class="col-md-2 control-label">Default Orthomap</label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="defaultOrthomapM" name="defaultOrthomapM"></select>');
                                             newSelect.append('<option style="display:none">');
                                          //   newSelect.append('<option value="yes">Yes</option>');
                                          //   newSelect.append('<option value="no">No</option>');
+                                            var jsonOrthomaps = null;
                                             if (styleParameters != null) {
+                                               if (styleParameters.showOrthomaps && currentParams.dropdownMenu) {
+                                                    if (styleParameters.showOrthomaps == 'yes') {
+                                                        for (let j = 0; j < currentParams.dropdownMenu.length; j++) {
+                                                            newSelect.append('<option value="' + currentParams.dropdownMenu[j].id + '">' + currentParams.dropdownMenu[j].label + '</option>');
+                                                        }
+                                                    }
+                                                }
                                                 if (styleParameters.defaultOrthomap) {
                                                     newSelect.val(styleParameters.defaultOrthomap);
                                                 }
-                                               // if (styleParameters.showOrthomaps) {
-                                               //     if (styleParameters.showOrthomaps == 'yes') {
-                                                //
-                                               //     }
-                                                //}   
                                             }
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);*/
+                                            newFormRow.append(newInnerDiv);
+                                            if ($('#showOrthomapsM').val() === "yes") {
+                                                $('#defaultOrthomapM').show();
+                                                $('#defaultOrthomapLabelM').show();
+                                            } else {
+                                                $('#defaultOrthomapM').hide();
+                                                $('#defaultOrthomapLabelM').hide();
+                                            }
+
+                                            $('#showOrthomapsM').change(function()
+                                            {
+                                                if($('#showOrthomapsM').val() === "yes")
+                                                {
+                                                    $('#defaultOrthomapM').show();
+                                                    $('#defaultOrthomapLabelM').show();
+                                                    if (currentParams.dropdownMenu) {
+                                                        for (let j = 0; j < currentParams.dropdownMenu.length; j++) {
+                                                            newSelect.append('<option value="' + currentParams.dropdownMenu[j].id + '">' + currentParams.dropdownMenu[j].label + '</option>');
+                                                        }
+                                                    } else {
+                                                        getOrthomaps(data.name_widget, function(extractedOrthomaps) {
+                                                            for (let j = 0; j < extractedOrthomaps[0].length; j++) {
+                                                                for (var key in extractedOrthomaps[0][j]) {
+                                                                    // check if the property/key is defined in the object itself, not in parent
+                                                                    if (extractedOrthomaps[0][j].hasOwnProperty(key)) {
+                                                                        $('#defaultOrthomapM').append('<option value="' + key + '">' + extractedOrthomaps[0][j][key] + '</option>');
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $('#defaultOrthomapM').hide();
+                                                    $('#defaultOrthomapLabelM').hide();
+                                                }
+                                            });
                                             
                                             //Nuova riga
                                             //Full screen controls

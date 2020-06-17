@@ -73,6 +73,9 @@
             symbolOnNeonEffect, symbolOffNeonEffect, symbolOnNeonEffectSetting, viewMode, textFontSize, displayFontSize,
             displayOffColor, displayOnColor, displayRadius, displayColor, displayWidth, displayHeight, displayOffNeonEffect, 
             displayOnNeonEffect, actuatorTarget, username, endPointHost, endPointPort, nodeRedInputName = null;
+        var updatedEverFlag = false;
+        var updatedFlag = false;
+        var lastValueOk = null;
         var useWebSocket = <?= $useActuatorWS ?>;
         if(Window.webSockets == undefined)
           Window.webSockets = {};
@@ -492,7 +495,130 @@
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('click');
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').click(handleMouseDown);
         }
-        
+
+        function handleExtUpdate()
+        {
+            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').toggleClass('onOffButtonActive');
+
+            if(currentValue === onValue)
+            {
+                currentValue = offValue;
+                $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("background-color", offButtonColor);
+                switch(viewMode)
+                {
+                    case "emptyButton":
+
+                        break;
+
+                    case "iconOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("text-shadow", symbolOffNeonEffect);
+                        break;
+
+                    case "textOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", textOffNeonEffect);
+                        break;
+
+                    case "displayOnly":
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
+                        break;
+
+                    case "iconAndText":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("text-shadow", symbolOffNeonEffect);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
+                        break;
+
+                    case "iconAndDisplay":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i').css("text-shadow", symbolOffNeonEffect);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
+                        break;
+
+                    case "displayAndText":
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
+                        break;
+
+                    case "all":
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i').css("text-shadow", symbolOffNeonEffect);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOffColor);
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
+                        break;
+                }
+            }
+            else
+            {
+                if(currentValue === offValue)
+                {
+                    currentValue = onValue;
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("background-color", onButtonColor);
+                    switch(viewMode)
+                    {
+                        case "emptyButton":
+
+                            break;
+
+                        case "iconOnly":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("text-shadow", symbolOnNeonEffect);
+                            break;
+
+                        case "textOnly":
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", textOnNeonEffect);
+                            break;
+
+                        case "displayOnly":
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
+                            break;
+
+                        case "iconAndText":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("text-shadow", symbolOnNeonEffect);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
+                            break;
+
+                        case "iconAndDisplay":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i').css("text-shadow", symbolOnNeonEffect);
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
+                            break;
+
+                        case "displayAndText":
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
+                            break;
+
+                        case "all":
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_onOffButton i').css("text-shadow", symbolOnNeonEffect);
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textOnColor);
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
+                            break;
+                    }
+                }
+            }
+            $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+         //   updateRemoteValue();
+        }
+
         function handleMouseDown()
         {
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').toggleClass('onOffButtonActive');
@@ -622,20 +748,21 @@
             
             var requestComplete = false;
             updateRequestStartTime = new Date();
-            setUpdatingMsgInterval = setInterval(function(){
-                if((requestComplete === false)&&(Math.abs(new Date() - updateRequestStartTime) > 1100))
-                {
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').hide();
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
-                    $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("display", "none");
-                    $('#<?= $_REQUEST['name_w'] ?>_display').css("display", "none");
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "block");
-                    var loadingIconMarginLeft = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').width()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').width())/2);
-                    var loadingIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').height())/2);
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("top", loadingIconMarginTop + "px");
-                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("left", loadingIconMarginLeft + "px");
-                }
-            }, 250);
+            if (updatedEverFlag !== true) {
+                setUpdatingMsgInterval = setInterval(function () {
+                    if ((requestComplete === false) && (Math.abs(new Date() - updateRequestStartTime) > 1100)) {
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').hide();
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("display", "none");
+                        $('#<?= $_REQUEST['name_w'] ?>_display').css("display", "none");
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "block");
+                        var loadingIconMarginLeft = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').width() - $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').width()) / 2);
+                        var loadingIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height() - $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').height()) / 2);
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("top", loadingIconMarginTop + "px");
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("left", loadingIconMarginLeft + "px");
+                    }
+                }, 250);
+            }
             
             switch(actuatorTarget)
             {
@@ -1392,20 +1519,44 @@
         {
             var msgObj = JSON.parse(msg.data);
             console.log(msgObj);
+            if (msgObj.msgType == "DataToEmitter") {
+                if (currentValue != msgObj.newValue) {
+                    updatedEverFlag = true;
+                    updatedFlag = true;
+                    lastValueOk = msgObj.newValue;
+                    //  showUpdateResult("Device OK");
+                }
+            }
             if(msgObj.msgType=="DataToEmitterAck") {
-              var webSocket = Window.webSockets[msgObj.widgetUniqueName];
-              if(! webSocket.ackReceived) {
-                clearTimeout(webSocket.timeout);
-                webSocket.ackReceived = true;
-                console.log(msgObj.widgetUniqueName+" ACK ackReceived:"+webSocket.ackReceived)
-                webSocket.onAck({result:"Ok", widgetName:msgObj.widgetUniqueName});
-              }
+                if (lastValueOk !== null) {
+                 //   currentValue = lastValueOk;
+                    lastValueOk = null;
+                //    handleMouseDown();
+                    handleExtUpdate();
+                    $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('click');
+                    showUpdateResult("Device OK");
+                } else {
+                    var webSocket = Window.webSockets[msgObj.widgetUniqueName];
+                    if (!webSocket.ackReceived) {
+                        clearTimeout(webSocket.timeout);
+                        webSocket.ackReceived = true;
+                        console.log(msgObj.widgetUniqueName + " ACK ackReceived:" + webSocket.ackReceived)
+                        webSocket.onAck({result: "Ok", widgetName: msgObj.widgetUniqueName});
+                    }
+                }
             }
         };
         
         timeToReload=200;
         var openWsConn = function(widget) {            
             var webSocket = Window.webSockets[widget];
+            var wsRegistration = {
+                msgType: "ClientWidgetRegistration",
+                userType: "widgetInstance",
+                //   metricName: encodeURIComponent(metricName),
+                widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+            };
+            webSocket.send(JSON.stringify(wsRegistration));
             /*setTimeout(function(){
                 var webSocket = Window.webSockets[widget];
                 webSocket.removeEventListener('message', manageIncomingWsMsg);
