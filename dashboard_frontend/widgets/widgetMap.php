@@ -245,6 +245,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             var iconsFileBuffer = [];
             var bubbleSelectedMetric = [];
             var bubbles = [];
+            var defaultOrthomapMenuItem = null;
 
             function onEachFeature(feature, layer) {
                 //console.log(layer);
@@ -2770,6 +2771,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 }
             }
 
+            function addDefaultBaseMap(map) {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                    maxZoom: 18
+                }).addTo(map);
+            }
+
             //Tipicamente questa funzione viene invocata dopo che sono stati scaricati i dati per il widget (se ne ha bisogno) e ci va dentro la logica che costruisce il contenuto del widget
             function populateWidget() {
                 let lastPopup = null;
@@ -2794,10 +2802,56 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 
                 map.eventsOnMap = eventsOnMap;
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                    maxZoom: 18
-                }).addTo(map.defaultMapRef);
+                // Visualize default Orthomap, if configured
+                if (styleParameters) {
+                    if (styleParameters.showOrthomaps && styleParameters.defaultOrthomap) {
+                        if (styleParameters.showOrthomaps == "yes" && styleParameters.defaultOrthomap != '') {
+                            let menuOrthomap = [];
+                            if (widgetParameters.dropdownMenu) {
+                                for (let n = 0; n < widgetParameters.dropdownMenu.length; n++) {
+                                    if (widgetParameters.dropdownMenu[n].id == styleParameters.defaultOrthomap) {
+                                        menuOrthomap = widgetParameters.dropdownMenu[n];
+                                    }
+                                }
+                                defaultOrthomapMenuItem = menuOrthomap;
+                                //    addTileLayer(null, menuOrthomap);
+                                if (menuOrthomap.service == "WMS"){
+                                    addDefaultBaseMap(map.defaultMapRef);
+                                    addLayerWMS(null, menuOrthomap);
+                                } else {
+                                    let layer = L.tileLayer(menuOrthomap.linkUrl, {
+                                        attribution: menuOrthomap.layerAttribution,
+                                        apikey: menuOrthomap.apiKey
+                                    }).addTo(map.defaultMapRef);
+                                }
+                            } else {
+                               /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                    maxZoom: 18
+                                }).addTo(map.defaultMapRef);*/
+                                addDefaultBaseMap(map.defaultMapRef);
+                            }
+                        } else {
+                          /*  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                maxZoom: 18
+                            }).addTo(map.defaultMapRef);*/
+                            addDefaultBaseMap(map.defaultMapRef);
+                        }
+                    } else {
+                       /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                            maxZoom: 18
+                        }).addTo(map.defaultMapRef);*/
+                        addDefaultBaseMap(map.defaultMapRef);
+                    }
+                } else {
+                  /*  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                        maxZoom: 18
+                    }).addTo(map.defaultMapRef);*/
+                    addDefaultBaseMap(map.defaultMapRef);
+                }
 
                 map.defaultMapRef.attributionControl.setPrefix('');
 
@@ -3485,16 +3539,23 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                    fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;*/
 
                                                 var valueObj = {};
-                                                if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty(bubbleSelectedMetric[desc])) {
-                                                    fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties.lastValue[bubbleSelectedMetric[desc]];
-                                                    fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]].replace(/"/g, "");
-                                                    if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]]))) {
+                                                if (fatherGeoJsonNode.features[i].properties.lastValue != null) {
+                                                    if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty(bubbleSelectedMetric[desc])) {
+                                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties.lastValue[bubbleSelectedMetric[desc]];
+                                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]].replace(/"/g, "");
+                                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]]))) {
+                                                            fatherGeoJsonNode.features.splice(i, 1);
+                                                            continue;
+                                                        } else {
+                                                            if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] > maxValue) {
+                                                                maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]];
+                                                            }
+                                                        }
+                                                    } else {
+                                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = 0;
+                                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
                                                         fatherGeoJsonNode.features.splice(i, 1);
                                                         continue;
-                                                    } else {
-                                                        if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] > maxValue) {
-                                                            maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]];
-                                                        }
                                                     }
                                                 } else {
                                                     fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = 0;
@@ -3545,6 +3606,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                            }).addTo(map.defaultMapRef);*/
 
                                         bubbles[desc] = {};
+                                        map.defaultMapRef.createPane('bubblePane');
+                                        map.defaultMapRef.getPane('bubblePane').style.zIndex = 415;
                                         if (fatherGeoJsonNode.features.length > 0) {
                                             bubbles[desc] = L.bubbleLayer(fatherGeoJsonNode, {
                                                 property: bubbleSelectedMetric[desc],
@@ -3554,7 +3617,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 //    scale: [passedData.color1, '#ffffff'],
                                                 //    scale: ['#ffffff', passedData.color1],
                                                 //    scale: passedData.color1,
-                                                style: {fillColor: passedData.color1, weight: 0.3},
+                                            //    pane: 'bubblePane',
+                                                style: {fillColor: passedData.color1, weight: 0.3, pane: 'bubblePane'},
                                                 tooltip: true
                                             });
 
@@ -8131,6 +8195,16 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     // parte mappa 3D - CORTI
                     setTimeout(function () {
                         map.default3DMapRef = initMapsAndListeners(map);
+                            setTimeout(function () {
+                                if (defaultOrthomapMenuItem != null) {
+                                    if (defaultOrthomapMenuItem.id != null) {
+                                        if (defaultOrthomapMenuItem.external == true) {
+                                            $('#defaultMap').addClass('hidden');
+                                        }
+                                        $('#' + defaultOrthomapMenuItem.id).removeClass('hidden');
+                                    }
+                                }
+                            }, 500);
                     }, 3000);
                     // hide fullscreen
                     $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
@@ -10859,6 +10933,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 } else {
                                     $item.find('.appendable-icon').addClass('fa-check');
                                 }
+                                $item.find('.appendable-icon').attr('id', menu.id);
 
                                 // listener
                                 $item.find('a').click(function (evt) {
@@ -11197,7 +11272,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
                         <span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                    <ul class="dropdown-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
                         <li class="dropdown-header hidden">2D / 3D</li>
                         <li><a class="dropdown-item hidden" href="#" id="2DButton">2D Map</a></li>
                         <li><a class="dropdown-item hidden" href="#" id="3DButton">3D Map</a></li>

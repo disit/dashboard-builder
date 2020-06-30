@@ -12,11 +12,11 @@ if (isset($_SESSION['loggedUsername'])) {
                         $accessToken = $tkn->access_token;
                         $_SESSION['refreshToken'] = $tkn->refresh_token;
                     
-    //error_reporting(E_ERROR);
+    error_reporting(E_ERROR);
     $link = mysqli_connect($host, $username, $password);
     //error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-    error_reporting(-1);
+    //ini_set('display_errors', 1);
+    //error_reporting(-1);
     mysqli_select_db($link, $dbname);
     if (isset($_SESSION['loggedRole'])) {
         $role_session_active = $_SESSION['loggedRole'];
@@ -73,6 +73,11 @@ if (isset($_SESSION['loggedUsername'])) {
                 $row_db = $_REQUEST['rb_row'];
             } else {
                 $row_db = "";
+            }
+            if (isset($_REQUEST['subnature'])){
+                $subnature = $_REQUEST['subnature'];
+            }else{
+                $subnature = '';
             }
             
             if ($data_source == 'IoT') {
@@ -150,7 +155,7 @@ if (isset($_SESSION['loggedUsername'])) {
             $list['HealthinessCriteria'] = '';
             $list['period']              = '';
             $list['creator'] = $OwnerHarsh;
-            
+            $list['process_name']='';
             $list['address'] =             '';
             $list['reference_person'] =    '';
             
@@ -172,11 +177,56 @@ if (isset($_SESSION['loggedUsername'])) {
                 $files1 = "";
             }
             $list['icon'] = $files1;
-            
+            ///////
+            $link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
+                        mysqli_set_charset($link, 'utf8');
+                        mysqli_select_db($link, $dbname_processes);
+                        $process_list = array();
+                        $p_name = "";
+                        if (($type == 'POI')||($type =='External Service')||($value_name=='')||($value_name =='ExternalContent')){
+                        //if (($type == 'POI')||($value_name=='')||($value_name =='ExternalContent')){
+                         $p_name = $subnature;
+                         $query0 = "SELECT * FROM devices,process_manager_responsible WHERE devices.process = process_manager_responsible.process_name AND devices.device_name ='".$subnature."';";
+                        }else{
+                         $p_name = $value_name;
+                        $query0 = "SELECT * FROM devices,process_manager_responsible WHERE devices.process = process_manager_responsible.process_name AND devices.device_name ='".$value_name."';";
+                        }
+                        $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
+                        $total0       = $result0->num_rows;
+                        $process_st0  = '';
+                        $process_path = '';
+                        if ($total0 > 0) {
+                            while ($row0 = mysqli_fetch_assoc($result0)) {
+                                $listFile0    = array(
+                                    "licence" => $row0['licence'],
+                                    "webpage" => $row0['webpage'],
+                                    "telephone" => $row0['telephone'],
+                                    "mail" => $row0['mail'],
+                                    "owner" => $row0['responsible'],
+                                    "address" =>$row0['address'],
+                                    "reference_person"=>$row0['reference_person'],
+                                    "process_name"=>$row0['process_name']
+                                );
+                                array_push($process_list, $listFile0);
+                            }
+                        }
+                        if (count($process_list) > 0) {
+                            $list['licence']           = $process_list[0]['licence'];
+                            $list['webpage']           = $process_list[0]['webpage'];
+                            $list['telephone']         = $process_list[0]['telephone'];
+                            $list['mail']              = $process_list[0]['mail'];
+                            $list['owner']             = $process_list[0]['owner'];
+                            $list['address'] =              $process_list[0]['address'];
+                            $list['reference_person'] =     $process_list[0]['reference_person'];
+                            $list['process_name']=   $process_list[0]['process_name'];
+                        }else{
+                            $list['process_name']=   $p_name;
+                        }
+             ///////////////////////
             //
             /*** Types ****/
             switch ($type) {
-                case "Sensor";
+                case "Sensor":
                 case "Sensor-Actuator":
                     //
                     $currentDir      = getcwd();
@@ -303,45 +353,71 @@ if (isset($_SESSION['loggedUsername'])) {
                     $graph_uri    = "";
                     $health_c     = "";
                     $period       = "";
-                    
-                    while ($row0 = mysqli_fetch_assoc($result0)) {
-                        /***/
-                        if (($row0['Graph_Uri'] !== null) || ($row0['Graph_Uri'] !== 'undefined')) {
-                            $graph_uri = $row0['Graph_Uri'];
-                        } else {
-                            $graph_uri = "";
-                        }
-                        if (($row0['HealthinessCriteria'] == null) || ($row0['HealthinessCriteria'] == '')) {
-                            $health_c = $row0['HealthinessCriteria_graph'];
-                        } else {
-                            $health_c = $row0['HealthinessCriteria'];
-                        }
-                        if (($row0['Period'] == null) || ($row0['Period'] == '')) {
-                            $period = $row0['Period_graph'];
-                        } else {
-                            $period = $row0['Period'];
-                        }
-                        /***/
-                        $listFile0    = array(
-                            "process_name_ST" => $row0['Process_ST'],
-                            "KB_Ip" => $row0['KB_Ip'],
-                            "Graph_Uri" => $graph_uri,
-                            "phoenix_table" => $row0['phoenix_table'],
-                            "process_path" => $row0['process_path'],
-                            "process_type" => $row0['process_type'],
-                            "licence" => $row0['licence'],
-                            "webpage" => $row0['webpage'],
-                            "telephone" => $row0['telephone'],
-                            "mail" => $row0['mail'],
-                            "owner" => $row0['responsible'],
-                            "Disces_Ip" => $row0['DISCES_Ip'],
-                            "address" => $row0['address'],
-                            "reference_person" => $row0['reference_person']
-                        );
-                        $process_path = $row0['process_path'];
-                        array_push($process_list, $listFile0);
+                    $p_name = '';
+                    if ($total0 > 0){
+                            while ($row0 = mysqli_fetch_assoc($result0)) {
+                                /***/
+                                if (($row0['Graph_Uri'] !== null) || ($row0['Graph_Uri'] !== 'undefined')) {
+                                    $graph_uri = $row0['Graph_Uri'];
+                                } else {
+                                    $graph_uri = "";
+                                }
+                                if (($row0['HealthinessCriteria'] == null) || ($row0['HealthinessCriteria'] == '')) {
+                                    $health_c = $row0['HealthinessCriteria_graph'];
+                                } else {
+                                    $health_c = $row0['HealthinessCriteria'];
+                                }
+                                if (($row0['Period'] == null) || ($row0['Period'] == '')) {
+                                    $period = $row0['Period_graph'];
+                                } else {
+                                    $period = $row0['Period'];
+                                }
+                                if (($row0['Process_ST'] == null)||($row0['Process_ST'] =='')){
+                                                $p_name = $row0['Process_ST'];
+                                }else{
+                                                $p_name = $value_name;
+                                }
+                                /***/
+                                $listFile0    = array(
+                                    "process_name_ST" => $row0['Process_ST'],
+                                    "KB_Ip" => $row0['KB_Ip'],
+                                    "Graph_Uri" => $graph_uri,
+                                    "phoenix_table" => $row0['phoenix_table'],
+                                    "process_path" => $row0['process_path'],
+                                    "process_type" => $row0['process_type'],
+                                    "licence" => $row0['licence'],
+                                    "webpage" => $row0['webpage'],
+                                    "telephone" => $row0['telephone'],
+                                    "mail" => $row0['mail'],
+                                    "owner" => $row0['responsible'],
+                                    "Disces_Ip" => $row0['DISCES_Ip'],
+                                    "address" => $row0['address'],
+                                    "reference_person" => $row0['reference_person'],
+                                    "process_name" => $p_name
+                                );
+                                $process_path = $row0['process_path'];
+                                array_push($process_list, $listFile0);
+                            }
+                    }else{
+                         $listFile0    = array(
+                                    "process_name_ST" => "",
+                                    "KB_Ip" => "",
+                                    "Graph_Uri" => "",
+                                    "phoenix_table" => "",
+                                    "process_path" => "",
+                                    "process_type" => "",
+                                    "licence" => "",
+                                    "webpage" => "",
+                                    "telephone" => "",
+                                    "mail" => "",
+                                    "owner" => "",
+                                    "Disces_Ip" => "",
+                                    "address" =>"",
+                                    "reference_person" => "",
+                                    "process_name" => $value_name
+                                ); 
+                          array_push($process_list, $listFile0);
                     }
-                    
                     $link_disces = mysqli_connect($disces_host, $disces_username, $disces_password) or die("failed to connect to server Disces!!");
                     mysqli_set_charset($link_disces, 'utf8');
                     mysqli_select_db($link_disces, $disces_dbname);
@@ -452,6 +528,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         $list['creator'] = $OwnerHarsh;
                         $list['address'] =              $process_list[0]['address'];
                         $list['reference_person'] =     $process_list[0]['reference_person'];
+                        $list['process_name'] = $process_list[0]['process_name'];
                     } else {
                         $list['Graph_Uri'] = $graph_uri;
                         if ($owner_iot == '') {
@@ -470,6 +547,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         $list['broker']            = $broker;
                         $list['device_id']         = $device_id;
                         $list['icon']              = $files1;
+                        $list['process_name'] = $value_name;
                     }
                     echo json_encode($list);
                     break;
@@ -480,7 +558,7 @@ if (isset($_SESSION['loggedUsername'])) {
                     $currentDir2     = $newDir[0];
                     $id_img          = $id_row;
                     
-                    
+                    //$kpi_request = 'https://www.snap4city.org/mypersonaldata/api/v1/kpidata/'.$id_row.'/activities';
                     
                     if ($id_img !== "") {
                         
@@ -492,13 +570,13 @@ if (isset($_SESSION['loggedUsername'])) {
                         $files1 = "";
                     }
                     $value = $value_name;
-                    $link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
-                    mysqli_set_charset($link, 'utf8');
-                    mysqli_select_db($link, $dbname_processes);
+                    $link_dash = mysqli_connect($host, $username, $password) or die("failed to connect to server Processes !!");
+                        mysqli_set_charset($link_dash, 'utf8');
+                        mysqli_select_db($link_dash, $dbname);
                     $process      = '';
                     $process_list = array();
                     $query0       = "SELECT dataSource, query FROM Descriptions WHERE IdMetric='" . mysqli_real_escape_string($link, $value) . "'";
-                    $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
+                    $result0 = mysqli_query($link_dash, $query0) or die(mysqli_error($link));
                     $total0     = $result0->num_rows;
                     $dataSource = "";
                     //
@@ -508,8 +586,9 @@ if (isset($_SESSION['loggedUsername'])) {
                         $pieces     = explode("'", $query_des);
                     }
                     //
+                    $context = stream_context_create(array('http' => array('header'=>'Connection: close\r\n')));
                     $query_sparql = 'http://' . $graph_uri_sparql_uri . ':8890/sparql?query=select+distinct+%3Fgraph+%7B+graph+%3Fgraph+%7B%3C' . $pieces[1] . '%3E+a+%3Fc%7D+%3Fgraph+%3Fx+%3Fy.%7D&format=application%2Fsparql-results%2Bjson';
-                    $payload      = file_get_contents($query_sparql);
+                    $payload      = file_get_contents($query_sparql,$context,false);
                     $result       = json_decode($payload);
                     if ($result) {
                         $json_sparql  = json_encode($result);
@@ -556,7 +635,8 @@ if (isset($_SESSION['loggedUsername'])) {
                                     "owner" => $row0['responsible'],
                                     "Disces_Ip" => $row0['DISCES_Ip'],
                                     "address" =>$row0['address'],
-                                    "reference_person"=>$row0['reference_person']
+                                    "reference_person"=>$row0['reference_person'],
+                                    "process_name" => $row0['Process_name']
                                 );
                                 $process_path = $row0['process_path'];
                                 array_push($process_list, $listFile0);
@@ -607,6 +687,7 @@ if (isset($_SESSION['loggedUsername'])) {
                             $list['creator'] = $OwnerHarsh;
                             $list['address'] =              $process_list[0]['address'];
                             $list['reference_person'] =     $process_list[0]['reference_person'];
+                            $list['process_name']   = $process_list[0]['process_name'];
                         }
                     }
                     echo json_encode($list);
@@ -616,7 +697,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         //$app_id = 'nr6dsjh';
                         $app_id =  $value;
                    //$q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName, user as dashboardAuthor FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app_id' AND d.deleted='no'";
-                    $q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app_id' AND d.deleted='no'";
+                    $q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName FROM Config_widget_dashboard w JOIN Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app_id' AND d.deleted='no'";
                         $r = mysqli_query($link, $q);
                     //print_r($r);
                     if($r)
@@ -632,8 +713,8 @@ if (isset($_SESSION['loggedUsername'])) {
                         //echo('nothing');
                         $arr[0] = 'null';
                     }
-                    $list['dashboards'] =$arr;
-                        echo json_encode($list);
+                    $list_01['dashboards'] =$arr;
+                        echo json_encode($list_01);
                     break;
                 case "From Dashboard to IOT Device":
                         $link_dash = mysqli_connect($host, $username, $password) or die("failed to connect to server Processes !!");
@@ -658,13 +739,13 @@ if (isset($_SESSION['loggedUsername'])) {
                         break;
                 case "Special Widget":
                     $value_name = $_REQUEST['value'];
-                    $link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
-                    mysqli_set_charset($link, 'utf8');
-                    mysqli_select_db($link, $dbname_processes);
+                    $link_dash = mysqli_connect($host, $username, $password) or die("failed to connect to server Processes !!");
+                    mysqli_set_charset($link_dash, 'utf8');
+                    mysqli_select_db($link_dash, $dbname);
                     $process      = '';
                     $process_list = array();
                     $query0       = "SELECT dataSource, query FROM Descriptions WHERE IdMetric='" . mysqli_real_escape_string($link, $value_name) . "'";
-                    $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
+                    $result0 = mysqli_query($link_dash, $query0) or die(mysqli_error($link));
                     $total0     = $result0->num_rows;
                     $dataSource = "";
                     //
@@ -720,6 +801,7 @@ if (isset($_SESSION['loggedUsername'])) {
                                     }
                                     $listFile0    = array(
                                         "process_name_ST" => $proc_n,
+                                        "process_name" => $proc_n,
                                         "KB_Ip" => $row0['KB_Ip'],
                                         "Graph_Uri" => $row0['Graph_Uri'],
                                         "phoenix_table" => $row0['phoenix_table'],
@@ -757,21 +839,22 @@ if (isset($_SESSION['loggedUsername'])) {
                                 }
                             }
                         }
+                        $list['process_name'] =    $process_list[0]['process_name'];
                         $list['process_name_ST'] = $process_list[0]['process_name_ST'];
                         $list['KB_Ip']           = $process_list[0]['KB_Ip'];
                         $list['Graph_Uri']       = $process_list[0]['Graph_Uri'];
                         $list['process_path']    = $process_list[0]['process_path'];
                         $list['process_type']    = $process_list[0]['process_type'];
-                        $list['licence']         = $process_list[0]['licence'];
-                        $list['webpage']         = $process_list[0]['webpage'];
-                        $list['telephone']       = $process_list[0]['telephone'];
+                        //$list['licence']         = $process_list[0]['licence'];
+                        //$list['webpage']         = $process_list[0]['webpage'];
+                        //$list['telephone']       = $process_list[0]['telephone'];
                         $list['phoenix_table']   = $process_list[0]['phoenix_table'];
-                        $list['mail']            = $process_list[0]['mail'];
-                        $list['owner']           = $process_list[0]['owner'];
+                        //$list['mail']            = $process_list[0]['mail'];
+                        //$list['owner']           = $process_list[0]['owner'];
                         $list['disces_ip']       = $process_list[0]['Disces_Ip'];
                         $list['creator'] = $OwnerHarsh;
-                        $list['address'] =              $process_list[0]['address'];
-                        $list['reference_person'] =     $process_list[0]['reference_person'];
+                        //$list['address'] =              $process_list[0]['address'];
+                        //$list['reference_person'] =     $process_list[0]['reference_person'];
                     }
                     
                     $currentDir      = getcwd();
@@ -804,22 +887,16 @@ if (isset($_SESSION['loggedUsername'])) {
                         $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
                         $accessToken = $tkn->access_token;
                         $_SESSION['refreshToken'] = $tkn->refresh_token;
-                        //$url_ownership = 'http://'.$iot_device_ownership.'/ownership-api/v1/list/?elementId='.urlencode($value_name).'&type=IOTID&accessToken='.$accessToken;
+                        $url_ownership = 'http://'.$iot_device_ownership.'/ownership-api/v1/list/?elementId='.urlencode($value_name).'&type=IOTID&accessToken='.$accessToken;
                         $owner_iot = '';
-                        //$payload_own = file_get_contents($url_ownership);
-                        //$var_own = json_decode($payload_own, true);
-                        /*
-                        if($type == "MyKPI"){
-                            $link_kpi = 'http://www.snap4city.org/mypersonaldata/api/v1/public/kpidata/'.$data_source.'/activities';
-                            $payload       = file_get_contents($link_kpi);
-                            $result        = json_decode($payload);
-                            $list['list_mykpi'] = $payload;
-                        }*/
+                        $payload_own = file_get_contents($url_ownership);
+                        $var_own = json_decode($payload_own, true);
                         //
                     //
-                    //$url_api       = "https://www.snap4city.org/mypersonaldata/api/v1/public/kpidata/?sourceRequest=";
-                    //$payload       = file_get_contents($url_api);
-                    //$result        = json_decode($payload);
+                    $context = stream_context_create(array('http' => array('header'=>'Connection: close\r\n')));
+                    $url_api       = "https://www.snap4city.org/mypersonaldata/api/v1/public/kpidata/?sourceRequest=";
+                    $payload       = file_get_contents($url_api, $context, false);
+                    $result        = json_decode($payload);
                     $id_mypoi      = '';
                     $name_owner    = '';
                     $organizations = '';
@@ -831,27 +908,6 @@ if (isset($_SESSION['loggedUsername'])) {
                         $new_id = $arr_id[0];
                     }
                     
-                    //
-                    /*
-                    $url_api2 = "https://www.snap4city.org/mypersonaldata/api/v1/kpidata/" .$data_source ."/activities";
-                    $ch1 = curl_init($url_api2);
-                    
-                    //$ch1 = curl_init();
-                            curl_setopt($ch1, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $_SESSION['refreshToken']));
-                            curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
-                            curl_setopt($ch1, CURLOPT_FAILONERROR, true);
-                            curl_setopt($ch1, CURLOPT_CUSTOMREQUEST, 'GET');
-                            curl_setopt($ch1, CURLOPT_URL, $url_api2);
-                           // $rtn = curl_exec( $ch1 );
-                     $response_02 = curl_exec($ch1);
-                    if (!curl_errno($ch1)) {
-                    //print_r($response_02);
-                    }else{
-                        $err=curl_errno($ch1);
-                        //print_r($err);
-                    }
-                    //
-                    */
                     $currentDir      = getcwd();
                     $newDir          = explode('management', $currentDir);
                     $uploadDirectory = "img/sensorImages/";
@@ -917,29 +973,78 @@ if (isset($_SESSION['loggedUsername'])) {
                         ///
                         echo json_encode($result);
                     break;
-                default:
-                    //echo json_encode($list);
+                    //case 'External Service':
+                    //case 'Complex Event':
+                    default:
+                        //echo('Ciao');
+                        $link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
+                        mysqli_set_charset($link, 'utf8');
+                        mysqli_select_db($link, $dbname_processes);
+                        $process_list = array();
+                        //
+                        $p_name='';
+                         if (($type == 'POI')||($type =='External Service')||($value_name=='')||($value_name =='ExternalContent')){
+                        //if (($type == 'POI')||($value_name=='')||($value_name =='ExternalContent')){
+                             $p_name = $subnature;
+                         $query0 = "SELECT * FROM devices,process_manager_responsible WHERE devices.process = process_manager_responsible.process_name AND devices.device_name ='".$subnature."';";
+                        }else{
+                            $p_name = $value_name;
+                        $query0 = "SELECT * FROM devices,process_manager_responsible WHERE devices.process = process_manager_responsible.process_name AND devices.device_name ='".$value_name."';";
+                        }
+                        //$query0 = "SELECT * FROM devices,process_manager_responsible WHERE devices.process = process_manager_responsible.process_name AND devices.device_name ='".$value_name."';";
+                        $result0 = mysqli_query($link, $query0) or die(mysqli_error($link));
+                        $total0       = $result0->num_rows;
+                        $process_st0  = '';
+                        $process_path = '';
+                        if ($total0 > 0) {
+                            while ($row0 = mysqli_fetch_assoc($result0)) {
+                                $listFile0    = array(
+                                    "licence" => $row0['licence'],
+                                    "webpage" => $row0['webpage'],
+                                    "telephone" => $row0['telephone'],
+                                    "mail" => $row0['mail'],
+                                    "owner" => $row0['responsible'],
+                                    "address" =>$row0['address'],
+                                    "reference_person"=>$row0['reference_person']
+                                );
+                                array_push($process_list, $listFile0);
+                            }
+                        }
+                        if (count($process_list) > 0) {
+                            $list['licence']           = $process_list[0]['licence'];
+                            $list['webpage']           = $process_list[0]['webpage'];
+                            $list['telephone']         = $process_list[0]['telephone'];
+                            $list['mail']              = $process_list[0]['mail'];
+                            $list['owner']             = $process_list[0]['owner'];
+                            $list['address'] =              $process_list[0]['address'];
+                            $list['reference_person'] =     $process_list[0]['reference_person'];
+                            $list['process_name']                 = $p_name;
+                        }
+                         //echo json_encode($list);
+                
+                    //
+                    echo json_encode($list);
                     break;
             }
             /*** Fine Types ***/
             
             
         } else {
-            echo ("You are not authorized to access ot this data!");
-            exit;
+            //echo ("You are not authorized to access ot this data!");
+            //exit;
         }
         
     } else {
-        echo ("You are not authorized to access ot this data!");
-        exit;
+        //echo ("You are not authorized to access ot this data!");
+        //exit;
     }
     
   }else{
-        echo ("You are not authorized to access ot this data!");
-        exit;
+        //echo ("You are not authorized to access ot this data!");
+       // exit;
   }
 }else{
-        echo ("You are not authorized to access ot this data!");
-        exit;
+        //echo ("You are not authorized to access ot this data!");
+        //exit;
     }
 ?>

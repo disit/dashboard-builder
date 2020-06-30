@@ -126,8 +126,8 @@
         $query = "SELECT * FROM Config_widget_dashboard AS dashboardWidgets " .
                  "LEFT JOIN Widgets AS widgetTypes ON dashboardWidgets.type_w = widgetTypes.id_type_widget " .
                  "LEFT JOIN Descriptions AS metrics ON dashboardWidgets.id_metric = metrics.IdMetric " .   
-                 "LEFT JOIN NodeRedMetrics AS nrMetrics ON dashboardWidgets.id_metric = nrMetrics.name " . 
-                 "LEFT JOIN NodeRedInputs AS nrInputs ON dashboardWidgets.id_metric = nrInputs.name " . 
+                 "LEFT JOIN NodeRedMetrics AS nrMetrics ON dashboardWidgets.id_metric = nrMetrics.name AND nrMetrics.id = (SELECT MAX(nrMetrics.id) FROM NodeRedMetrics AS nrMetrics WHERE dashboardWidgets.id_metric = nrMetrics.name)" .
+                 "LEFT JOIN NodeRedInputs AS nrInputs ON dashboardWidgets.id_metric = nrInputs.name AND nrInputs.id = (SELECT MAX(nrInputs.id) FROM NodeRedInputs AS nrInputs WHERE dashboardWidgets.id_metric = nrInputs.name)" .
                  "WHERE dashboardWidgets.id_dashboard = '$dashboardId' " .
                  "AND dashboardWidgets.canceller IS NULL " .
                  "AND dashboardWidgets.cancelDate IS NULL " . 

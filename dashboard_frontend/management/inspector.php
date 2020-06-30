@@ -533,7 +533,8 @@ echo time();
                                                         <div class="modal-body">
                                                             <!-- data graph -->
                                                             <!-- -->
-    <div id="licenceLabel" class="input-group"><span class="input-group-addon">Licence: </span><input id="licence" type="text" class="form-control licence_par" readonly/></div><br />');}
+                <div id="licenceLabel" class="input-group" style="display:none;"><span class="input-group-addon" >Licence: </span><input id="licence_hidden" type="text" class="form-control licence_par" hidden readonly/></div><br />
+                <div class="panel panel-default" id="panel_lic" style="background-color: #EEE"><div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div></div>');}
     if(($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
                                                                     echo('<div id="ownerLabel" class="input-group licence_tab_div"><span class="input-group-addon">Provider: </span><input id="owner" type="text" class="form-control licence_par" readonly/></div><br />
                                                                     <div id="addressLabel" class="input-group licence_tab_div"><span class="input-group-addon">Address: </span><input id="address" type="text" class="form-control licence_par" readonly/></div><br />
@@ -566,7 +567,7 @@ echo time();
    if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
                                echo('</div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn cancelBtn cancelView" data-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn cancelBtn cancelView" id="close_healthiness_modal" data-dismiss="modal">Cancel</button>
                                     </div>
                                 </div>
                         </div>
@@ -580,7 +581,7 @@ echo time();
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" id="button_conf_edit">
                         <span aria-hidden="true">&times;</span>
                     </button>
                     <h5 class="modal-title" id="exampleModalLabel">Edit Parameter</h5>
@@ -602,13 +603,15 @@ echo time();
             <form enctype="multipart/form-data" action="editInspectorData.php" method="POST" accept-charset="UTF-8">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" id="button_conf_edit2">
                         <span aria-hidden="true">&times;</span>
                     </button>
                     <h5 class="modal-title" id="exampleModalLabel">Edit Parameter</h5>
                     
                 </div>
                 <div id="edit_lic_mod" style="display:none;">
+                    <input id="id_row_hlt" type="text" name="id_row_hlt"></input>
+                    <input id="id_hlt" type="text" name="id_hlt"></input>
                     <input id="id_mod" type="text" name="id_mod"></input>
                     <input id="mod_lic" type="text"  name="mod_lic"></input>
                     <input id="mod_prov" type="text"  name="mod_prov"></input>
@@ -619,6 +622,7 @@ echo time();
                          <input id="mod_ref"  type="text"  name="mod_ref"></input>
                 </div>
                 <div class="modal-body">
+                    <div id="check_errors"></div>
                     Are you sure do you want confirm?
                 </div>
                 <div class="modal-footer">
@@ -706,7 +710,7 @@ echo time();
             $('#name_Nature').val(name_Nature);
             $('#name_Subnature').val(name_Subnature);
             $('#data-unique_name_id').val(data_unique_name_id);
-            
+            $('#id_row_hlt').val(name_Subnature);           
             //users
            // $('#public').val();
             //$('#creator').val();
@@ -1015,11 +1019,12 @@ echo time();
                     data_get_instances: data_get_instances,
                     id_row: id_row,
                     data_source: ds,
-                    rb_row: id_row_db
+                    rb_row: id_row_db,
+                    subnature: name_Subnature
                 },
                 success: function (data) {
                     /*DECODIFICARE data.healthiness*/
-                    if ((high_level === 'Sensor') || (high_level === 'Sensor-Actuator') || (high_level === 'KPI') || (high_level === 'MyPOI') || (high_level === 'MyKPI')) {
+                    //if ((high_level === 'Sensor') || (high_level === 'Sensor-Actuator') || (high_level === 'KPI') || (high_level === 'MyPOI') || (high_level === 'MyKPI')) {
                         var json_data = JSON.stringify(data.healthiness);
                         var value_td = "";
                         var obj = Object.values(data);
@@ -1096,6 +1101,7 @@ echo time();
                         var broker = data.broker;
                         var creator = data.creator;
                         var ref_pers = data.reference_person;
+                        var p_name= data.process_name;
                         //
                         //HARSH
                         //var creator_dec = decryptOSSL(creator);
@@ -1105,7 +1111,27 @@ echo time();
                         $('#kbIp').val(kbIp);
                         $('#mail').val(mail);
                         $('#phoenixTable').val(phoenixTable);
-                        $('#licence').val(licence);
+                        $('#licence').html(licence);
+                        $('.licence_text').text('Licence (on:'+p_name+'):');
+                        /*
+                        CKEDITOR.replace('licence', {
+                        allowedContent: true,
+                        //config.readOnly: true;
+			//extraPlugins : 'stylesheetparser',
+			contentsCss : 'ckeditor/MicroService.css',
+                        language: 'en',
+                        width: '100%',
+                        height: '100%',
+                        //toolbar: 'Full',
+                        //enterMode : CKEDITOR.ENTER_BR,
+                        //shiftEnterMode: CKEDITOR.ENTER_P
+                    });
+                    CKEDITOR.instances['licence'].config.readOnly = true;
+              CKEDITOR.instances['licence'].setData(licence);*/
+                        //
+                        //$('#licence').text(licence);
+                        $('#licence_hidden').val(licence);
+                        //$('#licence').attr('value',licence);
                         $('#owner').val(owner);
                         $('#address').val(address);
                         $('#graph_uri').val(graph_uri);
@@ -1287,7 +1313,7 @@ echo time();
                             //$('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;">Edit paramters</a></span>');
                         }
                         ///////
-                    }
+                    //}
 
                     //TEST//
 
@@ -1365,6 +1391,10 @@ echo time();
             $('#confirmModal').modal('hide');
             $('.licence_par').attr("readonly", true);
         });
+        $(document).on('click', '#button_conf_edit', function () {
+            $('#confirmModal').modal('hide');
+            $('.licence_par').attr("readonly", true);
+        });
         //close_conf_edit
         
         //$(document).on('click','#conf_edit', function(){
@@ -1375,7 +1405,21 @@ echo time();
             $('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal">Confirm</a></span>');
             $('#edit_button_lic').hide();
             //$('#confirmModal').fadeOut();
+            //var c_lic =$('#licence').val();
+            var c_lic = $('#licence_hidden').val();
             $('.licence_par').attr("readonly", false);
+            CKEDITOR.replace('licence', {
+                        allowedContent: true,
+			//extraPlugins : 'stylesheetparser',
+			contentsCss : 'ckeditor/MicroService.css',
+                        language: 'en',
+                        width: '100%',
+                        height: '100%',
+                        toolbar: 'Full',
+                        //enterMode : CKEDITOR.ENTER_BR,
+                        //shiftEnterMode: CKEDITOR.ENTER_P
+                    });
+              CKEDITOR.instances['licence'].setData(c_lic);
             //$('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;"  data-target="#confirmModal">Confirm</a></span>');
     //
         });
@@ -1451,6 +1495,7 @@ echo time();
                     $('#Status_2').val('');
                     $('.licence_par').attr("readonly", true);
                     $('#div_edit_licence_confirm').empty();
+                    $('.licence_text').text('Licence:    ');
                     //
                         $('#public').empty();
                         $('#creator').empty();
@@ -1469,7 +1514,7 @@ echo time();
          //$('#confirm_modify').click(function(){
          $(document).on('click', '#confirm_modify', function () {
             //
-            var v_lic = $('#licence').val();
+            //var v_lic = $('#licence').val();
             var v_own = $('#owner').val();
             var v_addr = $('#address').val();
             var v_mail = $('#mail').val();
@@ -1477,7 +1522,13 @@ echo time();
             var v_per = $('#person').val();
             var v_web = $('#web').val();
             var v_id = $('#data-unique_name_id').val();
+            //var v_irrow = $('#').val();
+            var id_row_hlt = $('#name_highLevel_type').val();
             //alert(v_id);
+            //<input id="id_hlt" type="text" name="id_htl"></input>
+            //<input id="id_row_hlt" type="text" name="id_row_hlt"></input>
+            var v_lic = CKEDITOR.instances['licence'].getData();
+            //CKEDITOR.instances['licence'].config.readOnly = false;
             //
             $('#mod_lic').val(v_lic);
             $('#mod_prov').val(v_own);
@@ -1487,14 +1538,56 @@ echo time();
             $('#mod_ref').val(v_per);
             $('#id_mod').val(v_id);
             $('#mod_web').val(v_web);
+            $('#id_hlt').val(id_row_hlt);
+            //$('#id_row_hlt').val(id_row_hlt);
+            var mail_mail_check = $('#mail').val();
+            var web_check = $('#web').val();
+            var valid_mail = true;
+            var valid_url = true;
+            var error_text_url = '';
+            var error_text_mail = '';
+            //Parameter Email o Website not valid
+            if((mail_mail_check !== "")&&(mail_mail_check !== null)){
+                valid_mail = validaEmail(mail_mail_check.trim());
+                 $('#mod_mail').val(v_mail.trim());
+                 }
+             //
+            if((web_check !== "")&&(web_check !== null)){
+                     valid_url = validURL(web_check.trim());
+                     $('#mod_web').val(v_web.trim());
+                }
+            //
+            if((valid_url === false)||(valid_mail === false)){
+                if (valid_url === false){
+                    error_text_url = " <b>website</b> Parameter not valid ";
+                }
+                 if (valid_mail === false){
+                    error_text_mail = " <b>email</b> Parameter not valid ";
+                }
+                $('#check_errors').html('<div class="panel panel-danger"><div class="panel-heading">Not Valid parameters</div><div class="panel-body">'+error_text_url+'<br/>'+error_text_mail+'</div></div>');
+                $('#conf_edit2').prop('disabled', true);
+            }
         });
 
         $(document).on('click','#close_conf_edit2',function(){
             $('#exampleModal2').modal('hide');
+            $('#check_errors').empty();
+            $('#conf_edit2').prop('disabled', false);
+        });
+        $(document).on('click','#button_conf_edit2',function(){
+            $('#exampleModal2').modal('hide');
+            $('#check_errors').empty();
+            $('#conf_edit2').prop('disabled', false);
         });
 
-        //$(document).on('click', '.cancelView', function() {
-        $('#healthiness-modal').on('hidden.bs.modal', function () {
+$('#confirmModal').on('hidden.bs.modal', function () {
+    console.log('close');
+});
+        $(document).on('click', '#close_healthiness_modal', function() {
+        //$('#healthiness-modal').on('hidden.bs.modal', function () {
+            $('#exampleModal2').fadeOut();
+            $('#confirmModal').fadeOut();
+            $('.modal').modal('hide')
             $('#healthiness_table tbody').empty();
             $('#processnameStatic').val('');
             $('#kbIp').val('');
@@ -1505,6 +1598,12 @@ echo time();
             $('#owner').val('');
             $('#address').val('');
             $('#processPath').val('');
+            $('#licenceLabel').empty('');
+             $('#licence').val('');
+             $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
+             //
+             $('#check_errors').empty();
+             $('#conf_edit2').prop('disabled', false);
             $('#tab7').removeClass("active");
             $('#tab6').removeClass("active");
             $('#tab5').removeClass("active");
@@ -1539,6 +1638,7 @@ echo time();
             $('#arcgis_link').empty();
             $('#heatmap_link').empty();
             //$('#healthinessCriteria').val('');
+            $('.licence_text').text('Licence:    ');
             $('#healthiness_c').val('');
             $('#period').val('');
             $('#v_type').val('');
@@ -1549,8 +1649,8 @@ echo time();
             $('#status_health').css('color', 'black');
             $('#Status_h').val('');
             $('#Status_2').val('');
-            $('#telephone').empty();
-            $('#web').empty();
+            $('#telephone').val('');
+            $('#web').val('');
             $('.licence_par').attr("readonly", true);
             //
             $('#div_edit_licence_confirm').empty();
@@ -1558,11 +1658,11 @@ echo time();
             $('#s1_date').empty();
             $('#s2_date').empty();
             $('#public').empty();
-                        $('#creator').empty();
-                        $('#mailC').empty();
+                        $('#creator').val('');
+                        $('#mailC').val('');
                         //licence
-                        $('#person').empty();
-                        $('#web').empty();
+                        $('#person').val('');
+                        $('#web').val('');
         });
         
         
@@ -1611,6 +1711,36 @@ echo time();
             }
 
         });
+        
+        function validURL(str) {
+  var regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
+        if (regexp.test(str)){
+            console.log('str:   '+str);
+            console.log('corretto');
+          return true;
+        }
+        else
+        {  
+          console.log('str:   '+str);
+          console.log('no corretto');
+          return false;
+        }
+  //return pattern.test(str);
+}
+
+
+function validaEmail(email) {
+    var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+    if(emailReg.test( email )){
+         console.log('str:   '+email);
+            console.log('corretto');
+          return true;
+    }else{
+            console.log('str:   '+email);
+          console.log('no corretto');
+          return false;
+    }
+}
 
 
         function addZero(i) {
