@@ -74,7 +74,8 @@
                    {
                        $nrInputId = $r['nrInputId'];
                        //Se il widget è un attuatore su personal app, recuperiamo anche il suo valore più recente impostato
-                        $lastValueQuery = "SELECT value FROM ActuatorsAppsValues WHERE nrInputId = $nrInputId AND actuationResult = 'Ok' ORDER BY STR_TO_DATE(actionTime, '%Y-%m-%d %T') DESC LIMIT 1";
+                        //$lastValueQuery = "SELECT value FROM ActuatorsAppsValues WHERE nrInputId = $nrInputId AND actuationResult = 'Ok' ORDER BY STR_TO_DATE(actionTime, '%Y-%m-%d %T') DESC LIMIT 1";
+                        $lastValueQuery = "SELECT value FROM ActuatorsAppsValues WHERE widgetName='$widgetNameIteration' AND actuationResult = 'Ok' ORDER BY STR_TO_DATE(actionTime, '%Y-%m-%d %T') DESC LIMIT 1";
                         //fwrite($file, "lastValueQuery: " . $lastValueQuery . "\n");
                         $lastValueResult = $link->query($lastValueQuery);
 

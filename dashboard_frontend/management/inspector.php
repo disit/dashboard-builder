@@ -319,6 +319,12 @@ echo time();
     .slider.round:before {
         border-radius: 50%;
     }
+    
+    .dropdown1 {
+
+        overflow:scroll;
+        height: 200px;
+     }
 </style>
 
 <body style="overflow-y: hidden !important">
@@ -450,6 +456,7 @@ echo time();
                                                                 <span id="arcgis_link" ></span>
                                                                 <span id="heatmap_link" ></span>
                                                                 <span id="list_dashboard_link"></span>
+                                                                <span id="list_kpi_dash"></span>
                                                             </div>
                                                     </div>
                                           </div>
@@ -508,11 +515,13 @@ echo time();
                                                                     <div class="input-group etl_sensor"><span class="input-group-addon">Job Name: </span><input id="job_name" type="text" class="form-control" readonly/></div><br class="etl_sensor" />
                                                                     <div class="input-group iot_sensor"><span class="input-group-addon">IoT Broker: </span><input id="iotBroker" type="text" class="form-control" readonly/></div><br class="iot_sensor" />
                                                                     <div class="input-group iot_sensor"><span class="input-group-addon">Iot Device: </span><input id="iotDevice" type="text" class="form-control" readonly/></div><br class="iot_sensor" />
-
+                                                                    <div class="input-group"><span class="input-group-addon">Device Set name: </span><input id="setname" type="text" class="form-control" readonly/></div><br />
                                                                     <div>
                                                                         <span  id="kb_link" style="float: left;"></span><span id="Kbase_link" style="margin-right: 10 px;"></span>
                                                                         <span  id="disces_link" style="float: left;" class="etl_sensor"></span><span id="disces_link" style="padding-right: 10 px;"></span>
                                                                         <span  id="iotDir_link" style="float: left;"></span><span id="iotDir_link" style="padding-right: 10 px;"></span>
+                                                                        <span  id="listETL_link" style="float: left;"></span><span id="listETL_link" style="padding-right: 10 px;"></span>
+                                                                        <span  id="broker_link" style="float: left;"></span><span id="broker_link" style="padding-right: 10 px;"></span>
                                                                     </div>
                                                             <!-- -->
                                                         </div>
@@ -666,7 +675,10 @@ echo time();
         //fa-circle
         $(document).on('click', '.fa-circle', function () {
             //
-
+            var cl = $(this).attr('style');
+            var cl2=cl.split('font-size:16px;color:');
+            var color_cicle = cl2[1];
+            console.log(color_cicle);
             //var id0 = $(this).parent().parent().html();
             var high_level = $(this).parent().parent().attr('data-high_level_type');
             var name_Nature = $(this).parent().parent().attr('data-nature');
@@ -820,11 +832,13 @@ echo time();
                     if (parameters.includes('datamanager/api/v1/poidata/')) {
                         var param2 = parameters.split('datamanager/api/v1/poidata/');
                         //$('#data_source').val(param2[1]);
+                        //var func_dash = function_dashKpi(param2[1]);
                         var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + param2[1] + "&operation=values&dataType=" + dataTypeMyKpi[0];
                         $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                         //$('#pd_link').append('<a href="https://www.snap4city.org/mypersonaldata/api/v1/kpidata/'+ parameters + '/activities" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoTApp List</a>');
                     } else {
                         $('#data_source').val(parameters);
+                        //var func_dash = function_dashKpi(parameters);
                         var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + parameters + "&operation=values&dataType=" + dataTypeMyKpi[0];
                         $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                         //$('#pd_link').append('<a href="https://www.snap4city.org/mypersonaldata/api/v1/kpidata/'+ parameters + '/activities" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoTApp List</a>');
@@ -876,16 +890,22 @@ echo time();
                         $(".iot_sensor").show();
                         $(".etl_sensor").hide();
                         $(".sensor_own").show();
-                        var iot_sensor_ip = "<?= $iot_sensor
-    ?>";
-                        var url_iot = "" + iot_sensor_ip + "/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                        //var iot_sensor_ip = "<?= $iot_sensor?>";  
+                         // iot_sensor_ip = '';                          
+                        //var url_iot= "" + iot_sensor_ip + "/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                        //var url_iotBrok = "" + iot_sensor_ip + "/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
+                        var url_iot = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                        var url_iotBrok = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
                         //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
                          //var test = check_iot(url_iot);
+                         //
                         $('#iot_link').html('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directory</a>');
+                        $('#broker_link').html('<a href="' + url_iotBrok + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
                     } else {
                         $('#data_source').val("ETL");
                         $(".etl_sensor").show();
                         $(".iot_sensor").hide();
+                        $('#broker_link').hide();
                     }
                     break;
                 case 'Sensor-Actuator':
@@ -895,21 +915,26 @@ echo time();
                         $('#data_source').val("IoT");
                         $(".iot_sensor").show();
                         $(".etl_sensor").hide();
-                        var iot_sensor_ip = "<?= $iot_sensor
-    ?>";
-                        var url_iot = "http://" + iot_sensor_ip + "/dashboardSmartCity/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                        //var iot_sensor_ip = "<?= $iot_sensor?>";
+                        //iot_sensor_ip = ''; 
+                        var url_iot = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                        var url_iotBrok = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
                         //var test = check_iot(url_iot);
+                        $('#broker_link').show();
+                        $('#broker_link').html('<a href="' + url_iotBrok + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
                         //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
                     } else {
                         $('#data_source').val("ETL");
                         $(".etl_sensor").show();
                         $(".iot_sensor").hide();
+                        $('#broker_link').hide();
                     }
                     break;
                 case 'MicroApplication':
                     //
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
+                    $('#broker_link').hide();
                     var url = '../img/microApplications/' + icon;
                     $.get(url)
                             .done(function () {
@@ -929,6 +954,7 @@ echo time();
                     $('#tab3').hide();
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
+                    $('#broker_link').hide();
                     $('#data_source').val('Special Process');
                     $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     break;
@@ -952,6 +978,7 @@ echo time();
                     $('#iot_link').html('<a href="' + iot_device + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $('#disces_link').empty();
+                    $('#broker_link').show();
                     $(".etl_sensor").hide();
                     $(".sensor_own").hide();
                     break;
@@ -963,6 +990,7 @@ echo time();
                     $('#disces_link').empty();
                     $(".etl_sensor").hide();
                     $(".sensor_own").hide();
+                    $('#broker_link').show();
                     break;
                 case 'From Dashboard to IOT App':
                     var das = function_dashboard(data_get_instances);
@@ -971,6 +999,7 @@ echo time();
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $(".etl_sensor").hide();
                     $(".sensor_own").hide();
+                    $('#broker_link').hide();
                     break;
                 case 'From IOT Application to Dashboard':
                     var das = function_dashboard(data_get_instances);
@@ -979,6 +1008,7 @@ echo time();
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $('#disces_link').empty();
                     $(".sensor_own").hide();
+                    $('#broker_link').hide();
                     break;
                 case 'From IOT App to Dashboard':
                     var das = function_dashboard(data_get_instances);
@@ -987,6 +1017,7 @@ echo time();
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $('#disces_link').empty();
                     $(".sensor_own").hide();
+                    $('#broker_link').hide();
                     break;
                 case 'From IOT App to IOT Device':
                     var das = function_dashboard(data_get_instances);
@@ -996,6 +1027,7 @@ echo time();
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                     $('#disces_link').empty();
                     $(".sensor_own").hide();
+                    $('#broker_link').hide();
                     break;
             }
             //***//
@@ -1102,10 +1134,30 @@ echo time();
                         var creator = data.creator;
                         var ref_pers = data.reference_person;
                         var p_name= data.process_name;
+                        
+                                                //++++++++++++++//
+                        if (data.total_ETL){
+                            var total_ETL = data.total_ETL;
+                            if(total_ETL > 0){
+                                var lun = total_ETL;
+                                var list_result = "";
+                                if (data.list_ETL){
+                                    for(var i=0; i<lun; i++){
+                                        if ((data.list_ETL[i] !== undefined)&&(data.list_ETL[i] !== 'undefined')){
+                                        list_result=list_result+"<li><a href='#'>"+data.list_ETL[i]+"</a></li>";
+                                         }
+                                    }
+                                    //console.log(data.list_ETL[0]);
+                                    $('#listETL_link').html('<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Devices<span class="caret"></span></button><ul class="dropdown-menu scrollable-menu dropdown1" role="menu">'+list_result+'</ul></div>');
+                                }
+                            }
+                        }
+                      //+++++++++///
                         //
                         //HARSH
                         //var creator_dec = decryptOSSL(creator);
                         //var period = data.value_refresh_rate;
+                        kbIp = kbIp.replace('http://','');
                         $('#processnameStatic').val(process_name_ST);
                         $('#processPath').val(processPath);
                         $('#kbIp').val(kbIp);
@@ -1113,6 +1165,7 @@ echo time();
                         $('#phoenixTable').val(phoenixTable);
                         $('#licence').html(licence);
                         $('.licence_text').text('Licence (on:'+p_name+'):');
+                        $('#setname').val(data.device_set_name);
                         /*
                         CKEDITOR.replace('licence', {
                         allowedContent: true,
@@ -1140,7 +1193,7 @@ echo time();
                         $('#web').val(web);
                         /////
                         //data_valueunit
-                            $('#public').val();
+                            $('#public').val();                           
                             $('#creator').val(creator);
                             $('#mailC').val();
                             //licence
@@ -1275,15 +1328,23 @@ echo time();
                                 $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td></tr>');
                             }
                             //
-
                             if ((name === data_low_level_type) || (data_unit === 'sensor_map')) {
                                 $('#last_check_health').val(measured_time);
-                                $('#Status_h').val("    ("+measured_time+")   " +healt_value);
+                               var date_ch1 = data.ch1;
+                                $('#Status_h').val("    ("+date_ch1+")   " +healt_value);
                                 $('#healthiness_c').val(healthiness_criteria);
                                 $('#period').val(value_refresh_rate);
                                 $('#delay').val(dealy);
                                 //$('#s1_date').text("    ("+measured_time+")   ");
                                 //$('#s2_date').text("    ("+last_date+")   ");
+                                if (data_unit === 'sensor_map'){
+                                     $('#status_1').css('color', color_cicle);
+                                     if (color_cicle==='#33cc33'){
+                                         $('#Status_h').val("    ("+date_ch1+")   true");
+                                     }else{
+                                         $('#Status_h').val("    ("+date_ch1+")   false");
+                                     }
+                                }else{
                                 if (healt_value === 'true') {
                                     $('#status_1').css('color', '#33cc33');
                                 } else if (healt_value === 'false') {
@@ -1291,21 +1352,24 @@ echo time();
                                 } else {
                                     $('#status_1').css('color', 'blue');
                                 }
+                             }
                             }
                             //
-                        }
+                       
                         if (count_nh > 0) {
-                            $('#Status_2').val("    ("+last_date+")   " + 'false');
+                            var ch2 = data.ch2;
+                            $('#Status_2').val("    ("+ch2+")   " + 'false');
                             $('#status_health').css('color', 'red');
                         } else if (count_h > 0) {
-                            $('#Status_2').val("    ("+last_date+")   " + 'true');
+                            var ch2 = data.ch2;
+                            $('#Status_2').val("    ("+ch2+")   " + 'true');
                             $('#status_health').css('color', '#33cc33');
                         } else {
                             $('#Status_2').val('');
                             $('#status_health').css('color', 'black');
                         }
 
-
+}
                         //UPLOAD IMAGE//upload_image
                         //upload_image
                         if (role_session_active === 'RootAdmin') {
@@ -1326,7 +1390,9 @@ echo time();
                     if (etl === 'IoT') {
                         $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Disces</a>');
                     }
-                    $('#kb_link').html('<a href="' + link_kb + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
+                    if (parameters.includes('http')){
+                    $('#kb_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
+                    }
                     //$('#kb_link').html('<a href="' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
                     //
                 }
@@ -1460,6 +1526,7 @@ echo time();
                     $('#userTab').removeClass("active");
                     $('#uploadTab').addClass("active");
                     $('#disces_link').empty();
+                    $('#listETL_link').empty();
                     $('#kb_link').empty();
                     $('#sm_link').empty();
                     $('#disces_ip').val('');
@@ -1486,6 +1553,9 @@ echo time();
                     $('#s1_date').empty();
                     $('#s2_date').empty();
                     //$('#attr_type').val('');
+                    $('#setname').val('');
+                    $('#list_kpi_dash').empty();
+                     $('#broker_link').empty();
                     $('#list_dashboard_link').empty();
                     $('#delay').val('');
                     $('#last_check_health').val('');
@@ -1619,6 +1689,7 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             $('#uploadTab').addClass("active");
             $('#userTab').removeClass("active");
             $('#disces_link').empty();
+            $('#listETL_link').empty();
             $('#kb_link').empty();
             $('#sm_link').empty();
             $('#disces_ip').val('');
@@ -1653,6 +1724,9 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             $('#web').val('');
             $('.licence_par').attr("readonly", true);
             //
+            $('#setname').val('');
+            $('#list_kpi_dash').empty();
+            $('#broker_link').empty();
             $('#div_edit_licence_confirm').empty();
             $('#list_dashboard_link').empty();
             $('#s1_date').empty();
@@ -1664,8 +1738,95 @@ $('#confirmModal').on('hidden.bs.modal', function () {
                         $('#person').val('');
                         $('#web').val('');
         });
-        
-        
+       
+       
+        $('#healthiness-modal').on('hidden.bs.modal', function (e) {
+            $('#exampleModal2').fadeOut();
+            $('#confirmModal').fadeOut();
+            $('.modal').modal('hide')
+            $('#healthiness_table tbody').empty();
+            $('#processnameStatic').val('');
+            $('#kbIp').val('');
+            $('#phoenixTable').val('');
+            $('#graph_uri').val('');
+            $('#mail').val('');
+            $('#licence').val('');
+            $('#owner').val('');
+            $('#address').val('');
+            $('#processPath').val('');
+            $('#licenceLabel').empty('');
+             $('#licence').val('');
+             $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
+             //
+             $('#check_errors').empty();
+             $('#conf_edit2').prop('disabled', false);
+            $('#tab7').removeClass("active");
+            $('#tab6').removeClass("active");
+            $('#tab5').removeClass("active");
+            $('#tab4').removeClass("active");
+            $('#tab2').removeClass("active");
+            $('#tab3').removeClass("active");
+            $('#tab1').addClass("active");
+            $('#imageTab').removeClass("active");
+            $('#ownerTab').removeClass("active");
+            $('#HealthinessTab').removeClass("active");
+            $('#processTab').removeClass("active");
+            $('#browseTab').removeClass("active");
+            $('#uploadTab').addClass("active");
+            $('#userTab').removeClass("active");
+            $('#disces_link').empty();
+            $('#listETL_link').empty();
+            $('#kb_link').empty();
+            $('#sm_link').empty();
+            $('#disces_ip').val('');
+            $('#organization').val('');
+            $('#inspector_image').empty();
+            $('#upload_image').empty();
+            $('#ms_link').empty();
+            $('#iot_link').empty();
+            $('#pd_link').empty();
+            $('#job_name').empty();
+            $('#dash_link').empty();
+            $('#time_trand_link').empty();
+            $('#iotDevice').empty();
+            $('#iotBroker').empty();
+            $('#owner').empty();
+            $('#id_row').val('');
+            $('#arcgis_link').empty();
+            $('#heatmap_link').empty();
+            //$('#healthinessCriteria').val('');
+            $('.licence_text').text('Licence:    ');
+            $('#healthiness_c').val('');
+            $('#period').val('');
+            $('#v_type').val('');
+            //$('#attr_type').val('');
+            $('#delay').val('');
+            $('#last_check_health').val('');
+            $('#status_1').css('color', 'black');
+            $('#status_health').css('color', 'black');
+            $('#Status_h').val('');
+            $('#Status_2').val('');
+            $('#telephone').val('');
+            $('#web').val('');
+            $('.licence_par').attr("readonly", true);
+            //
+            $('#setname').val('');
+            $('#list_kpi_dash').empty();
+            $('#broker_link').empty();
+            $('#div_edit_licence_confirm').empty();
+            $('#list_dashboard_link').empty();
+            $('#s1_date').empty();
+            $('#s2_date').empty();
+            $('#public').empty();
+                        $('#creator').val('');
+                        $('#mailC').val('');
+                        //licence
+                        $('#person').val('');
+                        $('#web').val('');
+                        console.log('dismiss');
+        });
+  // do something...
+//});
                
         $(window).resize(function () {
             if ($(window).width() < 1200) {
@@ -1764,7 +1925,66 @@ function validaEmail(email) {
                         //https://iot-app.snap4city.org/nodered/
         }
 
-
+        function function_dashKpi(value_name){
+            //
+            var id_kpi =value_name;
+            var res = value_name.split("/");
+            var l=res.lenght;
+            if (l > 0){
+                id_kpi =value_name[l];
+            }else{
+                id_kpi =value_name; 
+            }
+            console.log('FUNZIONE KPI_DASH');
+            //
+            //var id_kpi =value_name;
+            $.ajax({
+                async:false,
+                type: 'GET',
+                url: 'getServiceData.php',
+                data:{
+                    type: 'DashKpi',
+                    service: id_kpi
+                },
+                success: function(data){
+                    console.log('SUCCESS');
+                    var json_data = data.dashboards;
+                    //console.log(data);
+                    if(data !== 'null'){
+                    var json_data = JSON.parse(data);
+                    //console.log(json_data.dashboards);
+                    var result = json_data.dashboards;
+                    var link_dash = "";
+                    var len = 0;
+                    len = Object.keys(result).length;
+                    //console.log('len: '+len);
+                    if (len > 0){
+                        for(var i=0; i<len; i++){
+                            //var array_dash = result[i]['dashboardId'];
+                            var array_dash_Name = "";
+                            if (result[i]['dashboardName']!==null){
+                             array_dash_Name = result[i]['dashboardName']['sourceId'];
+                            //var json_data = JSON.stringify(array_dash);
+                            var json_data_name = JSON.stringify(array_dash_Name);
+                            var ind = "https://iot-app.snap4city.org/nodered/"+array_dash_Name;
+                            link_dash = link_dash + '<li><a href="'+ind +'" Target= "_blank">Link to IotApp '+array_dash_Name+'</a></li>';
+                        }else{
+                            link_dash = link_dash + '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
+                        }
+                            //alert(json_data);
+                        }
+                    }else{
+                        console.log('FAILED');
+                         link_dash = '<li><a href="#">No dashboards connected</a></li>';
+                    }
+                    var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of IotApp<span class="caret"></span></button><ul class="dropdown-menu">'+link_dash+'</ul></div>';
+                    $('#list_kpi_dash').html(content);
+                    //console.log('ciao');
+                     }
+                }
+            });
+        }
+        
         function function_dashboard(value_name) {
             var value_name2 = value_name;
             console.log('value_name2  ' + value_name2);

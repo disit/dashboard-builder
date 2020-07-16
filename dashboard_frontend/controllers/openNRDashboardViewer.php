@@ -10,16 +10,18 @@
             
             $link = mysqli_connect($host, $username, $password);
             mysqli_select_db($link, $dbname);
-            
-            if((isset($_GET['dashboardTitle']))&&(!empty($_GET['dashboardTitle']))&&(isset($_GET['username']))&&(!empty($_GET['username'])))
-            {
+
+            if((isset($_GET['dashboardId']))&&(!empty($_GET['dashboardId']))) {
+                $dashboardId = $_GET['dashboardId'];
+                header("location: ../view/index.php?iddasboard=" . base64_encode($dashboardId));
+            } else if((isset($_GET['dashboardTitle']))&&(!empty($_GET['dashboardTitle']))&&(isset($_GET['username']))&&(!empty($_GET['username']))) {
                 $response = [];
                 $dashboardTitle = urldecode($_GET['dashboardTitle']);
                 $dashboardSubtitle = "";
 
                 $username = $_GET['username'];
 
-                $query = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$dashboardTitle' AND user = '$username'";
+                $query = "SELECT * FROM Dashboard.Config_dashboard WHERE title_header = '$dashboardTitle' AND user = '$username' AND deleted != 'yes'";
                 $result = mysqli_query($link, $query);
 
                 if($result)
@@ -29,7 +31,7 @@
                     {
                         //Esistente
                         $row = mysqli_fetch_assoc($result);
-                        
+
                         $dashboardId = $row['Id'];
                         mysqli_close($link);
                         header("location: ../view/index.php?iddasboard=" . base64_encode($dashboardId));
@@ -43,6 +45,8 @@
                 {
                     //TBD - Caso di KO
                 }
+            } else {
+                //TBD - Dashboard non esistente
             }
         ?>
     </body>

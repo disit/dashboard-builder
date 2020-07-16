@@ -128,6 +128,7 @@ $organizationFromKb = "";
 $organizations = "";
 $organizationHelsTemplate = "Helsinki";
 $organizationAntwTemplate = "Antwerp";
+$organizationDubvTemplate = "Dubrovnik";
 $kbUrl = "";
 
 $s = "";
@@ -192,6 +193,9 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
     } else if (strcmp($organizationFromKb, "Antwerp") == 0) {
         $organizations = $organizationAntwTemplate;
         $kbUrl = $kbUrlAntwerp;
+    } else if (strcmp($organizationFromKb, "Dubrovnik") == 0) {
+        $organizations = $organizationDubvTemplate;
+        $kbUrl = $kbUrlDubrovnik;
     } else {
         $organizations = "Other";
         $kbUrl = $kbUrlSuperServiceMap;

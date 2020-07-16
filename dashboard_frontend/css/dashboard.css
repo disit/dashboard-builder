@@ -3459,7 +3459,7 @@ tr.iotAppsTableRow:nth-child(even)
     color: white;
 }
 
-#newOwnershipResultMsg, #newVisibilityResultMsg
+#newOwnershipResultMsg, #newVisibilityResultMsg, #newOrganizationResultMsg
 {
     display: none;
     font-weight: bold;
