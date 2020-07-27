@@ -71,6 +71,10 @@
         var dataFut = null;
         var upLimit = null;
         var currentWidth = null;
+        var udmFromUserOptions = null;
+        var udm = null;
+        var titleUdm = null;
+        var viewUdm, xOffsetUdm = null;
 
         console.log("Entrato in widgetTimeTrend --> " + widgetName);
 
@@ -300,7 +304,7 @@
 
 
 
-        function drawDiagram(metricData, timeRange, seriesName, fromSelector, timeZone)
+        function drawDiagram(metricData, timeRange, seriesName, fromSelector, timeZone, udm)
         {
            /* if ($("#" + widgetName + "_loading").css("display") == "block") {
                 $("#" + widgetName + "_loading").css("display", "none");
@@ -439,11 +443,12 @@
                             date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2]);
                         }
                     }
-                    
-                    seriesData.push([date, value]);
-                    valuesData.push(value);
+                 //   if (!Number.isNaN(date) && !Number.isNaN(value)) {
+                        seriesData.push([date, value]);
+                        valuesData.push(value);
+                 //   }
                 }
-                
+
                 seriesData.sort(compareSeriesData);
 
                 maxValue = Math.max.apply(Math, valuesData);
@@ -650,7 +655,18 @@
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                 }
-                
+
+            //    if (udm != null && viewUdm != null && viewUdm != "no" && seriesData.length > 0) {
+                if (udm != null && udm != "null" && viewUdm != "no" && seriesData.length > 0) {
+                    if (xOffsetUdm != null) {
+                        titleUdm = JSON.parse('{ "text": "' + udm + '", "align": "high", "offset": 0, "rotation": 0, "x": ' + xOffsetUdm + ' }');
+                    } else {
+                        titleUdm = JSON.parse('{ "text": "' + udm + '", "align": "high", "offset": 0, "rotation": 0, "x": 25 }');
+                    }
+                } else {
+                    titleUdm = '';
+                }
+
                 if(metricType === "isAlive") 
                 {
                     //Calcolo del vettore delle zones
@@ -748,9 +764,7 @@
                         },
 
                         yAxis: {
-                            title: {
-                                text: ''
-                            },
+                            title: titleUdm,
                             min: minValue,
                             max: 8,
                         //    tickInterval: nInterval,
@@ -881,9 +895,7 @@
                             }
                         },
                         yAxis: {
-                            title: {
-                                text: ''
-                            },
+                            title: titleUdm,
                             min: minValue,
                             max: maxValue,
                         //    tickInterval: nInterval,
@@ -943,7 +955,7 @@
 
         }
         
-        function convertDataFromSmToDm(originalData, field)
+        function convertDataFromSmToDm(originalData, field, udmFromUserOptions)
         {
             var singleOriginalData, singleData, convertedDate = null;
             var convertedData = {
@@ -961,6 +973,36 @@
                     {
                         if(originalData.realtime.results.bindings.length > 0)
                         {
+                            let propertyJson = "";
+                            if(originalData.hasOwnProperty("BusStop"))
+                            {
+                                propertyJson = originalData.BusStop;
+                            }
+                            else
+                            {
+                                if(originalData.hasOwnProperty("Sensor"))
+                                {
+                                    propertyJson = originalData.Sensor;
+                                }
+                                else
+                                {
+                                    if(originalData.hasOwnProperty("Service"))
+                                    {
+                                        propertyJson = originalData.Service;
+                                    }
+                                    else
+                                    {
+                                        propertyJson = originalData.Services;
+                                    }
+                                }
+                            }
+                            if (udmFromUserOptions != null) {
+                                udm = udmFromUserOptions;
+                            } else {
+                                if (propertyJson.features[0].properties.realtimeAttributes[field].value_unit != null) {
+                                    udm = propertyJson.features[0].properties.realtimeAttributes[field].value_unit;
+                                }
+                            }
                             for(var i = 0; i < originalData.realtime.results.bindings.length; i++)
                             {
                                 singleData = {
@@ -1104,7 +1146,7 @@
             return convertedData;
         }
 
-        function convertDataFromTimeNavToDm(originalData, field)
+        function convertDataFromTimeNavToDm(originalData, field, udmFromUserOptions)
         {
             var singleOriginalData, singleData, convertedDate, futureDate = null;
             var convertedData = {
@@ -1122,6 +1164,36 @@
                     {
                         if(originalData.realtime.results.bindings.length > 0)
                         {
+                            let propertyJson = "";
+                            if(originalData.hasOwnProperty("BusStop"))
+                            {
+                                propertyJson = originalData.BusStop;
+                            }
+                            else
+                            {
+                                if(originalData.hasOwnProperty("Sensor"))
+                                {
+                                    propertyJson = originalData.Sensor;
+                                }
+                                else
+                                {
+                                    if(originalData.hasOwnProperty("Service"))
+                                    {
+                                        propertyJson = originalData.Service;
+                                    }
+                                    else
+                                    {
+                                        propertyJson = originalData.Services;
+                                    }
+                                }
+                            }
+                            if (udmFromUserOptions != null) {
+                                udm = udmFromUserOptions;
+                            } else {
+                                if (propertyJson.features[0].properties.realtimeAttributes[field].value_unit != null) {
+                                    udm = propertyJson.features[0].properties.realtimeAttributes[field].value_unit;
+                                }
+                            }
                             for(var i = 0; i < originalData.realtime.results.bindings.length; i++)
                             {
                                 singleData = {
@@ -1316,7 +1388,7 @@
             return convertedDateTime;
         }
         
-        function populateWidget(localTimeRange, kpiTracker, timeNavDirection, timeCount, dateInFuture)
+        function populateWidget(localTimeRange, kpiTracker, timeNavDirection, timeCount, dateInFuture, udmFromUserOptions)
         {
             if(fromGisExternalContent)
             {
@@ -1416,7 +1488,7 @@
                     dataType: 'json',
                     success: function(originalData) 
                     {
-                        var convertedData = convertDataFromSmToDm(originalData, fromGisExternalContentField);
+                        var convertedData = convertDataFromSmToDm(originalData, fromGisExternalContentField, udm);
                         if(convertedData)
                         {
                             if(convertedData.data.length > 0)
@@ -1433,7 +1505,7 @@
                                 } else {
                                     localTimeZoneString = localTimeZone;
                                 }
-                                drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true, localTimeZoneString);
+                                drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true, localTimeZoneString, udm);
                                 upLimit = convertedData.data[0].commit.author.computationDate;
                                 if (timeNavCount < 0) {
                                     if (moment(upLimit).isBefore(moment(dateInFuture))) {
@@ -1672,7 +1744,7 @@
                             dataType: 'json',
                             success: function(originalData)
                             {
-                                var convertedData = convertDataFromSmToDm(originalData, sm_field);
+                                var convertedData = convertDataFromSmToDm(originalData, sm_field, udm);
                                 if(convertedData)
                                 {
                                     if(convertedData.data.length > 0)
@@ -1689,7 +1761,7 @@
                                         } else {
                                             localTimeZoneString = localTimeZone;
                                         }
-                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString);
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString, udm);
                                         upLimit = convertedData.data[0].commit.author.computationDate;
                                         if (timeNavCount < 0) {
                                             if (moment(upLimit).isBefore(moment(dateInFuture))) {
@@ -1758,7 +1830,7 @@
                                 } else {
                                     localTimeZoneString = localTimeZone;
                                 }
-                                drawDiagram(metricData, globalDiagramRange, '<?= escapeForJS($_REQUEST['id_metric']) ?>', false, localTimeZoneString);
+                                drawDiagram(metricData, globalDiagramRange, '<?= escapeForJS($_REQUEST['id_metric']) ?>', false, localTimeZoneString, udm);
                                 
                                 if(needWebSocket)
                                 {
@@ -1802,7 +1874,7 @@
                                         } else {
                                             localTimeZoneString = localTimeZone;
                                         }
-                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString);
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString, udm);
                                     }
                                     else
                                     {
@@ -1852,7 +1924,8 @@
                             type: "GET",
                             data: {
                                 myKpiId: rowParameters,
-                                timeRange: myKPITimeRange
+                                timeRange: myKPITimeRange,
+                                action: "getValueUnitForTrend"
                             },
                             async: true,
                             dataType: 'json',
@@ -1861,8 +1934,17 @@
                                 var convertedData = convertDataFromMyKpiToDm(data);
                                 if(convertedData)
                                 {
-                                    if(convertedData.data.length > 0)
+                                    if(convertedData.data.length > 1 || convertedData.data[0].commit.author.value != null)
                                     {
+                                        if (udmFromUserOptions != null) {
+                                            udm = udmFromUserOptions;
+                                        } else {
+                                            if (data[0].variableUnit != null) {
+                                                udm = data[0].variableUnit;
+                                            } else if (data[0].valueUnit != null) {
+                                                udm = data[0].valueUnit;
+                                            }
+                                        }
                                         var localTimeZone = moment.tz.guess();
                                         var momentDateTime = moment();
                                         var localDateTime = momentDateTime.tz(localTimeZone).format();
@@ -1875,8 +1957,9 @@
                                         } else {
                                             localTimeZoneString = localTimeZone;
                                         }
-                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString);
+                                        drawDiagram(convertedData, globalDiagramRange, sm_field, true, localTimeZoneString, udm);
                                     }
+                                    //else if (convertedData.data[0].commit.author.value == null)
                                     else
                                     {
                                         showWidgetContent(widgetName);
@@ -1936,7 +2019,7 @@
                                 dataType: 'json',
                                 success: function (originalData) {
                                     var stopFlag = 1;
-                                    var convertedData = convertDataFromTimeNavToDm(originalData, field);
+                                    var convertedData = convertDataFromTimeNavToDm(originalData, field, udm);
                                     if (convertedData) {
                                         if (convertedData.data.length > 0) {
                                             var localTimeZone = moment.tz.guess();
@@ -1996,7 +2079,8 @@
 
 
             setupLoadingPanel(widgetName, widgetContentColor, true);
-            populateWidget(timeRange, null, "minus", timeNavCount);
+        //    populateWidget(timeRange, null, "minus", timeNavCount, null, udmFromUserOptions);
+            populateWidget(timeRange, null, "minus", timeNavCount, null, udm);
         });
 
         $("#" + widgetName + "_timeTrendNextBtn").off("click").click(function () {
@@ -2027,7 +2111,7 @@
                                 dataType: 'json',
                                 success: function (originalData) {
                                     var stopFlag = 1;
-                                    var convertedData = convertDataFromTimeNavToDm(originalData, field);
+                                    var convertedData = convertDataFromTimeNavToDm(originalData, field, udm);
                                     if (convertedData) {
                                         if (convertedData.data.length > 0) {
                                             var localTimeZone = moment.tz.guess();
@@ -2082,7 +2166,8 @@
             }
 
             setupLoadingPanel(widgetName, widgetContentColor, true);
-            populateWidget(timeRange, null, "plus", timeNavCount, dataFut);
+        //    populateWidget(timeRange, null, "plus", timeNavCount, dataFut, udmFromUserOptions);
+            populateWidget(timeRange, null, "plus", timeNavCount, dataFut, udm);
 
         });
 
@@ -2121,7 +2206,7 @@
                             dataType: 'json',
                             success: function (originalData) {
                                 var stopFlag = 1;
-                                var convertedData = convertDataFromTimeNavToDm(originalData, field);
+                                var convertedData = convertDataFromTimeNavToDm(originalData, field, udmFromUserOptions);
                                 if (convertedData) {
                                     if (convertedData.data.length > 0) {
                                         var localTimeZone = moment.tz.guess();
@@ -2188,6 +2273,46 @@
                 infoJson = widgetData.params.infoJson;
                 
                 sm_based = widgetData.params.sm_based;
+
+                udmFromUserOptions = widgetData.params.udm;
+                if (udmFromUserOptions != null) {
+                    var udmFromUserOptions = udmFromUserOptions.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+                    udmFromUserOptions = udmFromUserOptions.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+                    udmFromUserOptions = udmFromUserOptions.replace(/&deg;/g, "Â°");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&num;/g, "#");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&dollar;/g, "$");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&percnt;/g, "%");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&pound;/g, "Â£");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lt;/g, "<");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&gt;/g, ">");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&agrave;/g, "Ã ");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&egrave;/g, "Ã¨");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&eacute;/g, "Ã©");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&igrave;/g, "Ã¬");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&ograve;/g, "Ã²");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&ugrave;/g, "Ã¹");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&micro;/g, "Âµ");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&sol;/g, "/");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&bsol;/g, "\\");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lpar;/g, "(");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&rpar;/g, ")");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lsqb;/g, "[");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&rsqb;/g, "]");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lcub;/g, "{");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&rcub;/g, "}");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&Hat;/g, "^");
+                }
+
+                var styleParametersString = widgetData.params.styleParameters;
+                styleParameters = jQuery.parseJSON(styleParametersString);
+                if (styleParameters != null) {
+                    if (styleParameters.viewUdm != null) {
+                        viewUdm = styleParameters.viewUdm;
+                    }
+                    if (styleParameters.xOffsetUdm != null) {
+                        xOffsetUdm = styleParameters.xOffsetUdm;
+                    }
+                }
             //    if ((sm_based === "myKPI" || sm_based === "no") && fromGisExternalContent != true) {
             //    if ((sm_based === "no" || infoJson === "fromTracker") && fromGisExternalContent != true) {
                 if (infoJson === "fromTracker" && fromGisExternalContent != true) {
@@ -2269,7 +2394,7 @@
                 if (timeRange == null || timeRange == undefined) {
                     timeRange = widgetData.params.temporal_range_w;
                 }
-                populateWidget(timeRange, null, null, timeNavCount);
+                populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions);
 
                 // Modify width to show newly implemented PREV and NEXT buttons
             //    if ((sm_based != "myKPI" && sm_based != "no") || fromGisExternalContent === true) {
@@ -2441,7 +2566,7 @@
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading').show();
                 //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').css('height', currentWidth);
                     timeRange = event.newTimeRange;
-                    populateWidget(event.newTimeRange, null, null, 0);
+                    populateWidget(event.newTimeRange, null, null, 0, null, udmFromUserOptions);
                 });
 
                 countdownRef = startCountdown(widgetName, timeToReload, <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId); 

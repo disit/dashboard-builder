@@ -1162,7 +1162,7 @@
                 param: orgFlag
             },
             type: "GET",
-            async: false,
+            async: true,
             dataType: 'json',
             success: function(data)
             {

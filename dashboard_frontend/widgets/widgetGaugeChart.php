@@ -52,6 +52,7 @@
         var headerHeight = 25;
         var needWebSocket = false;
         var scaleFactor = null;
+        var udmFromUserOptions = null;
 
         console.log("Entrato in widgetGaugeChart --> " + widgetName);
         
@@ -815,6 +816,34 @@
                 rowParameters = widgetData.params.rowParameters;
                 sm_field = widgetData.params.sm_field;
                 scaleFactor = widgetData.params.scaleFactor;
+                udmFromUserOptions = widgetData.params.udm;
+                if (udmFromUserOptions != null) {
+                    var udmFromUserOptions = udmFromUserOptions.replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+                    udmFromUserOptions = udmFromUserOptions.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+                    udmFromUserOptions = udmFromUserOptions.replace(/&deg;/g, "°");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&num;/g, "#");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&dollar;/g, "$");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&percnt;/g, "%");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&pound;/g, "£");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lt;/g, "<");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&gt;/g, ">");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&agrave;/g, "à");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&egrave;/g, "è");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&eacute;/g, "é");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&igrave;/g, "ì");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&ograve;/g, "ò");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&ugrave;/g, "ù");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&micro;/g, "µ");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&sol;/g, "/");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&bsol;/g, "\\");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lpar;/g, "(");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&rpar;/g, ")");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lsqb;/g, "[");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&rsqb;/g, "]");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&lcub;/g, "{");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&rcub;/g, "}");
+                    udmFromUserOptions = udmFromUserOptions.replace(/&Hat;/g, "^");
+                }
                 
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
@@ -1046,6 +1075,9 @@
                                 var originalMetricType = data.Sensor.features[0].properties.realtimeAttributes[sm_field].data_type;
                                 udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
                             }
+                            if (udmFromUserOptions != null) {
+                                udm = udmFromUserOptions;
+                            }
                             if (data.realtime.results.bindings[0].measuredTime != null) {
                                 dateTime = data.realtime.results.bindings[0].measuredTime.value;
                             } else {
@@ -1192,6 +1224,9 @@
                             if (dateTime == null) {
                                 dateTime = "n.a.";
                             }
+                            if (udmFromUserOptions != null) {
+                                udm = udmFromUserOptions;
+                            }
 
                             metricData = {  
                                 data:[  
@@ -1297,6 +1332,9 @@
                                 dateTime = new Date(data[0].dataTime).toUTCString();
                             } else {
                                 dateTime = "n.a.";
+                            }
+                            if (udmFromUserOptions != null) {
+                                udm = udmFromUserOptions;
                             }
 
                             metricData = {

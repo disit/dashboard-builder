@@ -55,8 +55,8 @@ $lastUsedColors = null;
     <link href="../css/bootstrap.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" href="../css/style_widgets.css?v=<?php
-echo time();
-?>" type="text/css" />
+    echo time();
+    ?>" type="text/css" />
     <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/chat.css" type="text/css" />
 
@@ -174,7 +174,7 @@ echo time();
     <!-- Weather icons -->
     <link rel="stylesheet" href="../img/meteoIcons/singleColor/css/weather-icons.css?v=<?php
     echo time();
-?>">
+    ?>">
 
     <!-- Text fill -->
     <script src="../js/jquery.textfill.min.js"></script>
@@ -182,49 +182,49 @@ echo time();
     <!-- Custom CSS -->
     <link href="../css/dashboard.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <link href="../css/dashboardView.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <link href="../css/addWidgetWizard2.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <link href="../css/addDashboardTab.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <link href="../css/dashboard_configdash.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <link href="../css/widgetCtxMenu_1.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <link href="../css/widgetDimControls_1.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <link href="../css/widgetHeader_1.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <script src="../js/widgetsCommonFunctions.js?v=<?php
-    echo time();
-?>" type="text/javascript" charset="utf-8"></script>
+          echo time();
+    ?>" type="text/javascript" charset="utf-8"></script>
     <script src="../js/dashboard_configdash.js?v=<?php
-    echo time();
-?>" type="text/javascript" charset="utf-8"></script>
+          echo time();
+    ?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/trafficEventsTypes.js?v=<?php
-    echo time();
-?>" type="text/javascript" charset="utf-8"></script>
+          echo time();
+    ?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/alarmTypes.js?v=<?php
-    echo time();
-?>" type="text/javascript" charset="utf-8"></script>
+          echo time();
+    ?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/fakeGeoJsons.js?v=<?php
-    echo time();
-?>" type="text/javascript" charset="utf-8"></script>
+          echo time();
+    ?>" type="text/javascript" charset="utf-8"></script>
     <link href="../css/chat.css?v=<?php
     echo time();
-?>" rel="stylesheet">
+    ?>" rel="stylesheet">
     <script src="../js/bootstrap-ckeditor-.js?v=<?php
-    echo time();
-?>" type="text/javascript" charset="utf-8"></script>
+          echo time();
+    ?>" type="text/javascript" charset="utf-8"></script>
 
 </head>
 
@@ -319,12 +319,12 @@ echo time();
     .slider.round:before {
         border-radius: 50%;
     }
-    
+
     .dropdown1 {
 
         overflow:scroll;
         height: 200px;
-     }
+    }
 </style>
 
 <body style="overflow-y: hidden !important">
@@ -426,12 +426,11 @@ echo time();
                                         <li role="presentation" id="tab5"><a href="#ownerTab" aria-controls="ownerTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Licensing</a>
                                         </li>');
     }
-    if(($_SESSION['loggedRole'] == "RootAdmin")){
-                                       echo(' <li role="presentation" id="tab7"><a href="#userTab" aria-controls="userTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">User</a></li>');
-                                       
+    if (($_SESSION['loggedRole'] == "RootAdmin")) {
+        echo(' <li role="presentation" id="tab7"><a href="#userTab" aria-controls="userTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">User</a></li>');
     }
     if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
-                                   echo(' </ul>
+        echo(' </ul>
                                     <!-- Tab panes -->
                                     <div class="tab-content">
                                         <div role="tabpanel" class="tab-pane active" id="uploadTab">
@@ -469,7 +468,7 @@ echo time();
                                                             <div class="input-group"><span class="input-group-addon">Period: </span><input id="period" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Last Update: </span><input id="last_check_health" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Healthiness Criteria 1:</span><span class="input-group-addon"><span id="s1_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_1"></i></span><input id="Status_h" type="text" class="form-control" value="" readonly/></div><br />
-                                                            <div class="input-group"><span class="input-group-addon">Healthiness Criteria 2:</span><span class="input-group-addon"><span id="s2_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/></div>
+                                                            <div class="input-group" id="input_ch2"></div>
                                                     </div>
                                           </div>
                                         <div role="tabpanel" class="tab-pane" id="browseTab">
@@ -543,18 +542,18 @@ echo time();
                                                             <!-- data graph -->
                                                             <!-- -->
                 <div id="licenceLabel" class="input-group" style="display:none;"><span class="input-group-addon" >Licence: </span><input id="licence_hidden" type="text" class="form-control licence_par" hidden readonly/></div><br />
-                <div class="panel panel-default" id="panel_lic" style="background-color: #EEE"><div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div></div>');}
-    if(($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
-                                                                    echo('<div id="ownerLabel" class="input-group licence_tab_div"><span class="input-group-addon">Provider: </span><input id="owner" type="text" class="form-control licence_par" readonly/></div><br />
+                <div class="panel panel-default" id="panel_lic" style="background-color: #EEE"><div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div></div>');
+    }
+    if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
+        echo('<div id="ownerLabel" class="input-group licence_tab_div"><span class="input-group-addon">Provider: </span><input id="owner" type="text" class="form-control licence_par" readonly/></div><br />
                                                                     <div id="addressLabel" class="input-group licence_tab_div"><span class="input-group-addon">Address: </span><input id="address" type="text" class="form-control licence_par" readonly/></div><br />
                                                                     <div id="mailLabel" class="input-group licence_tab_div"><span class="input-group-addon">E-mail: </span><input id="mail" type="text" class="form-control licence_par" readonly/></div><br />
                                                                     <div id="personLabel" class="input-group licence_tab_div"><span class="input-group-addon">Reference Person: </span><input id="person" type="text" class="form-control licence_par" readonly/></div><br />
                                                                     <div id="telephoneLabel" class="input-group licence_tab_div"><span class="input-group-addon">Telephone: </span><input id="telephone" type="text" class="form-control licence_par" readonly/></div><br />
                                                                     <div id="webLabel" class="input-group licence_tab_div"><span class="input-group-addon">Website: </span><input id="web" type="text" class="form-control licence_par" readonly/></div><br />');
-                                                                    
     }
- if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {                                                                    
-                                                           echo (' 
+    if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
+        echo (' 
                                                             <div id="div_edit_licence">
                                                             </div>
                                                             <div id="div_edit_licence_confirm">
@@ -563,8 +562,8 @@ echo time();
                                                         </div>
                                                    </div>');
     }
-    if($_SESSION['loggedRole'] == "RootAdmin"){
-                                      echo(' <div role="tabpanel" class="tab-pane" id="userTab">
+    if ($_SESSION['loggedRole'] == "RootAdmin") {
+        echo(' <div role="tabpanel" class="tab-pane" id="userTab">
                                                         <div class="modal-body">
                                                                 <div id="creatorLabel" class="input-group"><span class="input-group-addon">User Creator: </span><input id="creator" type="text" class="form-control" readonly/></div><br />
                                                                 <div id="publicLabel" class="input-group"><span class="input-group-addon">Status: </span><input id="public" type="text" class="form-control" readonly/></div><br />
@@ -573,8 +572,8 @@ echo time();
                                                         
                                                 </div>');
     }
-   if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
-                               echo('</div>
+    if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
+        echo('</div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn cancelBtn cancelView" id="close_healthiness_modal" data-dismiss="modal">Cancel</button>
                                     </div>
@@ -607,39 +606,39 @@ echo time();
     </div>
     <!-- -->
     <!-- -->
-        <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <form enctype="multipart/form-data" action="editInspectorData.php" method="POST" accept-charset="UTF-8">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" id="button_conf_edit2">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Parameter</h5>
-                    
-                </div>
-                <div id="edit_lic_mod" style="display:none;">
-                    <input id="id_row_hlt" type="text" name="id_row_hlt"></input>
-                    <input id="id_hlt" type="text" name="id_hlt"></input>
-                    <input id="id_mod" type="text" name="id_mod"></input>
-                    <input id="mod_lic" type="text"  name="mod_lic"></input>
-                    <input id="mod_prov" type="text"  name="mod_prov"></input>
-                     <input id="mod_add"  type="text"  name="mod_add"></input>
-                      <input id="mod_mail"  type="text"  name="mod_mail"></input>
-                       <input id="mod_tel"  type="text"  name="mod_tel"></input>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" id="button_conf_edit2">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h5 class="modal-title" id="exampleModalLabel">Edit Parameter</h5>
+
+                    </div>
+                    <div id="edit_lic_mod" style="display:none;">
+                        <input id="id_row_hlt" type="text" name="id_row_hlt"></input>
+                        <input id="id_hlt" type="text" name="id_hlt"></input>
+                        <input id="id_mod" type="text" name="id_mod"></input>
+                        <input id="mod_lic" type="text"  name="mod_lic"></input>
+                        <input id="mod_prov" type="text"  name="mod_prov"></input>
+                        <input id="mod_add"  type="text"  name="mod_add"></input>
+                        <input id="mod_mail"  type="text"  name="mod_mail"></input>
+                        <input id="mod_tel"  type="text"  name="mod_tel"></input>
                         <input id="mod_web"  type="text"  name="mod_web"></input>
-                         <input id="mod_ref"  type="text"  name="mod_ref"></input>
+                        <input id="mod_ref"  type="text"  name="mod_ref"></input>
+                    </div>
+                    <div class="modal-body">
+                        <div id="check_errors"></div>
+                        Are you sure do you want confirm?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="close_conf_edit2" >Close</button>
+                        <button type="submit" class="btn btn-primary" id="conf_edit2">Confirm</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div id="check_errors"></div>
-                    Are you sure do you want confirm?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="close_conf_edit2" >Close</button>
-                    <button type="submit" class="btn btn-primary" id="conf_edit2">Confirm</button>
-                </div>
-            </div>
-        </form>
+            </form>
         </div>
     </div>
     <!-- -->
@@ -676,7 +675,7 @@ echo time();
         $(document).on('click', '.fa-circle', function () {
             //
             var cl = $(this).attr('style');
-            var cl2=cl.split('font-size:16px;color:');
+            var cl2 = cl.split('font-size:16px;color:');
             var color_cicle = cl2[1];
             console.log(color_cicle);
             //var id0 = $(this).parent().parent().html();
@@ -712,7 +711,7 @@ echo time();
                 //$('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;" id="confirmModal">Edit parameters</a></span>');
                 $('.licence_tab_div').show();
                 //
-} else {
+            } else {
                 $('#div_edit_licence').empty();
                 //$('.licence_tab_div').hide();
             }
@@ -722,9 +721,9 @@ echo time();
             $('#name_Nature').val(name_Nature);
             $('#name_Subnature').val(name_Subnature);
             $('#data-unique_name_id').val(data_unique_name_id);
-            $('#id_row_hlt').val(name_Subnature);           
+            $('#id_row_hlt').val(name_Subnature);
             //users
-           // $('#public').val();
+            // $('#public').val();
             //$('#creator').val();
             //$('#mailC').val();
             //licence
@@ -775,7 +774,7 @@ echo time();
             //CONTROLLI SUL TIPO
             $('#tab3').hide();
             //
-            if ((parameters !== null) && (typeof parameters !== 'undefined')) {
+            if ((parameters !== null) && (typeof parameters !== 'undefined') && (parameters !== undefined)) {
                 if (parameters.includes('http')) {
                     var check_para = parameters.includes('http');
                 }
@@ -783,12 +782,15 @@ echo time();
             }
             //***//
             switch (high_level) {
-                case 'Complex Event', 'wfs':
+                case 'Complex Event':
+                case 'wfs':
+                    $('#input_ch2').empty();
                     var icon = '../img/dataInspectorIcons/data-inspector.png';
                     $('#inspector_image').append('<img src="' + icon + '" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     break;
                 case 'External Service':
                     $('#data_source').val('Special Process');
+                    $('#input_ch2').empty();
                     $('#sm_link').append('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to External Service</a>');
                     //
                     //icon
@@ -805,21 +807,29 @@ echo time();
                     });
                     //
                     break;
+                case 'Heatmap':
+                    $('#input_ch2').show();
+                    $('#input_ch2').html('<span class="input-group-addon">Healthiness Criteria 2:</span><span class="input-group-addon"><span id="s2_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/>');
+                    break;
                 case 'POI':
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
                     $(".sensor_own").hide();
+                    $('#input_ch2').empty();
                     $('#data_source').val('Datagate or Loaded by Triples (ETL)');
                     var icon = '../img/dataInspectorIcons/data-inspector.png';
+                    var func_dash = function_dashKpi(parameters);
                     //$('#pd_link').append('<a href="'+pd_external_link+'" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to '+high_level+'</a>');
                     $('#inspector_image').append('<img src="' + icon + '" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     break;
                 case 'KPI':
                     $(".etl_sensor").show();
                     $(".iot_sensor").hide();
+                    $('#input_ch2').empty();
                     $(".sensor_own").show();
                     $('#tab3').show();
                     $('#data_source').val('Km4cityRTData');
+                    var func_dash = function_dashKpi(parameters);
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                     break;
@@ -827,18 +837,19 @@ echo time();
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
                     $(".sensor_own").show();
+                    $('#input_ch2').empty();
                     var dataTypeMyKpi = data_unit.split('-');
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     if (parameters.includes('datamanager/api/v1/poidata/')) {
                         var param2 = parameters.split('datamanager/api/v1/poidata/');
                         //$('#data_source').val(param2[1]);
-                        //var func_dash = function_dashKpi(param2[1]);
+                        var func_dash = function_dashKpi(param2[1]);
                         var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + param2[1] + "&operation=values&dataType=" + dataTypeMyKpi[0];
                         $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                         //$('#pd_link').append('<a href="https://www.snap4city.org/mypersonaldata/api/v1/kpidata/'+ parameters + '/activities" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoTApp List</a>');
                     } else {
                         $('#data_source').val(parameters);
-                        //var func_dash = function_dashKpi(parameters);
+                        var func_dash = function_dashKpi(parameters);
                         var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + parameters + "&operation=values&dataType=" + dataTypeMyKpi[0];
                         $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                         //$('#pd_link').append('<a href="https://www.snap4city.org/mypersonaldata/api/v1/kpidata/'+ parameters + '/activities" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoTApp List</a>');
@@ -852,6 +863,7 @@ echo time();
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
                     $(".sensor_own").hide();
+                    $('#input_ch2').empty();
                     var dataTypeMyKpi = data_unit.split('-');
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     if (parameters.includes('datamanager/api/v1/poidata/')) {
@@ -869,14 +881,17 @@ echo time();
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
                     $(".sensor_own").hide();
+                    $('#input_ch2').empty();
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     if (parameters.includes('datamanager/api/v1/poidata/')) {
                         var param2 = parameters.split('datamanager/api/v1/poidata/');
                         //$('#data_source').val(param2[1]);
+                        var func_dash = function_dashKpi(param2[1]);
                         var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + param2[1] + "&operation=values&dataType=integer";
                         $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                     } else {
                         $('#data_source').val(parameters);
+                        var func_dash = function_dashKpi(parameters);
                         var pd_external_link = "https://www.snap4city.org/mypersonaldata/?kpiId=" + parameters + "&operation=values&dataType=integer";
                         $('#pd_link').append('<a href="' + pd_external_link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ' + high_level + '</a>');
                     }
@@ -890,22 +905,34 @@ echo time();
                         $(".iot_sensor").show();
                         $(".etl_sensor").hide();
                         $(".sensor_own").show();
-                        //var iot_sensor_ip = "<?= $iot_sensor?>";  
-                         // iot_sensor_ip = '';                          
+                        //$('#input_ch2').show();
+                        //var iot_sensor_ip = "<?= $iot_sensor ?>";  
+                        // iot_sensor_ip = '';                          
                         //var url_iot= "" + iot_sensor_ip + "/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
                         //var url_iotBrok = "" + iot_sensor_ip + "/management/iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
-                        var url_iot = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
-                        var url_iotBrok = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
+                        //var url_iot = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                        //var url_iotBrok = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
                         //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
-                         //var test = check_iot(url_iot);
-                         //
-                        $('#iot_link').html('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directory</a>');
-                        $('#broker_link').html('<a href="' + url_iotBrok + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
+                        //var url_iot = '';
+                        //var url_iotBrok ='';
+                        //var test = check_iot(url_iot);
+                        $('#broker_link').show();
+                        var url_iot = "<?= $iot_directory ?>";
+                        var url_iotBrok = "<?= $iot_directory ?>";
+                        https://www.snap4city.org/iotdirectorytest/management/ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false
+                        //
+                        $('#iot_link').html('<a href="' + url_iot + 'ssoLogin.php?redirect=value.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directory</a>');
+                        $('#broker_link').html('<a href="' + url_iotBrok + 'ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
                     } else {
                         $('#data_source').val("ETL");
                         $(".etl_sensor").show();
                         $(".iot_sensor").hide();
                         $('#broker_link').hide();
+                    }
+                    if (data_unit === 'sensor_map') {
+                        $('#input_ch2').hide();
+                    } else {
+                        $('#input_ch2').show();
                     }
                     break;
                 case 'Sensor-Actuator':
@@ -915,13 +942,16 @@ echo time();
                         $('#data_source').val("IoT");
                         $(".iot_sensor").show();
                         $(".etl_sensor").hide();
-                        //var iot_sensor_ip = "<?= $iot_sensor?>";
+                        $('#input_ch2').empty();
+                        //var iot_sensor_ip = "<?= $iot_sensor ?>";
                         //iot_sensor_ip = ''; 
-                        var url_iot = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
-                        var url_iotBrok = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
+                        //var url_iot = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dvalue.php%253FshowFrame%3Dfalse&linkId=saLink&pageTitle=IOT%20Sensors%20and%20Actuators&fromSubmenu=iotDir2Link";
+                        //var url_iotBrok = "iframeApp.php?linkUrl=https%3A%2F%2Fwww.snap4city.org%2Fiotdirectorytest%2Fmanagement%2FssoLogin.php%3Fredirect%3Dcontextbroker.php%253FshowFrame%3Dfalse&linkId=sab3Link&pageTitle=IOT%20Brokers&fromSubmenu=iotDir2Link";
+                        var url_iot = "<?= $iot_directory ?>";
+                        var url_iotBrok = "<?=$iot_directory ?>";
                         //var test = check_iot(url_iot);
                         $('#broker_link').show();
-                        $('#broker_link').html('<a href="' + url_iotBrok + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
+                        $('#broker_link').html('<a href="' + url_iotBrok + 'ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
                         //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
                     } else {
                         $('#data_source').val("ETL");
@@ -932,6 +962,7 @@ echo time();
                     break;
                 case 'MicroApplication':
                     //
+                    $('#input_ch2').empty();
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
                     $('#broker_link').hide();
@@ -952,6 +983,7 @@ echo time();
                     break;
                 case 'Special Widget':
                     $('#tab3').hide();
+                    $('#input_ch2').empty();
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
                     $('#broker_link').hide();
@@ -959,15 +991,19 @@ echo time();
                     $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     break;
                 case 'Dashboard-IOT App':
+                    $('#input_ch2').empty();
                     $('#data_source').val(name_Nature);
                     var das = function_dashboard(data_get_instances);
                     //$('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     break;
+                default:
+                    $('#input_ch2').empty();
+                    break;
             }
             //***//
-            var iot_device = "<?= $iot_device
+            var iot_device = "<?= $iot_directory
     ?>";
             //
             switch (name_Nature) {
@@ -975,7 +1011,7 @@ echo time();
                     var das = function_dashboard(data_get_instances);
                     //var test = check_iot(iot_device);
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
-                    $('#iot_link').html('<a href="' + iot_device + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
+                    $('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $('#disces_link').empty();
                     $('#broker_link').show();
@@ -985,7 +1021,7 @@ echo time();
                 case 'From IOT Device to KB':
                     //
                     //var test = check_iot(iot_device);
-                    $('#iot_link').html('<a href="' + iot_device + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
+                    $('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                     $('#disces_link').empty();
                     $(".etl_sensor").hide();
@@ -1057,326 +1093,339 @@ echo time();
                 success: function (data) {
                     /*DECODIFICARE data.healthiness*/
                     //if ((high_level === 'Sensor') || (high_level === 'Sensor-Actuator') || (high_level === 'KPI') || (high_level === 'MyPOI') || (high_level === 'MyKPI')) {
-                        var json_data = JSON.stringify(data.healthiness);
-                        var value_td = "";
-                        var obj = Object.values(data);
-                        var obj2 = "";
-                        var keys2 = "";
-                        var key3 = "";
-                        var key4 = "";
-                        var key5 = "";
-                        var measured_time = "";
-                        var key_icon0 = JSON.stringify(data.icon);
-                        var key_icon = key_icon0;
-                        if (key_icon !== undefined) {
-                            var res = key_icon.replace('"', '');
-                        } else {
-                            var res = "";
+                    var json_data = JSON.stringify(data.healthiness);
+                    var value_td = "";
+                    var obj = Object.values(data);
+                    var obj2 = "";
+                    var keys2 = "";
+                    var key3 = "";
+                    var key4 = "";
+                    var key5 = "";
+                    var measured_time = "";
+                    var key_icon0 = JSON.stringify(data.icon);
+                    var key_icon = key_icon0;
+                    if (key_icon !== undefined) {
+                        var res = key_icon.replace('"', '');
+                    } else {
+                        var res = "";
+                    }
+                    var res1 = res.replace('"', '');
+                    var key_icon = res1;
+
+                    if (key_icon.includes(".")) {
+                        $('#inspector_image').html('<img src="../img/sensorImages/' + id_row + '/' + key_icon + '" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
+                    } else {
+                        $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
+                    }
+                    if ((high_level !== 'KPI') && (high_level !== 'MyKPI') && (high_level !== 'MyPOI')) {
+                        if ((data.healthiness !== null) && (data.healthiness !== undefined)) {
+                            console.log('data.healthiness: ' + data.healthiness);
+                            obj2 = Object.values(data.healthiness);
+                            keys2 = Object.keys(data.healthiness);
                         }
-                        var res1 = res.replace('"', '');
-                        var key_icon = res1;
 
-                        if (key_icon.includes(".")) {
-                            $('#inspector_image').html('<img src="../img/sensorImages/' + id_row + '/' + key_icon + '" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
-                        } else {
-                            $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
-                        }
-                        if ((high_level !== 'KPI') && (high_level !== 'MyKPI') && (high_level !== 'MyPOI')) {
-                            if ((data.healthiness !== null)&&(data.healthiness !==undefined)) {
-                                console.log('data.healthiness: '+data.healthiness);
-                                obj2 = Object.values(data.healthiness);
-                                keys2 = Object.keys(data.healthiness);
-                            }
-
-                            if ((data.Service !== null)&&(data.Service !== undefined)) {
-                                if (data.Service.features) {
-                                    key4 = Object.values(data.Service.features[0]);
-                                    key5 = (key4[2].realtimeAttributes);
-                                }
-                            }
-
-                        } else {
-                            key3 = "";
-                            $('#data_source').val(dataSource);
-                            if (data.Graph_Uri === "") {
-                                $('#tab3').hide();
-                            } else {
-                                $('#tab3').show();
+                        if ((data.Service !== null) && (data.Service !== undefined)) {
+                            if (data.Service.features) {
+                                key4 = Object.values(data.Service.features[0]);
+                                key5 = (key4[2].realtimeAttributes);
                             }
                         }
 
-                        var fromTime = '';
-                        var toTime = '';
+                    } else {
+                        key3 = "";
+                        $('#data_source').val(dataSource);
+                        if (data.Graph_Uri === "") {
+                            $('#tab3').hide();
+                        } else {
+                            $('#tab3').show();
+                        }
+                    }
+
+                    var fromTime = '';
+                    var toTime = '';
 
 
 
-                        //serviceUri
-                        var process_name_ST = data.process_name_ST;
-                        var processPath = data.process_path;
-                        var kbIp = data.KB_Ip;
-                        var mail = data.mail;
-                        var phoenixTable = data.phoenix_table;
-                        var owner = data.owner;
-                        var licence = data.licence;
-                        var web = data.webpage;
-                        var address = data.address;
-                        var graph_uri = data.Graph_Uri;
-                        var telephone = data.telephone;
-                        var disces_ip = data.disces_ip;
-                        var total_data = data.disces_data;
-                        var dataSource = data.dataSource;
-                        var ownership_content = data.ownership_content;
-                        var healthiness = data.HealthinessCriteria;
-                        var period = data.period;
-                        var organization = data.organization;
-                        var device_id = data.device_id;
-                        var broker = data.broker;
-                        var creator = data.creator;
-                        var ref_pers = data.reference_person;
-                        var p_name= data.process_name;
-                        
-                                                //++++++++++++++//
-                        if (data.total_ETL){
-                            var total_ETL = data.total_ETL;
-                            if(total_ETL > 0){
-                                var lun = total_ETL;
-                                var list_result = "";
-                                if (data.list_ETL){
-                                    for(var i=0; i<lun; i++){
-                                        if ((data.list_ETL[i] !== undefined)&&(data.list_ETL[i] !== 'undefined')){
-                                        list_result=list_result+"<li><a href='#'>"+data.list_ETL[i]+"</a></li>";
-                                         }
+                    //serviceUri
+                    var process_name_ST = data.process_name_ST;
+                    var processPath = data.process_path;
+                    var kbIp = data.KB_Ip;
+                    var mail = data.mail;
+                    var phoenixTable = data.phoenix_table;
+                    var owner = data.owner;
+                    var licence = data.licence;
+                    var web = data.webpage;
+                    var address = data.address;
+                    var graph_uri = data.Graph_Uri;
+                    var telephone = data.telephone;
+                    var disces_ip = data.disces_ip;
+                    var total_data = data.disces_data;
+                    var dataSource = data.dataSource;
+                    var ownership_content = data.ownership_content;
+                    var healthiness = data.HealthinessCriteria;
+                    var period = data.period;
+                    var organization = data.organization;
+                    var device_id = data.device_id;
+                    var broker = data.broker;
+                    var creator = data.creator;
+                    var ref_pers = data.reference_person;
+                    var p_name = data.process_name;
+
+                    //++++++++++++++//
+                    if (data.total_ETL) {
+                        var total_ETL = data.total_ETL;
+                        if (total_ETL > 0) {
+                            var lun = total_ETL;
+                            var list_result = "";
+                            if (data.list_ETL) {
+                                for (var i = 0; i < lun; i++) {
+                                    if ((data.list_ETL[i] !== undefined) && (data.list_ETL[i] !== 'undefined')) {
+                                        list_result = list_result + "<li><a href='#'>" + data.list_ETL[i] + "</a></li>";
                                     }
-                                    //console.log(data.list_ETL[0]);
-                                    $('#listETL_link').html('<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Devices<span class="caret"></span></button><ul class="dropdown-menu scrollable-menu dropdown1" role="menu">'+list_result+'</ul></div>');
                                 }
+                                //console.log(data.list_ETL[0]);
+                                $('#listETL_link').html('<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Devices<span class="caret"></span></button><ul class="dropdown-menu scrollable-menu dropdown1" role="menu">' + list_result + '</ul></div>');
                             }
                         }
-                      //+++++++++///
-                        //
-                        //HARSH
-                        //var creator_dec = decryptOSSL(creator);
-                        //var period = data.value_refresh_rate;
-                        kbIp = kbIp.replace('http://','');
-                        $('#processnameStatic').val(process_name_ST);
-                        $('#processPath').val(processPath);
-                        $('#kbIp').val(kbIp);
-                        $('#mail').val(mail);
-                        $('#phoenixTable').val(phoenixTable);
-                        $('#licence').html(licence);
-                        $('.licence_text').text('Licence (on:'+p_name+'):');
-                        $('#setname').val(data.device_set_name);
-                        /*
-                        CKEDITOR.replace('licence', {
-                        allowedContent: true,
-                        //config.readOnly: true;
-			//extraPlugins : 'stylesheetparser',
-			contentsCss : 'ckeditor/MicroService.css',
-                        language: 'en',
-                        width: '100%',
-                        height: '100%',
-                        //toolbar: 'Full',
-                        //enterMode : CKEDITOR.ENTER_BR,
-                        //shiftEnterMode: CKEDITOR.ENTER_P
-                    });
-                    CKEDITOR.instances['licence'].config.readOnly = true;
-              CKEDITOR.instances['licence'].setData(licence);*/
-                        //
-                        //$('#licence').text(licence);
-                        $('#licence_hidden').val(licence);
-                        //$('#licence').attr('value',licence);
-                        $('#owner').val(owner);
-                        $('#address').val(address);
-                        $('#graph_uri').val(graph_uri);
-                        $('#telephone').val(telephone);
-                        $('#disces_ip').val(disces_ip);
-                        $('#web').val(web);
-                        /////
-                        //data_valueunit
-                            $('#public').val();                           
-                            $('#creator').val(creator);
-                            $('#mailC').val();
-                            //licence
-                            $('#person').val(ref_pers);
-                            $('#web').val();
-                        //////
-                        if ((high_level === 'MyKPI') || (high_level === 'MyPOI')) {
-                            $('#data_source').val(dataSource);
-                        }
-                        //$('#period').val(period);
-                        // $('#healthinessCriteria').val(healthiness);
-                        //if((ownership_content !== "")&&(ownership_content !== null)){
-                        $('#iotDevice').val(device_id);
-                        $('#iotBroker').val(broker);
-                        //$('#owner').val(ownership_content.username);
-                        //}
-                        if (organization !== "") {
-                            $('#organization').val(organization);
-                        }
-                        //
-                        var count_nh = 0;
-                        var count_h = 0;
-                        var job_name = data.jobName;
-                        var job_group = data.jobGroup;
-                        var disces_ip_test = data.ip_disc;
-                        if ((job_name !== "") || (job_group !== "")) {
-                            var link = 'http://' + disces_ip_test + '/sce/newJob.php?jobName=' + job_name + '&jobGroup=' + job_group;
+                    }
+                    //+++++++++///
+                    //
+                    //HARSH
+                    //var creator_dec = decryptOSSL(creator);
+                    //var period = data.value_refresh_rate;
+                    kbIp = kbIp.replace('http://', '');
+                    $('#processnameStatic').val(process_name_ST);
+                    $('#processPath').val(processPath);
+                    $('#kbIp').val(kbIp);
+                    $('#mail').val(mail);
+                    $('#phoenixTable').val(phoenixTable);
+                    $('#licence').html(licence);
+                    $('.licence_text').text('Licence (on:' + p_name + '):');
+                    $('#setname').val(data.device_set_name);
+                    /*
+                     CKEDITOR.replace('licence', {
+                     allowedContent: true,
+                     //config.readOnly: true;
+                     //extraPlugins : 'stylesheetparser',
+                     contentsCss : 'ckeditor/MicroService.css',
+                     language: 'en',
+                     width: '100%',
+                     height: '100%',
+                     //toolbar: 'Full',
+                     //enterMode : CKEDITOR.ENTER_BR,
+                     //shiftEnterMode: CKEDITOR.ENTER_P
+                     });
+                     CKEDITOR.instances['licence'].config.readOnly = true;
+                     CKEDITOR.instances['licence'].setData(licence);*/
+                    //
+                    //alert('data_unit:  '+data_unit+'; high_level: '+high_level);
+                    //$('#licence').text(licence);
+                    $('#licence_hidden').val(licence);
+                    //$('#licence').attr('value',licence);
+                    $('#owner').val(owner);
+                    $('#address').val(address);
+                    $('#graph_uri').val(graph_uri);
+                    $('#telephone').val(telephone);
+                    $('#disces_ip').val(disces_ip);
+                    $('#web').val(web);
+                    /////
+                    //data_valueunit
+                    $('#public').val();
+                    $('#creator').val(creator);
+                    $('#mailC').val();
+                    //licence
+                    $('#person').val(ref_pers);
+                    $('#web').val();
+                    //////
+                    $('#status_1').css('color', color_cicle);
+                    var date_ch1 = data.ch1;
+                    if (color_cicle === '#33cc33') {
+                        $('#Status_h').val("    (" + date_ch1 + ")   true");
+                    } else {
+                        $('#Status_h').val("    (" + date_ch1 + ")   false");
+                    }
+
+                    //////
+                    if ((high_level === 'MyKPI') || (high_level === 'MyPOI')) {
+                        $('#data_source').val(dataSource);
+                    }
+                    //$('#period').val(period);
+                    // $('#healthinessCriteria').val(healthiness);
+                    //if((ownership_content !== "")&&(ownership_content !== null)){
+                    $('#iotDevice').val(device_id);
+                    $('#iotBroker').val(broker);
+                    //$('#owner').val(ownership_content.username);
+                    //}
+                    if (organization !== "") {
+                        $('#organization').val(organization);
+                    }
+                    //
+                    var count_nh = 0;
+                    var count_h = 0;
+                    var job_name = data.jobName;
+                    var job_group = data.jobGroup;
+                    var disces_ip_test = data.ip_disc;
+                    if ((job_name !== "") || (job_group !== "")) {
+                        var link = 'http://' + disces_ip_test + '/sce/newJob.php?jobName=' + job_name + '&jobGroup=' + job_group;
+                    } else {
+                        var link = 'http://' + disces_ip_test + '/sce/';
+                    }
+
+                    $('#job_name').val(job_name);
+                    var color_selected = '';
+                    for (var y = 0; y < obj2.length; y++) {
+                        var name = keys2[y];
+
+                        var value_unit_td = "";
+                        var data_type_td = "";
+                        var healthiness_criteria = "";
+                        var value_refresh_rate = "";
+                        var dealy = "";
+                        var healt_value = "";
+
+                        if (key5[name]) {
+                            value_unit_td = key5[name]['value_unit'];
+                            data_type_td = key5[name]['data_type'];
+                            healthiness_criteria = key5[name]['healthiness_criteria'];
+                            value_refresh_rate = key5[name]['value_refresh_rate'];
+                            healt_value = String(obj2[y]['healthy']);
                         } else {
-                            var link = 'http://' + disces_ip_test + '/sce/';
+                            value_unit_td = "";
+                            data_type_td = "";
+                            healthiness_criteria = "";
+                            value_refresh_rate = "";
+                            healt_value = "";
                         }
-
-                        $('#job_name').val(job_name);
-                        for (var y = 0; y < obj2.length; y++) {
-                            var name = keys2[y];
-
-                            var value_unit_td = "";
-                            var data_type_td = "";
-                            var healthiness_criteria = "";
-                            var value_refresh_rate = "";
-                            var dealy = "";
-                            var healt_value = "";
-
-                            if (key5[name]) {
-                                value_unit_td = key5[name]['value_unit'];
-                                data_type_td = key5[name]['data_type'];
-                                healthiness_criteria = key5[name]['healthiness_criteria'];
-                                value_refresh_rate = key5[name]['value_refresh_rate'];
-                                healt_value = String(obj2[y]['healthy']);
-                            } else {
-                                value_unit_td = "";
-                                data_type_td = "";
-                                healthiness_criteria = "";
-                                value_refresh_rate = "";
-                                healt_value = "";
-                            }
-                            /************/
-                            if ((data.realtime !== null)) {
-                                if (typeof data.realtime.results !== "undefined") {
-                                    if (typeof data.realtime.results.bindings !== "undefined") {
-                                        if ((Object.values(data.realtime.results.bindings).length > 0) && (Object.values(data.realtime.results.bindings) !== null)) {
-                                            key3 = Object.values(data.realtime.results.bindings);
-                                        } else {
-                                            key3 = "";
-                                        }
-                                        //
-                                        if (key3[0][name]) {
-                                            value_td = key3[0][name]['value'];
-                                        } else {
-                                            value_td = "";
-                                        }
-                                        if (key3[0]['measuredTime']['value']) {
-                                            measured_time = key3[0]['measuredTime']['value'];
-                                        }
-                                        //
+                        /************/
+                        if ((data.realtime !== null)) {
+                            if (typeof data.realtime.results !== "undefined") {
+                                if (typeof data.realtime.results.bindings !== "undefined") {
+                                    if ((Object.values(data.realtime.results.bindings).length > 0) && (Object.values(data.realtime.results.bindings) !== null)) {
+                                        key3 = Object.values(data.realtime.results.bindings);
                                     } else {
-                                        key3 = data.realtime.results;
-                                        //
-                                        if (key3[0][name]) {
-                                            value_td = key3[0][name]['value'];
-                                        } else {
-                                            value_td = "";
-                                        }
-                                        if (key3[0]['measuredTime']['value']) {
-                                            measured_time = key3[0]['measuredTime']['value'];
-                                        }
-                                        //
+                                        key3 = "";
                                     }
+                                    //
+                                    if (key3[0][name]) {
+                                        value_td = key3[0][name]['value'];
+                                    } else {
+                                        value_td = "";
+                                    }
+                                    if (key3[0]['measuredTime']['value']) {
+                                        measured_time = key3[0]['measuredTime']['value'];
+                                    }
+                                    //
                                 } else {
-                                    key3 = "";
+                                    key3 = data.realtime.results;
+                                    //
+                                    if (key3[0][name]) {
+                                        value_td = key3[0][name]['value'];
+                                    } else {
+                                        value_td = "";
+                                    }
+                                    if (key3[0]['measuredTime']['value']) {
+                                        measured_time = key3[0]['measuredTime']['value'];
+                                    }
+                                    //
                                 }
                             } else {
-                                //key3 = data.realtime.results;
                                 key3 = "";
                             }
-                            if ((last_date !== "") && (last_date !== null) && (typeof last_date !== "undefined")) {
-                                toTime = last_date.replace(" ", "T");
-                                toTime = toTime.replace("+01:00", "");
-                                fromTime = new Date(last_date);
-                                var date = fromTime.getFullYear() + '-' + fromTime.getMonth() + '-' + fromTime.getDate();
-                                var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
-                                fromTime = date + 'T' + time;
-                            } else {
-                                //toTime =last_date.replace(" ","T");
-                                //measured_time
-                                toTime = measured_time.replace(" ", "T");
-                                toTime = toTime.replace("+01:00", "");
-                                fromTime = new Date(measured_time);
-                                var date = fromTime.getFullYear() + '-' + fromTime.getMonth() + '-' + fromTime.getDate();
-                                var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
-                                fromTime = date + 'T' + time;
-                                //SETTARE IL FORMATO//
-                            }
-                            /***********/
-                            var time_trend_link = "";
-                            if ((fromTime !== '') && (toTime !== '')) {
-                                //time_trend_link = '<a href="https://www.snap4city.org/sensor-validate/index.php?serviceUri='+data_get_instances+'&fromTime='+fromTime+'&toTime='+toTime+'&metric='+keys2[y]+'" target= "_blank" role="button" class="btn btn-xs editDashBtnCard">VIEW</a>';
-                                time_trend_link = '<a type="button" class="viewDashBtn" href="https://www.snap4city.org/sensor-validate/index.php?serviceUri=' + data_get_instances + '&fromTime=' + fromTime + '&toTime=' + toTime + '&metric=' + keys2[y] + '" target= "_blank"> VIEW </a>';
-                            }
-                            dealy = obj2[y]['delay'];
-                            var icn_h = "";
-                            if (healt_value === 'true') {
-                                icn_h = '<i class="fa fa-circle" aria-hidden="true" style="pointer-events: none; color:#33cc33;"></i>';
-                                count_h = count_h + 1;
-                            } else {
-                                icn_h = '<i class="fa fa-circle" aria-hidden="true" style="pointer-events: none; color: red;"></i>';
-                                count_nh = count_nh + 1;
-                            }
-                            if (("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") || ("<?= $_SESSION['loggedRole'] ?>" == "ToolAdmin"))
-                            {
-                                $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>' + time_trend_link + '</td></tr>');
-                            } else {
-                                $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td></tr>');
-                            }
-                            //
-                            if ((name === data_low_level_type) || (data_unit === 'sensor_map')) {
-                                $('#last_check_health').val(measured_time);
-                               var date_ch1 = data.ch1;
-                                $('#Status_h').val("    ("+date_ch1+")   " +healt_value);
-                                $('#healthiness_c').val(healthiness_criteria);
-                                $('#period').val(value_refresh_rate);
-                                $('#delay').val(dealy);
-                                //$('#s1_date').text("    ("+measured_time+")   ");
-                                //$('#s2_date').text("    ("+last_date+")   ");
-                                if (data_unit === 'sensor_map'){
-                                     $('#status_1').css('color', color_cicle);
-                                     if (color_cicle==='#33cc33'){
-                                         $('#Status_h').val("    ("+date_ch1+")   true");
-                                     }else{
-                                         $('#Status_h').val("    ("+date_ch1+")   false");
-                                     }
-                                }else{
-                                if (healt_value === 'true') {
-                                    $('#status_1').css('color', '#33cc33');
-                                } else if (healt_value === 'false') {
-                                    $('#status_1').css('color', 'red');
-                                } else {
-                                    $('#status_1').css('color', 'blue');
-                                }
-                             }
-                            }
-                            //
-                       
-                        if (count_nh > 0) {
-                            var ch2 = data.ch2;
-                            $('#Status_2').val("    ("+ch2+")   " + 'false');
-                            $('#status_health').css('color', 'red');
-                        } else if (count_h > 0) {
-                            var ch2 = data.ch2;
-                            $('#Status_2').val("    ("+ch2+")   " + 'true');
-                            $('#status_health').css('color', '#33cc33');
                         } else {
-                            $('#Status_2').val('');
-                            $('#status_health').css('color', 'black');
+                            //key3 = data.realtime.results;
+                            key3 = "";
                         }
+                        if ((last_date !== "") && (last_date !== null) && (typeof last_date !== "undefined")) {
+                            toTime = last_date.replace(" ", "T");
+                            toTime = toTime.replace("+01:00", "");
+                            fromTime = new Date(last_date);
+                            var date = fromTime.getFullYear() + '-' + fromTime.getMonth() + '-' + fromTime.getDate();
+                            var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
+                            fromTime = date + 'T' + time;
+                        } else {
+                            //toTime =last_date.replace(" ","T");
+                            //measured_time
+                            toTime = measured_time.replace(" ", "T");
+                            toTime = toTime.replace("+01:00", "");
+                            fromTime = new Date(measured_time);
+                            var date = fromTime.getFullYear() + '-' + fromTime.getMonth() + '-' + fromTime.getDate();
+                            var time = addZero(fromTime.getHours()) + ":" + addZero(fromTime.getMinutes()) + ":" + addZero(fromTime.getSeconds());
+                            fromTime = date + 'T' + time;
+                            //SETTARE IL FORMATO//
+                        }
+                        /***********/
+                        var time_trend_link = "";
+                        if ((fromTime !== '') && (toTime !== '')) {
+                            //time_trend_link = '<a href="https://www.snap4city.org/sensor-validate/index.php?serviceUri='+data_get_instances+'&fromTime='+fromTime+'&toTime='+toTime+'&metric='+keys2[y]+'" target= "_blank" role="button" class="btn btn-xs editDashBtnCard">VIEW</a>';
+                            time_trend_link = '<a type="button" class="viewDashBtn" href="https://www.snap4city.org/sensor-validate/indexML.php?serviceUri=' + data_get_instances + '&fromTime=' + fromTime + '&toTime=' + toTime + '&metric=' + keys2[y] + '" target= "_blank"> VIEW </a>';
+                        }
+                        dealy = obj2[y]['delay'];
+                        var icn_h = "";
+                        if (healt_value === 'true') {
+                            icn_h = '<i class="fa fa-circle" aria-hidden="true" style="pointer-events: none; color:#33cc33;"></i>';
+                            count_h = count_h + 1;
+                        } else {
+                            icn_h = '<i class="fa fa-circle" aria-hidden="true" style="pointer-events: none; color: red;"></i>';
+                            count_nh = count_nh + 1;
+                        }
+                        if (("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") || ("<?= $_SESSION['loggedRole'] ?>" == "ToolAdmin"))
+                        {
+                            $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>' + time_trend_link + '</td></tr>');
+                        } else {
+                            $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td></tr>');
+                        }
+                        if (name == data_low_level_type) {
+                            color_selected = healt_value;
+                            console.log('color_selected: ' + color_selected);
+                            //ARPAT_QA_AR-ACROPOLI
+                        }
+                        //
+                    }
+                    /////////////////////
+                    $('#healthiness_c').val(healthiness_criteria);
+                    $('#period').val(value_refresh_rate);
+                    $('#delay').val(dealy);
+                    ////
+                    if (high_level === 'Sensor') {
+                        if (data_unit !== 'sensor_map') {
+                            var ch2_content = '<span class="input-group-addon">Healthiness Criteria 2:</span><span class="input-group-addon"><span id="s2_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/>';
+                            $('#input_ch2').html(ch2_content);
+                            $('#input_ch2').show();
+                            var ch2 = toTime;
+                            //alert('Sensor_map!');
+                            if (count_nh > 0) {
+                                //var ch2 = measured_time;
+                                $('#Status_2').val("    (" + ch2 + ")   " + 'true');
+                                $('#status_health').css('color', '#33cc33');
+                            } else {
+                                $('#Status_2').val("    (" + ch2 + ")   " + 'false');
+                                $('#status_health').css('color', 'red');
+                            }
+                            //
+                            //COlore CH1  -- Valore
+                            if (color_selected == 'true') {
+                                $('#status_1').css('color', '#33cc33');
+                                $('#Status_h').val("    (" + date_ch1 + ")   true");
+                            } else if (color_selected == 'false') {
+                                $('#status_1').css('color', 'red');
+                                $('#Status_h').val("    (" + date_ch1 + ")   false");
 
-}
-                        //UPLOAD IMAGE//upload_image
-                        //upload_image
-                        if (role_session_active === 'RootAdmin') {
-                            $('#upload_image').html('<div id="uplaod" class="input-group mb-3"><div class="input-group iot_sensor"><div class="input-group-prepend"><span class="input-group-text" id="inputGroup-sizing-default">Upload</span></div><input type="file" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="uploadField" name="uploadField"/><div class="input-group-append"><button class="btn btn-primary uploadImageClass" role="button" id="upload_command" style="margin-right: 10px;">Upload Image</button></div></div></div>');
-                            //$('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;">Edit paramters</a></span>');
+                                //
+                            }
+                            //
+                        } else {
+                            $('#input_ch2').empty();
+                            $('#input_ch2').hide();
+
                         }
-                        ///////
+                    }
+                    //UPLOAD IMAGE//upload_image
+                    //upload_image
+                    if (role_session_active === 'RootAdmin') {
+                        $('#upload_image').html('<div id="uplaod" class="input-group mb-3"><div class="input-group iot_sensor"><div class="input-group-prepend"><span class="input-group-text" id="inputGroup-sizing-default">Upload</span></div><input type="file" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="uploadField" name="uploadField"/><div class="input-group-append"><button class="btn btn-primary uploadImageClass" role="button" id="upload_command" style="margin-right: 10px;">Upload Image</button></div></div></div>');
+                        //$('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;">Edit paramters</a></span>');
+                    }
+                    ///////
                     //}
 
                     //TEST//
@@ -1390,8 +1439,8 @@ echo time();
                     if (etl === 'IoT') {
                         $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Disces</a>');
                     }
-                    if (parameters.includes('http')){
-                    $('#kb_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
+                    if (parameters.includes('http')) {
+                        $('#kb_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
                     }
                     //$('#kb_link').html('<a href="' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
                     //
@@ -1434,25 +1483,25 @@ echo time();
         });
 
         $(document).on('click', '#edit_button_lic', function () {
-            
+
             //$('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;"  data-target="#exampleModal">Confirm</a></span>');
             //$('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal">Confirm</a></span>');
             //$('#edit_button_lic').hide();
             console.log('edit_button_lic');
             $('#confirmModal').show();
             //$('.licence_par').attr("readonly", false);
-    //
+            //
         });
-        
-         $(document).on('click', '#confirm_modify', function () {
-            
+
+        $(document).on('click', '#confirm_modify', function () {
+
             //$('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;"  data-target="#exampleModal">Confirm</a></span>');
             $('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal">Confirm</a></span>');
             $('#edit_button_lic').hide();
             $('.licence_par').attr("readonly", false);
-    //
+            //
         });
-        
+
         $(document).on('click', '#close_conf_edit', function () {
             $('#confirmModal').modal('hide');
             $('.licence_par').attr("readonly", true);
@@ -1462,10 +1511,10 @@ echo time();
             $('.licence_par').attr("readonly", true);
         });
         //close_conf_edit
-        
+
         //$(document).on('click','#conf_edit', function(){
-        $('#conf_edit').click(function() {
-             //$('#confirmModal').removeClass("modal-backdrop")
+        $('#conf_edit').click(function () {
+            //$('#confirmModal').removeClass("modal-backdrop")
             //$('#edit_button_lic').hide();
             $('#confirmModal').hide();
             $('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal">Confirm</a></span>');
@@ -1475,21 +1524,21 @@ echo time();
             var c_lic = $('#licence_hidden').val();
             $('.licence_par').attr("readonly", false);
             CKEDITOR.replace('licence', {
-                        allowedContent: true,
-			//extraPlugins : 'stylesheetparser',
-			contentsCss : 'ckeditor/MicroService.css',
-                        language: 'en',
-                        width: '100%',
-                        height: '100%',
-                        toolbar: 'Full',
-                        //enterMode : CKEDITOR.ENTER_BR,
-                        //shiftEnterMode: CKEDITOR.ENTER_P
-                    });
-              CKEDITOR.instances['licence'].setData(c_lic);
+                allowedContent: true,
+                //extraPlugins : 'stylesheetparser',
+                contentsCss: 'ckeditor/MicroService.css',
+                language: 'en',
+                width: '100%',
+                height: '100%',
+                toolbar: 'Full',
+                //enterMode : CKEDITOR.ENTER_BR,
+                //shiftEnterMode: CKEDITOR.ENTER_P
+            });
+            CKEDITOR.instances['licence'].setData(c_lic);
             //$('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;"  data-target="#confirmModal">Confirm</a></span>');
-    //
+            //
         });
-        
+
         $(document).on('click', '#upload_command', function () {
             //
             var uploadField = $('#uploadField').val();
@@ -1548,14 +1597,15 @@ echo time();
                     $('#healthiness_c').val('');
                     $('#period').val('');
                     $('#v_type').val('');
-                     $('#telephone').empty();
+                    $('#telephone').empty();
                     $('#web').empty();
                     $('#s1_date').empty();
                     $('#s2_date').empty();
+                    $('#input_ch2').empty();
                     //$('#attr_type').val('');
                     $('#setname').val('');
                     $('#list_kpi_dash').empty();
-                     $('#broker_link').empty();
+                    $('#broker_link').empty();
                     $('#list_dashboard_link').empty();
                     $('#delay').val('');
                     $('#last_check_health').val('');
@@ -1567,22 +1617,22 @@ echo time();
                     $('#div_edit_licence_confirm').empty();
                     $('.licence_text').text('Licence:    ');
                     //
-                        $('#public').empty();
-                        $('#creator').empty();
-                        $('#mailC').empty();
-                        //licence
-                        $('#person').empty();
-                        $('#web').empty();
-                        //
+                    $('#public').empty();
+                    $('#creator').empty();
+                    $('#mailC').empty();
+                    //licence
+                    $('#person').empty();
+                    $('#web').empty();
+                    //
                     alert('Image uploaded');
                 }, 1000);
             } else {
                 alert('Error: File is not. an Image');
             }
         });
-        
-         //$('#confirm_modify').click(function(){
-         $(document).on('click', '#confirm_modify', function () {
+
+        //$('#confirm_modify').click(function(){
+        $(document).on('click', '#confirm_modify', function () {
             //
             //var v_lic = $('#licence').val();
             var v_own = $('#owner').val();
@@ -1617,44 +1667,45 @@ echo time();
             var error_text_url = '';
             var error_text_mail = '';
             //Parameter Email o Website not valid
-            if((mail_mail_check !== "")&&(mail_mail_check !== null)){
+            if ((mail_mail_check !== "") && (mail_mail_check !== null)) {
                 valid_mail = validaEmail(mail_mail_check.trim());
-                 $('#mod_mail').val(v_mail.trim());
-                 }
-             //
-            if((web_check !== "")&&(web_check !== null)){
-                     valid_url = validURL(web_check.trim());
-                     $('#mod_web').val(v_web.trim());
-                }
+                $('#mod_mail').val(v_mail.trim());
+            }
             //
-            if((valid_url === false)||(valid_mail === false)){
-                if (valid_url === false){
+            if ((web_check !== "") && (web_check !== null)) {
+                valid_url = validURL(web_check.trim());
+                $('#mod_web').val(v_web.trim());
+            }
+            //
+            if ((valid_url === false) || (valid_mail === false)) {
+                if (valid_url === false) {
                     error_text_url = " <b>website</b> Parameter not valid ";
                 }
-                 if (valid_mail === false){
+                if (valid_mail === false) {
                     error_text_mail = " <b>email</b> Parameter not valid ";
                 }
-                $('#check_errors').html('<div class="panel panel-danger"><div class="panel-heading">Not Valid parameters</div><div class="panel-body">'+error_text_url+'<br/>'+error_text_mail+'</div></div>');
+                $('#check_errors').html('<div class="panel panel-danger"><div class="panel-heading">Not Valid parameters</div><div class="panel-body">' + error_text_url + '<br/>' + error_text_mail + '</div></div>');
                 $('#conf_edit2').prop('disabled', true);
             }
         });
 
-        $(document).on('click','#close_conf_edit2',function(){
+        $(document).on('click', '#close_conf_edit2', function () {
             $('#exampleModal2').modal('hide');
             $('#check_errors').empty();
             $('#conf_edit2').prop('disabled', false);
         });
-        $(document).on('click','#button_conf_edit2',function(){
+        $(document).on('click', '#button_conf_edit2', function () {
             $('#exampleModal2').modal('hide');
             $('#check_errors').empty();
             $('#conf_edit2').prop('disabled', false);
         });
 
-$('#confirmModal').on('hidden.bs.modal', function () {
-    console.log('close');
-});
-        $(document).on('click', '#close_healthiness_modal', function() {
-        //$('#healthiness-modal').on('hidden.bs.modal', function () {
+        $('#confirmModal').on('hidden.bs.modal', function () {
+            console.log('close');
+        });
+        $(document).on('click', '#close_healthiness_modal', function () {
+            //$('#healthiness-modal').on('hidden.bs.modal', function () {
+            $('#input_ch2').empty();
             $('#exampleModal2').fadeOut();
             $('#confirmModal').fadeOut();
             $('.modal').modal('hide')
@@ -1669,11 +1720,11 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             $('#address').val('');
             $('#processPath').val('');
             $('#licenceLabel').empty('');
-             $('#licence').val('');
-             $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
-             //
-             $('#check_errors').empty();
-             $('#conf_edit2').prop('disabled', false);
+            $('#licence').val('');
+            $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
+            //
+            $('#check_errors').empty();
+            $('#conf_edit2').prop('disabled', false);
             $('#tab7').removeClass("active");
             $('#tab6').removeClass("active");
             $('#tab5').removeClass("active");
@@ -1732,14 +1783,14 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             $('#s1_date').empty();
             $('#s2_date').empty();
             $('#public').empty();
-                        $('#creator').val('');
-                        $('#mailC').val('');
-                        //licence
-                        $('#person').val('');
-                        $('#web').val('');
+            $('#creator').val('');
+            $('#mailC').val('');
+            //licence
+            $('#person').val('');
+            $('#web').val('');
         });
-       
-       
+
+
         $('#healthiness-modal').on('hidden.bs.modal', function (e) {
             $('#exampleModal2').fadeOut();
             $('#confirmModal').fadeOut();
@@ -1755,11 +1806,11 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             $('#address').val('');
             $('#processPath').val('');
             $('#licenceLabel').empty('');
-             $('#licence').val('');
-             $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
-             //
-             $('#check_errors').empty();
-             $('#conf_edit2').prop('disabled', false);
+            $('#licence').val('');
+            $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
+            //
+            $('#check_errors').empty();
+            $('#conf_edit2').prop('disabled', false);
             $('#tab7').removeClass("active");
             $('#tab6').removeClass("active");
             $('#tab5').removeClass("active");
@@ -1810,6 +1861,7 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             $('#web').val('');
             $('.licence_par').attr("readonly", true);
             //
+            $('#input_ch2').empty();
             $('#setname').val('');
             $('#list_kpi_dash').empty();
             $('#broker_link').empty();
@@ -1818,16 +1870,16 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             $('#s1_date').empty();
             $('#s2_date').empty();
             $('#public').empty();
-                        $('#creator').val('');
-                        $('#mailC').val('');
-                        //licence
-                        $('#person').val('');
-                        $('#web').val('');
-                        console.log('dismiss');
+            $('#creator').val('');
+            $('#mailC').val('');
+            //licence
+            $('#person').val('');
+            $('#web').val('');
+            console.log('dismiss');
         });
-  // do something...
+        // do something...
 //});
-               
+
         $(window).resize(function () {
             if ($(window).width() < 1200) {
                 $('#right').css('float', 'left');
@@ -1872,36 +1924,35 @@ $('#confirmModal').on('hidden.bs.modal', function () {
             }
 
         });
-        
+
         function validURL(str) {
-  var regexp =  /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
-        if (regexp.test(str)){
-            console.log('str:   '+str);
-            console.log('corretto');
-          return true;
+            var regexp = /^(?:(?:https?|ftp):\/\/)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/\S*)?$/;
+            if (regexp.test(str)) {
+                console.log('str:   ' + str);
+                console.log('corretto');
+                return true;
+            } else
+            {
+                console.log('str:   ' + str);
+                console.log('no corretto');
+                return false;
+            }
+            //return pattern.test(str);
         }
-        else
-        {  
-          console.log('str:   '+str);
-          console.log('no corretto');
-          return false;
-        }
-  //return pattern.test(str);
-}
 
 
-function validaEmail(email) {
-    var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
-    if(emailReg.test( email )){
-         console.log('str:   '+email);
-            console.log('corretto');
-          return true;
-    }else{
-            console.log('str:   '+email);
-          console.log('no corretto');
-          return false;
-    }
-}
+        function validaEmail(email) {
+            var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+            if (emailReg.test(email)) {
+                console.log('str:   ' + email);
+                console.log('corretto');
+                return true;
+            } else {
+                console.log('str:   ' + email);
+                console.log('no corretto');
+                return false;
+            }
+        }
 
 
         function addZero(i) {
@@ -1910,81 +1961,102 @@ function validaEmail(email) {
             }
             return i;
         }
-        
 
-        
-        function check_iot(link){
-                        console.log('Link: '+link);
-                        var string_l = link.length;
-                        console.log('string_l:     '+string_l);
-                        if (string_l < 64){
-                            if (link.startsWith("nr")){
-                                $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Iot App</a>');
-                            }
-                        }
-                        //https://iot-app.snap4city.org/nodered/
-        }
 
-        function function_dashKpi(value_name){
-            //
-            var id_kpi =value_name;
-            var res = value_name.split("/");
-            var l=res.lenght;
-            if (l > 0){
-                id_kpi =value_name[l];
-            }else{
-                id_kpi =value_name; 
-            }
-            console.log('FUNZIONE KPI_DASH');
-            //
-            //var id_kpi =value_name;
-            $.ajax({
-                async:false,
-                type: 'GET',
-                url: 'getServiceData.php',
-                data:{
-                    type: 'DashKpi',
-                    service: id_kpi
-                },
-                success: function(data){
-                    console.log('SUCCESS');
-                    var json_data = data.dashboards;
-                    //console.log(data);
-                    if(data !== 'null'){
-                    var json_data = JSON.parse(data);
-                    //console.log(json_data.dashboards);
-                    var result = json_data.dashboards;
-                    var link_dash = "";
-                    var len = 0;
-                    len = Object.keys(result).length;
-                    //console.log('len: '+len);
-                    if (len > 0){
-                        for(var i=0; i<len; i++){
-                            //var array_dash = result[i]['dashboardId'];
-                            var array_dash_Name = "";
-                            if (result[i]['dashboardName']!==null){
-                             array_dash_Name = result[i]['dashboardName']['sourceId'];
-                            //var json_data = JSON.stringify(array_dash);
-                            var json_data_name = JSON.stringify(array_dash_Name);
-                            var ind = "https://iot-app.snap4city.org/nodered/"+array_dash_Name;
-                            link_dash = link_dash + '<li><a href="'+ind +'" Target= "_blank">Link to IotApp '+array_dash_Name+'</a></li>';
-                        }else{
-                            link_dash = link_dash + '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
-                        }
-                            //alert(json_data);
-                        }
-                    }else{
-                        console.log('FAILED');
-                         link_dash = '<li><a href="#">No dashboards connected</a></li>';
-                    }
-                    var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of IotApp<span class="caret"></span></button><ul class="dropdown-menu">'+link_dash+'</ul></div>';
-                    $('#list_kpi_dash').html(content);
-                    //console.log('ciao');
-                     }
+
+        function check_iot(link) {
+            console.log('Link: ' + link);
+            var string_l = link.length;
+            console.log('string_l:     ' + string_l);
+            if (string_l < 64) {
+                if (link.startsWith("nr")) {
+                    $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Iot App</a>');
                 }
-            });
+            }
+            //https://iot-app.snap4city.org/nodered/
         }
-        
+
+        function function_dashKpi(value_name) {
+            //
+            if ((value_name !== 'undefined') && (value_name !== undefined) && (value_name !== null)) {
+                var id_kpi = value_name;
+                var res = value_name.split("/");
+                var id_kpi = value_name;
+                var res = value_name.split("/");
+                var l = res.lenght;
+                if (l > 0) {
+                    id_kpi = value_name[l];
+                } else {
+                    id_kpi = value_name;
+                }
+                console.log('FUNZIONE KPI_DASH');
+                //
+                //var id_kpi =value_name;
+                $.ajax({
+                    async: true,
+                    type: 'GET',
+                    // url: 'getServiceData.php',
+                    url: 'getkpilist.php',
+                    data: {
+                        type: 'DashKpi',
+                        service: id_kpi
+                    },
+                    success: function (data) {
+                        console.log('SUCCESS');
+                        var json_data = data.dashboards;
+                        //console.log(data);
+                        if (data !== 'null') {
+                            var json_data = JSON.parse(data);
+                            //console.log(json_data.dashboards);
+                            var result = json_data.dashboards;
+                            var link_dash = "";
+                            var len = 0;
+                            len = Object.keys(result).length;
+                            //console.log('len: '+len);
+                            if (len > 0) {
+                                for (var i = 0; i < len; i++) {
+                                    //var array_dash = result[i]['dashboardId'];
+                                    var array_dash_Name = "";
+                                    if (result[i]['dashboardName'] !== null) {
+                                        array_dash_Name = result[i]['dashboardName'];
+                                        //console.log(array_dash_Name);
+                                        //console.log(JSON.Parse(array_dash_Name));
+                                        //var json_data = JSON.stringify(array_dash);
+                                        //
+                                        //
+                                        var arr_l = array_dash_Name.length;
+                                        if (arr_l > 0) {
+                                            //var json_data_name = JSON.stringify(array_dash_Name);
+                                            //var json_data_name = Object.entries(array_dash_Name);
+                                            //console.log(json_data_name);
+                                            for (var z = 0; z < arr_l; z++) {
+                                                //arr_l
+                                                var ind = "https://iot-app.snap4city.org/nodered/" + array_dash_Name[z];
+                                                link_dash = link_dash + '<li><a href="' + ind + '" Target= "_blank">Link to IotApp ' + array_dash_Name[z] + '</a></li>';
+                                            }
+                                        }
+                                    } else {
+                                        link_dash = link_dash + '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
+                                    }
+                                    //alert(json_data);
+                                }
+                            } else {
+                                console.log('FAILED');
+                                link_dash = '<li><a href="#">No dashboards connected</a></li>';
+                            }
+                            var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of IotApp<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+                            $('#list_kpi_dash').html(content);
+                            //console.log('ciao');
+                        }
+                    }
+                });
+            } else {
+                var link_dash = '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
+                var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of IotApp<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+                $('#list_kpi_dash').html(content);
+            }
+        }
+
         function function_dashboard(value_name) {
             var value_name2 = value_name;
             console.log('value_name2  ' + value_name2);
@@ -2010,41 +2082,41 @@ function validaEmail(email) {
                     type: 'Dashboard list',
                     service: name_wid
                 },
-                                success: function(data) {
-                                    //var json_data = JSON.stringify(data.name);
-                                    var json_data = data.name;
-                                    result = json_data;
-                     //Inizio_List
-                     
-                      //var array_dash = data.dashboards[0]['dashboardId'];
+                success: function (data) {
+                    //var json_data = JSON.stringify(data.name);
+                    var json_data = data.name;
+                    result = json_data;
+                    //Inizio_List
+
+                    //var array_dash = data.dashboards[0]['dashboardId'];
                     //var json_data = JSON.stringify(array_dash);
                     //dashboardName
                     var json_data = data.dashboards;
                     result = json_data;
                     var link_dash = "";
                     var len = result.length;
-                    if (len > 0){
-                        for(var i=0; i<len; i++){
+                    if (len > 0) {
+                        for (var i = 0; i < len; i++) {
                             var array_dash = data.dashboards[i]['dashboardId'];
                             var array_dash_Name = data.dashboards[i]['dashboardName'];
                             var json_data = JSON.stringify(array_dash);
                             var json_data_name = JSON.stringify(array_dash_Name);
                             var ind = "../view/index.php?iddasboard=" + btoa(array_dash);
-                            link_dash = link_dash + '<li><a href="'+ind +'" Target= "_blank">Link to dashboard '+json_data_name+'</a></li>';
+                            link_dash = link_dash + '<li><a href="' + ind + '" Target= "_blank">Link to dashboard ' + json_data_name + '</a></li>';
                             //alert(json_data);
                         }
-                    }else{
-                         link_dash = '<li><a href="#">No dashboards connected</a></li>';
+                    } else {
+                        link_dash = '<li><a href="#">No dashboards connected</a></li>';
                     }
                     //result = array_dash;
-                    
-                   //var content = '<div class="btn-group"><button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Link to Dashboard List</button><div class="dropdown-menu"><div class="link-list-wrapper"><ul class="link-list"><li><a class="list-item" href="#"><span>Azione 1</span></a></li></ul></div></div></div>';
-                
-                     var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Dashboard<span class="caret"></span></button><ul class="dropdown-menu">'+link_dash+'</ul></div>';
-    
-    $('#list_dashboard_link').html(content);                
-                   //FIne List
-                   
+
+                    //var content = '<div class="btn-group"><button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Link to Dashboard List</button><div class="dropdown-menu"><div class="link-list-wrapper"><ul class="link-list"><li><a class="list-item" href="#"><span>Azione 1</span></a></li></ul></div></div></div>';
+
+                    var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Dashboard<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+
+                    $('#list_dashboard_link').html(content);
+                    //FIne List
+
                     return result;
                 }
             });
@@ -2053,15 +2125,15 @@ function validaEmail(email) {
              */
             //
             /*
-            if ((result !== "") || (result !== 'no') || (result !== undefined)) {
-                ind = "../view/index.php?iddasboard=" + btoa(result);
-            } else {
-                ind = "dashboards.php";
-            }
-            if (result === 'no') {
-                ind = "dashboards.php";
-            }
-            return 	ind;*/
+             if ((result !== "") || (result !== 'no') || (result !== undefined)) {
+             ind = "../view/index.php?iddasboard=" + btoa(result);
+             } else {
+             ind = "dashboards.php";
+             }
+             if (result === 'no') {
+             ind = "dashboards.php";
+             }
+             return 	ind;*/
         }
     </script>
 </body>

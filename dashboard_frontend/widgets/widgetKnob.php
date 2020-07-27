@@ -1735,8 +1735,13 @@
                         username = widgetProperties.param.creator;
                         endPointHost = widgetProperties.param.endPointHost;
                         endPointPort = widgetProperties.param.endPointPort;
-                        minValue = parseFloat(widgetProperties.param.minValue);
-                        maxValue = parseFloat(widgetProperties.param.maxValue);
+                        if (widgetParameters.minValue == null) {
+                            minValue = parseFloat(widgetProperties.param.minValue);
+                            maxValue = parseFloat(widgetProperties.param.maxValue);
+                        } else {
+                            minValue = parseFloat(widgetParameters.minValue);
+                            maxValue = parseFloat(widgetParameters.maxValue);
+                        }
                         if(useWebSocket)
                             openWs(widgetName);
                     }

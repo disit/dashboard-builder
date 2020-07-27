@@ -47,6 +47,7 @@ class WidgetTableFactory extends aGenericWidgetFactory
                     $myMetricName = $selectedRow['unique_name_id'];
                     $myMetricType = $selectedRow['low_level_type'];
                     $myServiceUri = $selectedRow['get_instances'];
+                    break;
 
                 case "MyKPI":
                     $myKPIFlag = 1;
@@ -59,6 +60,7 @@ class WidgetTableFactory extends aGenericWidgetFactory
                     $myMetricName = $selectedRow['unique_name_id'];
                     $myMetricType = $selectedRow['low_level_type'];
                     $myServiceUri = $selectedRow['get_instances'];
+                    break;
 
                 default:
                     //Per ora aggiungiamo solo i KPI, poi si specializzerà
@@ -70,7 +72,9 @@ class WidgetTableFactory extends aGenericWidgetFactory
             if ($myKPIFlag != 1) {
                 $newQueryObj = ["metricId" => $myMetricId,
                     "metricHighLevelType" => $selectedRow['high_level_type'],
-                    "metricName" => $myMetricName];
+                    "metricName" => $myMetricName,
+                    "metricType" => $myMetricType,
+                    "serviceUri" => $myServiceUri];
             } else {
                 $newQueryObj = ["metricId" => $myMetricId,
                     "metricHighLevelType" => $selectedRow['high_level_type'],

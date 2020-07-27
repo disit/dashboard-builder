@@ -118,6 +118,27 @@ if(isset($_SESSION['refreshToken'])) {
         $myKpiDataJson = json_encode($myKpiData);
     }
 
+    if (strpos($action, "getValueUnitForTrend") !== false) {
+        $apiUrlUnit = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
+        $optionsUnit = array(
+            'http' => array(
+                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method' => 'GET',
+                'timeout' => 30,
+                'ignore_errors' => true
+            )
+        );
+
+        $contextUnit = stream_context_create($optionsUnit);
+        $myKpiUnitJson = file_get_contents($apiUrlUnit, false, $contextUnit);
+
+        $myKpiUnit = json_decode($myKpiUnitJson);
+        for ($i = 0; $i < sizeof($myKpiData); $i++) {
+            $myKpiData[$i]->valueUnit = $myKpiUnit->valueUnit;
+        }
+        $myKpiDataJson = json_encode($myKpiData);
+    }
+
     echo $myKpiDataJson;
 
 } else {

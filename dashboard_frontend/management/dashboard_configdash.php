@@ -18178,6 +18178,9 @@
                                             $('#inputUdmPositionM').attr("disabled", true);
                                             $('#inputUdmPositionM').val(-1);
 
+                                            $("#inputFontSizeM").val(data['fontSize']);
+                                            $("#inputFontColorM").val(data['fontColor']);
+
                                             //Rimozione eventuali campi del subform general per widget process
                                             removeWidgetProcessGeneralFields("editWidget");
 
@@ -18243,6 +18246,25 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
                                             $('#specificParamsM').append(newFormRow);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            newLabel = $('<label for="editKnobMinValue" class="col-md-2 control-label">Min value</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newInput = $('<input type="text" name="editKnobMinValue" class="form-control" id="editKnobMinValue" data-param="editKnobMinValue" required/>');
+                                            newInput.val(currentParams.minValue);
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label for="editKnobMaxValue" class="col-md-2 control-label">Max value</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newInput = $('<input type="text" name="editKnobMaxValue" class="form-control" id="editKnobMaxValue" data-param="editKnobMaxValue" required/>');
+                                            newInput.val(currentParams.maxValue);
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
                                             newLabel = $('<label for="editKnobLabelsFontSize" class="col-md-2 control-label">Labels font size</label>');
@@ -18277,6 +18299,8 @@
                                             editKnobColorsTableContainer.append(editKnobColorsTable);
                                             $("#specificParamsM").append(editKnobColorsTableContainer);
 
+                                            $('#editKnobMinValue').on('input', updateEditKnobParams);
+                                            $('#editKnobMaxValue').on('input', updateEditKnobParams);
                                             
                                             if(currentParams.continuousRanges !== null)
                                             {
@@ -19093,6 +19117,9 @@
                                             $('#inputUdmPositionM').attr("disabled", true);
                                             $('#inputUdmPositionM').val(-1);
 
+                                            $("#inputFontSizeM").val(data['fontSize']);
+                                            $("#inputFontColorM").val(data['fontColor']);
+
                                             //Rimozione eventuali campi del subform general per widget process
                                             removeWidgetProcessGeneralFields("editWidget");
 
@@ -19194,7 +19221,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             newLabel = $('<label for="editKnobMinValue" class="col-md-2 control-label">Min value</label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
-                                            newInput = $('<input type="text" name="editKnobMinValue" class="form-control" id="editKnobMinValue" data-param="editKnobMinValue"/>');
+                                            newInput = $('<input type="text" name="editKnobMinValue" class="form-control" id="editKnobMinValue" data-param="editKnobMinValue" required/>');
                                             newInput.val(currentParams.minValue);
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
@@ -19202,7 +19229,7 @@
 
                                             newLabel = $('<label for="editKnobMaxValue" class="col-md-2 control-label">Max value</label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
-                                            newInput = $('<input type="text" name="editKnobMaxValue" class="form-control" id="editKnobMaxValue" data-param="editKnobMaxValue"/>');
+                                            newInput = $('<input type="text" name="editKnobMaxValue" class="form-control" id="editKnobMaxValue" data-param="editKnobMaxValue" required/>');
                                             newInput.val(currentParams.maxValue);
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
@@ -27804,12 +27831,42 @@
                                         $('#inputHeaderFontColorWidgetM').attr('disabled', false);
                                         $('#inputHeaderFontColorWidgetM').prop('required', true);
                                         $('#inputUdmWidgetM').prop("required", false);
-                                        $('#inputUdmWidgetM').attr("disabled", true);
-                                        $('#inputUdmWidgetM').val("");
+                                        $('#inputUdmWidgetM').attr("disabled", false);
+                                    //    $('#inputUdmWidgetM').val("");
                                         $('#inputUdmPositionM').prop("required", false);
                                         $('#inputUdmPositionM').attr("disabled", true);
-                                        $('#inputUdmPositionM').val(-1);
-                                        
+                                        $('#inputUdmPositionM').val("");
+                                      //  $("#inputUdmPositionM").val(data['udmPos']);
+
+                                        if (data['udm'] != null) {
+                                            var displayedUdm = data['udm'].replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+                                            displayedUdm = displayedUdm.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+                                            displayedUdm = displayedUdm.replace(/&deg;/g, "°");
+                                            displayedUdm = displayedUdm.replace(/&num;/g, "#");
+                                            displayedUdm = displayedUdm.replace(/&dollar;/g, "$");
+                                            displayedUdm = displayedUdm.replace(/&percnt;/g, "%");
+                                            displayedUdm = displayedUdm.replace(/&pound;/g, "£");
+                                            displayedUdm = displayedUdm.replace(/&lt;/g, "<");
+                                            displayedUdm = displayedUdm.replace(/&gt;/g, ">");
+                                            displayedUdm = displayedUdm.replace(/&agrave;/g, "à");
+                                            displayedUdm = displayedUdm.replace(/&egrave;/g, "è");
+                                            displayedUdm = displayedUdm.replace(/&eacute;/g, "é");
+                                            displayedUdm = displayedUdm.replace(/&igrave;/g, "ì");
+                                            displayedUdm = displayedUdm.replace(/&ograve;/g, "ò");
+                                            displayedUdm = displayedUdm.replace(/&ugrave;/g, "ù");
+                                            displayedUdm = displayedUdm.replace(/&micro;/g, "µ");
+                                            displayedUdm = displayedUdm.replace(/&sol;/g, "/");
+                                            displayedUdm = displayedUdm.replace(/&bsol;/g, "\\");
+                                            displayedUdm = displayedUdm.replace(/&lpar;/g, "(");
+                                            displayedUdm = displayedUdm.replace(/&rpar;/g, ")");
+                                            displayedUdm = displayedUdm.replace(/&lsqb;/g, "[");
+                                            displayedUdm = displayedUdm.replace(/&rsqb;/g, "]");
+                                            displayedUdm = displayedUdm.replace(/&lcub;/g, "{");
+                                            displayedUdm = displayedUdm.replace(/&rcub;/g, "}");
+                                            displayedUdm = displayedUdm.replace(/&Hat;/g, "^");
+                                        }
+                                        $("#inputUdmWidgetM").val(displayedUdm);
+
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
 
@@ -27835,7 +27892,7 @@
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
-                                        
+
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
                                         
@@ -28985,11 +29042,42 @@
                                         $('#inputHeaderFontColorWidgetM').attr('disabled', false);
                                         $('#inputHeaderFontColorWidgetM').prop('required', true);
                                         $('#inputUdmWidgetM').prop("required", false);
-                                        $('#inputUdmWidgetM').attr("disabled", true);
+                                        $('#inputUdmWidgetM').attr("disabled", false);
                                         $('#inputUdmWidgetM').val("");
                                         $('#inputUdmPositionM').prop("required", false);
                                         $('#inputUdmPositionM').attr("disabled", true);
-                                        $('#inputUdmPositionM').val(-1);
+                                        $('#inputUdmPositionM').val("");
+
+                                        $("#inputUdmPositionM").val(data['udmPos']);
+
+                                        if (data['udm'] != null) {
+                                            var displayedUdm = data['udm'].replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+                                            displayedUdm = displayedUdm.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+                                            displayedUdm = displayedUdm.replace(/&deg;/g, "Â°");
+                                            displayedUdm = displayedUdm.replace(/&num;/g, "#");
+                                            displayedUdm = displayedUdm.replace(/&dollar;/g, "$");
+                                            displayedUdm = displayedUdm.replace(/&percnt;/g, "%");
+                                            displayedUdm = displayedUdm.replace(/&pound;/g, "Â£");
+                                            displayedUdm = displayedUdm.replace(/&lt;/g, "<");
+                                            displayedUdm = displayedUdm.replace(/&gt;/g, ">");
+                                            displayedUdm = displayedUdm.replace(/&agrave;/g, "Ã ");
+                                            displayedUdm = displayedUdm.replace(/&egrave;/g, "Ã¨");
+                                            displayedUdm = displayedUdm.replace(/&eacute;/g, "Ã©");
+                                            displayedUdm = displayedUdm.replace(/&igrave;/g, "Ã¬");
+                                            displayedUdm = displayedUdm.replace(/&ograve;/g, "Ã²");
+                                            displayedUdm = displayedUdm.replace(/&ugrave;/g, "Ã¹");
+                                            displayedUdm = displayedUdm.replace(/&micro;/g, "Âµ");
+                                            displayedUdm = displayedUdm.replace(/&sol;/g, "/");
+                                            displayedUdm = displayedUdm.replace(/&bsol;/g, "\\");
+                                            displayedUdm = displayedUdm.replace(/&lpar;/g, "(");
+                                            displayedUdm = displayedUdm.replace(/&rpar;/g, ")");
+                                            displayedUdm = displayedUdm.replace(/&lsqb;/g, "[");
+                                            displayedUdm = displayedUdm.replace(/&rsqb;/g, "]");
+                                            displayedUdm = displayedUdm.replace(/&lcub;/g, "{");
+                                            displayedUdm = displayedUdm.replace(/&rcub;/g, "}");
+                                            displayedUdm = displayedUdm.replace(/&Hat;/g, "^");
+                                        }
+                                        $("#inputUdmWidgetM").val(displayedUdm);
                                         
                                         //Parametri specifici del widget
                                         $('#specificParamsM .row').remove();
@@ -29021,8 +29109,44 @@
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
                                         newSelect.val(styleParameters.openNewTab);
-
                                         $("#specificParamsM").append(newFormRow);
+
+                                        //View UDM
+                                        newFormRow = $('<div class="row"></div>');
+                                        newLabel = $('<label for="viewUdm" class="col-md-2 control-label">Visualize U/M</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select name="viewUdm" class="form-control" id="viewUdm"></select>');
+                                        newSelect.append('<option value="yes">Yes</option>');
+                                        newSelect.append('<option value="no">No</option>');
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        if (styleParameters.viewUdm != null) {
+                                            newSelect.val(styleParameters.viewUdm);
+                                        } else {
+                                            newSelect.val("yes");
+                                        }
+                                    //    newSelect.val(styleParameters.viewUdm);
+                                    //    $("#specificParamsM").append(newFormRow);
+
+                                        // UDM x-Offset
+                                        newLabel = $('<label for="xOffsetUdm" class="col-md-2 control-label">U/M x-offset (px)</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="xOffsetUdm" name="xOffsetUdm" required>');
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                     //   newLabel.show();
+                                    //    newInnerDiv.show();
+                                        newInput.show();
+                                        if (styleParameters.xOffsetUdm != null) {
+                                            newInput.val(styleParameters.xOffsetUdm);
+                                        } else {
+                                            newInput.val("25");
+                                        }
+                                        //    newSelect.val(styleParameters.viewUdm);
+                                        $("#specificParamsM").append(newFormRow);
+
                                         newLabel.show();
                                         newInnerDiv.show();
                                         break;

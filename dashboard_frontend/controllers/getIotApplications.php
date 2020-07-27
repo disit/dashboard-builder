@@ -46,14 +46,12 @@ if (isset($_SESSION['refreshToken'])) {
       $a = $app;
       $a['name'] = htmlspecialchars($a['name']);
       if($a['type']!='edge') {
-        if($a['type']=='plumber') {
-          $a['icon'] = 'dataAnalyticIcon.png';
+        if($a['type']=='plumber' || $a['type']=='python') {
+          $a['icon'] =($a['type']=='python' ? 'dataAnalyticPythonIcon.png' : 'dataAnalyticIcon.png');
           @$a['iotapps'] = join(',', $a['iotapps']);
-        }
-        else if($a['type']=='portia') {
+        } else if($a['type']=='portia') {
           $a['icon'] = 'portiaIcon.png';
-        }
-        else
+        } else
           $a['icon'] = $a['type']=='basic' ? 'iotAppBasicIcon.png' : 'iotAppAdvIcon.png';
       } else {
         $os = explode('_', $a['edgetype']);

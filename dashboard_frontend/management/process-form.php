@@ -3880,13 +3880,33 @@
          }
 
          // messi qui html element per i vari widget per link in new tab nelle opzioni
-        if($type_widget_m == "widgetSingleContent" || $type_widget_m == "widgetTimeTrend" || $type_widget_m == "widgetTimeTrendCompare" || $type_widget_m == "widgetFirstAid")
+        if($type_widget_m == "widgetSingleContent" || $type_widget_m == "widgetTimeTrendCompare" || $type_widget_m == "widgetFirstAid")
         {
          //   $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
             if (sanitizePostString('editWidgetOpenNewTab') == null) {       // New pentest
                 $styleParametersArray["openNewTab"] = mysqli_real_escape_string($link, sanitizeGetString('editWidgetOpenNewTab'));
             } else {
                 $styleParametersArray["openNewTab"] = mysqli_real_escape_string($link, sanitizePostString('editWidgetOpenNewTab'));
+            }
+        }
+
+        if($type_widget_m == "widgetTimeTrend")
+        {
+            //   $styleParametersArray["openNewTab"] = $_REQUEST['editWidgetOpenNewTab'];
+            if (sanitizePostString('editWidgetOpenNewTab') == null) {       // New pentest
+                $styleParametersArray["openNewTab"] = mysqli_real_escape_string($link, sanitizeGetString('editWidgetOpenNewTab'));
+            } else {
+                $styleParametersArray["openNewTab"] = mysqli_real_escape_string($link, sanitizePostString('editWidgetOpenNewTab'));
+            }
+            if (sanitizePostString('viewUdm') == null) {       // New pentest
+                $styleParametersArray["viewUdm"] = mysqli_real_escape_string($link, sanitizeGetString('viewUdm'));
+            } else {
+                $styleParametersArray["viewUdm"] = mysqli_real_escape_string($link, sanitizePostString('viewUdm'));
+            }
+            if (sanitizePostInt('xOffsetUdm') == null) {       // New pentest
+                $styleParametersArray["xOffsetUdm"] = mysqli_real_escape_string($link, sanitizeGetInt('xOffsetUdm'));
+            } else {
+                $styleParametersArray["xOffsetUdm"] = mysqli_real_escape_string($link, sanitizePostInt('xOffsetUdm'));
             }
             $styleParametersM = json_encode($styleParametersArray);
         }

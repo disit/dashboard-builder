@@ -225,7 +225,7 @@ if ($rs) {
                                     $update_scritp_timeU = $updateTimeU->format('c');
                                     $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
                                     echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
-                                    $query_update = "UPDATE DashboardWizard SET last_date= '" . substr($last_date, 0, strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances= '" . $get_instances . "' AND low_level_type = '" . $key . "';";
+                                    $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . substr($last_date, 0, strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances= '" . $get_instances . "' AND low_level_type = '" . $key . "';";
                                     mysqli_query($link, $query_update);
                                 }
                             } else {
@@ -267,15 +267,15 @@ if ($rs) {
 
                         if ($last_date_sql === null && $last_date != null) {
 
-                            $query_updateGeneral = "UPDATE DashboardWizard SET last_date = '" . $last_date . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                            $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date = '" . $last_date . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
                             mysqli_query($link, $query_updateGeneral);
                         } else if ($last_date_sql === null) {
 
-                            $query_updateGeneral = "UPDATE DashboardWizard SET last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                            $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
                             mysqli_query($link, $query_updateGeneral);
                         } else if ($last_date_sql != null) {
 
-                            $query_updateGeneral = "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                            $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
                             mysqli_query($link, $query_updateGeneral);
                         }
                         //**********************************************************************************
@@ -317,7 +317,7 @@ if ($rs) {
                                             $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
                                             echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
 
-                                            $query_update = "UPDATE DashboardWizard SET healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '" . $key . "';";
+                                            $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '" . $key . "';";
                                             mysqli_query($link, $query_update);
                                         }
                                     } else {
@@ -357,11 +357,11 @@ if ($rs) {
                             }
                             if ($last_date_sql === null) {
 
-                                $query_updateGeneral = "UPDATE DashboardWizard SET healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                                $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
                                 mysqli_query($link, $query_updateGeneral);
                             } else {
 
-                                $query_updateGeneral = "UPDATE DashboardWizard SET last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                                $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
                                 mysqli_query($link, $query_updateGeneral);
                             }
                             //**********************************************************************************
