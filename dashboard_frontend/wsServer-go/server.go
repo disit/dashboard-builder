@@ -18,7 +18,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/gomodule/redigo/redis"
 	"github.com/gorilla/websocket"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 var manager = ClientManager{
@@ -59,7 +59,7 @@ func main() {
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	InitDB()
+	initDB()
 
 	defer db.Close()
 	ctx, _ := context.WithCancel(context.Background())
@@ -132,7 +132,7 @@ func buildAndInit() *WebSocketServer {
 
 	a := envFileContent.Sections()
 	wss.activeEnv = a[0].Key("environment[value]").String()
-	log.Print("active env: ",wss.activeEnv)
+	log.Print("active env: ", wss.activeEnv)
 
 	a = genFileContent.Sections()
 	wss.dbhost = a[0].Key("host[" + wss.activeEnv + "]").String()
@@ -162,8 +162,8 @@ func buildAndInit() *WebSocketServer {
 	log.Print("redis enabled ", wss.redisEnabled, " ", wss.redisAddress, " ", wss.redisPassword)
 
 	a = ownershipContent.Sections()
-	wss.ownershipUrl = a[0].Key("ownershipApiBaseUrl[" + wss.activeEnv + "]").String()
-	log.Print("ownership: ", wss.ownershipUrl)
+	wss.ownershipURL = a[0].Key("ownershipApiBaseUrl[" + wss.activeEnv + "]").String()
+	log.Print("ownership: ", wss.ownershipURL)
 
 	a = ldapContent.Sections()
 	wss.ldapServer = a[0].Key("ldapServer[" + wss.activeEnv + "]").String()
@@ -240,7 +240,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 	}
 	client := &WebsocketUser{id: uuid.Must(uuid.NewV4()).String(), socket: conn, send: make(chan []byte), clientIp: clientIP, validOrigin: validOrigin}
-	log.Print(client.clientIp)
+	//log.Print(client.clientIp)
 	manager.register <- client
 
 	go client.reader()
@@ -254,7 +254,7 @@ func closed(u *WebsocketUser) {
 	var unsetKey int
 	op := false
 	if u.userType == "widgetInstance" {
-		log.Print(len(ws.clientWidgets[u.metricName]))
+		//log.Print(len(ws.clientWidgets[u.metricName]))
 		mu.Lock()
 		if len(ws.clientWidgets[u.metricName]) == 1 {
 			publish([]byte("unsubscribe"+u.metricName), "default")
@@ -397,7 +397,7 @@ func processingMsg(jsonMsg []byte) (map[string]interface{}, map[string]interface
 
 // apro la connessione al database
 
-func InitDB() {
+func initDB() {
 
 	config := mysql.NewConfig()
 
@@ -573,7 +573,7 @@ func publish(msg []byte, channel string) {
 		log.Print(err)
 		return
 	}
-	log.Print("publish on redis ", channel, " msg:", string(msg))
+	//log.Print("publish on redis ", channel, " msg:", string(msg))
 	defer c.Close()
 	c.Do("AUTH", ws.redisPassword)
 	c.Do("PUBLISH", channel, msg)
@@ -590,12 +590,7 @@ func countGo() {
 
 func getPort() string {
 	if len(os.Args) > 1 {
-
 		return os.Args[1]
-
-	} else {
-
-		return ws.serverPort
 	}
-
+	return ws.serverPort
 }

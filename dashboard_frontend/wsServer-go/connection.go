@@ -41,19 +41,22 @@ func init() {
 	}
 }
 
+// Message for metrics
 type Message struct {
 	MsgType    string      `json:"msgType"`
 	MetricName string      `json:"metricName"`
 	NewValue   interface{} `json:"newValue"`
 }
 
+// EmitterMessage for emitters
 type EmitterMessage struct {
 	MsgType          string      `json:"msgType"`
 	WidgetUniqueName string      `json:"widgetUniqueName"`
 	NewValue         interface{} `json:"newValue"`
-	MsgId            int64       `json:"msgId"`
+	MsgID            int64       `json:"msgId"`
 }
 
+// WebSocketServer for configuration data and status
 type WebSocketServer struct {
 	activeEnv     string
 	dbhost        string
@@ -69,7 +72,7 @@ type WebSocketServer struct {
 	clientID      string
 	ssoHost       string
 	ssoIssuer     string
-	ownershipUrl  string
+	ownershipURL  string
 	ldapServer    string
 	ldapPort      string
 	ldapBaseDN    string
@@ -78,12 +81,14 @@ type WebSocketServer struct {
 	clientWidgets map[string][]*WebsocketUser
 }
 
-type callBody struct {
-	ElementId   int64  `json:"elementId"`
+// OwnershipRegister used to register an element on ownership service
+type OwnershipRegister struct {
+	ElementID   int64  `json:"elementId"`
 	ElementType string `json:"elementType"`
 	ElementName string `json:"elementName"`
 }
 
+// ClientManager used to manage clients
 type ClientManager struct {
 	clients    map[string]*WebsocketUser
 	register   chan *WebsocketUser
@@ -91,38 +96,38 @@ type ClientManager struct {
 	replyAll   chan []byte
 }
 
-func ownershipRegisterDash(newDashId int64, title interface{}, dat map[string]interface{}) string {
+func ownershipRegisterDash(newDashID int64, title interface{}, dat map[string]interface{}) string {
 
-	callBody := callBody{ElementId: newDashId, ElementType: "DashboardID", ElementName: title.(string)}
+	callBody := OwnershipRegister{ElementID: newDashID, ElementType: "DashboardID", ElementName: title.(string)}
 	jsonValue, _ := json.Marshal(callBody)
 
-	apiURL := ws.ownershipUrl + "/v1/register/?accessToken=" + fmt.Sprint(dat["accessToken"])
+	apiURL := ws.ownershipURL + "/v1/register/?accessToken=" + fmt.Sprint(dat["accessToken"])
 
 	resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		log.Print(err)
 		return "Ko"
-	} else {
-		defer resp.Body.Close()
-		fmt.Println("response Status:", resp.Status)
-		fmt.Println("response Headers:", resp.Header)
-		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response Body:", string(body))
-		return "Ok"
 	}
+	defer resp.Body.Close()
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("response Body:", string(body))
+	return "Ok"
 }
 
 func ownershipLimitsDash(dat map[string]interface{}) (int, int, error) {
-	apiURL := ws.ownershipUrl + "/v1/limits/?type=DashboardID&accessToken=" + fmt.Sprint(dat["accessToken"])
+	apiURL := ws.ownershipURL + "/v1/limits/?type=DashboardID&accessToken=" + fmt.Sprint(dat["accessToken"])
 
 	resp, err := http.Get(apiURL)
 	if err != nil {
 		log.Print(err)
 		return 0, 0, err
-	} else {
-		defer resp.Body.Close()
-		fmt.Println("response Status:", resp.Status)
-		fmt.Println("response Headers:", resp.Header)
+	}
+	defer resp.Body.Close()
+	fmt.Println("response Status:", resp.Status)
+	//fmt.Println("response Headers:", resp.Header)
+	if resp.Status == "200 OK" {
 		body, _ := ioutil.ReadAll(resp.Body)
 		fmt.Println("response Body:", string(body))
 		var result map[string]interface{}
@@ -133,6 +138,32 @@ func ownershipLimitsDash(dat map[string]interface{}) (int, int, error) {
 
 		return limit, current, nil
 	}
+	return 0, 0, fmt.Errorf("failed ownership access for dashboard limits " + resp.Status)
+}
+
+func ownershipCheckAppID(dat map[string]interface{}) (bool, error) {
+	apiURL := ws.ownershipURL + "/v1/list/?type=AppID&accessToken=" + fmt.Sprint(dat["accessToken"]) + "&elementId=" + fmt.Sprint(dat["appId"])
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		log.Print(err)
+		return false, err
+	}
+	defer resp.Body.Close()
+	fmt.Println("response Status:", resp.Status)
+	//fmt.Println("response Headers:", resp.Header)
+	if resp.Status == "200 OK" {
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("response Body:", string(body))
+		var result []interface{}
+		json.Unmarshal(body, &result)
+		if len(result) > 0 {
+			if result[0].(map[string]interface{})["username"] == dat["user"] {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+	return false, fmt.Errorf("failed ownership access for appid check " + resp.Status)
 }
 
 /*func getUserinfo(client *oauth2., endpoint string, token string) (jose.Claims, error) {
@@ -170,7 +201,7 @@ func checkToken(accessToken string, clientID string) (string, string, error) {
 		return "", "", err
 	}
 
-	verifier := provider.Verifier(&oidc.Config{SkipClientIDCheck:true})
+	verifier := provider.Verifier(&oidc.Config{SkipClientIDCheck: true})
 	idToken, err := verifier.Verify(ctx, accessToken)
 	if err != nil {
 		log.Print(err)
@@ -180,17 +211,17 @@ func checkToken(accessToken string, clientID string) (string, string, error) {
 	if err := idToken.Claims(&claims); err != nil {
 		return "", "", err
 	}
-	if claims["aud"]!=nil {
-		if claims["aud"]!=clientID {
-			log.Print("checkToken 'aud' claim is '",claims["aud"],"' expected ", clientID)
+	if claims["aud"] != nil {
+		if claims["aud"] != clientID {
+			//log.Print("checkToken 'aud' claim is '",claims["aud"],"' expected ", clientID)
 			return "", "", errors.New("'aud' claim is not valid")
 		}
 	} else {
 		if claims["azp"] == nil {
-			log.Print("checkToken aud and azp claims missing")
+			//log.Print("checkToken aud and azp claims missing")
 			return "", "", errors.New("missing 'aud' and 'azp' claims")
-		} else if claims["azp"]!=clientID {
-			log.Print("checkToken azp claim is '",claims["aud"],"' expected ", clientID)
+		} else if claims["azp"] != clientID {
+			//log.Print("checkToken azp claim is '",claims["aud"],"' expected ", clientID)
 			return "", "", errors.New("'azp' claim is not valid")
 		}
 	}
@@ -244,7 +275,7 @@ func getOrganization(username string) (string, error) {
 		baseDN, // The base dn to search
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
 		"(&(objectClass=organizationalUnit)(l=cn="+username+","+baseDN+"))", // The filter to apply
-		[]string{"dn", "ou"},                                                // A list attributes to retrieve
+		[]string{"dn", "ou"}, // A list attributes to retrieve
 		nil,
 	)
 
