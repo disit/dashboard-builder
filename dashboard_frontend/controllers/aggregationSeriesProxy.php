@@ -22,10 +22,14 @@
 
     session_start();
 
-    function getMyKPIUpperTimeLimit($hoursOffset) {
+    function getMyKPIUpperTimeLimit($hoursOffset, $upperDateTime) {
 
         // Current date and time
-        $datetime = date("Y-m-d H:i:s");
+        if (isset($upperDateTime)) {
+            $datetime = $upperDateTime;
+        } else {
+            $datetime = date("Y-m-d H:i:s");
+        }
 
         // Convert datetime to Unix timestamp
         $timestamp = strtotime($datetime);
@@ -37,6 +41,27 @@
         $datetime = date("Y-m-d H:i:s", $time);
 
         return $datetime;
+    }
+
+    function getDynamicUpperTimeLimit($hoursOffset, $upperDateTime) {
+
+        // Current date and time
+        if (isset($upperDateTime)) {
+            $datetime = $upperDateTime;
+        } else {
+            $datetime = date("Y-m-d H:i:s");
+        }
+
+        // Convert datetime to Unix timestamp
+        $timestamp = strtotime($datetime);
+
+        // Subtract time from datetime
+        $time = ($timestamp - ($hoursOffset * 60 * 60 )) * 1000;
+
+        // Date and time after subtraction
+      //  $datetime = date("Y-m-d H:i:s", $time);
+
+        return $time;
     }
 
     function getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint) {
@@ -111,7 +136,12 @@
                                     $timeRange = "365 DAY";
                                     break;
                             }
-                            $q3 = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data LEFT JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$metricName' AND Data.computationDate >= DATE_SUB(now(), INTERVAL " . $timeRange . ") ORDER BY computationDate ASC"; 
+                            if(isset($_REQUEST['upperTime'])) {
+                                $upperTime = mysqli_real_escape_string($link, $_REQUEST['upperTime']);
+                                $q3 = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data LEFT JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$metricName' AND Data.computationDate >= DATE_SUB('" . $upperTime . "', INTERVAL " . $timeRange . ") AND Data.computationDate <= '" . $upperTime . "' ORDER BY computationDate ASC";
+                            } else {
+                                $q3 = "SELECT Data.*, Descriptions.description_short as descrip, Descriptions.metricType, Descriptions.field1Desc, Descriptions.field2Desc, Descriptions.field3Desc, Descriptions.hasNegativeValues from Data LEFT JOIN Descriptions ON Data.IdMetric_data=Descriptions.IdMetric where Data.IdMetric_data = '$metricName' AND Data.computationDate >= DATE_SUB(now(), INTERVAL " . $timeRange . ") ORDER BY computationDate ASC";
+                            }
                         }
                         else
                         {
@@ -247,6 +277,16 @@
                 $urlToCall = $smUrl;
             }
 
+            if(isset($_REQUEST['upperTime'])) {
+                $urlToCall = $urlToCall . "&toTime=" . $_REQUEST['upperTime'];
+            }
+
+            if (isset($dataOrigin->smField)) {
+                if(strpos($dataOrigin->smField, 'Forecast') !== false) {
+                    $urlToCall = $urlToCall . "&valueName=" . $dataOrigin->smField;
+                }
+            }
+
             if(isset($urlToCall)) {
                 $options = array(
                     'http' => array(
@@ -302,7 +342,51 @@
 
         case "Dynamic":
             $response['result'] = 'Ok';
-            $response['data'] = $dataOrigin->values;
+            $response['data'] = [];
+          //  $response['data'] = $dataOrigin->values;
+            if(isset($_REQUEST['upperTime'])) {
+                $upperTime = $_REQUEST['upperTime'];
+            } else {
+                $upperTime = null;
+            }
+            switch($_REQUEST['timeRange'])
+            {
+                case "4 Ore":
+                    $t0 = getDynamicUpperTimeLimit(4, $upperTime);
+                    break;
+
+                case "12 Ore":
+                    $t0 = getDynamicUpperTimeLimit(12, $upperTime);
+                    break;
+
+                case "Giornaliera":
+                    $t0 = getDynamicUpperTimeLimit(24, $upperTime);
+                    break;
+
+                case "Settimanale":
+                    $t0 = getDynamicUpperTimeLimit(168, $upperTime);
+                    break;
+
+                case "Mensile":
+                    $t0 = getDynamicUpperTimeLimit(720, $upperTime);
+                    break;
+
+                case "Semestrale":
+                    $t0 = getDynamicUpperTimeLimit(4320, $upperTime);
+                    break;
+
+                case "Annuale":
+                    $t0 = getMyKPIUpperTimeLimit(8760, $upperTime);
+                    break;
+            }
+            $t1 = strtotime($upperTime) * 1000;
+
+            for ($n = 0; $n < sizeof($dataOrigin->values); $n++) {
+                if ($dataOrigin->values[$n][0] >= $t0 && $dataOrigin->values[$n][0] <= $t1) {
+                    array_push($response['data'], $dataOrigin->values[$n]);
+                }
+            }
+
             $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
             if (!isset($dataOrigin->smField)) {
                 if (isset($dataOrigin->metricType)) {
@@ -331,35 +415,43 @@
             {
                 if($_REQUEST['timeRange'] != 'last')
                 {
+                    if(isset($_REQUEST['upperTime'])) {
+                        $upperTime = $_REQUEST['upperTime'];
+                    } else {
+                        $upperTime = null;
+                    }
                     switch($_REQUEST['timeRange'])
                     {
                         case "4 Ore":
-                            $timeRange = "from=" . getMyKPIUpperTimeLimit(4);
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(4, $upperTime);
                             break;
 
                         case "12 Ore":
-                            $timeRange = "from=" . getMyKPIUpperTimeLimit(12);
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(12, $upperTime);
                             break;
 
                         case "Giornaliera":
-                            $timeRange = "from=" . getMyKPIUpperTimeLimit(24);
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(24, $upperTime);
                             break;
 
                         case "Settimanale":
-                            $timeRange = "from=" . getMyKPIUpperTimeLimit(168);
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(168, $upperTime);
                             break;
 
                         case "Mensile":
-                            $timeRange = "from=" . getMyKPIUpperTimeLimit(720);
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(720, $upperTime);
                             break;
 
                         case "Semestrale":
-                            $timeRange = "from=" . getMyKPIUpperTimeLimit(4320);
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(4320, $upperTime);
                             break;
 
                         case "Annuale":
-                            $timeRange = "from=" . getMyKPIUpperTimeLimit(8760);
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(8760, $upperTime);
                             break;
+                    }
+                    if(isset($_REQUEST['upperTime'])) {
+                        $timeRange = $timeRange . "&to=" . $upperTime;
                     }
 
                 }

@@ -41,16 +41,29 @@
         var headerHeight = 25;
         var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
-	var showHeader = null;
+	    var showHeader = null;
         var addSampleToTrend = null;
         var metricData, metricType, series, styleParameters, timeRange, gridLineColor, chartAxesColor, chartType, index, highchartsChartType, chartSeriesObject, legendWidth, xAxisCategories, rowParameters, aggregationGetData, getDataFinishCount, xAxisType,
             dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, stackingOption, fontSize, fontColor, chartColor, dataLabelsFontSize, chartLabelsFontSize, dataLabelsFontColor, chartLabelsFontColor, appId, flowId, nrMetricType,
-            widgetHeight, lineWidth, xAxisTitle, smField, metricName, widgetTitle, countdownRef, widgetParameters, thresholdsJson, infoJson, xAxisFormat, yAxisType = null;
+            widgetHeight, lineWidth, xAxisTitle, smField, metricName, widgetTitle, countdownRef, widgetParameters, thresholdsJson, infoJson, xAxisFormat, yAxisType, infoJson, idMetric = null;
         var serviceUri = "";
         var editLabels = "";
         var valueUnit = null;
         var seriesDataArray = [];
         var utcOption = false;
+        var rowParamLength = null;
+        var dataOriginV = null;
+        var upperTimeLimitISOTrimmed = null;
+        //    this["timeNavCount_"+widgetName] = 0;
+        var timeNavCount = 0;
+        var fromGisExternalContentRangePrevious = null;
+        var fromGisExternalContentServiceUriPrevious = null;
+        var fromGisExternalContentFieldPrevious = null;
+        var dataFut = null;
+        var upLimit, upperTime = null;
+        var now = new Date();
+        var nowUTC = now.toUTCString();
+        var isoDate = new Date(nowUTC).toISOString();
         
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
@@ -807,10 +820,55 @@
         }
         
         function resizeWidget()
-	{
+	    {
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
-	}
+
+            if (infoJson != "fromTracker" || fromGisExternalContent === true) {
+                var titleDiv = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv');
+                //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv').css("width", "3.5%");
+                //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_countdownContainerDiv').css("width", "3%");
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("color", widgetHeaderFontColor);
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton').css("color", widgetHeaderFontColor);
+                titleDiv.css("width", "70%");
+
+                if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 400) {
+                    titleDiv.css("width", "65%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "19%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 480) {
+                    titleDiv.css("width", "74%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "14%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 560) {
+                    titleDiv.css("width", "75%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "15%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 700) {
+                    titleDiv.css("width", "80%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "11%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 900) {
+                    titleDiv.css("width", "84%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "9%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1000) {
+                    titleDiv.css("width", "85%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "8%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1050) {
+                    titleDiv.css("width", "85%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else {
+                    titleDiv.css("width", "87%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                }
+
+            }
+
+	    }
 
         function drawDiagram(timeDomain, xAxisFormat, yAxisFormat)
         {
@@ -1024,6 +1082,8 @@
                                 var dateLine = null;
                                 if (styleParameters.xAxisFormat == "numeric" && rowParameters[chartItemIdx].metricHighLevelType == "Dynamic") {
                                     dateLine = "";
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
                                 } else {
                                     dateLine = '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>';
                                 }
@@ -1121,6 +1181,190 @@
 
             }
 
+        }
+
+        function getUpperTimeLimit(timeRange, timeCount) {
+            let hours = 0;
+            switch(timeRange) {
+                case "Annuale":
+                    hours = 365*24*timeCount;
+                    break;
+
+                case "Semestrale":
+                    hours = 180*24*timeCount;
+                    break;
+
+                case "Mensile":
+                    hours = 30*24*timeCount;
+                    break;
+
+                case "Settimanale":
+                    hours = 7*24*timeCount;
+                    break;
+
+                case "Giornaliera":
+                    hours = 24*timeCount;
+                    break;
+
+                case "12 Ore":
+                    hours = 12*timeCount;
+                    break;
+
+                case "4 Ore":
+                    hours = 4*timeCount;
+                    break;
+            }
+            let now = new Date();
+            let timeZoneOffsetHours = now.getTimezoneOffset() / 60;
+            let upperTimeLimit = now.setHours(now.getHours() - hours - timeZoneOffsetHours);
+            let upperTimeLimitUTC = new Date(upperTimeLimit).toUTCString();
+            let upperTimeLimitISO = new Date(upperTimeLimitUTC).toISOString();
+            let upperTimeLimitISOTrim = upperTimeLimitISO.substring(0, isoDate.length - 5);
+            return upperTimeLimitISOTrim;
+            //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+        }
+
+        function convertFromMomentToTime(momentDate) {
+            var momentDateTime = momentDate.format();
+            //  momentDateTime = momentDateTime.replace("T", " ");
+            var plusIndexLocal = momentDateTime.indexOf("+");
+            momentDateTime = momentDateTime.substr(0, plusIndexLocal);
+            var convertedDateTime = momentDateTime;
+            return convertedDateTime;
+        }
+
+        function convertDataFromTimeNavToDm(originalData, field)
+        {
+            var singleOriginalData, singleData, convertedDate, futureDate = null;
+            var convertedData = {
+                data: []
+            };
+
+            var originalDataWithNoTime = 0;
+            var originalDataNotNumeric = 0;
+
+            if(originalData.hasOwnProperty("realtime"))
+            {
+                if(originalData.realtime.hasOwnProperty("results"))
+                {
+                    if(originalData.realtime.results.hasOwnProperty("bindings"))
+                    {
+                        if(originalData.realtime.results.bindings.length > 0)
+                        {
+                            for(var i = 0; i < originalData.realtime.results.bindings.length; i++)
+                            {
+                                singleData = {
+                                    commit: {
+                                        author: {
+                                            IdMetric_data: null, //Si puÃ² lasciare null, non viene usato dal widget
+                                            computationDate: null,
+                                            futureDate: null,
+                                            value_perc1: null, //Non lo useremo mai
+                                            value: null,
+                                            descrip: null, //Mettici il nome della metrica splittato
+                                            threshold: null, //Si puÃ² lasciare null, non viene usato dal widget
+                                            thresholdEval: null //Si puÃ² lasciare null, non viene usato dal widget
+                                        },
+                                        range_dates: 0//Si puÃ² lasciare null, non viene usato dal widget
+                                    }
+                                };
+
+                                singleOriginalData = originalData.realtime.results.bindings[i];
+                                if(singleOriginalData.hasOwnProperty("updating"))
+                                {
+                                    convertedDate = singleOriginalData.updating.value;
+                                }
+                                else
+                                {
+                                    if(singleOriginalData.hasOwnProperty("measuredTime"))
+                                    {
+                                        convertedDate = singleOriginalData.measuredTime.value;
+                                    }
+                                    else
+                                    {
+                                        if(singleOriginalData.hasOwnProperty("instantTime"))
+                                        {
+                                            convertedDate = singleOriginalData.instantTime.value;
+                                        }
+                                        else
+                                        {
+                                            originalDataWithNoTime++;
+                                            continue;
+                                        }
+                                    }
+                                }
+
+                                // TIME-ZONE CONVERSION
+                                var localTimeZone = moment.tz.guess();
+                                var momentDateTime = moment(convertedDate);
+                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                localDateTime = localDateTime.replace("T", " ");
+                                var plusIndexLocal = localDateTime.indexOf("+");
+                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+
+                                convertedDate = convertedDate.replace("T", " ");
+                                var plusIndex = convertedDate.indexOf("+");
+                                convertedDate = convertedDate.substr(0, plusIndex);
+                                if (singleOriginalData[field].hasOwnProperty("valueDate")) {
+                                    futureDate = singleOriginalData[field].valueDate.replace("T", " ");
+                                    var plusIndexFuture = futureDate.indexOf("+");
+                                    futureDate = futureDate.substr(0, plusIndexFuture);
+                                    var momentDateTimeFuture = moment(futureDate);
+                                    var localDateTimeFuture = momentDateTimeFuture.tz(localTimeZone).format();
+                                    localDateTimeFuture = localDateTimeFuture.replace("T", " ");
+                                    var plusIndexLocalFuture = localDateTimeFuture.indexOf("+");
+                                    localDateTimeFuture = localDateTimeFuture.substr(0, plusIndexLocalFuture);
+                                }
+                                if (localDateTime == "") {
+                                    singleData.commit.author.computationDate = convertedDate;
+                                    singleData.commit.author.futureDate = futureDate;
+                                } else {
+                                    singleData.commit.author.computationDate = localDateTime;
+                                    singleData.commit.author.futureDate = localDateTimeFuture;
+
+                                }
+
+                                if(singleOriginalData[field] !== undefined) {
+                                    if (!isNaN(parseFloat(singleOriginalData[field].value))) {
+                                        singleData.commit.author.value = parseFloat(singleOriginalData[field].value);
+                                    } else {
+                                        originalDataNotNumeric++;
+                                        continue;
+                                    }
+                                } else {
+                                    originalDataNotNumeric++;
+                                    continue;
+                                }
+
+                                convertedData.data.push(singleData);
+                            }
+
+                            if (convertedData.data.length > 0) {
+                                return convertedData;
+                            } else {
+                                convertedData.data.push(singleData)
+                                return convertedData;
+                            }
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
         
         function compareSeriesData(a, b)
@@ -1236,7 +1480,11 @@
                     case "Dynamic":
                       //   utcOption = false;
                          let extractedData = {};
-                         extractedData.values = rowParameters[i].values;
+                         if (timeNavCount != 0) {
+                             extractedData.values = aggregationGetData[i].data;
+                         } else {
+                             extractedData.values = rowParameters[i].values;
+                         }
                          extractedData.metricType = rowParameters[i].metricType;
                          extractedData.metricId = rowParameters[i].metricId;
                          extractedData.metricName = rowParameters[i].metricName;
@@ -1294,6 +1542,11 @@
                          }
                          let currDate = new Date();
                          let currMillis = currDate.getTime();
+                         if (timeNavCount != 0) {
+                             if (upperTime != null) {
+                                 currMillis = new Date(upperTime).getTime();
+                             }
+                         }
 
                          if (extractedData.values) {
                              if (xAxisFormat != "numeric") {
@@ -1625,8 +1878,20 @@
             return null; 
         }
         
-        function populateWidget(fromAggregate, localTimeRange)
+        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture)
         {
+
+            // Reset Time Navigation
+        /*    if (fromGisExternalContentRangePrevious !== fromGisExternalContentRange || fromGisExternalContentFieldPrevious != fromGisExternalContentField || fromGisExternalContentServiceUriPrevious != fromGisExternalContentServiceUri) {
+                timeNavCount = 0;
+                timeCount = 0;
+                fromGisExternalContentRangePrevious = fromGisExternalContentRange;
+                fromGisExternalContentFieldPrevious = fromGisExternalContentField;
+                fromGisExternalContentServiceUriPrevious = fromGisExternalContentServiceUri;
+                dataFut = null;
+                upLimit = null;
+            }*/
+
             if(fromAggregate)
             {
                 setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
@@ -1634,23 +1899,36 @@
                 aggregationGetData = [];
                 getDataFinishCount = 0;
 
-                for(var i = 0; i < rowParameters.length; i++)
+                if (rowParameters.length == null) {
+                    rowParamLength = 0;
+                } else {
+                    rowParamLength = rowParameters.length;
+                }
+
+                for(var i = 0; i < rowParamLength; i++)
                 {
                     aggregationGetData[i] = false;
                 }
 
-                for(var i = 0; i < rowParameters.length; i++)
+                for(var i = 0; i < rowParamLength; i++)
                 {
+                    upperTime = getUpperTimeLimit(localTimeRange, timeCount);
+                    if (rowParamLength >= 1) {
+                        dataOriginV = JSON.stringify(rowParameters[i]);
+                    } else {
+                        dataOriginV = JSON.stringify(rowParameters);
+                    }
                     index = i;
                     $.ajax({
                         url: "../controllers/aggregationSeriesProxy.php",
                         type: "POST",
                         data: 
                         {
-                            dataOrigin: JSON.stringify(rowParameters[i]),
+                            dataOrigin: dataOriginV,
                             index: i,
                             timeRange: localTimeRange,
-                            field: smField
+                            field: rowParameters[i].smField,
+                            upperTime: upperTime
                         },
                         async: true,
                         dataType: 'json',
@@ -1662,7 +1940,7 @@
                             var metricLabels = [];
 
                             //Popoliamo il widget quando sono arrivati tutti i dati
-                            if(getDataFinishCount === rowParameters.length)
+                            if(getDataFinishCount === rowParamLength)
                             {
                                 widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
                                 legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
@@ -1672,7 +1950,9 @@
                                 metricLabels = getMetricLabelsForBarSeries(rowParameters);
                             //    deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
                                 for (let n = 0; n < chartSeriesObject.length; n++) {
-                                    deviceLabels[n] = chartSeriesObject[n].name;
+                                    if (chartSeriesObject[n] != null) {
+                                        deviceLabels[n] = chartSeriesObject[n].name;
+                                    }
                                 }
                             //    let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
                             /*    if (editLabels) {
@@ -1694,22 +1974,22 @@
                                     xAxisTitle = "DateTime";
                                 }*/
 
-                                if(firstLoad !== false)
-                                {
+                              //  if(firstLoad !== false || timeNavCount != 0)
+                              //  {
                                     showWidgetContent(widgetName);
                                  //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
                                     $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                }
-                                else
+                              //  }
+                              /*  else
                                 {
                                     elToEmpty.empty();
                                 //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
                                     $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                }
+                                }*/
 
                             //    if (!serviceUri) {
                                     $.ajax({
@@ -1732,7 +2012,29 @@
                                     });
                             //    }
 
-                                drawDiagram(true, xAxisFormat, yAxisType);
+                                let drawFlag = false;
+                                for (let n = 0; n< chartSeriesObject.length; n++) {
+                                    if (chartSeriesObject[n] != null) {
+                                        if (chartSeriesObject[n].data.length > 0) {
+                                            drawFlag = true;
+                                        }
+                                    }
+                                }
+                                if (drawFlag === true) {
+                                    drawDiagram(true, xAxisFormat, yAxisType);
+                                } else {
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                    //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                }
+                                if (timeNavCount < 0) {
+                                    if (moment(upperTime).isBefore(moment(dataFut))) {
+
+                                    } else {
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                    }
+                                }
                             }
                         },
                         error: function(errorData)
@@ -1802,6 +2104,13 @@
                             }
 
                             drawDiagram(false, xAxisFormat, yAxisType);
+                            if (timeNavCount < 0) {
+                                if (moment(upperTime).isBefore(moment(dataFut))) {
+
+                                } else {
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                }
+                            }
                         }
                         else
                         {
@@ -1826,6 +2135,227 @@
                 });
             }
         }
+
+        $("#" + widgetName + "_timeTrendPrevBtn").off("click").click(function () {
+            //  alert("PREV Clicked!");
+            timeNavCount++;
+            if(timeNavCount == 0) {
+
+                if (idMetric === 'AggregationSeries' || idMetric.includes("NR_")) {
+                    //    rowParameters = JSON.parse(rowParameters);
+                    //    timeRange = widgetData.params.temporal_range_w;
+                    populateWidget(true, timeRange, "minus", timeNavCount);
+                    //    populateWidget(true, timeRange);
+                } else {
+                    populateWidget(false, null, "minus", timeNavCount);
+                    //    populateWidget(false, null);
+                }
+
+                //   if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
+                for (let k = 0; k < rowParameters.length; k++) {
+                    if (rowParameters[k].metricHighLevelType == "Sensor") {
+                        let urlKBToBeCalled = "";
+                        let field = "";
+                        let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
+                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                        field = rowParameters[k].smField;
+                        if (rowParameters != null) {
+                        //    if (rowParameters.includes("https:")) {
+                                $.ajax({
+                                    url: urlKBToBeCalled,
+                                    type: "GET",
+                                    data: {},
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (originalData) {
+                                        var stopFlag = 1;
+                                        var convertedData = convertDataFromTimeNavToDm(originalData, field);
+                                        if (convertedData) {
+                                            if (convertedData.data.length > 0) {
+                                                var localTimeZone = moment.tz.guess();
+                                                var momentDateTime = moment();
+                                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                                localDateTime = localDateTime.replace("T", " ");
+                                                var plusIndexLocal = localDateTime.indexOf("+");
+                                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                                var localTimeZoneString = "";
+                                                if (localDateTime == "") {
+                                                    localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                                } else {
+                                                    localTimeZoneString = localTimeZone;
+                                                }
+                                                if (convertedData.data[0].commit.author.futureDate != null && convertedData.data[0].commit.author.futureDate != undefined) {
+                                                    dataFut = (convertedData.data[0].commit.author.futureDate);
+                                                    if (moment(dataFut).isAfter(momentDateTime)) {
+                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                                                    } else {
+                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                                                    }
+                                                } else {
+                                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                                                }
+                                            } else {
+                                                showWidgetContent(widgetName);
+                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                                console.log("Dati non disponibili da Service Map");
+                                            }
+                                        } else {
+                                            showWidgetContent(widgetName);
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            console.log("Dati non disponibili da Service Map");
+                                        }
+                                    },
+                                    error: function (data) {
+                                        //  showWidgetContent(widgetName);
+                                        //  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Errore in chiamata prima API");
+                                        console.log(JSON.stringify(data));
+                                    }
+                                });
+                        /*    } else {
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                            }*/
+                        } else {
+                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                        }
+
+                    }
+                }
+            } else if (timeNavCount < 0 && $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").is(":hidden")) {
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+            } else {
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+            }
+
+            setupLoadingPanel(widgetName, widgetContentColor, true);
+            if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
+            {
+            //    rowParameters = JSON.parse(rowParameters);
+            //    timeRange = widgetData.params.temporal_range_w;
+                populateWidget(true, timeRange, "minus", timeNavCount);
+                //    populateWidget(true, timeRange);
+            }
+            else
+            {
+                populateWidget(false, null, "minus", timeNavCount);
+                //    populateWidget(false, null);
+            }
+        //    populateWidget(timeRange, null, "minus", timeNavCount);
+        });
+
+        $("#" + widgetName + "_timeTrendNextBtn").off("click").click(function () {
+            //   alert("NEXT Clicked!");
+            timeNavCount--;
+            if(timeNavCount == 0) {
+
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
+                {
+                //    rowParameters = JSON.parse(rowParameters);
+                 //   timeRange = widgetData.params.temporal_range_w;
+                    populateWidget(true, timeRange, "plus", timeNavCount);
+                    //    populateWidget(true, timeRange);
+                }
+                else
+                {
+                    populateWidget(false, null, "plus", timeNavCount);
+                    //    populateWidget(false, null);
+                }
+
+                //    if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
+                for (let k = 0; k < rowParameters.length; k++) {
+                    if (rowParameters[k].metricHighLevelType == "Sensor") {
+                        let urlKBToBeCalled = "";
+                        let field = "";
+                        let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
+                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                        field = rowParameters[k].smField;
+                        if (rowParameters != null) {
+                          //  if (rowParameters.includes("https:")) {
+                                $.ajax({
+                                    url: urlKBToBeCalled,
+                                    type: "GET",
+                                    data: {},
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (originalData) {
+                                        var stopFlag = 1;
+                                        var convertedData = convertDataFromTimeNavToDm(originalData, field);
+                                        if (convertedData) {
+                                            if (convertedData.data.length > 0) {
+                                                var localTimeZone = moment.tz.guess();
+                                                var momentDateTime = moment();
+                                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                                localDateTime = localDateTime.replace("T", " ");
+                                                var plusIndexLocal = localDateTime.indexOf("+");
+                                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                                var localTimeZoneString = "";
+                                                if (localDateTime == "") {
+                                                    localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                                } else {
+                                                    localTimeZoneString = localTimeZone;
+                                                }
+                                                if (convertedData.data[0].commit.author.futureDate != null && convertedData.data[0].commit.author.futureDate != undefined) {
+                                                    dataFut = (convertedData.data[0].commit.author.futureDate);
+                                                    if (moment(dataFut).isAfter(momentDateTime)) {
+                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                                                    } else {
+                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                                    }
+                                                } else {
+                                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                                }
+                                            } else {
+                                                showWidgetContent(widgetName);
+                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                                console.log("Dati non disponibili da Service Map");
+                                            }
+                                        } else {
+                                            showWidgetContent(widgetName);
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            console.log("Dati non disponibili da Service Map");
+                                        }
+                                    },
+                                    error: function (data) {
+                                        //  showWidgetContent(widgetName);
+                                        //  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Errore in chiamata prima API");
+                                        console.log(JSON.stringify(data));
+                                    }
+                                });
+                        /*    } else {
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                            }   */
+                        } else {
+                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                        }
+                    }
+                }
+            }
+
+            setupLoadingPanel(widgetName, widgetContentColor, true);
+            if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
+            {
+            //    rowParameters = JSON.parse(rowParameters);
+             //   timeRange = widgetData.params.temporal_range_w;
+                populateWidget(true, timeRange, "plus", timeNavCount);
+                //    populateWidget(true, timeRange);
+            }
+            else
+            {
+                populateWidget(false, null, "plus", timeNavCount);
+                //    populateWidget(false, null);
+            }
+        //    populateWidget(timeRange, null, "plus", timeNavCount, dataFut);
+
+        });
+
         //Fine definizioni di funzione
         
         $(document).off('changeMetricFromButton_' + widgetName);
@@ -1857,6 +2387,7 @@
             dataType: 'json',
             success: function(widgetData) 
             {
+
                 showTitle = widgetData.params.showTitle;
                 widgetContentColor = widgetData.params.color_w;
                 fontSize = widgetData.params.fontSize;
@@ -1864,15 +2395,27 @@
                 timeToReload = widgetData.params.frequency_w;
                 hasTimer = widgetData.params.hasTimer;
                 chartColor = widgetData.params.chartColor;
-                dataLabelsFontSize = widgetData.params.dataLabelsFontSize; 
-                dataLabelsFontColor = widgetData.params.dataLabelsFontColor; 
-                chartLabelsFontSize = widgetData.params.chartLabelsFontSize; 
+                dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
                 chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
                 appId = widgetData.params.appId;
                 flowId = widgetData.params.flowId;
                 nrMetricType = widgetData.params.nrMetricType;
                 gridLineColor = widgetData.params.chartPlaneColor;
                 chartAxesColor = widgetData.params.chartAxesColor;
+                infoJson = widgetData.params.infoJson;
+                idMetric =  widgetData.params.id_metric;
+
+                //    if ((sm_based === "myKPI" || sm_based === "no") && fromGisExternalContent != true) {
+                //    if ((sm_based === "no" || infoJson === "fromTracker") && fromGisExternalContent != true) {
+                if (infoJson === "fromTracker" && fromGisExternalContent != true) {
+                    $("#" + widgetName + "_timeControlsContainer").hide();
+                    $("#" + widgetName + "_titleDiv").css("width", "95%");
+                } else {
+                    $("#" + widgetName + "_timeControlsContainer").show();
+                    $("#" + widgetName + "_titleDiv").css("width", "95%");
+                }
                 
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
@@ -1973,17 +2516,138 @@
                         dataLabelsAlign = 'center';
                         break;
                 }
-                
-                if(widgetData.params.id_metric === 'AggregationSeries' || widgetData.params.id_metric.includes("NR_"))
+
+                if (timeRange == null || timeRange == undefined) {
+                    timeRange = widgetData.params.temporal_range_w;
+                }
+
+                if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
                 {
                     rowParameters = JSON.parse(rowParameters);
                     timeRange = widgetData.params.temporal_range_w;
-                    populateWidget(true, timeRange);
+                    populateWidget(true, timeRange, null, timeNavCount);
+                //    populateWidget(true, timeRange);
                 }
                 else
                 {
-                    populateWidget(false, null);
+                    populateWidget(false, null, null, timeNavCount);
+                //    populateWidget(false, null);
                 }
+
+                // Hide Next Button at first instantiation
+                if(timeNavCount == 0) {
+                    if (rowParameters != null) {
+                        for (let k = 0; k < rowParameters.length; k++) {
+                            if (rowParameters[k].metricHighLevelType == "Sensor") {
+                                let urlKBToBeCalled = "";
+                                let field = "";
+                                let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
+                                urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                                field = rowParameters[k].smField;
+
+                                $.ajax({
+                                    url: urlKBToBeCalled,
+                                    type: "GET",
+                                    data: {},
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (originalData) {
+                                        var stopFlag = 1;
+                                        var convertedData = convertDataFromTimeNavToDm(originalData, field);
+                                        if (convertedData) {
+                                            if (convertedData.data.length > 0) {
+                                                var localTimeZone = moment.tz.guess();
+                                                var momentDateTime = moment();
+                                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                                localDateTime = localDateTime.replace("T", " ");
+                                                var plusIndexLocal = localDateTime.indexOf("+");
+                                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                                var localTimeZoneString = "";
+                                                if (localDateTime == "") {
+                                                    localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                                } else {
+                                                    localTimeZoneString = localTimeZone;
+                                                }
+                                                if (convertedData.data[0].commit.author.futureDate != null && convertedData.data[0].commit.author.futureDate != undefined) {
+                                                    dataFut = (convertedData.data[0].commit.author.futureDate);
+                                                    if (moment(dataFut).isAfter(momentDateTime)) {
+                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                                                    } else {
+                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                                    }
+                                                } else {
+                                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                                }
+                                            } else {
+                                                showWidgetContent(widgetName);
+                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                                console.log("Dati non disponibili da Service Map");
+                                            }
+                                        } else {
+                                            showWidgetContent(widgetName);
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            console.log("Dati non disponibili da Service Map");
+                                        }
+                                    },
+                                    error: function (data) {
+                                        //  showWidgetContent(widgetName);
+                                        //  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Errore in chiamata prima API");
+                                        console.log(JSON.stringify(data));
+                                    }
+                                });
+                            } else {
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                            }
+                        }
+                    }
+                }
+
+                // Modify width to show newly implemented PREV and NEXT buttons
+                var titleDiv = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv');
+                //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv').css("width", "3.5%");
+                //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_countdownContainerDiv').css("width", "3%");
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("color", widgetHeaderFontColor);
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton').css("color", widgetHeaderFontColor);
+                titleDiv.css("width", "70%");
+
+                if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 400) {
+                    titleDiv.css("width", "65%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "19%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 480) {
+                    titleDiv.css("width", "74%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "14%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 560) {
+                    titleDiv.css("width", "75%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "15%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 700) {
+                    titleDiv.css("width", "80%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "11%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 900) {
+                    titleDiv.css("width", "84%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "9%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1000) {
+                    titleDiv.css("width", "85%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "8%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1050) {
+                    titleDiv.css("width", "85%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                } else {
+                    titleDiv.css("width", "87%");
+                    $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                }
+
             },
             error: function(errorData)
             {
@@ -1999,7 +2663,9 @@
         
         $("#<?= $_REQUEST['name_w'] ?>").off('changeTimeRangeEvent');
         $("#<?= $_REQUEST['name_w'] ?>").on('changeTimeRangeEvent', function(event){
-            populateWidget(true, event.newTimeRange);
+            timeRange = event.newTimeRange;
+            populateWidget(true, event.newTimeRange, null, 0);
+         //   populateWidget(true, event.newTimeRange);
         });
         
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){

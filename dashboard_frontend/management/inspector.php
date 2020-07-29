@@ -477,7 +477,7 @@ $lastUsedColors = null;
 
                                                             <div class="input-group"><span class="input-group-addon">Last Date: </span><input id="last_date" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Last Value: </span><input id="last_value" type="text" class="form-control" readonly/></div><br />
-                                                                <table id="healthiness_table" class="addWidgetWizardTable table table-striped dt-responsive nowrap">
+                                                                <table id="healthiness_table" class="addWidgetWizardTable table table-striped dt-responsive nowrap" style="display:none;">
                                                                     <thead class="widgetWizardColTitle">
                                                                         <tr>
                                                                             <th class="widgetWizardTitleCell">Value Type</th>
@@ -785,10 +785,12 @@ $lastUsedColors = null;
                 case 'Complex Event':
                 case 'wfs':
                     $('#input_ch2').empty();
+                    $("#healthiness_table").hide();
                     var icon = '../img/dataInspectorIcons/data-inspector.png';
                     $('#inspector_image').append('<img src="' + icon + '" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     break;
                 case 'External Service':
+                    $("#healthiness_table").hide();
                     $('#data_source').val('Special Process');
                     $('#input_ch2').empty();
                     $('#sm_link').append('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to External Service</a>');
@@ -808,6 +810,7 @@ $lastUsedColors = null;
                     //
                     break;
                 case 'Heatmap':
+                    $("#healthiness_table").hide();
                     $('#input_ch2').show();
                     $('#input_ch2').html('<span class="input-group-addon">Healthiness Criteria 2:</span><span class="input-group-addon"><span id="s2_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/>');
                     break;
@@ -816,6 +819,7 @@ $lastUsedColors = null;
                     $(".iot_sensor").hide();
                     $(".sensor_own").hide();
                     $('#input_ch2').empty();
+                    $("#healthiness_table").hide();
                     $('#data_source').val('Datagate or Loaded by Triples (ETL)');
                     var icon = '../img/dataInspectorIcons/data-inspector.png';
                     var func_dash = function_dashKpi(parameters);
@@ -828,6 +832,7 @@ $lastUsedColors = null;
                     $('#input_ch2').empty();
                     $(".sensor_own").show();
                     $('#tab3').show();
+                    $("#healthiness_table").hide();
                     $('#data_source').val('Km4cityRTData');
                     var func_dash = function_dashKpi(parameters);
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
@@ -838,6 +843,7 @@ $lastUsedColors = null;
                     $(".iot_sensor").hide();
                     $(".sensor_own").show();
                     $('#input_ch2').empty();
+                    $("#healthiness_table").hide();
                     var dataTypeMyKpi = data_unit.split('-');
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     if (parameters.includes('datamanager/api/v1/poidata/')) {
@@ -864,6 +870,7 @@ $lastUsedColors = null;
                     $(".iot_sensor").hide();
                     $(".sensor_own").hide();
                     $('#input_ch2').empty();
+                    $("#healthiness_table").hide();
                     var dataTypeMyKpi = data_unit.split('-');
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     if (parameters.includes('datamanager/api/v1/poidata/')) {
@@ -882,6 +889,7 @@ $lastUsedColors = null;
                     $(".iot_sensor").hide();
                     $(".sensor_own").hide();
                     $('#input_ch2').empty();
+                    $("#healthiness_table").hide();
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     if (parameters.includes('datamanager/api/v1/poidata/')) {
                         var param2 = parameters.split('datamanager/api/v1/poidata/');
@@ -898,6 +906,7 @@ $lastUsedColors = null;
                     break;
                 case 'Sensor':
                     $('#tab3').show();
+                    $("#healthiness_table").show();
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
 
                     if ((parameters.includes("iot/")) || (name_Subnature.includes("IoT/")) || (name_Nature.includes("IOT/"))) {
@@ -937,6 +946,7 @@ $lastUsedColors = null;
                     break;
                 case 'Sensor-Actuator':
                     $('#tab3').show();
+                    $("#healthiness_table").show();
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     if ((parameters.includes("iot")) || (name_Subnature.includes("IoT")) || (name_Nature.includes("IOT"))) {
                         $('#data_source').val("IoT");
@@ -962,6 +972,7 @@ $lastUsedColors = null;
                     break;
                 case 'MicroApplication':
                     //
+                    $("#healthiness_table").hide();
                     $('#input_ch2').empty();
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
@@ -987,10 +998,12 @@ $lastUsedColors = null;
                     $(".etl_sensor").hide();
                     $(".iot_sensor").hide();
                     $('#broker_link').hide();
+                    $("#healthiness_table").hide();
                     $('#data_source').val('Special Process');
                     $('#inspector_image').html('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
                     break;
                 case 'Dashboard-IOT App':
+                    $("#healthiness_table").hide();
                     $('#input_ch2').empty();
                     $('#data_source').val(name_Nature);
                     var das = function_dashboard(data_get_instances);
@@ -1000,6 +1013,7 @@ $lastUsedColors = null;
                     break;
                 default:
                     $('#input_ch2').empty();
+                    $("#healthiness_table").hide();
                     break;
             }
             //***//

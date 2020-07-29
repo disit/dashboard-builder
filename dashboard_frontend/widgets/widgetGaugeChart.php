@@ -1327,7 +1327,11 @@
                                 }
                             }
 
-                            udm = data[0].variableUnit;
+                            if (data[0].variableUnit != null) {
+                                udm = data[0].variableUnit;
+                            } else if (data[0].valueUnit != null) {
+                                udm = data[0].valueUnit;
+                            }
                             if (data[0].dataTime != null) {
                                 dateTime = new Date(data[0].dataTime).toUTCString();
                             } else {

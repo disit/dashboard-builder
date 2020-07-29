@@ -4,16 +4,17 @@ require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 session_start();
 ini_set("max_execution_time", 0);
-if (isset($_SESSION['loggedUsername'])) {
+error_reporting(E_ERROR);
+//if (isset($_SESSION['loggedUsername'])) {
                     /*****************/
-                    if(isset($_SESSION['refreshToken'])) {
+                    //if(isset($_SESSION['refreshToken'])) {
                         $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
                         $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
                         $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
                         $accessToken = $tkn->access_token;
                         $_SESSION['refreshToken'] = $tkn->refresh_token;
                     
-    error_reporting(E_ERROR);
+    //error_reporting(E_ERROR);
     $link = mysqli_connect($host, $username, $password);
     //error_reporting(E_ALL);
     //ini_set('display_errors', 1);
@@ -1084,12 +1085,12 @@ if (isset($_SESSION['loggedUsername'])) {
         //exit;
     }
     
-  }else{
+  //}else{
         //echo ("You are not authorized to access ot this data!");
        // exit;
-  }
-}else{
+  //}
+//}else{
         //echo ("You are not authorized to access ot this data!");
         //exit;
-    }
+ //   }
 ?>

@@ -96,7 +96,7 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
         $('#<?= $name_w ?>_infoBtn').hide();
         $('#source_<?= $name_w ?>').hide();
 
-        if ("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['type_w'])) ?>" == "widgetTimeTrend") {
+        if ("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['type_w'])) ?>" == "widgetTimeTrend" || "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['type_w'])) ?>" == "widgetCurvedLineSeries") {
          //   var widgetHeader = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header');
          //   var titleDiv = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv');
          //   var newControlPrevNext = $('<div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_timeControlsContainer" class="timeControlsContainer"></div>');
