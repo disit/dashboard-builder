@@ -2224,24 +2224,22 @@
 
                     }
                 }
-            } else if (timeNavCount < 0 && $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").is(":hidden")) {
+          /*  } else if (timeNavCount < 0 && $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").is(":hidden")) {
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
             } else {
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();*/
+            } else {
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
-            }
-
-            setupLoadingPanel(widgetName, widgetContentColor, true);
-            if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
-            {
-            //    rowParameters = JSON.parse(rowParameters);
-            //    timeRange = widgetData.params.temporal_range_w;
-                populateWidget(true, timeRange, "minus", timeNavCount);
-                //    populateWidget(true, timeRange);
-            }
-            else
-            {
-                populateWidget(false, null, "minus", timeNavCount);
-                //    populateWidget(false, null);
+                setupLoadingPanel(widgetName, widgetContentColor, true);
+                if (idMetric === 'AggregationSeries' || idMetric.includes("NR_")) {
+                    //    rowParameters = JSON.parse(rowParameters);
+                    //    timeRange = widgetData.params.temporal_range_w;
+                    populateWidget(true, timeRange, "minus", timeNavCount);
+                    //    populateWidget(true, timeRange);
+                } else {
+                    populateWidget(false, null, "minus", timeNavCount);
+                    //    populateWidget(false, null);
+                }
             }
         //    populateWidget(timeRange, null, "minus", timeNavCount);
         });
@@ -2337,20 +2335,18 @@
                         }
                     }
                 }
-            }
+            } else {
 
-            setupLoadingPanel(widgetName, widgetContentColor, true);
-            if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
-            {
-            //    rowParameters = JSON.parse(rowParameters);
-             //   timeRange = widgetData.params.temporal_range_w;
-                populateWidget(true, timeRange, "plus", timeNavCount);
-                //    populateWidget(true, timeRange);
-            }
-            else
-            {
-                populateWidget(false, null, "plus", timeNavCount);
-                //    populateWidget(false, null);
+                setupLoadingPanel(widgetName, widgetContentColor, true);
+                if (idMetric === 'AggregationSeries' || idMetric.includes("NR_")) {
+                    //    rowParameters = JSON.parse(rowParameters);
+                    //   timeRange = widgetData.params.temporal_range_w;
+                    populateWidget(true, timeRange, "plus", timeNavCount);
+                    //    populateWidget(true, timeRange);
+                } else {
+                    populateWidget(false, null, "plus", timeNavCount);
+                    //    populateWidget(false, null);
+                }
             }
         //    populateWidget(timeRange, null, "plus", timeNavCount, dataFut);
 
