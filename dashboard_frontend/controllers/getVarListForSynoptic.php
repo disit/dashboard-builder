@@ -221,7 +221,7 @@
 		
 		$sensors = [];
 		
-		for($i = 1; $i < 11; $i++) array_push($sensors,
+		if($synFakeSensors) for($i = 1; $i < 11; $i++) array_push($sensors,
 			array( 
 				"isSensor" => true, 
 				"isPublic" => true,
