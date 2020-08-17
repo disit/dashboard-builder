@@ -229,12 +229,67 @@ checkSession('Manager');
 		</div>
 	</div>
 	<!-- Fine nuova shared variable -->    
+	
+	<!-- Modale impostazione valore costante -->
+	<div class="modal fade" id="modalDelDash2" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+		  <div class="modal-content">
+			<div class="modalHeader centerWithFlex">
+			  Set to a fixed value
+			</div>
+			<input type="hidden" id="dashIdDelHidden2" name="dashIdDelHidden2" />
+			<div id="delDashModalBody" class="modal-body modalBody">
+				<div class="row">
+					<div id="delDashNameMsg" class="col-xs-12 modalCell">
+						<div class="modalDelMsg col-xs-12 centerWithFlex">
+							Value:
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div id="delDashNameMsg" class="col-xs-12 modalCell">
+						<div class="modalDelMsg col-xs-12 centerWithFlex">
+							<input type="text" class="form-control" id="fixedValue" placeholder="Put the value here">
+						</div>
+						<div class="modalDelMsg col-xs-12 centerWithFlex delegationsModalMsg" id="newGroupDelegatedMsg">
+							
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="delDashModalFooter" class="modal-footer">
+			  <button type="button" id="delDashCancelBtn2" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+			  <button type="button" id="delDashConfirmBtn2" class="btn confirmBtn internalLink" data-dismiss="modal">Confirm</button>
+			</div>
+		  </div>
+		</div>
+	</div>
+	<!-- Fine modale impostazione valore costante --> 
     
   </body>
 </html>
 
 <script type='text/javascript'>
-    $(document).ready(function () 
+	var HTMLEncode = function(str) {
+		var i = str.length,
+			aRet = [];
+
+		while (i--) {
+			var iC = str[i].charCodeAt();
+			if (iC < 65 || iC > 127 || (iC>90 && iC<97)) {
+				aRet[i] = '&#'+iC+';';
+			} else {
+				aRet[i] = str[i];
+			}
+		}
+		return aRet.join('');
+	};
+		
+	var trunc = function(str, n){
+	  return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
+	};
+	
+	$(document).ready(function () 
     {
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
@@ -458,7 +513,8 @@ checkSession('Manager');
 												Object.keys(inputs).forEach(function(input) {
 													$("#inputs").append($("<div class=\"col-xs-12 col-sm-6 col-md-3\"><div class=\"col-xs-12 synopticLabel centerWithFlex\">"+input+"</div>"+
 													"<div class=\"col-xs-12\"><select id=\"input_"+input+"\" name=\"input_"+input+"\" class=\"form-control varpicker\"></select></div></div>"));
-													$("#input_"+input).append("<option value=\""+input.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");									
+													$("#input_"+input).append("<option value=\""+input.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");
+													var selected = false;
 													Object.keys(varList).forEach(function(oneVarID) {
 														//if( !varList[oneVarID]["isPublic"] ) {
 															if( [ varList[oneVarID]["dataType"], "any" ].includes(inputs[input]["dataType"])) {
@@ -469,39 +525,56 @@ checkSession('Manager');
 																if(myown) myown = ' - '+myown.trim();
 																var ownership = varList[oneVarID]["ownership"].charAt(0).toUpperCase() + varList[oneVarID]["ownership"].slice(1);
 																if(!(varList[oneVarID]["isSensor"] || varList[oneVarID]["isActuator"] || varList[oneVarID]["isShared"])) {
-																	if( record["input"] && record["input"][input] == varList[oneVarID]["id"]) {
-																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["id"] + "\" selected>MyKPI - " + ( '<?=$_SESSION["loggedRole"]?>' == 'RootAdmin' ? varList[oneVarID]["id"] + " - " : "" ) + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
+																	if( record["input"] && record["input"][input] == varList[oneVarID]["id"] && !selected) {
+																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["id"] + "\" selected>MyKPI - " + varList[oneVarID]["id"] + " - " + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
+																		selected = true;
 																	}
 																	else {
-																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["id"] + "\">MyKPI - " + ( '<?=$_SESSION["loggedRole"]?>' == 'RootAdmin' ? varList[oneVarID]["id"] + " - " : "" ) + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
+																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["id"] + "\">MyKPI - " + varList[oneVarID]["id"] + " - " + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
 																	}
 																}
 																else if(varList[oneVarID]["isSensor"]) {
-																	if( record["input"] && record["input"][input] == varList[oneVarID]["id"] ) {
+																	if( record["input"] && record["input"][input] == varList[oneVarID]["id"] && !selected) {
 																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["id"] + "\" selected>Sensor - " + varList[oneVarID]["valueName"] + " " + varList[oneVarID]["valueType"] + myown + " - " + ownership + "</option>");
+																		selected = true;
 																	}
 																	else {
 																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["id"] + "\">Sensor - " + varList[oneVarID]["valueName"] + " " + varList[oneVarID]["valueType"] + myown + " - " + ownership + "</option>");
 																	}
 																}
 																else if(varList[oneVarID]["isShared"]) {
-																	if( record["input"] && record["input"][input] == varList[oneVarID]["varName"] ) {
+																	if( record["input"] && record["input"][input] == varList[oneVarID]["varName"] && !selected ) {
 																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["varName"] + "\" selected>Shared - " + varList[oneVarID]["varName"] + "</option>");
+																		selected = true;
 																	}
 																	else {
 																		$("#input_"+input).append("<option value=\"" + varList[oneVarID]["varName"] + "\">Shared - " + varList[oneVarID]["varName"] + "</option>");
 																	}
 																}
+																if(varList[parseInt(oneVarID)]["isFavourite"] && varList[parseInt(oneVarID)+1] && !varList[parseInt(oneVarID)+1]["isFavourite"]) $("#input_"+input).append("<option value=\""+input.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");
 															}
 														//}
 													});
 													
+													if(record["input"][input].startsWith("const_")) {
+														$("#input_"+input).prepend("<option value=\""+record["input"][input]+"\" selected>Fixed value: "+HTMLEncode(trunc(window.atob(record["input"][input].substr(6))),20)+"</option>");
+													}
+													
+													$("#input_"+input).append("<option value=\""+input.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");
+													
 													$("#input_"+input).append("<option value=\"do_create_new_shared_variable\">New shared variable&hellip;</option>");
-											
 													$("#input_"+input).change(function(){
 														if(this.value == "do_create_new_shared_variable") {
 															$('#dashIdDelHidden').val("#input_"+input);
 															$('#modalDelDash').modal('show');
+														}
+													});
+													
+													$("#input_"+input).append("<option value=\"do_set_to_fixed_value\">Set to a fixed value&hellip;</option>");
+													$("#input_"+input).change(function(){
+														if(this.value == "do_set_to_fixed_value") {
+															$('#dashIdDelHidden2').val("#input_"+input);
+															$('#modalDelDash2').modal('show');
 														}
 													});
 											
@@ -510,7 +583,8 @@ checkSession('Manager');
 												Object.keys(outputs).forEach(function(output) {
 														$("#outputs").append($("<div class=\"col-xs-12 col-sm-6 col-md-3\"><div class=\"col-xs-12 synopticLabel centerWithFlex\">"+output+"</div>"+
 															"<div class=\"col-xs-12\"><select id=\"output_"+output+"\" name=\"output_"+output+"\" class=\"form-control varpicker\"></select></div></div>"));
-														$("#output_"+output).append("<option value=\""+output.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");									
+														$("#output_"+output).append("<option value=\""+output.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");
+														var selected = false;														
 														Object.keys(varList).forEach(function(oneVarID) {
 															if( varList[oneVarID]["isMyOwn"] || varList[oneVarID]["isShared"] ) {
 																if( [ varList[oneVarID]["dataType"], "any" ].includes(outputs[output]["dataType"])) {
@@ -521,16 +595,18 @@ checkSession('Manager');
 																	if(myown) myown = ' - '+myown.trim();
 																	var ownership = varList[oneVarID]["ownership"].charAt(0).toUpperCase() + varList[oneVarID]["ownership"].slice(1);															
 																	if(!(varList[oneVarID]["isSensor"] || varList[oneVarID]["isActuator"] || varList[oneVarID]["isShared"] )) {
-																		if( record["output"] && record["output"][output] == varList[oneVarID]["id"]) {
-																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\" selected>MyKPI - " + ( '<?=$_SESSION["loggedRole"]?>' == 'RootAdmin' ? varList[oneVarID]["id"] + " - " : "") + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
+																		if( record["output"] && record["output"][output] == varList[oneVarID]["id"] && !selected) {
+																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\" selected>MyKPI - " +  varList[oneVarID]["id"] + " - " + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
+																			selected = true;
 																		}
 																		else {
-																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\">MyKPI - " + ( '<?=$_SESSION["loggedRole"]?>' == 'RootAdmin' ? varList[oneVarID]["id"] + " - " : "" ) + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
+																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\">MyKPI - " + varList[oneVarID]["id"] + " - " + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");
 																		}
 																	}
 																	else if(varList[oneVarID]["isActuator"]) {
-																		if( record["output"] && record["output"][output] == varList[oneVarID]["id"]) {
+																		if( record["output"] && record["output"][output] == varList[oneVarID]["id"] && !selected) {
 																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\" selected>Actuator - " + varList[oneVarID]["valueName"] + " " + varList[oneVarID]["valueType"] + myown + " - " + ownership + "</option>");
+																			selected = true;
 																		}
 																		else {
 																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\">Actuator - " + varList[oneVarID]["valueName"] + " " + varList[oneVarID]["valueType"] + myown + " - " + ownership + "</option>");
@@ -539,23 +615,38 @@ checkSession('Manager');
 																	else if(varList[oneVarID]["isShared"]) {
 																		if( record["output"] && record["output"][output] == varList[oneVarID]["varName"]) {
 																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["varName"] + "\" selected>Shared - " + varList[oneVarID]["varName"] + "</option>");
+																			selected = true;
 																		}
 																		else {
 																			$("#output_"+output).append("<option value=\"" + varList[oneVarID]["varName"] + "\">Shared - " + varList[oneVarID]["varName"] + "</option>");
 																		}
 																	}
+																	if(varList[parseInt(oneVarID)]["isFavourite"] && varList[parseInt(oneVarID)+1] && !varList[parseInt(oneVarID)+1]["isFavourite"]) $("#output_"+output).append("<option value=\""+input.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");
 																}
 															}
 														});
 														
+														/* if(record["output"][output].startsWith("const_")) {
+															$("#output_"+output).prepend("<option value=\""+record["output"][output]+"\" selected>Fixed value: "+HTMLEncode(trunc(window.atob(record["output"][output].substr(6))),20)+"</option>");
+														} */
+														
+														$("#output_"+output).append("<option value=\""+output.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");
+														
 														$("#output_"+output).append("<option value=\"do_create_new_shared_variable\">New shared variable&hellip;</option>");
-										
 														$("#output_"+output).change(function(){
 															if(this.value == "do_create_new_shared_variable") {
 																$('#dashIdDelHidden').val("#output_"+output);
 																$('#modalDelDash').modal('show');
 															}
 														});
+														
+														/* $("#output_"+output).append("<option value=\"do_set_to_fixed_value\">Set to a fixed value&hellip;</option>");
+														$("#output_"+output).change(function(){
+															if(this.value == "do_set_to_fixed_value") {
+																$('#dashIdDelHidden2').val("#output_"+output);
+																$('#modalDelDash2').modal('show');
+															}
+														}); */
 															
 												});
 												if(Object.keys(outputs).length == 0) $("#outputs").hide();
@@ -637,6 +728,12 @@ checkSession('Manager');
 				$('#delDashConfirmBtn').removeClass('disabled');		
 			}				
 		});
+
+		$('#delDashConfirmBtn2').off("click");
+		$('#delDashConfirmBtn2').click(function(){
+			$($("#dashIdDelHidden2").val()).prepend('<option value="const_'+window.btoa($("#fixedValue").val())+'">Fixed value: '+HTMLEncode(trunc($("#fixedValue").val(),20))+'</option>');	
+			$($("#dashIdDelHidden2").val()).val("const_"+window.btoa($("#fixedValue").val()));
+		});		
 		          
     });
 </script>  

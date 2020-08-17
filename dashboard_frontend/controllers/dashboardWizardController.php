@@ -153,8 +153,10 @@ if (isset($_REQUEST["globalSqlFilter"])) {
             $sql_where_ok = "1";
         }
     }
+	
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
 
-    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok . $whereAllHash . " ORDER BY ".$sql_distinct_field." ASC;";
+    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok . $whereAllHash . $synMode . " ORDER BY ".$sql_distinct_field." ASC;";
 
     if ($freezeMap == "true") {
         $wizardColId = array_search($sql_distinct_field, $wizardColumns);
@@ -236,7 +238,9 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     //error_reporting(E_ERROR | E_NOTICE);
     error_reporting(E_ERROR);
     
-    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_filter_field." LIKE '".$sql_filter_value."' ORDER BY ".$sql_distinct_field." ASC";
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
+	
+    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_filter_field." LIKE '".$sql_filter_value."' " .$synMode. " ORDER BY ".$sql_distinct_field." ASC";
     //  $query = "SELECT * FROM Dashboard.DashboardWizard";
     
     //   echo ($query);
@@ -512,6 +516,7 @@ if (!empty($_REQUEST["filterDistinct"])) {
             $whereAllHash = "oldEntry IS NULL";
         }
         $whereAll = $whereAllHash;
+		if(intval($_REQUEST["synMode"])) $whereAll .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) "; 
 
         $link = mysqli_connect($host, $username, $password);
         //error_reporting(E_ERROR | E_NOTICE);
@@ -523,7 +528,7 @@ if (!empty($_REQUEST["filterDistinct"])) {
      //   $queryNEW_KO = "SELECT DISTINCT ".$sql_filter." FROM Dashboard.DashboardWizard WHERE " . $whereAll . " ORDER BY ".$sql_filter." ASC";
       //  $query = "SELECT * FROM Dashboard.DashboardWizard";
 
-     //   echo ($query);
+        // echo ($query);
 
         
         $rs = mysqli_query($link, $query);
@@ -535,15 +540,15 @@ if (!empty($_REQUEST["filterDistinct"])) {
             $result['table'] = [];
             while($row = mysqli_fetch_assoc($rs)) 
             {
-                array_push($result['table'], $row);
+                array_push($result['table'], $row); 
             }
 
             //Eliminiamo i duplicati
-            $result = array_unique($result);
+			$result = array_unique($result);
             mysqli_close($link);
             $result['detail'] = 'Ok';
-            
-            echo json_encode($result);
+            			
+            echo json_encode($result); // echo json_encode($result,JSON_INVALID_UTF8_IGNORE);
 
         } 
         else 
@@ -563,7 +568,9 @@ if(isset($_REQUEST['getDashboardWizardData']))
     //error_reporting(E_ERROR | E_NOTICE);
     error_reporting(E_ERROR);
     
-    $query = "SELECT * FROM Dashboard.DashboardWizard";
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " WHERE high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
+	$query = "SELECT * FROM Dashboard.DashboardWizard".$synMode;
+	
     $rs = mysqli_query($link, $query);
 
     $result = [];
@@ -598,7 +605,7 @@ if(isset($_REQUEST['getDashboardWizardIcons']))
     error_reporting(E_ERROR);
 
     $query = "SELECT * FROM Dashboard.WidgetsIconsMap";
-    $rs = mysqli_query($link, $query);
+	$rs = mysqli_query($link, $query);
 
     $result = [];
 
@@ -642,7 +649,8 @@ if(isset($_REQUEST['updateWizardIcons']))
 
     $sql_value = escapeForSQL($_GET["filterValue"], $link);
     
-    $query_out = "SELECT DISTINCT unit FROM Dashboard.DashboardWizard WHERE ".$sql_field ." LIKE '".$sql_value."';";
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
+    $query_out = "SELECT DISTINCT unit FROM Dashboard.DashboardWizard WHERE ".$sql_field ." LIKE '".$sql_value."'".$synMode.";";
 
     $rs_out = mysqli_query($link, $query_out);
 
@@ -670,7 +678,7 @@ if(isset($_REQUEST['updateWizardIcons']))
 
         $unit_filter = substr($unit_filter,-4);
         $query = "SELECT * FROM Dashboard.WidgetsIconsMap WHERE snap4CityType LIKE '".$unit_filter."';";
-        $rs = mysqli_query($link, $query);
+		$rs = mysqli_query($link, $query);
 
         $result = [];
 
@@ -693,9 +701,9 @@ if(isset($_REQUEST['updateWizardIcons']))
         echo json_encode($result);
 }
 
-if(isset($_REQUEST["initWidgetWizard"])) {
+if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) ) {
     
-    if(($_REQUEST["initWidgetWizard"]) == 'true') {
+    if( $_REQUEST["initWidgetWizard"] == 'true' || $_REQUEST["initSynVarPresel"] == "true" ) {
         /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
          * Easy set variables
          */
@@ -815,6 +823,8 @@ if(isset($_REQUEST["initWidgetWizard"])) {
         // NEW QUERY FOR oldEntries
         $whereAllHash = "oldEntry IS NULL AND (organizations LIKE '%" . $organizationName . "%' AND ownership = 'public' OR (ownerHash LIKE '%" . $cryptedUsr . "%' OR delegatedHash LIKE '%" . $cryptedUsr . "%'))";
         $whereAll = $whereAllHash;
+		if(intval($_REQUEST["synMode"])) $whereAll .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) "; 
+		if($_REQUEST["initSynVarPresel"] == "true") $whereAll .= " AND id IN ( select sel from Dashboard.SynopticVarPresel where usr = '".encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod)."') "; 
 
         $pageBuffer = [];
 
@@ -823,7 +833,8 @@ if(isset($_REQUEST["initWidgetWizard"])) {
         } else {
             $out = dashboardWizardControllerSSP::simple( $_GET, $sql_details, $table, $primaryKey, $columns );
         }
-
+		if($_REQUEST["initSynVarPresel"] == "true") $out["draw"] = 1;
+			
         for($n=0; $n < sizeof($out['data']); $n++) {
             $privateString = "private";
             if ($out['data'][$n][16] == "private") {
@@ -839,4 +850,27 @@ if(isset($_REQUEST["initWidgetWizard"])) {
         $out_json = json_encode($out);
         echo $out_json;
     }
+}
+if(isset($_REQUEST["doSynVarPresel"])) {
+	try {
+		$noautocommit = mysqli_autocommit($link, false);		
+		if($noautocommit) $transaction = mysqli_begin_transaction($link);
+		if($transaction) $stmt = mysqli_prepare($link, "delete from Dashboard.SynopticVarPresel where usr = ?");
+		if($stmt) $bind = mysqli_stmt_bind_param($stmt, "s", encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod));
+		if($bind) $exec = mysqli_stmt_execute($stmt);
+		if($exec) mysqli_stmt_close($stmt);
+		else { mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die(); }
+		foreach( explode(",",$_REQUEST["sel"]) as $sel ) {
+			$stmt = mysqli_prepare($link, "insert into Dashboard.SynopticVarPresel(usr,sel) values (?,?)");
+			if($stmt) $bind = mysqli_stmt_bind_param($stmt, "si", encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod),$sel);
+			if($bind) $exec = mysqli_stmt_execute($stmt);
+			if($exec) mysqli_stmt_close($stmt);
+			else { mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die(); }
+		}
+		mysqli_commit($link); 
+		mysqli_close($link);
+	}
+	catch(Exception $e) {
+		mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die($e);
+	}	
 }

@@ -338,7 +338,7 @@ $lastUsedColors = null;
 
         <div id="addWidgetWizardLabelBody" class="body">
             <?php
-            include "addWidgetWizardInclusionCode2.php";
+            $synMode = intval($_REQUEST["synMode"]); include "addWidgetWizardInclusionCode2.php"; 
             ?>
 
             <div>

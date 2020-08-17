@@ -670,6 +670,20 @@ input.testCheckInput{
     padding: 0px 12px !important;
 }
 
+#SynMode.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#StdMode.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
 #widgetWizardTableCommandsContainer2 #resetButton2.cancelBtn
 {
     font-weight: bold;

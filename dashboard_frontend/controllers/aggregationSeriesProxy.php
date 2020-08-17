@@ -217,16 +217,12 @@
         
         
         case "Sensor":
-         /*   $smUrl = "http://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
-            if (isset($_SESSION['orgKbUrl'])) {
-                $smUrl = $orgKbUrl . $dataOrigin->serviceUri . "&format=json";
-            }*/
 
         /*    if(isset($_SESSION['refreshToken'])) {
                 $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
             }   */
 
-            $smUrl = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
+            $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
 
             $metricType = "Float";
             

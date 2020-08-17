@@ -159,6 +159,19 @@
                         <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSUser</button>
                         <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSOrg</button>
                     </div>
+					<?php if(!$synMode) { ?>
+						<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
+							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Synoptic Mode</div>
+							<p>Switch to the Synoptic Mode to select MyKPIs and sensors that you need for your synoptics.</p>
+							<button type="button" id="SynMode" class="btn cancelBtn" style=" margin-left: 5px; float: left">Switch now to the Synoptic Mode</button>
+						</div>
+					<?php } else { ?>
+						<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
+							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Standard Mode</div>
+							<p>Switch back to the Standard Mode to return making the traditional use of the Data Inspector.</p>
+							<button type="button" id="StdMode" class="btn cancelBtn" style=" margin-left: 5px; float: left">Switch now to the Standard Mode</button>
+						</div>					
+					<?php } ?>
                     <div id="addWidgetWizardWidgetAvailableMsg" class="col-xs-12 centerWithFlex">
                     </div>
                 </div>
@@ -347,46 +360,59 @@
                 </div> 
             </div>
 
-            <!-- Riga tabella righe selezionate -->
-           <!-- <div class="row hideIfActuatorNew hideFullyCustom" id="widgetWizardSelectedRowsTableRow">
-                <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                    Choosen data sources
-                </div>
-                <div class="col-xs-12 addWidgetWizardIconsCntAlertLabel centerWithFlex" id="wizardNotCompatibleRowsAlert">
-                    Red rows are not compatible with choosen widget type and will not be instantiated
-                </div>
-                <div id="widgetWizardSelectedRowsTableContainer" class="col-xs-12">
-                    <table id="widgetWizardSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap"> 
-                        <thead class="widgetWizardColTitle">
-                            <tr>
-                                <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   <!-- Ex LOW_LEVEL_TYPE -->
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>-->
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="Parameters">Parameters</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Id">Id</th>-->
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>-->
-                                <!--<th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
-                            </tr>  
-                        </thead>
-                    </table>
-                </div>
-            </div><!-- Fine riga tabella righe selezionate -->
+           <?php if($synMode) { ?>
+				<!-- Riga tabella righe selezionate -->
+				<div class="row hideIfActuatorNew hideFullyCustom" id="widgetWizardSelectedRowsTableRow">
+					<div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
+						Choosen data sources
+					</div>
+					<div class="col-xs-12 addWidgetWizardIconsCntAlertLabel centerWithFlex" id="wizardNotCompatibleRowsAlert">
+						Red rows are not compatible with choosen widget type and will not be instantiated
+					</div>
+					<div id="widgetWizardSelectedRowsTableContainer" class="col-xs-12">
+						<table id="widgetWizardSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap"> 
+							<thead class="widgetWizardColTitle">
+								<tr>
+									<th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
+									<th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   <!-- Ex LOW_LEVEL_TYPE -->
+									<th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
+									<th class="widgetWizardTitleCell" data-cellTitle="_col5">_col5</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
+									<th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col11">_col11</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col12">_col12</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col13">_col13</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col15">_col15</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>	
+									<th class="widgetWizardTitleCell" data-cellTitle="_col17">_col17</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col18">_col18</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col19">_col19</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col20">_col20</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col21">_col21</th>
+									<th class="widgetWizardTitleCell" data-cellTitle="_col22">_col22</th>			
+									<th class="widgetWizardTitleCell" data-cellTitle="_col23">_col23</th>									
+									<th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
+								</tr>  							
+							</thead>
+						</table>
+					</div>
+				</div><!-- Fine riga tabella righe selezionate -->
 
-            <!-- Comandi tabella -->
-            <!--<div class="row hideIfActuatorNew hideFullyCustom" style="padding-left: 15px; padding-right: 15px;">
-                <div id="widgetWizardSelectedRowsTableCommandsContainer" class="col-xs-12">
-
-                </div> 
-            </div> 
+				<!-- Comandi tabella -->
+				<div class="row hideIfActuatorNew hideFullyCustom" style="padding-left: 15px; padding-right: 15px;">
+					<div id="widgetWizardSelectedRowsTableCommandsContainer" class="col-xs-12">
+						
+					</div> 
+				</div> 
+				<button id="save" type="button" class="btn confirmBtn" style="float:right; margin-right:15px; margin-top:15px;">Save</button>
+		   <?php } ?>
+			
             <!-- Messaggi d'errore o di ok -->
             <div class="row" style="padding-left: 15px; padding-right: 15px;">
                 <div id="wizardTab1MsgCnt" class="col-xs-12 centerWithFlex">
@@ -583,6 +609,12 @@
                 navigator.geolocation.getCurrentPosition(showPosition);
             //navigator.geolocation.watchPosition(showPosition);
         })
+		$('#SynMode').click(function(){
+			window.location.href='inspector.php?synMode=1';
+        })
+		$('#StdMode').click(function(){
+			window.location.href='inspector.php?synMode=0';
+        })
         function showPosition(position) {
             
             var Zoom = addWidgetWizardMapRef.getZoom();
@@ -657,7 +689,8 @@
                     dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
                     dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
                     filterOrg: orgFilter,
-                    poiFlag: noPOIFlag
+                    poiFlag: noPOIFlag,
+					synMode: "<?=$synMode?$synMode:0?>"
                 }
             },
             'createdRow': function (row, data, dataIndex) {
@@ -681,6 +714,8 @@
                 $(row).attr('last_date',data[8]);
                 $(row).attr('data-valueUnit',data[7]);
                 $(row).attr('ownership',data[16]);
+				if(data.length > 14) $(row).attr('data-last_check',data[14]);
+				if(data.length > 10) $(row).attr('data-healthiness',data[10]);
             },
             "columnDefs": [
                 {
@@ -762,7 +797,7 @@
             "pageLength": widgetWizardPageLength,
             "ajax": {
                 async: true, 
-                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true",
+                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true&synMode=<?=$synMode?$synMode:0?>",
                 data: function(d){
                     d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
                     d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>",
@@ -797,6 +832,8 @@
                 $(row).attr('last_date',data[8]);
                 $(row).attr('data-valueUnit',data[7]);
                 $(row).attr('ownership',data[16]);
+				if(data.length > 14) $(row).attr('data-last_check',data[14]);
+				if(data.length > 10) $(row).attr('data-healthiness',data[10]);
             },
             "columnDefs": [
                 {
@@ -2744,7 +2781,8 @@
             url: "../controllers/dashboardWizardController.php",
             type: "GET",
             data: {
-                getDashboardWizardIcons: true
+                getDashboardWizardIcons: true,
+				synMode: "<?=$synMode?$synMode:0?>"
             },
             async: true,
             dataType: 'json',
@@ -4299,17 +4337,17 @@
             } else if ($(this).attr('data-fieldTitle') === "ownership") {
                 var idx = 16;
             }
-            if ($(this).is(":checked")) {
+			
+			if ($(this).is(":checked")) {
                 // Get the column API object
                 var column = widgetWizardTable.column(idx);
                 // Toggle the visibility
-                column.visible(!column.visible());
+                column.visible(!column.visible());				
             } else {
-
                 var column = widgetWizardTable.column(idx);
                 column.visible(!column.visible());
-
             }
+			
         });
 
 
@@ -4414,7 +4452,8 @@
                             n: n,
                             filter: distinctField,
                             //    filterGlobal: whereString,
-                            distinctField: distinctField 
+                            distinctField: distinctField ,
+							synMode: "<?=$synMode?$synMode:0?>"
                         },
                         success: function (data)
                         {
@@ -4935,13 +4974,25 @@
             "language": {search: ""},
             "pageLength": 8,
             aaSorting: [[0, 'asc']],
+			"ajax": {
+                async: true, 
+                url: "../controllers/dashboardWizardController.php?initSynVarPresel=true&northEastPointLat=true",
+                data: {
+                    dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
+                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
+                    organization: "<?= $_SESSION['loggedOrganization'] ?>",
+		            northEastPointLat: "<?= $_SESSION['northEastPointLat'] ?>",
+                    poiFlag: getPOIFlag(),
+					synMode: "<?=$synMode?$synMode:0?>"
+                }
+            },
             "createdRow": function (row, data, index) {
-                $(row).attr('data-rowId', data[12]);
-                $(row).attr('data-widgetCompatible', data[13]);
+                $(row).attr('data-rowId', data[13]);
+                $(row).attr('data-widgetCompatible', true);
 
                 $(row).find('.widgetWizardSelectedRowsDelBtn').click(function ()
                 {
-                    var delesectedUnit = widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].unit;
+					var delesectedUnit = widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].unit;
                //     gisLayersOnMap[widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].servicetype].clearLayers();
                     if (widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].instance_uri == "any") {
                       //  gisLayersOnMap[widgetWizardSelectedRows['row' + $(this).parents('tr').attr('data-rowid')].serviceType].clearLayers();
@@ -4972,13 +5023,58 @@
             },
             "columnDefs": [
                 {
-                    "targets": 12,
+                    "targets": [5, 11, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
+                    "visible": false
+                },
+				{
+                    "targets": 10,
+                    "searchable": true,
+                    "render": function (data, type, row, meta) {
+                        var imageUrl = null;
+                        if (row[10]) {
+							if (row[10] === 'true' || row[10] === '<i class="fa fa-circle" style="font-size:16px;color:#33cc33"></i>') {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
+                            } else {
+                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                            }
+
+                        } else {
+                            imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                        }
+                        return imageUrl;
+                    }
+                },
+				{
+                    "targets": 24,
                     "searchable": false,
                     "render": function (data, type, row, meta) {
                         return '<i class="fa fa-close widgetWizardSelectedRowsDelBtn"></i>';
                     }
                 }
-            ]
+            ],
+            initComplete: function () {
+				var data = this.api().rows().data();
+				for(var i = 0; i < data.length; i++) {
+					widgetWizardSelectedRows['row' + data[i][13]] = 
+					{
+						high_level_type: data[i][0],
+						nature: data[i][1],
+						sub_nature: data[i][2], 
+						low_level_type: data[i][3], // Ora si chiama Value type
+						unique_name_id: data[i][4], // Ora si chiama Value name
+						instance_uri: data[i][5],
+						unit: data[i][6],
+						servicetype: data[i][6], // Doppione?
+						sm_based: data[i][20],
+						parameters: data[i][11],
+						widgetCompatible: true,
+						get_instances: data[i][15],
+						last_value: data[i][9],
+						value_unit: data[i][7]
+					};
+				}
+				countSelectedRows();				
+			}
         });
 
         function getPOIFlag () {
@@ -5018,7 +5114,8 @@
                     dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
                     organization: "<?= $_SESSION['loggedOrganization'] ?>",
 		            northEastPointLat: "<?= $_SESSION['northEastPointLat'] ?>",
-                    poiFlag: getPOIFlag()
+                    poiFlag: getPOIFlag(),
+					synMode: "<?=$synMode?$synMode:0?>"
                 }
              /*   data: function(d){
                     d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
@@ -5049,6 +5146,8 @@
                 $(row).attr('last_date',data[8]);
                 $(row).attr('data-valueUnit',data[7]);
                 $(row).attr('ownership',data[16]);
+				if(data.length > 14) $(row).attr('data-last_check',data[14]);
+				if(data.length > 10) $(row).attr('data-healthiness',data[10]);
             },
             "columnDefs": [
                 {
@@ -5172,7 +5271,8 @@
                         dataType: 'json',
                         data: {
                             filter: "high_level_type",
-                            filterOrg: orgFilter
+                            filterOrg: orgFilter,
+							synMode: "<?=$synMode?$synMode:0?>"
                         },
                         success: function (data)
                         {
@@ -5283,7 +5383,8 @@
                     $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
                             {
                                 filter: "nature",     // CHANGE
-                                filterOrg: orgFilter
+                                filterOrg: orgFilter,
+								synMode: "<?=$synMode?$synMode:0?>"
                             },
                             function (data) {
                                 var options = '';
@@ -5403,7 +5504,8 @@
                     $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
                             {
                                 filter: "sub_nature",     // CHANGE
-                                filterOrg: orgFilter
+                                filterOrg: orgFilter,
+								synMode: "<?=$synMode?$synMode:0?>"
                             },
                             function (data) {
                                 var options = '';
@@ -5478,7 +5580,8 @@
                     $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
                             {
                                 filter: "low_level_type",     // CHANGE
-                                filterOrg: orgFilter
+                                filterOrg: orgFilter,
+								synMode: "<?=$synMode?$synMode:0?>"
                             },
                             function (data) {
                                 var options = '';
@@ -5566,7 +5669,8 @@
                             {
                                 filter: "unit",
                                 filterOrg: orgFilter,
-                                ajax: 'true'
+                                ajax: 'true',
+								synMode: "<?=$synMode?$synMode:0?>"
                             },
                             function (data) {
                                 var options = '';
@@ -5649,7 +5753,8 @@
                             {
                                 filter: "healthiness",
                                 filterOrg: orgFilter,
-                                ajax: 'true'
+                                ajax: 'true',
+								synMode: "<?=$synMode?$synMode:0?>"
                             },
                             function (data) {
                                 var options = '';
@@ -5737,7 +5842,8 @@
                             {
                                 filter: "ownership",
                                 filterOrg: orgFilter,
-                                ajax: 'true'
+                                ajax: 'true',
+								synMode: "<?=$synMode?$synMode:0?>"
                             },
                             function (data) {
                                 var options = '';
@@ -5814,7 +5920,8 @@
                         {
                             filter: "value_unit",
                             filterOrg: orgFilter,
-                            ajax: 'true'
+                            ajax: 'true',
+							synMode: "<?=$synMode?$synMode:0?>"
                         },
                         function (data) {
                             var options = '';
@@ -5833,7 +5940,7 @@
                         });
 
                 });
-
+				
             }
         });
         
@@ -5843,7 +5950,7 @@
             {
                 $('#widgetWizardSelectedRowsTable tbody tr').each(function (i) {
                     var rowId = 'row' + $(this).attr('data-rowid');
-                    if(widgetWizardSelectedRows[rowId].widgetCompatible)
+                    if(widgetWizardSelectedRows[rowId] && widgetWizardSelectedRows[rowId].widgetCompatible)
                     {
                         if($(this).hasClass('odd'))
                         {
@@ -5877,14 +5984,15 @@
             });
         });
 
+		<?php if(!$synMode) { ?>
         // GESTORE CLICK SU TABELLA PER SELEZIONARE LA RIGA. 
         $('#widgetWizardTable tbody').on('click', 'tr', function ()
         {
-            currentMarkerId = $(this).attr('data-rowid');
+			currentMarkerId = $(this).attr('data-rowid');
             //Evidenza grafica di riga selezionata
             if($(this).hasClass('selected'))
             {
-                $(this).removeClass('selected');
+				$(this).removeClass('selected');
                 var delesectedUnit = widgetWizardSelectedRows['row' + $(this).attr('data-rowid')].unit;
                 delete widgetWizardSelectedRows['row' + $(this).attr('data-rowid')];
 
@@ -5897,7 +6005,7 @@
             } 
             else
             {
-                //aggiunto da Bernardo Tiezzi
+				//aggiunto da Bernardo Tiezzi
                 if(widgetWizardSelectedSingleRow!==null){
                     $(widgetWizardSelectedSingleRow).removeClass('selected');
                     var delesectedUnit = widgetWizardSelectedRows['row' + $(widgetWizardSelectedSingleRow).attr('data-rowid')].unit;
@@ -5959,7 +6067,7 @@
                     $(this).find('td').eq(11).html(),
                     $(this).attr('data-rowid'),
                     true
-                ]).draw(false);
+                ]).draw(false);		
                 
                 //Aggiornamento unità selezionate
                 updateSelectedUnits('add', null);
@@ -6367,6 +6475,520 @@
             updateIconsFromSelectedRows();
             updateWidgetCompatibleRows();
         });
+		<?php } else { // handler for row click in synMode ?>
+		$('#widgetWizardTable tbody').on('click', 'tr', function ()
+        {
+			currentMarkerId = $(this).attr('data-rowid');
+            //Evidenza grafica di riga selezionata
+            if($(this).hasClass('selected'))
+            {
+				$(this).removeClass('selected');
+                var delesectedUnit = widgetWizardSelectedRows['row' + $(this).attr('data-rowid')].unit;
+                delete widgetWizardSelectedRows['row' + $(this).attr('data-rowid')];
+
+                widgetWizardSelectedRowsTable.row('[data-rowid=' + $(this).attr('data-rowid') + ']').remove().draw(false);
+                
+                //Aggiornamento unità selezionate
+                updateSelectedUnits('remove', delesectedUnit);
+            } 
+            else
+            {
+				$(this).addClass('selected');
+                widgetWizardSelectedRows['row' + $(this).attr('data-rowid')] = 
+                {
+                    high_level_type: $(this).attr('data-high_level_type'),
+                    nature: $(this).attr('data-nature'),
+                    sub_nature: $(this).attr('data-sub_nature'), //Questa è da mandare a ServiceMap
+                    low_level_type: $(this).attr('data-low_level_type'), //Ora si chiama Value type
+                    unique_name_id: $(this).attr('data-unique_name_id'), //Ora si chiama Value name
+                    instance_uri: $(this).attr('data-instance_uri'),
+                    unit: $(this).attr('data-unit'),
+                    servicetype: $(this).attr('data-servicetype'),//Doppione?
+                    sm_based: $(this).attr('data-sm_based'),
+                    parameters: $(this).attr('data-parameters'),
+                    widgetCompatible: true,
+                    get_instances: $(this).attr('data-get_instances'),
+                    last_value: $(this).attr('data-last_value'),
+                    value_unit: $(this).attr('data-valueunit')
+                };
+				
+                widgetWizardSelectedRowsTable.row.add([
+                    $(this).attr('data-high_level_type'), // $(this).find('td').eq(0).html(),
+                    $(this).attr('data-nature'), // $(this).find('td').eq(1).html(),
+                    $(this).attr('data-sub_nature'), // $(this).find('td').eq(2).html(),
+                    $(this).attr('data-low_level_type'), // $(this).find('td').eq(3).html(),
+                    $(this).attr('data-unique_name_id'), // $(this).find('td').eq(4).html(),
+                    "",
+					$(this).attr('data-unit'), // $(this).find('td').eq(5).html(),
+                    $(this).attr('data-valueUnit'), // $(this).find('td').eq(6).html(),
+                    $(this).attr('last_date'), // $(this).find('td').eq(7).html(),
+                    $(this).attr('data-last_value'), // $(this).find('td').eq(8).html(),
+                    $(this).attr('data-healthiness'), // $(this).find('td').eq(9).html(),
+                    "",
+                    "",
+                    $(this).attr('data-rowid'),
+                    $(this).attr('data-last_check'), // $(this).find('td').eq(10).html(),
+					"",
+					$(this).attr('ownership') //$(this).find('td').eq(11).html()
+                ]).draw(false);		
+				
+
+/****
+
+            'createdRow': function (row, data, dataIndex) {
+                $(row).attr('data-rowId', data[13]);
+                $(row).attr('data-high_level_type', data[0]);
+                $(row).attr('data-nature', data[1]);
+                $(row).attr('data-sub_nature', data[2]);
+                $(row).attr('data-low_level_type', data[3]);
+                $(row).attr('data-unique_name_id', data[4]);
+                $(row).attr('data-instance_uri', data[5]);
+                $(row).attr('data-unit', data[6]);
+                $(row).attr('data-servicetype', data[2]);
+                $(row).attr('data-get_instances', data[15]);
+                $(row).attr('data-sm_based', data[20]);
+                $(row).attr('data-parameters', data[12]);
+                $(row).attr('data-selected', 'false');
+                $(row).attr('data-last_value', data[9]);
+                $(row).attr('data-latitude', data[18]);
+                $(row).attr('data-longitude', data[19]);
+                $(row).attr('data-organizations', data[17]);
+                $(row).attr('last_date',data[8]);
+                $(row).attr('data-valueUnit',data[7]);
+                $(row).attr('ownership',data[16]);
+            },
+            "columnDefs": [
+                {
+                    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
+                    "visible": false
+                },
+
+***************/
+				
+                
+                //Aggiornamento unità selezionate
+                updateSelectedUnits('add', null);
+            }
+            
+            countSelectedRows();
+            checkBrokerAndNrRowsTogether();
+            checkAtLeastOneRowSelected();
+            checkTab1Conditions(widgetWizardSelectedRows);
+            
+            //Aggiunta/rimozione pins su mappa
+            var bounds = addWidgetWizardMapRef.getBounds();
+            var serviceType = $(this).attr("data-servicetype");
+            var uniqueNameId = $(this).attr("data-unique_name_id");
+            var instanceUri = $(this).attr("data-instance_uri");
+            var getInstances = $(this).attr("data-get_instances");
+            var latitudeWiz = $(this).attr("data-latitude");
+            var longitudeWiz = $(this).attr("data-longitude");
+            var northEastPointLat = bounds._northEast.lat;
+            var northEastPointLng = bounds._northEast.lng;
+            var southWestPointLat = bounds._southWest.lat;
+            var southWestPointLng = bounds._southWest.lng;
+
+            var showFlag = false;
+            var myPOIId, myPOIlat, myPOIlng = null;
+
+            // CAMBIA COLORE (TOGGLE PER SELEZIONE/DESELEZIONE) on Click
+            if($(this).attr("data-selected") === "false")
+            {
+                showFlag = true;
+            } 
+            else
+            {
+                showFlag = false;
+            }
+
+            if(showFlag == true)
+            {
+                if(instanceUri === "any + status") {
+                    var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=http://www.disit.org/km4city/resource/" + uniqueNameId + "&format=json&realtime=false&fullCount=false";
+                    if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                        urlKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    } else {
+                        if (orgName != null && orgName != '') {
+                            var baseUrl = orgKbUrl;
+                            urlKbToCall = baseUrl + "?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                        }
+                    }
+                    $.ajax({
+                        url: "<?= $superServiceMapProxy ?>" + urlKbToCall,
+                        type: "GET",
+                        async: true,
+                        dataType: 'json',
+                        data: {},
+                        uniqueNameId: uniqueNameId,
+                        success: function (geoData)
+                        {
+                            var LatPos = null;
+                            var LongPos = null;
+                            var fatherNode = null;
+							if (geoData && geoData.hasOwnProperty("BusStop"))
+                            {
+                                fatherNode = geoData.BusStop;
+                                if(!FreezeMap){
+                                    LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
+                                    LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
+                                }
+                            } else
+                            {
+								if (geoData && geoData.hasOwnProperty("Sensor"))
+                                {
+                                    fatherNode = geoData.Sensor;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    }
+                                } else
+                                {
+                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                    fatherNode = geoData.Service;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Service.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    }
+                                }
+                            }
+
+                            gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                pointToLayer: addWidgetWizardCreateCustomMarker
+                            }).addTo(addWidgetWizardMapRef);
+                            if(!FreezeMap){
+                                var Zoom = addWidgetWizardMapRef.getZoom();//serve per mantenere lo zoom della mappa
+                                addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), Zoom);
+                            }
+
+                        },
+                        error: function (data)
+                        {
+                            console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                        }
+                    });
+                    $(this).attr('data-selected', 'true');
+                } else if (instanceUri === "any") {
+                    if ($(this).attr("data-high_level_type") === "MicroApplication" || $(this).attr("data-high_level_type") === "Special Widget") {
+                        if (latitudeWiz != null && latitudeWiz != undefined && longitudeWiz != null && longitudeWiz != undefined) {
+
+                            //    var latlngForMarker = "[" + latitudeWiz + ", "
+
+                            var mapPinImg = '../img/gisMapIcons/generic.png';
+                            var markerIcon = L.icon({
+                                iconUrl: mapPinImg,
+                                iconAnchor: [16, 37]
+                            });
+
+                            var genericMarker = L.marker([latitudeWiz, longitudeWiz], {icon: markerIcon}).addTo(addWidgetWizardMapRef);
+                            //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
+                            $(this).attr('data-selected', 'true');
+                            addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
+                            if (FreezeMap !== true) {
+                                addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
+                            }
+                        }
+                    } else {
+                        var urlKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                            urlKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        } else if (orgName != null && orgName != '') {
+                            var baseUrl = orgKbUrl;
+                            urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        }
+                        $.ajax({
+                            url: "<?= $superServiceMapProxy ?>" + urlKbToCall,
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            data: {},
+                            uniqueNameId: uniqueNameId,
+                            success: function (geoData) {
+                                if(!geoData) return;
+								var fatherNode = null;
+								if (geoData.hasOwnProperty("BusStops")) {
+                                    fatherNode = geoData.BusStops;
+                                } else {
+									if (geoData.hasOwnProperty("SensorSites")) {
+                                        fatherNode = geoData.SensorSites;
+                                    } else {
+                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                        fatherNode = geoData.Services;
+                                    }
+                                }
+
+                                gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                    pointToLayer: addWidgetWizardCreateCustomMarker
+                                }).addTo(addWidgetWizardMapRef);
+
+                            },
+                            error: function (data) {
+                                console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                            }
+                        });
+                        $(this).attr('data-selected', 'true');
+                    }
+                } else if (instanceUri === "single_marker") {
+                    var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                        urlSensorKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    } else {
+                        if (orgName != null && orgName != '') {
+                            var baseUrl = orgKbUrl;
+                            urlSensorKbToCall = baseUrl + "?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                        }
+                    }
+                    urlSensorKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
+                    $.ajax({
+                        url: "<?= $superServiceMapProxy ?>" + urlSensorKbToCall,
+                        type: "GET",
+                        async: true,
+                        dataType: 'json',
+                        data: {},
+                        uniqueNameId: uniqueNameId,
+                        success: function (geoData)
+                        {
+                            if(!geoData) return;
+							var LatPos = null;
+                            var LongPos = null;
+                            var fatherNode = null;
+							if (geoData.hasOwnProperty("BusStop"))
+                            {
+                                fatherNode = geoData.BusStop;
+                                if(!FreezeMap){
+                                    LatPos=geoData.BusStop.features[0].geometry.coordinates[1];
+                                    LongPos=geoData.BusStop.features[0].geometry.coordinates[0];
+                                }
+                            } else
+                            {
+								if (geoData.hasOwnProperty("Sensor"))
+                                {
+                                    fatherNode = geoData.Sensor;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Sensor.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Sensor.features[0].geometry.coordinates[0];
+                                    }
+                                } else
+                                {
+                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                    fatherNode = geoData.Service;
+                                    if(!FreezeMap){
+                                        LatPos=geoData.Service.features[0].geometry.coordinates[1];
+                                        LongPos=geoData.Service.features[0].geometry.coordinates[0];
+                                    }
+                                }
+                            }
+
+                            gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                pointToLayer: addWidgetWizardCreateCustomMarker
+                            }).addTo(addWidgetWizardMapRef);
+                            if(!FreezeMap){
+                                var Zoom = addWidgetWizardMapRef.getZoom();
+
+                                addWidgetWizardMapRef.setView(L.latLng(LatPos, LongPos), Zoom);
+                            }
+
+                        },
+                        error: function (data)
+                        {
+                            console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                        }
+                    });
+                    $(this).attr('data-selected', 'true');
+                }  else if (instanceUri === "MyPOI") {
+                    var myPOIParameters = $(this).attr('data-parameters');
+                    if (myPOIParameters === null || myPOIParameters === undefined) {
+                        myPOIId = "All";
+                    } else if (myPOIParameters != "All") {
+                        myPOIId = myPOIParameters.split("datamanager/api/v1/poidata/")[1];
+                    } else {
+                        myPOIId = myPOIParameters;
+                    }
+
+                    $.ajax({
+                        url: "../controllers/myPOIProxy.php",
+                        type: "GET",
+                        data: {
+                            myPOIId: myPOIId,
+                        },
+                        async: true,
+                        dataType: 'json',
+                        uniqueNameId: uniqueNameId,
+                        success: function(geoData)
+                        {
+                            if(!geoData) return;
+							var fatherNode = null;
+							if (geoData.hasOwnProperty("BusStop"))
+                            {
+                                fatherNode = geoData.BusStop;
+                            } else
+                            {
+								if (geoData.hasOwnProperty("Sensor"))
+                                {
+                                    fatherNode = geoData.Sensor;
+                                } else
+                                {
+                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                    fatherNode = geoData;
+                                }
+                            }
+
+                            gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                pointToLayer: addWidgetWizardCreateCustomMarker
+                            }).addTo(addWidgetWizardMapRef);
+
+                        },
+                        error: function (data)
+                        {
+                            console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                        }
+                    });
+                    $(this).attr('data-selected', 'true');
+                } else if (instanceUri === "MyKPI") {
+                    var myKPIParameters = $(this).attr('data-parameters');
+                  /*  var myKPIId = myKPIParameters.split("__")[0];
+                    var myKPIlat = myKPIParameters.split("__")[1].split(";")[0];
+                    var myKPIlng = myKPIParameters.split("__")[1].split(";")[1];    */
+                    if (myKPIParameters.includes("datamanager/api/v1/poidata/")) {
+                        var myKPIId = myKPIParameters.split("datamanager/api/v1/poidata/")[1];
+                    } else {
+                        var myKPIId = myKPIParameters;
+                    }
+                    $.ajax({
+                        url: "../controllers/myPOIProxy.php",
+                        type: "GET",
+                        data: {
+                            myPOIId: myKPIId,
+                        },
+                        async: true,
+                        dataType: 'json',
+                        uniqueNameId: uniqueNameId,
+                        success: function (geoData) {
+                            if(!geoData) return;
+							var fatherNode = null;
+							if (geoData.hasOwnProperty("BusStop")) {
+                                fatherNode = geoData.BusStop;
+                            } else {
+								if (geoData.hasOwnProperty("Sensor")) {
+                                    fatherNode = geoData.Sensor;
+                                } else {
+                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                    fatherNode = geoData;
+                                }
+                            }
+
+                            gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                pointToLayer: addWidgetWizardCreateCustomMarker
+                            }).addTo(addWidgetWizardMapRef);
+                            if (FreezeMap !== true) {
+                                addWidgetWizardMapRef.setView(L.latLng(fatherNode.geometry.coordinates[1], fatherNode.geometry.coordinates[0]), addWidgetWizardMapRef.getZoom());
+                            }
+
+                        },
+                        error: function (data) {
+                            console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                        }
+                    });
+                //    }
+                    $(this).attr('data-selected', 'true');
+                } else if (instanceUri === "MyData") {
+                    var myDataParameters = $(this).attr('data-parameters');
+                    /*  var myKPIId = myKPIParameters.split("__")[0];
+                      var myKPIlat = myKPIParameters.split("__")[1].split(";")[0];
+                      var myKPIlng = myKPIParameters.split("__")[1].split(";")[1];    */
+                    if (myDataParameters.includes("datamanager/api/v1/poidata/")) {
+                        var myDataId = myDataParameters.split("datamanager/api/v1/poidata/")[1];
+                        $.ajax({
+                            url: "../controllers/myPOIProxy.php",
+                            type: "GET",
+                            data: {
+                                myPOIId: myDataId,
+                            },
+                            async: true,
+                            dataType: 'json',
+                            uniqueNameId: uniqueNameId,
+                            success: function (geoData) {
+                                if(!geoData) return;
+								var fatherNode = null;
+								if (geoData.hasOwnProperty("BusStop")) {
+                                    fatherNode = geoData.BusStop;
+                                } else {
+									if (geoData.hasOwnProperty("Sensor")) {
+                                        fatherNode = geoData.Sensor;
+                                    } else {
+                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                        fatherNode = geoData;
+                                    }
+                                }
+
+                                gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
+                                    pointToLayer: addWidgetWizardCreateCustomMarker
+                                }).addTo(addWidgetWizardMapRef);
+
+                            },
+                            error: function (data) {
+                                console.log("ERROR in retrieving GeoData by Km4City SmartCity API: " + JSON.stringify(data));
+                            }
+                        });
+                    }
+                    $(this).attr('data-selected', 'true');
+                } else if (latitudeWiz != null && latitudeWiz != undefined && longitudeWiz != null && longitudeWiz != undefined) {
+
+                    //    var latlngForMarker = "[" + latitudeWiz + ", "
+
+                    var mapPinImg = '../img/gisMapIcons/generic.png';
+                    var markerIcon = L.icon({
+                        iconUrl: mapPinImg,
+                        iconAnchor: [16, 37]
+                    });
+
+                    var genericMarker = L.marker([latitudeWiz, longitudeWiz], {icon: markerIcon}).addTo(addWidgetWizardMapRef);
+                    //    L.marker([60.170437, 24.938215]).addTo(addWidgetWizardMapRef);
+                    $(this).attr('data-selected', 'true');
+                    addWidgetWizardMapMarkers[$(this).attr('data-rowid')] = genericMarker;
+                    if (FreezeMap !== true) {
+                        addWidgetWizardMapRef.setView(L.latLng(latitudeWiz, longitudeWiz), addWidgetWizardMapRef.getZoom());
+                    }
+                }
+            }
+            else
+            {
+                var stopFlag = 1;
+                $(this).attr('data-selected', 'false');
+                try
+                {
+                    if (instanceUri != null && instanceUri != undefined) {	// VERIFICA CON INSPECTOR !
+                        if (instanceUri == "any" || (instanceUri.toLowerCase() == "mypoi" && $(this).attr("data-sub_nature") == "Any")) {
+                            if ($(this).attr("data-high_level_type") == "Special Widget") {
+                                clearMarker(currentMarkerId);
+                            } else {
+                                gisLayersOnMap[serviceType].clearLayers();
+                            }
+                        } else {
+                            clearMarker(currentMarkerId);
+                        }
+                    } else {
+                        clearMarker(currentMarkerId);
+                    }
+                }
+                catch(e)
+                {
+                    console.log("Colta eccezione mappa: " + e.message);
+                }
+            }
+
+            updateIconsFromSelectedRows();
+            if (($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetCurvedLineSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetPieChart") && ObjectSize(widgetWizardSelectedRows) > 1) {
+                // if ((wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[Object.keys(wizardSelectedRowsObj).length -1]].value_unit == wizardSelectedRowsObj[Object.keys(wizardSelectedRowsObj)[0]].value_unit)) {
+                // OK
+                //   } else {
+                // custom check if widgetBarSeries: check if current selected rows has the same value_unit of first selected row. If not, mark current selected row as incompatible
+                updateBarSeriesWidgetSelectedRows(widgetWizardSelectedRows, Object.keys(widgetWizardSelectedRows)[0]);
+                //   }
+            } else {
+                updateWidgetCompatibleRows();
+            }
+        });
+		<?php } // end of handler for row click in synMode ?>
 
         //Flusso main ************************************************************************
 
@@ -6385,9 +7007,8 @@
                 widgetWizardSelectedRowsTable.clear().draw(false);
             });
             
-            choosenWidgetIconName = null;
-            widgetWizardSelectedRows = {};
-            widgetWizardSelectedRowsTable.clear().draw(false);
+            choosenWidgetIconName = null;            
+			<?php if(!$synMode) { ?>widgetWizardSelectedRows = {}; widgetWizardSelectedRowsTable.clear().draw(false);<?php } ?>
 
             /*$("#addWidgetWizard").on('shown.bs.modal', function () {*/
                 if($('#dataAndWidgets').is(':visible'))
@@ -6502,10 +7123,11 @@
             $("#widgetWizardSelectedRowsTable_paginate").addClass("col-md-offset-5");
             $('#widgetWizardSelectedRowsTable_filter').appendTo("#widgetWizardSelectedRowsTableCommandsContainer");
             $("#widgetWizardSelectedRowsTable_filter").addClass("col-xs-12");
-            $("#widgetWizardSelectedRowsTable_filter").addClass("col-md-3");
+            $("#widgetWizardSelectedRowsTable_filter").addClass("col-md-2");
+			$("#widgetWizardSelectedRowsTable_paginate").addClass("col-md-offset-1");
             $("#widgetWizardSelectedRowsTable_filter input").attr("placeholder", "Search");
             $("#widgetWizardSelectedRowsTable_paginate .pagination").css("margin-top", "0px !important");
-            $("#widgetWizardSelectedRowsTable_paginate .pagination").css("margin-bottom", "0px !important");
+            $("#widgetWizardSelectedRowsTable_paginate .pagination").css("margin-bottom", "0px !important");			
         }, 750);
         
         //Distinzione fra caso inclusione in dashboard_configdash.php e inclusione in dashboards.php
@@ -7050,6 +7672,17 @@
             //Rimozione avviso righe incompatibili
             $('#wizardNotCompatibleRowsAlert').hide();
         });
+		
+		$('#save').on('click',function(){
+			var sel = []; 
+			$("#widgetWizardSelectedRowsTable tr[data-rowid]").each(function(){sel.push($(this).attr("data-rowid"));});
+			$.ajax({
+				url: "../controllers/dashboardWizardController.php",
+				data: { doSynVarPresel: true, sel: sel.join(",") },
+				success: function (data) { $("#wizardTab1MsgCnt").html("Selection saved."); },
+				error: function (data) { $("#wizardTab1MsgCnt").html("Error! Your selection was not saved."); }
+			});
+		});
         
     });
 </script>   
