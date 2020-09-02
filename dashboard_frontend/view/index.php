@@ -325,6 +325,8 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             var newScaledGridsterCellW = 26;
             var newScaledGridsterCellH = 13;
             var widgetMargins = [1, 1];
+            var infoMsgPopupFlag = false;
+            var infoMsgText = null;
 
             $('#orgMenu').hide();
             $('#orgMenuCnt a.mainMenuLink').attr('data-submenuVisible', 'false');
@@ -892,6 +894,24 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 dashBckImg = dashboardParams.bckImgFilename;
                 useBckImg = dashboardParams.useBckImg;
                 backOverlayOpacity = dashboardParams.backOverlayOpacity;
+                infoMsgPopupFlag = dashboardParams.infoMsgPopup;
+                infoMsgText = dashboardParams.infoMsgText;
+
+                if (infoMsgPopupFlag == "yes" && infoMsgText != null && infoMsgText != '') {
+                    $("#msgInfoModal").modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                //    $('#msgInfoModal').css("vertical-align", "middle");
+                 //   $('#msgInfoModal .modalHeader').html(infoMsgText);
+                    $('#msgInfoModalBodyView').css('text-align','center');
+                    $('#msgInfoModalBodyView').html(infoMsgText);
+                  //  $('#msgInfoModalText').val(infoMsgText);
+
+                    $('#msgInfoModal .modal-dialog').css("vertical-align", "middle")
+
+                    $('#msgInfoModal').modal('show');
+                }
                 
                 if((dashBckImg !== null)&&(useBckImg === 'yes'))
                 {
@@ -1244,7 +1264,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                  //   widget_margins: [1, 1],
                     widget_margins: widgetMargins,
                     min_cols: num_cols,
-                    max_size_x: 100,
+                    max_size_x: 200,
                 //    max_rows: 100,
                     max_rows: max_rows_gridster,
                 //    extra_rows: 100,
@@ -2256,7 +2276,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                         <button type="button" class="compactMenuCancelBtn" id="widgetInfoModalCancelBtnView" data-dismiss="modal"><i class="fa fa-remove"></i></button>             
                     </div>
                 </div>
-            
+
                 <div id="widgetInfoModalBodyView" class="modal-body modalBody">
                     
                 </div>
@@ -2264,7 +2284,52 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         </div> <!-- Fine modal dialog -->
     </div>
     <!-- Fine modale informazioni widget -->
-    
+
+    <!-- Modale informazioni dashboard -->
+  <!--  <div class="modal fade" id="msgInfoModal" tabindex="-1" role="dialog" aria-labelledby="msgInfoModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modalContentWizardForm">
+                <div class="modalHeader centerWithFlex">
+                    <div class="col-xs-10 col-xs-offset-1"></div>
+                </div>
+
+                <div id="msgInfoModalBodyView" class="modal-body modalBody">
+
+                </div>
+
+                <div id="msgInfoModalFooter" class="modal-footer">
+                    <div class="compactMenuBtns row centerWithFlex">
+                        <button type="button" class="compactMenuCancelBtn" id="msgInfoModalCancelBtnView" data-dismiss="modal" style="margin-right: 3px;">OK</button>
+                    </div>
+                    <div class="compactMenuMsg centerWithFlex">
+
+                    </div>
+                </div>
+
+            </div>    <!-- Fine modal content -->
+        </div> <!-- Fine modal dialog -->
+    </div>
+    <!-- Fine modale informazioni dashboard -->
+
+    <!-- Modale informazioni dashboard 2 -->
+    <div class="modal fade" id="msgInfoModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modalHeader centerWithFlex">
+                    Dashboard Info Message
+                </div>
+                <div id="msgInfoModalBodyView" class="modal-body modalBody">
+
+                </div>
+                <div id="msgInfoModalFooter" class="modal-footer">
+                  <!--  <button type="button" id="discardLogoutBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>  -->
+                    <button type="button" id="confirmLogoutBtn" class="btn confirmBtn internalLink" data-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine modale informazioni dashboard 2 -->
+
     
     <!-- Modale di conferma logout dashboard -->
     <div class="modal fade" id="logoutViewModal" tabindex="-1" role="dialog" aria-hidden="true">

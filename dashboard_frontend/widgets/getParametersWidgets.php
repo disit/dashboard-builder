@@ -91,7 +91,16 @@
                    }
                }
             }
-        }    
+        }
+
+        $parameters['geoServerUrl'] = $geoServerUrl;
+        $parameters['heatmapUrl'] = $heatmapUrl;
+
+        // MS> Use defaults for geo server and heatmap URLs if necessary
+        if($parameters['geoServerUrl'] == null) $parameters['geoServerUrl'] = "https://wmsserver.snap4city.org/";
+        if($parameters['heatmapUrl'] == null) $parameters['heatmapUrl'] = "https://heatmap.snap4city.org/";
+        // <MS
+
         $par_json = json_encode($parameters);
         $link->close();
         echo($par_json);

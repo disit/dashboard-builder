@@ -75,6 +75,9 @@
         var udm = null;
         var titleUdm = null;
         var viewUdm, xOffsetUdm = null;
+        var expandedTimeRangeFlag = false;
+        var currentTimeRange = null;
+        var lastDateinDataArray = null;
 
         console.log("Entrato in widgetTimeTrend --> " + widgetName);
 
@@ -303,11 +306,158 @@
         });
 
 
+        function isOkComputationDate(date, timeRange, lastDateInDataArray) {
+
+            var returnFlag = false;
+            var date1 = moment(date);
+            var hoursToSubtract = null;
+            switch(timeRange) {
+                case "4 Ore":
+                    hoursToSubtract = 4;
+                    break;
+
+                case "12 Ore":
+                    hoursToSubtract = 12;
+                    break;
+
+                case "Giornaliera":
+                    hoursToSubtract = 24;
+                    break;
+
+                case "Settimanale":
+                    hoursToSubtract = 24 * 7;
+                    break;
+
+                case "Mensile":
+                    hoursToSubtract = 24 * 30;
+                    break;
+
+                case "Semestrale":
+                    hoursToSubtract = 24 * 180;
+                    break;
+
+                case "Annuale":
+                    hoursToSubtract = 24 * 365;
+                    break;
+            }
+            var date2 = moment(lastDateInDataArray);
+            var refDate = date2.subtract(hoursToSubtract, 'hours');
+        //    var diff = date2.diff(date1);
+
+            if(date1.isAfter(refDate)) {
+                returnFlag = true;
+            } else {
+                returnFlag = false;
+            }
+
+            return returnFlag;
+        }
+
+        function updateTimeRange(newTimeRange) {
+
+            $.ajax({
+                url: "../controllers/updateWidget.php",
+                data:
+                    {
+                        action: "updateTimeRange",
+                        widgetName: "<?= $_REQUEST['name_w'] ?>",
+                        //    newTimeRange: $('#<?= $_REQUEST['name_w'] ?>_header').attr('data-newTimeRange')
+                        newTimeRange: newTimeRange
+                    },
+                type: "POST",
+                async: true,
+                dataType: 'json',
+                success: function(data)
+                {
+                    if(data.detail === 'Ok')
+                    {
+                        //    button.parents('div.container-fluid').find('div.contextMenuMsgRow div.col-xs-12').html('Saved&nbsp;<i class="fa fa-thumbs-up" style="font-size:14px"></i>');
+                        $('#<?= $_REQUEST['name_w'] ?>_header').attr('data-currentTimeRange', newTimeRange);
+
+                    }
+                },
+                error: function(errorData)
+                {
+                    console.log("Error in Updating time range.")
+                }
+            });
+
+        }
+
+        function expandTimeRange(localTimeRange, timeNavCount, udmFromUserOptions) {
+
+         //   if (timeRange == '')
+            expandedTimeRangeFlag = true;
+         //   currentTimeRange = timeRange;
+            switch(localTimeRange) {
+
+                case "4 Ore":
+                    timeRange = "12 Ore";
+                    populateWidget("12 Ore", null, null, timeNavCount, udmFromUserOptions);
+                 //   $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").slider('setValue', 2);
+                 //   timeRangeSlider.slider('setValue', 2);
+                 //   timeRangeSlider[0].setAttribute('data-value', 2);
+                 //   $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").trigger("change");
+                    break;
+
+                case "12 Ore":
+                    timeRange = "Giornaliera";
+                 //   $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").slider('setValue', 3);
+                 //   timeRangeSlider.slider('setValue', 3);
+                 //   timeRangeSlider[0].setAttribute('data-value', 2);
+                    populateWidget("Giornaliera", null, null, timeNavCount, udmFromUserOptions);
+                    break;
+
+                case "Giornaliera":
+                    timeRange = "Settimanale";
+                //    $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").slider('setValue', 4);
+                  //  timeRangeSlider.slider('setValue', 4);
+                    populateWidget("Settimanale", null, null, timeNavCount, udmFromUserOptions);
+                    break;
+
+                case "Settimanale":
+                    timeRange = "Mensile";
+                //    $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").slider('setValue', 5);
+                  //  timeRangeSlider.slider('setValue', 5);
+                 //   $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").trigger("change");
+                    populateWidget("Mensile", null, null, timeNavCount, udmFromUserOptions);
+                    break;
+
+                case "Mensile":
+                    timeRange = "Semestrale";
+                //    $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").slider('setValue', 6);
+                 //   timeRangeSlider.slider('setValue', 6);
+                    populateWidget("Semestrale", null, null, timeNavCount, udmFromUserOptions);
+                    break;
+
+                case "Semestrale":
+                    timeRange = "Annuale";
+                //    $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").slider('setValue', 7);
+                 //   timeRangeSlider.slider('setValue', 7);
+                    populateWidget("Annuale", null, null, timeNavCount, udmFromUserOptions);
+                    break;
+
+                case "Annuale":
+                    showWidgetContent(widgetName);
+                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available or Last Data Older Than 1 Year.");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').css("font-size", "14px");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                    console.log("Dati non presenti su Service Map o ultimi dati più vecchi di 1 anno.");
+                    break;
+            }
+
+            updateTimeRange(timeRange);
+
+        }
 
         function drawDiagram(metricData, timeRange, seriesName, fromSelector, timeZone, udm)
         {
            /* if ($("#" + widgetName + "_loading").css("display") == "block") {
                 $("#" + widgetName + "_loading").css("display", "none");
+            }*/
+          /*  if (expandedTimeRangeFlag) {
+                timeRange = currentTimeRange;
             }*/
             if(metricData.data.length > 0)
             {
@@ -315,41 +465,94 @@
                 metricType = '<?= escapeForJS($_REQUEST['id_metric']) ?>';
                 seriesData = [];
                 valuesData = [];
+                if (metricData.data[0]) {
+                    lastDateinDataArray = metricData.data[0].commit.author.computationDate;
+                }
                 for(var i = 0; i < metricData.data.length; i++) 
                 {
                     day = metricData.data[i].commit.author.computationDate;
 
-                    if((metricData.data[i].commit.author.value !== null) && (metricData.data[i].commit.author.value !== "")) 
-                    {
-                    /*    var e = 1;
-                        while (Math.round(metricData.data[i].commit.author.value * e) / e !== metricData.data[i].commit.author.value) e *= 10;
-                        var precision = Math.log(e) / Math.LN10;    */
-                        value = parseFloat(parseFloat(metricData.data[i].commit.author.value).toFixed(2));
-                        flagNumeric = true;
-                    } 
-                    else if((metricData.data[i].commit.author.value_perc1 !== null) && (metricData.data[i].commit.author.value_perc1 !== "")) 
-                    {
-                        if(value >= 100) 
-                        {
-                            value = parseFloat(parseFloat(metricData.data[i].commit.author.value_perc1).toFixed(0));
-                        } 
-                        else 
-                        {
-                            value = parseFloat(parseFloat(metricData.data[i].commit.author.value_perc1).toFixed(1));
-                        }
-                        flagNumeric = true;
-                    }
+                  //  if (expandedTimeRangeFlag && (isOkComputationDate(day, timeRange, lastDateinDataArray))) {
 
-                    dayParts = day.substring(0, day.indexOf(' ')).split('-');
-                    
-                    if(fromSelector)
-                    {
-                        timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
-                        
-                        if((timeRange === '1/DAY') || (timeRange.includes("HOUR"))) 
-                        {
-                            unitsWidget = [['millisecond', 
-                            [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] 
+                        if ((metricData.data[i].commit.author.value !== null) && (metricData.data[i].commit.author.value !== "")) {
+                            /*    var e = 1;
+                                while (Math.round(metricData.data[i].commit.author.value * e) / e !== metricData.data[i].commit.author.value) e *= 10;
+                                var precision = Math.log(e) / Math.LN10;    */
+                            value = parseFloat(parseFloat(metricData.data[i].commit.author.value).toFixed(2));
+                            flagNumeric = true;
+                        } else if ((metricData.data[i].commit.author.value_perc1 !== null) && (metricData.data[i].commit.author.value_perc1 !== "")) {
+                            if (value >= 100) {
+                                value = parseFloat(parseFloat(metricData.data[i].commit.author.value_perc1).toFixed(0));
+                            } else {
+                                value = parseFloat(parseFloat(metricData.data[i].commit.author.value_perc1).toFixed(1));
+                            }
+                            flagNumeric = true;
+                        }
+
+                        dayParts = day.substring(0, day.indexOf(' ')).split('-');
+
+                        if (fromSelector) {
+                            timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
+
+                            if ((timeRange === '1/DAY') || (timeRange.includes("HOUR"))) {
+                                unitsWidget = [['millisecond',
+                                    [1, 2, 5, 10, 20, 25, 50, 100, 200, 500]
+                                ], [
+                                    'second',
+                                    [1, 2, 5, 10, 15, 30]
+                                ], [
+                                    'minute',
+                                    [1, 2, 5, 10, 15, 30]
+                                ], [
+                                    'hour',
+                                    [1, 2, 3, 4, 6, 8, 12]
+                                ], [
+                                    'day',
+                                    [1]
+                                ], [
+                                    'week',
+                                    [1]
+                                ], [
+                                    'month',
+                                    [1]
+                                    //[1, 3, 4, 6, 8, 10, 12]
+                                ], [
+                                    'year',
+                                    null
+                                ]];
+                                date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0], timeParts[1]);
+                            } else {
+                                unitsWidget = [['millisecond',
+                                    [1]
+                                ], [
+                                    'second',
+                                    [1, 30]
+                                ], [
+                                    'minute',
+                                    [1, 30]
+                                ], [
+                                    'hour',
+                                    [1, 6]
+                                ], [
+                                    'day',
+                                    [1]
+                                ], [
+                                    'week',
+                                    [1]
+                                ], [
+                                    'month',
+                                    [1]
+                                ], [
+                                    'year',
+                                    [1]
+                                ]];
+                                date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0]);
+                            }
+                            timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
+                            date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0], timeParts[1]);
+                        } else {
+                            unitsWidget = [['millisecond',
+                                [1, 2, 5, 10, 20, 25, 50, 100, 200, 500]
                             ], [
                                 'second',
                                 [1, 2, 5, 10, 15, 30]
@@ -373,79 +576,17 @@
                                 'year',
                                 null
                             ]];
-                            date = Date.UTC(dayParts[0], dayParts[1]-1, dayParts[2], timeParts[0], timeParts[1]);
+                            if ((timeRange === '1/DAY') || (timeRange.includes("HOUR"))) {
+                                timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
+                                date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0], timeParts[1]);
+                            } else {
+                                date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2]);
+                            }
                         }
-                        else 
-                        {
-                            unitsWidget = [['millisecond',  
-                                [1] 
-                            ], [
-                                'second',
-                                [1, 30]
-                            ], [
-                                'minute',
-                                [1, 30]
-                            ], [
-                                'hour',
-                                [1, 6]
-                            ], [
-                                'day',
-                                [1]
-                            ], [
-                                'week',
-                                [1]
-                            ], [
-                                'month',
-                                [1]
-                            ], [
-                                'year',
-                                [1]
-                            ]];
-                            date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0]);
-                        }
-                        timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
-                        date = Date.UTC(dayParts[0], dayParts[1]-1, dayParts[2], timeParts[0], timeParts[1]);
-                    }
-                    else
-                    {
-                        unitsWidget = [['millisecond', 
-                            [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] 
-                        ], [
-                            'second',
-                            [1, 2, 5, 10, 15, 30]
-                        ], [
-                            'minute',
-                            [1, 2, 5, 10, 15, 30]
-                        ], [
-                            'hour',
-                            [1, 2, 3, 4, 6, 8, 12]
-                        ], [
-                            'day',
-                            [1]
-                        ], [
-                            'week',
-                            [1]
-                        ], [
-                            'month',
-                            [1]
-                            //[1, 3, 4, 6, 8, 10, 12]
-                        ], [
-                            'year',
-                            null
-                        ]];
-                        if((timeRange === '1/DAY') || (timeRange.includes("HOUR"))) 
-                        {
-                            timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
-                            date = Date.UTC(dayParts[0], dayParts[1]-1, dayParts[2], timeParts[0], timeParts[1]);
-                        }
-                        else 
-                        {
-                            date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2]);
-                        }
-                    }
-                 //   if (!Number.isNaN(date) && !Number.isNaN(value)) {
+                        //   if (!Number.isNaN(date) && !Number.isNaN(value)) {
                         seriesData.push([date, value]);
                         valuesData.push(value);
+                        //   }
                  //   }
                 }
 
@@ -1519,6 +1660,7 @@
                             {
                                 showWidgetContent(widgetName);
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
                                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                 console.log("Dati non disponibili da Service Map");
                             }
@@ -1527,6 +1669,7 @@
                         {
                             showWidgetContent(widgetName);
                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
                             $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                             console.log("Dati non disponibili da Service Map");
                         }
@@ -1535,6 +1678,7 @@
                     {
                         showWidgetContent(widgetName);
                         $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("API Error in Data Retrieval.");
                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                         console.log("Errore in scaricamento dati da Service Map");
                         console.log(JSON.stringify(data));
@@ -1773,24 +1917,27 @@
                                     }
                                     else
                                     {
-                                        showWidgetContent(widgetName);
+                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                     /*   showWidgetContent(widgetName);
                                         $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        console.log("Dati non disponibili da Service Map");
+                                        console.log("Dati non disponibili da Service Map");*/
                                     }
                                 }
                                 else
                                 {
-                                    showWidgetContent(widgetName);
+                                    expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                  /*  showWidgetContent(widgetName);
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                    console.log("Dati non disponibili da Service Map");
+                                    console.log("Dati non disponibili da Service Map");*/
                                 }
                             },
                             error: function (data)
                             {
                                 showWidgetContent(widgetName);
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("API Error in Data Retrieval.");
                                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                 console.log("Errore in scaricamento dati da Service Map");
                                 console.log(JSON.stringify(data));
@@ -1839,11 +1986,12 @@
                             },
                             error: function(errorData)
                             {
-                                showWidgetContent(widgetName);
+                                expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                             /*   showWidgetContent(widgetName);
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                 console.log("Errore in chiamata di getDataMetricsForTimeTrend.php.");
-                                console.log(JSON.stringify(errorData));
+                                console.log(JSON.stringify(errorData));*/
                             }
                         });
                         break;
@@ -1878,18 +2026,20 @@
                                     }
                                     else
                                     {
-                                        showWidgetContent(widgetName);
+                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                      /*  showWidgetContent(widgetName);
                                         $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        console.log("Dati non disponibili da Service Map");
+                                        console.log("Dati non disponibili da Service Map");*/
                                     }
                                 }
                                 else
                                 {
-                                    showWidgetContent(widgetName);
+                                    expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                /*    showWidgetContent(widgetName);
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                    console.log("Dati non disponibili da Service Map");
+                                    console.log("Dati non disponibili da Service Map");*/
                                 }
                             },
                             error: function(errorData)
@@ -1901,6 +2051,7 @@
                                 {
                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("API Error in Data Retrieval.");
                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                 }
                             }
@@ -1962,23 +2113,26 @@
                                     //else if (convertedData.data[0].commit.author.value == null)
                                     else
                                     {
-                                        showWidgetContent(widgetName);
+                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                    /*    showWidgetContent(widgetName);
                                         $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        console.log("Dati MyKPI non presenti");
+                                        console.log("Dati MyKPI non presenti");*/
                                     }
                                 }
                                 else
                                 {
-                                    showWidgetContent(widgetName);
+                                    expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                /*    showWidgetContent(widgetName);
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                    console.log("Dati MyKPI non presenti");
+                                    console.log("Dati MyKPI non presenti");*/
                                 }
                             },
                             error: function (data) {
                                 showWidgetContent(widgetName);
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("API Error in Data Retrieval.");
                                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                 console.log("Errore!");
                                 console.log(JSON.stringify(data));
@@ -2080,7 +2234,11 @@
 
             setupLoadingPanel(widgetName, widgetContentColor, true);
         //    populateWidget(timeRange, null, "minus", timeNavCount, null, udmFromUserOptions);
-            populateWidget(timeRange, null, "minus", timeNavCount, null, udm);
+        /*    if (expandedTimeRangeFlag) {
+                populateWidget(currentTimeRange, null, "minus", timeNavCount, null, udm);
+            } else {*/
+                populateWidget(timeRange, null, "minus", timeNavCount, null, udm);
+          //  }
         });
 
         $("#" + widgetName + "_timeTrendNextBtn").off("click").click(function () {
@@ -2167,7 +2325,11 @@
 
             setupLoadingPanel(widgetName, widgetContentColor, true);
         //    populateWidget(timeRange, null, "plus", timeNavCount, dataFut, udmFromUserOptions);
-            populateWidget(timeRange, null, "plus", timeNavCount, dataFut, udm);
+        /*    if (expandedTimeRangeFlag) {
+                populateWidget(currentTimeRange, null, "plus", timeNavCount, dataFut, udm)
+            } else {*/
+                populateWidget(timeRange, null, "plus", timeNavCount, dataFut, udm);
+         //   }
 
         });
 
@@ -2394,6 +2556,7 @@
                 if (timeRange == null || timeRange == undefined) {
                     timeRange = widgetData.params.temporal_range_w;
                 }
+                currentTimeRange = timeRange;
                 populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions);
 
                 // Modify width to show newly implemented PREV and NEXT buttons

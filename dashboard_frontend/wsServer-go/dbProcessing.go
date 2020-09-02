@@ -63,15 +63,12 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var err error
 		var username, role, organization string
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
-			if err != nil {
-				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
-			}
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 		} else {
 			err = fmt.Errorf("missing accessToken")
 		}
 		if err != nil {
-			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"])
+			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"], " atkn:", dat["accessToken"])
 			response["result"] = "Ko"
 			response["error"] = fmt.Sprint(err, " for ", dat["appId"])
 		} else {
@@ -124,56 +121,77 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 					if dat["widgetType"] != nil {
 						result, dashboardID := checkOrCreateDashboard(db, dat)
 						if result == "" {
-							log.Print("AddEmitter on dashboard \"", dat["dashboardId"], "\" - ", dashboardID)
-							/* aggiunge widget alla dashboard */
-							addWidget, w := addWidget(db, dashboardID, dat["user"], dat["widgetType"], dat["name"],
-								dat["metricType"], dat["appId"], dat["flowId"], dat["nodeId"], dat["widgetTitle"])
-							if addWidget {
-								/* aggiunge o aggiorna tabella ActuatorsAppsValues */
-								err = nil
-								if oldNrInputID == "" {
-									_, err = db.Exec("INSERT INTO "+dashboard+".ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress, actuationResult, actuationResultTime, nrInputId) "+
-										"VALUES ('none', CURRENT_TIMESTAMP, ?, ?, '127.0.0.1', 'Ok', CURRENT_TIMESTAMP, ?)", dat["startValue"], dat["user"], nrInputID)
-								} else {
-									_, err = db.Exec("UPDATE "+dashboard+".ActuatorsAppsValues SET nrInputId = ? WHERE nrInputId = ?", nrInputID, oldNrInputID)
-								}
-								if err != nil {
-									log.Print(dat["msgType"], " ERROR ", err)
+							if dat["widgetType"].(string) == "widgetMap" {
+								widgetName, error := updateWidget(db, dashboardID, dat["widgetType"], dat["nodeId"])
+								if error != "" {
+									log.Print(dat["msgType"], " ERROR updateWidget ", error, " dash:", dashboardID)
 									response["result"] = "Ko"
-									response["error"] = "failed db access"
+									response["error"] = error //"cannot find a map widget on dashboard"
 								} else {
-									/* aggiunge la connessione tra quelle associate all'emitter */
-									//user.metricName = dat["metricName"].(string) //check
 									user.userType = "actuator"
-									user.widgetUniqueName = w["widgetUniqueName"]
-									if user.widgetUniqueName != "" && user.widgetUniqueName != nil {
-										publish([]byte("subscribe"+user.widgetUniqueName.(string)), "default") //check???
-										mu.Lock()
-										widgetUniqueName := user.widgetUniqueName.(string)
-										ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
-										//log.Print("AddEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
-										mu.Unlock()
-										//find the last value of emitter
-										value := ""
-										err = db.QueryRow("SELECT value FROM "+dashboard+".ActuatorsAppsValues where widgetName=? order by id desc limit 1",
-											user.widgetUniqueName).Scan(&value)
-										if err != nil {
-											log.Print("WARNING ", user.widgetUniqueName, " error on get last value ", err)
-										}
-										response["widgetUniqueName"] = user.widgetUniqueName
-										response["result"] = "Ok"
-										response["lastValue"] = value
-										response["dashboardId"] = dashboardID
-									} else {
-										log.Print(dat["msgType"], " ERROR invalid widget unique id:", user.widgetUniqueName)
-										response["result"] = "Ko"
-										response["error"] = "invalid widgetUniqueName"
-									}
+									user.widgetUniqueName = widgetName
+									publish([]byte("subscribe"+user.widgetUniqueName.(string)), "default") //check???
+									mu.Lock()
+									widgetUniqueName := user.widgetUniqueName.(string)
+									ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
+									//log.Print("AddEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
+									mu.Unlock()
+									response["widgetUniqueName"] = user.widgetUniqueName
+									response["result"] = "Ok"
+									response["dashboardId"] = dashboardID
 								}
 							} else {
-								log.Print(dat["msgType"], " ERROR failed addWidget to dash ", dashboardID)
-								response["result"] = "Ko"
-								response["error"] = "cannot add widget to dashboard"
+								log.Print("AddEmitter on dashboard \"", dat["dashboardId"], "\" - ", dashboardID)
+								/* aggiunge widget alla dashboard */
+								addWidget, w := addWidget(db, dashboardID, dat["user"], dat["widgetType"], dat["name"],
+									dat["metricType"], dat["appId"], dat["flowId"], dat["nodeId"], dat["widgetTitle"])
+								if addWidget {
+									/* aggiunge o aggiorna tabella ActuatorsAppsValues */
+									err = nil
+									if oldNrInputID == "" {
+										_, err = db.Exec("INSERT INTO "+dashboard+".ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress, actuationResult, actuationResultTime, nrInputId) "+
+											"VALUES ('none', CURRENT_TIMESTAMP, ?, ?, '127.0.0.1', 'Ok', CURRENT_TIMESTAMP, ?)", dat["startValue"], dat["user"], nrInputID)
+									} else {
+										_, err = db.Exec("UPDATE "+dashboard+".ActuatorsAppsValues SET nrInputId = ? WHERE nrInputId = ?", nrInputID, oldNrInputID)
+									}
+									if err != nil {
+										log.Print(dat["msgType"], " ERROR ", err)
+										response["result"] = "Ko"
+										response["error"] = "failed db access"
+									} else {
+										/* aggiunge la connessione tra quelle associate all'emitter */
+										//user.metricName = dat["metricName"].(string) //check
+										user.userType = "actuator"
+										user.widgetUniqueName = w["widgetUniqueName"]
+										if user.widgetUniqueName != "" && user.widgetUniqueName != nil {
+											publish([]byte("subscribe"+user.widgetUniqueName.(string)), "default") //check???
+											mu.Lock()
+											widgetUniqueName := user.widgetUniqueName.(string)
+											ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
+											//log.Print("AddEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
+											mu.Unlock()
+											//find the last value of emitter
+											value := ""
+											err = db.QueryRow("SELECT value FROM "+dashboard+".ActuatorsAppsValues where widgetName=? order by id desc limit 1",
+												user.widgetUniqueName).Scan(&value)
+											if err != nil {
+												log.Print("WARNING ", user.widgetUniqueName, " error on get last value ", err)
+											}
+											response["widgetUniqueName"] = user.widgetUniqueName
+											response["result"] = "Ok"
+											response["lastValue"] = value
+											response["dashboardId"] = dashboardID
+										} else {
+											log.Print(dat["msgType"], " ERROR invalid widget unique id:", user.widgetUniqueName)
+											response["result"] = "Ko"
+											response["error"] = "invalid widgetUniqueName"
+										}
+									}
+								} else {
+									log.Print(dat["msgType"], " ERROR failed addWidget to dash ", dashboardID)
+									response["result"] = "Ko"
+									response["error"] = "cannot add widget to dashboard"
+								}
 							}
 						} else {
 							log.Print(dat["msgType"], " ERROR failed check or create dashboard ", result)
@@ -212,12 +230,14 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		if err != nil {
 			log.Print("SendToEmitter failed widget ", widgetUniqueName, " error: ", err)
 			response["result"] = "Ko"
+			response["error"] = "widget not found"
 			break
 		}
 		//log.Print("widget ", widgetUniqueName, " -> dashboard:", idDashboard, " creator:", creator)
 		if idDashboard == "" || creator == "" {
 			log.Print(dat["msgType"], " ERROR SendToEmitter invalid widget ", widgetUniqueName)
 			response["result"] = "Ko"
+			response["error"] = "invalid widget"
 			break
 		}
 
@@ -226,15 +246,14 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			if dat["accessToken"] == nil {
 				log.Print(dat["msgType"], " ERROR SendToEmitter require accessToken")
 				response["result"] = "Ko"
+				response["error"] = "missing token"
 				break
 			}
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 			if err != nil {
-				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
-			}
-			if err != nil {
-				log.Print(dat["msgType"], " ERROR invalid token ", err)
+				log.Print(dat["msgType"], " ERROR invalid token ", err, " atk:", dat["accessToken"])
 				response["result"] = "Ko"
+				response["error"] = "invalid token"
 				break
 			}
 			log.Print("SendToEmitter user: ", username, " role: ", role)
@@ -357,15 +376,12 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var organization string
 		var err error
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
-			if err != nil {
-				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
-			}
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 		} else {
 			err = fmt.Errorf("missing accessToken")
 		}
 		if err != nil {
-			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"])
+			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"], " atkn:", dat["accessToken"])
 			response["result"] = "Ko"
 			response["error"] = fmt.Sprint(err, " for ", dat["appId"])
 		} else {
@@ -482,16 +498,13 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var err error
 		var username, role string
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
-			if err != nil {
-				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
-			}
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 		} else {
 			//log.Print("MISSING ACCESSTOKEN ",dat)
 			err = fmt.Errorf("missing accessToken")
 		}
 		if err != nil {
-			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"])
+			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"], " atkn:", dat["accessToken"])
 			response["result"] = "Ko"
 			response["error"] = fmt.Sprint(err, " for ", dat["appId"])
 		} else {
@@ -666,16 +679,13 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var err error
 
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered")
-			if err != nil {
-				username, role, err = checkToken(dat["accessToken"].(string), "nodered-iotedge")
-			}
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 		} else {
 			//log.Print("MISSING ACCESSTOKEN ",dat)
 			err = fmt.Errorf("missing accessToken")
 		}
 		if err != nil {
-			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"])
+			log.Print(dat["msgType"], " ERROR ", err, " for ", dat["appId"], " atkn:", dat["accessToken"])
 			response["result"] = "Ko"
 			response["error"] = fmt.Sprint(err, " for ", dat["appId"])
 			break
@@ -937,6 +947,52 @@ func createDashboard(db *sql.DB, dat map[string]interface{}) (string, int64) {
 		}
 	}
 	return "failed db access", 0
+}
+
+func updateWidget(db *sql.DB, dashboardID int64, widgetType interface{}, nodeID interface{}) (string, string) {
+	var nWidgets int
+	var widgetName string
+
+	//find how many widgets are connected with the nodeId
+	err := db.QueryRow("SELECT COUNT(*) FROM "+dashboard+".Config_widget_dashboard WHERE nodeId = ?;", nodeID).Scan(&nWidgets)
+	if err != nil {
+		log.Print(err)
+		return "", "db error 1"
+	}
+	//if nodeid is already associated to a widget
+	if nWidgets > 0 {
+		var curDashboardID int64
+		err = db.QueryRow("SELECT id_dashboard,name_w FROM "+dashboard+".Config_widget_dashboard WHERE nodeId = ?;", nodeID).Scan(&curDashboardID, &widgetName)
+		if err != nil {
+			log.Print(err)
+			return "", "db error 2"
+		}
+		//if the widget is in the same dashboard ok finished
+		if curDashboardID == dashboardID {
+			return widgetName, ""
+		}
+		//if the widget is associated to a widget in another dashboard remove from that dashboard
+		_, err = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET nodeId=NULL,id_metric=NULL WHERE nodeId = ?;", nodeID)
+		if err != nil {
+			log.Print(err)
+			return "", "db error 3"
+		}
+	}
+	//not associated to a widget
+	//search a widget map in the dashboard and return the widgetid
+	err = db.QueryRow("SELECT name_w FROM "+dashboard+".Config_widget_dashboard WHERE id_dashboard = ? AND type_w = ? LIMIT 1;", dashboardID, widgetType).Scan(&widgetName)
+	if err != nil {
+		log.Print(err)
+		return "", "a map widget not found in dashboard"
+	}
+	idMetric := "NR_" + strings.Replace(nodeID.(string), ".", "_", -1)
+	_, err = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET nodeId = ?, id_metric = ? WHERE name_w = ?;", nodeID, idMetric, widgetName)
+	if err != nil {
+		log.Print(err)
+		return "", "db error 4"
+	}
+
+	return widgetName, ""
 }
 
 // funzione per l'inserimento dei widget

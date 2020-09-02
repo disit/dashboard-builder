@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	oidc "github.com/coreos/go-oidc"
 	"github.com/go-ini/ini"
 	"github.com/go-sql-driver/mysql"
 	"github.com/gomodule/redigo/redis"
@@ -172,6 +173,12 @@ func buildAndInit() *WebSocketServer {
 	log.Print("ldap: ", wss.ldapServer, ":", wss.ldapPort, " ", wss.ldapBaseDN)
 
 	wss.clientWidgets = make(map[string][]*WebsocketUser)
+
+	ctx := context.Background()
+	wss.oidcProvider, err = oidc.NewProvider(ctx, wss.ssoIssuer)
+	if err != nil {
+		log.Print("init OIDC Provider: ERROR ", err)
+	}
 
 	return wss
 

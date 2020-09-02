@@ -151,6 +151,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 eventLog("Returned the following ERROR in widgetMap.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
                 exit();
             }
+
+            $genFileContent = parse_ini_file("../conf/environment.ini");
+            $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+            $env = $genFileContent['environment']['value'];
+            $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$env];
+            $wsServerPort = $wsServerContent["wsServerPort"][$env];
+            $wsPath = $wsServerContent["wsServerPath"][$env];
+            $wsProtocol = $wsServerContent["wsServerProtocol"][$env];
+            $wsRetryActive = $wsServerContent["wsServerRetryActive"][$env];
+            $wsRetryTime = $wsServerContent["wsServerRetryTime"][$env];
+            $useActuatorWS = $wsServerContent["wsServerActuator"][$env];
             ?>
 
             var headerHeight = 25;
@@ -246,6 +257,79 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             var bubbleSelectedMetric = [];
             var bubbles = [];
             var defaultOrthomapMenuItem = null;
+            if(Window.webSockets == undefined)
+                Window.webSockets = {};
+            var nodeRedInputName, nrInputId, currentValue, lastValueOk = null;
+            var heatmapClick = null;
+
+
+            function triggerEventOnIotApp(map, latlngStr) {
+
+                var data = {
+                    "msgType": "SendToEmitter",
+                    "widgetUniqueName": widgetName,
+                    "value": latlngStr,
+                    "inputName": nodeRedInputName,
+                 //   "dashboardId": <? $_REQUEST['id_dashboard'] ?>,
+                    "username" : $('#authForm #hiddenUsername').val(),
+                    "nrInputId": nrInputId
+                };
+                var webSocket = Window.webSockets[widgetName];
+                webSocket.ackReceived=false;
+                webSocket.onAck = function(data) {
+                    console.log(widgetName+" SUCCESS ackReceived:"+webSocket.ackReceived)
+                    requestComplete = true;
+                //    clearInterval(setUpdatingMsgInterval);
+                    switch(data.result)
+                    {
+                        case "insertQueryKo":
+                        //    showUpdateResult("DB KO");
+                            console.log("DB KO on Insert");
+                            break;
+
+                        case "updateBlockKo":
+                        //    showUpdateResult("Device KO");
+                            console.log("Device KO");
+                            break;
+
+                        case "updateBlockAndUpdateQueryKo":
+                        //    showUpdateResult("DB and device KO");
+                            console.log("DB and device KO");
+                            break;
+
+                        case "updateQueryKo":
+                        //    showUpdateResult("DB KO");
+                            console.log("DB KO on Update");
+                            break;
+
+                        case "Ok":
+                        //    showUpdateResult("Device OK");
+                            console.log("Device OK");
+                            break;
+                    }
+                }
+                console.log(widgetName+" SEND ackReceived:"+webSocket.ackReceived)
+                if(webSocket.readyState==webSocket.OPEN) {
+                    webSocket.send(JSON.stringify(data));
+                    webSocket.timeout = setTimeout(function() {
+                        if(!webSocket.ackReceived) {
+                            console.log(widgetName+" ERR1 ackReceived:"+webSocket.ackReceived)
+                            requestComplete = true;
+                         //   clearInterval(setUpdatingMsgInterval);
+                         //   showUpdateResult("API KO");
+                            console.log("Update value KO");
+                        }
+                    },60000)
+                } else {
+                    console.log(widgetName+" ERR1 socket not OPEN");
+                    requestComplete = true;
+                //    clearInterval(setUpdatingMsgInterval);
+                //    showUpdateResult("API KO");
+                    console.log("Update value KO");
+                }
+
+
+            }
 
             function onEachFeature(feature, layer) {
                 //console.log(layer);
@@ -3813,6 +3897,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 });
 
                 $(document).on('addSelectorPin', function (event) {
+
+                /*    if (metricName != 'Map') {
+                        map.defaultMapRef.on('click', function(e) {
+                            currentValue = e.latlng.toString();
+                            //    alert('Map Clicked!');
+                            triggerEventOnIotApp(map.defaultMapRef, e.latlng.toString());
+                        })
+                    }*/
+
                     if (event.target === map.mapName) {
                         if (lastPopup !== null) {
                             lastPopup.closePopup();
@@ -5793,7 +5886,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                 $(document).on('addHeatmap', function (event) {
                     if (event.target === map.mapName) {
-                        map.defaultMapRef.off('click');
+                     //   map.defaultMapRef.off('click', heatmapClick);
                      //   window.addHeatmapToMap = function() {
 
                         //Crea un layer per la heatmap (i dati gli verranno passati nell'evento)
@@ -6417,7 +6510,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
 
                      //   $('#'+event.target).on('click', function(e) {
-                        map.defaultMapRef.on('click', function(e) {
+                     //   map.defaultMapRef.off('click', heatmapClick);
+                        map.defaultMapRef.on('click', heatmapClick = function(e) {
                         //    if (map.testMetadata.metadata.file != 1) {
                                 var heatmapPointAndClickData = null;
                                 //  alert("Click on Map !");
@@ -6607,6 +6701,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                        } else if (map.eventsOnMap[i].type === 'addHeatmap') {
                                            removeHeatmapColorLegend(i, true);
                                            map.eventsOnMap.splice(i, 1);
+                                           map.defaultMapRef.off('click', heatmapClick);
                                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
                                            if (map.eventsOnMap[i].type === 'trafficRealTimeDetails') {
                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
@@ -8026,7 +8121,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
                     }
-                    map.defaultMapRef.off('click');
+                    map.defaultMapRef.off('click', heatmapClick);
                 });
 
                 $(document).on('toggleAddMode', function (event) {
@@ -8050,14 +8145,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             * quando il widget viene creato
             */
             $.ajax({
-                url: "../controllers/getWidgetParams.php",
+            //    url: "../controllers/getWidgetParams.php",
+                url: "../widgets/getParametersWidgets.php",
                 type: "GET",
                 data: {
-                    widgetName: "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
+                 //   widgetName: "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
+                    nomeWidget: ["<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"]
                 },
                 async: true,
                 dataType: 'json',
                 success: function (widgetData) {
+                    widgetData.params = widgetData.param;
                     //Parametri di costruzione del widget (struttura e aspetto)
                     showTitle = widgetData.params.showTitle;
                     widgetContentColor = widgetData.params.color_w;
@@ -8080,6 +8178,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     enableFullscreenTab = widgetData.params.enableFullscreenTab;
                     geoServerUrl = widgetData.geoServerUrl;
                     heatmapUrl = widgetData.heatmapUrl;
+                    nodeRedInputName = widgetData.params.name;
+                    nrInputId = widgetData.params.nrInputId;
 
                     if (widgetData.params.infoJson != "yes") {
                         $('#'+mapOptionsDivName).hide();
@@ -8099,6 +8199,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     sizeRowsWidget = parseInt(widgetData.params.size_rows);
                     styleParameters = JSON.parse(widgetData.params.styleParameters);
                     widgetParameters = JSON.parse(widgetData.params.parameters);
+
+                    if (metricName != 'Map') {
+                        openWs(widgetName);
+                    }
 
                     setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
 
@@ -8191,6 +8295,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     }
                     populateWidget();
                     //   globalMapView = true;
+
+                    if (metricName != 'Map') {
+                        map.defaultMapRef.on('click', function(e) {
+                         //   currentValue = e.latlng.toString();
+                            currentValue = "{'latitude': " + e.latlng.lat + ", 'longitude': " + e.latlng.lng + "}";
+                            //    alert('Map Clicked!');
+                            triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                        })
+                    }
 
                     // parte mappa 3D - CORTI
                     setTimeout(function () {
@@ -10810,7 +10923,123 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             });
 
 
+            var openWs = function(widget)
+            {
+                try
+                {
+                    <?php
+                    echo 'wsRetryActive = "' . $wsRetryActive . '";'."\n";
+                    echo 'wsRetryTime = ' . $wsRetryTime . ';'."\n";
+                    echo 'wsUrl="' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '";'."\n";
+                    ?>
+                    //webSocket = new WebSocket(wsUrl);
+                    initWebsocket(widget, wsUrl, null, wsRetryTime*1000, function(socket){
+                        console.log('socket initialized!');
+                        //do something with socket...
+                        //Window.webSockets["<?= $_REQUEST['name_w'] ?>"] = socket;
+                        openWsConn(widget);
+                    }, function(){
+                        console.log('init of socket failed!');
+                    });
+                    //   webSocket.addEventListener('open', openWsConn);
+                    //   webSocket.addEventListener('close', wsClosed);
+                }
+                catch(e)
+                {
+                    wsClosed();
+                }
+            };
 
+            var manageIncomingWsMsg = function(msg)
+            {
+                var msgObj = JSON.parse(msg.data);
+                console.log(msgObj);
+                if (msgObj.msgType == "DataToEmitter") {
+                    if (currentValue != msgObj.newValue) {
+                        updatedEverFlag = true;
+                        updatedFlag = true;
+                        lastValueOk = msgObj.newValue;
+                        //  showUpdateResult("Device OK");
+                    }
+                }
+                if(msgObj.msgType=="DataToEmitterAck") {
+                    if (lastValueOk) {
+                        //   currentValue = lastValueOk;
+                        lastValueOk = null;
+                        //    handleMouseDown();
+                    //    handleExtUpdate();
+                        $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('click');
+                    //    showUpdateResult("Device OK");
+                    } else {
+                        var webSocket = Window.webSockets[msgObj.widgetUniqueName];
+                        if (!webSocket.ackReceived) {
+                            clearTimeout(webSocket.timeout);
+                            webSocket.ackReceived = true;
+                            console.log(msgObj.widgetUniqueName + " ACK ackReceived:" + webSocket.ackReceived)
+                            webSocket.onAck({result: "Ok", widgetName: msgObj.widgetUniqueName});
+                        }
+                    }
+                }
+            };
+
+            var openWsConn = function(widget) {
+                var webSocket = Window.webSockets[widget];
+                var wsRegistration = {
+                    msgType: "ClientWidgetRegistration",
+                    userType: "widgetInstance",
+                    //   metricName: encodeURIComponent(metricName),
+                    widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+                };
+                webSocket.send(JSON.stringify(wsRegistration));
+                /*setTimeout(function(){
+                    var webSocket = Window.webSockets[widget];
+                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                    webSocket.close();
+                }, (timeToReload - 2)*1000);*/
+
+                webSocket.addEventListener('message', manageIncomingWsMsg);
+            };
+
+            var wsClosed = function(e)
+            {
+                var webSocket = Window.webSockets["<?= $_REQUEST['name_w'] ?>"];
+                webSocket.removeEventListener('message', manageIncomingWsMsg);
+                if(wsRetryActive === 'yes')
+                {
+                    setTimeout(openWs, parseInt(wsRetryTime*1000));
+                }
+            };
+
+
+            function initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed) {
+                if (!existingWebsocket || existingWebsocket.readyState != existingWebsocket.OPEN) {
+                    if (existingWebsocket) {
+                        existingWebsocket.close();
+                    }
+                    var websocket = new WebSocket(url);
+                    websocket.widget = widget;
+                    console.log("store websocket for "+widget)
+                    Window.webSockets[widget] = websocket;
+                    websocket.onopen = function () {
+                        console.info('websocket opened! url: ' + url);
+                        success(websocket);
+                    };
+                    websocket.onclose = function () {
+                        console.info('websocket closed! url: ' + url + " reconnect in "+retryTimeMs+"ms");
+                        //reconnect after a retryTime
+                        setTimeout(function(){
+                            initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed);
+                        }, retryTimeMs);
+                    };
+                    websocket.onerror = function (e) {
+                        console.info('websocket error! url: ' + url);
+                        console.info(e);
+                    };
+                } else {
+                    success(existingWebsocket);
+                }
+                return;
+            };
 
 
             //// 3D Map - CORTI

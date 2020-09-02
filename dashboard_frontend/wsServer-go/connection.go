@@ -79,6 +79,7 @@ type WebSocketServer struct {
 	validOrigins  string
 	requireToken  string
 	clientWidgets map[string][]*WebsocketUser
+	oidcProvider  *oidc.Provider
 }
 
 // OwnershipRegister used to register an element on ownership service
@@ -192,16 +193,11 @@ func ownershipCheckAppID(dat map[string]interface{}) (bool, error) {
 	return claims, nil
 }*/
 
-func checkToken(accessToken string, clientID string) (string, string, error) {
+func checkToken(accessToken string, clientIDs string) (string, string, error) {
 	//log.Print("checkToken")
 	ctx := context.Background()
-	provider, err := oidc.NewProvider(ctx, ws.ssoIssuer)
-	if err != nil {
-		log.Print(err)
-		return "", "", err
-	}
 
-	verifier := provider.Verifier(&oidc.Config{SkipClientIDCheck: true})
+	verifier := ws.oidcProvider.Verifier(&oidc.Config{SkipClientIDCheck: true})
 	idToken, err := verifier.Verify(ctx, accessToken)
 	if err != nil {
 		log.Print(err)
@@ -212,17 +208,17 @@ func checkToken(accessToken string, clientID string) (string, string, error) {
 		return "", "", err
 	}
 	if claims["aud"] != nil {
-		if claims["aud"] != clientID {
+		if !strings.Contains(clientIDs, claims["aud"].(string)+";") {
 			//log.Print("checkToken 'aud' claim is '",claims["aud"],"' expected ", clientID)
-			return "", "", errors.New("'aud' claim is not valid")
+			return "", "", errors.New("'aud' claim '" + claims["aud"].(string) + "' is not valid")
 		}
 	} else {
 		if claims["azp"] == nil {
 			//log.Print("checkToken aud and azp claims missing")
 			return "", "", errors.New("missing 'aud' and 'azp' claims")
-		} else if claims["azp"] != clientID {
+		} else if !strings.Contains(clientIDs, claims["azp"].(string)+";") {
 			//log.Print("checkToken azp claim is '",claims["aud"],"' expected ", clientID)
-			return "", "", errors.New("'azp' claim is not valid")
+			return "", "", errors.New("'azp' claim '" + claims["aud"].(string) + "' is not valid")
 		}
 	}
 	var role string

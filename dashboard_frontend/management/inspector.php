@@ -914,6 +914,9 @@ $lastUsedColors = null;
                         $(".iot_sensor").show();
                         $(".etl_sensor").hide();
                         $(".sensor_own").show();
+                        //
+                        var list_linkDev = function_dev(data_unique_name_id);
+                        //
                         //$('#input_ch2').show();
                         //var iot_sensor_ip = "<?= $iot_sensor ?>";  
                         // iot_sensor_ip = '';                          
@@ -928,7 +931,7 @@ $lastUsedColors = null;
                         $('#broker_link').show();
                         var url_iot = "<?= $iot_directory ?>";
                         var url_iotBrok = "<?= $iot_directory ?>";
-                        https://www.snap4city.org/iotdirectorytest/management/ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false
+                        //https://www.snap4city.org/iotdirectorytest/management/ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false
                         //
                         $('#iot_link').html('<a href="' + url_iot + 'ssoLogin.php?redirect=value.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directory</a>');
                         $('#broker_link').html('<a href="' + url_iotBrok + 'ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
@@ -1025,7 +1028,7 @@ $lastUsedColors = null;
                     var das = function_dashboard(data_get_instances);
                     //var test = check_iot(iot_device);
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
-                    $('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
+                    //$('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $('#disces_link').empty();
                     $('#broker_link').show();
@@ -1035,7 +1038,7 @@ $lastUsedColors = null;
                 case 'From IOT Device to KB':
                     //
                     //var test = check_iot(iot_device);
-                    $('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
+                    //$('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
                     $('#disces_link').empty();
                     $(".etl_sensor").hide();
@@ -2070,6 +2073,79 @@ $lastUsedColors = null;
                 $('#list_kpi_dash').html(content);
             }
         }
+        
+        function function_dev(unique_id){
+                    //console.log('FUNCTION DEV: '+unique_id);
+                    //CONTROLLI SULL'UNIQUE ID
+                    var n = unique_id.includes(":");
+                    console.log(n);
+                    //
+                    if (n){
+                        //
+                    }else{
+                        var iotBroker = $('#iotBroker').val();
+                        var organization = $('#organization').val();
+                        unique_id = organization+':'+iotBroker+':'+unique_id;
+                    }
+                     $.ajax({
+                    async: true,
+                    type: 'GET',
+                    // url: 'getServiceData.php',
+                    url: 'getkpilist.php',
+                    data: {
+                        type: 'Devices',
+                        service: unique_id
+                    },
+                    success: function (data) {
+                        console.log('SUCCESS');
+                        var json_data = data.dashboards;
+                        //console.log(data);
+                        if (data !== 'null') {
+                            var json_data = JSON.parse(data);
+                            //console.log(json_data.dashboards);
+                            var result = json_data.dashboards;
+                            var link_dash = "";
+                            var len = 0;
+                            len = Object.keys(result).length;
+                            //console.log('len: '+len);
+                            if (len > 0) {
+                                for (var i = 0; i < len; i++) {
+                                    //var array_dash = result[i]['dashboardId'];
+                                    var array_dash_Name = "";
+                                    if (result[i]['dashboardName'] !== null) {
+                                        array_dash_Name = result[i]['dashboardName'];
+                                        //console.log(array_dash_Name);
+                                        //console.log(JSON.Parse(array_dash_Name));
+                                        //var json_data = JSON.stringify(array_dash);
+                                        //
+                                        //
+                                        var arr_l = array_dash_Name.length;
+                                        if (arr_l > 0) {
+                                            //var json_data_name = JSON.stringify(array_dash_Name);
+                                            //var json_data_name = Object.entries(array_dash_Name);
+                                            //console.log(json_data_name);
+                                            for (var z = 0; z < arr_l; z++) {
+                                                //arr_l
+                                                var ind = "https://iot-app.snap4city.org/nodered/" + array_dash_Name[z];
+                                                link_dash = link_dash + '<li><a href="' + ind + '" Target= "_blank">Link to Iot Apps ' + array_dash_Name[z] + '</a></li>';
+                                            }
+                                        }
+                                    } else {
+                                        link_dash = link_dash + '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
+                                    }
+                                    //alert(json_data);
+                                }
+                            } else {
+                                console.log('FAILED');
+                                link_dash = '<li><a href="#">No dashboards connected</a></li>';
+                            }
+                            var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Iot Apps<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+                            $('#list_kpi_dash').html(content);
+                            //console.log('ciao');
+                        }
+                    }
+                });
+        }
 
         function function_dashboard(value_name) {
             var value_name2 = value_name;
@@ -2123,7 +2199,6 @@ $lastUsedColors = null;
                         link_dash = '<li><a href="#">No dashboards connected</a></li>';
                     }
                     //result = array_dash;
-
                     //var content = '<div class="btn-group"><button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Link to Dashboard List</button><div class="dropdown-menu"><div class="link-list-wrapper"><ul class="link-list"><li><a class="list-item" href="#"><span>Azione 1</span></a></li></ul></div></div></div>';
 
                     var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Dashboard<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
