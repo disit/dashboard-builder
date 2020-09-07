@@ -762,7 +762,7 @@
                         $('#list_dashboard_cards div.dashboardsListCardDiv').each(function(i){
                             //$(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/synopticTemplates/" + $(this).attr('data-uniqueid') + "/" + $(this).attr('data-icon') + ")");
                             $(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/synopticTemplates/" + $(this).attr('data-icon') + ")");
-                            $(this).find('div.dashboardsListCardImgDiv').css("background-size", "150px");
+                            if(!$(this).attr('data-icon').endsWith(".svg")) $(this).find('div.dashboardsListCardImgDiv').css("background-size", "150px");
                             $(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
                             $(this).find('div.dashboardsListCardImgDiv').css("background-position", "center center");
                             $(this).find('div.dashboardsListCardInnerDiv').css("width", "100%");

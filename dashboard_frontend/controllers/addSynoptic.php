@@ -151,12 +151,14 @@
 		if(mysqli_stmt_execute($tplStmt)) {
 			mysqli_stmt_bind_result($tplStmt,$resMicroAppExtServIcon);
 			while(mysqli_stmt_fetch($tplStmt)) {
-				copy("../img/synopticTemplates/$resMicroAppExtServIcon","../img/synoptics/$synopticId.svg");
-				$microAppExtServIcon = "$synopticId.svg";
+				$ext = pathinfo("../img/synopticTemplates/$resMicroAppExtServIcon")["extension"];
+				copy("../img/synopticTemplates/$resMicroAppExtServIcon","../img/synoptics/$synopticId.$ext");
+				if(file_exists("../img/synoptics/$synopticId.$ext")) chmod("../img/synoptics/$synopticId.$ext", 0777); 
+				$microAppExtServIcon = "$synopticId.$ext";
 			}
 		}
 		
-		mysqli_query($link,"update DashboardWizard set microAppExtServIcon = '$synopticId.svg' where id = $synopticId");
+		mysqli_query($link,"update DashboardWizard set microAppExtServIcon = '$microAppExtServIcon' where id = $synopticId");
 	
 		$u = mysqli_query($link, "UPDATE Dashboard.DashboardWizard SET parameters = '$synBaseUrl$synopticId' WHERE id = $synopticId");
 		

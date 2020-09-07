@@ -150,7 +150,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 									err = nil
 									if oldNrInputID == "" {
 										_, err = db.Exec("INSERT INTO "+dashboard+".ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress, actuationResult, actuationResultTime, nrInputId) "+
-											"VALUES ('none', CURRENT_TIMESTAMP, ?, ?, '127.0.0.1', 'Ok', CURRENT_TIMESTAMP, ?)", dat["startValue"], dat["user"], nrInputID)
+											"VALUES (?, CURRENT_TIMESTAMP, ?, ?, '127.0.0.1', 'Ok', CURRENT_TIMESTAMP, ?)", w["widgetUniqueName"], dat["startValue"], dat["user"], nrInputID)
 									} else {
 										_, err = db.Exec("UPDATE "+dashboard+".ActuatorsAppsValues SET nrInputId = ? WHERE nrInputId = ?", nrInputID, oldNrInputID)
 									}
@@ -1062,7 +1062,7 @@ func addWidget(db *sql.DB, dashboardID int64, username interface{}, widgetType i
 			} else {
 				// dashboard cambiata, va cancellato il widget dalla vecchia e messo nella nuova
 
-				created := insertW(db, username, dashboardID, widgetType, nextId, id_metric, appId, flowId, metricType, nodeId, title_w)
+				created, name_w := insertW(db, username, dashboardID, widgetType, nextId, id_metric, appId, flowId, metricType, nodeId, title_w)
 
 				if created {
 
@@ -1077,9 +1077,9 @@ func addWidget(db *sql.DB, dashboardID int64, username interface{}, widgetType i
 						return false, m
 					}
 					log.Print("deleted widget ", currentWidgetUniqueId)
-					type_w := widgetType
+					/*type_w := widgetType
 					name_w := strings.Replace(id_metric.(string), "+", "", -1) + "_" + fmt.Sprint(dashboardID) + type_w.(string) + string(nextId)
-					name_w = strings.Replace(name_w, "%20", "NBSP", -1)
+					name_w = strings.Replace(name_w, "%20", "NBSP", -1)*/
 					m := map[string]interface{}{
 						"widgetUniqueName": name_w,
 					}
@@ -1098,12 +1098,12 @@ func addWidget(db *sql.DB, dashboardID int64, username interface{}, widgetType i
 
 	} else {
 
-		created := insertW(db, username, dashboardID, widgetType, nextId, id_metric, appId, flowId, metricType, nodeId, title_w)
+		created, name_w := insertW(db, username, dashboardID, widgetType, nextId, id_metric, appId, flowId, metricType, nodeId, title_w)
 
 		if created {
-			type_w := widgetType
+			/*type_w := widgetType
 			name_w := strings.Replace(id_metric.(string), "+", "", -1) + "_" + fmt.Sprint(dashboardID) + type_w.(string) + string(nextId)
-			name_w = strings.Replace(name_w, "%20", "NBSP", -1)
+			name_w = strings.Replace(name_w, "%20", "NBSP", -1)*/
 			m := map[string]interface{}{
 				"widgetUniqueName": name_w,
 			}
@@ -1155,7 +1155,7 @@ func findKey(m map[string][]*WebsocketUser, s string) bool {
 
 // funzione per l'inserimento del widget chiamata all'interno di addWidget; implementata per ridurre ridondanza nel codice.
 
-func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType interface{}, nextId string, id_metric interface{}, appId interface{}, flowId interface{}, metricType interface{}, nodeId interface{}, title_w interface{}) bool {
+func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType interface{}, nextId string, id_metric interface{}, appId interface{}, flowId interface{}, metricType interface{}, nodeId interface{}, title_w interface{}) (bool, string) {
 
 	var n_row interface{} = nil
 	var n_column interface{} = nil
@@ -1165,7 +1165,7 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 	err := db.QueryRow("SELECT scaleFactor FROM "+dashboard+".Config_dashboard WHERE user =  ?  AND Id = ? and deleted='no';", username, dashboardID).Scan(&scaleFactor)
 	if err != nil {
 		log.Print("insertW scaleFactor ", err)
-		return false
+		return false, ""
 	}
 
 	var defaultMain, mono_multi sql.NullString
@@ -1176,7 +1176,7 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 
 	if err2 != nil {
 		log.Print("insertW paramters for ", newWidgetType, " ", err2)
-		return false
+		return false, ""
 	} else if defaultMain.Valid {
 		log.Print(newWidgetType, " ", defaultMain, " ", mono_multi)
 		dbRow2 := processingMsg2([]byte(defaultMain.String))
@@ -1196,7 +1196,7 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 				err := db.QueryRow("SELECT `AUTO_INCREMENT` FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'Config_widget_dashboard';", dashboard).Scan(&autoIncrement)
 				if err != nil {
 					log.Print(err)
-					return false
+					return false, ""
 				}
 
 				// calcolo del nextId
@@ -1210,7 +1210,7 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 
 				if err != nil {
 					log.Print(err)
-					return false
+					return false, ""
 				}
 				if max == nil {
 					firstFreeRow = 1
@@ -1270,11 +1270,11 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 
 				if err2 != nil {
 					log.Print(err2)
-					return false
+					return false, ""
 				}
 				log.Print("added widget ", nameW)
 				// se si esce dal ciclo e si arriva qui, si e` sicuramente scritto correttamente su db
-				return true
+				return true, nameW
 			} else {
 				log.Print("non gestito targetWidget <", targetWidget, ">")
 				// CASO WIDGET COMBO PER ORA NON SI USA
@@ -1284,8 +1284,8 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 		}
 	} else {
 		log.Print("ERROR defaultMain is null")
-		return false
+		return false, ""
 	}
 
-	return false
+	return false, ""
 }

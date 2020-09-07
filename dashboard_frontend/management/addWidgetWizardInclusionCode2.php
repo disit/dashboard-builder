@@ -161,13 +161,13 @@
                     </div>
 					<?php if(!$synMode) { ?>
 						<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
-							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Synoptic Mode</div>
+							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Now displaying in Standard Mode</div>
 							<p>Switch to the Synoptic Mode to select MyKPIs and sensors that you need for your synoptics.</p>
 							<button type="button" id="SynMode" class="btn cancelBtn" style=" margin-left: 5px; float: left">Switch now to the Synoptic Mode</button>
 						</div>
 					<?php } else { ?>
 						<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
-							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Standard Mode</div>
+							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Now displaying in Synoptic Mode</div>
 							<p>Switch back to the Standard Mode to return making the traditional use of the Data Inspector.</p>
 							<button type="button" id="StdMode" class="btn cancelBtn" style=" margin-left: 5px; float: left">Switch now to the Standard Mode</button>
 						</div>					

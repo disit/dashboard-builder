@@ -3634,3 +3634,45 @@ div.orgMenuItemCntActive
 {
     cursor: pointer;
 }
+
+#msgInfoModal .modalHeader
+{
+    background-color: rgba(51, 64, 69, 1) !important;
+}
+
+#msgInfoModalFooter
+{
+    padding-top: 0px !important;
+}
+
+#msgInfoModalBodyView
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+    color: white;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+}
+
+#msgInfoModalCancelBtnView
+{
+    background-color: rgba(51, 64, 69, 1) !important;
+}
+
+#msgInfoModalCancelBtnView:hover
+{
+    background-color: #f3cf58 !important;
+    cursor: pointer;
+}
+
+#msgInfoModalBody, #msgInfoModalFooter
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+}
+
+#msgInfoModal:before {
+    content: '';
+    display: inline-block;
+    height: 30%;
+    vertical-align: middle;
+  /*  margin-right: -4px;*/
+}

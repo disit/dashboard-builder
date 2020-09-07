@@ -272,7 +272,7 @@
 					}
 					else 
 					{
-						chmod($uploadFolder.$microAppExtServIcon, 0777); 
+						chmod($iconUploadFolder.$microAppExtServIcon, 0777); 
 					}
 				}
 			}
@@ -343,6 +343,7 @@
 			
 			if($insDefaultIcon) {
 				copy("../img/synopticTemplates/svg/$synopticTemplateFile", "../img/synopticTemplates/$synopticTemplateFile");
+				if(file_exists("../img/synopticTemplates/$synopticTemplateFile")) chmod("../img/synopticTemplates/$synopticTemplateFile", 0777);
 			}
 			
 			// Ownership
