@@ -1305,15 +1305,17 @@
                                 convertedDate = convertedDate.replace("T", " ");
                                 var plusIndex = convertedDate.indexOf("+");
                                 convertedDate = convertedDate.substr(0, plusIndex);
-                                if (singleOriginalData[field].hasOwnProperty("valueDate")) {
-                                    futureDate = singleOriginalData[field].valueDate.replace("T", " ");
-                                    var plusIndexFuture = futureDate.indexOf("+");
-                                    futureDate = futureDate.substr(0, plusIndexFuture);
-                                    var momentDateTimeFuture = moment(futureDate);
-                                    var localDateTimeFuture = momentDateTimeFuture.tz(localTimeZone).format();
-                                    localDateTimeFuture = localDateTimeFuture.replace("T", " ");
-                                    var plusIndexLocalFuture = localDateTimeFuture.indexOf("+");
-                                    localDateTimeFuture = localDateTimeFuture.substr(0, plusIndexLocalFuture);
+                                if (singleOriginalData[field] != null) {
+                                    if (singleOriginalData[field].hasOwnProperty("valueDate")) {
+                                        futureDate = singleOriginalData[field].valueDate.replace("T", " ");
+                                        var plusIndexFuture = futureDate.indexOf("+");
+                                        futureDate = futureDate.substr(0, plusIndexFuture);
+                                        var momentDateTimeFuture = moment(futureDate);
+                                        var localDateTimeFuture = momentDateTimeFuture.tz(localTimeZone).format();
+                                        localDateTimeFuture = localDateTimeFuture.replace("T", " ");
+                                        var plusIndexLocalFuture = localDateTimeFuture.indexOf("+");
+                                        localDateTimeFuture = localDateTimeFuture.substr(0, plusIndexLocalFuture);
+                                    }
                                 }
                                 if (localDateTime == "") {
                                     singleData.commit.author.computationDate = convertedDate;
@@ -1782,8 +1784,11 @@
                                     var newVal, newTime = null;
                                     for(var j = 0; j < resultsArray.length; j++)
                                     {
-                                        newVal = resultsArray[j][smField].value;
-                                        addSampleToTrend = true;
+                                        newVal = null;
+                                        if (resultsArray[j][smField] != null) {
+                                            newVal = resultsArray[j][smField].value;
+                                            addSampleToTrend = true;
+                                        }
 
                                         if(resultsArray[j].hasOwnProperty("updating"))
                                         {
@@ -1808,14 +1813,15 @@
                                             }
                                         }
 
-                                        if((newVal.trim() !== '')&&(addSampleToTrend))
-                                        {
-                                            roundedVal = parseFloat(newVal);
-                                            roundedVal = Number(roundedVal.toFixed(2));
-                                            //sampleTime = parseInt(new Date(newTime).getTime() + 7200000);
-                                            sampleTime = parseInt(new Date(newTime).getTime());
-                                            singleSample = [sampleTime, roundedVal];
-                                            singleSeriesData.push(singleSample);
+                                        if (newVal != null) {
+                                            if ((newVal.trim() !== '') && (addSampleToTrend)) {
+                                                roundedVal = parseFloat(newVal);
+                                                roundedVal = Number(roundedVal.toFixed(2));
+                                                //sampleTime = parseInt(new Date(newTime).getTime() + 7200000);
+                                                sampleTime = parseInt(new Date(newTime).getTime());
+                                                singleSample = [sampleTime, roundedVal];
+                                                singleSeriesData.push(singleSample);
+                                            }
                                         }
                                     }
 
@@ -1857,12 +1863,16 @@
                         }
 
                         if (smPayload.Service != null) {
-                            if (smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit != null) {
-                                chartSeriesObject.valueUnit = smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit;
+                            if (smPayload.Service.features[0].properties.realtimeAttributes[smField] != null) {
+                                if (smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit != null) {
+                                    chartSeriesObject.valueUnit = smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit;
+                                }
                             }
                         } else if (smPayload.Sensor != null) {
-                            if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit != null) {
-                                chartSeriesObject.valueUnit = smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit;
+                            if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField] != null) {
+                                if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit != null) {
+                                    chartSeriesObject.valueUnit = smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit;
+                                }
                             }
                         }
 
