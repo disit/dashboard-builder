@@ -278,9 +278,9 @@
             }
 
             if (isset($dataOrigin->smField)) {
-                if(strpos($dataOrigin->smField, 'Forecast') !== false) {
+              //  if(strpos($dataOrigin->smField, 'Forecast') !== false) {
                     $urlToCall = $urlToCall . "&valueName=" . $dataOrigin->smField;
-                }
+              //  }
             }
 
             if(isset($urlToCall)) {
