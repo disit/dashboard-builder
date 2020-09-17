@@ -3,7 +3,7 @@
             <?php
                 include 'config.php';
 
-                error_reporting(E_ERROR | E_NOTICE);
+                error_reporting(E_ERROR);
                 date_default_timezone_set('Europe/Rome');
                 
                 $link = mysqli_connect($host, $username, $password);
@@ -26,12 +26,12 @@
                     }
                     else
                     {
-                        echo 'DISIT';
+                        echo 'Claim';
                     }
                 }
                 else
                 {
-                    echo 'DISIT';
+                    echo 'Claim';
                 }
             ?>
         </div>
@@ -205,7 +205,7 @@
                                                 }
                                             } else {
                                                 //CASO IFRAME
-                                                if ($_REQUEST['fromSubmenu'] == false || $_REQUEST['fromSubmenu'] != $linkId) {
+                                                if (@$_REQUEST['fromSubmenu'] == false || @$_REQUEST['fromSubmenu'] != $linkId) {
                                                     $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink mainMenuIframeLink">' .
                                                         '<div class="col-md-12 mainMenuSubItemCnt" style="display: none">' .
                                                         '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
@@ -220,7 +220,7 @@
                                                 }
                                             }
                                         } else {
-                                            if ($_REQUEST['fromSubmenu'] == false || $_REQUEST['fromSubmenu'] != $linkId) {
+                                            if (@$_REQUEST['fromSubmenu'] == false || @$_REQUEST['fromSubmenu'] != $linkId) {
                                                 $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink">' .
                                                     '<div class="col-md-12 mainMenuSubItemCnt" style="display: none">' .
                                                     '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .

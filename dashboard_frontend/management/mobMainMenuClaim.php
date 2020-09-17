@@ -21,12 +21,12 @@
         }
         else
         {
-            echo 'DISIT';
+            echo 'Claim';
         }
     }
     else
     {
-        echo 'DISIT';
+        echo 'Claim';
     }
 ?>
         
