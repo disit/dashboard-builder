@@ -62,6 +62,15 @@
         $showHeaderEmbedded = 'yes';
     }
 
+    if(isset($_REQUEST['showFooter']))
+    {
+        $showFooterEmbedded = $_REQUEST['showFooter'];
+    }
+    else
+    {
+        $showFooterEmbedded = 'yes';
+    }
+
     if($queryResult) 
     {
         $row = mysqli_fetch_array($queryResult);
@@ -1243,6 +1252,19 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                         {
                             $("#dashboardViewHeaderContainer").show();
                             $('#dashboardViewWidgetsContainer').css('margin-top', ($('#dashboardViewHeaderContainer').height() + 15) + "px");
+                        }
+
+                        if('<?php echo escapeForJS($showFooterEmbedded); ?>' === 'no')
+                        {
+                            $(".footerNavRow").hide();
+                            $("#horizontalFooterLine").hide();
+                         //   $("#dashboardViewHeaderContainer").css("margin-bottom", "0px");
+                        }
+                        else
+                        {
+                            $(".footerNavRow").show();
+                            $("#horizontalFooterLine").show();
+                         //   $('#dashboardViewWidgetsContainer').css('margin-top', ($('#dashboardViewHeaderContainer').height() + 15) + "px");
                         }
                     }
                     $("#logos a.footerLogo").hide();
