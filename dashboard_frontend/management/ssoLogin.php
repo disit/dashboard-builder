@@ -36,7 +36,7 @@ else
     $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
     $r = mysqli_query($link, $domQ);
 
-    $page = ""; //iframeApp.php?linkUrl=https://www.snap4city.org/drupal/openid-connect/login&linkId=snap4cityPortalLink&pageTitle=www.snap4city.org&fromSubmenu=false";
+    $page = "dashboards.php"; //iframeApp.php?linkUrl=https://www.snap4city.org/drupal/openid-connect/login&linkId=snap4cityPortalLink&pageTitle=www.snap4city.org&fromSubmenu=false";
     if($r)
     {
         if(mysqli_num_rows($r) > 0)
@@ -49,7 +49,7 @@ else
             if(strpos($landingPageUrl, "http://")===0 || strpos($landingPageUrl, "https://")===0) {
               $page = "iframeApp.php?linkUrl=" . $landingPageUrl . "&linkId=" . $landingPageLinkId . "&pageTitle=" . $landingPageTitle . "&fromSubmenu=$landingPageFromSubmenu";
             } else {
-              $page = $url;
+              $page = $landingPageUrl;
             }           
         }
     }
