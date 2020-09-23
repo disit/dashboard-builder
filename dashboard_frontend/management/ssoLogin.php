@@ -36,6 +36,7 @@ else
     $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
     $r = mysqli_query($link, $domQ);
 
+    $page = ""; //iframeApp.php?linkUrl=https://www.snap4city.org/drupal/openid-connect/login&linkId=snap4cityPortalLink&pageTitle=www.snap4city.org&fromSubmenu=false";
     if($r)
     {
         if(mysqli_num_rows($r) > 0)
@@ -45,17 +46,12 @@ else
             $landingPageTitle = $row['landingPageTitle'];
             $landingPageLinkId = $row['landingPageLinkId'];
             $landingPageFromSubmenu = $row['landingPageFromSubmenu'];
-            
-            $page = "iframeApp.php?linkUrl=" . $landingPageUrl . "&linkId=" . $landingPageLinkId . "&pageTitle=" . $landingPageTitle . "&fromSubmenu=$landingPageFromSubmenu";
+            if(strpos($landingPageUrl, "http://")===0 || strpos($landingPageUrl, "https://")===0) {
+              $page = "iframeApp.php?linkUrl=" . $landingPageUrl . "&linkId=" . $landingPageLinkId . "&pageTitle=" . $landingPageTitle . "&fromSubmenu=$landingPageFromSubmenu";
+            } else {
+              $page = $url;
+            }           
         }
-        else
-        {
-            $page = "iframeApp.php?linkUrl=https://www.snap4city.org/drupal/openid-connect/login&linkId=snap4cityPortalLink&pageTitle=www.snap4city.org&fromSubmenu=false";
-        }
-    }
-    else
-    {
-        $page = "iframeApp.php?linkUrl=https://www.snap4city.org/drupal/openid-connect/login&linkId=snap4cityPortalLink&pageTitle=www.snap4city.org&fromSubmenu=false";
     }
 }
 
@@ -200,6 +196,5 @@ if ($ldapOk) {
   session_destroy();
 
   $tkn = $oidc->refreshToken($refreshToken);
-  //Dev'essere assoluto, visto con Piero
   $oidc->signOut($tkn->access_token, $appUrl . "/management/ssoLogin.php");
 }

@@ -32,31 +32,12 @@ $oidc->providerConfigParam(array('issuer' => $ssoIssuer));
 $oidc->providerConfigParam(array('end_session_endpoint' => $ssoEndSessionEndpoint));
 
 if (isset($_SESSION['loggedRole']) || isset($_SESSION['refreshToken'])) {
-  //$username = $_SESSION['loggedUsername'];
   
   if(isset($_SESSION['refreshToken'])) 
   {
     $refreshToken = $_SESSION['refreshToken'];
-    $newLocation = 'iframeApp.php?linkUrl=https://www.snap4city.org/drupal&linkId=snap4cityPortalLink&pageTitle=www.snap4city.org&fromSubmenu=false';
   }
-  else
-  {
-      $newLocation = "index.php";
-  }
-
-  /*if (isset($_SESSION['sessionExpired'])) {
-    if ($_SESSION['sessionExpired'] == true) {
-      $newLocation = "index.php?sessionExpired=true";
-    } else {
-      $newLocation = "index.php";
-    }
-  } else {
-    $newLocation = "index.php";
-  }
-  if (isset($_SESSION['refreshToken'])) {
-    $refreshToken = $_SESSION['refreshToken'];
-    $newLocation = 'ssoLogin.php';
-  }*/
+  $newLocation = "index.php";
 
   $_SESSION = array();
 
