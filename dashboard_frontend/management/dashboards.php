@@ -26,9 +26,9 @@
 
     checkSession('Public');
     if(isset($_REQUEST['linkId']) && ctype_alnum($_REQUEST['linkId']))
-      $linkId = @$_REQUEST['linkId'];
+      $linkIdd = @$_REQUEST['linkId'];
     else
-      $linkId = 'invalid';
+      $linkIdd = 'invalid';
 ?>
 
 <!DOCTYPE html>
@@ -840,9 +840,9 @@
             $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
         });
         
-        $('#mainMenuCnt .mainMenuLink[id=<?= escapeForJS($linkId) ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= escapeForJS($linkId) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
-        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= escapeForJS($linkId) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mainMenuCnt .mainMenuLink[id=<?= escapeForJS($linkIdd) ?>] div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuPortraitCnt .mainMenuLink[id=<?= escapeForJS($linkIdd) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
+        $('#mobMainMenuLandCnt .mainMenuLink[id=<?= escapeForJS($linkIdd) ?>] .mobMainMenuItemCnt').addClass("mainMenuItemCntActive");
         
         var loggedRole = "<?= ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) ?>";
         var loggedType = "<?= @$_SESSION['loggedType'] ?: '' ?>";
