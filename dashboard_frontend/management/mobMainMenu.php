@@ -100,7 +100,7 @@
                     $externalApp = $row['externalApp'];
                     $allowedOrgs = $row['organizations'];
 
-                    if(strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                    if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
                         if($externalApp == 'yes')
                         {
                             if($openMode == 'newTab')
@@ -164,7 +164,7 @@
                         }
                     }
 
-                    if((strpos($privileges, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any') && ($userType == $_SESSION['loggedType']))) && ((strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
+                    if((strpos($privileges, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any') && ($userType == $_SESSION['loggedType']))) && ($allowedOrgs=='*' || (strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
                     {
                         echo $newItem;
                     }
@@ -216,7 +216,7 @@
                             $stopFlag = 1;
                         }
 
-                        if(strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                        if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
                             if($externalApp2 == 'yes')
                             {
                                 if($openMode2 == 'newTab')
@@ -247,7 +247,7 @@
                             }
                         }
 
-                        if((strpos($privileges2, "'".@($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']."'")) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ((strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin')))
+                        if((strpos($privileges2, "'".@($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']."'")) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs2=='*' || (strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin')))
                         {
                             echo $newItem;
                         }
@@ -336,7 +336,7 @@
                     $externalApp = $row['externalApp'];
                     $allowedOrgs = $row['organizations'];
 
-                    if(strpos($allowedOrgs, "'".$organizationSql) !== false) {
+                    if(strpos($allowedOrgs=='*' || $allowedOrgs, "'".$organizationSql) !== false) {
                         if ($externalApp == 'yes') {
                             if ($openMode == 'newTab') {
                                 if ($linkUrl == 'submenu') {
@@ -385,7 +385,7 @@
                         }
                     }
 
-                    if((strpos($privileges, "'".$_SESSION['loggedRole']) !== false)&&(($userType == 'any')||(($userType != 'any') && ($userType == $_SESSION['loggedType'])))  && (strpos($allowedOrgs, "'".$organizationSql) !== false))
+                    if((strpos($privileges, "'".$_SESSION['loggedRole']) !== false)&&(($userType == 'any')||(($userType != 'any') && ($userType == $_SESSION['loggedType'])))  && ($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false))
                     {
                         echo $newItem;
                     }
@@ -432,7 +432,7 @@
                         $externalApp2 = $row2['externalApp'];
                         $allowedOrgs2 = $row2['organizations'];
 
-                        if(strpos($allowedOrgs2, "'".$organizationSql) !== false) {
+                        if(strpos($allowedOrgs2=='*' || $allowedOrgs2, "'".$organizationSql) !== false) {
                             if ($externalApp2 == 'yes') {
                                 if ($openMode2 == 'newTab') {
                                     $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink" target="_blank">' .
@@ -457,7 +457,7 @@
                             }
                         }
 
-                        if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType'])))  && (strpos($allowedOrgs2, "'".$organizationSql) !== false))
+                        if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType'])))  && ($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false))
                         {
                             echo $newItem;
                         }

@@ -38,7 +38,7 @@
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_table");
         var metricData, metricType, series, index, styleParameters, chartSeriesObject, fontSize, fontColor, legendWidth, xAxisCategories, chartType, highchartsChartType, chartColor, dataLabelsFontColor, 
             dataLabelsRotation, dataLabelsAlign, dataLabelsVerticalAlign, dataLabelsY, legendItemClickValue, stackingOption, dataLabelsFontSize, chartLabelsFontSize, 
-            widgetHeight, metricName, aggregationGetData, getDataFinishCount, widgetTitle, countdownRef, chartRef, widgetParameters, infoJson, thresholdsJson, rowParameters, chartLabelsFontColor, appId, flowId, nrMetricType, groupByAttr = null;
+            widgetHeight, metricName, aggregationGetData, getDataFinishCount, widgetTitle, countdownRef, chartRef, widgetParameters, infoJson, thresholdsJson, rowParameters, chartLabelsFontColor, appId, flowId, nrMetricType, groupByAttr, idMetric = null;
         var headerHeight = 25;      
         var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
@@ -119,7 +119,7 @@
                     async: true,
                     dataType: 'json',
                     success: function (widgetData) {
-
+                        
                     },
                     error: function (errorData) {
                         metricData = null;
@@ -775,7 +775,8 @@
                 $.ajax({
                     url: getMetricDataUrl,
                     type: "GET",
-                    data: {"IdMisura": [widgetData.params.id_metric]},
+                    data: {"IdMisura": [idMetric]},
+                //    data: {"IdMisura": [widgetData.params.id_metric]},
                     async: true,
                     dataType: 'json',
                     success: function (data) {
@@ -1364,7 +1365,7 @@
             },
             async: true,
             dataType: 'json',
-            success: function(widgetData) 
+            success: function(widgetData)
             {
                 showTitle = widgetData.params.showTitle;
                 widgetContentColor = widgetData.params.color_w;
@@ -1381,6 +1382,7 @@
                 flowId = widgetData.params.flowId;
                 nrMetricType = widgetData.params.nrMetricType;
                 serviceUri = widgetData.params.serviceUri;
+                idMetric = widgetData.params.id_metric;
 
                 openWs();
                     

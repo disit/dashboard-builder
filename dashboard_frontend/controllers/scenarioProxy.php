@@ -217,6 +217,7 @@ else if(isset($_SESSION['refreshToken'])) {
             $tmpArray = array();
             foreach ($getDataJson as $feature) {
                 $tmpArray['name'] = $feature['APPID'];
+                $tmpArray['variable_value'] = json_decode($feature['variableValue'], true); //added to sort scenario list
                 if( json_decode($feature['variableValue'], true)['isPublic'] == "true" ) {
                     $tmpArray['name'] .= " (Public)";
                 } else if($feature['username'] === $_SESSION['loggedUsername']) {
@@ -238,6 +239,8 @@ else if(isset($_SESSION['refreshToken'])) {
             $tmpArray = array();
             foreach ($getDataJson as $feature) {
                 $tmpArray['name'] = $feature['APPID'];
+//                $tmpArray['variable_value'] = json_decode($feature['variableValue'], true); //added to sort scenario list
+
                 if( json_decode($feature['variableValue'], true)['isPublic'] == "true" )
                         $tmpArray['name'] .= " (Public)";
                 else

@@ -3731,7 +3731,11 @@
                 }
                 else
                 {
-                   $url_m = mysqli_real_escape_string($link, sanitizePostString('urlWidgetM'));     // New pentest COMMON
+                   if ($type_widget_m == "widgetExternalContent" && strpos($_POST['urlWidgetM'], 'selectorWebTarget') !== false) {
+                       $url_m = mysqli_real_escape_string($link, sanitizeJson($_POST['urlWidgetM']));
+                   } else {
+                       $url_m = mysqli_real_escape_string($link, sanitizePostString('urlWidgetM'));     // New pentest COMMON
+                   }
                 }                                    
             }
             else

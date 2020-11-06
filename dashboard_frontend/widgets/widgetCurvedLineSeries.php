@@ -2167,7 +2167,7 @@
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
-                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + encodeServiceUri(rowParameters[k].serviceUri);
                         field = rowParameters[k].smField;
                         if (rowParameters != null) {
                         //    if (rowParameters.includes("https:")) {
@@ -2279,7 +2279,7 @@
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
-                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + encodeServiceUri(rowParameters[k].serviceUri);
                         field = rowParameters[k].smField;
                         if (rowParameters != null) {
                           //  if (rowParameters.includes("https:")) {
@@ -2548,7 +2548,7 @@
                                 let urlKBToBeCalled = "";
                                 let field = "";
                                 let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
-                                urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                                urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + encodeServiceUri(rowParameters[k].serviceUri);
                                 field = rowParameters[k].smField;
 
                                 $.ajax({

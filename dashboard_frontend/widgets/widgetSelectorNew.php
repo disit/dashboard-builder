@@ -20,6 +20,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 <!-- dom-to-image -->
 <script type="text/javascript" src="../js/dom-to-image.min.js"></script>
+<script src="../js/jsonpath-0.8.0.js"></script> <!-- SVG CustomPin Icon MOD -->
 
 <script type='text/javascript'>
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange) {
@@ -45,7 +46,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             mapPtrContainer, pinContainer, queryDescContainer, activeFontColor, rowHeight, iconSize,
             queryDescContainerWidth,
             queryDescContainerWidthPerc, pinContainerWidthPerc, gisMapPtrContainerWidth, gisMapPtrContainerWidthPerc,
-            defaultOption, iconTextMode, highLevelType, nature, subNature, mapPinIcon, bubbleMode, bubbleMetrics, bubbleSelectedMetric = null;
+            defaultOption, iconTextMode, highLevelType, nature, subNature, mapPinIcon, altViewModeMode, bubbleMetrics, bubbleSelectedMetric, svgContainer = null;
 
         var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var speed = 65;
@@ -458,6 +459,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 let nature = null;
                 let subNature = null;
                 let newMapPinColor = null;
+                let icBlckArray = new Array(queries.length);
+                let icWhtArray = new Array(queries.length);
             //    newPinsContainer = null;
                 desc = queries[i].desc;
                 query = queries[i].query;
@@ -471,9 +474,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 display = queries[i].display;
 
                 queryType = queries[i].queryType;
-                bubbleMode = queries[i].bubble;
-                if (bubbleMode == null) {
-                    bubbleMode = 'No';
+                altViewMode = queries[i].bubble;
+                if (altViewMode == null) {
+                    altViewMode = 'None';
                 }
                 bubbleSelectedMetric = queries[i].bubbleMetrics;
                 if (bubbleSelectedMetric == null) {
@@ -571,7 +574,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             //    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-image: url(&quot;../img/widgetSelectorBakcGrnd/cerchio-arancione.svg&quot;); background-repeat: no-repeat; background-position: center center;"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 // PROVA CON BACKGROUND-COLOR e BORDER-RADIUS!!!
                 if (symbolColor != null) {
-                    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName +'_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + bubbleMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-color: ' + symbolColor + '; border-radius: 50%"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
+                    if (queries[i].bubble != "CustomPin") {
+                        pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName + '_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + altViewMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-color: ' + symbolColor + '; border-radius: 50%"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
+                    } else {
+                        pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName + '_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + altViewMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
+                    }
                 } else {
                     if (pinattr == "pin") {
                         //  if (symbolColor == undefined) {
@@ -598,7 +605,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         //       symbolColorOk = symbolColor;
                         //   }
                     }
-                    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName +'_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + bubbleMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
+                    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName +'_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + altViewMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 }
              //   pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="position: relative; width: ' + rowHeight + '; height: ' + rowHeight + ';"><img src="../img/widgetSelectorBakcGrnd/cerchio-arancione.svg" alt="" style="top: 0; left: 0;"><img class="svg" id="logo" alt="" style="position: absolute; top: 0; left: 0;"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 if (iconTextMode == "Icon Only") {
@@ -608,17 +615,49 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             //    pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).css('height', ($("#<?= $_REQUEST['name_w'] ?>_content").height()/queries.length) * 1.1);
                 pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).css('height', ($("#<?= $_REQUEST['name_w'] ?>_content").height()/queries.length) * 0.9);
 
+                if (queries[i].bubble == 'CustomPin') {
+                    svgContainer = $('<div id="' + widgetName + '_svgCtn' + i + '">');
+                    pinContainer.append(svgContainer);
+                }
+
                 if (symbolMode === 'auto') {
                     pinContainer.find('div.gisPinCustomIcon').hide();
                     if (iconTextMode == "Icon Only") {
                         if (queries[i].iconPoolImg) {
-                            pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", queries[i].iconPoolImg);
-                            pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconblack", queries[i].iconPoolImg);
-                            var iconWhitePathAuto = queries[i].iconPoolImg.split(".svg")[0] + "-white.svg";
-                            pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconwhite", iconWhitePathAuto);
-                            pinContainer.find('#' + widgetName + '_poolIcon' + i).show();
-                            iconPath = queries[i].iconPoolImg;
-                            iconWhitePath = iconWhitePathAuto;
+                            if (queries[i].bubble == 'CustomPin') {     // SVG CustomPin Icon MOD
+                                let tplPath, icBlck, icWht = "";
+                                if(queries[i].iconPoolImg.split('synopticTemplates/svg')) {
+                                    if(queries[i].iconPoolImg.split('synopticTemplates/svg')[1] != null) {
+                                    //    tplPath = queries[i].iconPoolImg.split("/img/")[0] + '/img/outputPngIcons/_synoptic/' + queries[i].iconPoolImg.split('synopticTemplates/svg/')[1];
+                                        tplPath = queries[i].iconPoolImg;
+
+                                         //   icBlck = '../controllers/valuedisplay.html?val=0&tpl=' + queries[i].iconPoolImg;
+
+                                        icBlckArray[i] = buildSvgIcon (tplPath, 0, 'error', pinContainer, svgContainer, widgetName, "selector");
+                                    //    icBlckArray[i] = buildSvgIcon (tplPath, 0, 'error', pinContainer, pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0), widgetName);
+
+                                        //    icWht = '../controllers/valuedisplay.html?val=1&tpl=' + queries[i].iconPoolImg;
+                                        //    icWhtArray[i] = buildSvgIcon (tplPath, 1, 'error', pinContainer, svgContainer, widgetName);
+                                    //    icBlck = 'http://localhost/dashboardSmartCIty/controllers/valuedisplay.html?val=0&tpl=' + queries[i].iconPoolImg;
+                                    //    icWht = 'http://localhost/dashboardSmartCIty/controllers/valuedisplay.html?val=1&tpl=' + queries[i].iconPoolImg;
+
+                                    /*    pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", icBlck);   */
+                                        pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconblack", tplPath);
+                                        pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconwhite", "");
+                                        pinContainer.find('#' + widgetName + '_poolIcon' + i).show();
+                                        iconPath = queries[i].iconPoolImg;
+                                        iconWhitePath = iconWhitePathAuto;
+                                    }
+                                }
+                            } else {
+                                pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", queries[i].iconPoolImg);
+                                pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconblack", queries[i].iconPoolImg);
+                                var iconWhitePathAuto = queries[i].iconPoolImg.split(".svg")[0] + "-white.svg";
+                                pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconwhite", iconWhitePathAuto);
+                                pinContainer.find('#' + widgetName + '_poolIcon' + i).show();
+                                iconPath = queries[i].iconPoolImg;
+                                iconWhitePath = iconWhitePathAuto;
+                            }
                         } else {
                             if (nature) {
                                 if (nature.replace(/\s/g, '') == "MobilityandTransport") {
@@ -668,8 +707,39 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
                     } else {
-                        pinContainer.find('i.gisPinIcon').show();
-                        pinContainer.find('#' + widgetName + '_poolIcon').hide();
+                        if (queries[i].bubble == 'CustomPin') {     // SVG CustomPin Icon MOD
+                            let tplPath, icBlck, icWht = "";
+                            if (queries[i].iconPoolImg != null) {
+                                if (queries[i].iconPoolImg.split('synopticTemplates/svg')) {
+                                    if (queries[i].iconPoolImg.split('synopticTemplates/svg')[1] != null) {
+                                        //    tplPath = queries[i].iconPoolImg.split("/img/")[0] + '/img/outputPngIcons/_synoptic/' + queries[i].iconPoolImg.split('synopticTemplates/svg/')[1];
+                                        tplPath = queries[i].iconPoolImg;
+
+                                        //   icBlck = '../controllers/valuedisplay.html?val=0&tpl=' + queries[i].iconPoolImg;
+
+                                        icBlckArray[i] = buildSvgIcon(tplPath, 0, 'error', pinContainer, svgContainer, widgetName, "selector");
+                                        //    icBlckArray[i] = buildSvgIcon (tplPath, 0, 'error', pinContainer, pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0), widgetName);
+
+                                        //    icWht = '../controllers/valuedisplay.html?val=1&tpl=' + queries[i].iconPoolImg;
+                                        //    icWhtArray[i] = buildSvgIcon (tplPath, 1, 'error', pinContainer, svgContainer, widgetName);
+                                        //    icBlck = 'http://localhost/dashboardSmartCIty/controllers/valuedisplay.html?val=0&tpl=' + queries[i].iconPoolImg;
+                                        //    icWht = 'http://localhost/dashboardSmartCIty/controllers/valuedisplay.html?val=1&tpl=' + queries[i].iconPoolImg;
+
+                                        /*    pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", icBlck);   */
+                                        pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconblack", tplPath);
+                                        pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconwhite", "");
+                                        pinContainer.find('#' + widgetName + '_poolIcon' + i).show();
+                                        iconPath = queries[i].iconPoolImg;
+                                        iconWhitePath = iconWhitePathAuto;
+                                    }
+                                }
+                            }
+                            pinContainer.find('i.gisPinIcon').hide();
+                            pinContainer.find('#' + widgetName + '_poolIcon').show();
+                        } else {
+                            pinContainer.find('i.gisPinIcon').show();
+                            pinContainer.find('#' + widgetName + '_poolIcon').hide();
+                        }
                     }
                 }
                 else {
@@ -930,10 +1000,18 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         $(this).parents("div.gisMapPtrContainer").find("span.gisPinShowMsg").hide();
                         if ($(this).attr("data-symbolMode") === 'auto') {
                             if ($(this).attr("data-iconTextMode") == "text" || $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") == null) {
-                                $(this).parents("div.gisMapPtrContainer").find("i.gisPinIcon").show();
+                                if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
+                                    buildSvgIcon ($(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"), 9999, 'error', $(this).parents("div.gisPinContainer"), $('#' + $(this).parents("div.gisPinContainer").children()[3].id), widgetName, "selector");
+                                } else {
+                                    $(this).parents("div.gisMapPtrContainer").find("i.gisPinIcon").show();
+                                }
                             } else {
-                                $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src", $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconwhite"))
-                                $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").show();
+                                if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
+                                    buildSvgIcon ($(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"), 9999, 'error', $(this).parents("div.gisPinContainer"), $('#' + $(this).parents("div.gisPinContainer").children()[3].id), widgetName, "selector");
+                                } else {
+                                    $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src", $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconwhite"))
+                                    $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").show();
+                                }
                             }
                         }
                         else {
@@ -1136,8 +1214,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             else {
                                 $(this).attr("data-onMap", "false");
                                 if ($(this).attr("data-symbolMode") === 'auto') {
-                                    if ($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) {
-                                        $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src", $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"))
+                                    if (($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) || $(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
+                                        if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
+                                            // Build custom SVG Icon even if text mode is selected for view
+                                            buildSvgIcon ($(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"), 0, 'error', $(this).parents("div.gisPinContainer"), $('#' + $(this).parents("div.gisPinContainer").children()[3].id), widgetName, "selector");
+                                        } else {
+                                            $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src", $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"))
+                                        }
                                     } else {
                                         $(this).find("i.gisPinIcon").html("navigation");
                                         $(this).find("i.gisPinIcon").css("color", "black");
@@ -1232,7 +1315,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             }
         }
 
-        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType, iconTextMode, pinAttr, pinColor, symbolColor, iconFilePath, bubbleMode, bubbleSelectedMetric) {
+        function addLayerToTargetMaps(eventGenerator, desc, query, color1, color2, targets, display, queryType, iconTextMode, pinAttr, pinColor, symbolColor, iconFilePath, altViewMode, bubbleSelectedMetric) {
             let coordsAndType = {};
 
             coordsAndType.eventGenerator = eventGenerator;
@@ -1248,10 +1331,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.pincolor = pinColor;
             coordsAndType.symbolcolor = symbolColor;
             coordsAndType.iconFilePath = iconFilePath;
-            coordsAndType.bubbleMode = bubbleMode;
+            coordsAndType.altViewMode = altViewMode;
             coordsAndType.bubbleSelectedMetric = bubbleSelectedMetric;
 
-            if (bubbleMode == "Yes") {
+            if (altViewMode == "Bubble" || altViewMode == "CustomPin") {
 
                 $.event.trigger({
                     type: "addBubbleChart",
@@ -1263,6 +1346,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                 $.event.trigger({
                     type: "addSelectorPin",
+                //    type: "addBubbleChart",
                     target: widgetTargetList[0],
                     passedData: coordsAndType
                 });
@@ -1279,7 +1363,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.targets = targets;
             coordsAndType.display = display;
 
-            if (bubbleFlag != "Yes") {
+            if (bubbleFlag != "Bubble") {
                 $.event.trigger({
                     type: "removeSelectorPin",
                     target: widgetTargetList[0],

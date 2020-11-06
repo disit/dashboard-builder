@@ -1228,7 +1228,8 @@
                 $.ajax({
                     url: getMetricDataUrl,
                     type: "GET",
-                    data: {"IdMisura": [widgetData.params.id_metric]},
+                    data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
+                //    data: {"IdMisura": [widgetData.params.id_metric]},
                     async: true,
                     dataType: 'json',
                     success: function (data) {

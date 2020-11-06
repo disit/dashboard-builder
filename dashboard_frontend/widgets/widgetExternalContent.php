@@ -297,8 +297,9 @@
                 });
             });*/
              
-            
-            gisMapRef.setView(widgetParameters.latLng, widgetParameters.zoom);
+            if (widgetParameters != null) {
+                gisMapRef.setView(widgetParameters.latLng, widgetParameters.zoom);
+            }
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',

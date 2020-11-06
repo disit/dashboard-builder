@@ -203,6 +203,27 @@
 	$tkn = $oidc->refreshToken($_SESSION['refreshToken']);
 	$accessToken = $tkn->access_token;
 	$_SESSION['refreshToken'] = $tkn->refresh_token;
+	
+	$singleReadVariable = "null";
+	try {
+		$inputs = [];
+		$doc = new DOMDocument();	
+		if(!$_FILES['getTemplate']['tmp_name']) $doc->load($synopticTemplateFileURL); else $doc->load($_FILES['getTemplate']['tmp_name']);
+		$xpath = new DOMXPath($doc);
+		$elements = $xpath->query("//*[@data-siow]");
+		foreach($elements as $element) {			
+			 $datasiows = json_decode($element->getAttribute("data-siow"));
+			 foreach($datasiows as $datasiow) {
+				if($datasiow->originator == "server") {
+					if(!in_array($datasiow->event,$inputs)) {
+						$inputs[] = $datasiow->event;
+					}
+				} 
+			 }
+		}			 
+		if(count($inputs) == 1) $singleReadVariable = "'".$inputs[0]."'";
+	}
+	catch(Exception $sve) {}
 
 	if($edit) {
 		
@@ -237,7 +258,7 @@
 			die();
 		}
 		
-		$q = "UPDATE SynopticTemplates SET nature='$nature', sub_nature='$sub_nature', parameters='$synopticTemplateFileURL', microAppExtServIcon='$microAppExtServIcon', lastCheck='$lastCheck' WHERE unique_name_id = '$name'";
+		$q = "UPDATE SynopticTemplates SET nature='$nature', sub_nature='$sub_nature', parameters='$synopticTemplateFileURL', microAppExtServIcon='$microAppExtServIcon', lastCheck='$lastCheck', singleReadVariable=$singleReadVariable WHERE unique_name_id = '$name'";
 		$r = mysqli_query($link, $q);
 		if($r) {				
 			$us = mysqli_query($link, "UPDATE DashboardWizard SET nature = '$nature', sub_nature = '$sub_nature' WHERE high_level_type = 'Synoptic' and low_level_type = '$name' and nature = '$nature_old' and sub_nature = '$subnature_old'"); 
@@ -286,8 +307,8 @@
 	}
 	else {
 		
-		$q = "INSERT INTO SynopticTemplates (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, last_date, last_value, unit, metric, saved_direct, kb_based, sm_based, user, widgets, parameters, healthiness, microAppExtServIcon, lastCheck, ownership, organizations) " .
-			 "VALUES ('$nature','SynopticTemplate', '$sub_nature', '$name', '$name', NULL, NULL, NULL, NULL, 'SVG', 'no', 'direct', NULL, 'no', NULL, NULL,'$synopticTemplateFileURL', 'true', '$microAppExtServIcon', '$lastCheck', '$ownership', '$organizationArray')";
+		$q = "INSERT INTO SynopticTemplates (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, last_date, last_value, unit, metric, saved_direct, kb_based, sm_based, user, widgets, parameters, healthiness, microAppExtServIcon, lastCheck, ownership, organizations, singleReadVariable) " .
+			 "VALUES ('$nature','SynopticTemplate', '$sub_nature', '$name', '$name', NULL, NULL, NULL, NULL, 'SVG', 'no', 'direct', NULL, 'no', NULL, NULL,'$synopticTemplateFileURL', 'true', '$microAppExtServIcon', '$lastCheck', '$ownership', '$organizationArray', $singleReadVariable)";
 		$r = mysqli_query($link, $q);
 		
 		if($r)

@@ -3148,7 +3148,8 @@
                     fakeId = feature.id;
                 } else
                 {
-                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
+                    urlToCall = "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";   // URI_ENCODE_FIX
+                //    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
                     fake = false;
                 }
 
@@ -6153,7 +6154,12 @@
                                     }
                                 }
                             }
-                            
+
+                        /*    if (fatherNode.features[0].properties != null) {
+                                if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                    fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                }
+                            }*/
 
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
@@ -6217,6 +6223,12 @@
                                     }
                                 }
 
+                            /*    if (fatherNode.features[0].properties != null) {
+                                    if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                        fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                    }
+                                }*/
+
                                 gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                     pointToLayer: addWidgetWizardCreateCustomMarker
                                 }).addTo(addWidgetWizardMapRef);
@@ -6229,6 +6241,7 @@
                     }
                     $(this).attr('data-selected', 'true');
                 } else if (instanceUri === "single_marker") {
+                    getInstances = encodeURI(getInstances);    // URI_ENCODE_FIX
                     var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
                         urlSensorKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
@@ -6280,6 +6293,12 @@
                                 
                                 }
                             }
+
+                         /*   if (fatherNode.features[0].properties != null) {
+                                if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                    fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                }
+                            }*/
 
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
@@ -6652,6 +6671,12 @@
                                 }
                             }
 
+                        /*    if (fatherNode.features[0].properties != null) {
+                                if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                    fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                }
+                            }*/
+
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
                             }).addTo(addWidgetWizardMapRef);
@@ -6716,6 +6741,12 @@
                                     }
                                 }
 
+                             /*   if (fatherNode.features[0].properties != null) {
+                                    if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                        fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                    }
+                                }*/
+
                                 gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                     pointToLayer: addWidgetWizardCreateCustomMarker
                                 }).addTo(addWidgetWizardMapRef);
@@ -6728,6 +6759,7 @@
                         $(this).attr('data-selected', 'true');
                     }
                 } else if (instanceUri === "single_marker") {
+                    getInstances = encodeURI(getInstances);    // URI_ENCODE_FIX
                     var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
                         urlSensorKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
@@ -6777,6 +6809,12 @@
                                     }
                                 }
                             }
+
+                        /*    if (fatherNode.features[0].properties != null) {
+                                if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                    fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                }
+                            }*/
 
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
@@ -7675,7 +7713,7 @@
 		
 		$('#save').on('click',function(){
 			var sel = []; 
-			$("#widgetWizardSelectedRowsTable tr[data-rowid]").each(function(){sel.push($(this).attr("data-rowid"));});
+			widgetWizardSelectedRowsTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) { console.log(this.data()[13]); sel.push(this.data()[13]); } ); 
 			$.ajax({
 				url: "../controllers/dashboardWizardController.php",
 				data: { doSynVarPresel: true, sel: sel.join(",") },

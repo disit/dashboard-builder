@@ -239,6 +239,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             var snap4CityServerTime = new Date().toLocaleString("it-IT", {timeZone: "Europe/Rome"});
             var usaTime = new Date(usaTime);
             var snap4CityServerTimeOffset = "";
+            var countSvgCnt = 0;
+            var totalSvgCnt = 0;
+            var currentCustomSvgLayer = null;
+            var svgContainerArray = [];
 
             //Definizioni di funzione
 
@@ -261,6 +265,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 Window.webSockets = {};
             var nodeRedInputName, nrInputId, currentValue, lastValueOk = null;
             var heatmapClick = null;
+            var iconTextMod = "null";
 
 
             function triggerEventOnIotApp(map, latlngStr) {
@@ -347,7 +352,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             function gisPrepareCustomMarker(feature, latlng) {
-                if (feature.properties.pinattr != "pin") {
+                if (feature.properties.altViewMode == "CustomPin") {
+                    countSvgCnt++;
+                    let svgContainer = null;
+                    let tplPath = feature.properties.iconFilePath;
+                    svgContainer = $('<div id="' + widgetName + '_svgCtn' + countSvgCnt + '">');
+                    $("#" + widgetName).append(svgContainer);
+                    buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray);
+                }
+                if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin") {
                     var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                     var markerIcon = L.icon({
                         iconUrl: mapPinImg,
@@ -371,7 +384,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         iconAnchor: [16, 37]
                     }); */
                     var filePinPath = "../img/outputPngIcons/pin-generico.png";
-                    if(feature.properties.iconFilePath != null) {
+                    if(feature.properties.iconFilePath != null && feature.properties.altViewMode != "CustomPin") {
                         if (feature.properties.iconFilePath.includes("/nature/")) {
                             filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
                         } else if (feature.properties.iconFilePath.includes("/subnature/")) {
@@ -431,6 +444,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     }
                  //   iconsFileBuffer.push(newIconPath);
 
+                /*    if (feature.properties.altViewMode == "CustomPin") {
+                        let svgContainer = null;
+                        let tplPath = feature.properties.iconFilePath;
+                        svgContainer = $('<div id="' + widgetName + '_svgCtn' + countSvgCnt + '">');
+                        $("#" + widgetName).append(svgContainer);
+                        buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray);
+
+                    }*/
+
                  //   var mapPinImg = '../img/gisMapIconsNew/Accommodation.png';
                     var markerIcon = L.icon({
                         iconUrl: newIconPath,
@@ -448,157 +470,161 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 markersCache["" + latLngKey + ""] = marker;
 
                 marker.on('mouseover', function (event) {
-                    if (feature.properties.pinattr != "pin") {
-                        var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
-                        var hoverIcon = L.icon({
-                            iconUrl: hoverImg
-                        });
-                        event.target.setIcon(hoverIcon);
-                    } else {
+                    if (feature.properties.altViewMode != "CustomPin") {
+                        if (feature.properties.pinattr != "pin") {
+                            var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                            var hoverIcon = L.icon({
+                                iconUrl: hoverImg
+                            });
+                            event.target.setIcon(hoverIcon);
+                        } else {
 
 
-                    /*   $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "white");
-                       $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';  */
+                            /*   $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "white");
+                               $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';  */
 
-                    /*   $(event.target.getElement()).find('path').attr("fill", "white");
-                       $(event.target.getElement()).find('img')[0].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
-                    */
+                            /*   $(event.target.getElement()).find('path').attr("fill", "white");
+                               $(event.target.getElement()).find('img')[0].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
+                            */
 
-                    //    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
-                        var filePinPath = "../img/outputPngIcons/pin-generico.png";
-                        if(feature.properties.iconFilePath != null) {
-                            if (feature.properties.iconFilePath.includes("/nature/")) {
-                                filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
-                            } else if (feature.properties.iconFilePath.includes("/subnature/")) {
-                                filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
-                            } else if (feature.properties.iconFilePath.includes("/hlt/")) {
-                                filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
-                            }
-                            var newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
+                            //    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                            var filePinPath = "../img/outputPngIcons/pin-generico.png";
+                            if (feature.properties.iconFilePath != null) {
+                                if (feature.properties.iconFilePath.includes("/nature/")) {
+                                    filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
+                                } else if (feature.properties.iconFilePath.includes("/subnature/")) {
+                                    filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
+                                } else if (feature.properties.iconFilePath.includes("/hlt/")) {
+                                    filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
+                                }
+                                var newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
 
-                            /*    if (!UrlExists(newIconOverPath)) {
-                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
-                                    if (!UrlExists(newIconOverPath)) {
-                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
-                                    }
-                                }*/
+                                /*    if (!UrlExists(newIconOverPath)) {
+                                        newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
+                                        if (!UrlExists(newIconOverPath)) {
+                                            newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                        }
+                                    }*/
 
-                            if (iconsFileBuffer[newIconOverPath] == null) {
-                                if (!UrlExists(newIconOverPath)) {
-                                    iconsFileBuffer[newIconOverPath] = false;
-                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                                if (iconsFileBuffer[newIconOverPath] == null) {
                                     if (!UrlExists(newIconOverPath)) {
                                         iconsFileBuffer[newIconOverPath] = false;
-                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                        newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                                        if (!UrlExists(newIconOverPath)) {
+                                            iconsFileBuffer[newIconOverPath] = false;
+                                            newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                        } else {
+                                            iconsFileBuffer[newIconOverPath] = true;
+                                        }
                                     } else {
                                         iconsFileBuffer[newIconOverPath] = true;
                                     }
                                 } else {
-                                    iconsFileBuffer[newIconOverPath] = true;
+                                    if (iconsFileBuffer[newIconOverPath] === false) {
+                                        if (iconsFileBuffer['../img/outputPngIcons/generic/generic-over' + '.png'] === false) {
+                                            newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                        } else {
+                                            newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                                        }
+                                    } else {
+                                        newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
+                                    }
                                 }
                             } else {
-                                if (iconsFileBuffer[newIconOverPath] === false) {
-                                    if (iconsFileBuffer['../img/outputPngIcons/generic/generic-over' + '.png'] === false) {
-                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
-                                    } else {
-                                        newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
-                                    }
-                                } else {
-                                    newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
-                                }
+                                var newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
                             }
-                        } else {
-                            var newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+
+                            var hoverIcon = L.icon({
+                                iconUrl: newIconOverPath,
+                                iconAnchor: [16, 37]
+                            });
+                            event.target.setIcon(hoverIcon);
+
                         }
-
-                        var hoverIcon = L.icon({
-                            iconUrl: newIconOverPath,
-                            iconAnchor: [16, 37]
-                        });
-                        event.target.setIcon(hoverIcon);
-
+                        //    console.log("Mouse Over");
                     }
-                //    console.log("Mouse Over");
                 });
 
                 marker.on('mouseout', function (event) {
-                    if (feature.properties.pinattr != "pin") {
-                        var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
-                        var outIcon = L.icon({
-                            iconUrl: outImg
-                        });
-                        event.target.setIcon(outIcon);
-                    } else {
+                    if (feature.properties.altViewMode != "CustomPin") {
+                        if (feature.properties.pinattr != "pin") {
+                            var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+                            var outIcon = L.icon({
+                                iconUrl: outImg
+                            });
+                            event.target.setIcon(outIcon);
+                        } else {
 
-                        var pinColor = feature.properties.symbolcolor;
-                        if (pinColor.includes("#")) {
-                            pinColor = pinColor.split("#")[1];
-                        }
-
-                        var filePinPath = "../img/outputPngIcons/pin-generico.png";
-                        if(feature.properties.iconFilePath != null) {
-                            if (feature.properties.iconFilePath.includes("/nature/")) {
-                                filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
-                            } else if (feature.properties.iconFilePath.includes("/subnature/")) {
-                                filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
-                            } else if (feature.properties.iconFilePath.includes("/hlt/")) {
-                                filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
+                            var pinColor = feature.properties.symbolcolor;
+                            if (pinColor.includes("#")) {
+                                pinColor = pinColor.split("#")[1];
                             }
 
-                            if (feature.properties.pinattr == "pin" && feature.properties.pincolor == "Default") {
-                                var newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
-                            } else {
-                                var newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
+                            var filePinPath = "../img/outputPngIcons/pin-generico.png";
+                            if (feature.properties.iconFilePath != null) {
+                                if (feature.properties.iconFilePath.includes("/nature/")) {
+                                    filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
+                                } else if (feature.properties.iconFilePath.includes("/subnature/")) {
+                                    filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
+                                } else if (feature.properties.iconFilePath.includes("/hlt/")) {
+                                    filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
+                                }
 
-                                if (iconsFileBuffer[newIconOutPath] == null) {
-                                    if (!UrlExists(newIconOutPath)) {
-                                        iconsFileBuffer[newIconOutPath] = false;
-                                        if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
-                                            newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
-                                            if (!UrlExists(newIconOutPath)) {
-                                                iconsFileBuffer[newIconOutPath] = false;
-                                                newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                if (feature.properties.pinattr == "pin" && feature.properties.pincolor == "Default") {
+                                    var newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
+                                } else {
+                                    var newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
+
+                                    if (iconsFileBuffer[newIconOutPath] == null) {
+                                        if (!UrlExists(newIconOutPath)) {
+                                            iconsFileBuffer[newIconOutPath] = false;
+                                            if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
+                                                newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
+                                                if (!UrlExists(newIconOutPath)) {
+                                                    iconsFileBuffer[newIconOutPath] = false;
+                                                    newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                                } else {
+                                                    iconsFileBuffer[newIconOutPath] = true;
+                                                }
                                             } else {
+                                                newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
                                                 iconsFileBuffer[newIconOutPath] = true;
                                             }
                                         } else {
-                                            newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
                                             iconsFileBuffer[newIconOutPath] = true;
                                         }
                                     } else {
-                                        iconsFileBuffer[newIconOutPath] = true;
-                                    }
-                                } else {
-                                    if (iconsFileBuffer[newIconOutPath] === false) {
-                                        if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
-                                            if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '.png'] === false) {
-                                                newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                        if (iconsFileBuffer[newIconOutPath] === false) {
+                                            if (!UrlExists('../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png')) {
+                                                if (iconsFileBuffer['../img/outputPngIcons/generic/generic_' + pinColor + '.png'] === false) {
+                                                    newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+                                                } else {
+                                                    newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
+                                                }
                                             } else {
-                                                newIconOutPath = '../img/outputPngIcons/generic/generic_' + pinColor + '.png';
+                                                newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
+                                                iconsFileBuffer[newIconOutPath] = true;
                                             }
                                         } else {
-                                            newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
-                                            iconsFileBuffer[newIconOutPath] = true;
+                                            newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
                                         }
-                                    } else {
-                                        newIconOutPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_' + pinColor + '.png';
                                     }
                                 }
+                            } else {
+                                var newIconOutPath = '../img/outputPngIcons/pin-generico.png';
                             }
-                        } else {
-                            var newIconOutPath = '../img/outputPngIcons/pin-generico.png';
+
+                            var outIcon = L.icon({
+                                iconUrl: newIconOutPath
+                            });
+                            event.target.setIcon(outIcon);
+
+                            //    $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "#2192c3");
+                            //    $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
+
                         }
-
-                        var outIcon = L.icon({
-                            iconUrl: newIconOutPath
-                        });
-                        event.target.setIcon(outIcon);
-
-                    //    $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "#2192c3");
-                    //    $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
-                        
+                        //    console.log("Mouse OUT");
                     }
-                //    console.log("Mouse OUT");
                 });
 
                 marker.on('click', function (event) {
@@ -617,7 +643,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         fakeId = feature.id;
                     }
                     else {
-                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(feature.properties.serviceUri) + "&format=json&fullCount=false";
                         fake = false;
                     }
 
@@ -1677,7 +1703,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         fakeId = feature.id;
                     }
                     else {
-                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(feature.properties.serviceUri) + "&format=json&fullCount=false";
                         fake = false;
                     }
 
@@ -2992,6 +3018,59 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                 //Risponditore ad eventi innescati dagli widget pilota (aggiungi evento, togli evento)
 
+                $(document).on('updateCustomLeafletMarkers', function (event) {
+                //    console.log("Entrato in trigger listener");
+                    let cnt = 0;
+                    let iconSize = [];
+                    let htmlString = "";
+                    if (event.tpl.includes("thermometer") || event.tpl.includes("Thermometer") || event.tpl.includes("SVG_Value.svg")) {
+                        iconSize = [96, 96];
+                    } else {
+                        iconSize = [48, 48];
+                    }
+
+                    if (gisLayersOnMap[currentCustomSvgLayer] != null) {
+                        gisLayersOnMap[currentCustomSvgLayer].eachLayer(function (marker) {
+                            if (svgContainerArray[cnt] != null) {
+                                if (event.tpl.includes("Traffic_Light_SVG.svg") || event.tpl.includes("Thermometer") || event.tpl.includes("27_Blinking_Alarm_SVG.svg") || event.tpl.includes("119_SVG_PM10_level_vertical_bar.svg")) {
+                                    if (event.tpl.includes("Thermometer")) {
+                                        htmlString = "<img src='" + svgContainerArray[cnt][0].attributes['src'].value + "' height='96px'>";
+                                    } else {
+                                        htmlString = "<img src='" + svgContainerArray[cnt][0].attributes['src'].value + "' height='48px'>";
+                                    }
+                                    let icon = L.divIcon({
+                                        //   html: svgContainerArray[cnt][0].innerHTML,
+                                        html: htmlString,
+                                        iconSize: iconSize,
+                                        iconAnchor: [20, 48]
+                                    });
+                                    marker.setIcon(icon);
+                                } else {
+                                    let icon = L.divIcon({
+                                        html: svgContainerArray[cnt][0].innerHTML,
+                                        iconSize: iconSize,
+                                        iconAnchor: [20, 48]
+                                    });
+                                    marker.setIcon(icon);
+                                }
+                            }
+
+                            /*   marker = L.marker(marker._latlng, {
+                                   icon: icon
+                               }).addTo(map.defaultMapRef);*/
+                            cnt++;
+
+                        });
+                        gisLayersOnMap[currentCustomSvgLayer].addTo(map.defaultMapRef);
+                    }
+                //    if (event.tpl.includes("value.svg")) {
+                        $('div.leaflet-div-icon').css('background-color', "transparent");
+                //    }
+                    $('div.leaflet-div-icon').css('border', "0px");
+                    currentCustomSvgLayer = null;
+                    svgContainerArray = [];
+                });
+
                 $(document).on('addAlarm', function (event) {
                     if (event.target === map.mapName) {
                         function addAlarmsToMap() {
@@ -3277,6 +3356,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             var symbolcolor = passedData.symbolcolor;
                             var iconFilePath = passedData.iconFilePath;
                             bubbleSelectedMetric[desc] = passedData.bubbleSelectedMetric;
+                            var altViewMode = passedData.altViewMode;
 
                             var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
@@ -3366,7 +3446,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         //console.log("Service Map selection addition");
                                         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
-                                    query = query + "&valueName=" + bubbleSelectedMetric[desc];
+                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin") {
+                                        query = query + "&valueName=" + bubbleSelectedMetric[desc];
+                                    }
                                     query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                 }
                                 if (!query.includes("&maxResults")) {
@@ -3378,10 +3460,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 if (event.query != null) {
                                     query = "<?= $superServiceMapProxy ?>" + event.query;
                                 } else if (query != null) {
-                                    query = "<?= $superServiceMapProxy ?>" + query;
+                                    query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
                                 }
                                 if (query.includes("&fromTime=")) {
-                                    query = query.split("&fromTime=")[0] + "&valueName=" + bubbleSelectedMetric[desc];
+                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin") {
+                                        query = query.split("&fromTime=")[0] + "&valueName=" + bubbleSelectedMetric[desc];
+                                    }
                                 } else {
                                     query = query + bubbleSelectedMetric[desc];
                                 }
@@ -3531,7 +3615,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             }
                                         }
                                      //   fatherGeoJsonNode.features[0].properties.realtime = {};
-                                        if (geoJsonData.hasOwnProperty("realtime") && bubbleSelectedMetric[desc] != '') {
+                                    //    if (geoJsonData.hasOwnProperty("realtime") && bubbleSelectedMetric[desc] != '') {     // Commenta x POT. MOD. CONV. addSelectorPin
+                                         if (geoJsonData.hasOwnProperty("realtime")) {  // Attiva x POT. MOD. CONV. addSelectorPin
                                             var dataObj = {};
                                             if (fatherGeoJsonNode.features[0].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[desc])) {
                                                 fatherGeoJsonNode.features[0].properties[bubbleSelectedMetric[desc]] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]].value;
@@ -3604,23 +3689,34 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                     var maxValue = 0;
 
-                                    if (bubbleSelectedMetric[desc] != '') {
-                                        if(fatherGeoJsonNode.features.length == 1 && geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]]) {
+                                  //  if (bubbleSelectedMetric[desc] != '') {     // Comment x POT. MOD. CONV. addSelectorPin
+                                   //     if (fatherGeoJsonNode.features.length == 1 && geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]]) {
 
-
-                                        } else {
+                                       //     console.log("Lenght of SMart CIty API Response for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
+                                   //     } else {
                                             var i = 0;
-                                           // for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-                                            while (i < fatherGeoJsonNode.features.length) {    
+                                            // for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+                                            while (i < fatherGeoJsonNode.features.length) {
                                                 var dataObj = {};
 
-                                                /*   fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
-                                                   fatherGeoJsonNode.features[i].properties.color1 = color1;
-                                                   fatherGeoJsonNode.features[i].properties.color2 = color2;
-                                                   fatherGeoJsonNode.features[i].properties.pinattr = passedData.pinattr;
-                                                   fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
-                                                   fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
-                                                   fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;*/
+                                                if (altViewMode != "Bubble") {
+                                                    fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
+                                                    fatherGeoJsonNode.features[i].properties.color1 = color1;
+                                                    fatherGeoJsonNode.features[i].properties.color2 = color2;
+                                                    fatherGeoJsonNode.features[i].properties.pinattr = passedData.pinattr;
+                                                    fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
+                                                    fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
+                                                    fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;
+                                                    fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
+                                                    if (fatherGeoJsonNode.features[i].properties.lastValue == null && geoJsonData.hasOwnProperty("realtime")) {  // Attiva x POT. MOD. CONV. addSelectorPin
+                                                        if (fatherGeoJsonNode.features[0].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[desc])) {
+                                                            var key = bubbleSelectedMetric[desc];
+                                                            var obj = {};
+                                                            obj[key] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]].value;
+                                                            fatherGeoJsonNode.features[0].properties["lastValue"] = obj;
+                                                        }
+                                                    }
+                                                }
 
                                                 var valueObj = {};
                                                 if (fatherGeoJsonNode.features[i].properties.lastValue != null) {
@@ -3628,8 +3724,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties.lastValue[bubbleSelectedMetric[desc]];
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]].replace(/"/g, "");
                                                         if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]]))) {
-                                                            fatherGeoJsonNode.features.splice(i, 1);
-                                                            continue;
+                                                            if (altViewMode != "CustomPin") {
+                                                                fatherGeoJsonNode.features.splice(i, 1);
+                                                                continue;
+                                                            }
                                                         } else {
                                                             if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] > maxValue) {
                                                                 maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]];
@@ -3668,49 +3766,36 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 dataObj.iconTextMode = passedData.iconTextMode;
 
                                                 //    map.eventsOnMap.push(dataObj);
-                                                delete fatherGeoJsonNode.features[i].properties.distance;
-                                                delete fatherGeoJsonNode.features[i].properties.typeLabel;
-                                                delete fatherGeoJsonNode.features[i].properties.tipo;
-                                                delete fatherGeoJsonNode.features[i].properties.photoThumbs;
-                                                delete fatherGeoJsonNode.features[i].properties.serviceUri;
-                                                delete fatherGeoJsonNode.features[i].properties.serviceType;
-                                                delete fatherGeoJsonNode.features[i].properties.lastValue;
-                                                delete fatherGeoJsonNode.features[i].properties.multimedia;
-                                                delete fatherGeoJsonNode.features[i].properties.hasGeometry;
+                                                if (altViewMode == "Bubble") {
+                                                    delete fatherGeoJsonNode.features[i].properties.distance;
+                                                    delete fatherGeoJsonNode.features[i].properties.typeLabel;
+                                                    delete fatherGeoJsonNode.features[i].properties.tipo;
+                                                    delete fatherGeoJsonNode.features[i].properties.photoThumbs;
+                                                    delete fatherGeoJsonNode.features[i].properties.serviceUri;
+                                                    delete fatherGeoJsonNode.features[i].properties.serviceType;
+                                                    delete fatherGeoJsonNode.features[i].properties.lastValue;
+                                                    delete fatherGeoJsonNode.features[i].properties.multimedia;
+                                                    delete fatherGeoJsonNode.features[i].properties.hasGeometry;
+                                                }
                                                 i++;
                                             }
-                                        }
+                                   //     }
 
                                         map.eventsOnMap.push(dataObj);
+                                      //  console.log("Number of Devices with Matched Attributes for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
+                                        if (altViewMode != "Bubble") {
 
+                                            countSvgCnt = 0;
+                                            currentCustomSvgLayer = desc;
+                                            // Aggiornare totalSvgCnt con la length di fatherJsonNode
+                                            totalSvgCnt = fatherGeoJsonNode.features.length;
                                         //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
-                                        /*   gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                               pointToLayer: gisPrepareCustomMarker,
-                                               onEachFeature: onEachFeature
-                                           }).addTo(map.defaultMapRef);*/
-
-                                        bubbles[desc] = {};
-                                        map.defaultMapRef.createPane('bubblePane');
-                                        map.defaultMapRef.getPane('bubblePane').style.zIndex = 415;
-                                        if (fatherGeoJsonNode.features.length > 0) {
-                                            bubbles[desc] = L.bubbleLayer(fatherGeoJsonNode, {
-                                                property: bubbleSelectedMetric[desc],
-                                                legend: false,
-                                                max_radius: 25,
-                                                //    scale: 'YlGnBu',
-                                                //    scale: [passedData.color1, '#ffffff'],
-                                                //    scale: ['#ffffff', passedData.color1],
-                                                //    scale: passedData.color1,
-                                            //    pane: 'bubblePane',
-                                                style: {fillColor: passedData.color1, weight: 0.3, pane: 'bubblePane'},
-                                                tooltip: true
-                                            });
-
-                                            /*   if (isNaN(bubbles.options.style.radius)) {
-                                                   bubbles.options.style.radius = 10;
-                                               }*/
-
-                                            bubbles[desc].addTo(map.defaultMapRef);
+                                                gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
+                                                    pointToLayer: gisPrepareCustomMarker,
+                                                    onEachFeature: onEachFeature
+                                             //   }).addTo(map.defaultMapRef);
+                                                });
+                                        //    }
 
                                             loadingDiv.empty();
                                             loadingDiv.append(loadOkText);
@@ -3743,46 +3828,169 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             }
 
                                             eventGenerator.show();
+
+                                            var wkt = null;
+
+                                            if (display !== 'pins') {
+                                                stopGeometryAjax[desc] = false;
+                                                gisGeometryTankForFullscreen[desc] = {
+                                                    capacity: fatherGeoJsonNode.features.length,
+                                                    shown: false,
+                                                    tank: [],
+                                                    lastConsumedIndex: 0
+                                                };
+
+                                                for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+                                                    if (fatherGeoJsonNode.features[i].properties.hasOwnProperty('hasGeometry') && fatherGeoJsonNode.features[i].properties.hasOwnProperty('serviceUri')) {
+                                                        if (fatherGeoJsonNode.features[i].properties.hasGeometry === true) {
+                                                            //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
+
+                                                            $.ajax({
+                                                                url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + fatherGeoJsonNode.features[i].properties.serviceUri,
+                                                                type: "GET",
+                                                                data: {},
+                                                                async: true,
+                                                                timeout: 0,
+                                                                dataType: 'json',
+                                                                success: function (geometryGeoJson) {
+                                                                    if (!stopGeometryAjax[desc]) {
+                                                                        // Creazione nuova istanza del parser Wkt
+                                                                        wkt = new Wkt.Wkt();
+
+                                                                        // Lettura del WKT dalla risposta
+                                                                        wkt.read(geometryGeoJson.Service.features[0].properties.wktGeometry, null);
+
+                                                                        var ciclePathFeature = [
+                                                                            {
+                                                                                type: "Feature",
+                                                                                properties: geometryGeoJson.Service.features[0].properties,
+                                                                                geometry: wkt.toJson()
+                                                                            }
+                                                                        ];
+
+                                                                        if (!gisGeometryLayersOnMap.hasOwnProperty(desc)) {
+                                                                            gisGeometryLayersOnMap[desc] = [];
+                                                                        }
+
+                                                                        // CORTI - Pane
+                                                                        map.defaultMapRef.createPane('ciclePathFeature');
+                                                                        map.defaultMapRef.getPane('ciclePathFeature').style.zIndex = 420;
+
+                                                                        gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, { pane: 'ciclePathFeature' }).addTo(map.defaultMapRef));
+                                                                        gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
+                                                                    }
+                                                                },
+                                                                error: function (geometryErrorData) {
+                                                                    console.log("Ko");
+                                                                    console.log(JSON.stringify(geometryErrorData));
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                            }
+
                                         } else {
-                                            var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Available for Bubble Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
-                                            loadingDiv.empty();
-                                            loadingDiv.append(loadNoBubbleMetricsText);
 
-                                            parHeight = loadNoBubbleMetricsText.height();
-                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                            loadNoBubbleMetricsText.css("margin-top", parMarginTop + "px");
-                                            setTimeout(function () {
-                                                loadingDiv.css("opacity", 0);
+                                            bubbles[desc] = {};
+                                            map.defaultMapRef.createPane('bubblePane');
+                                            map.defaultMapRef.getPane('bubblePane').style.zIndex = 415;
+                                            if (fatherGeoJsonNode.features.length > 0) {
+                                                bubbles[desc] = L.bubbleLayer(fatherGeoJsonNode, {
+                                                    property: bubbleSelectedMetric[desc],
+                                                    legend: false,
+                                                    max_radius: 25,
+                                                    //    scale: 'YlGnBu',
+                                                    //    scale: [passedData.color1, '#ffffff'],
+                                                    //    scale: ['#ffffff', passedData.color1],
+                                                    //    scale: passedData.color1,
+                                                    //    pane: 'bubblePane',
+                                                    style: {
+                                                        fillColor: passedData.color1,
+                                                        weight: 0.3,
+                                                        pane: 'bubblePane'
+                                                    },
+                                                    tooltip: true
+                                                });
+
+                                                /*   if (isNaN(bubbles.options.style.radius)) {
+                                                       bubbles.options.style.radius = 10;
+                                                   }*/
+
+                                                bubbles[desc].addTo(map.defaultMapRef);
+
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadOkText);
+
+                                                parHeight = loadOkText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadOkText.css("margin-top", parMarginTop + "px");
+
                                                 setTimeout(function () {
-                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
-                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                    });
-                                                    loadingDiv.remove();
-                                                }, 350);
-                                            }, 1000);
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
 
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
+                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
+                                                if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
+                                                } else {
+                                                    //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                }
 
-                                            setTimeout(function () {
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
-                                            }, 1500);
-                                            
-                                        }
+                                                eventGenerator.show();
+                                            } else {
+                                                var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadNoBubbleMetricsText);
 
-                                        // CORTI - setta markers nella mappa 3D
+                                                parHeight = loadNoBubbleMetricsText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadNoBubbleMetricsText.css("margin-top", parMarginTop + "px");
+                                                setTimeout(function () {
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
+
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+
+                                                setTimeout(function () {
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
+                                                }, 1500);
+
+                                            }
+
+                                            // CORTI - setta markers nella mappa 3D
 //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
 //                                            pointToLayer: gisPrepareCustomMarker,
 //                                            onEachFeature: onEachFeature
 //                                        }).addTo(map.default3DMapRef);
 
-                                        //     }
+                                            //     }
+                                        }
 
-
-                                    } else {
-                                        var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Available for Bubble Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                                    // COMMENTA l'else x POT. MOD. CONV. addSelectorPin
+                                /*    } else {
+                                        var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                                         loadingDiv.empty();
                                         loadingDiv.append(loadNoBubbleMetricsText);
 
@@ -3808,7 +4016,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
                                         }, 1500);
                                         
-                                    }
+                                    }*/
+                                    // Fine commento else x POT. MOD. CONV. addSelectorPin
                                 },
                                 error: function (errorData) {
                                     gisLayersOnMap[event.desc] = "loadError";
@@ -4030,7 +4239,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 if (event.query != null) {
                                     query = "<?= $superServiceMapProxy ?>" + event.query;
                                 } else if (query != null) {
-                                    query = "<?= $superServiceMapProxy ?>" + query;
+                                    query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
                                 }
                             } else if(queryType === "MyPOI") {
                                 if (passedData.desc != "My POI") {
@@ -4222,6 +4431,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                         fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
                                         fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
                                         fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;
+                                    //    fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
 
                                         dataObj.lat = fatherGeoJsonNode.features[i].geometry.coordinates[1];
                                         dataObj.lng = fatherGeoJsonNode.features[i].geometry.coordinates[0];
@@ -5054,7 +5264,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             
                             div.innerHTML = '<div id="scenario-div">'+
                                                 '<input id="scenario-name" type="text" placeholder="Scenario name" name="name">'+
+                                                '<input id="scenario-description" type="text" placeholder="Scenario description" name="description">'+
                                                 '<span><input id="scenario-visibility" type="checkbox" name="public" value="Public"> Public visibility</span>'+
+                                                '<label for="scenario-startDatetime">From:</label>'+
+                                                '<input id="scenario-startDatetime" type="datetime-local" name="datetimeFrom">'+
+                                                '<label for="scenario-endDatetime">To:</label>'+
+                                                '<input id="scenario-endDatetime" type="datetime-local" name="datetimeTo">'+
                                                 '<div>'+
                                                     '<input type="button" id="scenario-save" value="Save"/>'+
                                                     '<button id="scenario-cancel" type="button">Cancel</button>'+
@@ -5079,6 +5294,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 delete scenarioData._initHooksCalled;
                                 delete scenarioData._layers;
                                 scenarioData.scenarioName = $("#scenario-name").val();
+                                scenarioData.scenarioDescription = $("#scenario-description").val();
+                                scenarioData.scenarioDatetimeStart = $("#scenario-startDatetime").val();
+                                scenarioData.scenarioDatetimeEnd = $("#scenario-endDatetime").val();
                                 scenarioData.isPublic = $("#scenario-visibility").is(':checked');
 
                                 var ajaxData = {
@@ -5126,6 +5344,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             scenarioDrawnItems = new L.FeatureGroup();
                             map.defaultMapRef.addLayer(scenarioDrawnItems);
                             $("#scenario-name").val("");
+                            $("#scenario-description").val("");
+                            $("#scenario-startDatetime").val("");
+                            $("#scenario-endDatetime").val("");
                             $("#scenario-visibility").prop('checked', false);
                             
                             scenarioData = new L.geoJSON();
@@ -5169,6 +5390,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 '<input type="radio" name="choice" value="scenario" checked> Select scenario<br>'+
                                                 '<input type="radio" name="choice" value="studio"> Select studio<br>'+
                                                 '<select style="margin-top:6px" class="form-control" id="choice-select"></select>'+
+                                                '<div style="margin-top:6px" id="resultDescription"></div>'+
+                                                '<div style="margin-top:6px" id="resultTimerange"></div>'+
                                              '</div>'+
                                              '<div id="options"><span id="vehicles">'+
                                                 '<button class="vehicle-btn selectedvehicle" title="Driving" id="car">'+
@@ -5196,11 +5419,28 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         // populate scenarios select (initially scenario choice is checked)
                         $.getJSON( '../controllers/scenarioProxy.php?method=GET&opt=name', function( data ) {
                             $("#choice-select").html("<option selected disabled hidden style='display: none' value=''></option>");
-                            for(var i = 0; i < data.length; i++ )
+                            function compareStrings(a, b) {
+                              // Assuming you want case-insensitive comparison
+                              a = a.toLowerCase();
+                              b = b.toLowerCase();
+
+                              return (a < b) ? -1 : (a > b) ? 1 : 0;
+                            }
+
+                            //sort the scenarios in alphabetical order
+                            data.sort(function(a, b) {
+                                return compareStrings(a.name, b.name);
+//                              return compareStrings(a.variable_value.scenarioName, b.variable_value.scenarioName);
+                            })
+
+                            for(var i = 0; i < data.length; i++)
                                 $("#choice-select").html($("#choice-select").html()+'<option>'+data[i]['name']+'</option>');
                         });
                         // checkbox (choice) management
                         $("input[name='choice']").click(function () {
+                			//clear scenario description and time range
+                			$("#resultDescription").html("");
+                			$("#resultTimerange").html("");
                         // reset page:
                             // Hide routing mode options
                             $("#options").hide();
@@ -5224,6 +5464,20 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             if( choice == "scenario" ) {
                                 $.getJSON( '../controllers/scenarioProxy.php?method=GET&opt=name', function( data ) {
                                     $("#choice-select").html("<option selected disabled hidden style='display: none' value=''></option>");
+                                    // add the same code for sorting scenarios
+                                    function compareStrings(a, b) {
+                                      // Assuming you want case-insensitive comparison
+                                      a = a.toLowerCase();
+                                      b = b.toLowerCase();
+
+                                      return (a < b) ? -1 : (a > b) ? 1 : 0;
+                                    }
+
+                                    //sort the scenarios in alphabetical order
+                                    data.sort(function(a, b) {
+                                        return compareStrings(a.name, b.name);
+//                                      return compareStrings(a.variable_value.scenarioName, b.variable_value.scenarioName);
+                                    })
                                     for(var i = 0; i < data.length; i++ )
                                         $("#choice-select").html($("#choice-select").html()+'<option>'+data[i]['name']+'</option>');
                                 });
@@ -5237,9 +5491,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         });
                         // when the user chooses a scenario/studio, draw it on the map
-                        $('#choice-select').change(function(){                            
-                            var choice = $('input[name=choice]:checked').val();
-                            
+                        $('#choice-select').change(function(){
+                            var choice = $('input[name=choice]:checked').val();                            
                             if( choice == "scenario") {
                                 // scenarioName(visibility) -> we take only scenarioName
                                 if($(this).val().indexOf('(') > -1 )
@@ -5249,6 +5502,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     var selectedScenario = $(this).val();
                                 
                                 $.getJSON( '../controllers/scenarioProxy.php?method=GET&sel='+selectedScenario, function( selectedScenarioData ) {
+                                    // add scenario description (selectedScenarioData contains the json in column variable_value)
+                                    if(selectedScenarioData.scenarioDescription)
+                                        $("#resultDescription").html('<strong>'+"Description: "+'</strong>'+'<span style="font-style:italic">'+selectedScenarioData.scenarioDescription+'</span>');
+                                    else
+                                        $("#resultDescription").html('<strong>'+"Description: "+'</strong>'+'<span style="font-style:italic">'+"Not Available."+'</span>');
+                                    // add scenario time range
+                                    if(selectedScenarioData.scenarioDatetimeStart)
+                                        $("#resultTimerange").html('<strong>'+"From: "+'</strong>'+'<span style="font-style:italic">'+selectedScenarioData.scenarioDatetimeStart+'<strong>'+" To "+'</strong>'+selectedScenarioData.scenarioDatetimeEnd+'</span>');
+                                    else
+                                        $("#resultTimerange").html('<strong>'+"Time Range: "+'</strong>'+'<span style="font-style:italic">'+"Not Available."+'</span>');
+                                    
                                     // remove previous choice's drawings
                                     map.defaultMapRef.removeLayer(whatifDrawnItems);
                                     whatifDrawnItems = new L.FeatureGroup();
@@ -5349,12 +5613,14 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     lrmControl.on('routesfound', function(e) {  
                                         if(!studioControl) {
                                             // add studio div (if not present yet)
+//                                            studioControl = L.control({position: 'bottomleft'});
                                             studioControl = L.control({position: 'bottomright'});
                                             studioControl.onAdd = function (map) {
                                                 var div = L.DomUtil.create('div');
 
                                                 div.innerHTML = '<div id="studio-div">'+
                                                                     '<input id="studio-name" type="text" placeholder="Studio name" name="name">'+
+                                                                    '<input id="studio-description" type="text" placeholder="Studio description" name="description-st">'+
                                                                     '<span><input id="studio-visibility" type="checkbox" name="studio-public" value="Public"> Public visibility</span>'+
                                                                     '<div>'+
                                                                         '<input type="button" id="studio-save" value="Save"/>'+
@@ -5377,11 +5643,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     var ajaxData = {
                                                         "method" : "POST",
                                                         "studioName" : $("#studio-name").val(),
+                                                        "studioDescription" : $("#studio-description").val(),
                                                         "scenarioName" : selectedScenario,
                                                         "waypoints" : JSON.stringify(lrmControl.getWaypoints()),
                                                         "vehicle" : vehicle,
                                                         "public": $("#studio-visibility").is(':checked')
                                                     };
+                                              //      console.log(ajaxData);
 
                                                     $.ajax({
                                                         type: 'GET',
@@ -5439,6 +5707,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     var selectedStudio = selectedStudio.substr(0, selectedStudio.indexOf(':'));
  
                                 $.getJSON( '../controllers/studioProxy.php?method=GET&sel='+selectedStudio, function( selectedStudioData ) {
+                                    // add studio description
+                                	if(selectedStudioData.studioDescription)
+                                        $("#resultDescription").html("Description: "+'<span style="font-style:italic">'+selectedStudioData.studioDescription+'</span>');
+                                    else
+                                        $("#resultDescription").html("Description: "+'<span style="font-style:italic">'+"Not Available."+'</span>');
+                                    
                                     var scenarioName = selectedStudioData.scenarioName;
                                     waypoints = selectedStudioData.waypoints;
                                     vehicle = selectedStudioData.vehicle;

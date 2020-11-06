@@ -836,6 +836,105 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
 		if($_REQUEST["initSynVarPresel"] == "true") $out["draw"] = 1;
 			
         for($n=0; $n < sizeof($out['data']); $n++) {
+            if ($out['data'][$n][0] == "Sensor" && $out['data'][$n][6] != 'sensor_map') {
+                // CALL ASCAPI
+                $sUri = $out['data'][$n][15];
+                $sUriEnc = str_replace('%3A', '%253A', $sUri);
+                $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&valueName=" . $out['data'][$n][3] . "&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+            //    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+                $context = stream_context_create([
+                    "http" => [
+                        // http://docs.php.net/manual/en/context.http.php
+                        "method"        => "GET",
+                        "ignore_errors" => true,
+                    ],
+                ]);
+
+                $response = file_get_contents($url);
+                $status_line = $http_response_header[0];
+                preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
+                $status = $match[1];
+                $responseArray = json_decode($response, true);
+
+                if ($status == "200") {
+                    $realtime_data = $responseArray['realtime']['results']['bindings'][0];
+                    foreach ($realtime_data as $key => $item) {
+                        if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
+                            // LAST VALUE
+                            if ($key == $out['data'][$n][3]) {
+                                $out['data'][$n][9] = $realtime_data[$key]['value'];
+                            }
+                        } else {
+                            // LAST DATE
+                        //    $out['data'][$n][8] = $realtime_data[$key]['value'];
+                            $out['data'][$n][8] = str_replace("T", " ", $realtime_data[$key]['value']);
+                            $out['data'][$n][8] = str_replace(".000", " ", $out['data'][$n][8]);
+                        }
+                    }
+                }
+
+            } else if ($out['data'][$n][0] == "MyKPI") {
+                // CALL DATAMANAGER API
+            /*    $myKpiId = $out['data'][$n][15];
+                if (strpos($myKpiId, "datamanager/api/v1") !== false) {
+                    $myKpiId = explode("datamanager/api/v1/poidata/", $myKpiId)[1];
+                }
+                if(isset($_SESSION['refreshToken'])) {
+                    //  if(isset($_SESSION['refreshToken'])) {
+                    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+                    $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+                    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+                    $accessToken = $tkn->access_token;
+                    $_SESSION['refreshToken'] = $tkn->refresh_token;
+
+                    $genFileContent = parse_ini_file("../conf/environment.ini");
+                    $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
+                    $env = $genFileContent['environment']['value'];
+
+                    $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
+                    $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/?sourceRequest=dashboardmanager&lastValue=1&accessToken=" . $accessToken;
+                    $options = array(
+                        'http' => array(
+                            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                            'method' => 'GET',
+                            'timeout' => 30,
+                            'ignore_errors' => true
+                        )
+                    );
+
+                    $context = stream_context_create($options);
+                    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
+
+                } else {
+                    $genFileContent = parse_ini_file("../conf/environment.ini");
+                    $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
+                    $env = $genFileContent['environment']['value'];
+
+                    $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
+
+                    $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/?sourceRequest=dashboardmanager&lastValue=1";
+
+                    $options = array(
+                        'http' => array(
+                            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                            'method' => 'GET',
+                            'timeout' => 30,
+                            'ignore_errors' => true
+                        )
+                    );
+
+                    $context = stream_context_create($options);
+                    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
+                }
+                $myKpiData = json_decode($myKpiDataJson);
+
+                // LAST VALUE
+                $out['data'][$n][9] = $myKpiData->lastValue;
+
+                // LAST DATE
+                $out['data'][$n][8] = date("m-d-Y H:i:s", $myKpiData->lastDate/1000);*/
+
+            }
             $privateString = "private";
             if ($out['data'][$n][16] == "private") {
                 if (strpos($out['data'][$n][21], $cryptedUsr) !== false) {

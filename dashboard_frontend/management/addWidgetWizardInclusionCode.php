@@ -3193,7 +3193,8 @@
                     fakeId = feature.id;
                 } else
                 {
-                    urlToCall = "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
+                    urlToCall = "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeURI(feature.properties.serviceUri) + "&format=json&fullCount=false";   // URI_ENCODE_FIX
+                 //   urlToCall = "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + feature.properties.serviceUri + "&format=json&fullCount=false";   // PANTALEO DA METTERE SUPERSERVICEMAP ??
                     fake = false;
                 }
 
@@ -5847,6 +5848,7 @@
             var uniqueNameId = $(this).attr("data-unique_name_id");
             var instanceUri = $(this).attr("data-instance_uri");
             var getInstances = $(this).attr("data-get_instances");
+         //   var getInstances = encodeURI($(this).attr("data-get_instances"));     // URI_ENCODE_FIX GENERIC
             var latitudeWiz = $(this).attr("data-latitude");
             var longitudeWiz = $(this).attr("data-longitude");
             var northEastPointLat = bounds._northEast.lat;
@@ -5918,6 +5920,12 @@
                                 }
                             }
 
+                        /*    if (fatherNode.features[0].properties != null) {
+                                if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                    fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                }
+                            }*/
+
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker
                             }).addTo(addWidgetWizardMapRef);
@@ -5981,6 +5989,12 @@
                                     }
                                 }
 
+                            /*    if (fatherNode.features[0].properties != null) {
+                                    if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                        fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                    }
+                                }*/
+
                                 gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                     pointToLayer: addWidgetWizardCreateCustomMarker
                                 }).addTo(addWidgetWizardMapRef);
@@ -5993,6 +6007,7 @@
                         $(this).attr('data-selected', 'true');
                     }
                 } else if (instanceUri === "single_marker") {
+                    getInstances = encodeURI(getInstances);    // URI_ENCODE_FIX
                     var urlSensorKbToCall = "https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
                     if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
                         urlSensorKbToCall = "<?= $superServiceMapUrlPrefix ?>api/v1/?serviceUri=" + getInstances + "&format=json&realtime=false&fullCount=false";
@@ -6041,6 +6056,12 @@
                                     }
                                 }
                             }
+
+                         /*   if (fatherNode.features[0].properties != null) {
+                                if (fatherNode.features[0].properties.organization == "CAPELON" && fatherNode.features[0].properties.serviceUri.includes("%3A")) {
+                                    fatherNode.features[0].properties.serviceUri = fatherNode.features[0].properties.serviceUri.replaceAll("%3A", "%253A");
+                                }
+                            }*/
 
                             gisLayersOnMap[serviceType] = L.geoJSON(fatherNode, {
                                 pointToLayer: addWidgetWizardCreateCustomMarker

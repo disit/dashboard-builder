@@ -222,7 +222,7 @@
                 $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
             }   */
 
-            $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
+            $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . rawurlencode($dataOrigin->serviceUri) . "&format=json";
 
             $metricType = "Float";
             

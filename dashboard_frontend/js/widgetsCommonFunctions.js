@@ -21,6 +21,7 @@ var getParametersWidgetUrl = "../widgets/getParametersWidgets.php";
 var getMetricDataUrl = "../widgets/getDataMetrics.php";
 var getIconsPoolUrl = "../widgets/getIconsPool.php";
 var getBubbleMetricsUrl = "../widgets/getBubbleMetricsProxy.php";
+var getSvgSingleVariableTemplatesUrl = "../controllers/getSvgSingleVarTemplates.php";
 var getOrthomapsUrl = "../widgets/getOrthomaps.php";
 
 
@@ -585,6 +586,32 @@ function getBubbleMetrics(query, idx, callback) {
 
 }
 
+function getSvgSingleVariableTemplates(idx, callback) {
+
+    var properties = null;
+
+    $.ajax({
+        url: getSvgSingleVariableTemplatesUrl,
+        type: "GET",
+        data: {
+            "action": "getAll"
+        },
+        async: true,
+        dataType: 'json',
+        success: function (data)
+        {
+            properties = [idx, data];
+            callback(properties);
+        },
+        error: function(errorData)
+        {
+            console.log("Errore in caricamento SVG Templates");
+            console.log(JSON.stringify(errorData));
+        }
+    });
+
+}
+
 function getOrthomaps(widgetName, callback) {
 
     var properties = null;
@@ -650,7 +677,7 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
     }
 
     $.ajax({
-        url: smUrl,
+        url: encodeServiceUri(smUrl),
         type: "GET",
         data: {},
         async: syncFlag,
@@ -1022,5 +1049,502 @@ function removeLoadingBubbleMetricsMsg(elem) {
             break;
         }
     }
+
+}
+
+function IsJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
+function encodeServiceUri (suri) {
+
+    return encodeURI(suri);
+
+}
+
+function buildFontIconPicker(iconPoolDatasetJSON, i, widgetId) {
+    $('#Selector_poolBtn_' + i).fontIconPicker({
+        //  $('.poolBtn').fontIconPicker({
+        //    source: svgs,
+        source: iconPoolDatasetJSON,
+        theme: 'fip-bootstrap',
+        //    appendTo: 'self',
+        iconGenerator: function (item, flipBoxTitle, index) {
+            return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:40px"></i>';
+            // LAST WORKING OK!
+            //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
+            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
+            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="C:/Apache24/htdocs/dashboardSmartCity/img/widgetSelectorIconsPool/hlt/' + item + '.svg"></use></svg></i>';
+        }
+    })
+        .on('change', function () {
+            var item = $(this).val(),
+                liveView = $('#figura'),
+                liveTitle = liveView.find('h3'),
+                liveImage = liveView.find('img');
+            if ('' === item) {
+                liveTitle.html('Please Select…');
+                //liveImage.attr( 'src', 'lib/svgs/placeholder.png' );
+                return;
+            }
+            liveTitle.html(item.split('-').join(' '));
+            liveImage.attr('src', '../img/widgetSelectorIconsPool/hlt' + item + '.svg');
+        });
+}
+
+
+function checkFull(array) {
+
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] == null) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+function buildSvgIcon (path, value, lolLevel, pinContainer, svgContainer, widgetName, sourceFlag, countSvgCnt, totalSvgCnt, desc, svgContainerArray) {
+
+    const LOGLEVEL_INFO = "info";
+    const LOGLEVEL_ERROR = "error";
+    const LOGLEVEL_OFF = "off";
+    var lol = LOGLEVEL_INFO;
+    function log(message, level) {
+        if(lol == LOGLEVEL_INFO) {
+            if(typeof message !== "object") {
+            //    console.info(new Date().getTime());
+            //    console.info("SIOW> "+message);
+            }
+            else {
+            //    console.info(new Date().getTime());
+            //    console.info(message);
+            }
+        }
+        else if(lol == level) {
+            if(typeof message !== "object") {
+            //    console.error("SIOW> "+message);
+            }
+            else {
+            //    console.error(message);
+            }
+        }
+    }
+
+  //  var url = new URL(window.location.href);
+  //  var url = new URL(path);
+ //   log(url, LOGLEVEL_INFO);
+  //  var tpl = url.searchParams.get("tpl");
+    var tpl = path;
+    log(tpl, LOGLEVEL_INFO);
+  //  var val = JSON.stringify({lastValue: url.searchParams.get("val")});
+    var val = '{"lastValue":"' + value + '"}';
+    log(val, LOGLEVEL_INFO);
+ //   if(url.searchParams.get("lol")) lol = url.searchParams.get("lol");
+    if (lolLevel) lol = lolLevel;
+    log(lol, LOGLEVEL_INFO);
+
+  //  $(function() {
+    ;
+     //   $("body").load(tpl,function(response,status,xhr){
+        svgContainer.load(tpl,function(response,status,xhr){
+    //    $('<div id="' + widgetName + '_svgCtn' + countSvgCnt + '">').load(tpl,function(response,status,xhr){
+
+            svgContainer.hide();
+            if(status == "error") {
+                log("Loading failed of static content from \""+tpl+"\". Error message is \""+xhr.status+" "+xhr.statusText+"\". Double check the staticSource configuration parameter. SIOW stops here. Nothing will work.", LOGLEVEL_ERROR);
+                return;
+            } else {
+               /* if (desc != null) {
+                    console.log("Build Cstuom SVG Pin # " + countSvgCnt + "for Event: " + desc);
+                }*/
+            }
+
+            log("Static contents loaded.",LOGLEVEL_INFO);
+
+            // scroll data attributes in static contents
+
+            actions = [];
+            var svgContId = svgContainer[0].id;
+            $("#" + svgContId + " [data-siow]").each(function() {
+
+                // parse attribute value
+
+                var dataSiow = {};
+
+                dataSiow.element = $(this);
+                log("Element found that is of interest for SIOW:", LOGLEVEL_INFO);
+                log(dataSiow.element, LOGLEVEL_INFO);
+
+                try {
+                    //  dataSiow.config = $(this).data("siow");
+                    dataSiow.config = JSON.parse($(this).attr("data-siow"));
+                    log("Successfully parsed the following:", LOGLEVEL_INFO);
+                    log(dataSiow.config, LOGLEVEL_INFO);
+                } catch (e) {
+                    log("Unable to parse the following (" + e.message + ", skipping to next element):", LOGLEVEL_ERROR);
+                    log(JSON.parse($(this).attr("data-siow")), LOGLEVEL_ERROR);
+                    return true;
+                }
+
+                var cleanedConfig = [];
+
+                $.each(dataSiow.config, function (i, aSiow) {
+
+                    // validate event handler
+
+                    // var aSiow = $(this);
+
+                    if (!aSiow.hasOwnProperty("event")) {
+                        log("Could not find mandatory event in the following handler definition (skipping to next):", LOGLEVEL_ERROR);
+                        log(aSiow, LOGLEVEL_ERROR);
+                        return true;
+
+                    }
+                    var event = aSiow.event;
+
+                    log("event = " + event, LOGLEVEL_INFO);
+
+                    if (!aSiow.hasOwnProperty("originator")) {
+                        log("Could not find mandatory originator in the following handler definition (skipping to next):", LOGLEVEL_ERROR);
+                        log(aSiow, LOGLEVEL_ERROR);
+                        return true;
+                    }
+                    if (!(aSiow.originator == "server" || aSiow.originator == "client")) {
+                        log("Invalid value \"" + aSiow.originator + "\" for originator in the following handler definition (allowed values are \"server\" or \"client\", skipping to next):", LOGLEVEL_ERROR);
+                        log(aSiow, LOGLEVEL_ERROR);
+                        return true;
+                    }
+                    var originator = aSiow.originator;
+
+                    log("originator = " + originator, LOGLEVEL_INFO);
+
+                    if (!aSiow.hasOwnProperty("actions")) {
+                        log("Could not find mandatory actions in the following handler definition (skipping to next):", LOGLEVEL_ERROR);
+                        log(aSiow, LOGLEVEL_ERROR);
+                        return true;
+                    }
+                    if (!Array.isArray(aSiow.actions)) {
+                        log("Invalid actions in the following handler definition (array expected, skipping to next handler):", LOGLEVEL_ERROR);
+                        log(aSiow, LOGLEVEL_ERROR);
+                        return true;
+                    }
+
+                    var cleanedActions = [];
+
+                    $.each(aSiow.actions, function (ii, aSiowAction) {
+
+                        // validate action
+
+                        //var aSiowAction = $(this);
+                        log("Parsing the following action:", LOGLEVEL_INFO);
+                        log(aSiowAction, LOGLEVEL_INFO);
+
+                        if (!aSiowAction.hasOwnProperty("target")) {
+                            log("Could not find mandatory target in the following handler action definition (skipping to next):", LOGLEVEL_ERROR);
+                            log(aSiowAction, LOGLEVEL_ERROR);
+                            return true;
+                        }
+                        var target = aSiowAction.target;
+
+                        log("target = " + target, LOGLEVEL_INFO);
+
+                        /*if(!aSiowAction.hasOwnProperty("input")) {
+                            log("Could not find mandatory input in the following handler action definition (skipping to next):",LOGLEVEL_ERROR);
+                            log(aSiowAction,LOGLEVEL_ERROR);
+                            return true;
+                        }*/
+                        var input = aSiowAction.input;
+
+                        log("input = " + input, LOGLEVEL_INFO);
+
+                        var normalize = null;
+                        if (aSiowAction.hasOwnProperty("normalize")) {
+                            var normArgs = aSiowAction.normalize.split(" ");
+                            var valid = true;
+                            if (normArgs.length != 4) {
+                                log("Invalid normalize specification in the following handler action definition (expected four numbers separated by spaces, skipping normalization):", LOGLEVEL_ERROR);
+                                log(aSiowAction, LOGLEVEL_ERROR);
+                                valid = false;
+                            }
+                            for (var i = 0; i < 4; i++) {
+                                if (isNaN(normArgs[i])) {
+                                    var what = null;
+                                    switch (i) {
+                                        case 0:
+                                            what = "minIn";
+                                            break;
+                                        case 1:
+                                            what = "minOut";
+                                            break;
+                                        case 2:
+                                            what = "maxIn";
+                                            break;
+                                        case 3:
+                                            what = "maxOut";
+                                            break;
+                                    }
+                                    log("Invalid " + what + " \"" + normArgs[i] + "\" in normalize specification in the following handler action definition (expected number, skipping normalization):", LOGLEVEL_ERROR);
+                                    log(aSiowAction, LOGLEVEL_ERROR);
+                                    valid = false;
+                                }
+                            }
+                            if (valid) {
+                                normalize = aSiowAction.normalize;
+                                log("normalize = " + normalize, LOGLEVEL_INFO);
+                            }
+                        }
+
+                        var thresholds = null;
+                        if (aSiowAction.hasOwnProperty("thresholds")) {
+                            if (aSiowAction.thresholds != null) {
+                                var treshArgs = aSiowAction.thresholds.split(" ");
+                                var valid = true;
+                                if (treshArgs.length % 2 == 0) {
+                                    log("Invalid thresholds in the following handler action definition (expected an odd quantity of space-separated values, skipping discretization):", LOGLEVEL_ERROR);
+                                    log(aSiowAction, LOGLEVEL_ERROR);
+                                    valid = false;
+                                }
+                                for (var i = 3; i < treshArgs.length; i = i + 2) {
+                                    if ((!isNaN(treshArgs[i - 2])) && (!isNaN(treshArgs[i])) && Number(treshArgs[i - 2]) >= Number(treshArgs[i])) {
+                                        log("Invalid thresholds in the following handler action definition (expected increasing limits, skipping discretization):", LOGLEVEL_ERROR);
+                                        log(aSiowAction, LOGLEVEL_ERROR);
+                                        valid = false;
+                                    }
+                                }
+                                if (valid) {
+                                    thresholds = aSiowAction.thresholds;
+                                    log("thresholds = " + thresholds, LOGLEVEL_INFO);
+                                }
+                            }
+                        }
+
+                        var strformat = null;
+                        if (aSiowAction.hasOwnProperty("format")) {
+                            if (aSiowAction.format.includes("{0}")) {
+                                strformat = aSiowAction.format;
+                                log("format = " + strformat, LOGLEVEL_INFO);
+                            } else {
+                                log("Invalid format in the following handler action definition (placeholder {0} not found, skipping formatting):", LOGLEVEL_ERROR);
+                                log(aSiowAction, LOGLEVEL_ERROR);
+                            }
+                        }
+
+                        var find = null;
+                        if (aSiowAction.hasOwnProperty("find")) {
+                            find = aSiowAction.find;
+                        }
+
+                        var cleanedAction = {};
+                        cleanedAction.element = dataSiow.element;
+                        cleanedAction.event = event;
+                        cleanedAction.originator = originator;
+                        cleanedAction.target = target;
+                        cleanedAction.input = input;
+                        cleanedAction.normalize = normalize;
+                        cleanedAction.thresholds = thresholds;
+                        cleanedAction.strFormat = strformat;
+                        cleanedAction.find = find;
+                        cleanedActions.push(cleanedAction);
+
+                    });
+
+                    aSiow.actions = cleanedActions;
+
+                    cleanedConfig.push(Object.assign({}, aSiow));
+
+                });
+
+                dataSiow.config = cleanedConfig;
+
+                $.each(dataSiow.config, function (c, dsc) {
+                    actions = actions.concat(dsc.actions);
+                });
+
+            });
+
+            // PERFORM ACTIONS
+            $.each(actions,function(iii,action){
+                //var action = $(this);
+                log("Arranging to perform the following action:",LOGLEVEL_INFO);
+                log(action,LOGLEVEL_INFO);
+
+                // reading from server
+                var actualEvent = action.event;
+                var data = val;
+                try {
+
+                    log("Client is going to handle an event originated by the server, event name is \""+action.event+"\", destination is \""+action.target+"\", received data are \""+data+"\", and the interested element is the following:",LOGLEVEL_INFO);
+                    log(action.element,LOGLEVEL_INFO);
+
+                    var value = data; log(value,LOGLEVEL_INFO); log(action.input,LOGLEVEL_INFO);
+
+                    if(action.input) {
+                        value = jsonPath(JSON.parse(value),action.input);
+                        if(value.length == 1) value = value[0];
+                        if(typeof value === "object" ) value = JSON.stringify(value);
+                    }
+                    log("Raw data that is going to be used for updating the synoptic:",LOGLEVEL_INFO);
+                    log(value,LOGLEVEL_INFO);
+                    if(action.normalize != null) {
+                        var nArgs = action.normalize.split(" ");
+                        var min13 = Math.min(Number(nArgs[1]),Number(nArgs[3]));
+
+                        if(min13 < 0) {
+                            nArgs[1] = Number(nArgs[1]) - min13;
+                            nArgs[3] = Number(nArgs[3]) - min13;
+                        }
+                        var offset = ((Number(value)-Number(nArgs[0]))/(Number(nArgs[2])-Number(nArgs[0])))*(Number(nArgs[3])-Number(nArgs[1]));
+                        value = (offset>=0?Math.min(Number(nArgs[1]),Number(nArgs[3])):Math.max(Number(nArgs[3]),Number(nArgs[1])))+offset;
+
+                        if(min13 < 0) {
+                            value+=min13;
+                            nArgs[1]+=min13;
+                            nArgs[3]+=min13;
+                        }
+
+                        if(Number(value) < Math.min(Number(nArgs[1]),Number(nArgs[3]))) value = Math.min(Number(nArgs[1]),Number(nArgs[3]))
+                        if(Number(value) > Math.max(Number(nArgs[3]),Number(nArgs[1]))) value = Math.max(Number(nArgs[3]),Number(nArgs[1]))
+
+                    }
+                    log("Normalized data that is going to be used for updating the synoptic:",LOGLEVEL_INFO);
+                    log(value,LOGLEVEL_INFO);
+                    if(action.thresholds != null) {
+                        var tArgs = action.thresholds.split(" ");
+                        var newValue = tArgs[0];
+                        var li = 1;
+                        if(isNaN(value)) {
+                            while(li < tArgs.length) {
+                                if(tArgs[li] == value) {
+                                    newValue = tArgs[li+1];
+                                    break;
+                                }
+                                li = li + 2;
+                            }
+                        }
+                        else {
+                            while(Number(value) >= Number(tArgs[li])) {
+                                newValue = tArgs[li+1];
+                                li = li + 2;
+                            }
+                        }
+                        value = newValue;
+                    }
+                    log("Discretized data that is going to be used for updating the synoptic:",LOGLEVEL_INFO);
+                    log(value,LOGLEVEL_INFO);
+
+                    if(action.find) {
+                        var doPrefix = false;
+                        var isSelectorValid = true;
+                        if($(value).length == 1) { doPrefix = false; }
+                        else if($("#"+value).length == 1) {  doPrefix = true; }
+                        else { isSelectorValid = false; }
+                        if(isSelectorValid && action.find.split(" ")[0] == "attribute") {
+                            log("Value of "+action.find+" of "+value+": ",LOGLEVEL_INFO);
+                            if(!doPrefix) value = $(value).first().attr(action.find.split(" ")[1]);
+                            else value = $("#"+value).first().attr(action.find.split(" ")[1]);
+                            log(value,LOGLEVEL_INFO);
+                        }
+                        else if(isSelectorValid && action.find.split(" ")[0] == "style"){
+                            log("Value of "+action.find+" of "+value+": ",LOGLEVEL_INFO);
+                            if(!doPrefix) value = $(value).first().css(action.find.split(" ")[1]);
+                            else value = $("#"+value).first().css(action.find.split(" ")[1]);
+                            log(value,LOGLEVEL_INFO);
+                        }
+                        else {
+                            log("Client handled event from server, event name was \""+action.event+"\", the FIND selector or argument was not valid, the FIND was ignored",LOGLEVEL_ERROR);
+                        }
+                    }
+
+                    if(action.strFormat) value = action.strFormat.replace("{0}",value);
+
+                    if(!action.target) action.target = "textContent";
+                    if(action.target == "textContent") {
+                        action.element[0].textContent = value;
+                        log("Client handled event from server, event name was \""+action.event+"\", destination was \""+action.target+"\", received value was \""+value+"\", and the interested element has been the following:",LOGLEVEL_INFO);
+                        log(action.element,LOGLEVEL_INFO);
+                    }
+                    else if(action.target.split(" ")[0] == "attribute") {
+                        action.element.attr(action.target.split(" ")[1],value);
+                        log("Client handled event from server, event name was \""+action.event+"\", destination was \""+action.target+"\", received value was \""+value+"\", and the interested element has been the following:",LOGLEVEL_INFO);
+                        log(action.element,LOGLEVEL_INFO);
+                    }
+                    else if(action.target.split(" ")[0] == "style"){
+                        if(action.target.split(" ")[1] == "offset-distance") {
+                        //    if(action.element.data("path")) {
+                            if(JSON.parse(action.element.attr("data-path"))) {
+                                var path = null;
+                            //    if(action.element.data("path").startsWith("#")) {
+                                if (JSON.parse(action.element.attr("data-path")).startsWith("#"))  {
+                                 //   path = $(action.element.data("path")).attr("d");
+                                    path = $(JSON.parse(action.element.attr("data-path"))).attr("d");
+                                }
+                                else {
+                                //    path = action.element.data("path");
+                                    path = JSON.parse(action.element.attr("data-path"));
+                                }
+                                action.element.css("motion-path","path('"+path+"')");
+                                action.element.css("offset-path","path('"+path+"')");
+                            }
+                        }
+                        action.element.css(action.target.split(" ")[1],value);
+                        log("Client handled event from server, event name was \""+action.event+"\", destination was \""+action.target+"\", received value was \""+value+"\", and the interested element has been the following:",LOGLEVEL_INFO);
+                        log(action.element,LOGLEVEL_INFO);
+                    }
+                    else {
+                        log("Client handled event from server, event name was \""+action.event+"\", DESTINATION WAS NOT VALID AND THEREFORE NOTHING WAS DONE, received value was \""+value+"\", and the interested element has been the following:",LOGLEVEL_ERROR);
+                        log(action.element,LOGLEVEL_ERROR);
+                    }
+
+                }
+                catch(e) {
+                    log("An error occurred (\""+e.message+"\") while handling the server-side event \""+action.event+"\" on this element:",LOGLEVEL_ERROR);
+                    log(action.element,LOGLEVEL_ERROR);
+                }
+
+            });
+
+            let svgElementHTML = "data:image/svg+xml;base64," + btoa(svgContainer[0].innerHTML.trim().replace(/(\r\n|\n|\r)/gm," "));
+        /*    let svgElementHTMLUTF8 = "data:image/svg+xml;utf8," + (svgContainer[0].innerHTML.trim().replace(/(\r\n|\n|\r)/gm," ")).replaceAll('"', '&quot;');
+            let svgElementHTMLRaw = "data:image/svg+xml;base64," + btoa(svgContainer[0].innerHTML);
+            let svgElementHTMLUTF8Raw = "data:image/svg+xml;utf8," + svgContainer[0].innerHTML;*/
+            let stopFlag = 0;
+            if (sourceFlag == "selector") {
+                pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", svgElementHTML);
+            //    pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", svgElementHTMLUTF8);
+                //   pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconblack", tpl);
+                //   pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconwhite", "");
+                //   pinContainer.find('#' + widgetName + '_poolIcon' + i).show();
+                //    iconPath = queries[i].iconPoolImg;
+                //    iconWhitePath = iconWhitePathAuto;
+            } else if (sourceFlag == "map") {
+                svgContainer.attr("src", svgElementHTML);
+            //    svgContainerArray.push(svgContainer);
+             //   console.log("Build Custom SVG Pin # " + countSvgCnt + "for Event: " + desc);
+                svgContainerArray[countSvgCnt-1] = svgContainer;
+                if (svgContainerArray.length == totalSvgCnt && checkFull(svgContainerArray)) {
+                    console.log("Show Custom SVG Pin for Event: " + desc);
+                    $.event.trigger({
+                        type: "updateCustomLeafletMarkers",
+                        eventGenerator: $(this),
+                        targetWidget: widgetName,
+                        desc: desc,
+                        id: countSvgCnt,
+                        tpl: tpl
+                    });
+                }
+            } else {
+                stopFlag = 2;
+            }
+         //   svgContainer.hide();
+
+        });
+ //   });
 
 }

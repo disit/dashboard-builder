@@ -625,10 +625,11 @@ function addGisQueryM()
          //  newTableRow.append(newTableCell);
        }
 
-       // Bubble CELL
+       // Alternate View Mode CELL
        newTableCell = $('<td class="bubbleTd"><select data-param="bubble" class="form-control"></select></td>');
-       newTableCell.find('select').append('<option value="Yes">Yes</option>');
-       newTableCell.find('select').append('<option value="No">No</option>');
+       newTableCell.find('select').append('<option value="None">None</option>');
+       newTableCell.find('select').append('<option value="Bubble">Bubble</option>');
+       newTableCell.find('select').append('<option value="CustomPin">Custom Pin</option>');
        newTableRow.append(newTableCell);
        newTableCell.find('select').val('No');
        newTableCell.find('select').on('change', editGisUpdateParams);
@@ -729,7 +730,11 @@ function addGisQueryM()
         theme: 'fip-bootstrap',
         //    appendTo: 'self',
         iconGenerator: function (item, flipBoxTitle, index) {
-            return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:56px"></i>';
+            if (item.includes("synopticTemplates/svg/")) {
+                return '<i style="display: flex; align-items: center; justify-content: center; height: 40px"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="' + item + '" style="height:40px"></i>';
+            } else {
+                return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:40px"></i>';
+            }
 // LAST WORKING OK!
             //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
             //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
@@ -746,7 +751,7 @@ function addGisQueryM()
                 return;
             }
             liveTitle.html(item.split('-').join(' '));
-            liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
+            liveImage.attr('src', '../img/widgetSelectorIconsPool/hlt' + item + '.svg');
         });
 
     if($('#iconTextMode').val() === "Icon Only")
@@ -1049,46 +1054,53 @@ function editGisUpdateParams(e, params)
 
       case 'bubble':
           newValue = $(this).val();
+          let lastValue = editGisParametersLocal.queries[rowIndex].bubble;
           editGisParametersLocal.queries[rowIndex].bubble = newValue;
-          if (newValue == 'Yes') {
-              $('#bubbleMetricsSelect' + rowIndex).empty();
-              $('#bubbleMetricsSelect' + rowIndex).append('<option style="color:darkgrey" value="loading available metrics..." disabled>loading available metrics...</option>');
-              $('#bubbleMetricsSelect' + rowIndex).val("loading available metrics...");
-              // RETRIEVE METRICS ARRAY SERVER SIDE ! HERE ONE FAKE FOR TEST
-          /*    var bubbleMetricsArray = ["metric1", "metric2", "metric3"];
-              for (k = 0; k < bubbleMetricsArray.length; k++) {
-                  $('#bubbleMetricsDiv' + rowIndex).find('select').append('<option value="'+ bubbleMetricsArray[k] + '">' + bubbleMetricsArray[k] + '</option>');
-              }
-              editGisParametersLocal.queries[rowIndex].bubbleMetrics = bubbleMetricsArray[0];*/
+          if (newValue == 'Bubble' || newValue == 'CustomPin') {
+              if (lastValue == null || lastValue == 'None' || lastValue == '') {
+                  $('#bubbleMetricsSelect' + rowIndex).empty();
+                  $('#bubbleMetricsSelect' + rowIndex).append('<option style="color:darkgrey" value="loading available metrics..." disabled>loading available metrics...</option>');
+                  $('#bubbleMetricsSelect' + rowIndex).val("loading available metrics...");
 
-              var bubbleMetricsString = $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + rowIndex).attr("data-bubblemetricsarray");
-              if (bubbleMetricsString === "loading available metrics...") {
-                  var bubbleMetricsArray = ["loading available metrics...", editGisParametersLocal.queries[rowIndex].bubbleMetrics];
-              } else {
-                  var bubbleMetricsArray = bubbleMetricsString.split(",");
-              }
+                  // print loading message
+                  var bubbleMetricsString = $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + rowIndex).attr("data-bubblemetricsarray");
+                  if (bubbleMetricsString === "loading available metrics...") {
+                      var bubbleMetricsArray = ["loading available metrics...", editGisParametersLocal.queries[rowIndex].bubbleMetrics];
+                  } else {
+                      var bubbleMetricsArray = bubbleMetricsString.split(",");
+                  }
 
-              bubbleMetricsArray[rowIndex] = [];
-              getBubbleMetrics(editGisParametersLocal.queries[rowIndex].query, rowIndex, function(extractedMetrics) {
-                  if (extractedMetrics) {
-                      let index = extractedMetrics[0];
-                      if (extractedMetrics[1].metrics) {
-                          if (extractedMetrics[1].metrics.length > 0) {
-                              bubbleMetricsArray[index].push(extractedMetrics[1].metrics);
-                              $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + index).attr("data-bubblemetricsarray", extractedMetrics[1].metrics);
-                              if (bubbleMetricsArray[index][0] != null) {
-                                  if (bubbleMetricsArray[index][0].length > 0) {
-                                      for (let k = 0; k < bubbleMetricsArray[index][0].length; k++) {
-                                          if (bubbleMetricsArray[index][k] === "loading available metrics..." || bubbleMetricsArray[index] === "no metrics available") {
-                                              $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="' + bubbleMetricsArray[index][0][k] + '" disabled>' + bubbleMetricsArray[index][0][k] + '</option>');
-                                          } else {
-                                              $('#bubbleMetricsSelect' + index).append('<option value="' + bubbleMetricsArray[index][0][k] + '">' + bubbleMetricsArray[index][0][k] + '</option>');
+                  bubbleMetricsArray[rowIndex] = [];
+                  getBubbleMetrics(editGisParametersLocal.queries[rowIndex].query, rowIndex, function (extractedMetrics) {
+                      if (extractedMetrics) {
+                          let index = extractedMetrics[0];
+                          if (extractedMetrics[1].metrics) {
+                              if (extractedMetrics[1].metrics.length > 0) {
+                                  bubbleMetricsArray[index].push(extractedMetrics[1].metrics);
+                                  $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + index).attr("data-bubblemetricsarray", extractedMetrics[1].metrics);
+                                  if (bubbleMetricsArray[index][0] != null) {
+                                      if (bubbleMetricsArray[index][0].length > 0) {
+                                          for (let k = 0; k < bubbleMetricsArray[index][0].length; k++) {
+                                              if (bubbleMetricsArray[index][k] === "loading available metrics..." || bubbleMetricsArray[index] === "no metrics available") {
+                                                  $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="' + bubbleMetricsArray[index][0][k] + '" disabled>' + bubbleMetricsArray[index][0][k] + '</option>');
+                                              } else {
+                                                  $('#bubbleMetricsSelect' + index).append('<option value="' + bubbleMetricsArray[index][0][k] + '">' + bubbleMetricsArray[index][0][k] + '</option>');
+                                              }
                                           }
-                                      }
-                                      for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
-                                          if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
-                                              $('#bubbleMetricsSelect' + index)[0].remove(sc);
-                                              break;
+                                          for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                              if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                  $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                  break;
+                                              }
+                                          }
+                                      } else {
+                                          $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
+                                          $('#bubbleMetricsSelect' + index).val("no metrics available");
+                                          for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                              if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                  $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                  break;
+                                              }
                                           }
                                       }
                                   } else {
@@ -1101,6 +1113,7 @@ function editGisUpdateParams(e, params)
                                           }
                                       }
                                   }
+                                  var stopFlag = 1;
                               } else {
                                   $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
                                   $('#bubbleMetricsSelect' + index).val("no metrics available");
@@ -1111,7 +1124,6 @@ function editGisUpdateParams(e, params)
                                       }
                                   }
                               }
-                              var stopFlag = 1;
                           } else {
                               $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
                               $('#bubbleMetricsSelect' + index).val("no metrics available");
@@ -1122,18 +1134,16 @@ function editGisUpdateParams(e, params)
                                   }
                               }
                           }
-                      } else {
-                          $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
-                          $('#bubbleMetricsSelect' + index).val("no metrics available");
-                          for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
-                              if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
-                                  $('#bubbleMetricsSelect' + index)[0].remove(sc);
-                                  break;
-                              }
-                          }
                       }
-                  }
-              });
+                  });
+
+                  /*  if (newValue == 'CustomPin') {
+
+                        getSvgSingleVariableTemplates(rowIndex, function (extractedMetrics) {
+
+                        });
+                    }*/
+              }
 
           } else {
            /*   var n, L = $('#bubbleMetricsDiv' + rowIndex).find('select')[0].options.length - 1;
@@ -1163,7 +1173,11 @@ function editGisUpdateParams(e, params)
 
       case 'iconPoolImg':
            //   newValue = $(this).val();
-           newValue = "../img/widgetSelectorIconsPool" + $(this).val() + ".svg";
+          if ($(this).val().includes("synopticTemplates/svg/")) {
+              newValue = $(this).val();
+          } else {
+              newValue = "../img/widgetSelectorIconsPool" + $(this).val() + ".svg";
+          }
            editGisParametersLocal.queries[rowIndex].iconPoolImg = newValue;
            break;
 

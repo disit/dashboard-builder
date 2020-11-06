@@ -339,7 +339,7 @@ $title = $_REQUEST['title_w'];
                 marker.on('click', function (event) {
 
                     // opacizza
-                    hideMarkers();
+                //    hideMarkers();
 
                     let targetMarker = event.target;
 
@@ -1072,7 +1072,7 @@ $title = $_REQUEST['title_w'];
                                 });
                                 targetMarker.setIcon(outIcon);
 
-                                hideMarkers();
+                            //    hideMarkers();
                                 editCSSFor3DWidgets();
 
                                 var popupContent = $('<div></div>');

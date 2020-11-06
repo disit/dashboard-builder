@@ -1140,8 +1140,10 @@
                             if (udmFromUserOptions != null) {
                                 udm = udmFromUserOptions;
                             } else {
-                                if (propertyJson.features[0].properties.realtimeAttributes[field].value_unit != null) {
-                                    udm = propertyJson.features[0].properties.realtimeAttributes[field].value_unit;
+                                if (propertyJson.features[0].properties.realtimeAttributes[field] != null) {
+                                    if (propertyJson.features[0].properties.realtimeAttributes[field].value_unit != null) {
+                                        udm = propertyJson.features[0].properties.realtimeAttributes[field].value_unit;
+                                    }
                                 }
                             }
                             for(var i = 0; i < originalData.realtime.results.bindings.length; i++)
@@ -1331,8 +1333,10 @@
                             if (udmFromUserOptions != null) {
                                 udm = udmFromUserOptions;
                             } else {
-                                if (propertyJson.features[0].properties.realtimeAttributes[field].value_unit != null) {
-                                    udm = propertyJson.features[0].properties.realtimeAttributes[field].value_unit;
+                                if (propertyJson.features[0].properties.realtimeAttributes[field] != null) {
+                                    if (propertyJson.features[0].properties.realtimeAttributes[field].value_unit != null) {
+                                        udm = propertyJson.features[0].properties.realtimeAttributes[field].value_unit;
+                                    }
                                 }
                             }
                             for(var i = 0; i < originalData.realtime.results.bindings.length; i++)
@@ -1622,7 +1626,7 @@
                 }
 
                 $.ajax({
-                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + fromGisExternalContentField,
+                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + fromGisExternalContentField,
                     type: "GET",
                     data: {},
                     async: true,
@@ -1881,7 +1885,7 @@
 
                         $.ajax({
                         //    url: rowParameters + "&" + serviceMapTimeRange + "&valueName=" + sm_field,
-                            url: "<?= $superServiceMapProxy ?>" + rowParameters + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + sm_field,
+                            url: "<?= $superServiceMapProxy ?>" + encodeServiceUri(rowParameters) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + sm_field,
                             type: "GET",
                             data: {},
                             async: true,
@@ -1998,7 +2002,8 @@
 
                     case 'myPersonalData':
                         $.ajax({
-                            url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&last=0&" + serviceMapTimeRange,
+                         //   url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&last=0&" + serviceMapTimeRange,
+                            url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&" + serviceMapTimeRange,
                             type: "GET",
                             data: {},
                             async: true,
@@ -2155,12 +2160,12 @@
                     let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
                     if (fromGisExternalContent) {
                         // urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&valueName=" + fromGisExternalContentField;
-                        urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri);
+                        urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri);
                         field = fromGisExternalContentField;
 
                     } else {
                         //  urlKBToBeCalled = rowParameters + "&" + "&valueName=" + sm_field;
-                        urlKBToBeCalled = rowParameters;
+                        urlKBToBeCalled = encodeServiceUri(rowParameters);
                         field = sm_field;
                     }
                     if(rowParameters != null) {
@@ -2251,12 +2256,12 @@
                     let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
                     if (fromGisExternalContent) {
                         // urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&valueName=" + fromGisExternalContentField;
-                        urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri);
+                        urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri);
                         field = fromGisExternalContentField;
 
                     } else {
                         //  urlKBToBeCalled = rowParameters + "&" + "&valueName=" + sm_field;
-                        urlKBToBeCalled = rowParameters;
+                        urlKBToBeCalled = encodeServiceUri(rowParameters);
                         field = sm_field;
                     }
                     if(rowParameters != null) {
@@ -2353,11 +2358,11 @@
                         //let dashboardOrgKbUrl = "https://servicemap.disit.org/WebAppGrafo/api/v1/";
                         if (fromGisExternalContent) {
                             // urlKBToBeCalled = dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&valueName=" + fromGisExternalContentField;
-                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + dashboardOrgKbUrl + "?serviceUri=" + encodeURI(fromGisExternalContentServiceUri);
+                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + dashboardOrgKbUrl + "?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri);
                             field = fromGisExternalContentField;
                         } else {
                             //  urlKBToBeCalled = rowParameters + "&" + "&valueName=" + sm_field;
-                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + widgetData.params.rowParameters;
+                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + encodeServiceUri(widgetData.params.rowParameters);
                             field = widgetData.params.sm_field;
                         }
                         $.ajax({

@@ -177,13 +177,14 @@ else if(isset($_SESSION['refreshToken'])) {
     if($_GET['method'] === "POST") {
         $studioName = $_GET['studioName'];
         $scenarioName = $_GET['scenarioName'];
+        $studioDescription = $_GET['studioDescription']; //add scenario description 
         $waypoints = $_GET['waypoints'];
         $vehicle = $_GET['vehicle'];
         $isPublic = $_GET['public'];
         
         // encapsulate studio's data in a json to store it in db
         $dmVariableValue = json_encode(
-            array('studioName' => $studioName, 'scenarioName' => $scenarioName,
+            array('studioName' => $studioName, 'scenarioName' => $scenarioName, 'studioDescription' => $studioDescription,
                 'waypoints' => $waypoints, 'vehicle' => $vehicle,
                 'isPublic' => $isPublic)
         );

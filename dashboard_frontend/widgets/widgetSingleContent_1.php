@@ -557,7 +557,7 @@
                     
                     if(fromGisExternalContent)
                     {
-                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&format=json";      // PANTALEO - DA METTERE SUPERSERVICEMAP ??
+                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&format=json";      // PANTALEO - DA METTERE SUPERSERVICEMAP ??
 
                         $.ajax({
                             url: urlToCall,

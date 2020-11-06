@@ -2648,7 +2648,58 @@
                     var newScaledGridsterCellH = 7; */
                     var newScaledGridsterCellW = 26;
                     var newScaledGridsterCellH = 13;
+                    var iconPoolDatasetJSONCustom = null;
+                    var svgArray = null;
+                    var customSvgFlag = false;
+                    
+                    function buildIconsBox(suggestedIconsList, i, allIcons, newTableRow, newTableCell, widgetId) {
+                        var iconPoolDataset = '{"SUGGESTED Icons": ["';
+                        var iconPoolString = '<select name="Selector_poolBtn_' + i + '" id="Selector_poolBtn_poolBtn_' + i + '"><optgroup label="SUGGESTED Icons">';
+                        var resultingSuggested = "";
+                        if(suggestedIconsList.suggestedIconList) {
+                            if (suggestedIconsList.suggestedIconList instanceof Array === false) {
+                                resultingSuggested = Object.keys(suggestedIconsList.suggestedIconList).map(function(key) {
+                                    return suggestedIconsList.suggestedIconList[key];
+                                });
 
+                            } else {
+                                resultingSuggested = suggestedIconsList.suggestedIconList;
+                            }
+                            for (k = 0; k < resultingSuggested.length; k++) {
+                                if (UrlExists("../img/widgetSelectorIconsPool" + resultingSuggested[k] + ".svg")) {
+                                    iconPoolString = iconPoolString + '<option value="' + resultingSuggested[k] + '">' + resultingSuggested[k] + '</option>';
+                                    if (k == 0) {
+                                        iconPoolDataset = iconPoolDataset + resultingSuggested[k];
+                                    } else {
+                                        iconPoolDataset = iconPoolDataset + '", "' + resultingSuggested[k];
+                                    }
+                                }
+                            }
+                        }
+
+                        iconPoolDataset = iconPoolDataset + '"], "ALL Icons": ["';
+                        iconPoolString = iconPoolString + '</optgroup><optgroup label="ALL Icons">';
+
+                        for(k=0; k < allIcons.allIconList.length; k++) {
+                            iconPoolString = iconPoolString + '<option value="' + allIcons.allIconList[k] + '">' + allIcons.allIconList[k] + '</option>';
+                            if (k == 0) {
+                                iconPoolDataset = iconPoolDataset + allIcons.allIconList[k];
+                            } else {
+                                iconPoolDataset = iconPoolDataset + '", "' + allIcons.allIconList[k];
+                            }
+                        }
+
+                        iconPoolDataset = iconPoolDataset + '"]}';
+                        var iconPoolDatasetJSON = JSON.parse(iconPoolDataset);
+                        iconPoolString = iconPoolString + '</optgroup></select>';
+
+                        var newControl2 = $('<input data-param="iconPoolImg" id="Selector_poolBtn_' + i + '" class="poolBtn" title="Choose Image from Our Icons Pool !"><input type="hidden" name="iconPoolSelected" id="' + widgetId + '_poolInput_' + i + '"></input>');
+
+                        newTableCell.append(newControl2);
+                        newTableRow.append(newTableCell);
+                        newTableCell.find('input').change(editGisUpdateParams);
+                        return iconPoolDatasetJSON;
+                    }   
 
                     $('#orgMenu').hide();
                     $('#orgMenuCnt a.mainMenuLink').attr('data-submenuVisible', 'false');
@@ -16415,6 +16466,22 @@
                             
                             for(var i = 0; i < dashboardWidgets.length; i++)
                             {
+                                if (dashboardWidgets[i].id_type_widget == "widgetSelectorNew" && customSvgFlag == false) {
+                                    customSvgFlag = true;
+                                    getSvgSingleVariableTemplates(0, function (extractedMetrics) {
+                                        if (extractedMetrics[1]) {
+                                            if (extractedMetrics[1].detail == 'Succesful Response.') {
+                                                svgSingleReadVariablesObj = extractedMetrics[1].singleReadVars;
+                                                svgArray = {};
+                                                svgArray.allIconList = [];
+                                                for (let n = 0; n < Object.entries(extractedMetrics[1].singleReadVars).length; n++) {
+                                                    svgArray.allIconList.push(Object.entries(extractedMetrics[1].singleReadVars)[n][1]);
+                                                }
+                                            //    iconPoolDatasetJSONCustom = buildIconsBox("", i, svgArray, newTableRow, newTableCell, widgetId);
+                                            }
+                                        }
+                                    });
+                                }
                               //  if (i != 0) {
                                 dashboardWidgets[i]['n_row'] = Math.round(parseInt(dashboardWidgets[i]['n_row'] - 1) * scaleFactorH) + 1;
                                     dashboardWidgets[i]['n_column'] = Math.round(parseInt(dashboardWidgets[i]['n_column'] - 1) * scaleFactorW) + 1;
@@ -20798,7 +20865,7 @@
                                             //Contenitore per tabella delle query
                                             var editGisQueryTableContainer = $('<div id="editGisQueryTableContainer" class="row rowCenterContent"></div>');
                                          //   var editGisQueryTable = $("<table id='editGisQueryTable' data-name_w='" + data.name_widget + "' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:76px'><col style='width:120px'><col style='width:84px'><col style='width:120px'><col style='width:128px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td id='symbolColorColumn'>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td id='mapIconColorColumn'>Map Icon color</td><td id='mapBubbleColumn'>Bubble</td><td id='mapBubbleAttr'>Bubble Metric</td><td>Bubble Color</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
-                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-name_w='" + data.name_widget + "' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:76px'><col style='width:120px'><col style='width:84px'><col style='width:120px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td id='symbolColorColumn'>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Display</td><td id='mapIconColorColumn'>Map Icon color</td><td id='mapBubbleColumn'>Bubble</td><td id='mapBubbleAttr'>Bubble Metric</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            var editGisQueryTable = $("<table id='editGisQueryTable' data-name_w='" + data.name_widget + "' data-widgetType='selectorNew' class='table table-bordered table-condensed thrRangeTable'><col style='width:64px'><col style='width:64px'><col style='width:120px'><col style='width:64px'><col style='width:120px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:128px'><col style='width:76px'><col style='width:120px'><col style='width:84px'><col style='width:120px'><col style='width:50px'><col style='width:50px'><tr><td>Default</td><td>Symbol mode</td><td>Symbol choice</td><td>Symbol preview</td><td id='symbolColorColumn'>Symbol color</td><td>Description</td><td>Query</td><td>Color1</td><td>Color2</td><td>Data widgets</td><td>Default View Mode</td><td id='mapIconColorColumn'>Map Icon color</td><td id='mapBubbleColumn'>Alternate View Mode</td><td id='mapBubbleAttr'>Variable Name</td><td>Order</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                             editGisQueryTableContainer.append(editGisQueryTable);
                                             $("#specificParamsM").append(editGisQueryTableContainer);
 
@@ -20807,29 +20874,42 @@
 
                                             for (var i = 0; i < editGisParameters.queries.length; i++) {
 
-                                                if (editGisParameters.queries[i].bubble == "Yes") {
+                                                var svgSingleReadVariablesObj = null;
+                                                var iconPoolDatasetJSONCustom = null;
+                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin") {
 
                                                     // RETRIEVE METRICS ARRAY FOR BUBBLE CHART (SERVER SIDE)
                                                     getBubbleMetrics(editGisParameters.queries[i].query, i, function(extractedMetrics) {
                                                         if (extractedMetrics) {
                                                             let index = extractedMetrics[0];
                                                             bubbleMetricsArray[index] = [];
-                                                            if(extractedMetrics[1].metrics.length > 0) {
-                                                                bubbleMetricsArray[index].push(extractedMetrics[1].metrics);
-                                                                $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + index).attr("data-bubblemetricsarray", extractedMetrics[1].metrics);
-                                                                if (bubbleMetricsArray[index][0] != null) {
-                                                                    if (bubbleMetricsArray[index][0].length > 0) {
-                                                                        for (let k = 0; k < bubbleMetricsArray[index][0].length; k++) {
-                                                                            if (bubbleMetricsArray[index][k] === "loading available metrics..." || bubbleMetricsArray[index] === "no metrics available") {
-                                                                                $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="' + bubbleMetricsArray[index][0][k] + '" disabled>' + bubbleMetricsArray[index][0][k] + '</option>');
-                                                                            } else {
-                                                                                $('#bubbleMetricsSelect' + index).append('<option value="' + bubbleMetricsArray[index][0][k] + '">' + bubbleMetricsArray[index][0][k] + '</option>');
+                                                            if (extractedMetrics[1].metrics != null) {
+                                                                if(extractedMetrics[1].metrics.length > 0) {
+                                                                    bubbleMetricsArray[index].push(extractedMetrics[1].metrics);
+                                                                    $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + index).attr("data-bubblemetricsarray", extractedMetrics[1].metrics);
+                                                                    if (bubbleMetricsArray[index][0] != null) {
+                                                                        if (bubbleMetricsArray[index][0].length > 0) {
+                                                                            for (let k = 0; k < bubbleMetricsArray[index][0].length; k++) {
+                                                                                if (bubbleMetricsArray[index][k] === "loading available metrics..." || bubbleMetricsArray[index] === "no metrics available") {
+                                                                                    $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="' + bubbleMetricsArray[index][0][k] + '" disabled>' + bubbleMetricsArray[index][0][k] + '</option>');
+                                                                                } else {
+                                                                                    $('#bubbleMetricsSelect' + index).append('<option value="' + bubbleMetricsArray[index][0][k] + '">' + bubbleMetricsArray[index][0][k] + '</option>');
+                                                                                }
                                                                             }
-                                                                        }
-                                                                        for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
-                                                                            if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
-                                                                                $('#bubbleMetricsSelect' + index)[0].remove(sc);
-                                                                                break;
+                                                                            for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                                                                if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                                                    $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                        } else {
+                                                                            $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
+                                                                            $('#bubbleMetricsSelect' + index).val("no metrics available");
+                                                                            for (let sc = 0; sc < $('#bubbleMetricsSelect' + index).length; sc++) {
+                                                                                if ($('#bubbleMetricsSelect' + index)[0].options[sc].value == 'loading available metrics...' || $('#bubbleMetricsSelect' + index).options[sc].value == 'no metrics available') {
+                                                                                    $('#bubbleMetricsSelect' + index)[0].remove(sc);
+                                                                                    break;
+                                                                                }
                                                                             }
                                                                         }
                                                                     } else {
@@ -20842,6 +20922,7 @@
                                                                             }
                                                                         }
                                                                     }
+                                                                    var stopFlag = 1;
                                                                 } else {
                                                                     $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
                                                                     $('#bubbleMetricsSelect' + index).val("no metrics available");
@@ -20852,7 +20933,6 @@
                                                                         }
                                                                     }
                                                                 }
-                                                                var stopFlag = 1;
                                                             } else {
                                                                 $('#bubbleMetricsSelect' + index).append('<option style="color:darkgrey" value="no metrics available" disabled>no metrics available</option>');
                                                                 $('#bubbleMetricsSelect' + index).val("no metrics available");
@@ -20870,7 +20950,7 @@
                                                 newTableRow = $('<tr></tr>');
 
                                                 // Default CELL
-                                                if (editGisParameters.queries[i].defaultOption === false) {
+                                                if (editGisParameters.queries[i].defaultOption === false ) {
                                                     newTableCell = $('<td><input data-param="queryDefaultOption" type="checkbox"/></td>');
                                                 }
                                                 else {
@@ -20944,9 +21024,16 @@
                                                 //    var suggestedIconsList = allIcons;
                                                     var suggestedIconsList = "";
                                                 }
-                                                
-                                                if(styleParameters.iconText == "Icon Only") {
-                                                    var iconPoolDataset = '{"SUGGESTED Icons": ["';
+
+                                                if (editGisParameters.queries[i].bubble == 'CustomPin') {
+                                                    if (svgArray != null) {
+                                                        var    iconPoolDatasetJSON = buildIconsBox("", i, svgArray, newTableRow, newTableCell, widgetId)
+                                                    }
+                                                }
+
+                                                if(styleParameters.iconText == "Icon Only" && editGisParameters.queries[i].bubble != 'CustomPin') {
+                                                    var iconPoolDatasetJSON = buildIconsBox(suggestedIconsList, i, allIcons, newTableRow, newTableCell, widgetId);
+                                                    /*   var iconPoolDataset = '{"SUGGESTED Icons": ["';
                                                     var iconPoolString = '<select name="Selector_poolBtn_' + i + '" id="Selector_poolBtn_poolBtn_' + i + '"><optgroup label="SUGGESTED Icons">';
                                                     var resultingSuggested = "";
                                                     if(suggestedIconsList.suggestedIconList) {
@@ -20990,7 +21077,7 @@
 
                                                     newTableCell.append(newControl2);
                                                     newTableRow.append(newTableCell);
-                                                    newTableCell.find('input').change(editGisUpdateParams);
+                                                       newTableCell.find('input').change(editGisUpdateParams);     */
                                                     
                                                 }
                                             
@@ -21043,7 +21130,15 @@
                                                         if (editGisParameters.queries[i].iconPoolImg) {
                                                             newTableRow.find('div.selectorMenuCustomIcon').hide();
                                                             newTableRow.find('i.selectorMenuDefaultIcon').hide();
-                                                            newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                            if (editGisParameters.queries[i].iconPoolImg.includes("61_SVG_Value.svg") || editGisParameters.queries[i].iconPoolImg.includes("78_SVG_Thermometer.svg")) {
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "18px");
+                                                            //    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('padding-left', "25px");
+                                                            } else if (editGisParameters.queries[i].iconPoolImg.includes("78_SVG_Thermometer.svg")) {
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "9px");
+                                                                //    newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('padding-left', "25px");
+                                                            } else {
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).css('height', "52px");
+                                                            }
                                                             newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", editGisParameters.queries[i].iconPoolImg);
                                                             newTableRow.find('#' + data.name_widget + '_poolIcon_' + i).children(0).attr("data-iconblack", editGisParameters.queries[i].iconPoolImg);
                                                             var iconWhitePathAuto = editGisParameters.queries[i].iconPoolImg.split(".svg")[0] + "-white.svg";
@@ -21091,6 +21186,17 @@
                                                                 newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).children(0).attr("src", editGisParameters.queries[i].iconPoolImg);
                                                                 newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).show();
                                                             } else {
+                                                                newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                                //    $(this).parents('tr').find('div.icons-selector').hide();
+                                                                $(this).parents('tr').find('div.icons-selector').css("display", "none");
+                                                                newTableRow.find('div.selectorMenuCustomIcon').hide();
+                                                                newTableRow.find('i.selectorMenuDefaultIcon').show();
+                                                            }
+                                                        }
+                                                        // Set Preview Icon with Default if bubble='None' AND iconPoolImg cotains the substring synopticTemplates/svg
+                                                        if (editGisParameters.queries[i].iconPoolImg != null) {
+                                                        //    if (editGisParameters.queries[i].bubble == 'None' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
+                                                            if (editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
                                                                 newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
                                                                 //    $(this).parents('tr').find('div.icons-selector').hide();
                                                                 $(this).parents('tr').find('div.icons-selector').css("display", "none");
@@ -21255,10 +21361,11 @@
                                                 newTableCell.find('select').val(editGisParameters.queries[i].newMapPinColor);
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
 
-                                                // Bubble CELL
+                                                // Alternate View Mode CELL
                                                 newTableCell = $('<td class="bubbleTd"><select data-param="bubble" class="form-control"></select></td>');
-                                                newTableCell.find('select').append('<option value="Yes">Yes</option>');
-                                                newTableCell.find('select').append('<option value="No">No</option>');
+                                                newTableCell.find('select').append('<option value="None">None</option>');
+                                                newTableCell.find('select').append('<option value="Bubble">Bubble</option>');
+                                                newTableCell.find('select').append('<option value="CustomPin">Custom Pin</option>');
                                                 newTableRow.append(newTableCell);
                                                 newTableCell.find('select').val(editGisParameters.queries[i].bubble);
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
@@ -21278,7 +21385,7 @@
                                                         }
                                                     });
                                                 }*/
-                                                if (editGisParameters.queries[i].bubble == "Yes") {
+                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin") {
                                                     var bubbleMetricsString = $('#' + data.name_widget + '_pinCtn' + i).attr("data-bubblemetricsarray");
                                                     if (bubbleMetricsString === "loading available metrics...") {
                                                         var bubbleMetricsArray = ["loading available metrics...", editGisParameters.queries[i].bubbleMetrics];
@@ -21362,14 +21469,26 @@
                                                     '/hlt/wfs' ];
 
                                             //    if(editGisParameters.queries[i].high_level_type || editGisParameters.queries[i].nature || editGisParameters.queries[i].sub_nature) {
-                                                    $( '#Selector_poolBtn_' + i ).fontIconPicker({
+                                                 var picker = $( '#Selector_poolBtn_' + i ).fontIconPicker({
                                                         //  $('.poolBtn').fontIconPicker({
                                                     //    source: svgs,
                                                         source: iconPoolDatasetJSON,
                                                         theme: 'fip-bootstrap',
                                                     //    appendTo: 'self',
                                                         iconGenerator: function (item, flipBoxTitle, index) {
-                                                            return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:40px"></i>';
+                                                         //   var rowIndex = $(this).parents("tr").index() - 1;
+                                                        //    if (editGisParameters.queries[i].bubble == "CustomPin") {
+                                                            if (item.includes("synopticTemplates/svg"))  {
+                                                                if (item.includes("61_SVG_Value.svg")) {
+                                                                    return '<i style="display: flex; align-items: center; justify-content: center; height: 40px"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="' + item + '" style="height:18px;padding-left:25px;"></i>';
+                                                                } else if(item.includes("78_SVG_Thermometer.svg")) {
+                                                                    return '<i style="display: flex; align-items: center; justify-content: center; height: 40px"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="' + item + '" style="height:9px;"></i>';
+                                                                } else {
+                                                                    return '<i style="display: flex; align-items: center; justify-content: center; height: 40px"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="' + item + '" style="height:40px"></i>';
+                                                                }
+                                                            } else {
+                                                                return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:40px"></i>';
+                                                            }
                                             // LAST WORKING OK!
                                                     //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
                                                             //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
@@ -21386,9 +21505,31 @@
                                                                 return;
                                                             }
                                                             liveTitle.html(item.split('-').join(' '));
-                                                            liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
+                                                            liveImage.attr('src', '../img/widgetSelectorIconsPool/hlt' + item + '.svg');
                                                         });
                                             //    }
+
+                                            // Set Starting Icon (in Icon-Only Modality)
+                                                if (editGisParameters.queries[i].iconPoolImg != null) {
+                                                 //   if (editGisParameters.queries[i].bubble == 'CustomPin' || editGisParameters.queries[i].iconPoolImg.includes('synopticTemplates/svg')) {
+                                                    if (editGisParameters.queries[i].bubble == 'CustomPin' && editGisParameters.queries[i].iconPoolImg.split('widgetSelectorIconsPool')[1] == null) {
+                                                        picker.setIcon(editGisParameters.queries[i].iconPoolImg);
+                                                    } else {
+                                                        let iconPathToSet = "";
+                                                        if (editGisParameters.queries[i].iconPoolImg.split('widgetSelectorIconsPool') != null && editGisParameters.queries[i].iconPoolImg.split('widgetSelectorIconsPool')[1] != null) {
+                                                            iconPathToSet = editGisParameters.queries[i].iconPoolImg.split('widgetSelectorIconsPool')[1];
+                                                            iconPathToSet = iconPathToSet.split('.svg')[0];
+                                                        }
+                                                        picker.setIcon(iconPathToSet);
+                                                    }
+
+                                                    if (editGisParameters.queries[i].bubble == "CustomPin") {
+                                                        //     newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
+                                                        $('div.selector').filter(function () {
+                                                            return $(this).attr('data-fip-origin') == 'Selector_poolBtn_' + i;
+                                                        }).show();
+                                                    }
+                                                }
                                             }
 
                                             if (styleParameters.iconText == "Icon Only") {
@@ -21970,7 +22111,12 @@
                                                         theme: 'fip-bootstrap',
                                                     //    appendTo: 'self',
                                                         iconGenerator: function (item, flipBoxTitle, index) {
-                                                            return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:56px"></i>';
+                                                            //    if (editGisParameters.queries[i].bubble == "CustomPin") {
+                                                            if (item.includes("synopticTemplates/svg"))  {
+                                                                return '<i style="display: flex; align-items: center; justify-content: center; height: 40px"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="' + item + '" style="height:40px"></i>';
+                                                            } else {
+                                                                return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:40px"></i>';
+                                                            }
                                             // LAST WORKING OK!
                                                     //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
                                                             //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
@@ -21987,7 +22133,7 @@
                                                                 return;
                                                             }
                                                             liveTitle.html(item.split('-').join(' '));
-                                                            liveImage.attr('src', 'C:\Apache24\htdocs\dashboardSmartCity\img\widgetSelectorIconsPool\hlt' + item + '.svg');
+                                                            liveImage.attr('src', '../img/widgetSelectorIconsPool/hlt' + item + '.svg');
                                                         });
                                             //    }
                                             }
@@ -30151,7 +30297,7 @@
                                                         gisTargetCenterParametersM.coordsCollectionUri = $(this).val();
                                                         $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                                     });
-                                                }, 700);
+                                                }, 900);
                                             }
 
 
@@ -30993,6 +31139,7 @@
                                                     break;
                                                     
                                                 case "selectorWebTarget":
+                                                    $("#urlWidgetM").val('{"homepage":"about:blank","widgetMode":"selectorWebTarget"}');
                                                     $("#urlWidgetM").parents("div.row").show();
                                                     $('#enableFullscreenTabM').attr('disabled', false);
                                                     $("#inputControlsVisibilityM").parents("div.row").show();
@@ -31126,16 +31273,19 @@
 
                                             case "gisTarget":
                                                 gisTargetCenterParametersM = currentParams;
-                                                $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                if (gisTargetCenterParametersM != null) {
+                                                    $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                }
                                                 $('#enableFullscreenTabM').attr('disabled', true);
                                                 $("#inputControlsVisibilityM").parents("div.row").hide();
                                                 $("#inputControlsPositionM").parents("div.row").hide();
                                                 $("#inputShowTitleM").val("yes");
                                                 $("#enableFullscreenTabM").val("no");
-                                                
-                                                $("#gisTargetCenterLatM").val(gisTargetCenterParametersM.latLng[0]);
-                                                $("#gisTargetCenterLngM").val(gisTargetCenterParametersM.latLng[1]);
-                                                $("#gisTargetCenterZoomM").val(gisTargetCenterParametersM.zoom);
+                                                if (gisTargetCenterParametersM != null) {
+                                                    $("#gisTargetCenterLatM").val(gisTargetCenterParametersM.latLng[0]);
+                                                    $("#gisTargetCenterLngM").val(gisTargetCenterParametersM.latLng[1]);
+                                                    $("#gisTargetCenterZoomM").val(gisTargetCenterParametersM.zoom);
+                                                }
                                                 $('#coordsCollectionUriM').parents("div.row").show();
                                                 
                                                 if(gisTargetCenterMapDivRefM === null)
@@ -31358,7 +31508,7 @@
 							    {
 								    if(data.url.includes("selectorWebTarget"))
 									{
-										$("#urlWidgetM").val(JSON.parse(data.url).homepage);
+									//	$("#urlWidgetM").val(JSON.parse(data.url).homepage);
 									}
 									else
 									{

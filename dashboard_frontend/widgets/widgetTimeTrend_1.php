@@ -1229,8 +1229,15 @@
                         break;
                 }
 
+                var urlToPass = "";
+            /*    if (fromGisExternalContentServiceUri.includes("CAPELON") && fromGisExternalContentServiceUri.includes("%253A")) {
+                    urlToPass = fromGisExternalContentServiceUri;
+                } else {*/
+                    urlToPass = encodeURI(fromGisExternalContentServiceUri);
+             //   }
+
                 $.ajax({
-                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&valueName=" + fromGisExternalContentField,
+                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + urlToPass + "&" + serviceMapTimeRange + "&valueName=" + fromGisExternalContentField,
                     type: "GET",
                     data: {},
                     async: true,
@@ -1497,6 +1504,7 @@
 
                     case 'myPersonalData':
                         $.ajax({
+                        //    url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&last=0&" + serviceMapTimeRange,
                             url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&last=0&" + serviceMapTimeRange,
                             type: "GET",
                             data: {},

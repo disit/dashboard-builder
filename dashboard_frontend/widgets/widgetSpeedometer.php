@@ -49,6 +49,7 @@
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var needWebSocket = false;
+        var rowParametersUrl = null;
 
         console.log("Entrato in widgetSpeedometer --> " + widgetName);
 
@@ -859,6 +860,16 @@
                 sm_based = widgetData.params.sm_based;
                 rowParameters = widgetData.params.rowParameters;
                 sm_field = widgetData.params.sm_field;
+                if (rowParameters != null && rowParameters != '') {   // chiedere a Piero se rafforzare con && nrMetricType != null
+                    if (IsJsonString(rowParameters)) {
+                        if (JSON.parse(rowParameters).metricHighLevelType == "Sensor") {
+                            sm_based = "yes";
+                        } else if (JSON.parse(rowParameters).metricHighLevelType == "MyKPI") {
+                            sm_based = "myKPI";
+                        }
+                        sm_field = JSON.parse(rowParameters).metricType;
+                    }
+                }
                 
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
@@ -926,7 +937,7 @@
 
                 if(fromGisExternalContent)
                 {
-                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&format=json";
+                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&format=json";
 
                     $.ajax({
                         url: urlToCall,
@@ -1067,12 +1078,27 @@
                 {
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
+
+                    if (rowParameters != null && rowParameters != '') {
+                        if (IsJsonString(rowParameters)) {
+                            if ((JSON.parse(rowParameters).metricId != null)) {
+                                rowParametersUrl = encodeServiceUri(JSON.parse(rowParameters).metricId);
+                            } else {
+                                rowParametersUrl = encodeServiceUri(rowParameters);
+                            }
+                        } else {
+                            rowParametersUrl = encodeServiceUri(rowParameters);
+                        }
+                    } else {
+                        rowParametersUrl = encodeServiceUri(rowParameters);
+                    }
                     
                     switch(sm_based)
                     {
                         case 'yes':
                             $.ajax({
-                                url: "<?= $superServiceMapProxy?>"+rowParameters,
+                                url: "<?= $superServiceMapProxy?>"+rowParametersUrl,
+                            //    url: rowParametersUrl,
                                 type: "GET",
                                 data: {},
                                 async: true,
@@ -1329,7 +1355,7 @@
                                 url: "../controllers/myKpiProxy.php",
                                 type: "GET",
                                 data: {
-                                    myKpiId: rowParameters,
+                                    myKpiId: rowParametersUrl,
                                     action: "getValueUnit",
                                     last: 1
                                 },

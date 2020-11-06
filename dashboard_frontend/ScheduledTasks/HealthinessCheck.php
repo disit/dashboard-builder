@@ -105,9 +105,11 @@ if ($rs) {
                     $sUri = $row['get_instances'];
                 }
                 if ($row['sub_nature'] != 'IoTSensor' && $row['sub_nature'] != 'IoTSensor-Actuator') {
-                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+                    $sUriEnc = str_replace('%3A', '%253A', $sUri);
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
                 } else {
-                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+                    $sUriEnc = str_replace('%3A', '%253A', $sUri);
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
                 }
                 $instance_uri = "any + status";
             } else if ($sub_nature === "First Aid Data") {

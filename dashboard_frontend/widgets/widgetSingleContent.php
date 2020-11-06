@@ -47,6 +47,8 @@
             widgetParameters, webSocket, openWs, openWsConn, wsError, manageIncomingWsMsg, wsClosed, chartColor, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor = null;
 
         var needWebSocket = false;
+        var rowParametersUrl = null;
+
         console.log("Widget Single Content: " + widgetName);
         
         $(document).off('changeMetricFromButton_' + widgetName);
@@ -132,6 +134,7 @@
                     var flowIdD = widgetData.params.flowId;
                     var nrMetricTypeD = widgetData.params.nrMetricType;
                     var webLinkD = widgetData.params.link_w;
+                    var rowParametersUrl = null;
 
                     if(location.href.includes("index.php") && webLinkD != "" && webLinkD != "none" && webLinkD != null) {
                         $("#" + widgetName).css("cursor", "pointer");
@@ -268,7 +271,7 @@
                                 case "Float":
                                     if((metricData.data[0].commit.author.value_num !== null) && (metricData.data[0].commit.author.value_num !== "") && (typeof metricData.data[0].commit.author.value_num !== "undefined"))
                                     {
-                                       value = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(1)); 
+                                       value = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(1));
                                     }
                                     flagNumeric = true;
                                     break;
@@ -482,6 +485,16 @@
                     sm_based = widgetData.params.sm_based;
                     rowParameters = widgetData.params.rowParameters;
                     sm_field = widgetData.params.sm_field;
+                    if (rowParameters != null && rowParameters != '') {
+                        if (IsJsonString(rowParameters)) {
+                            if (JSON.parse(rowParameters).metricHighLevelType == "Sensor") {
+                                sm_based = "yes";
+                            } else if (JSON.parse(rowParameters).metricHighLevelType == "MyKPI") {
+                                sm_based = "myKPI";
+                            }
+                            sm_field = JSON.parse(rowParameters).metricType;
+                        }
+                    }
                     
                     if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                     {
@@ -531,7 +544,7 @@
                     
                     if(fromGisExternalContent)
                     {
-                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + fromGisExternalContentServiceUri + "&format=json";      // PANTALEO - DA METTERE SUPERSERVICEMAP ??
+                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&format=json";      // PANTALEO - DA METTERE SUPERSERVICEMAP ??
 
                         $.ajax({
                             url: urlToCall,
@@ -668,12 +681,26 @@
                     {
                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
-                        
+
+                        if (rowParameters != null && rowParameters != '') {
+                            if (IsJsonString(rowParameters)) {
+                                if ((JSON.parse(rowParameters).metricId != null)) {
+                                    rowParametersUrl = encodeServiceUri(JSON.parse(rowParameters).metricId);
+                                } else {
+                                    rowParametersUrl = encodeServiceUri(rowParameters);
+                                }
+                            } else {
+                                rowParametersUrl = encodeServiceUri(rowParameters);
+                            }
+                        } else {
+                            rowParametersUrl = encodeServiceUri(rowParameters);
+                        }
+
                         switch(sm_based)
                         {
                             case 'yes':
                                 $.ajax({
-                                    url: "<?= $superServiceMapProxy?>"+rowParameters,
+                                    url: "<?= $superServiceMapProxy?>"+rowParametersUrl,
                                     type: "GET",
                                     data: {},
                                     async: true,
@@ -735,7 +762,9 @@
 
                                             default:
                                                 metricData.data[0].commit.author.metricType = "Testuale";
-                                                metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field].value;
+                                                if ( metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field] != null) {
+                                                    metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field].value;
+                                                }
                                                 break;    
                                         }
 
@@ -903,14 +932,14 @@
 
                             case 'myData':
                             case 'myKPI':
-                                if (rowParameters.includes("datamanager/api/v1/poidata/")) {
-                                    rowParameters = rowParameters.split("datamanager/api/v1/poidata/")[1];
+                                if (rowParametersUrl.includes("datamanager/api/v1/poidata/")) {
+                                    rowParametersUrl = rowParametersUrl.split("datamanager/api/v1/poidata/")[1];
                                 }
                                 $.ajax({
                                     url: "../controllers/myKpiProxy.php?",
                                     type: "GET",
                                     data: {
-                                        myKpiId: rowParameters,
+                                        myKpiId: rowParametersUrl,
                                         last: 1
                                     },
                                     async: true,

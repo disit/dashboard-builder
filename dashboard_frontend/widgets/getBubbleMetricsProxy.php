@@ -183,7 +183,7 @@ switch($dataOrigin)
             for ($count = 0; $count < sizeof($fatherGeoJsonNode->features); $count++) {
                 $singleServieUri = $fatherGeoJsonNode->features[$count]->properties->serviceUri;
 
-                $urlToCallSingleDevice = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $singleServieUri . "&format=json";
+                $urlToCallSingleDevice = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . rawurlencode($singleServieUri) . "&format=json";
                 //  $urlToCall = $dataQuery;
 
                 if (isset($urlToCallSingleDevice)) {
