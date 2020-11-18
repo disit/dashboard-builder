@@ -276,6 +276,7 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
 
 if (!empty($_REQUEST["filterDistinct"])) {
 
+        $time_start2 = microtime(true);
         $sql_filter = $_GET['filter'];
         if ($sql_filter != "high_level_type" && $sql_filter != "nature" && $sql_filter != "sub_nature" && $sql_filter != "low_level_type" && $sql_filter != "unit" && $sql_filter != "unique_name_id" && $sql_filter != "healthiness" && $sql_filter != "ownership" && $sql_filter != "value_unit") {
         //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter '".$sql_filter."' is not an allowed value. Force sql_filter = 'high_level_type'");
@@ -547,7 +548,11 @@ if (!empty($_REQUEST["filterDistinct"])) {
 			$result = array_unique($result);
             mysqli_close($link);
             $result['detail'] = 'Ok';
-            			
+
+            $time_end2 = microtime(true);
+            $time2 = $time_end2 - $time_start2;
+        //    eventLog("Wizard/Inspector Filtering time for user " . $dashLoggedUsername . ": " . $time2 . " seconds.");
+
             echo json_encode($result); // echo json_encode($result,JSON_INVALID_UTF8_IGNORE);
 
         } 
@@ -708,6 +713,7 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
          * Easy set variables
          */
 
+        $time_start = microtime(true);
         // DB table to use
         $table = 'DashboardWizard';
 
@@ -834,9 +840,10 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
             $out = dashboardWizardControllerSSP::simple( $_GET, $sql_details, $table, $primaryKey, $columns );
         }
 		if($_REQUEST["initSynVarPresel"] == "true") $out["draw"] = 1;
-			
+
+        $time_start1 = microtime(true);
         for($n=0; $n < sizeof($out['data']); $n++) {
-            if ($out['data'][$n][0] == "Sensor" && $out['data'][$n][6] != 'sensor_map') {
+          /*  if ($out['data'][$n][0] == "Sensor" && $out['data'][$n][6] != 'sensor_map') {
                 // CALL ASCAPI
                 $sUri = $out['data'][$n][15];
                 $sUriEnc = str_replace('%3A', '%253A', $sUri);
@@ -873,68 +880,7 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
                     }
                 }
 
-            } else if ($out['data'][$n][0] == "MyKPI") {
-                // CALL DATAMANAGER API
-            /*    $myKpiId = $out['data'][$n][15];
-                if (strpos($myKpiId, "datamanager/api/v1") !== false) {
-                    $myKpiId = explode("datamanager/api/v1/poidata/", $myKpiId)[1];
-                }
-                if(isset($_SESSION['refreshToken'])) {
-                    //  if(isset($_SESSION['refreshToken'])) {
-                    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
-                    $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
-                    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-                    $accessToken = $tkn->access_token;
-                    $_SESSION['refreshToken'] = $tkn->refresh_token;
-
-                    $genFileContent = parse_ini_file("../conf/environment.ini");
-                    $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
-                    $env = $genFileContent['environment']['value'];
-
-                    $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
-                    $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/?sourceRequest=dashboardmanager&lastValue=1&accessToken=" . $accessToken;
-                    $options = array(
-                        'http' => array(
-                            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                            'method' => 'GET',
-                            'timeout' => 30,
-                            'ignore_errors' => true
-                        )
-                    );
-
-                    $context = stream_context_create($options);
-                    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
-
-                } else {
-                    $genFileContent = parse_ini_file("../conf/environment.ini");
-                    $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
-                    $env = $genFileContent['environment']['value'];
-
-                    $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
-
-                    $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/?sourceRequest=dashboardmanager&lastValue=1";
-
-                    $options = array(
-                        'http' => array(
-                            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                            'method' => 'GET',
-                            'timeout' => 30,
-                            'ignore_errors' => true
-                        )
-                    );
-
-                    $context = stream_context_create($options);
-                    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
-                }
-                $myKpiData = json_decode($myKpiDataJson);
-
-                // LAST VALUE
-                $out['data'][$n][9] = $myKpiData->lastValue;
-
-                // LAST DATE
-                $out['data'][$n][8] = date("m-d-Y H:i:s", $myKpiData->lastDate/1000);*/
-
-            }
+            } */
             $privateString = "private";
             if ($out['data'][$n][16] == "private") {
                 if (strpos($out['data'][$n][21], $cryptedUsr) !== false) {
@@ -945,8 +891,14 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
                 $out['data'][$n][16] = $privateString;
             }
         }
+        $time_end1 = microtime(true);
+        $time1 = $time_end1 - $time_start1;
+    //    eventLog("Wizard/Inspector AFTER API " . $dashLoggedUsername . ": " . $time1 . " seconds.");
 
         $out_json = json_encode($out);
+        $time_end = microtime(true);
+        $time = $time_end - $time_start;
+    //    eventLog("Wizard/Inspector loading time for user " . $dashLoggedUsername . ": " . $time . " seconds.");
         echo $out_json;
     }
 }

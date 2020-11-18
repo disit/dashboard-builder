@@ -170,13 +170,15 @@
                     }
                     else
                     {
-                        $response['result'] = "q2Ko";
+                    //    $response['result'] = "q2Ko";
+                        $response['result'] = "DB Error for Metric: " . $metricName;
                     }
                 }
             }
             else
             {
-                $response['result'] = "q1Ko";
+            //    $response['result'] = "q1Ko";
+                $response['result'] = "DB Error for Metric: " . $metricName;
             }
 
             $r3 = mysqli_query($link, $q3);
@@ -211,7 +213,8 @@
             }
             else
             {
-                $response['result'] = "q3Ko";
+            //    $response['result'] = "q3Ko";
+                $response['result'] = "No Data Available for Metric: " . $metricName;
             }
             break;
         
@@ -330,7 +333,7 @@
             }
             else
             {
-                $response['result'] = "Call to SM KO";
+                $response['result'] = "Error in Smart City API for Device: " . $dataOrigin->label;
                 $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
             }
             
@@ -542,7 +545,7 @@
             }
             else
             {
-                $response['result'] = "Call to MyKPI API KO";
+                $response['result'] = "Error in DataManager API for MyKPI: " . $dataOrigin->label;
                 $response['metricHighLevelType'] = $dataOrigin->metricHighLevelType;
             }
 
@@ -550,7 +553,12 @@
 
         //Poi si aggiungeranno le altre sorgenti dati
         default:
-            $response['result'] = "NotImplemented";
+            if (!isset($dataOrigin->metricName))
+            {
+                $response['result'] = "Invalid Data Source: NULL";
+            } else {
+                $response['result'] = "Invalid Data Source: " . $dataOrigin->metricName;
+            }
             break;
     }
 

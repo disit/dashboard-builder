@@ -18501,6 +18501,14 @@
                                                 $('#parametersM').val(JSON.stringify(currentParams));
                                             }
                                             break;
+											
+											case "widgetMultiChoice":
+												$("#inputFontSizeM").val(data['fontSize']);
+												$("#inputFontColorM").val(data['fontColor']);
+												$("#inputFontFamilyWidgetM").val(data['fontFamily']);
+												$("#widgetFontColorM").css("background-color", data['fontColor']);
+												$("#widgetFontColorPickerContainerM").colorpicker('setValue', data['fontColor']);
+												break;
                                         }
                                         
                                     }
