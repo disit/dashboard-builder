@@ -336,7 +336,7 @@
                     $externalApp = $row['externalApp'];
                     $allowedOrgs = $row['organizations'];
 
-                    if(strpos($allowedOrgs=='*' || $allowedOrgs, "'".$organizationSql) !== false) {
+                    if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false) {
                         if ($externalApp == 'yes') {
                             if ($openMode == 'newTab') {
                                 if ($linkUrl == 'submenu') {
@@ -432,7 +432,7 @@
                         $externalApp2 = $row2['externalApp'];
                         $allowedOrgs2 = $row2['organizations'];
 
-                        if(strpos($allowedOrgs2=='*' || $allowedOrgs2, "'".$organizationSql) !== false) {
+                        if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false) {
                             if ($externalApp2 == 'yes') {
                                 if ($openMode2 == 'newTab') {
                                     $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink" target="_blank">' .
