@@ -50,11 +50,15 @@ function udate($format = 'u', $microT) {
     }
 
     if (isset($_REQUEST['last'])) {
-        $lastValueString = "&last=" . $_REQUEST['last'];
+        if ($_REQUEST['last'] == "1") {
+            $lastValueString = "&last=" . $_REQUEST['last'];
+        }
     } else if (isset($_GET['lastValue'])) {
-        $lastValueString = "&last=" . $_GET['lastValue'];
+        if ($_REQUEST['lastValue'] == "1") {
+            $lastValueString = "&last=" . $_GET['lastValue'];
+        }
     } else {
-        $lastValueString = "&last=0";
+     //   $lastValueString = "&last=0";
     }
 
     if (isset($_GET['action'])) {

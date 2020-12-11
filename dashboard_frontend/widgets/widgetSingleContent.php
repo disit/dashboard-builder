@@ -290,7 +290,8 @@
                         }
                         else
                         {
-                            if(udm !== null && udm != '' && udm != ' ')
+                         //   if(udm !== null && udm != '' && udm != ' ')
+                            if(udm !== null && udm != '')
                             {
                                if(udmPos === 'next')
                                {   
@@ -455,274 +456,306 @@
 
             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css('font-size', parseInt($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span').css('font-size').replace('px', ''))*0.45);
 	}
-        //Fine definizioni di funzione 
 
-        //Nuova versione
-        $.ajax({
-                url: "../controllers/getWidgetParams.php",
-                type: "GET",
-                data: {
-                    widgetName: "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>"
-                },
-                async: true,
-                dataType: 'json',
-                success: function(widgetData) 
-                {
-                    showTitle = widgetData.params.showTitle;
-                    widgetContentColor = widgetData.params.color_w;
-                    fontSize = widgetData.params.fontSize;
-                    fontColor = widgetData.params.fontColor;
-                    timeToReload = widgetData.params.frequency_w;
-                    hasTimer = widgetData.params.hasTimer;
-                    chartColor = widgetData.params.chartColor;
-                    dataLabelsFontSize = widgetData.params.dataLabelsFontSize; 
-                    dataLabelsFontColor = widgetData.params.dataLabelsFontColor; 
-                    chartLabelsFontSize = widgetData.params.chartLabelsFontSize; 
-                    chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
-                    appId = widgetData.params.appId;
-                    flowId = widgetData.params.flowId;
-                    nrMetricType = widgetData.params.nrMetricType;
-                    sm_based = widgetData.params.sm_based;
-                    rowParameters = widgetData.params.rowParameters;
-                    sm_field = widgetData.params.sm_field;
-                    if (rowParameters != null && rowParameters != '') {
-                        if (IsJsonString(rowParameters)) {
-                            if (JSON.parse(rowParameters).metricHighLevelType == "Sensor") {
-                                sm_based = "yes";
-                            } else if (JSON.parse(rowParameters).metricHighLevelType == "MyKPI") {
-                                sm_based = "myKPI";
+	    function loadData() {
+
+            if (rowParameters != null && rowParameters != '') {
+                if (IsJsonString(rowParameters)) {
+                    if (JSON.parse(rowParameters).metricHighLevelType == "Sensor") {
+                        sm_based = "yes";
+                    } else if (JSON.parse(rowParameters).metricHighLevelType == "MyKPI") {
+                        sm_based = "myKPI";
+                    }
+                    sm_field = JSON.parse(rowParameters).metricType;
+                }
+            }
+
+            if (fromGisExternalContent) {
+                urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&format=json";      // PANTALEO - DA METTERE SUPERSERVICEMAP ??
+
+                $.ajax({
+                    url: urlToCall,
+                    type: "GET",
+                    data: {},
+                    async: true,
+                    dataType: 'json',
+                    success: function (geoJsonServiceData) {
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').hide();
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').show();
+
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').off('click');
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').click(function () {
+                            if ($(this).attr('data-onMap') === 'false') {
+                                if (fromGisMapRef.hasLayer(fromGisMarker)) {
+                                    fromGisMarker.fire('click');
+                                } else {
+                                    fromGisMapRef.addLayer(fromGisMarker);
+                                    fromGisMarker.fire('click');
+                                }
+                                $(this).attr('data-onMap', 'true');
+                                $(this).html('near_me');
+                                $(this).css('color', 'white');
+                                $(this).css('text-shadow', '2px 2px 4px black');
+                            } else {
+                                fromGisMapRef.removeLayer(fromGisMarker);
+                                $(this).attr('data-onMap', 'false');
+                                $(this).html('navigation');
+                                $(this).css('color', '#337ab7');
+                                $(this).css('text-shadow', 'none');
                             }
-                            sm_field = JSON.parse(rowParameters).metricType;
+                        });
+
+                        metricData = {
+                            "data": [
+                                {
+                                    "commit": {
+                                        "author": {
+                                            "IdMetric_data": fromGisExternalContentField,
+                                            "computationDate": null,
+                                            "value_num": null,
+                                            "value_perc1": null,
+                                            "value_perc2": null,
+                                            "value_perc3": null,
+                                            "value_text": null,
+                                            "quant_perc1": null,
+                                            "quant_perc2": null,
+                                            "quant_perc3": null,
+                                            "tot_perc1": null,
+                                            "tot_perc2": null,
+                                            "tot_perc3": null,
+                                            "series": null,
+                                            "descrip": fromGisExternalContentField,
+                                            "metricType": null,
+                                            "threshold": null,
+                                            "thresholdEval": null,
+                                            "field1Desc": null,
+                                            "field2Desc": null,
+                                            "field3Desc": null,
+                                            "hasNegativeValues": "1"
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+
+                        var fatherNode = null;
+                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                            fatherNode = geoJsonServiceData.BusStop;
+                        } else {
+                            if (geoJsonServiceData.hasOwnProperty("Sensor")) {
+                                fatherNode = geoJsonServiceData.Sensor;
+                            } else {
+                                //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                fatherNode = geoJsonServiceData.Service;
+                            }
                         }
-                    }
-                    
-                    if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-                    {
-                        showHeader = false;
-                    }
-                    else
-                    {
-                        showHeader = true;
-                    } 
 
-                    if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                    {
-                        metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
-                        widgetTitle = widgetData.params.title_w;
-                        widgetHeaderColor = widgetData.params.frame_color_w;
-                        widgetHeaderFontColor = widgetData.params.headerFontColor;
-                        udm = widgetData.params.udm;
-                        udmPos = widgetData.params.udmPos;
-                        sizeRowsWidget = parseInt(widgetData.params.size_rows);
-                        styleParameters = JSON.parse(widgetData.params.styleParameters);
-                        widgetParameters = JSON.parse(widgetData.params.parameters);
-                    }
-                    else
-                    {
-                        metricName = metricNameFromDriver;
-                        widgetTitleFromDriver.replace(/_/g, " ");
-                        widgetTitleFromDriver.replace(/\'/g, "&apos;");
-                        widgetTitle = widgetTitleFromDriver;
-                        $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
-                        widgetHeaderColor = widgetHeaderColorFromDriver;
-                        widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
-                    }
-                    
-                    setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-        
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+                        var serviceProperties = fatherNode.features[0].properties;
+                        var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                        var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                        var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                        serviceSubclass = serviceSubclass.replace(/_/g, " ");
 
-                    if(firstLoad === false)
-                    {
-                        showWidgetContent(widgetName);
+                        var numberPattern = /^-?\d*\.?\d+$/;
+                        var integerPattern = /^[+\-]?\d+$/;
+                        if (numberPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value)) {
+                            if (integerPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value)) {
+                                metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                metricData.data[0].commit.author.metricType = "Intero";
+                            } else {
+                                metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                                metricData.data[0].commit.author.metricType = "Float";
+                            }
+                        } else {
+                            metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
+                            metricData.data[0].commit.author.metricType = "Testuale";
+                        }
+                        /*    if (serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit) {
+                                udm = serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit;
+                            }   */
+                    },
+                    error: function (errorData) {
+                        console.log("Error in data retrieval");
+                        console.log(JSON.stringify(errorData));
+                    },
+                    complete: function () {
+                        populateWidget();
                     }
-                    else
-                    {
-                        setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-                    }
-                    
-                    if(fromGisExternalContent)
-                    {
-                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&format=json";      // PANTALEO - DA METTERE SUPERSERVICEMAP ??
+                });
+            } else {
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
 
+                if (rowParameters != null && rowParameters != '') {
+                    if (IsJsonString(rowParameters)) {
+                        if ((JSON.parse(rowParameters).metricId != null)) {
+                            rowParametersUrl = encodeServiceUri(JSON.parse(rowParameters).metricId);
+                        } else {
+                            rowParametersUrl = encodeServiceUri(rowParameters);
+                        }
+                    } else {
+                        rowParametersUrl = encodeServiceUri(rowParameters);
+                    }
+                } else {
+                    rowParametersUrl = encodeServiceUri(rowParameters);
+                }
+
+                switch (sm_based) {
+                    case 'yes':
                         $.ajax({
-                            url: urlToCall,
+                            url: "<?= $superServiceMapProxy?>" + rowParametersUrl,
                             type: "GET",
                             data: {},
                             async: true,
                             dataType: 'json',
-                            success: function(geoJsonServiceData) 
-                            {
-                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').hide();
-                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').show();
-
-                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').off('click');
-                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').click(function(){
-                                    if($(this).attr('data-onMap') === 'false')
-                                    {
-                                        if(fromGisMapRef.hasLayer(fromGisMarker))
-                                        {
-                                            fromGisMarker.fire('click');
+                            success: function (data) {
+                                if (data.Service) {
+                                    var originalMetricType = data.Service.features[0].properties.realtimeAttributes[sm_field].data_type;
+                                    if (udm == null || udm == '') {
+                                        if (data.Service.features[0].properties.realtimeAttributes[sm_field] != null) {
+                                            udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
                                         }
-                                        else
-                                        {
-                                            fromGisMapRef.addLayer(fromGisMarker);
-                                            fromGisMarker.fire('click');
-                                        } 
-                                        $(this).attr('data-onMap', 'true');
-                                        $(this).html('near_me');
-                                        $(this).css('color', 'white');
-                                        $(this).css('text-shadow', '2px 2px 4px black');
                                     }
-                                    else
-                                    {
-                                        fromGisMapRef.removeLayer(fromGisMarker);
-                                        $(this).attr('data-onMap', 'false');
-                                        $(this).html('navigation');
-                                        $(this).css('color', '#337ab7');
-                                        $(this).css('text-shadow', 'none');
+                                } else if (data.Sensor) {
+                                    var originalMetricType = data.Sensor.features[0].properties.realtimeAttributes[sm_field].data_type;
+                                    if (udm == null || udm == '') {
+                                        if (data.Sensor.features[0].properties.realtimeAttributes[sm_field] != null) {
+                                            udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                                        }
                                     }
-                                });
+                                }
 
-                                metricData = {  
-                                    "data":[  
-                                       {  
-                                          "commit":{  
-                                             "author":{  
-                                                "IdMetric_data": fromGisExternalContentField,
-                                                "computationDate": null,
-                                                "value_num":null,
-                                                "value_perc1": null,
-                                                "value_perc2": null,
-                                                "value_perc3": null,
-                                                "value_text": null,
-                                                "quant_perc1": null,
-                                                "quant_perc2": null,
-                                                "quant_perc3": null,
-                                                "tot_perc1": null,
-                                                "tot_perc2": null,
-                                                "tot_perc3": null,
-                                                "series": null,
-                                                "descrip": fromGisExternalContentField,
-                                                "metricType": null,
-                                                "threshold":null,
-                                                "thresholdEval":null,
-                                                "field1Desc": null,
-                                                "field2Desc": null,
-                                                "field3Desc": null,
-                                                "hasNegativeValues": "1"
-                                             }
-                                          }
-                                       }
+                                metricData = {
+                                    data: [
+                                        {
+                                            commit: {
+                                                author: {
+                                                    IdMetric_data: sm_field,
+                                                    computationDate: null,
+                                                    value_num: null,
+                                                    value_perc1: null,
+                                                    value_perc2: null,
+                                                    value_perc3: null,
+                                                    value_text: null,
+                                                    quant_perc1: null,
+                                                    quant_perc2: null,
+                                                    quant_perc3: null,
+                                                    tot_perc1: null,
+                                                    tot_perc2: null,
+                                                    tot_perc3: null,
+                                                    series: null,
+                                                    descrip: sm_field,
+                                                    metricType: null,
+                                                    threshold: null,
+                                                    thresholdEval: null,
+                                                    field1Desc: null,
+                                                    field2Desc: null,
+                                                    field3Desc: null,
+                                                    hasNegativeValues: "1"
+                                                }
+                                            }
+                                        }
                                     ]
                                 };
 
-                                var fatherNode = null;
-                                if(geoJsonServiceData.hasOwnProperty("BusStop"))
-                                {
-                                    fatherNode = geoJsonServiceData.BusStop;
-                                }
-                                else
-                                {
-                                    if(geoJsonServiceData.hasOwnProperty("Sensor"))
-                                    {
-                                        fatherNode = geoJsonServiceData.Sensor;
-                                    }
-                                    else
-                                    {
-                                        //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
-                                        fatherNode = geoJsonServiceData.Service;
-                                    }
+                                switch (originalMetricType) {
+                                    case "float":
+                                        metricData.data[0].commit.author.metricType = "Float";
+                                        metricData.data[0].commit.author.value_num = parseFloat(data.realtime.results.bindings[0][sm_field].value);
+                                        break;
+
+                                    case "integer":
+                                        metricData.data[0].commit.author.metricType = "Intero";
+                                        metricData.data[0].commit.author.value_num = parseInt(data.realtime.results.bindings[0][sm_field].value);
+                                        break;
+
+                                    default:
+                                        metricData.data[0].commit.author.metricType = "Testuale";
+                                        if (metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field] != null) {
+                                            metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field].value;
+                                        }
+                                        break;
                                 }
 
-                                var serviceProperties = fatherNode.features[0].properties;
-                                var underscoreIndex = serviceProperties.serviceType.indexOf("_");
-                                var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
-                                var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
-                                serviceSubclass = serviceSubclass.replace(/_/g, " ");
-
-                                var numberPattern = /^-?\d*\.?\d+$/;
-                                var integerPattern = /^[+\-]?\d+$/;
-                                if(numberPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
-                                {
-                                    if(integerPattern.test(geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value))
-                                    {
-                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
-                                        metricData.data[0].commit.author.metricType = "Intero"; 
-                                    }
-                                    else
-                                    {
-                                        metricData.data[0].commit.author.value_num = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
-                                        metricData.data[0].commit.author.metricType = "Float"; 
-                                    }
-                                }
-                                else
-                                {
-                                    metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
-                                    metricData.data[0].commit.author.metricType = "Testuale";
-                                }
-                            /*    if (serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit) {
-                                    udm = serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit;
-                                }   */
+                                $("#" + widgetName + "_loading").css("display", "none");
+                                $("#" + widgetName + "_content").css("display", "block");
+                                populateWidget();
                             },
-                            error: function(errorData)
-                            {
+                            error: function (errorData) {
+                                metricData = null;
                                 console.log("Error in data retrieval");
                                 console.log(JSON.stringify(errorData));
-                            },
-                            complete: function()
-                            {
-                                populateWidget(); 
+                                if (firstLoad !== false) {
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                }
                             }
                         });
-                    }
-                    else
-                    {
-                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
-                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
+                        break;
 
-                        if (rowParameters != null && rowParameters != '') {
-                            if (IsJsonString(rowParameters)) {
-                                if ((JSON.parse(rowParameters).metricId != null)) {
-                                    rowParametersUrl = encodeServiceUri(JSON.parse(rowParameters).metricId);
-                                } else {
-                                    rowParametersUrl = encodeServiceUri(rowParameters);
+                    case 'no':
+                        $.ajax({
+                            url: getMetricDataUrl,
+                            type: "GET",
+                            data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) {
+                                metricData = data;
+                                needWebSocket = metricData.data[0].needWebSocket;
+                                $("#" + widgetName + "_loading").css("display", "none");
+                                $("#" + widgetName + "_content").css("display", "block");
+                                populateWidget();
+
+                                if (needWebSocket) {
+                                    if (webSocket == null) {
+                                        openWs();
+                                    }
                                 }
-                            } else {
-                                rowParametersUrl = encodeServiceUri(rowParameters);
+                            },
+                            error: function (errorData) {
+                                metricData = null;
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                                if (firstLoad !== false) {
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                }
                             }
-                        } else {
-                            rowParametersUrl = encodeServiceUri(rowParameters);
-                        }
+                        });
+                        break;
 
-                        switch(sm_based)
-                        {
-                            case 'yes':
-                                $.ajax({
-                                    url: "<?= $superServiceMapProxy?>"+rowParametersUrl,
-                                    type: "GET",
-                                    data: {},
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function (data) 
-                                    {
-                                        if (data.Service) {
-                                            var originalMetricType = data.Service.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                        //    udm = data.Service.features[0].properties.realtimeAttributes[sm_field].value_unit;
-                                        } else if (data.Sensor) {
-                                            var originalMetricType = data.Sensor.features[0].properties.realtimeAttributes[sm_field].data_type;
-                                        //    udm = data.Sensor.features[0].properties.realtimeAttributes[sm_field].value_unit;
+                    case 'myPersonalData':
+                        $.ajax({
+                            url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&last=1",
+                            type: "GET",
+                            data: {},
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data[0]) {
+                                    if (parseFloat(data[0].variableValue) !== 'NaN') {
+                                        originalMetricType = 'float';
+                                    } else {
+                                        if (parseInt(data[0].variableValue) !== 'NaN') {
+                                            originalMetricType = 'integer';
+                                        } else {
+                                            originalMetricType = 'string';
                                         }
-                                        
-                                        metricData = {  
-                                            data:[  
-                                               {  
-                                                  commit:{  
-                                                     author:{  
+                                    }
+
+                                        udm = data[0].variableUnit;
+
+                                    metricData = {
+                                        data: [
+                                            {
+                                                commit: {
+                                                    author: {
                                                         IdMetric_data: sm_field,
                                                         computationDate: null,
-                                                        value_num:null,
+                                                        value_num: null,
                                                         value_perc1: null,
                                                         value_perc2: null,
                                                         value_perc3: null,
@@ -736,316 +769,264 @@
                                                         series: null,
                                                         descrip: sm_field,
                                                         metricType: null,
-                                                        threshold:null,
-                                                        thresholdEval:null,
+                                                        threshold: null,
+                                                        thresholdEval: null,
                                                         field1Desc: null,
                                                         field2Desc: null,
                                                         field3Desc: null,
                                                         hasNegativeValues: "1"
-                                                     }
-                                                  }
-                                               }
-                                            ]
-                                        };
-
-                                        switch(originalMetricType)
-                                        {
-                                            case "float":
-                                                metricData.data[0].commit.author.metricType = "Float";
-                                                metricData.data[0].commit.author.value_num = parseFloat(data.realtime.results.bindings[0][sm_field].value);
-                                                break;
-
-                                            case "integer":
-                                                metricData.data[0].commit.author.metricType = "Intero";
-                                                metricData.data[0].commit.author.value_num = parseInt(data.realtime.results.bindings[0][sm_field].value);
-                                                break;
-
-                                            default:
-                                                metricData.data[0].commit.author.metricType = "Testuale";
-                                                if ( metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field] != null) {
-                                                    metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field].value;
-                                                }
-                                                break;    
-                                        }
-
-                                        $("#" + widgetName + "_loading").css("display", "none");
-                                        $("#" + widgetName + "_content").css("display", "block");
-                                        populateWidget();
-                                    },
-                                    error: function(errorData)
-                                    {
-                                        metricData = null;
-                                        console.log("Error in data retrieval");
-                                        console.log(JSON.stringify(errorData));
-                                        if(firstLoad !== false)
-                                        {
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                           $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        }
-                                    }
-                                });
-                                break;
-                                
-                            case 'no':
-                                $.ajax({
-                                    url: getMetricDataUrl,
-                                    type: "GET",
-                                    data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function (data) 
-                                    {
-                                        metricData = data;
-                                        needWebSocket = metricData.data[0].needWebSocket;
-                                        $("#" + widgetName + "_loading").css("display", "none");
-                                        $("#" + widgetName + "_content").css("display", "block");
-                                        populateWidget();
-                                        
-                                        if(needWebSocket)
-                                        {
-                                            openWs();
-                                        }
-                                    },
-                                    error: function(errorData)
-                                    {
-                                        metricData = null;
-                                        console.log("Error in data retrieval");
-                                        console.log(JSON.stringify(errorData));
-                                        if(firstLoad !== false)
-                                        {
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                           $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        }
-                                    }
-                                });
-                                break;
-                                
-                            case 'myPersonalData':
-                                $.ajax({
-                                    url: "../controllers/myPersonalDataProxy.php?variableName=" + sm_field + "&last=1",
-                                    type: "GET",
-                                    data: {},
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function (data) 
-                                    {
-                                        if (data[0]) {
-                                            if(parseFloat(data[0].variableValue) !== 'NaN')
-                                            {
-                                                originalMetricType = 'float';
-                                            }
-                                            else
-                                            {
-                                                if(parseInt(data[0].variableValue) !== 'NaN')
-                                                {
-                                                    originalMetricType = 'integer';
-                                                }
-                                                else
-                                                {
-                                                    originalMetricType = 'string';
-                                                }
-                                            }
-
-                                        //    udm = data[0].variableUnit;
-
-                                            metricData = {  
-                                                data:[  
-                                                   {  
-                                                      commit:{  
-                                                         author:{  
-                                                            IdMetric_data: sm_field,
-                                                            computationDate: null,
-                                                            value_num:null,
-                                                            value_perc1: null,
-                                                            value_perc2: null,
-                                                            value_perc3: null,
-                                                            value_text: null,
-                                                            quant_perc1: null,
-                                                            quant_perc2: null,
-                                                            quant_perc3: null,
-                                                            tot_perc1: null,
-                                                            tot_perc2: null,
-                                                            tot_perc3: null,
-                                                            series: null,
-                                                            descrip: sm_field,
-                                                            metricType: null,
-                                                            threshold:null,
-                                                            thresholdEval:null,
-                                                            field1Desc: null,
-                                                            field2Desc: null,
-                                                            field3Desc: null,
-                                                            hasNegativeValues: "1"
-                                                         }
-                                                      }
-                                                   }
-                                                ]
-                                            };
-
-                                            switch(originalMetricType)
-                                            {
-                                                case "float":
-                                                    metricData.data[0].commit.author.metricType = "Float";
-                                                    metricData.data[0].commit.author.value_num = parseFloat(data[0].variableValue);
-                                                    break;
-
-                                                case "integer":
-                                                    metricData.data[0].commit.author.metricType = "Intero";
-                                                    metricData.data[0].commit.author.value_num = parseInt(data[0].variableValue);
-                                                    break;
-
-                                                default:
-                                                    metricData.data[0].commit.author.metricType = "Testuale";
-                                                    metricData.data[0].commit.author.value_text = data[0].variableValue;
-                                                    break;    
-                                            }
-
-                                            $("#" + widgetName + "_loading").css("display", "none");
-                                            $("#" + widgetName + "_content").css("display", "block");
-                                            populateWidget();
-                                        } else {
-                                            metricData = null;
-                                            console.log("Error in data retrieval");
-                                            if(firstLoad !== false)
-                                            {
-                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                               $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                               $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                            }
-                                        }
-                                    },
-                                    error: function(errorData)
-                                    {
-                                        metricData = null;
-                                        console.log("Error in data retrieval");
-                                        console.log(JSON.stringify(errorData));
-                                        if(firstLoad !== false)
-                                        {
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                           $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                           $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        }
-                                    }
-                                });
-                                break;
-
-                            case 'myData':
-                            case 'myKPI':
-                                if (rowParametersUrl.includes("datamanager/api/v1/poidata/")) {
-                                    rowParametersUrl = rowParametersUrl.split("datamanager/api/v1/poidata/")[1];
-                                }
-                                $.ajax({
-                                    url: "../controllers/myKpiProxy.php?",
-                                    type: "GET",
-                                    data: {
-                                        myKpiId: rowParametersUrl,
-                                        last: 1
-                                    },
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function (data)
-                                    {
-                                        if (data[0]) {
-                                            if(parseFloat(data[0].value) !== 'NaN')
-                                            {
-                                                originalMetricType = 'float';
-                                            }
-                                            else
-                                            {
-                                                if(parseInt(data[0].value) !== 'NaN')
-                                                {
-                                                    originalMetricType = 'integer';
-                                                }
-                                                else
-                                                {
-                                                    originalMetricType = 'string';
-                                                }
-                                            }
-
-                                        //    udm = data[0].variableUnit;
-
-                                            metricData = {
-                                                data:[
-                                                    {
-                                                        commit:{
-                                                            author:{
-                                                                IdMetric_data: sm_field,
-                                                                computationDate: null,
-                                                                value_num:null,
-                                                                value_perc1: null,
-                                                                value_perc2: null,
-                                                                value_perc3: null,
-                                                                value_text: null,
-                                                                quant_perc1: null,
-                                                                quant_perc2: null,
-                                                                quant_perc3: null,
-                                                                tot_perc1: null,
-                                                                tot_perc2: null,
-                                                                tot_perc3: null,
-                                                                series: null,
-                                                                descrip: sm_field,
-                                                                metricType: null,
-                                                                threshold:null,
-                                                                thresholdEval:null,
-                                                                field1Desc: null,
-                                                                field2Desc: null,
-                                                                field3Desc: null,
-                                                                hasNegativeValues: "1"
-                                                            }
-                                                        }
                                                     }
-                                                ]
-                                            };
-
-                                            switch(originalMetricType)
-                                            {
-                                                case "float":
-                                                    metricData.data[0].commit.author.metricType = "Float";
-                                                    metricData.data[0].commit.author.value_num = parseFloat(data[0].value);
-                                                    break;
-
-                                                case "integer":
-                                                    metricData.data[0].commit.author.metricType = "Intero";
-                                                    metricData.data[0].commit.author.value_num = parseInt(data[0].value);
-                                                    break;
-
-                                                default:
-                                                    metricData.data[0].commit.author.metricType = "Testuale";
-                                                    metricData.data[0].commit.author.value_text = data[0].value;
-                                                    break;
+                                                }
                                             }
+                                        ]
+                                    };
 
-                                            $("#" + widgetName + "_loading").css("display", "none");
-                                            $("#" + widgetName + "_content").css("display", "block");
-                                            populateWidget();
+                                    switch (originalMetricType) {
+                                        case "float":
+                                            metricData.data[0].commit.author.metricType = "Float";
+                                            metricData.data[0].commit.author.value_num = parseFloat(data[0].variableValue);
+                                            break;
+
+                                        case "integer":
+                                            metricData.data[0].commit.author.metricType = "Intero";
+                                            metricData.data[0].commit.author.value_num = parseInt(data[0].variableValue);
+                                            break;
+
+                                        default:
+                                            metricData.data[0].commit.author.metricType = "Testuale";
+                                            metricData.data[0].commit.author.value_text = data[0].variableValue;
+                                            break;
+                                    }
+
+                                    $("#" + widgetName + "_loading").css("display", "none");
+                                    $("#" + widgetName + "_content").css("display", "block");
+                                    populateWidget();
+                                } else {
+                                    metricData = null;
+                                    console.log("Error in data retrieval");
+                                    if (firstLoad !== false) {
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    }
+                                }
+                            },
+                            error: function (errorData) {
+                                metricData = null;
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                                if (firstLoad !== false) {
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                }
+                            }
+                        });
+                        break;
+
+                    case 'myData':
+                    case 'myKPI':
+                        if (rowParametersUrl.includes("datamanager/api/v1/poidata/")) {
+                            rowParametersUrl = rowParametersUrl.split("datamanager/api/v1/poidata/")[1];
+                        }
+                        $.ajax({
+                            url: "../controllers/myKpiProxy.php?",
+                            type: "GET",
+                            data: {
+                                myKpiId: rowParametersUrl,
+                                action: "getValueUnit",
+                                last: 1
+                            },
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data[0]) {
+                                    if (parseFloat(data[0].value) !== 'NaN') {
+                                        originalMetricType = 'float';
+                                    } else {
+                                        if (parseInt(data[0].value) !== 'NaN') {
+                                            originalMetricType = 'integer';
                                         } else {
-                                            metricData = null;
-                                            console.log("Error in data retrieval");
-                                            if(firstLoad !== false)
-                                            {
-                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                            }
-                                        }
-                                    },
-                                    error: function(errorData)
-                                    {
-                                        metricData = null;
-                                        console.log("Error in data retrieval");
-                                        console.log(JSON.stringify(errorData));
-                                        if(firstLoad !== false)
-                                        {
-                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
-                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            originalMetricType = 'string';
                                         }
                                     }
-                                });
-                                break;
+                                    if (udm == null || udm == '') {
+                                        if (data[0].valueUnit != null && data[0].valueUnit != "null") {
+                                            udm = data[0].valueUnit;
+                                        }
+                                    }
+
+                                    metricData = {
+                                        data: [
+                                            {
+                                                commit: {
+                                                    author: {
+                                                        IdMetric_data: sm_field,
+                                                        computationDate: null,
+                                                        value_num: null,
+                                                        value_perc1: null,
+                                                        value_perc2: null,
+                                                        value_perc3: null,
+                                                        value_text: null,
+                                                        quant_perc1: null,
+                                                        quant_perc2: null,
+                                                        quant_perc3: null,
+                                                        tot_perc1: null,
+                                                        tot_perc2: null,
+                                                        tot_perc3: null,
+                                                        series: null,
+                                                        descrip: sm_field,
+                                                        metricType: null,
+                                                        threshold: null,
+                                                        thresholdEval: null,
+                                                        field1Desc: null,
+                                                        field2Desc: null,
+                                                        field3Desc: null,
+                                                        hasNegativeValues: "1"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    };
+
+                                    switch (originalMetricType) {
+                                        case "float":
+                                            metricData.data[0].commit.author.metricType = "Float";
+                                            metricData.data[0].commit.author.value_num = parseFloat(data[0].value);
+                                            break;
+
+                                        case "integer":
+                                            metricData.data[0].commit.author.metricType = "Intero";
+                                            metricData.data[0].commit.author.value_num = parseInt(data[0].value);
+                                            break;
+
+                                        default:
+                                            metricData.data[0].commit.author.metricType = "Testuale";
+                                            metricData.data[0].commit.author.value_text = data[0].value;
+                                            break;
+                                    }
+
+                                    $("#" + widgetName + "_loading").css("display", "none");
+                                    $("#" + widgetName + "_content").css("display", "block");
+                                    populateWidget();
+                                } else {
+                                    metricData = null;
+                                    console.log("Error in data retrieval");
+                                    if (firstLoad !== false) {
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    }
+                                }
+                            },
+                            error: function (errorData) {
+                                metricData = null;
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                                if (firstLoad !== false) {
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_loading").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                }
+                            }
+                        });
+                        break;
+                }
+            }
+        }
+        //Fine definizioni di funzione
+
+        //Nuova versione
+        $.ajax({
+            url: "../controllers/getWidgetParams.php",
+            type: "GET",
+            data: {
+                widgetName: "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>"
+            },
+            async: true,
+            dataType: 'json',
+            success: function(widgetData)
+            {
+                showTitle = widgetData.params.showTitle;
+                widgetContentColor = widgetData.params.color_w;
+                fontSize = widgetData.params.fontSize;
+                fontColor = widgetData.params.fontColor;
+                timeToReload = widgetData.params.frequency_w;
+                hasTimer = widgetData.params.hasTimer;
+                chartColor = widgetData.params.chartColor;
+                dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                appId = widgetData.params.appId;
+                flowId = widgetData.params.flowId;
+                nrMetricType = widgetData.params.nrMetricType;
+                sm_based = widgetData.params.sm_based;
+                rowParameters = widgetData.params.rowParameters;
+                sm_field = widgetData.params.sm_field;
+
+                if (nrMetricType != null && webSocket == null) {
+                    openWs();
+                }
+
+                if (rowParameters != null && rowParameters != '') {
+                    if (IsJsonString(rowParameters)) {
+                        if (JSON.parse(rowParameters).metricHighLevelType == "Sensor") {
+                            sm_based = "yes";
+                        } else if (JSON.parse(rowParameters).metricHighLevelType == "MyKPI") {
+                            sm_based = "myKPI";
                         }
+                        sm_field = JSON.parse(rowParameters).metricType;
                     }
+                }
+
+                if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
+                {
+                    showHeader = false;
+                }
+                else
+                {
+                    showHeader = true;
+                }
+
+                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
+                {
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
+                    widgetTitle = widgetData.params.title_w;
+                    widgetHeaderColor = widgetData.params.frame_color_w;
+                    widgetHeaderFontColor = widgetData.params.headerFontColor;
+                    udm = widgetData.params.udm;
+                    udmPos = widgetData.params.udmPos;
+                    sizeRowsWidget = parseInt(widgetData.params.size_rows);
+                    styleParameters = JSON.parse(widgetData.params.styleParameters);
+                    widgetParameters = JSON.parse(widgetData.params.parameters);
+                }
+                else
+                {
+                    metricName = metricNameFromDriver;
+                    widgetTitleFromDriver.replace(/_/g, " ");
+                    widgetTitleFromDriver.replace(/\'/g, "&apos;");
+                    widgetTitle = widgetTitleFromDriver;
+                    $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
+                    widgetHeaderColor = widgetHeaderColorFromDriver;
+                    widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+                }
+
+                loadData();
+
+                setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                if(firstLoad === false)
+                {
+                    showWidgetContent(widgetName);
+                }
+                else
+                {
+                    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                }
                 },
                 error: function(errorData)
                 {
@@ -1075,12 +1056,12 @@
                 //webSocket = new WebSocket(wsUrl);
                 webSocket=null;
                 initWebsocket(wsUrl, null, 5000, 10).then(function(socket){
-                    console.log('socket initialized!');
+                 //   console.log('socket initialized!');
                     //do something with socket...
                     webSocket = socket;
                     openWsConn();
                 }, function(){
-                    console.log('init of socket on failed!');
+                 //   console.log('init of socket on failed!');
                 });                                          
                 /*webSocket.addEventListener('open', openWsConn);
                 webSocket.addEventListener('close', wsClosed);*/
@@ -1100,28 +1081,36 @@
                 case "newNRMetricData":
                     if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
                     {
+                        if (udm != null) {
+                            udm = null;
+                        }
                         var newWsValue = msgObj.newValue;
 
-                        if(metricType === 'Float')
-                        {
+                        if (newWsValue.metricId != null) {
+                            rowParameters = JSON.stringify(newWsValue);
+                        } else {
+                            rowParameters = newWsValue;
+                            sm_based = 'no';
+                            if (udm != null) {
+                                udm = null;
+                            }
+                        }
+                        loadData();
+
+                    /*    if (metricType === 'Float') {
                             newWsValue = parseFloat(newWsValue).toFixed(1);
                         }
 
-                        if(udm !== null)
-                        {
-                           if(udmPos === 'next')
-                           {   
-                              $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue + udm);
-                           }
-                           else
-                           {
-                              $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue);
-                           }
-                        }
-                        else
-                        {
+                        if (udm !== null) {
+                            if (udmPos === 'next') {
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue + udm);
+                            } else {
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue);
+                            }
+                        } else {
                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue);
-                        }
+                        }*/
+
                     }
                     break;
 

@@ -192,7 +192,7 @@
     <link rel="stylesheet" href="../img/meteoIcons/singleColor/css/weather-icons.css?v=<?php echo time();?>">
     
     <!-- Text fill -->
-    <script src="../js/jquery.textfill.min.js"></script> 
+    <script src="../js/jquery.textfill.min.js"></script>
     
     <!-- Custom CSS -->
     <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
@@ -215,7 +215,7 @@
     <script src="ol/ol.js"></script>
     <link rel="stylesheet" href="ol/ol.css" />
     
-<!-- Cristiano : Dynamic Routing -->
+<!-- Dynamic Routing -->
     <!--- Leaflet.drawer plugin -->
     <script src="../js/dynamic_routing/leaflet.draw.js"></script>
     <script src="../js/dynamic_routing/Leaflet.draw.drag-src.js"></script>
@@ -227,7 +227,7 @@
     <link rel="stylesheet" href="../css/dynamic_routing/leaflet-routing-machine.css" />
     <script src="../js/dynamic_routing/leaflet-routing-machine.js"></script>
     <script src="../js/dynamic_routing/corslite.min.js"></script>
-<!-- End Cristiano -->
+
  <!--   <script src="../js/elasticWizard/elasticsearch.js"></script>
     <script src="../js/elasticWizard/jquery.elastic-datatables.js"></script>    -->
 
@@ -256,6 +256,11 @@
 	<script src="../js/fancytree/jquery.fancytree.ui-deps.js"></script>
 	<script src="../js/fancytree/jquery.fancytree.js"></script>
 	<!-- <MS -->
+
+    <!-- Hijrah Date -->
+    <script type="text/javascript" src="../js/hijrah-date.js"></script>
+  <!--  <script src="https://rawgithub.com/miladjafary/highcharts-plugins/master/js/jalali.js"></script>    -->
+    <script src="../js/highcharts-localization.js"></script>
 
 </head>
 
@@ -17277,7 +17282,7 @@
                                 var info_mess = data['info_mess'];
                                 $("#inputShowTitleM").val(data['showTitle']);
                                 
-                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries"  && widgetTypeM != "widgetGaugeChart" && widgetTypeM != "widgetSpeedometer")
+                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries"  && widgetTypeM != "widgetGaugeChart" && widgetTypeM != "widgetSpeedometer" && widgetTypeM != "widgetPieChart" && widgetTypeM != "widgetSingleContent" && widgetTypeM != "widgetTable")
                                 {
                                     $('#actuatorTargetM').parents('div.row').show();
                                     if((data.actuatorTarget === 'app'))
@@ -21041,52 +21046,6 @@
 
                                                 if(styleParameters.iconText == "Icon Only" && editGisParameters.queries[i].bubble != 'CustomPin') {
                                                     var iconPoolDatasetJSON = buildIconsBox(suggestedIconsList, i, allIcons, newTableRow, newTableCell, widgetId);
-                                                    /*   var iconPoolDataset = '{"SUGGESTED Icons": ["';
-                                                    var iconPoolString = '<select name="Selector_poolBtn_' + i + '" id="Selector_poolBtn_poolBtn_' + i + '"><optgroup label="SUGGESTED Icons">';
-                                                    var resultingSuggested = "";
-                                                    if(suggestedIconsList.suggestedIconList) {
-                                                        if (suggestedIconsList.suggestedIconList instanceof Array === false) {
-                                                            resultingSuggested = Object.keys(suggestedIconsList.suggestedIconList).map(function(key) {
-                                                                return suggestedIconsList.suggestedIconList[key];
-                                                            });
-
-                                                        } else {
-                                                            resultingSuggested = suggestedIconsList.suggestedIconList;
-                                                        }
-                                                        for (k = 0; k < resultingSuggested.length; k++) {
-                                                            if (UrlExists("../img/widgetSelectorIconsPool" + resultingSuggested[k] + ".svg")) {
-                                                                iconPoolString = iconPoolString + '<option value="' + resultingSuggested[k] + '">' + resultingSuggested[k] + '</option>';
-                                                                if (k == 0) {
-                                                                    iconPoolDataset = iconPoolDataset + resultingSuggested[k];
-                                                                } else {
-                                                                    iconPoolDataset = iconPoolDataset + '", "' + resultingSuggested[k];
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    iconPoolDataset = iconPoolDataset + '"], "ALL Icons": ["';
-                                                    iconPoolString = iconPoolString + '</optgroup><optgroup label="ALL Icons">';
-
-                                                    for(k=0; k < allIcons.allIconList.length; k++) {
-                                                        iconPoolString = iconPoolString + '<option value="' + allIcons.allIconList[k] + '">' + allIcons.allIconList[k] + '</option>';
-                                                        if (k == 0) {
-                                                            iconPoolDataset = iconPoolDataset + allIcons.allIconList[k];
-                                                        } else {
-                                                            iconPoolDataset = iconPoolDataset + '", "' + allIcons.allIconList[k];
-                                                        }
-                                                    }
-
-                                                    iconPoolDataset = iconPoolDataset + '"]}';
-                                                    var iconPoolDatasetJSON = JSON.parse(iconPoolDataset);
-                                                    iconPoolString = iconPoolString + '</optgroup></select>';
-
-                                                    var newControl2 = $('<input data-param="iconPoolImg" id="Selector_poolBtn_' + i + '" class="poolBtn" title="Choose Image from Our Icons Pool !"><input type="hidden" name="iconPoolSelected" id="' + widgetId + '_poolInput_' + i + '"></input>');
-
-                                                    newTableCell.append(newControl2);
-                                                    newTableRow.append(newTableCell);
-                                                       newTableCell.find('input').change(editGisUpdateParams);     */
-                                                    
                                                 }
                                             
                                                 
@@ -21381,18 +21340,8 @@
                                                 // Bubble Mterics CELL
                                                // newTableCell = $('<div id="bubbleMetricsDiv' + i + '"><td class="bubbleMetricsTd"><select id="bubbleMetricsSelect' + i + '" data-param="bubbleMetrics" class="form-control"></select></td></div>');
                                                 newTableCell = $('<td class="bubbleMetricsTd"><select id="bubbleMetricsSelect' + i + '" data-param="bubbleMetrics" class="form-control"></select></td>');
-                                            //    newTableCell.find('select').append('<option value="Default">Yes</option>');
-                                            //    newTableCell.find('select').append('<option value="SymbolColor">No</option>');
                                                 newTableRow.append(newTableCell);
-                                            /*    if (editGisParameters.queries[i].bubble == "Yes") {
-                                                    // RETRIEVE METRICS ARRAY SERVER SIDE ! HERE ONE FAKE FOR TEST
-                                                    var bubbleMetricsArrayTest = [];
-                                                    getBubbleMetrics(editGisParameters.queries[i].query, function(extractedMetrics) {
-                                                        if (extractedMetrics) {
-                                                            bubbleMetricsArrayTest.push(extractedMetrics);
-                                                        }
-                                                    });
-                                                }*/
+
                                                 if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin") {
                                                     var bubbleMetricsString = $('#' + data.name_widget + '_pinCtn' + i).attr("data-bubblemetricsarray");
                                                     if (bubbleMetricsString === "loading available metrics...") {
@@ -21400,7 +21349,6 @@
                                                     } else {
                                                         var bubbleMetricsArray = bubbleMetricsString.split(",");
                                                     }
-                                                //    var bubbleMetricsArray = ["metric1", "metric2", "metric3"];
 
                                                     if (bubbleMetricsArray != null) {
                                                         for (k = 0; k < bubbleMetricsArray.length; k++) {
@@ -21424,29 +21372,7 @@
                                             //    newTableCell.find('select').val(editGisParameters.queries[i].bubbleMetrics);
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
 
-                                                // Bubble Color CELL
-                                            /*    newTableCell = $('<td><div class="input-group colorPicker" data-param="bubbleColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
-                                                newTableRow.append(newTableCell);
-                                                var bubbleColor = "";
-                                                if  (editGisParameters.queries[i].bubbleColor != null) {
-                                                    bubbleColor = editGisParameters.queries[i].bubbleColor;
-                                                } else {
-                                                    bubbleColor = editGisParameters.queries[i].color2;
-                                                }
-                                                newTableRow.find('div.colorPicker').colorpicker({
-                                                    color: bubbleColor,
-                                                    format: "rgba"
-                                                });
-                                                newTableRow.find('div.colorPicker').on('hidePicker', editGisUpdateParams);*/
-
                                                 var rowOrder = editGisParameters.queries[i].rowOrder;
-                                            /*    if (rowOrder != null && rowOrder != null) {
-                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div>' + rowOrder + '</td>');
-                                                } else {
-                                                    newTableCell = $('<td><div class="input-group rowOrder" data-param="rowOrder"><input type="text" class="form-control"></div></td>');
-                                                }
-                                                newTableRow.append(newTableCell);
-                                                newTableRow.find('div.rowOrder').on('change', editGisUpdateParams);*/
 
                                                 newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="rowOrder"></td>');
                                                 newTableCell.find('a').editable({
@@ -21497,10 +21423,6 @@
                                                             } else {
                                                                 return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img id="' + widgetId + '_poolImg_' + i + '" class="poolImg" src="../img/widgetSelectorIconsPool' + item + '.svg" style="height:40px"></i>';
                                                             }
-                                            // LAST WORKING OK!
-                                                    //        return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><img src="../img/widgetSelectorIconsPool/hlt/' + item + '.svg" style="height:56px"></i>';
-                                                            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="#' + item + '"></use></svg></i>';
-                                                            //	return '<i style="display: flex; align-items: center; justify-content: center; height: 100%;"><svg style="height: 32px; width: auto;" class="svg-icon ' + item + '"><use xlink:href="C:/Apache24/htdocs/dashboardSmartCity/img/widgetSelectorIconsPool/hlt/' + item + '.svg"></use></svg></i>';
                                                         }
                                                     })
                                                         .on('change', function () {
@@ -27816,7 +27738,7 @@
                                         $('#urlWidgetM').attr('disabled', false);
                                         $('#inputHeaderFontColorWidgetM').attr('disabled', false);
                                         $('#inputHeaderFontColorWidgetM').prop('required', true);
-                                        $('#inputUdmWidgetM').prop("required", true);
+                                    //    $('#inputUdmWidgetM').prop("required", true);
                                         $('#inputUdmWidgetM').attr("disabled", false);
                                         $('#inputUdmPositionM').prop("required", true);
                                         $('#inputUdmPositionM').attr("disabled", false);
@@ -27830,33 +27752,35 @@
                                         
                                         //Campo di registrazione widget sul Notificatore
                                         editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);
-                                        
-                                        var displayedUdm = data['udm'].replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
-                                        displayedUdm = displayedUdm.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
-                                        displayedUdm = displayedUdm.replace(/&deg;/g, "°");
-                                        displayedUdm = displayedUdm.replace(/&num;/g, "#");
-                                        displayedUdm = displayedUdm.replace(/&dollar;/g, "$");
-                                        displayedUdm = displayedUdm.replace(/&percnt;/g, "%");
-                                        displayedUdm = displayedUdm.replace(/&pound;/g, "£");
-                                        displayedUdm = displayedUdm.replace(/&lt;/g, "<");
-                                        displayedUdm = displayedUdm.replace(/&gt;/g, ">");
-                                        displayedUdm = displayedUdm.replace(/&agrave;/g, "à");
-                                        displayedUdm = displayedUdm.replace(/&egrave;/g, "è");
-                                        displayedUdm = displayedUdm.replace(/&eacute;/g, "é");
-                                        displayedUdm = displayedUdm.replace(/&igrave;/g, "ì");
-                                        displayedUdm = displayedUdm.replace(/&ograve;/g, "ò");
-                                        displayedUdm = displayedUdm.replace(/&ugrave;/g, "ù");
-                                        displayedUdm = displayedUdm.replace(/&micro;/g, "µ");
-                                        displayedUdm = displayedUdm.replace(/&sol;/g, "/");
-                                        displayedUdm = displayedUdm.replace(/&bsol;/g, "\\");
-                                        displayedUdm = displayedUdm.replace(/&lpar;/g, "(");
-                                        displayedUdm = displayedUdm.replace(/&rpar;/g, ")");
-                                        displayedUdm = displayedUdm.replace(/&lsqb;/g, "[");
-                                        displayedUdm = displayedUdm.replace(/&rsqb;/g, "]");
-                                        displayedUdm = displayedUdm.replace(/&lcub;/g, "{");
-                                        displayedUdm = displayedUdm.replace(/&rcub;/g, "}");
-                                        displayedUdm = displayedUdm.replace(/&Hat;/g, "^");
-                                        $("#inputUdmWidgetM").val(displayedUdm);
+
+                                        if (data['udm'] != null) {
+                                            var displayedUdm = data['udm'].replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '');
+                                            displayedUdm = displayedUdm.replace(/<\/?\w(?:[^"'>]|"[^"]*"|'[^']*')*>/gmi, '');
+                                            displayedUdm = displayedUdm.replace(/&deg;/g, "°");
+                                            displayedUdm = displayedUdm.replace(/&num;/g, "#");
+                                            displayedUdm = displayedUdm.replace(/&dollar;/g, "$");
+                                            displayedUdm = displayedUdm.replace(/&percnt;/g, "%");
+                                            displayedUdm = displayedUdm.replace(/&pound;/g, "£");
+                                            displayedUdm = displayedUdm.replace(/&lt;/g, "<");
+                                            displayedUdm = displayedUdm.replace(/&gt;/g, ">");
+                                            displayedUdm = displayedUdm.replace(/&agrave;/g, "à");
+                                            displayedUdm = displayedUdm.replace(/&egrave;/g, "è");
+                                            displayedUdm = displayedUdm.replace(/&eacute;/g, "é");
+                                            displayedUdm = displayedUdm.replace(/&igrave;/g, "ì");
+                                            displayedUdm = displayedUdm.replace(/&ograve;/g, "ò");
+                                            displayedUdm = displayedUdm.replace(/&ugrave;/g, "ù");
+                                            displayedUdm = displayedUdm.replace(/&micro;/g, "µ");
+                                            displayedUdm = displayedUdm.replace(/&sol;/g, "/");
+                                            displayedUdm = displayedUdm.replace(/&bsol;/g, "\\");
+                                            displayedUdm = displayedUdm.replace(/&lpar;/g, "(");
+                                            displayedUdm = displayedUdm.replace(/&rpar;/g, ")");
+                                            displayedUdm = displayedUdm.replace(/&lsqb;/g, "[");
+                                            displayedUdm = displayedUdm.replace(/&rsqb;/g, "]");
+                                            displayedUdm = displayedUdm.replace(/&lcub;/g, "{");
+                                            displayedUdm = displayedUdm.replace(/&rcub;/g, "}");
+                                            displayedUdm = displayedUdm.replace(/&Hat;/g, "^");
+                                            $("#inputUdmWidgetM").val(displayedUdm);
+                                        }
 
                                         //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');

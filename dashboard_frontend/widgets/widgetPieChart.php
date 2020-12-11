@@ -26,14 +26,13 @@
       RED: '#FF0000'
     };
     
-    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)
-    {
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) {
         <?php
-            $link = mysqli_connect($host, $username, $password);
-            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
-                eventLog("Returned the following ERROR in widgetPieChart.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
-                exit();
-            }
+        $link = mysqli_connect($host, $username, $password);
+        if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+            eventLog("Returned the following ERROR in widgetPieChart.php for the widget " . escapeForHTML($_REQUEST['name_w']) . " is not instantiated or allowed in this dashboard.");
+            exit();
+        }
         ?>
         var defaultColorsArray = ['#ffcc00', '#ff9933', '#ff3300', '#ff3399', '#6666ff', '#0066ff', '#00ccff', '#00ffff', '#00ff00', '#009900'];
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
@@ -48,7 +47,8 @@
         var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
         var timeToReload = <?= sanitizeInt('frequency_w') ?>;
-        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType, metricData,
+        var widgetPropertiesString, widgetProperties, thresholdObject, infoJson, styleParameters, metricType,
+            metricData, nrMetricType, appId, flowId, gridLineColor, chartAxesColor, chartColor, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
             pattern, totValues, shownValues, descriptions, udm, threshold, thresholdEval, stopsArray,
             delta, deltaPerc, seriesObj, dataObj, pieObj, legendLength, metricName, widgetTitle, countdownRef,
             innerRadius1, widgetParameters, thresholdsJson = null;
@@ -58,41 +58,36 @@
         var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
         var url = "<?= escapeForJS($_REQUEST['link_w']) ?>";
-        var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
+        var embedWidget = <?= $_REQUEST['embedWidget'] == 'true' ? 'true' : 'false' ?>;
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
         var headerHeight = 25;
         var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
         var showHeader = null;
         var seriesDataArray = [];
         var serviceUri = "";
-        var widgetParameters, series, rowParameters, editLabels, thresholdsJson, infoJson, xAxisCategories, chartSeriesObject, startAngle, endAngle, groupByAttr = null;
-        var flipFlag = false;
+        var widgetParameters, series, rowParameters, editLabels, thresholdsJson, infoJson, xAxisCategories,
+            chartSeriesObject, startAngle, endAngle, groupByAttr = null;
+        var flipFlag, emptyLegendFlagFromWs = false;
+        var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
 
         console.log("Entrato in widgetPieChart --> " + widgetName);
 
-        if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
-	{
-	   showHeader = false;
-	}
-	else
-	{
-	   showHeader = true;
-	}
+        if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
+            showHeader = false;
+        } else {
+            showHeader = true;
+        }
 
-        if(url === "null")
-        {
+        if (url === "null") {
             url = null;
         }
 
-        if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-        {
+        if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
             metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
             widgetTitle = "<?= sanitizeTitle($_REQUEST['title_w']) ?>";
             widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
             widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
-        }
-        else
-        {
+        } else {
             metricName = metricNameFromDriver;
             widgetTitleFromDriver.replace(/_/g, " ");
             widgetTitleFromDriver.replace(/\'/g, "&apos;");
@@ -103,10 +98,8 @@
         }
 
         $(document).off('changeMetricFromButton_' + widgetName);
-        $(document).on('changeMetricFromButton_' + widgetName, function(event)
-        {
-            if((event.targetWidget === widgetName)&&(event.newMetricName !== "noMetricChange"))
-            {
+        $(document).on('changeMetricFromButton_' + widgetName, function (event) {
+            if ((event.targetWidget === widgetName) && (event.newMetricName !== "noMetricChange")) {
                 $("#" + widgetName + "_legendContainer1").empty();
                 $("#" + widgetName + "_legendContainer2").empty();
                 clearInterval(countdownRef);
@@ -115,20 +108,17 @@
             }
         });
 
-	$(document).off('resizeHighchart_' + widgetName);
-        $(document).on('resizeHighchart_' + widgetName, function(event)
-        {
+        $(document).off('resizeHighchart_' + widgetName);
+        $(document).on('resizeHighchart_' + widgetName, function (event) {
             showHeader = event.showHeader;
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').highcharts().reflow();
         });
         //Definizioni di funzione specifiche del widget
 
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
-        function getThresholdsJson()
-        {
+        function getThresholdsJson() {
             var thresholdsJson = null;
-            if(jQuery.parseJSON(widgetProperties.param.parameters !== null))
-            {
+            if (jQuery.parseJSON(widgetProperties.param.parameters !== null)) {
                 thresholdsJson = widgetProperties.param.parameters;
             }
 
@@ -142,9 +132,9 @@
             var auxLabels = [];
             let mappedSeriesDataArray = [];
 
-          /*  let series = JSON.parse(metricData.data[0].commit.author.series);
-            legendLength = series.secondAxis.labels.length;
-            seriesObj = getChartSeriesObject(series);*/
+            /*  let series = JSON.parse(metricData.data[0].commit.author.series);
+              legendLength = series.secondAxis.labels.length;
+              seriesObj = getChartSeriesObject(series);*/
 
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css('height', '86%');
 
@@ -152,12 +142,12 @@
             deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
             if (groupByAttr != null) {
                 //if (groupByAttr == "metrics") {
-            //    if (groupByAttr == "value type") {
+                //    if (groupByAttr == "value type") {
                 if (groupByAttr == "value name") {
                     flipFlag = false;
                     //    } else if (groupByAttr == "device") {
                     //    } else if (groupByAttr == "value name") {
-                } else  if (groupByAttr == "value type") {
+                } else if (groupByAttr == "value type") {
                     flipFlag = true;
                 }
             } else {
@@ -171,12 +161,12 @@
                 metricLabels = deviceLabels;
                 deviceLabels = auxLabels;
             }
-          /*  if (editLabels) {
-                // in case of custom labels edited by user
-                series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag, editLabels);
-            } else {*/
-                series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
-        //    }
+            /*  if (editLabels) {
+                  // in case of custom labels edited by user
+                  series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag, editLabels);
+              } else {*/
+            series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
+            //    }
 
             xAxisCategories = metricLabels.slice();
 
@@ -186,136 +176,609 @@
             legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
             //    xAxisCategories = getXAxisCategories(series, widgetHeight);
 
-            if(firstLoad !== false)
-            {
+            if (firstLoad !== false) {
                 showWidgetContent(widgetName);
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
                 $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
                 $("#<?= $_REQUEST['name_w'] ?>_table").show();
-            }
-            else
-            {
+            } else {
                 elToEmpty.empty();
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
                 $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
                 $("#<?= $_REQUEST['name_w'] ?>_table").show();
             }
 
-        //    if (!serviceUri) {
-                $.ajax({
-                    url: "../widgets/updateBarSeriesParameters.php",
-                    type: "GET",
-                    data: {
-                        widgetName: "<?= $_REQUEST['name_w'] ?>",
-                        series: series
-                    },
-                    async: true,
-                    dataType: 'json',
-                    success: function (widgetData) {
+            //    if (!serviceUri) {
+            $.ajax({
+                url: "../widgets/updateBarSeriesParameters.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>",
+                    series: series
+                },
+                async: true,
+                dataType: 'json',
+                success: function (widgetData) {
 
-                    },
-                    error: function (errorData) {
-                        metricData = null;
-                        console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
-                        console.log(JSON.stringify(errorData));
-                    }
-                });
-        //    }
+                },
+                error: function (errorData) {
+                /*    metricData = null;
+                    console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
+                    console.log(JSON.stringify(errorData));*/
+                }
+            });
+            //    }
             drawDiagram("#<?= $_REQUEST['name_w'] ?>_chartContainer", chartSeriesObject, pieObj);
 
         }
 
-        function getXAxisCategories(series, widgetHeight)
-        {
+        function getXAxisCategories(series, widgetHeight) {
             var finalLabels, label, newLabel, id, singleInfo, dropClass, legendHeight = null;
             var isSimpleLabel = true;
 
             finalLabels = [];
 
-            if(series !== null)
-            {
-                for(var i = 0; i < series.firstAxis.labels.length; i++)
-                {
-                    if(infoJson !== null)
-                    {
+            if (series !== null) {
+                for (var i = 0; i < series.firstAxis.labels.length; i++) {
+                    if (infoJson !== null) {
                         label = series.firstAxis.labels[i];
                         id = label.replace(/\s/g, '_');
 
                         singleInfo = infoJson.firstAxis[id];
 
                         //Aggiunta pulsante info
-                        if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                        {
+                        if ((singleInfo !== '') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                             //Aggiunta legenda sulle soglie
-                            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
-                            {
-                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                                {
-                                    if(thresholdsJson.thresholdArray.length > 0)
-                                    {
+                            if ((thresholdsJson !== null) && (thresholdsJson !== undefined) && (thresholdsJson !== 'undefined')) {
+                                if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                                    if (thresholdsJson.thresholdArray.length > 0) {
                                         newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
                                             '<div style="display: inline" class="thrLegend">' +
                                             '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
                                             '<ul class="dropdown-menu thrLegend">' +
                                             '</ul>' +
                                             '</div>';
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
                             }
-                        }
-                        else
-                        {
+                        } else {
                             //Aggiunta legenda sulle soglie
-                            if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                            {
-                                if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
-                                {
-                                    if(thresholdsJson.thresholdArray.length > 0)
-                                    {
+                            if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                                if ((thresholdsJson !== null) && (thresholdsJson !== undefined) && (thresholdsJson !== 'undefined')) {
+                                    if (thresholdsJson.thresholdArray.length > 0) {
                                         newLabel = '<div style="display: inline" class="thrLegend">' +
                                             '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
                                             '<ul class="dropdown-menu">' +
                                             '</ul>' +
                                             '</div>';
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         newLabel = label;
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     newLabel = label;
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 newLabel = label;
                             }
                         }
 
                         //Aggiunta nuova label al vettore delle labels
                         finalLabels[i] = newLabel;
-                    }
-                    else
-                    {
+                    } else {
                         finalLabels[i] = series.firstAxis.labels[i];
                     }
                 }
             }
             return finalLabels;
+        }
+
+        function populateWidget() {
+
+            seriesDataArray = [];
+
+            let aggregationFlag = false;
+            if (rowParameters != null) {
+                if (rowParameters[0].metricHighLevelType == "Sensor" || rowParameters[0].metricHighLevelType == "MyKPI") {
+                    aggregationFlag = true;
+                }
+            }
+
+            if (metricName === 'AggregationSeries' || aggregationFlag === true || nrMetricType != null) {
+            //    rowParameters = JSON.parse(rowParameters);
+                aggregationGetData = [];
+                getDataFinishCount = 0;
+                editLabels = styleParameters.editDeviceLabels;
+
+                for (var i = 0; i < rowParameters.length; i++) {
+                    aggregationGetData[i] = false;
+                }
+
+                var startAngle = 90 - parseInt(styleParameters.startAngle);
+                var endAngle = 90 - parseInt(styleParameters.endAngle);
+                if (startAngle > endAngle) {
+                    var temp = startAngle;
+                    startAngle = endAngle;
+                    endAngle = temp;
+                }
+
+                var centerY = 100 - parseInt(styleParameters.centerY);
+
+                pieObj = {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    showInLegend: false,
+                    startAngle: startAngle,
+                    endAngle: endAngle,
+                    center: ['50%', centerY + '%']
+                };
+
+                for (var i = 0; i < rowParameters.length; i++) {
+                    let dataOrigin = rowParameters[i].metricHighLevelType;
+                    switch (dataOrigin) {
+                        case "KPI":
+                            index = i;
+                            $.ajax({
+                                url: "../controllers/aggregationSeriesProxy.php",
+                                type: "POST",
+                                data:
+                                    {
+                                        dataOrigin: JSON.stringify(rowParameters[i]),
+                                        index: i
+                                    },
+                                async: true,
+                                dataType: 'json',
+                                success: function (data) {
+                                    aggregationGetData[data.index] = data;
+                                    getDataFinishCount++;
+
+                                    //Popoliamo il widget quando sono arrivati tutti i dati
+                                    if (getDataFinishCount === rowParameters.length) {
+                                        series = buildSeriesFromAggregationData();
+
+                                        widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+
+                                        chartSeriesObject = getChartSeriesObject(series);
+                                        legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                        xAxisCategories = getXAxisCategories(series, widgetHeight);
+
+                                        if (firstLoad !== false) {
+                                            showWidgetContent(widgetName);
+                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                        } else {
+                                            elToEmpty.empty();
+                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                        }
+
+                                        drawDiagram("#<?= $_REQUEST['name_w'] ?>_chartContainer", chartSeriesObjecteriesObj, pieObj);
+                                    }
+                                },
+                                error: function (errorData) {
+                                    metricData = null;
+                                    console.log("Error in data retrieval");
+                                    console.log(JSON.stringify(errorData));
+                                    showWidgetContent(widgetName);
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                }
+                            });
+                            break;
+
+                        case "Sensor":
+                            var timeRange = null;
+                            var urlToCall = "";
+                            var xlabels = [];
+                            let smUrl = "";
+                            if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
+                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                            } else {
+                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                            }
+                            //    metricType = "Float";
+
+                            if ("<?= $_REQUEST['timeRange']?>") {
+                                if ("<?= $_REQUEST['timeRange'] ?>" != 'last' && "<?= $_REQUEST['timeRange'] ?>" != "") {
+                                    /*  switch("<?= $_REQUEST['timeRange'] ?>") {
+                                                case "4 Ore":
+                                                    timeRange = "fromTime=4-hour";
+                                                    break;
+
+                                                case "12 Ore":
+                                                    timeRange = "fromTime=12-hour";
+                                                    break;
+
+                                                case "Giornaliera":
+                                                    timeRange = "fromTime=1-day";
+                                                    break;
+
+                                                case "Settimanale":
+                                                    timeRange = "fromTime=7-day";
+                                                    break;
+
+                                                case "Mensile":
+                                                    timeRange = "fromTime=30-day";
+                                                    break;
+
+                                                case "Annuale":
+                                                    timeRange = "fromTime=365-day";
+                                                    break;
+                                            }   */
+
+                                    urlToCall = smUrl + "&" + timeRange;
+                                } else {
+                                    urlToCall = smUrl;
+                                }
+                            } else {
+                                urlToCall = smUrl;
+                            }
+
+                            getSmartCitySensorValues(rowParameters, i, smUrl, null, true, function (extractedData) {
+
+                                if (extractedData) {
+                                    seriesDataArray.push(extractedData);
+                                } else {
+                                    console.log("Dati Smart City non presenti");
+                                    seriesDataArray.push(undefined);
+                                }
+                                //if (endFlag === true) {
+                                // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                if (rowParameters.length === seriesDataArray.length) {
+                                    // DO FINAL SERIALIZATION
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
+                                }
+
+                            });
+                            break;
+
+                        case "Dynamic":
+                            let extractedData = {};
+                            extractedData.value = rowParameters[i].value;
+                            extractedData.metricType = rowParameters[i].metricType;
+                            extractedData.metricId = rowParameters[i].metricId;
+                            extractedData.metricName = rowParameters[i].metricName;
+                            extractedData.measuredTime = rowParameters[i].measuredTime;
+                            extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
+
+                            seriesDataArray.push(extractedData);
+
+                            if (rowParameters.length === seriesDataArray.length) {
+                                // DO FINAL SERIALIZATION
+                                serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                            }
+
+                            break;
+
+                        case "MyKPI":
+
+                            //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
+                            let aggregationCell = [];
+                            var xlabels = [];
+                            let kpiMetricName = rowParameters[i].metricName;
+                            let kpiMetricType = rowParameters[i].metricType;
+                            if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                                rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                            }
+                            getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
+
+                                if (extractedData) {
+                                    seriesDataArray.push(extractedData);
+                                } else {
+                                    console.log("Dati Smart City non presenti");
+                                    seriesDataArray.push(undefined);
+                                }
+                                //if (endFlag === true) {
+                                // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                if (rowParameters.length === seriesDataArray.length) {
+                                    // DO FINAL SERIALIZATION
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                }
+
+                            });
+                            break;
+
+                    }
+                }
+            } else {
+                $.ajax({
+                    url: getMetricDataUrl,
+                    type: "GET",
+                    data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
+                    async: true,
+                    dataType: 'json',
+                    success: function (metricData) {
+                        metricType = metricData.data[0].commit.author.metricType;
+
+                        shownValues = [];
+                        descriptions = [];
+                        totValues = [];
+                        dataObj = [];
+                        seriesObj = [];
+
+                        var startAngle = 90 - parseInt(styleParameters.startAngle);
+                        var endAngle = 90 - parseInt(styleParameters.endAngle);
+
+                        if (startAngle > endAngle) {
+                            var temp = startAngle;
+                            startAngle = endAngle;
+                            endAngle = temp;
+                        }
+
+                        var centerY = 100 - parseInt(styleParameters.centerY);
+
+                        if (metricType.indexOf('Percentuale') >= 0) {
+                            //Diagramma sui valori value_perc1, value_perc2, value_perc3
+                            udm = "%";
+
+                            if (metricData.data[0].commit.author.value_perc1 !== null) {
+                                if ("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process') {
+                                    shownValues[0] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1 * 100).toFixed(1));
+                                } else {
+                                    shownValues[0] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(2));
+                                }
+                                descriptions[0] = metricData.data[0].commit.author.field1Desc;
+                            }
+
+                            if (metricData.data[0].commit.author.value_perc2 !== null) {
+                                if ("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process') {
+                                    shownValues[1] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc2 * 100).toFixed(1));
+                                } else {
+                                    shownValues[1] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc2).toFixed(2));
+                                }
+                                descriptions[1] = metricData.data[0].commit.author.field2Desc;
+                            }
+
+                            if (metricData.data[0].commit.author.value_perc3 !== null) {
+                                if ("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process') {
+                                    shownValues[2] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc3 * 100).toFixed(1));
+                                } else {
+                                    shownValues[2] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc3).toFixed(2));
+                                }
+                                descriptions[2] = metricData.data[0].commit.author.field3Desc;
+                            }
+
+                            pieObj = {
+                                allowPointSelect: true,
+                                cursor: 'pointer',
+                                startAngle: startAngle,
+                                endAngle: endAngle,
+                                center: ['50%', centerY + '%']
+                            };
+
+                            if (shownValues.length === 1) {
+                                shownValues[1] = parseFloat(parseFloat(100 - shownValues[0]).toFixed(2));
+                                //descriptions[1] = 'Complementary';
+                                var color0, color1, color, desc = null;
+
+                                if ((styleParameters.colorsSelect1 === 'manual') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                    color0 = styleParameters.colors1[0];
+                                    color1 = styleParameters.colors1[1];
+                                } else {
+                                    color0 = defaultColorsArray[0];
+                                    color1 = defaultColorsArray[1];
+                                }
+
+                                dataObj[0] = {
+                                    name: descriptions[0],
+                                    color: color0,
+                                    y: shownValues[0]
+                                };
+                                dataObj[1] = {
+                                    //name: descriptions[1],
+                                    color: color1,
+                                    y: shownValues[1]
+                                };
+                            } else {
+                                for (var i = 0; i < shownValues.length; i++) {
+                                    if ((styleParameters.colorsSelect1 === 'manual') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                        color = styleParameters.colors1[i];
+                                    } else {
+                                        color = defaultColorsArray[i % 10];
+                                    }
+
+                                    desc = descriptions[i];
+
+                                    dataObj[i] = {
+                                        name: desc,
+                                        color: color,
+                                        y: shownValues[i]
+                                    };
+                                }
+                            }
+
+                            var dataLabelsDistance = parseInt(styleParameters.dataLabelsDistance);
+
+                            if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                                innerRadius1 = parseInt(styleParameters.innerRadius1);
+                            } else {
+                                innerRadius1 = 25;
+                            }
+
+                            if (innerRadius1 > 100) {
+                                innerRadius1 = 100;
+                            }
+                            if (innerRadius1 < 0) {
+                                innerRadius1 = 0;
+                            }
+
+                            seriesObj.push({
+                                data: dataObj,
+                                dataLabels: {
+                                    formatter: function () {
+                                        return this.y + " " + udm;
+                                    },
+                                    distance: dataLabelsDistance,
+                                    style: {
+                                        fontFamily: 'Verdana',
+                                        fontSize: styleParameters.dataLabelsFontSize + "px",
+                                        color: styleParameters.dataLabelsFontColor,
+                                        fontWeight: 'bold',
+                                        fontStyle: 'italic',
+                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)",
+                                        "textOutline": "1px 1px contrast"
+                                    }
+                                },
+                                size: "100%",
+                                innerSize: innerRadius1 + "%",
+                                tooltip: {
+                                    headerFormat: null,
+                                    backgroundColor: {
+                                        linearGradient: [0, 0, 0, 60],
+                                        stops: [
+                                            [0, '#FFFFFF'],
+                                            [1, '#E0E0E0']
+                                        ]
+                                    },
+                                    pointFormatter: function () {
+                                        var field = this.series.name;
+                                        var temp, thresholdObject, desc, min, max, color, label, index, message = null;
+                                        var rangeOnThisField = false;
+                                        var dataStringInPopup = "";
+                                        var dateMessage = "";
+                                        var valueUnitInPopup = "";
+
+                                        for (var n = 0; n < seriesDataArray.length; n++) {
+                                            if (seriesDataArray[n].metricType == this.name) {
+                                                dataStringInPopup = seriesDataArray[n].measuredTime;
+                                                //  if(seriesDataArray[n].metricValueUnit != null) {
+                                                valueUnitInPopup = seriesDataArray[n].metricValueUnit;
+                                                //  }
+                                            } else if (flipFlag == true && seriesDataArray[n].metricName == this.name) {
+                                                dataStringInPopup = seriesDataArray[n].measuredTime;
+                                                valueUnitInPopup = seriesDataArray[n].metricValueUnit;
+                                            }
+                                        }
+
+                                        if ((thresholdsJson !== null) && (thresholdsJson !== 'undefined') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                            temp = JSON.parse(thresholdsJson);
+                                            thresholdObject = temp.thresholdObject.fields;
+
+                                            if (thresholdObject.length > 0) {
+                                                label = this.name;
+
+                                                if (label === "Complementary") {
+                                                    rangeOnThisField = false;
+                                                    message = "No range defined on this field";
+                                                } else {
+                                                    for (var i in thresholdObject) {
+                                                        if (label === thresholdObject[i].fieldName) {
+                                                            if (thresholdObject[i].thrSeries.length > 0) {
+                                                                for (var j in thresholdObject[i].thrSeries) {
+                                                                    if ((parseFloat(this.y) >= thresholdObject[i].thrSeries[j].min) && (parseFloat(this.y) < thresholdObject[i].thrSeries[j].max)) {
+                                                                        desc = thresholdObject[i].thrSeries[j].desc;
+                                                                        min = thresholdObject[i].thrSeries[j].min;
+                                                                        max = thresholdObject[i].thrSeries[j].max;
+                                                                        color = thresholdObject[i].thrSeries[j].color;
+                                                                        rangeOnThisField = true;
+                                                                    } else {
+                                                                        message = "This value doesn't belong to any of the defined ranges";
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                rangeOnThisField = false;
+                                                                message = "No range defined on this field";
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                rangeOnThisField = false;
+                                                message = "No range defined on this field";
+                                            }
+                                        } else {
+                                            rangeOnThisField = false;
+                                            message = "No range defined on this field";
+                                        }
+
+
+                                        if (rangeOnThisField) {
+                                            if ((desc !== null) && (desc !== '')) {
+                                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                            } else {
+                                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                            }
+                                        } else {
+                                            //    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
+                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                            return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                                '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
+                                                '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
+                                        }
+                                    }
+                                }
+                            });
+
+                            //Per il caso semplice basta una sola riga per la legenda
+                            $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').hide();
+                            $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css('height', '93%');
+
+                        } else if (metricType === 'Series') {
+                            //Caso di pie sulle serie
+                            series = JSON.parse(metricData.data[0].commit.author.series);
+                            legendLength = series.secondAxis.labels.length;
+                            seriesObj = getChartSeriesObject(series);
+
+                            pieObj = {
+                                allowPointSelect: true,
+                                cursor: 'pointer',
+                                showInLegend: false,
+                                startAngle: startAngle,
+                                endAngle: endAngle,
+                                center: ['50%', centerY + '%']
+                            };
+
+                            $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css('height', '86%');
+                        }
+
+                        if (firstLoad !== false) {
+                            showWidgetContent(widgetName);
+                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer1").show();
+                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer2").show();
+                        } else {
+                            elToEmpty.empty();
+                            $("#" + widgetName + "_legendContainer1").empty();
+                            $("#" + widgetName + "_legendContainer2").empty();
+                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer1").show();
+                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer2").show();
+                        }
+                        drawDiagram("#<?= $_REQUEST['name_w'] ?>_chartContainer", seriesObj, pieObj);
+
+                    },
+                    error: function () {
+                        metricData = null;
+                        console.log("Error in data retrieval");
+                        console.log(JSON.stringify(errorData));
+                        showWidgetContent(widgetName);
+                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_legendContainer1").hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_legendContainer2").hide();
+                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                    }
+                });
+
+            }
         }
 
         function drawDiagram (id, seriesObj, pieObj){
@@ -774,6 +1237,12 @@
 
             if ((thresholdsJson !== null) && (thresholdsJson !== 'undefined')) {
                 thresholdObject = JSON.parse(thresholdsJson);
+            }
+
+            if (emptyLegendFlagFromWs == true) {
+                $("#" + widgetName + "_legendContainer1").empty();
+                $("#" + widgetName + "_legendContainer2").empty();
+                emptyLegendFlagFromWs = false;
             }
 
             if (metricType != null) {
@@ -1343,7 +1812,6 @@
             infoJson = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>');
         }
 
-        //Nuova versione // **************** NEW GP ********************************************************************
         $.ajax({
             url: "../controllers/getWidgetParams.php",
             type: "GET",
@@ -1371,6 +1839,10 @@
                 gridLineColor = widgetData.params.chartPlaneColor;
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
+
+                if (nrMetricType != null) {
+                    openWs();
+                }
 
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
@@ -1471,572 +1943,9 @@
                              break;
                      }*/
 
-                let aggregationFlag = false;
-                if (JSON.parse(widgetData.params.rowParameters) != null) {
-                    if (JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "Sensor" || JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "MyKPI") {
-                        aggregationFlag = true;
-                    }
-                }
+                rowParameters = JSON.parse(rowParameters);
+                populateWidget();
 
-                if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true || widgetData.params.id_metric.includes("NR_"))
-                {
-                    rowParameters = JSON.parse(rowParameters);
-                    aggregationGetData = [];
-                    getDataFinishCount = 0;
-                    editLabels = (JSON.parse(widgetData.params.styleParameters)).editDeviceLabels;
-
-                    for(var i = 0; i < rowParameters.length; i++)
-                    {
-                        aggregationGetData[i] = false;
-                    }
-
-                    var startAngle = 90 - parseInt(styleParameters.startAngle);
-                    var endAngle = 90 - parseInt(styleParameters.endAngle);
-                    if(startAngle > endAngle)
-                    {
-                        var temp = startAngle;
-                        startAngle = endAngle;
-                        endAngle = temp;
-                    }
-
-                    var centerY = 100 - parseInt(styleParameters.centerY);
-
-                    pieObj = {
-                        allowPointSelect: true,
-                        cursor: 'pointer',
-                        showInLegend: false,
-                        startAngle: startAngle,
-                        endAngle: endAngle,
-                        center: ['50%', centerY + '%']
-                    };
-
-                    for(var i = 0; i < rowParameters.length; i++)
-                    {
-                        let dataOrigin = rowParameters[i].metricHighLevelType;
-                        switch(dataOrigin) {
-                            case "KPI":
-                                index = i;
-                                $.ajax({
-                                    url: "../controllers/aggregationSeriesProxy.php",
-                                    type: "POST",
-                                    data:
-                                        {
-                                            dataOrigin: JSON.stringify(rowParameters[i]),
-                                            index: i
-                                        },
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function (data) {
-                                        aggregationGetData[data.index] = data;
-                                        getDataFinishCount++;
-
-                                        //Popoliamo il widget quando sono arrivati tutti i dati
-                                        if (getDataFinishCount === rowParameters.length) {
-                                            series = buildSeriesFromAggregationData();
-
-                                            widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
-
-                                            chartSeriesObject = getChartSeriesObject(series);
-                                            legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
-                                            xAxisCategories = getXAxisCategories(series, widgetHeight);
-
-                                            if (firstLoad !== false) {
-                                                showWidgetContent(widgetName);
-                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                            } else {
-                                                elToEmpty.empty();
-                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                            }
-
-                                            drawDiagram("#<?= $_REQUEST['name_w'] ?>_chartContainer", chartSeriesObjecteriesObj, pieObj);
-                                        }
-                                    },
-                                    error: function (errorData) {
-                                        metricData = null;
-                                        console.log("Error in data retrieval");
-                                        console.log(JSON.stringify(errorData));
-                                        showWidgetContent(widgetName);
-                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                                        $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                                    }
-                                });
-                                break;
-
-                            case "Sensor":
-                                var timeRange = null;
-                                var urlToCall = "";
-                                var xlabels = [];
-                                let smUrl = "";
-                                if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
-                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
-                                } else {
-                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
-                                }
-                                //    metricType = "Float";
-
-                                if("<?= $_REQUEST['timeRange']?>") {
-                                    if("<?= $_REQUEST['timeRange'] ?>" != 'last' && "<?= $_REQUEST['timeRange'] ?>" != "") {
-                                        /*  switch("<?= $_REQUEST['timeRange'] ?>") {
-                                            case "4 Ore":
-                                                timeRange = "fromTime=4-hour";
-                                                break;
-
-                                            case "12 Ore":
-                                                timeRange = "fromTime=12-hour";
-                                                break;
-
-                                            case "Giornaliera":
-                                                timeRange = "fromTime=1-day";
-                                                break;
-
-                                            case "Settimanale":
-                                                timeRange = "fromTime=7-day";
-                                                break;
-
-                                            case "Mensile":
-                                                timeRange = "fromTime=30-day";
-                                                break;
-
-                                            case "Annuale":
-                                                timeRange = "fromTime=365-day";
-                                                break;
-                                        }   */
-
-                                        urlToCall = smUrl + "&" + timeRange;
-                                    } else {
-                                        urlToCall = smUrl;
-                                    }
-                                } else {
-                                    urlToCall = smUrl;
-                                }
-
-                                getSmartCitySensorValues(rowParameters, i, smUrl, null, true, function(extractedData) {
-
-                                    if(extractedData) {
-                                        seriesDataArray.push(extractedData);
-                                    }
-                                    else
-                                    {
-                                        console.log("Dati Smart City non presenti");
-                                        seriesDataArray.push(undefined);
-                                    }
-                                    //if (endFlag === true) {
-                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
-                                    if (rowParameters.length === seriesDataArray.length) {
-                                        // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
-                                    }
-
-                                });
-                                break;
-
-                            case "Dynamic":
-                                let extractedData = {};
-                                extractedData.value = rowParameters[i].value;
-                                extractedData.metricType = rowParameters[i].metricType;
-                                extractedData.metricId = rowParameters[i].metricId;
-                                extractedData.metricName = rowParameters[i].metricName;
-                                extractedData.measuredTime = rowParameters[i].measuredTime;
-                                extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
-
-                                seriesDataArray.push(extractedData);
-
-                                if (rowParameters.length === seriesDataArray.length) {
-                                    // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
-                                }
-
-                                break;
-
-                            case "MyKPI":
-
-                                //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
-                                let aggregationCell = [];
-                                var xlabels = [];
-                                let kpiMetricName =  rowParameters[i].metricName;
-                                let kpiMetricType =  rowParameters[i].metricType;
-                                if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
-                                    rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
-                                }
-                                getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
-
-                                    if (extractedData) {
-                                        seriesDataArray.push(extractedData);
-                                    } else {
-                                        console.log("Dati Smart City non presenti");
-                                        seriesDataArray.push(undefined);
-                                    }
-                                    //if (endFlag === true) {
-                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
-                                    if (rowParameters.length === seriesDataArray.length) {
-                                        // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
-                                    }
-
-                                });
-                                break;
-
-                        }
-                    }
-                }
-                else
-                {
-                    $.ajax({
-                        url: getMetricDataUrl,
-                        type: "GET",
-                        data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
-                        async: true,
-                        dataType: 'json',
-                        success: function (metricData)
-                        {
-                            metricType = metricData.data[0].commit.author.metricType;
-
-                            shownValues = [];
-                            descriptions = [];
-                            totValues = [];
-                            dataObj = [];
-                            seriesObj = [];
-
-                            var startAngle = 90 - parseInt(styleParameters.startAngle);
-                            var endAngle = 90 - parseInt(styleParameters.endAngle);
-
-                            if(startAngle > endAngle)
-                            {
-                                var temp = startAngle;
-                                startAngle = endAngle;
-                                endAngle = temp;
-                            }
-
-                            var centerY = 100 - parseInt(styleParameters.centerY);
-
-                            if(metricType.indexOf('Percentuale') >= 0)
-                            {
-                                //Diagramma sui valori value_perc1, value_perc2, value_perc3
-                                udm = "%";
-
-                                if(metricData.data[0].commit.author.value_perc1 !== null)
-                                {
-                                    if("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process')
-                                    {
-                                        shownValues[0] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1*100).toFixed(1));
-                                    }
-                                    else
-                                    {
-                                        shownValues[0] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(2));
-                                    }
-                                    descriptions[0] = metricData.data[0].commit.author.field1Desc;
-                                }
-
-                                if(metricData.data[0].commit.author.value_perc2 !== null)
-                                {
-                                    if("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process')
-                                    {
-                                        shownValues[1] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc2*100).toFixed(1));
-                                    }
-                                    else
-                                    {
-                                        shownValues[1] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc2).toFixed(2));
-                                    }
-                                    descriptions[1] = metricData.data[0].commit.author.field2Desc;
-                                }
-
-                                if(metricData.data[0].commit.author.value_perc3 !== null)
-                                {
-                                    if("<?= escapeForJS($_REQUEST['id_metric']) ?>" === 'SmartDS_Process')
-                                    {
-                                        shownValues[2] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc3*100).toFixed(1));
-                                    }
-                                    else
-                                    {
-                                        shownValues[2] = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc3).toFixed(2));
-                                    }
-                                    descriptions[2] = metricData.data[0].commit.author.field3Desc;
-                                }
-
-                                pieObj = {
-                                    allowPointSelect: true,
-                                    cursor: 'pointer',
-                                    startAngle: startAngle,
-                                    endAngle: endAngle,
-                                    center: ['50%', centerY + '%']
-                                };
-
-                                if(shownValues.length === 1)
-                                {
-                                    shownValues[1] = parseFloat(parseFloat(100 - shownValues[0]).toFixed(2));
-                                    //descriptions[1] = 'Complementary';
-                                    var color0, color1, color, desc = null;
-
-                                    if((styleParameters.colorsSelect1 === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                                    {
-                                        color0 = styleParameters.colors1[0];
-                                        color1 = styleParameters.colors1[1];
-                                    }
-                                    else
-                                    {
-                                        color0 = defaultColorsArray[0];
-                                        color1 = defaultColorsArray[1];
-                                    }
-
-                                    dataObj[0] = {
-                                        name: descriptions[0],
-                                        color: color0,
-                                        y: shownValues[0]
-                                    };
-                                    dataObj[1] = {
-                                        //name: descriptions[1],
-                                        color: color1,
-                                        y: shownValues[1]
-                                    };
-                                }
-                                else
-                                {
-                                    for(var i = 0; i < shownValues.length; i++)
-                                    {
-                                        if((styleParameters.colorsSelect1 === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                                        {
-                                            color = styleParameters.colors1[i];
-                                        }
-                                        else
-                                        {
-                                            color = defaultColorsArray[i%10];
-                                        }
-
-                                        desc = descriptions[i];
-
-                                        dataObj[i] = {
-                                            name: desc,
-                                            color: color,
-                                            y: shownValues[i]
-                                        };
-                                    }
-                                }
-
-                                var dataLabelsDistance = parseInt(styleParameters.dataLabelsDistance);
-
-                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                                {
-                                    innerRadius1 = parseInt(styleParameters.innerRadius1);
-                                }
-                                else
-                                {
-                                    innerRadius1 = 25;
-                                }
-
-                                if(innerRadius1 > 100)
-                                {
-                                    innerRadius1 = 100;
-                                }
-                                if(innerRadius1 < 0)
-                                {
-                                    innerRadius1 = 0;
-                                }
-
-                                seriesObj.push({
-                                    data: dataObj,
-                                    dataLabels: {
-                                        formatter: function(){
-                                            return this.y + " " + udm;
-                                        },
-                                        distance: dataLabelsDistance,
-                                        style: {
-                                            fontFamily: 'Verdana',
-                                            fontSize: styleParameters.dataLabelsFontSize + "px",
-                                            color: styleParameters.dataLabelsFontColor,
-                                            fontWeight: 'bold',
-                                            fontStyle: 'italic',
-                                            "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)",
-                                            "textOutline": "1px 1px contrast"
-                                        }
-                                    },
-                                    size: "100%",
-                                    innerSize: innerRadius1 + "%",
-                                    tooltip: {
-                                        headerFormat: null,
-                                        backgroundColor: {
-                                            linearGradient: [0, 0, 0, 60],
-                                            stops: [
-                                                [0, '#FFFFFF'],
-                                                [1, '#E0E0E0']
-                                            ]
-                                        },
-                                        pointFormatter: function()
-                                        {
-                                            var field = this.series.name;
-                                            var temp, thresholdObject, desc, min, max, color, label, index, message = null;
-                                            var rangeOnThisField = false;
-                                            var dataStringInPopup = "";
-                                            var dateMessage = "";
-                                            var valueUnitInPopup = "";
-
-                                            for (var n = 0; n < seriesDataArray.length; n++) {
-                                                if (seriesDataArray[n].metricType == this.name) {
-                                                    dataStringInPopup = seriesDataArray[n].measuredTime;
-                                                    //  if(seriesDataArray[n].metricValueUnit != null) {
-                                                    valueUnitInPopup = seriesDataArray[n].metricValueUnit;
-                                                    //  }
-                                                } else if (flipFlag == true && seriesDataArray[n].metricName == this.name) {
-                                                    dataStringInPopup = seriesDataArray[n].measuredTime;
-                                                    valueUnitInPopup = seriesDataArray[n].metricValueUnit;
-                                                }
-                                            }
-
-                                            if((thresholdsJson !== null)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                                            {
-                                                temp = JSON.parse(thresholdsJson);
-                                                thresholdObject = temp.thresholdObject.fields;
-
-                                                if(thresholdObject.length > 0)
-                                                {
-                                                    label = this.name;
-
-                                                    if(label === "Complementary")
-                                                    {
-                                                        rangeOnThisField = false;
-                                                        message = "No range defined on this field";
-                                                    }
-                                                    else
-                                                    {
-                                                        for(var i in thresholdObject)
-                                                        {
-                                                            if(label === thresholdObject[i].fieldName)
-                                                            {
-                                                                if(thresholdObject[i].thrSeries.length > 0)
-                                                                {
-                                                                    for(var j in thresholdObject[i].thrSeries)
-                                                                    {
-                                                                        if((parseFloat(this.y) >= thresholdObject[i].thrSeries[j].min)&&(parseFloat(this.y) < thresholdObject[i].thrSeries[j].max))
-                                                                        {
-                                                                            desc = thresholdObject[i].thrSeries[j].desc;
-                                                                            min = thresholdObject[i].thrSeries[j].min;
-                                                                            max = thresholdObject[i].thrSeries[j].max;
-                                                                            color = thresholdObject[i].thrSeries[j].color;
-                                                                            rangeOnThisField = true;
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            message = "This value doesn't belong to any of the defined ranges";
-                                                                        }
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    rangeOnThisField = false;
-                                                                    message = "No range defined on this field";
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    rangeOnThisField = false;
-                                                    message = "No range defined on this field";
-                                                }
-                                            }
-                                            else
-                                            {
-                                                rangeOnThisField = false;
-                                                message = "No range defined on this field";
-                                            }
-
-
-                                            if(rangeOnThisField)
-                                            {
-                                                if((desc !== null)&&(desc !== ''))
-                                                {
-                                                    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
-                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b><br/>' +
-                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
-                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
-                                                }
-                                                else
-                                                {
-                                                    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
-                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
-                                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
-                                                }
-                                            }
-                                            else
-                                            {
-                                            //    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
-                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
-                                            //        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
-                                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
-                                                    '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
-                                            }
-                                        }
-                                    }
-                                });
-
-                                //Per il caso semplice basta una sola riga per la legenda
-                                $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').hide();
-                                $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css('height', '93%');
-
-                            }
-                            else if(metricType === 'Series')
-                            {
-                                //Caso di pie sulle serie
-                                series = JSON.parse(metricData.data[0].commit.author.series);
-                                legendLength = series.secondAxis.labels.length;
-                                seriesObj = getChartSeriesObject(series);
-
-                                pieObj = {
-                                    allowPointSelect: true,
-                                    cursor: 'pointer',
-                                    showInLegend: false,
-                                    startAngle: startAngle,
-                                    endAngle: endAngle,
-                                    center: ['50%', centerY + '%']
-                                };
-
-                                $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css('height', '86%');
-                            }
-
-                            if(firstLoad !== false)
-                            {
-                                showWidgetContent(widgetName);
-                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                $("#<?= $_REQUEST['name_w'] ?>_legendContainer1").show();
-                                $("#<?= $_REQUEST['name_w'] ?>_legendContainer2").show();
-                            }
-                            else
-                            {
-                                elToEmpty.empty();
-                                $("#" + widgetName + "_legendContainer1").empty();
-                                $("#" + widgetName + "_legendContainer2").empty();
-                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                $("#<?= $_REQUEST['name_w'] ?>_legendContainer1").show();
-                                $("#<?= $_REQUEST['name_w'] ?>_legendContainer2").show();
-                            }
-                            drawDiagram("#<?= $_REQUEST['name_w'] ?>_chartContainer", seriesObj, pieObj);
-
-                        },
-                        error: function()
-                        {
-                            metricData = null;
-                            console.log("Error in data retrieval");
-                            console.log(JSON.stringify(errorData));
-                            showWidgetContent(widgetName);
-                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer1").hide();
-                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer2").hide();
-                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                        }
-                    });
-
-                }
             },
             error: function(errorData)
             {
@@ -2048,8 +1957,105 @@
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
             }
         });
-        // ************* FINE NEW GP ***********************************************************************************
 
+        //Web socket
+        openWs = function(e)
+        {
+            try
+            {
+                <?php
+                $genFileContent = parse_ini_file("../conf/environment.ini");
+                $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                ?>
+
+                webSocket.addEventListener('open', openWsConn);
+                webSocket.addEventListener('close', wsClosed);
+
+                setTimeout(function(){
+                    webSocket.removeEventListener('close', wsClosed);
+                    webSocket.removeEventListener('open', openWsConn);
+                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                    webSocket.close();
+                    webSocket = null;
+                }, (timeToReload - 2)*1000);
+            }
+            catch(e)
+            {
+                wsClosed();
+            }
+        };
+
+        manageIncomingWsMsg = function(msg)
+        {
+            var msgObj = JSON.parse(msg.data);
+
+            switch(msgObj.msgType)
+            {
+                case "newNRMetricData":
+                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                    {
+                        //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+
+                        var newValue = msgObj.newValue;
+                        var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                        //    point.update(newValue);
+
+                        rowParameters = newValue;
+                        emptyLegendFlagFromWs = true;
+                        populateWidget();
+
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        };
+
+        openWsConn = function(e)
+        {
+            var wsRegistration = {
+                msgType: "ClientWidgetRegistration",
+                userType: "widgetInstance",
+                metricName: encodeURIComponent(metricName),
+                widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+            };
+            webSocket.send(JSON.stringify(wsRegistration));
+
+            setTimeout(function(){
+                webSocket.removeEventListener('close', wsClosed);
+                webSocket.close();
+            }, (timeToReload - 2)*1000);
+
+            webSocket.addEventListener('message', manageIncomingWsMsg);
+        };
+
+        wsClosed = function(e)
+        {
+            webSocket.removeEventListener('close', wsClosed);
+            webSocket.removeEventListener('open', openWsConn);
+            webSocket.removeEventListener('message', manageIncomingWsMsg);
+            webSocket = null;
+            if(wsRetryActive === 'yes')
+            {
+                setTimeout(openWs, parseInt(wsRetryTime*1000));
+            }
+        };
+
+        //Per ora non usata
+        wsError = function(e)
+        {
+
+        };
         
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();

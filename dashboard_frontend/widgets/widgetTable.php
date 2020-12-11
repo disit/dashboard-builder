@@ -49,16 +49,18 @@
         var metricType = null;
         var series = null;
         var styleParameters = null;
-        var legendHeight = null;
-        var metricName, widgetTitle, countdownRef = null;
+        var legendHeight, lineWidth, chartType = null;
+        var widgetTitle, countdownRef, nrMetricType, appId, flowId, gridLineColor, chartAxesColor, chartColor, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor = null;
         var embedWidget = <?= $_REQUEST['embedWidget']=='true'?'true':'false' ?>;
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
-        var showHeader, widgetParameters, thresholdsJson, infoJson, rowParameters, xAxisTitle, smField, editLabels, groupByAttr, colorMaps, aggregationGetData, getDataFinishCount = null;
+        var showHeader, widgetParameters, thresholdsJson, infoJson, rowParameters, xAxisTitle, xAxisCategories, smField, editLabels, groupByAttr, colorMaps, aggregationGetData, getDataFinishCount = null;
         var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
         var seriesDataArray = [];
         var serviceUri = "";
+        var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+        var emptyLegendFlagFromWs = false;
 
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
 		{
@@ -128,7 +130,7 @@
             //    xAxisCategories = getXAxisCategories(series, widgetHeight);
             applyThresholdCodes(series);
             setTableHeight();
-            var widgetHeight = parseInt($("#WeatherStations_77_widgetTable783_table").height() + 25);
+            var widgetHeight = parseInt($("#<?= escapeForJS($_REQUEST['name_w']) ?>_table").height() + 25);
             // createLegends(series, widgetHeight);
             createLegendFromColorMap(series, widgetHeight);
             createInfoButtons();
@@ -175,6 +177,7 @@
         //Funzione di popolamento della tabella
         function populateTable(seriesString)
         {
+            $("#<?= $_REQUEST['name_w'] ?>_table").empty();
             var series = jQuery.parseJSON(seriesString);
             var colsQt = parseInt(parseInt(series.firstAxis.labels.length) + 1);
             var rowsQt = parseInt(parseInt(series.secondAxis.labels.length) + 1);
@@ -839,7 +842,253 @@
             });
             $('#modalWidgetFieldsInfo').modal('show');
         }
-        
+
+        function loadData() {
+
+            seriesDataArray = [];
+
+            let aggregationFlag = false;
+            if (rowParameters != null) {
+                if (rowParameters[0].metricHighLevelType == "Sensor" || rowParameters[0].metricHighLevelType == "MyKPI") {
+                    aggregationFlag = true;
+                }
+            }
+
+            if (metricName === 'AggregationSeries' || aggregationFlag === true || nrMetricType != null) {
+                aggregationGetData = [];
+                getDataFinishCount = 0;
+                if (emptyLegendFlagFromWs == true || nrMetricType != null) {
+                    editLabels = [];
+                } else {
+                    editLabels = styleParameters.editDeviceLabels;
+                }
+
+                for (var i = 0; i < rowParameters.length; i++) {
+                    aggregationGetData[i] = false;
+                }
+
+                for (var i = 0; i < rowParameters.length; i++) {
+                    let dataOrigin = rowParameters[i].metricHighLevelType;
+                    switch (dataOrigin) {
+                        case "KPI":
+                            index = i;
+                            $.ajax({
+                                url: "../controllers/aggregationSeriesProxy.php",
+                                type: "POST",
+                                data:
+                                    {
+                                        dataOrigin: JSON.stringify(rowParameters[i]),
+                                        index: i
+                                    },
+                                async: true,
+                                dataType: 'json',
+                                success: function (data) {
+                                    aggregationGetData[data.index] = data;
+                                    getDataFinishCount++;
+
+                                    //Popoliamo il widget quando sono arrivati tutti i dati
+                                    if (getDataFinishCount === rowParameters.length) {
+                                        populateTable(JSON.stringify(series));
+                                        //   legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                        //    xAxisCategories = getXAxisCategories(series, widgetHeight);
+                                        applyThresholdCodes(series);
+                                        setTableHeight();
+                                        var widgetHeight = parseInt($("#<?= escapeForJS($_REQUEST['name_w']) ?>_table").height() + 25);
+                                        createLegends(series, widgetHeight);
+                                        createInfoButtons();
+
+                                        if (firstLoad !== false) {
+                                            showWidgetContent(widgetName);
+                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                        } else {
+                                            elToEmpty.empty();
+                                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                            $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                        }
+
+                                        //    drawDiagram();
+                                    }
+                                },
+                                error: function (errorData) {
+                                    metricData = null;
+                                    console.log("Error in data retrieval");
+                                    console.log(JSON.stringify(errorData));
+                                    showWidgetContent(widgetName);
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                }
+                            });
+                            break;
+
+                        case "Sensor":
+                            var timeRange = null;
+                            var urlToCall = "";
+                            var xlabels = [];
+                            let smUrl = "";
+                            if (rowParameters[i].metricId != null) {
+                                if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                } else {
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                }
+                            } else {
+                                smUrl = "";
+                            }
+                            //    metricType = "Float";
+
+                            if ("<?= $_REQUEST['timeRange']?>") {
+                                if ("<?= $_REQUEST['timeRange'] ?>" != 'last' && "<?= $_REQUEST['timeRange'] ?>" != "") {
+                                    /*  switch("<?= $_REQUEST['timeRange'] ?>") {
+                                            case "4 Ore":
+                                                timeRange = "fromTime=4-hour";
+                                                break;
+
+                                            case "12 Ore":
+                                                timeRange = "fromTime=12-hour";
+                                                break;
+
+                                            case "Giornaliera":
+                                                timeRange = "fromTime=1-day";
+                                                break;
+
+                                            case "Settimanale":
+                                                timeRange = "fromTime=7-day";
+                                                break;
+
+                                            case "Mensile":
+                                                timeRange = "fromTime=30-day";
+                                                break;
+
+                                            case "Annuale":
+                                                timeRange = "fromTime=365-day";
+                                                break;
+                                        }   */
+
+                                    urlToCall = smUrl + "&" + timeRange;
+                                } else {
+                                    urlToCall = smUrl;
+                                }
+                            } else {
+                                urlToCall = smUrl;
+                            }
+
+                            getSmartCitySensorValues(rowParameters, i, smUrl, null, true, function (extractedData) {
+
+                                if (extractedData) {
+                                    seriesDataArray.push(extractedData);
+                                } else {
+                                    console.log("Dati Smart City non presenti");
+                                    seriesDataArray.push(undefined);
+                                }
+                                //if (endFlag === true) {
+                                // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                if (rowParameters.length === seriesDataArray.length) {
+                                    // DO FINAL SERIALIZATION
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
+                                }
+
+                            });
+                            break;
+
+                        case "Dynamic":
+                            let extractedData = {};
+                            extractedData.value = rowParameters[i].value;
+                            extractedData.metricType = rowParameters[i].metricType;
+                            extractedData.metricId = rowParameters[i].metricId;
+                            extractedData.metricName = rowParameters[i].metricName;
+                            extractedData.measuredTime = rowParameters[i].measuredTime;
+                            extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
+
+                            seriesDataArray.push(extractedData);
+
+                            if (rowParameters.length === seriesDataArray.length) {
+                                // DO FINAL SERIALIZATION
+                                serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                            }
+
+                            break;
+
+                        case "MyKPI":
+
+                            //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
+                            let aggregationCell = [];
+                            var xlabels = [];
+                            let kpiMetricName = rowParameters[i].metricName;
+                            let kpiMetricType = rowParameters[i].metricType;
+                            if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
+                                rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
+                            }
+                            getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
+
+                                if (extractedData) {
+                                    seriesDataArray.push(extractedData);
+                                } else {
+                                    console.log("Dati Smart City non presenti");
+                                    seriesDataArray.push(undefined);
+                                }
+                                //if (endFlag === true) {
+                                // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
+                                if (rowParameters.length === seriesDataArray.length) {
+                                    // DO FINAL SERIALIZATION
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                }
+
+                            });
+                            break;
+
+                    }
+                }
+            } else {
+
+                $.ajax({
+                    url: getMetricDataUrl,
+                    type: "GET",
+                    data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
+                    async: true,
+                    dataType: 'json',
+                    success: function (data) {
+                        metricData = data;
+                        if (metricData.data.length !== 0) {
+                            metricType = metricData.data[0].commit.author.metricType;
+                            series = metricData.data[0].commit.author.series;
+                            if (firstLoad !== false) {
+                                showWidgetContent(widgetName);
+                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                            } else {
+                                elToEmpty.empty();
+                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                            }
+                            populateTable(series);
+                            applyThresholdCodes(series);
+                            setTableHeight();
+                            var widgetHeight = parseInt($("#<?= escapeForJS($_REQUEST['name_w']) ?>_table").height() + 25);
+                            createLegends(series, widgetHeight);
+                            createInfoButtons();
+                        } else {
+                            showWidgetContent(widgetName);
+                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                            $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                        }
+                    },
+                    error: function (errorData) {
+                        metricData = null;
+                        console.log("Error in data retrieval");
+                        console.log(JSON.stringify(errorData));
+                        showWidgetContent(widgetName);
+                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                    }
+                });
+            }
+        }
+
         //Fine definizioni di funzione  
         
         //Codice core del widget
@@ -922,7 +1171,7 @@
             infoJson = "<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>";
         }
 
-        //Nuova versione // **************** NEW GP ********************************************************************
+        //Nuova versione //
         $.ajax({
             url: "../controllers/getWidgetParams.php",
             type: "GET",
@@ -950,6 +1199,10 @@
                 gridLineColor = widgetData.params.chartPlaneColor;
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
+
+                if (nrMetricType != null) {
+                    openWs();
+                }
 
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
@@ -1055,250 +1308,9 @@
                              break;
                      }*/
 
-                let aggregationFlag = false;
-                if (JSON.parse(widgetData.params.rowParameters) != null) {
-                    if (JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "Sensor" || JSON.parse(widgetData.params.rowParameters)[0].metricHighLevelType == "MyKPI") {
-                        aggregationFlag = true;
-                    }
-                }
+                rowParameters = JSON.parse(rowParameters);
+                loadData();
 
-                if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true || widgetData.params.id_metric.includes("NR_"))
-                {
-                    rowParameters = JSON.parse(rowParameters);
-                    aggregationGetData = [];
-                    getDataFinishCount = 0;
-                    editLabels = (JSON.parse(widgetData.params.styleParameters)).editDeviceLabels;
-
-                    for(var i = 0; i < rowParameters.length; i++)
-                    {
-                        aggregationGetData[i] = false;
-                    }
-
-                    for(var i = 0; i < rowParameters.length; i++)
-                    {
-                        let dataOrigin = rowParameters[i].metricHighLevelType;
-                        switch(dataOrigin) {
-                            case "KPI":
-                                index = i;
-                                $.ajax({
-                                    url: "../controllers/aggregationSeriesProxy.php",
-                                    type: "POST",
-                                    data:
-                                        {
-                                            dataOrigin: JSON.stringify(rowParameters[i]),
-                                            index: i
-                                        },
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function (data) {
-                                        aggregationGetData[data.index] = data;
-                                        getDataFinishCount++;
-
-                                        //Popoliamo il widget quando sono arrivati tutti i dati
-                                        if (getDataFinishCount === rowParameters.length) {
-                                            populateTable(JSON.stringify(series));
-                                            //   legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
-                                            //    xAxisCategories = getXAxisCategories(series, widgetHeight);
-                                            applyThresholdCodes(series);
-                                            setTableHeight();
-                                            var widgetHeight = parseInt($("#WeatherStations_77_widgetTable783_table").height() + 25);
-                                            createLegends(series, widgetHeight);
-                                            createInfoButtons();
-
-                                            if (firstLoad !== false) {
-                                                showWidgetContent(widgetName);
-                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                            } else {
-                                                elToEmpty.empty();
-                                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                                $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                            }
-
-                                        //    drawDiagram();
-                                        }
-                                    },
-                                    error: function (errorData) {
-                                        metricData = null;
-                                        console.log("Error in data retrieval");
-                                        console.log(JSON.stringify(errorData));
-                                        showWidgetContent(widgetName);
-                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                                        $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                                    }
-                                });
-                                break;
-
-                            case "Sensor":
-                                var timeRange = null;
-                                var urlToCall = "";
-                                var xlabels = [];
-                                let smUrl = "";
-                                if (rowParameters[i].metricId != null) {
-                                    if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
-                                        smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
-                                    } else {
-                                        smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
-                                    }
-                                } else {
-                                    smUrl = "";
-                                }
-                                //    metricType = "Float";
-
-                                if("<?= $_REQUEST['timeRange']?>") {
-                                    if("<?= $_REQUEST['timeRange'] ?>" != 'last' && "<?= $_REQUEST['timeRange'] ?>" != "") {
-                                        /*  switch("<?= $_REQUEST['timeRange'] ?>") {
-                                            case "4 Ore":
-                                                timeRange = "fromTime=4-hour";
-                                                break;
-
-                                            case "12 Ore":
-                                                timeRange = "fromTime=12-hour";
-                                                break;
-
-                                            case "Giornaliera":
-                                                timeRange = "fromTime=1-day";
-                                                break;
-
-                                            case "Settimanale":
-                                                timeRange = "fromTime=7-day";
-                                                break;
-
-                                            case "Mensile":
-                                                timeRange = "fromTime=30-day";
-                                                break;
-
-                                            case "Annuale":
-                                                timeRange = "fromTime=365-day";
-                                                break;
-                                        }   */
-
-                                        urlToCall = smUrl + "&" + timeRange;
-                                    } else {
-                                        urlToCall = smUrl;
-                                    }
-                                } else {
-                                    urlToCall = smUrl;
-                                }
-
-                                getSmartCitySensorValues(rowParameters, i, smUrl, null, true, function(extractedData) {
-
-                                    if(extractedData) {
-                                        seriesDataArray.push(extractedData);
-                                    }
-                                    else
-                                    {
-                                        console.log("Dati Smart City non presenti");
-                                        seriesDataArray.push(undefined);
-                                    }
-                                    //if (endFlag === true) {
-                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
-                                    if (rowParameters.length === seriesDataArray.length) {
-                                        // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
-                                    }
-
-                                });
-                                break;
-
-                            case "Dynamic":
-                                let extractedData = {};
-                                extractedData.value = rowParameters[i].value;
-                                extractedData.metricType = rowParameters[i].metricType;
-                                extractedData.metricId = rowParameters[i].metricId;
-                                extractedData.metricName = rowParameters[i].metricName;
-                                extractedData.measuredTime = rowParameters[i].measuredTime;
-                                extractedData.metricValueUnit = rowParameters[i].metricValueUnit;
-
-                                seriesDataArray.push(extractedData);
-
-                                if (rowParameters.length === seriesDataArray.length) {
-                                    // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
-                                }
-
-                                break;
-
-                            case "MyKPI":
-
-                                //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
-                                let aggregationCell = [];
-                                var xlabels = [];
-                                let kpiMetricName =  rowParameters[i].metricName;
-                                let kpiMetricType =  rowParameters[i].metricType;
-                                if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
-                                    rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
-                                }
-                                getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
-
-                                    if (extractedData) {
-                                        seriesDataArray.push(extractedData);
-                                    } else {
-                                        console.log("Dati Smart City non presenti");
-                                        seriesDataArray.push(undefined);
-                                    }
-                                    //if (endFlag === true) {
-                                    // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
-                                    if (rowParameters.length === seriesDataArray.length) {
-                                        // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
-                                    }
-
-                                });
-                                break;
-
-                        }
-                    }
-                }
-                else {
-
-                    $.ajax({
-                        url: getMetricDataUrl,
-                        type: "GET",
-                        data: {"IdMisura": ["<?= escapeForJS($_REQUEST['id_metric']) ?>"]},
-                        async: true,
-                        dataType: 'json',
-                        success: function (data) {
-                            metricData = data;
-                            if (metricData.data.length !== 0) {
-                                metricType = metricData.data[0].commit.author.metricType;
-                                series = metricData.data[0].commit.author.series;
-                                if (firstLoad !== false) {
-                                    showWidgetContent(widgetName);
-                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                } else {
-                                    elToEmpty.empty();
-                                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                }
-                                populateTable(series);
-                                applyThresholdCodes(series);
-                                setTableHeight();
-                                var widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_table").height() + 25);
-                                createLegends(series, widgetHeight);
-                                createInfoButtons();
-                            } else {
-                                showWidgetContent(widgetName);
-                                $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                            }
-                        },
-                        error: function (errorData) {
-                            metricData = null;
-                            console.log("Error in data retrieval");
-                            console.log(JSON.stringify(errorData));
-                            showWidgetContent(widgetName);
-                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                            $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                            $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                        }
-                    });
-                }
-                // GP FINE SECONDA SOLUZIONE ------------------------------------------------------------
             },
             error: function(errorData)
             {
@@ -1310,8 +1322,106 @@
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
             }
         });
-        // ************* FINE NEW GP ***********************************************************************************
-        
+
+        //Web socket
+        openWs = function(e)
+        {
+            try
+            {
+                <?php
+                $genFileContent = parse_ini_file("../conf/environment.ini");
+                $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                ?>
+
+                webSocket.addEventListener('open', openWsConn);
+                webSocket.addEventListener('close', wsClosed);
+
+                setTimeout(function(){
+                    webSocket.removeEventListener('close', wsClosed);
+                    webSocket.removeEventListener('open', openWsConn);
+                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                    webSocket.close();
+                    webSocket = null;
+                }, (timeToReload - 2)*1000);
+            }
+            catch(e)
+            {
+                wsClosed();
+            }
+        };
+
+        manageIncomingWsMsg = function(msg)
+        {
+            var msgObj = JSON.parse(msg.data);
+
+            switch(msgObj.msgType)
+            {
+                case "newNRMetricData":
+                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                    {
+                        //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+
+                        var newValue = msgObj.newValue;
+                    //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                        //    point.update(newValue);
+
+                        rowParameters = newValue;
+                        emptyLegendFlagFromWs = true;
+                        loadData();
+
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        };
+
+        openWsConn = function(e)
+        {
+            var wsRegistration = {
+                msgType: "ClientWidgetRegistration",
+                userType: "widgetInstance",
+                metricName: encodeURIComponent(metricName),
+                widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+            };
+            webSocket.send(JSON.stringify(wsRegistration));
+
+            setTimeout(function(){
+                webSocket.removeEventListener('close', wsClosed);
+                webSocket.close();
+            }, (timeToReload - 2)*1000);
+
+            webSocket.addEventListener('message', manageIncomingWsMsg);
+        };
+
+        wsClosed = function(e)
+        {
+            webSocket.removeEventListener('close', wsClosed);
+            webSocket.removeEventListener('open', openWsConn);
+            webSocket.removeEventListener('message', manageIncomingWsMsg);
+            webSocket = null;
+            if(wsRetryActive === 'yes')
+            {
+                setTimeout(openWs, parseInt(wsRetryTime*1000));
+            }
+        };
+
+        //Per ora non usata
+        wsError = function(e)
+        {
+
+        };
+
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();
         });

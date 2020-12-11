@@ -52,9 +52,11 @@ if (isset($_GET['timeRange'])) {
 }
 
 if (isset($_REQUEST['last'])) {
-    $lastValueString = "&last=" . $_REQUEST['last'];
+    if ($_REQUEST['last'] == "1") {
+        $lastValueString = "&last=" . $_REQUEST['last'];
+    }
 } else {
-    $lastValueString = "&last=0";
+ //   $lastValueString = "&last=0";
 }
 
 if(isset($_SESSION['refreshToken'])) {
