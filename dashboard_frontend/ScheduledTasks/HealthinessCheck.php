@@ -52,7 +52,6 @@ if (defined('STDIN')) {
     } else {
       //  $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
         $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
-      //  $query = "SELECT * FROM Dashboard.DashboardWizard WHERE id = 1998;";
     }
 } else {
     $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
@@ -96,7 +95,7 @@ if ($rs) {
                 } else {
                     $sUri = $row['get_instances'];
                 }
-                $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=json";
                 $instance_uri = "single_marker";
             } else if ($row['nature'] != 'IoTDevice' && $sub_nature != "First Aid Data") {
                 if (strpos($row['get_instances'], "%2525") != false && strpos($row['get_instances'], "%252525") == false) {
@@ -106,14 +105,14 @@ if ($rs) {
                 }
                 if ($row['sub_nature'] != 'IoTSensor' && $row['sub_nature'] != 'IoTSensor-Actuator') {
                     $sUriEnc = str_replace('%3A', '%253A', $sUri);
-                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&healthiness=true&format=json&apikey=" . $ssMapAPIKey;
                 } else {
                     $sUriEnc = str_replace('%3A', '%253A', $sUri);
-                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&healthiness=true&format=application%2Fsparql-results%2Bjson&apikey=" . $ssMapAPIKey;
+                    $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUriEnc . "&healthiness=true&format=json&apikey=" . $ssMapAPIKey;
                 }
                 $instance_uri = "any + status";
             } else if ($sub_nature === "First Aid Data") {
-                $url =  $kbUrlSuperServiceMap . "?serviceUri=" . $row['parameters'] . "&healthiness=true&format=application%2Fsparql-results%2Bjson";
+                $url =  $kbUrlSuperServiceMap . "?serviceUri=" . $row['parameters'] . "&healthiness=true&format=json";
             }
 
             $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
@@ -199,6 +198,10 @@ if ($rs) {
                             if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
                                 if ($key != 'capacity' || $sub_nature != 'Car_park') {
 
+                                /*    if ($realtime_data[$key]['valueDate']) {
+                                        $last_date = str_replace("T", " ", $realtime_data[$key]['valueDate']);
+                                        $last_date = str_replace(".000", " ", $last_date);
+                                    }*/
                                     $measure = $realtime_data[$key]['value'];
                                     // if ($realtime_data[$key]['unit'] != '') {
                                     if (!empty($realtime_data[$key]['unit'])) {

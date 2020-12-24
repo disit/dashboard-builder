@@ -27780,6 +27780,8 @@
                                             displayedUdm = displayedUdm.replace(/&rcub;/g, "}");
                                             displayedUdm = displayedUdm.replace(/&Hat;/g, "^");
                                             $("#inputUdmWidgetM").val(displayedUdm);
+                                        } else {
+                                            $("#inputUdmWidgetM").val("");
                                         }
 
                                         //Open in New Tab or Not
